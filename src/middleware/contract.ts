@@ -10,7 +10,7 @@ export async function verifyContract(
   enforceSchema({
     data: req.params,
     schema: ContractParamsSchema,
-    error: `Invalid contract address in route`,
+    error: `Invalid chain name or contract address in route`,
     next,
   });
 

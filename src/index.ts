@@ -13,10 +13,12 @@ const port = 3000;
 // MIDDLEWARES
 app.use(express.json());
 app.use(verifyToken); // Verify bearer token for all routes
-app.use(handleError); // Handle all errors through error middleware
 
 // ROUTES
 app.use("/contract", contractRouter);
+
+// ERRORS
+app.use(handleError); // Handle all errors through error middleware
 
 // START SERVER
 app.listen(port, () => {

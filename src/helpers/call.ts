@@ -17,7 +17,7 @@ export async function enforceCall<T>({
   } catch (err) {
     return next({
       message: error,
-      details: [err.message],
+      details: [],
     }) as T;
   }
 }

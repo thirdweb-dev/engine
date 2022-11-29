@@ -21,7 +21,7 @@ router.post(
 
     return res.json({
       result: {
-        signedPayload,
+        signedPayload: signedPayload,
       },
     });
   }

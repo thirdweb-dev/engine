@@ -8,11 +8,15 @@ export default function handleError(
   res: Response,
   _next: NextFunction
 ) {
-  const parsed = ErrorSchema.safeParse(err);
-  if (parsed.success) {
-    return res.status(400).json({
-      error: parsed.data,
-    });
+  try {
+    const parsed = ErrorSchema.safeParse(err);
+    if (parsed.success) {
+      return res.status(400).json({
+        error: parsed.data,
+      });
+    }
+  } catch {
+    // no-op
   }
 
   return res.status(500).json({
