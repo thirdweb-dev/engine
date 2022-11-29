@@ -7,7 +7,7 @@ export function verifyToken(req: Request, res: Response, next: NextFunction) {
     const bearer = header.split(" ");
     const token = bearer[1];
 
-    if (token !== process.env.THIRDWEB_API_AUTH_TOKEN) {
+    if (token !== process.env.THIRDWEB_ADMIN_SECRET) {
       res.sendStatus(403);
     }
     next();
