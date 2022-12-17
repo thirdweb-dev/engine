@@ -26,7 +26,7 @@ router.post(
     const { chain_name, contract_address } = req.params;
     const { payload } = req.body;
 
-    if (!payload || !payload.to) {
+    if (!payload) {
       return res.status(400).json({ error: { message: "Invalid payload" } });
     }
 
@@ -37,6 +37,12 @@ router.post(
         sdk.getProvider(),
         payload.to
       );
+
+      if (!payload.to) {
+        return res
+          .status(400)
+          .json({ error: { message: "Invalid to address" } });
+      }
 
       const contract = await sdk.getContract(contract_address);
       const signedPayload = await contract.erc721.signature.generate(payload);
