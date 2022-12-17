@@ -1,15 +1,14 @@
 import { isAddress } from "@ethersproject/address";
+import { providers } from "ethers";
 import express, { NextFunction, Request, Response } from "express";
-import { enforceCall } from "../../../helpers/call";
 import { getSDK } from "../../../helpers/sdk";
 
 const router = express.Router({ mergeParams: true });
 
 async function validateAddressAndResolveENS(
+  provider: providers.Provider,
   address: string
 ): Promise<null | string> {
-  const provider = (await getSDK("ethereum")).getProvider();
-
   if (!provider) {
     return address;
   }
@@ -32,9 +31,13 @@ router.post(
     }
 
     try {
-      payload.to = await validateAddressAndResolveENS(payload.to);
-
       const sdk = await getSDK(chain_name);
+
+      payload.to = await validateAddressAndResolveENS(
+        sdk.getProvider(),
+        payload.to
+      );
+
       const contract = await sdk.getContract(contract_address);
       const signedPayload = await contract.erc721.signature.generate(payload);
 
