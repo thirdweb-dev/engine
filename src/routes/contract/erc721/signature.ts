@@ -1,8 +1,24 @@
+import { isAddress } from "@ethersproject/address";
+import { providers } from "ethers";
 import express, { NextFunction, Request, Response } from "express";
-import { enforceCall } from "../../../helpers/call";
 import { getSDK } from "../../../helpers/sdk";
 
 const router = express.Router({ mergeParams: true });
+
+async function validateAddressAndResolveENS(
+  provider: providers.Provider,
+  address: string
+): Promise<null | string> {
+  if (!provider) {
+    return address;
+  }
+
+  if (isAddress(address)) {
+    return address;
+  }
+
+  return await provider.resolveName(address);
+}
 
 router.post(
   "/generate",
@@ -10,20 +26,35 @@ router.post(
     const { chain_name, contract_address } = req.params;
     const { payload } = req.body;
 
-    const sdk = await getSDK(chain_name);
-    const contract = await sdk.getContract(contract_address);
+    if (!payload) {
+      return res.status(400).json({ error: { message: "Invalid payload" } });
+    }
 
-    const signedPayload = await enforceCall({
-      call: () => contract.erc721.signature.generate(payload),
-      error: "Error generating payload",
-      next,
-    });
+    try {
+      const sdk = await getSDK(chain_name);
 
-    return res.json({
-      result: {
-        signedPayload: signedPayload,
-      },
-    });
+      payload.to = await validateAddressAndResolveENS(
+        sdk.getProvider(),
+        payload.to
+      );
+
+      if (!payload.to) {
+        return res
+          .status(400)
+          .json({ error: { message: "Invalid to address" } });
+      }
+
+      const contract = await sdk.getContract(contract_address);
+      const signedPayload = await contract.erc721.signature.generate(payload);
+
+      return res.json({
+        result: {
+          signedPayload: signedPayload,
+        },
+      });
+    } catch (e) {
+      next(e);
+    }
   }
 );
 

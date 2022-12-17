@@ -8,6 +8,7 @@ export default function handleError(
   res: Response,
   _next: NextFunction
 ) {
+  console.error(err);
   try {
     const parsed = ErrorSchema.safeParse(err);
     if (parsed.success) {
@@ -21,7 +22,7 @@ export default function handleError(
 
   return res.status(500).json({
     error: {
-      message: err.message,
+      message: "Internal server error",
       details: [],
     },
   });

@@ -8,10 +8,11 @@ export function verifyToken(req: Request, res: Response, next: NextFunction) {
     const token = bearer[1];
 
     if (token !== process.env.THIRDWEB_ADMIN_SECRET) {
-      res.sendStatus(403);
+      res.status(401).json({ message: "Unauthorized" });
+    } else {
+      next();
     }
-    next();
   } else {
-    res.sendStatus(401);
+    res.status(401).json({ message: "Unauthorized" });
   }
 }
