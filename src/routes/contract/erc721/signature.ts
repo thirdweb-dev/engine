@@ -1,8 +1,25 @@
+import { isAddress } from "@ethersproject/address";
 import express, { NextFunction, Request, Response } from "express";
 import { enforceCall } from "../../../helpers/call";
 import { getSDK } from "../../../helpers/sdk";
 
 const router = express.Router({ mergeParams: true });
+
+async function validateAddressAndResolveENS(
+  address: string
+): Promise<null | string> {
+  const provider = (await getSDK("ethereum")).getProvider();
+
+  if (!provider) {
+    return address;
+  }
+
+  if (isAddress(address)) {
+    return address;
+  }
+
+  return await provider.resolveName(address);
+}
 
 router.post(
   "/generate",
@@ -10,20 +27,29 @@ router.post(
     const { chain_name, contract_address } = req.params;
     const { payload } = req.body;
 
-    const sdk = await getSDK(chain_name);
-    const contract = await sdk.getContract(contract_address);
+    if (!payload || !payload.to) {
+      return res.status(400).json({ error: "Invalid payload" });
+    }
 
-    const signedPayload = await enforceCall({
-      call: () => contract.erc721.signature.generate(payload),
-      error: "Error generating payload",
-      next,
-    });
+    try {
+      payload.to = await validateAddressAndResolveENS(payload.to);
 
-    return res.json({
-      result: {
-        signedPayload: signedPayload,
-      },
-    });
+      const sdk = await getSDK(chain_name);
+      const contract = await sdk.getContract(contract_address);
+      const signedPayload = await enforceCall({
+        call: () => contract.erc721.signature.generate(payload),
+        error: "Error generating payload",
+        next,
+      });
+
+      return res.json({
+        result: {
+          signedPayload: signedPayload,
+        },
+      });
+    } catch (e) {
+      next(e);
+    }
   }
 );
 
