@@ -15,6 +15,7 @@ export async function enforceCall<T>({
     const result = await call();
     return result;
   } catch (err) {
+    console.error(err);
     return next({
       message: error,
       details: [],
