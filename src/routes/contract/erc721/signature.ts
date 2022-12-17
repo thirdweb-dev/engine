@@ -28,7 +28,7 @@ router.post(
     const { payload } = req.body;
 
     if (!payload || !payload.to) {
-      return res.status(400).json({ error: "Invalid payload" });
+      return res.status(400).json({ error: { message: "Invalid payload" } });
     }
 
     try {
@@ -36,11 +36,7 @@ router.post(
 
       const sdk = await getSDK(chain_name);
       const contract = await sdk.getContract(contract_address);
-      const signedPayload = await enforceCall({
-        call: () => contract.erc721.signature.generate(payload),
-        error: "Error generating payload",
-        next,
-      });
+      const signedPayload = await contract.erc721.signature.generate(payload);
 
       return res.json({
         result: {
