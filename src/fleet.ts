@@ -30,6 +30,7 @@ class PGWalletStore implements IWalletStore {
 }
 
 export class Fleet {
+  // this is a widely used testing private keys wallets (default anvil / hardhat)
   static PRIVATE_KEYS = [
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
     "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
@@ -105,7 +106,7 @@ export class Fleet {
     const txSig = await tx.sign();
     const txHash = ethers.utils.keccak256(txSig);
 
-    //(sdk.getSigner()?.provider as any).send("eth_sendRawTransaction", [txSig]);
+    (sdk.getSigner()?.provider as any).send("eth_sendRawTransaction", [txSig]);
 
     return txHash;
   }
