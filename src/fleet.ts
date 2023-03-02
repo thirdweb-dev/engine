@@ -46,7 +46,8 @@ export class Fleet {
   }
 
   static getSDK(network: string) {
-    return ThirdwebSDK.fromPrivateKey(Fleet.PRIVATE_KEYS[0], network, {
+    /*
+     {
       supportedChains: [
         {
           chainId: 80001,
@@ -58,7 +59,9 @@ export class Fleet {
           },
         },
       ],
-    });
+    }
+     */
+    return ThirdwebSDK.fromPrivateKey(Fleet.PRIVATE_KEYS[0], network);
   }
 
   static nonce = -1;
