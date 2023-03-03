@@ -94,11 +94,15 @@ synchronize wallet nonce:
 - load blockchain transaction count
 - load database transaction count
 - update wallet offset (how to sync blockchain <-> database)
+- note: to account for potentially transaction stuck in the mempool, there'll need to be a grace period for out of sync.
+--- if database > blockchain = NO correction needed because transaction may be stuck in a mempool.
+--- if database < blockchain = YES, out of sync. will need to have a grace period based off last recorded transaction submit timestamp in the database. if the last recorded transaction was past threshold wait time, then it's out of sync.
+
+transaction rescues:
+- going through our database and adding on-chain tx state status to the database record
+- unverified / unconfirmed transaction will need to be retry at a higher nonce or something
 
 wallet:
 - for multi-tenant: key by something
--
-
-
 
 

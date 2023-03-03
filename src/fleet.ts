@@ -1,4 +1,5 @@
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { allChains, BaseGoerli } from "@thirdweb-dev/chains";
 import { CallOverrides, ethers, Signer } from "ethers";
 import process from "process";
 
@@ -47,8 +48,6 @@ export class Fleet {
 
   static getSDK(network: string) {
     /*
-     {
-      supportedChains: [
         {
           chainId: 80001,
           rpc: ["http://localhost:8545"],
@@ -58,10 +57,10 @@ export class Fleet {
             decimals: 18,
           },
         },
-      ],
-    }
-     */
-    return ThirdwebSDK.fromPrivateKey(Fleet.PRIVATE_KEYS[0], network);
+        */
+    return ThirdwebSDK.fromPrivateKey(Fleet.PRIVATE_KEYS[0], network, {
+      supportedChains: [BaseGoerli] as any,
+    });
   }
 
   static nonce = -1;

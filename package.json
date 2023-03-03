@@ -20,7 +20,8 @@
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.281.0",
     "@prisma/client": "^4.11.0",
-    "@thirdweb-dev/sdk": "^3.10.0-nightly-20230302201429-8f46a2ee",
+    "@thirdweb-dev/chains": "^0.1.6-nightly-20230303074206-0c883044",
+    "@thirdweb-dev/sdk": "^3.10.0-nightly-20230303074206-0c883044",
     "@thirdweb-dev/wallets": "^0.2.6",
     "dotenv": "^16.0.3",
     "ethers": "5",
