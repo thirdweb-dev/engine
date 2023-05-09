@@ -1,108 +1,20 @@
-server to server sdk. designed to be a sidecar.
-only server-to-server auth.
+# 🔑 web3-api
 
-benefits:
-- wallet management
-- automatic transaction queueing and retrying
-- built-in EIP2771 gasless relayer
-- trusted signature generation
+Thirdweb's Web3-API server.
 
-plugins: (enable/disable)
-- wallet
--- management (omnibus, sweep) - native / erc20 / erc721
--- signing
--- execution
----- cancellation
----- queueing
----- gas speed threshold
----- retry with gas
-- contract [chain id]
--- deployment
--- estimation
--- execution
-- gasless relayer (eip-2771, eip-2612) [chain id]
-- storage
-- auth
-- batch
+## Getting Started
 
---------
+1. Install packages: `yarn`
+2. Start local Docker containers: `yarn infra`
+3. Start server for local development with hot reloading: `yarn dev`
 
-request --> contract --> queue --> wallet
-request --> wallet signature
+## ToDo
 
-wallet -> signing -> process transaction
-
-request -> contract -> wallet signing -> queue -> process on the blockchain
-vs
-request -> contract -> queue -> wallet signing + process
-
-signing --- nonce dependent vs not
-
---------
-
-nonce = idempotent
-assign nonce on the transaction before the queue
-
-1 node, 1 wallet
-N node, 1 wallet
-N node, N wallets
-N node, M wallets, N > M
-N node, M wallets, N < M
-
-sharding:
-- network + wallet
-
-signed nonce, processed nonce, committed nonce
-
----------
-
-wallet signing:
-- signed with nonce -> process queue
-
-how to get nonce?
-- wallet_nonce
-
-how to correct the nonce?
-- ask the network
-- look at the queue
-- look at wallet_nonce
-
-does sending need to be throttled?
-- not really, as much as the rpc can handle
-
-Request -> Relay -> Sign -> Execute
-
----------
-
-requirements
-1. postgres: pg-boss
-
-----------
-
-postgres, acid guaranteed
-- wallet: pub_key, priv_key, owner_id, nonce_offset
-- wallet_nonce: pub_key, chain_id, nonce
-- transaction: id, pub_key, chain_id, transaction_hash
-- relay_transaction:
-
-relay_transaction = keep track of the status
-wallet = gotta keep transaction nonce offset
-
-----------
-
-synchronize wallet nonce:
-- load blockchain transaction count
-- load database transaction count
-- update wallet offset (how to sync blockchain <-> database)
-- note: to account for potentially transaction stuck in the mempool, there'll need to be a grace period for out of sync.
---- if database > blockchain = NO correction needed because transaction may be stuck in a mempool.
---- if database < blockchain = YES, out of sync. will need to have a grace period based off last recorded transaction submit timestamp in the database. if the last recorded transaction was past threshold wait time, then it's out of sync.
-
-transaction rescues:
-- going through our database and adding on-chain tx state status to the database record
-- unverified / unconfirmed transaction will need to be retry at a higher nonce or something
-
-wallet:
-- for multi-tenant: key by something
-
-
+- [X] Fastify Server Up & Running
+- [X] Dockerize the Server
+- [X] Add API-Key validation as middleware
+- [ ] Make API-Key Validation work with ThirdWeb Access check
+- [ ] Add wallet-id validation as middleware
+- [ ] Add Read End-point
+- [ ] Add Write End-point
+- [ ] Add Deplyer End-point
