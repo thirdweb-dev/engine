@@ -40,6 +40,6 @@ export type GenericApiRequest = FastifyRequest<
   RawRequestDefaultExpression<RawServerDefault>,
   FastifySchema,
   FastifyTypeProviderDefault,
-  GenericThirdwebRequestContext
+  GenericThirdwebRequestContext,
 >;
 export type GenericApiReply = FastifyReply;

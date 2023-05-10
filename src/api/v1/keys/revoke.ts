@@ -2,7 +2,6 @@ import { FastifyInstance, RouteGenericInterface } from 'fastify';
 import { Static, Type } from '@sinclair/typebox';
 import { baseReplyErrorSchema } from '../../../sharedApiSchemas';
 import { StatusCodes } from 'http-status-codes';
-// import { ApiKeyService } from '../../../services/ApiKeyService';
 import { API_KEY_REPLY_ERRORS } from '../../../constants/errors';
 import { FastifySchema } from 'fastify/types/schema';
 // import { AnalyticsService } from '../../../services/AnalyticsService';

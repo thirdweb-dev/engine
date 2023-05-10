@@ -11,18 +11,21 @@ const requestParamSchema = Type.Object({
   contract_address: Type.String(),
 });
 
+const requestQuerySchema = Type.Object({
+  function_name: Type.String(),
+  args: Type.Array(Type.String()),
+});
+
 const replyBodySchema = Type.Object({
-  result: Type.Array(
-    Type.Object({
-      chain_name: Type.String(),
-      contract_address: Type.String(),
-    })
-  ),
+  result: Type.Object({
+    data: Type.String(),
+  }),
   error: baseReplyErrorSchema,
 });
 
 const fullRouteSchema: FastifySchema = {
   params: requestParamSchema,
+  querystring: requestQuerySchema,
   response: {
     [StatusCodes.OK]: replyBodySchema
   },
@@ -30,6 +33,7 @@ const fullRouteSchema: FastifySchema = {
 
 interface schemaTypes extends RouteGenericInterface {
   Params: Static<typeof requestParamSchema>;
+  Querystring: Static<typeof requestQuerySchema>;
   Reply: Static<typeof replyBodySchema>;
 }
 
@@ -38,23 +42,20 @@ interface schemaTypes extends RouteGenericInterface {
 export async function readContract(fastify: FastifyInstance) {
   fastify.route<schemaTypes, GenericThirdwebRequestContext>({
     method: 'GET',
-    url: '/contracts/:chain_name/:contract_address/read',
+    url: '/contract/:chain_name/:contract_address/read',
     schema: fullRouteSchema,
     handler: async (request, reply) => {
       const { chain_name, contract_address } = request.params;
+      const { function_name, args } = request.query;
       const sdk = await getSDK(chain_name);
       const contract = await sdk.getContract(contract_address);
+
+      const returnData: any = await contract.call(function_name);
       
       reply.status(StatusCodes.OK).send({
-        // keys: apiKeyInfo.map((keyInfo) => ({
-        //   key: keyInfo.key,
-        //   creatorWalletAddress: keyInfo.creatorWalletAddress,
-        //   revoked: keyInfo.revoked,
-        // })),
-        result: [{
-          chain_name,
-          contract_address
-        }],
+        result: {
+          data: returnData
+        },
         error: null,
       });
     },
