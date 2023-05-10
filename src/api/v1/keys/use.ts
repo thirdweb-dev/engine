@@ -41,7 +41,7 @@ export async function useApiKeyRoute(fastify: FastifyInstance) {
       // Track event
       const apiCallerIdentity = request.context.config.apiCallerIdentity;
       // AnalyticsService.trackEvent({
-      //   eventName: `api_keys.use.${request.body.scope}`,
+      //   eventName: `${request.body.scope}`,
       //   apiCallerIdentity,
       // });
 

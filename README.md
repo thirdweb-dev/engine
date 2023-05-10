@@ -15,6 +15,6 @@ Thirdweb's Web3-API server.
 - [X] Add API-Key validation as middleware
 - [ ] Make API-Key Validation work with ThirdWeb Access check
 - [ ] Add wallet-id validation as middleware
-- [ ] Add Read End-point
+- [X] Add Read End-point
 - [ ] Add Write End-point
 - [ ] Add Deplyer End-point

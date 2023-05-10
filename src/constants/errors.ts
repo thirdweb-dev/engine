@@ -42,18 +42,3 @@ export const API_KEY_REPLY_ERRORS: Record<
     statusCode: StatusCodes.TOO_MANY_REQUESTS,
   },
 };
-
-/**
- * Authorization header reply errors
- */
-export const AUTHORIZATION_HEADER_REPLY_ERRORS: Record<
-  string,
-  Static<typeof errorSchema>
-> = {
-  MISSING_BEARER_TOKEN: {
-    code: 'MISSING_BEARER_TOKEN',
-    message:
-      "The bearer token is missing. Please include it in the 'Authorization' header.",
-    statusCode: StatusCodes.BAD_REQUEST,
-  },
-};

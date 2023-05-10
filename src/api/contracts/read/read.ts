@@ -2,61 +2,59 @@ import { FastifyInstance, RouteGenericInterface } from 'fastify';
 import { Static, Type } from '@sinclair/typebox';
 import { baseReplyErrorSchema } from '../../../sharedApiSchemas';
 import { StatusCodes } from 'http-status-codes';
-// import { ApiKeyService } from '../../../services/ApiKeyService';
 import { FastifySchema } from 'fastify/types/schema';
-// import { AnalyticsService } from '../../../services/AnalyticsService';
 import { GenericThirdwebRequestContext } from '../../../types/fastify';
-import { ThirdwebAuthUser } from '@thirdweb-dev/auth/dist/declarations/src/express/types';
+import { getSDK } from "../../../helpers/sdk";
+
+const requestParamSchema = Type.Object({
+  chain_name: Type.String(),
+  contract_address: Type.String(),
+});
 
 const replyBodySchema = Type.Object({
-  keys: Type.Array(
+  result: Type.Array(
     Type.Object({
-      key: Type.String(),
-      creatorWalletAddress: Type.String(),
-      revoked: Type.Boolean(),
+      chain_name: Type.String(),
+      contract_address: Type.String(),
     })
   ),
   error: baseReplyErrorSchema,
 });
 
 const fullRouteSchema: FastifySchema = {
+  params: requestParamSchema,
   response: {
-    [StatusCodes.OK]: replyBodySchema,
+    [StatusCodes.OK]: replyBodySchema
   },
 };
 
 interface schemaTypes extends RouteGenericInterface {
+  Params: Static<typeof requestParamSchema>;
   Reply: Static<typeof replyBodySchema>;
 }
 
-export async function listApiKeysRoute(fastify: FastifyInstance) {
+// updated chain to chain_name as I saw SDK needs chain_name
+// can update the implementation to retrive chain_name wrt to the chainId passed
+export async function readContract(fastify: FastifyInstance) {
   fastify.route<schemaTypes, GenericThirdwebRequestContext>({
     method: 'GET',
-    url: '/v1/keys',
+    url: '/contracts/:chain_name/:contract_address/read',
     schema: fullRouteSchema,
     handler: async (request, reply) => {
-      const user = request.context.config.apiCallerIdentity
-        .thirdwebAuthUser as ThirdwebAuthUser;
-
-      // const apiKeyInfo = await ApiKeyService.prisma.apiKeyInfo.findMany({
-      //   where: {
-      //     creatorWalletAddress: user.address,
-      //   },
-      // });
-
-      // Track event
-      // AnalyticsService.trackEvent({
-      //   apiCallerIdentity: request.context.config.apiCallerIdentity,
-      //   eventName: 'api_keys.list',
-      // });
-
+      const { chain_name, contract_address } = request.params;
+      const sdk = await getSDK(chain_name);
+      const contract = await sdk.getContract(contract_address);
+      
       reply.status(StatusCodes.OK).send({
         // keys: apiKeyInfo.map((keyInfo) => ({
         //   key: keyInfo.key,
         //   creatorWalletAddress: keyInfo.creatorWalletAddress,
         //   revoked: keyInfo.revoked,
         // })),
-        keys: [],
+        result: [{
+          chain_name,
+          contract_address
+        }],
         error: null,
       });
     },
