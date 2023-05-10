@@ -1,4 +1,6 @@
 import { TSchema, Type } from '@sinclair/typebox';
+import { FastifySchema } from 'fastify/types/schema';
+import { StatusCodes } from 'http-status-codes';
 
 /**
  * Requests to this server follow a pretty basic format.
@@ -45,3 +47,29 @@ export const dashboardRequestHeaderSchema = Type.Object({
   // Optional because the API key is not required for all routes.
   Authorization: Type.String(),
 });
+
+export const requestParamSchema = Type.Object({
+  chain_name: Type.String(),
+  contract_address: Type.String(),
+});
+
+export const requestQuerySchema = Type.Object({
+  function_name: Type.String(),
+  args: Type.Optional(Type.Array(Type.Any())),
+});
+
+export const replyBodySchema = Type.Object({
+  result: Type.Object({
+    data: Type.String(),
+    transaction: Type.Optional(Type.Any())
+  }),
+  error: baseReplyErrorSchema,
+});
+
+export const fullRouteSchema: FastifySchema = {
+  params: requestParamSchema,
+  querystring: requestQuerySchema,
+  response: {
+    [StatusCodes.OK]: replyBodySchema
+  },
+};

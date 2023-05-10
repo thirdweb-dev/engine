@@ -1,35 +1,10 @@
 import { FastifyInstance, RouteGenericInterface } from 'fastify';
-import { Static, Type } from '@sinclair/typebox';
-import { baseReplyErrorSchema } from '../../../sharedApiSchemas';
 import { StatusCodes } from 'http-status-codes';
-import { FastifySchema } from 'fastify/types/schema';
 import { GenericThirdwebRequestContext } from '../../../types/fastify';
 import { getSDK } from "../../../helpers/sdk";
-
-const requestParamSchema = Type.Object({
-  chain_name: Type.String(),
-  contract_address: Type.String(),
-});
-
-const requestQuerySchema = Type.Object({
-  function_name: Type.String(),
-  args: Type.Array(Type.String()),
-});
-
-const replyBodySchema = Type.Object({
-  result: Type.Object({
-    data: Type.String(),
-  }),
-  error: baseReplyErrorSchema,
-});
-
-const fullRouteSchema: FastifySchema = {
-  params: requestParamSchema,
-  querystring: requestQuerySchema,
-  response: {
-    [StatusCodes.OK]: replyBodySchema
-  },
-};
+import { Static } from '@sinclair/typebox';
+import { replyBodySchema, requestParamSchema, requestQuerySchema, fullRouteSchema } from "../../../sharedApiSchemas";
+import { logger } from "../../../utilities/logger";
 
 interface schemaTypes extends RouteGenericInterface {
   Params: Static<typeof requestParamSchema>;
@@ -47,10 +22,18 @@ export async function readContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name, contract_address } = request.params;
       const { function_name, args } = request.query;
+      
+      logger.info("Inside Read Function");
+      logger.silly(`Chain : ${chain_name}`)
+      logger.silly(`Contract Address : ${contract_address}`);
+
+      logger.silly(`Function Name : ${function_name}`)
+      logger.silly(`Contract Address : ${contract_address}`);
+
       const sdk = await getSDK(chain_name);
       const contract = await sdk.getContract(contract_address);
 
-      const returnData: any = await contract.call(function_name);
+      const returnData: any = await contract.call(function_name, args ?? []);
       
       reply.status(StatusCodes.OK).send({
         result: {
