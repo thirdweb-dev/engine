@@ -41,4 +41,11 @@ export const API_KEY_REPLY_ERRORS: Record<
     message: 'You have reached the maximum number of API keys.',
     statusCode: StatusCodes.TOO_MANY_REQUESTS,
   },
+
+  UNAUTHORIZED: {
+    code: 'UNAUTHORIZED',
+    message:
+      "API Key provided is not valid",
+    statusCode: StatusCodes.UNAUTHORIZED,
+  },
 };

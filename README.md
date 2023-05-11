@@ -13,6 +13,7 @@ Thirdweb's Web3-API server.
 - [X] Fastify Server Up & Running
 - [X] Dockerize the Server
 - [X] Add logging capabilty with winston
+- [ ] Add OpenAPI/Swagger Document Generation
 - [X] Add API-Key validation as middleware
 - [ ] Make API-Key Validation work with ThirdWeb Access check
 - [ ] Add wallet-id validation as middleware

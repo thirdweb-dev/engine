@@ -1,31 +1,14 @@
 import { FastifyInstance, RouteGenericInterface } from 'fastify';
 import { Static, Type } from '@sinclair/typebox';
-import { baseReplyErrorSchema } from '../../../sharedApiSchemas';
 import { StatusCodes } from 'http-status-codes';
-import { API_KEY_REPLY_ERRORS } from '../../../constants/errors';
-import { FastifySchema } from 'fastify/types/schema';
 // import { AnalyticsService } from '../../../services/AnalyticsService';
 import { GenericThirdwebRequestContext } from '../../../types/fastify';
 import { ThirdwebAuthUser } from '@thirdweb-dev/auth/dist/declarations/src/express/types';
-
-const requestBodySchema = Type.Object({
-  key: Type.String(),
-});
-
-const replyBodySchema = Type.Object({
-  error: baseReplyErrorSchema,
-});
-
-const fullRouteSchema: FastifySchema = {
-  body: requestBodySchema,
-  response: {
-    [StatusCodes.OK]: replyBodySchema,
-    [API_KEY_REPLY_ERRORS.INVALID_API_KEY.statusCode]: replyBodySchema,
-  },
-};
+import { replyBodySchema, requestBodySchemaForRevoke, fullRouteSchema } from "../../../sharedApiSchemas";
+import { logger } from "../../../utilities/logger";
 
 interface schemaTypes extends RouteGenericInterface {
-  Body: Static<typeof requestBodySchema>;
+  Body: Static<typeof requestBodySchemaForRevoke>;
   Reply: Static<typeof replyBodySchema>;
 }
 
@@ -33,7 +16,11 @@ export async function revokeApiKeyRoute(fastify: FastifyInstance) {
   fastify.route<schemaTypes, GenericThirdwebRequestContext>({
     method: 'POST',
     url: '/v1/keys/revoke',
-    schema: fullRouteSchema,
+    schema: {
+      description: 'Keys Revoke End-Point',
+      tags: ['api'],
+      ...fullRouteSchema
+    },
     handler: async (request, reply) => {
       // console.log('routeConfig', request.context)
       const user = request.context.config.apiCallerIdentity

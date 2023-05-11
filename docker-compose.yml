@@ -2,6 +2,11 @@ version: '3.8'
 
 services:
   web3-api:
+    # environment:
+    #   - PORT=3005
+    #   - OPENAPI_BASE_ORIGIN="http://localhost:3005"
+    #   - HOST="0.0.0.0"
+    #   - WALLET_PRIVATE_KEY=""
     build:
       dockerfile: Dockerfile
       context: .

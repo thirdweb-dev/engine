@@ -8,27 +8,12 @@ import { StatusCodes } from 'http-status-codes';
 // import { AnalyticsService } from '../../../services/AnalyticsService';
 import { FastifySchema } from 'fastify/types/schema';
 import { GenericThirdwebRequestContext } from '../../../types/fastify';
-
-const requestBodySchema = Type.Object({
-  scope: Type.String(),
-});
-
-const replyBodySchema = Type.Object({
-  authorized: Type.Optional(Type.Boolean()),
-  error: baseReplyErrorSchema,
-});
-
-const fullRouteSchema: FastifySchema = {
-  headers: developerRequestHeaderSchema,
-  body: requestBodySchema,
-  response: {
-    [StatusCodes.OK]: replyBodySchema,
-  },
-};
+import { replyBodySchema, requestBodySchemaForUse, fullRouteSchema } from "../../../sharedApiSchemas";
+import { logger } from "../../../utilities/logger";
 
 interface schemaTypes extends RouteGenericInterface {
   Headers: Static<typeof developerRequestHeaderSchema>;
-  Body: Static<typeof requestBodySchema>;
+  Body: Static<typeof requestBodySchemaForUse>;
   Reply: Static<typeof replyBodySchema>;
 }
 
@@ -36,7 +21,11 @@ export async function useApiKeyRoute(fastify: FastifyInstance) {
   fastify.route<schemaTypes, GenericThirdwebRequestContext>({
     method: 'POST',
     url: '/v1/keys/use',
-    schema: fullRouteSchema,
+    schema: {
+      description: 'Keys Use End-Point',
+      tags: ['api'],
+      ...fullRouteSchema
+    },
     handler: async (request, reply) => {
       // Track event
       const apiCallerIdentity = request.context.config.apiCallerIdentity;

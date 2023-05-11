@@ -18,7 +18,12 @@ export async function readContract(fastify: FastifyInstance) {
   fastify.route<schemaTypes, GenericThirdwebRequestContext>({
     method: 'GET',
     url: '/contract/:chain_name/:contract_address/read',
-    schema: fullRouteSchema,
+    schema: {
+      description: 'Read From Contract',
+      tags: ['read'],
+      operationId: 'read',
+      ...fullRouteSchema,
+    },
     handler: async (request, reply) => {
       const { chain_name, contract_address } = request.params;
       const { function_name, args } = request.query;

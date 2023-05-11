@@ -1,4 +1,3 @@
-import { getAllDetectedFeatureNames } from "@thirdweb-dev/sdk";
 import { FastifyInstance, RouteGenericInterface } from 'fastify';
 import { Static, Type } from '@sinclair/typebox';
 import { StatusCodes } from 'http-status-codes';
@@ -19,7 +18,12 @@ export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<schemaTypes, GenericThirdwebRequestContext>({
     method: 'POST',
     url: '/contract/:chain_name/:contract_address/write',
-    schema: fullRouteSchema,
+    schema: {
+      description: 'Write From Contract',
+      tags: ['write'],
+      operationId: 'read',
+      ...fullRouteSchema
+    },
     handler: async (request, reply) => {
       const { chain_name, contract_address } = request.params;
       const { function_name, args } = request.query;

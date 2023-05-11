@@ -38,16 +38,15 @@ const main = async () => {
   } as FastifyCookieOptions);
 
   await server.register(fastifyExpress);
-
-  await server.register(openapi);
-
+  openapi(server);
   await server.register(apiRoutes);
   
   // await server.addHook('onRequest', async (req, res) => {
   //   await apiKeyValidator(req, res);
   // });
-
+  
   await server.ready();
+  server.swagger();
   await server.listen({
     host: getEnv('HOST'),
     port: Number(getEnv('PORT')),
