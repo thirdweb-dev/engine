@@ -8,7 +8,7 @@
   "scripts": {
     "build": "yarn && rimraf dist && tsc -p ./tsconfig.json --outDir dist",
     "start": "node --experimental-specifier-resolution=node dist/index.js",
-    "dev": "NODE_ENV=development nodemon --watch 'src/**/*.ts' --exec 'ts-node' --files src/index.ts",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' --files src/index.ts",
     "infra": "docker compose --env-file ./.env up",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint --fix 'src/**/*.ts'",

@@ -55,12 +55,12 @@ export const requestParamSchema = Type.Object({
 
 export const requestQuerySchema = Type.Object({
   function_name: Type.String(),
-  args: Type.Optional(Type.Array(Type.Any())),
+  args: Type.Optional(Type.String()),
 });
 
 export const replyBodySchema = Type.Object({
   result: Type.Object({
-    data: Type.String(),
+    data: Type.Optional(Type.String()),
     transaction: Type.Optional(Type.Any())
   }),
   error: baseReplyErrorSchema,

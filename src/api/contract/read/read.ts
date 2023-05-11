@@ -28,12 +28,12 @@ export async function readContract(fastify: FastifyInstance) {
       logger.silly(`Contract Address : ${contract_address}`);
 
       logger.silly(`Function Name : ${function_name}`)
-      logger.silly(`Contract Address : ${contract_address}`);
+      logger.silly(`Args : ${args}`);
 
       const sdk = await getSDK(chain_name);
       const contract = await sdk.getContract(contract_address);
 
-      const returnData: any = await contract.call(function_name, args ?? []);
+      const returnData: any = await contract.call(function_name, args ? args.split(",") : []);
       
       reply.status(StatusCodes.OK).send({
         result: {
