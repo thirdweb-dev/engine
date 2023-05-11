@@ -20,3 +20,8 @@ Thirdweb's Web3-API server.
 - [X] Add Read End-point
 - [X] Add Write End-point
 - [ ] Add Deployer End-point
+
+
+## Note:
+
+`docker-compose.yaml` has commented out env variables value. You will need to add a PPK of your test wallet and then you should be able to intereact with the APIs
