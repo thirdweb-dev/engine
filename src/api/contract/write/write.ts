@@ -24,7 +24,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { chain_name, contract_address } = request.params;
       const { function_name, args } = request.query;
       
-      logger.info("Inside Read Function");
+      logger.info("Inside Write Function");
       logger.silly(`Chain : ${chain_name}`)
       logger.silly(`Contract Address : ${contract_address}`);
 
