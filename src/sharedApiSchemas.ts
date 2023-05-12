@@ -37,8 +37,12 @@ export const baseReplyErrorSchema = Nullable(errorSchema);
  */
 export const developerRequestHeaderSchema = Type.Object({
   // Optional because the API key is not required for all routes.
-  'x-api-key': Type.String(),
-  'x-wallet-id': Type.String(),
+  'x-api-key': Type.String({
+    description: "ThirdWeb API Key"
+  }),
+  'x-wallet-id': Type.String({
+    description: "Wallet ID (KMS/Secrets Etc)"
+  }),
 });
 
 /**
@@ -53,16 +57,26 @@ export const dashboardRequestHeaderSchema = Type.Object({
  * Basic schema for all Request Parameters
  */
 export const requestParamSchema = Type.Object({
-  chain_or_rpc: Type.String(),
-  contract_address: Type.String(),
+  chain_or_rpc: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name or RPC"
+  }),
+  contract_address: Type.String({
+    examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
+    description: "Contract Addres on the Chain"
+  }),
 });
 
 /**
  * Basic schema for all Request Query String
  */
 export const requestQuerySchema = Type.Object({
-  function_name: Type.String(),
-  args: Type.Optional(Type.String()),
+  function_name: Type.String({
+    description: "Name of the function to call on Contract"
+  }),
+  args: Type.Optional(Type.String({
+   description: "Arguments for the function. Comma Separated"
+  })),
 });
 
 /**

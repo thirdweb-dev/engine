@@ -44,7 +44,7 @@ const main = async () => {
   // await server.addHook('onRequest', async (req, res) => {
   //   await apiKeyValidator(req, res);
   // });
-  
+
   await server.ready();
   server.swagger();
   await server.listen({
