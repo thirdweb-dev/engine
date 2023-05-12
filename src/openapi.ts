@@ -23,27 +23,22 @@ export const openapi = async (server: FastifyInstance) => {
       components: {
         // To show schemas on the Docs if needed, uncomment
         // schemas:{
-        //   "read": {
-        //     "type": "object"
+        //   'read': {
+        //     'type': 'object'
         //   }
         // },
         securitySchemes: {
-          apiKey: {
+          sharedSecret: {
             type: 'apiKey',
-            name: 'x-api-key',
+            name: 'x-shared-secret',
             in: 'header',
-          },
-          walletId: {
-            type: 'apiKey',
-            name: 'x-wallet-Id',
-            in: 'header',
+            description: "For Secure Server-Server Calls"
           },
         },
       },
-      externalDocs: {
-        url: 'https://thirdweb.com',
-        description: 'Find more info here'
-      },
+      security: [{
+        sharedSecret: []
+      }]
     },
   });
 
@@ -62,6 +57,6 @@ export const openapi = async (server: FastifyInstance) => {
       preHandler: function (request, reply, next) { next() }
     },
     staticCSP: true,
-    transformStaticCSP: (header) => header
+    transformStaticCSP: (header) => header,
   })
 };

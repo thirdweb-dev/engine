@@ -1,7 +1,7 @@
-import { ThirdwebSDK, ChainOrRpc } from "@thirdweb-dev/sdk";
+import { ThirdwebSDK, ChainOrRpc } from '@thirdweb-dev/sdk';
 import { getEnv } from '../loadEnv';
-import { logger } from "../utilities/logger";
-// import { AwsKmsWallet } from "@thirdweb-dev/sdk/evm/wallets";
+import { logger } from '../utilities/logger';
+// import { AwsKmsWallet } from '@thirdweb-dev/sdk/evm/wallets';
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request

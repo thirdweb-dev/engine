@@ -1,4 +1,4 @@
-import { NextFunction } from "express";
+import { NextFunction } from 'express';
 
 interface EnforceCallParams<T> {
   call: () => Promise<T>;

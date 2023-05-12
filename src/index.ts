@@ -1,4 +1,3 @@
-// import './fastify.d.ts'
 import { getEnv } from './loadEnv';
 import fastify, { FastifyInstance } from 'fastify';
 import fastifyExpress from '@fastify/express';
@@ -7,9 +6,8 @@ import { openapi } from './openapi';
 import { errorHandler } from './errorHandler';
 import fastifyCors from '@fastify/cors';
 import { apiRoutes } from './api';
-import { GenericApiReply, GenericApiRequest } from './types/fastify';
 import cookie, { FastifyCookieOptions } from '@fastify/cookie';
-import { apiKeyValidator } from "./middleware/apiKeyValidator";
+import { logger } from './utilities/logger';
 
 const logSettings: any = {
   // local: {
@@ -40,10 +38,6 @@ const main = async () => {
   await server.register(fastifyExpress);
   openapi(server);
   await server.register(apiRoutes);
-  
-  // await server.addHook('onRequest', async (req, res) => {
-  //   await apiKeyValidator(req, res);
-  // });
 
   await server.ready();
   server.swagger();
@@ -51,7 +45,7 @@ const main = async () => {
     host: getEnv('HOST'),
     port: Number(getEnv('PORT')),
   }, ()=>{
-    console.log(`Server listening on ${getEnv('HOST')}:${getEnv('PORT')}`)
+    logger.info(`Server listening on ${getEnv('HOST')}:${getEnv('PORT')}`)
   });
 };
 

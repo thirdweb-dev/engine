@@ -5,7 +5,7 @@ import { FastifyInstance } from 'fastify';
 
 export const errorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler((error, request, reply) => {
-    console.log("===>", error);
+    console.log('===>', error);
     // Transform unexpected errors into a standard payload
     const statusCode = error.statusCode ?? StatusCodes.INTERNAL_SERVER_ERROR;
     const code =
