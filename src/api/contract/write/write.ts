@@ -14,7 +14,7 @@ interface schemaTypes extends RouteGenericInterface {
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<schemaTypes>({
     method: 'POST',
-    url: '/contract/:chain_or_rpc/:contract_address/write',
+    url: '/contract/:chain_name_or_id/:contract_address/write',
     schema: {
       description: 'Write From Contract',
       tags: ['write'],
@@ -22,18 +22,18 @@ export async function writeToContract(fastify: FastifyInstance) {
       ...fullRouteSchema
     },
     handler: async (request, reply) => {
-      const { chain_or_rpc, contract_address } = request.params;
+      const { chain_name_or_id, contract_address } = request.params;
       const { function_name, args } = request.query;
       
       logger.info('Inside Write Function');
-      logger.silly(`Chain : ${chain_or_rpc}`)
+      logger.silly(`Chain : ${chain_name_or_id}`)
       logger.silly(`Contract Address : ${contract_address}`);
 
       logger.silly(`Function Name : ${function_name}`)
       logger.silly(`Contract Address : ${contract_address}`);
       logger.silly(`Function Arguments : ${args}`);
 
-      const sdk = await getSDK(chain_or_rpc);
+      const sdk = await getSDK(chain_name_or_id);
       const contract:any = await sdk.getContract(contract_address);
       
       const returnData: any = await contract.call(function_name, args ? args.split(',') : []);

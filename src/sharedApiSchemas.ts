@@ -36,9 +36,9 @@ export const baseReplyErrorSchema = Nullable(errorSchema);
  * Basic schema for all Request Parameters
  */
 export const requestParamSchema = Type.Object({
-  chain_or_rpc: Type.String({
+  chain_name_or_id: Type.String({
     examples: ['mumbai'],
-    description: 'Add Chain ID or Chain Name or RPC'
+    description: 'Add Chain ID or Chain Name'
   }),
   contract_address: Type.String({
     examples: ['0xc8be6265C06aC376876b4F62670adB3c4d72EABA'],
