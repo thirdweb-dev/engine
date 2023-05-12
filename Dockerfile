@@ -19,19 +19,19 @@ ENV PATH /app/node_modules/.bin:$PATH
 
 CMD [ "yarn", "dev" ]
 
-FROM base AS dev
+# FROM base AS dev
 
-ENV NODE_ENV="development"
-RUN yarn install
+# ENV NODE_ENV="development"
+# RUN yarn install
 
-CMD [ "yarn", "dev" ]
+# CMD [ "yarn", "dev" ]
 
-FROM base AS prod
+# FROM base AS prod
 
-ENV NODE_ENV="production"
+# ENV NODE_ENV="production"
 
-RUN yarn install
-RUN yarn build
+# RUN yarn install
+# RUN yarn build
 
-RUN yarn install --production
-CMD [ "yarn", "start" ]
+# RUN yarn install --production
+# CMD [ "yarn", "start" ]

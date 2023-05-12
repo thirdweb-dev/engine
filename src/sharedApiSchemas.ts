@@ -53,7 +53,7 @@ export const dashboardRequestHeaderSchema = Type.Object({
  * Basic schema for all Request Parameters
  */
 export const requestParamSchema = Type.Object({
-  chain_name: Type.String(),
+  chain_or_rpc: Type.String(),
   contract_address: Type.String(),
 });
 

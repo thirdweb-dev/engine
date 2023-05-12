@@ -12,12 +12,10 @@ interface schemaTypes extends RouteGenericInterface {
   Reply: Static<typeof replyBodySchema>;
 }
 
-// updated chain to chain_name as I saw SDK needs chain_name
-// can update the implementation to retrive chain_name wrt to the chainId passed
 export async function readContract(fastify: FastifyInstance) {
   fastify.route<schemaTypes, GenericThirdwebRequestContext>({
     method: 'GET',
-    url: '/contract/:chain_name/:contract_address/read',
+    url: '/contract/:chain_or_rpc/:contract_address/read',
     schema: {
       description: 'Read From Contract',
       tags: ['read'],
@@ -25,17 +23,17 @@ export async function readContract(fastify: FastifyInstance) {
       ...fullRouteSchema,
     },
     handler: async (request, reply) => {
-      const { chain_name, contract_address } = request.params;
+      const { chain_or_rpc, contract_address } = request.params;
       const { function_name, args } = request.query;
       
       logger.info("Inside Read Function");
-      logger.silly(`Chain : ${chain_name}`)
+      logger.silly(`Chain : ${chain_or_rpc}`)
       logger.silly(`Contract Address : ${contract_address}`);
 
       logger.silly(`Function Name : ${function_name}`)
       logger.silly(`Args : ${args}`);
 
-      const sdk = await getSDK(chain_name);
+      const sdk = await getSDK(chain_or_rpc);
       const contract = await sdk.getContract(contract_address);
 
       const returnData: any = await contract.call(function_name, args ? args.split(",") : []);

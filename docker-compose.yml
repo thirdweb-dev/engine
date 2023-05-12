@@ -10,7 +10,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
-      target: local
+      target: prod
     ports:
       - 3005:3005
     volumes:
