@@ -14,8 +14,8 @@ export async function getSDK(chainName: ChainOrRpc): Promise<ThirdwebSDK> {
 
   // Need to make this instantiate SDK with read/write. For that will need wallet information
   // Currently only doing read-only mode as per Docs
-  if (getEnv('NODE_ENV') === 'local'){
-    sdkMap[chainName] = await ThirdwebSDK.fromPrivateKey(getEnv('WALLET_PRIVATE_KEY'), chainName);  
+  if (getEnv('NODE_ENV') === 'local'){)
+    sdkMap[chainName] = await ThirdwebSDK.fromPrivateKey(getEnv('WALLET_PRIVATE_KEY'), chainName, {thirdwebApiKey: getEnv('API_KEY')});  
   }
   // else if (getEnv('USE_WALLET') === 'true') {
   //   const wallet = new AwsKmsWallet({
