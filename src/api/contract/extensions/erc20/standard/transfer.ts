@@ -34,7 +34,7 @@ export async function erc20Transfer(fastify: FastifyInstance) {
       
       reply.status(StatusCodes.OK).send({
         result: {
-          data: returnData
+          transaction: returnData?.receipt
         },
         error: null,
       });
