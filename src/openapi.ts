@@ -14,6 +14,10 @@ export const openapi = async (server: FastifyInstance) => {
         title: 'thirdweb web3-API',
         description: 'thirdweb web3-API',
         version: '1.0.0',
+        license: {
+          "name": "Apache 2.0",
+          "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
       },
       servers: [
         {

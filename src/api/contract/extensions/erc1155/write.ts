@@ -1,25 +1,19 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, RouteGenericInterface } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
+import { getSDK } from '../../../../helpers/sdk';
 import { Static } from '@sinclair/typebox';
-import { getSDK } from '../../../helpers/sdk';
-import { partialRouteSchema, schemaTypes } from '../../../sharedApiSchemas';
-import { logger } from '../../../utilities/logger';
-import { writeRequestQuerySchema } from '../../../schemas/contract/write';
+import { fullRouteSchema, schemaTypes } from '../../../../sharedApiSchemas';
+import { logger } from '../../../../utilities/logger';
 
-interface writeSchema extends schemaTypes {
-  Querystring: Static<typeof writeRequestQuerySchema>;
-}
-
-export async function writeToContract(fastify: FastifyInstance) {
-  fastify.route<writeSchema>({
+export async function erc1155WriteContract(fastify: FastifyInstance) {
+  fastify.route<schemaTypes>({
     method: 'POST',
-    url: '/contract/:chain_name_or_id/:contract_address/write',
+    url: '/contract/:chain_name_or_id/:contract_address/erc1155/write',
     schema: {
-      description: 'Write From Contract',
-      tags: ['Contract'],
-      operationId: 'read',
-      ...partialRouteSchema,
-      querystring: writeRequestQuerySchema
+      description: 'Write To ERC1155 Contract',
+      tags: ['extensions'],
+      operationId: 'erc1155Write',
+      ...fullRouteSchema,
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
@@ -36,7 +30,8 @@ export async function writeToContract(fastify: FastifyInstance) {
       const sdk = await getSDK(chain_name_or_id);
       const contract:any = await sdk.getContract(contract_address);
       
-      const returnData: any = await contract.call(function_name, args ? args.split(',') : []);
+      const returnData: any = "asdad";
+      // await contract.call(function_name, args ? args.split(',') : []);
       
       reply.status(StatusCodes.OK).send({
         result: {

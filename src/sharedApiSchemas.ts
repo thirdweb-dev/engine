@@ -1,7 +1,7 @@
-import { TSchema, Type } from '@sinclair/typebox';
+import { TSchema, Type, Static } from '@sinclair/typebox';
 import { FastifySchema } from 'fastify/types/schema';
 import { StatusCodes } from 'http-status-codes';
-import { API_KEY_REPLY_ERRORS } from './constants/errors';
+import { RouteGenericInterface } from 'fastify';
 
 /**
  * Requests to this server follow a pretty basic format.
@@ -47,37 +47,11 @@ export const requestParamSchema = Type.Object({
 });
 
 /**
- * Basic schema for all Request Query String
- */
-export const requestQuerySchema = Type.Object({
-  function_name: Type.String({
-    description: 'Name of the function to call on Contract'
-  }),
-  args: Type.Optional(Type.String({
-   description: 'Arguments for the function. Comma Separated'
-  })),
-});
-
-/**
- * Basic schema for all Request Body for v1/use end-point
- */
-export const requestBodySchemaForUse = Type.Object({
-  scope: Type.String(),
-});
-
-/**
- * Basic schema for all Request Body for v1/revoke end-point
- */
-export const requestBodySchemaForRevoke = Type.Object({
-  key: Type.String()
-});
-
-/**
  * Basic schema for all Response Body
  */
-export const replyBodySchema = Type.Object({
+const replyBodySchema = Type.Object({
   result: Type.Optional(Type.Object({
-    data: Type.Optional(Type.String()),
+    data: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
     transaction: Type.Optional(Type.Any())
   })),
   error: baseReplyErrorSchema,
@@ -87,9 +61,8 @@ export const replyBodySchema = Type.Object({
 /**
  * Basic Fastify schema for request/response
  */
-export const fullRouteSchema: FastifySchema = {
+export const partialRouteSchema: FastifySchema = {
   params: requestParamSchema,
-  querystring: requestQuerySchema,
   response: {
     [StatusCodes.OK]: replyBodySchema,
     [StatusCodes.UNAUTHORIZED]: {
@@ -110,3 +83,8 @@ export const fullRouteSchema: FastifySchema = {
     }
   },
 };
+
+export interface schemaTypes extends RouteGenericInterface {
+  Params: Static<typeof requestParamSchema>;
+  Reply: Static<typeof replyBodySchema>;
+}

@@ -1,25 +1,19 @@
-import { FastifyInstance } from 'fastify';
+import { FastifyInstance, RouteGenericInterface } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
+import { getSDK } from '../../../../helpers/sdk';
 import { Static } from '@sinclair/typebox';
-import { getSDK } from '../../../helpers/sdk';
-import { partialRouteSchema, schemaTypes } from '../../../sharedApiSchemas';
-import { logger } from '../../../utilities/logger';
-import { readRequestQuerySchema } from '../../../schemas/contract/read';
+import { fullRouteSchema, schemaTypes } from '../../../../sharedApiSchemas';
+import { logger } from '../../../../utilities/logger';
 
-interface readSchema extends schemaTypes {
-  Querystring: Static<typeof readRequestQuerySchema>;
-}
-
-export async function readContract(fastify: FastifyInstance) {
-  fastify.route<readSchema>({
+export async function erc1155ReadContract(fastify: FastifyInstance) {
+  fastify.route<schemaTypes>({
     method: 'GET',
-    url: '/contract/:chain_name_or_id/:contract_address/read',
+    url: '/contract/:chain_name_or_id/:contract_address/erc1155/read',
     schema: {
-      description: 'Read From Contract',
-      tags: ['Contract'],
-      operationId: 'read',
-      ...partialRouteSchema,
-      querystring: readRequestQuerySchema,
+      description: 'Read From ERC1155 Contract',
+      tags: ['extensions'],
+      operationId: 'erc1155Read',
+      ...fullRouteSchema,
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
@@ -34,7 +28,8 @@ export async function readContract(fastify: FastifyInstance) {
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
 
-      const returnData: any = await contract.call(function_name, args ? args.split(',') : []);
+      const returnData: any = "adad";
+      // await contract.erc1155.call(function_name, args ? args.split(',') : []);
       
       reply.status(StatusCodes.OK).send({
         result: {

@@ -10,7 +10,7 @@
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "skipLibCheck": true,
-    "allowJs": true
+    "allowJs": true,
   },
   "ts-node": {
     "esm": true,
