@@ -4,11 +4,7 @@ import { Static } from '@sinclair/typebox';
 import { getSDK } from '../../../helpers/sdk';
 import { partialRouteSchema, schemaTypes } from '../../../sharedApiSchemas';
 import { logger } from '../../../utilities/logger';
-import { writeRequestBodySchema } from '../../../schemas/contract/write';
-
-interface writeSchema extends schemaTypes {
-  Body: Static<typeof writeRequestBodySchema>;
-}
+import { writeRequestBodySchema, writeSchema } from '../../../schemas/contract/write';
 
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<writeSchema>({
