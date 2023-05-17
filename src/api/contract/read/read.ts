@@ -4,26 +4,27 @@ import { Static } from '@sinclair/typebox';
 import { getSDK } from '../../../helpers/sdk';
 import { partialRouteSchema, schemaTypes } from '../../../sharedApiSchemas';
 import { logger } from '../../../utilities/logger';
-import { readRequestQuerySchema } from '../../../schemas/contract/read';
+import { readRequestBodySchema } from '../../../schemas/contract/read';
+import { bigNumberReplacer } from '../../../utilities/convertor';
 
 interface readSchema extends schemaTypes {
-  Querystring: Static<typeof readRequestQuerySchema>;
+  Body: Static<typeof readRequestBodySchema>;
 }
 
 export async function readContract(fastify: FastifyInstance) {
   fastify.route<readSchema>({
-    method: 'GET',
+    method: 'POST',
     url: '/contract/:chain_name_or_id/:contract_address/read',
     schema: {
       description: 'Read From Contract',
       tags: ['Contract'],
       operationId: 'read',
       ...partialRouteSchema,
-      querystring: readRequestQuerySchema,
+      body: readRequestBodySchema,
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { function_name, args } = request.query;
+      const { function_name, args } = request.body;
       logger.info('Inside Read Function');
       logger.silly(`Chain : ${chain_name_or_id}`)
       logger.silly(`Contract Address : ${contract_address}`);
@@ -34,7 +35,8 @@ export async function readContract(fastify: FastifyInstance) {
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
 
-      const returnData: any = await contract.call(function_name, args ? args.split(',') : []);
+      let returnData = await contract.call(function_name, args);
+      returnData = bigNumberReplacer(returnData);
       
       reply.status(StatusCodes.OK).send({
         result: {

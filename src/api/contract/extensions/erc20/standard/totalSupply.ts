@@ -27,16 +27,16 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
 
-      const returnData = await contract.erc20.totalSupply() as unknown as typeof totalSupplyReplyBodySchema;
+      const returnData = await contract.erc20.totalSupply();
       logger.info(`${JSON.stringify(returnData)}`);
 
       reply.status(StatusCodes.OK).send({
         result: {
           data: {
-            value: returnData.value,
+            value: returnData.value.toString(),
             symbol: returnData.symbol,
             name: returnData.name,
-            decimals: returnData.decimals,
+            decimals: returnData.decimals.toString(),
             displayValue: returnData.displayValue,
           }
         },

@@ -27,12 +27,12 @@ export async function erc20Allowance(fastify: FastifyInstance) {
       logger.silly(`Chain : ${chain_name_or_id}`)
       logger.silly(`Contract Address : ${contract_address}`);
 
-      logger.silly(`Spender Wallet : ${spender_wallet}`)
+      logger.silly(`Spender Wallet : ${spender_wallet}`);
 
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
 
-      const returnData: any = await contract.erc20.allowance(spender_wallet ? spender_wallet : "");
+      const returnData: any = await contract.erc20.allowance(spender_wallet);
       
       reply.status(StatusCodes.OK).send({
         result: {
