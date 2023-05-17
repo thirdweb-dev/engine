@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Thirdweb's web3-api server",
   "main": "src/index.ts",
-  "author": "Danny Friday <nessup@gmail.com>, Farhan Khwaja <farhan@thirdweb.com>",
+  "author": "Farhan Khwaja <farhan@thirdweb.com>",
   "type": "module",
   "scripts": {
     "build": "yarn && rimraf dist && tsc -p ./tsconfig.json --outDir dist",
