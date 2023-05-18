@@ -38,8 +38,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           data: returnData
-        },
-        error: null,
+        }
       });
     },
   });

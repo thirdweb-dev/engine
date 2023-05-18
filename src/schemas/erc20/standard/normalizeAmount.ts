@@ -15,7 +15,7 @@ export const getReplyBodySchema = Type.Object({
   result: Type.Optional(Type.Object({
     data: Type.String(),
   })),
-  error: baseReplyErrorSchema,
+  error: Type.Optional(baseReplyErrorSchema),
 });
 
 export interface normalizeAmountRouteSchema extends schemaTypes {

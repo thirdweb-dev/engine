@@ -36,8 +36,7 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
             name: returnData.name,
             decimals: returnData.decimals,
           }
-        },
-        error: null,
+        }
       });
     },
   });

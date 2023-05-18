@@ -4,7 +4,7 @@ import { StatusCodes } from 'http-status-codes';
 import { getSDK } from '../../../../../helpers/sdk';
 import { partialRouteSchema } from '../../../../../sharedApiSchemas';
 import { logger } from '../../../../../utilities/logger';
-import { transferRequestQuerySchema, transferRouteSchema } from '../../../../../schemas/erc20/standard/transfer';
+import { transferRequestBodySchema, transferRouteSchema } from '../../../../../schemas/erc20/standard/transfer';
 
 export async function erc20Transfer(fastify: FastifyInstance) {
   fastify.route<transferRouteSchema>({
@@ -15,11 +15,11 @@ export async function erc20Transfer(fastify: FastifyInstance) {
       tags: ['ERC20'],
       operationId: 'transfer',
       ...partialRouteSchema,
-      querystring: transferRequestQuerySchema
+      querystring: transferRequestBodySchema
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { to_address, amount } = request.query;
+      const { to_address, amount } = request.body;
       logger.info('Inside ERC20 - Transfer Function');
       logger.silly(`Chain : ${chain_name_or_id}`)
       logger.silly(`Contract Address : ${contract_address}`);
@@ -35,8 +35,7 @@ export async function erc20Transfer(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           transaction: returnData?.receipt
-        },
-        error: null,
+        }
       });
     },
   });

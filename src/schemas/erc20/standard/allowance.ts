@@ -21,11 +21,9 @@ export const allowanceReplyBodySchema = Type.Object({
       "name": Type.String(),
       "symbol": Type.String(),
       "decimals": Type.String(),
-      "value": Type.String({
-        description: "Allowance Value"
-      }),
+      "value": Type.String(),
       "displayValue": Type.String()
     }),
   })),
-  error: baseReplyErrorSchema,
+  error: Type.Optional(baseReplyErrorSchema),
 });

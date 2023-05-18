@@ -31,5 +31,5 @@ export const allowanceOfReplyBodySchema = Type.Object({
       "displayValue": Type.String()
     }),
   })),
-  error: baseReplyErrorSchema,
+  error: Type.Optional(baseReplyErrorSchema),
 });

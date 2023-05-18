@@ -35,8 +35,7 @@
 //       reply.status(StatusCodes.OK).send({
 //         result: {
 //           transaction: returnData?.receipt
-//         },
-//         error: null,
+//         }
 //       });
 //     },
 //   });

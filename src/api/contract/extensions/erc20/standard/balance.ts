@@ -32,8 +32,7 @@ export async function erc20Balance(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           data: returnData
-        },
-        error: null,
+        }
       });
     },
   });

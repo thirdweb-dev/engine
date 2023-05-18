@@ -39,8 +39,7 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
             decimals: returnData.decimals.toString(),
             displayValue: returnData.displayValue,
           }
-        },
-        error: null,
+        }
       });
     },
   });

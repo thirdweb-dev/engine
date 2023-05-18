@@ -2,6 +2,7 @@ import { getEnv } from './loadEnv';
 import fastify, { FastifyInstance } from 'fastify';
 import fastifyExpress from '@fastify/express';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import * as fs from 'fs';
 import { openapi } from './openapi';
 import { errorHandler } from './errorHandler';
 import fastifyCors from '@fastify/cors';
@@ -40,7 +41,15 @@ const main = async () => {
   await server.register(apiRoutes);
 
   await server.ready();
+  
+  // Command to Generate Swagger File
+  // Needs to be called post Fastify Server is Ready
   server.swagger();
+  
+  // To Generate Swagger YAML File
+  // const yaml = server.swagger({ yaml: true })
+  // fs.writeFileSync('./swagger.yml', yaml)
+
   await server.listen({
     host: getEnv('HOST'),
     port: Number(getEnv('PORT')),
