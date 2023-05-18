@@ -3,7 +3,7 @@ import { StatusCodes } from 'http-status-codes';
 import { getSDK } from '../../../helpers/sdk';
 import { partialRouteSchema } from '../../../sharedApiSchemas';
 import { logger } from '../../../utilities/logger';
-import { readRequestBodySchema, readSchema } from '../../../schemas/contract/read';
+import { readRequestQuerySchema, readSchema } from '../../../schemas/contract/read';
 import { bigNumberReplacer } from '../../../utilities/convertor';
 
 export async function readContract(fastify: FastifyInstance) {
@@ -15,7 +15,7 @@ export async function readContract(fastify: FastifyInstance) {
       tags: ['Contract'],
       operationId: 'read',
       ...partialRouteSchema,
-      querystring: readRequestBodySchema,
+      querystring: readRequestQuerySchema,
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
@@ -36,8 +36,7 @@ export async function readContract(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           data: returnData
-        },
-        error: null,
+        }
       });
     },
   });

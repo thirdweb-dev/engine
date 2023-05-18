@@ -11,11 +11,11 @@ export async function writeToContract(fastify: FastifyInstance) {
     method: 'POST',
     url: '/contract/:chain_name_or_id/:contract_address/write',
     schema: {
-      description: 'Write From Contract',
+      description: 'Write to Contract',
       tags: ['Contract'],
       operationId: 'write',
       ...partialRouteSchema,
-      body: writeRequestBodySchema
+      body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
@@ -37,8 +37,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           transaction: returnData?.receipt
-        },
-        error: null,
+        }
       });
     },
   });

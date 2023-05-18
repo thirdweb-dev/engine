@@ -9,7 +9,7 @@ export const getReplyBodySchema = Type.Object({
       "decimals": Type.String(),
     }),
   })),
-  error: baseReplyErrorSchema,
+  error: Type.Optional(baseReplyErrorSchema),
 });
 
 export interface getRouteSchema extends schemaTypes {

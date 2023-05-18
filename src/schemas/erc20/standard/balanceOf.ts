@@ -27,5 +27,5 @@ export const balanceOfReplyBodySchema = Type.Object({
       "displayValue": Type.String()
     }),
   })),
-  error: baseReplyErrorSchema,
+  error: Type.Optional(baseReplyErrorSchema),
 });

@@ -11,7 +11,7 @@ export const totalSupplyReplyBodySchema = Type.Object({
         "displayValue": Type.String()
       }),
     })),
-    error: baseReplyErrorSchema,
+    error: Type.Optional(baseReplyErrorSchema),
 });
 
 export interface totalSupplyRouteSchema extends schemaTypes {

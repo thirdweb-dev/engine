@@ -38,8 +38,7 @@ export async function erc20NormalizeAmount(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           data: returnData
-        },
-        error: null,
+        }
       });
     },
   });
