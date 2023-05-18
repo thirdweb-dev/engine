@@ -47,8 +47,10 @@ const main = async () => {
   server.swagger();
   
   // To Generate Swagger YAML File
-  // const yaml = server.swagger({ yaml: true })
-  // fs.writeFileSync('./swagger.yml', yaml)
+  if (getEnv('NODE_ENV') === "local") {
+    const yaml = server.swagger({ yaml: true });
+    fs.writeFileSync('./swagger.yml', yaml);
+  }
 
   await server.listen({
     host: getEnv('HOST'),
