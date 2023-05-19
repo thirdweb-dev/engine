@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+import pg from 'knex';
 import { getEnv } from '../loadEnv';
 
 // Defaults to postgres
@@ -21,7 +22,7 @@ export const connectToDB = async () : Promise<Knex> => {
     let dbClientPackage: any;
     switch (dbClient) {
         case 'pg':
-            dbClientPackage = (await import('pg')).default;
+            dbClientPackage = pg;
             break;
         default:
             throw new Error(`Unsupported database client: ${dbClient}`);
