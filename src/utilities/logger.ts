@@ -1,5 +1,5 @@
 import { createLogger, transports, format} from 'winston';
-import { getEnv } from '../loadEnv';
+import { getEnv } from '../helpers/loadEnv';
 
 let log_level = 'info';
 if (getEnv('NODE_ENV') !== 'production') {

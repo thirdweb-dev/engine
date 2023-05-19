@@ -1,10 +1,13 @@
 import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
 
-import { getSDK } from '../../../../../helpers/sdk';
-import { partialRouteSchema } from '../../../../../sharedApiSchemas';
-import { logger } from '../../../../../utilities/logger';
-import { allowanceRequestQuerySchema, allowanceRouteSchema, allowanceReplyBodySchema } from "../../../../../schemas/erc20/standard/allowance";
+import { getSDK } from '../../../../../helpers';
+import { partialRouteSchema } from '../../../../../helpers/sharedApiSchemas';
+import {
+  allowanceRequestQuerySchema,
+  allowanceRouteSchema,
+  allowanceReplyBodySchema
+} from "../../../../../schemas/erc20/standard/allowance";
 
 export async function erc20Allowance(fastify: FastifyInstance) {
   fastify.route<allowanceRouteSchema>({
@@ -23,11 +26,6 @@ export async function erc20Allowance(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { spender_wallet } = request.query;
-      logger.info('Inside ERC20 Allowance Function');
-      logger.silly(`Chain : ${chain_name_or_id}`)
-      logger.silly(`Contract Address : ${contract_address}`);
-
-      logger.silly(`Spender Wallet : ${spender_wallet}`);
 
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);

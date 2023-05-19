@@ -1,4 +1,4 @@
-import { TSchema, Type, Static } from '@sinclair/typebox';
+import { Type, Static } from '@sinclair/typebox';
 import { FastifySchema } from 'fastify/types/schema';
 import { StatusCodes } from 'http-status-codes';
 import { RouteGenericInterface } from 'fastify';
@@ -10,7 +10,6 @@ export const baseReplyErrorSchema = Type.Object({
   statusCode: Type.Number(),
   data: Type.Optional(Type.Any()),
 });
-
 
 /**
  * Used to surface application errors to the client. The `code` field is set by the request handler.
@@ -37,7 +36,8 @@ export const requestParamSchema = Type.Object({
 const replyBodySchema = Type.Object({
   result: Type.Optional(Type.Object({
     data: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
-    transaction: Type.Optional(Type.Any())
+    transaction: Type.Optional(Type.Any()),
+    queuedId: Type.Optional(Type.String())
   })),
   error: Type.Optional(baseReplyErrorSchema),
 });

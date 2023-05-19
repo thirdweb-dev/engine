@@ -57,8 +57,8 @@ export const openapi = async (server: FastifyInstance) => {
       displayOperationId: false
     },
     uiHooks: {
-      onRequest: function (request, reply, next) { next() },
-      preHandler: function (request, reply, next) { next() }
+      onRequest: function (request, reply, done) { done() },
+      preHandler: function (request, reply, done) { done() }
     },
     staticCSP: true,
     transformStaticCSP: (header) => header,

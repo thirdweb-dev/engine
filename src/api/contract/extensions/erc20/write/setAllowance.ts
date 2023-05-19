@@ -1,9 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
 
-import { getSDK } from '../../../../../helpers/sdk';
-import { partialRouteSchema } from '../../../../../sharedApiSchemas';
-import { logger } from '../../../../../utilities/logger';
+import { getSDK } from '../../../../../helpers';
+import { partialRouteSchema } from '../../../../../helpers/sharedApiSchemas';
 import { setAllowanceRequestBodySchema, setAllowanceRouteSchema } from '../../../../../schemas/erc20/standard/setAllownce';
 
 export async function erc20SetAlowance(fastify: FastifyInstance) {
@@ -20,9 +19,9 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { spender_address, amount } = request.body;
-      logger.info('Inside ERC20 Set Allowance Function');
-      logger.silly(`Chain : ${chain_name_or_id}`)
-      logger.silly(`Contract Address : ${contract_address}`);
+      request.log.info('Inside ERC20 Set Allowance Function');
+      request.log.debug(`Chain : ${chain_name_or_id}`)
+      request.log.debug(`Contract Address : ${contract_address}`);
 
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);

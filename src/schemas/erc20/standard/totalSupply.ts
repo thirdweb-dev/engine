@@ -1,5 +1,5 @@
 import { Static, Type } from '@sinclair/typebox';
-import { schemaTypes, baseReplyErrorSchema } from '../../../sharedApiSchemas';
+import { schemaTypes, baseReplyErrorSchema } from '../../../helpers/sharedApiSchemas';
 
 export const totalSupplyReplyBodySchema = Type.Object({
     result: Type.Optional(Type.Object({

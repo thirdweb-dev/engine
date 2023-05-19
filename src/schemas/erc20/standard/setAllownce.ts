@@ -1,5 +1,5 @@
 import { Static, Type } from '@sinclair/typebox';
-import { schemaTypes } from '../../../sharedApiSchemas';
+import { schemaTypes } from '../../../helpers/sharedApiSchemas';
 
 /**
  * Basic schema for ERC20 - Set Allowance Request Query String

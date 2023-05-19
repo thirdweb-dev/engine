@@ -1,5 +1,5 @@
 import { Static, Type } from '@sinclair/typebox';
-import { schemaTypes } from '../../../sharedApiSchemas';
+import { schemaTypes } from '../../../helpers/sharedApiSchemas';
 
 /**
  * Basic schema for ERC20 - Transfer Request Query String
@@ -11,7 +11,6 @@ export const transferRequestBodySchema = Type.Object({
   }),
   amount: Type.String({
    description: 'The amount of tokens you want to send',
-  
   }),
 });
 

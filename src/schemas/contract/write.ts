@@ -1,5 +1,5 @@
 import { Static, Type } from '@sinclair/typebox';
-import { schemaTypes } from '../../sharedApiSchemas';
+import { schemaTypes } from '../../helpers/sharedApiSchemas';
 
 export const writeRequestBodySchema = Type.Object({
   function_name: Type.String({
