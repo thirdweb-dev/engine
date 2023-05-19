@@ -51,6 +51,21 @@ export const prebuiltDeployParamSchema = Type.Object({
   }),
 });
 
+export const publishedDeployParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+  publisher: Type.String({
+    examples: ["deployer.thirdweb.eth"],
+    description: "Address or ENS of the publisher of the contract",
+  }),
+  contract_name: Type.String({
+    examples: ["AirdropERC20"],
+    description: "Name of the published contract to deploy",
+  }),
+});
+
 /**
  * Basic schema for all Response Body
  */
@@ -97,7 +112,12 @@ export interface contractSchemaTypes extends RouteGenericInterface {
   Reply: Static<typeof replyBodySchema>;
 }
 
-export interface deployerSchemaTypes extends RouteGenericInterface {
+export interface prebuiltDeploySchemaTypes extends RouteGenericInterface {
   Params: Static<typeof prebuiltDeployParamSchema>;
+  Reply: Static<typeof replyBodySchema>;
+}
+
+export interface publishedDeploySchemaTypes extends RouteGenericInterface {
+  Params: Static<typeof publishedDeployParamSchema>;
   Reply: Static<typeof replyBodySchema>;
 }
