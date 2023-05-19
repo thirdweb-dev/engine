@@ -1,14 +1,10 @@
 import { Knex } from 'knex';
 import { getEnv } from '../loadEnv';
 
-interface KnexWithDestroy extends Knex {
-    destroy(): Promise<void>;
-}
+// Defaults to postgres
+const dbClient = getEnv('DATABASE_CLIENT') ?? 'pg';
 
 export const connectToDB = async () : Promise<Knex> => {
-
-    // Defaults to postgres
-    const dbClient = getEnv('DATABASE_CLIENT') ?? 'pg';
 
     // Creating KNEX Config
     const knexConfig: Knex.Config = {
@@ -31,11 +27,7 @@ export const connectToDB = async () : Promise<Knex> => {
             throw new Error(`Unsupported database client: ${dbClient}`);
     }
 
-    const knex: KnexWithDestroy = dbClientPackage(knexConfig);
-
-    knex.destroy = async () => {
-        await knex.client.destroy()
-    }
+    const knex: Knex = dbClientPackage(knexConfig);
     
     return knex;
 }
