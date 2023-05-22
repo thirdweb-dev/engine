@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static } from "@sinclair/typebox";
-import { uuid } from 'uuidv4';
+import { v4 as uuid } from 'uuid';
 import { getSDK, connectToDB } from "../../../helpers/index";
 import {
   partialRouteSchema,
