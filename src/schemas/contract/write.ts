@@ -1,5 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
-import { contractSchemaTypes } from "../../sharedApiSchemas";
+import { contractSchemaTypes } from "../../helpers/sharedApiSchemas";
 
 export const writeRequestBodySchema = Type.Object({
   function_name: Type.String({

@@ -1,9 +1,8 @@
 import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
 
-import { getSDK } from '../../../../../helpers/sdk';
-import { partialRouteSchema } from '../../../../../sharedApiSchemas';
-import { logger } from '../../../../../utilities/logger';
+import { getSDK } from '../../../../../helpers/index';
+import { partialRouteSchema } from '../../../../../helpers/sharedApiSchemas';
 import { normalizeRequestQuerySchema, normalizeAmountRouteSchema, getReplyBodySchema } from '../../../../../schemas/erc20/standard/normalizeAmount';
 
 export async function erc20NormalizeAmount(fastify: FastifyInstance) {
@@ -24,11 +23,11 @@ export async function erc20NormalizeAmount(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { amount } = request.query;
 
-      logger.info('Inside ERC20 Normalize Function');
-      logger.silly(`Chain : ${chain_name_or_id}`)
-      logger.silly(`Contract Address : ${contract_address}`);
+      request.log.info('Inside ERC20 Normalize Function');
+      request.log.debug(`Chain : ${chain_name_or_id}`)
+      request.log.debug(`Contract Address : ${contract_address}`);
 
-      logger.silly(`Amount : ${amount}`)
+      request.log.debug(`Amount : ${amount}`)
 
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);

@@ -1,8 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
-import { getSDK } from '../../../helpers/sdk';
-import { partialRouteSchema } from '../../../sharedApiSchemas';
-import { logger } from '../../../utilities/logger';
+import { getSDK } from '../../../helpers';
+import { partialRouteSchema } from '../../../helpers/sharedApiSchemas';
 import { readRequestQuerySchema, readSchema } from '../../../schemas/contract/read';
 import { bigNumberReplacer } from '../../../utilities/convertor';
 
@@ -20,13 +19,7 @@ export async function readContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { function_name, args } = request.query;
-      logger.info('Inside Read Function');
-      logger.silly(`Chain : ${chain_name_or_id}`)
-      logger.silly(`Contract Address : ${contract_address}`);
-
-      logger.silly(`Function Name : ${function_name}`)
-      logger.silly(`Args : ${args}`);
-
+      
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
 

@@ -1,43 +1,76 @@
-import { getEnv } from './loadEnv';
+import { getEnv } from './helpers/loadEnv';
 import fastify, { FastifyInstance } from 'fastify';
 import fastifyExpress from '@fastify/express';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import * as fs from 'fs';
-import { openapi } from './openapi';
-import { errorHandler } from './errorHandler';
 import fastifyCors from '@fastify/cors';
+import { openapi } from './helpers/openapi';
+import { errorHandler } from './errorHandler';
 import { apiRoutes } from './api';
-import cookie, { FastifyCookieOptions } from '@fastify/cookie';
-import { logger } from './utilities/logger';
+import { checkTablesExistence } from './helpers/index';
 
 const logSettings: any = {
-  // local: {
-  //   transport: {
-  //     target: 'pino-pretty',
-  //     options: {
-  //       translateTime: 'HH:MM:ss Z',
-  //       ignore: 'pid,hostname',
-  //     },
-  //   },
-  // },
-  // production: true,
-  // development: true,
+  local: {
+    redact: ["headers.authorization",],
+    level: 'debug',
+    transport: {
+      target: 'pino-pretty',
+      options: {
+        translateTime: 'HH:MM:ss Z',
+        ignore: 'pid,hostname,reqId',
+        singleLine: true,
+        minimumLevel: 'debug',
+      },
+    },
+  },
+  production: true,
+  development: {
+    
+  },
 };
+
 const main = async () => {
   const server: FastifyInstance = fastify({
-    logger: logSettings[getEnv('NODE_ENV')] ?? false,
+    logger: logSettings[getEnv('NODE_ENV')] ?? true,
+    disableRequestLogging: true,
+    
   }).withTypeProvider<TypeBoxTypeProvider>();
+
+  server.addHook("onRequest", (request, reply, done) => {
+    request.log.info(`Request received - ${request.method} - ${request.routerPath}`);
+    done();
+  });
+
+  server.addHook('preHandler', function (req, reply, done) {
+    if (req.body) {
+      req.log.info({ ...req.body }, 'Request Body : ')
+    }
+
+    if (req.params) {
+      req.log.info({ ...req.params }, 'Request Params : ')
+    }
+
+    if (req.query) {
+      req.log.info({ ...req.query }, 'Request Querystring : ')
+    }
+    done()
+  })
+
+  server.addHook("onResponse", (request, reply, done) => {
+    request.log.info(
+      `Request completed - ${request.method} - ${reply.request.routerPath} - StatusCode: ${reply.statusCode} - Response Time: ${reply.getResponseTime().toFixed(2)}ms`
+    );
+    done();
+  });
 
   await server.register(errorHandler);
 
   await server.register(fastifyCors);
 
-  server.register(cookie, {
-    parseOptions: {}, // options for parsing cookies
-  } as FastifyCookieOptions);
-
   await server.register(fastifyExpress);
+  
   openapi(server);
+  
   await server.register(apiRoutes);
 
   await server.ready();
@@ -55,9 +88,10 @@ const main = async () => {
   await server.listen({
     host: getEnv('HOST'),
     port: Number(getEnv('PORT')),
-  }, ()=>{
-    logger.info(`Server listening on ${getEnv('HOST')}:${getEnv('PORT')}`)
   });
+
+  // Check for the Tables Existence post startup
+  await checkTablesExistence()
 };
 
 main();

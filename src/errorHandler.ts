@@ -1,6 +1,6 @@
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
 import { getCodeFromStatusCode } from './utilities/errorCodes';
-import { getEnv } from './loadEnv';
+import { getEnv } from './helpers/loadEnv';
 import { FastifyInstance } from 'fastify';
 
 export const errorHandler = async (server: FastifyInstance) => {

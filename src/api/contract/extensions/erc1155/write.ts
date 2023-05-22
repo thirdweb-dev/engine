@@ -3,7 +3,6 @@
 // import { getSDK } from '../../../../helpers/sdk';
 // import { Static } from '@sinclair/typebox';
 // import { fullRouteSchema, schemaTypes } from '../../../../sharedApiSchemas';
-// import { logger } from '../../../../utilities/logger';
 
 // export async function erc1155WriteContract(fastify: FastifyInstance) {
 //   fastify.route<schemaTypes>({
@@ -19,13 +18,13 @@
 //       const { chain_name_or_id, contract_address } = request.params;
 //       const { function_name, args } = request.query;
       
-//       logger.info('Inside Write Function');
-//       logger.silly(`Chain : ${chain_name_or_id}`)
-//       logger.silly(`Contract Address : ${contract_address}`);
+//       request.log.info('Inside Write Function');
+//       request.log.debug(`Chain : ${chain_name_or_id}`)
+//       request.log.debug(`Contract Address : ${contract_address}`);
 
-//       logger.silly(`Function Name : ${function_name}`)
-//       logger.silly(`Contract Address : ${contract_address}`);
-//       logger.silly(`Function Arguments : ${args}`);
+//       request.log.debug(`Function Name : ${function_name}`)
+//       request.log.debug(`Contract Address : ${contract_address}`);
+//       request.log.debug(`Function Arguments : ${args}`);
 
 //       const sdk = await getSDK(chain_name_or_id);
 //       const contract:any = await sdk.getContract(contract_address);

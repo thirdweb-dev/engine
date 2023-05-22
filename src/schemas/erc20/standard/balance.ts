@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { baseReplyErrorSchema } from '../../../sharedApiSchemas';
+import { baseReplyErrorSchema } from '../../../helpers/sharedApiSchemas';
 
 export const balanceReplyBodySchema = Type.Object({
     result: Type.Optional(Type.Object({

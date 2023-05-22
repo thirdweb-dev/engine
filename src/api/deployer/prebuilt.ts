@@ -1,11 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../helpers/sdk";
+import { getSDK } from "../../helpers/index";
 import {
   prebuiltDeployParamSchema,
   standardResponseSchema,
-} from "../../sharedApiSchemas";
-import { logger } from "../../utilities/logger";
+} from "../../helpers/sharedApiSchemas";
 import { deployPrebuiltSchema } from "../../schemas/deployer/prebuilt";
 import { deployPrebuiltRequestBodySchema } from "../../schemas/deployer/prebuilt";
 
@@ -25,9 +24,9 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_type } = request.params;
       const { contractMetadata, version } = request.body;
 
-      logger.info(`Deploying Prebuilt Contract: ${contract_type}`);
-      logger.silly(`Chain : ${chain_name_or_id}`);
-      logger.silly(`contractMetadata : ${JSON.stringify(contractMetadata)}`);
+      request.log.info(`Deploying Prebuilt Contract: ${contract_type}`);
+      request.log.debug(`Chain : ${chain_name_or_id}`);
+      request.log.debug(`contractMetadata : ${JSON.stringify(contractMetadata)}`);
 
       const sdk = await getSDK(chain_name_or_id);
       const deployedAddress = await sdk.deployer.deployBuiltInContract(
@@ -35,7 +34,7 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
         contractMetadata,
         version,
       );
-      logger.silly(`deployedAddress : ${deployedAddress}`);
+      request.log.debug(`deployedAddress : ${deployedAddress}`);
 
       // TODO unwrap the nesting
       // TODO return the transaction receipt too

@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   baseReplyErrorSchema,
   contractSchemaTypes,
-} from "../../../sharedApiSchemas";
+} from "../../../helpers/sharedApiSchemas";
 
 /**
  * Basic schema for ERC20 - Normalize Request Query String

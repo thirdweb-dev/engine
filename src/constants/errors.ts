@@ -1,6 +1,12 @@
+<<<<<<< Updated upstream
 import { Static } from "@sinclair/typebox";
 import { baseReplyErrorSchema } from "../sharedApiSchemas";
 import { StatusCodes } from "http-status-codes";
+=======
+import { Static } from '@sinclair/typebox';
+import { errorSchema } from '../helpers/sharedApiSchemas';
+import { StatusCodes } from 'http-status-codes';
+>>>>>>> Stashed changes
 
 /**
  * API key reply errors

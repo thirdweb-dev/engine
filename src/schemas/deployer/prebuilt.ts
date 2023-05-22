@@ -1,5 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
-import { prebuiltDeploySchemaTypes } from "../../sharedApiSchemas";
+import { prebuiltDeploySchemaTypes } from "../../helpers/sharedApiSchemas";
 
 export const deployPrebuiltRequestBodySchema = Type.Object({
   // TODO need to type this

@@ -1,8 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
-import { getSDK } from '../../../../../helpers/sdk';
-import { partialRouteSchema, } from '../../../../../sharedApiSchemas';
-import { logger } from '../../../../../utilities/logger';
+import { getSDK } from '../../../../../helpers/index';
+import { partialRouteSchema, } from '../../../../../helpers/sharedApiSchemas';
 import { totalSupplyRouteSchema, totalSupplyReplyBodySchema } from '../../../../../schemas/erc20/standard/totalSupply';
 
 export async function erc20TotalSupply(fastify: FastifyInstance) {
@@ -20,15 +19,15 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      logger.info('Inside ERC20 TotalSupply Function');
-      logger.silly(`Chain : ${chain_name_or_id}`)
-      logger.silly(`Contract Address : ${contract_address}`);
+      request.log.info('Inside ERC20 TotalSupply Function');
+      request.log.debug(`Chain : ${chain_name_or_id}`)
+      request.log.debug(`Contract Address : ${contract_address}`);
 
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
 
       const returnData = await contract.erc20.totalSupply();
-      logger.info(`${JSON.stringify(returnData)}`);
+      request.log.info(`${JSON.stringify(returnData)}`);
 
       reply.status(StatusCodes.OK).send({
         result: {

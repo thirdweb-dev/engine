@@ -1,11 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../helpers/sdk";
-import {
-  partialRouteSchema,
-  contractSchemaTypes,
-} from "../../../../../sharedApiSchemas";
-import { logger } from "../../../../../utilities/logger";
+import { getSDK } from "../../../../../helpers/index";
+import { partialRouteSchema } from "../../../../../helpers/sharedApiSchemas";
 import {
   getReplyBodySchema,
   getRouteSchema,
@@ -27,9 +23,9 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      logger.info("Inside ERC20 - Get Function");
-      logger.silly(`Chain : ${chain_name_or_id}`);
-      logger.silly(`Contract Address : ${contract_address}`);
+      request.log.info('Inside ERC20 - Get Function');
+      request.log.debug(`Chain : ${chain_name_or_id}`)
+      request.log.debug(`Contract Address : ${contract_address}`);
 
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);

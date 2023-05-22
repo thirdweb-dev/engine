@@ -1,11 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../helpers/sdk";
+import { getSDK } from "../../../../../helpers/index";
 import {
   partialRouteSchema,
   contractSchemaTypes,
-} from "../../../../../sharedApiSchemas";
-import { logger } from "../../../../../utilities/logger";
+} from "../../../../../helpers/sharedApiSchemas";
 import { balanceReplyBodySchema } from "../../../../../schemas/erc20/standard/balance";
 
 export async function erc20Balance(fastify: FastifyInstance) {
@@ -24,9 +23,9 @@ export async function erc20Balance(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      logger.info("Inside ERC20 Balance Function");
-      logger.silly(`Chain : ${chain_name_or_id}`);
-      logger.silly(`Contract Address : ${contract_address}`);
+      request.log.info('Inside ERC20 Balance Function');
+      request.log.debug(`Chain : ${chain_name_or_id}`)
+      request.log.debug(`Contract Address : ${contract_address}`);
 
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);

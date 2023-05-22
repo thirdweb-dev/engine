@@ -1,16 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static } from "@sinclair/typebox";
-import { getSDK } from "../../../helpers/sdk";
+import { uuid } from 'uuidv4';
+import { getSDK, connectToDB } from "../../../helpers/index";
 import {
   partialRouteSchema,
-  contractSchemaTypes,
-} from "../../../sharedApiSchemas";
-import { logger } from "../../../utilities/logger";
+} from "../../../helpers/sharedApiSchemas";
 import {
   writeRequestBodySchema,
   writeSchema,
 } from "../../../schemas/contract/write";
+import { getEnv } from "../../../helpers/loadEnv";
 
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<writeSchema>({
@@ -26,24 +26,68 @@ export async function writeToContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { function_name, args } = request.body;
-
-      logger.info("Inside Write Function");
-      logger.silly(`Chain : ${chain_name_or_id}`);
-      logger.silly(`Contract Address : ${contract_address}`);
-
-      logger.silly(`Function Name : ${function_name}`);
-      logger.silly(`Contract Address : ${contract_address}`);
-      logger.silly(`Function Arguments : ${args}`);
-
+      
+      // Connect to DB
+      const dbInstance = await connectToDB();
+      
       const sdk = await getSDK(chain_name_or_id);
-      const contract: any = await sdk.getContract(contract_address);
+      const queuedId: string = uuid();
+      const contract = await sdk.getContract(contract_address);
+      const tx = contract.prepare(function_name, args);
+      const encodedData = tx.encode()
+      const value = tx.getValue();
+      
+    // txType VARCHAR(2),
+    // txHash VARCHAR(255),
+    // encodedInputData TEXT,
+    // rawFunctionName VARCHAR(255),
+    // rawFunctionArgs VARCHAR(255),
+    // createdTimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    // updatedTimestamp TIMESTAMP,
+    // txSubmittedTimestamp TIMESTAMP,
+    // txProcessedTimestamp TIMESTAMP,
+    // txRetryTimestamp TIMESTAMP,
+    // txProcessed BOOLEAN,
+    // txSubmitted BOOLEAN,
+    // txMined BOOLEAN,
+    // txErrored BOOLEAN,
+    // gasPrice VARCHAR(50),
+    // gasLimit VARCHAR(50),
+    // maxPriorityFeePerGas VARCHAR(50),
+    // maxFeePerGas VARCHAR(50),
+      await dbInstance.raw(`INSERT INTO transactions 
+        ( identifier,
+          walletaddress,
+          contractaddress,
+          chainid,
+          extension,
+          rawfunctionname,
+          rawfunctionargs,
+          txprocessed,
+          txsubmitted,
+          txerrored,
+          txmined)
+        VALUES (
+          '${queuedId}',
+          '${getEnv('WALLET_ADDRESS').toLowerCase()}',
+          '${contract_address.toLowerCase()}',
+          '${chain_name_or_id.toLowerCase()}',
+          'non-extension',
+          '${function_name}',
+          '${args}',
+          false,
+          false,
+          false,
+          false
+        )`);
 
-      const returnData: any = await contract.call(function_name, args);
+      // Closing the DB Connection
+      await dbInstance.destroy();
 
       reply.status(StatusCodes.OK).send({
         result: {
-          transaction: returnData?.receipt,
-        },
+          queuedId, 
+        }
       });
     },
   });

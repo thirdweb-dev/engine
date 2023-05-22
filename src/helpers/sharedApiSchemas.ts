@@ -70,12 +70,11 @@ export const publishedDeployParamSchema = Type.Object({
  * Basic schema for all Response Body
  */
 const replyBodySchema = Type.Object({
-  result: Type.Optional(
-    Type.Object({
-      data: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
-      transaction: Type.Optional(Type.Any()),
-    }),
-  ),
+  result: Type.Optional(Type.Object({
+    data: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
+    transaction: Type.Optional(Type.Any()),
+    queuedId: Type.Optional(Type.String())
+  })),
   error: Type.Optional(baseReplyErrorSchema),
 });
 

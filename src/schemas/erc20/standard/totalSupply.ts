@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   contractSchemaTypes,
   baseReplyErrorSchema,
-} from "../../../sharedApiSchemas";
+} from "../../../helpers/sharedApiSchemas";
 
 export const totalSupplyReplyBodySchema = Type.Object({
   result: Type.Optional(
