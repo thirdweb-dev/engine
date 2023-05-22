@@ -1,20 +1,22 @@
-import { Static, Type } from '@sinclair/typebox';
-import { schemaTypes } from '../../sharedApiSchemas';
+import { Static, Type } from "@sinclair/typebox";
+import { contractSchemaTypes } from "../../sharedApiSchemas";
 
 /**
- * Basic schema for all Request Body String
+ * Basic schema for all Request Query String
  */
-export const readRequestBodySchema = Type.Object({
+export const readRequestQuerySchema = Type.Object({
   function_name: Type.String({
-    description: 'Name of the function to call on Contract',
-    examples: ["balanceOf"]
+    description: "Name of the function to call on Contract",
+    examples: ["balanceOf"],
   }),
-  args: Type.Optional(Type.String({
-    description: 'Arguments for the function. Comma Separated',
-    examples:[""]
-   })),
+  args: Type.Optional(
+    Type.String({
+      description: "Arguments for the function. Comma Separated",
+      examples: [""],
+    }),
+  ),
 });
 
-export interface readSchema extends schemaTypes {
-  Querystring: Static<typeof readRequestBodySchema>;
+export interface readSchema extends contractSchemaTypes {
+  Querystring: Static<typeof readRequestQuerySchema>;
 }

@@ -33,8 +33,7 @@
 //       reply.status(StatusCodes.OK).send({
 //         result: {
 //           data: returnData
-//         },
-//         error: null,
+//         }
 //       });
 //     },
 //   });

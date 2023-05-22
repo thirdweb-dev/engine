@@ -1,24 +1,30 @@
-import { Static, Type } from '@sinclair/typebox';
-import { schemaTypes } from '../../../sharedApiSchemas';
+import { Static, Type } from "@sinclair/typebox";
+import { contractSchemaTypes } from "../../../sharedApiSchemas";
 
 /**
  * Basic schema for ERC20 - Transfer From Request Query String
  */
-export const transferFromRequestQuerySchema = Type.Object({
+export const transferFromRequestBodySchema = Type.Object({
   from_address: Type.String({
-    description: 'Address of the wallet sending the tokens',
-    examples: ["0x..."]
+    description: "Address of the wallet sending the tokens",
   }),
   to_address: Type.String({
-    description: 'Address of the wallet you want to send the tokens to',
-    examples: ["0x3EcDBF3B911d0e9052b64850693888b008e18373"]
+    description: "Address of the wallet you want to send the tokens to",
   }),
   amount: Type.String({
-   description: 'The amount of tokens you want to send',
-   examples: ["0.1"]
+    description: "The amount of tokens you want to send",
   }),
 });
 
-export interface transferFromRouteSchema extends schemaTypes {
-  Querystring: Static<typeof transferFromRequestQuerySchema>;
+// Example for the Request Body
+transferFromRequestBodySchema.examples = [
+  {
+    from_address: "0x....",
+    to_address: "0x...",
+    amount: "0.1",
+  },
+];
+
+export interface transferFromRouteSchema extends contractSchemaTypes {
+  Body: Static<typeof transferFromRequestBodySchema>;
 }

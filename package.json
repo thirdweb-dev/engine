@@ -22,7 +22,7 @@
     "@fastify/swagger-ui": "^1.8.1",
     "@fastify/type-provider-typebox": "^3.0.0",
     "@sinclair/typebox": "^0.27.8",
-    "@thirdweb-dev/auth": "3.0.16-nightly-72b8b982-20230503002100",
+    "@thirdweb-dev/sdk": "^3.10.15",
     "body-parser": "^1.20.2",
     "cookie": "^0.5.0",
     "dotenv": "^16.0.3",
