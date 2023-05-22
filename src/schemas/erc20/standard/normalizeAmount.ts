@@ -1,24 +1,29 @@
-import { Static, Type } from '@sinclair/typebox';
-import { baseReplyErrorSchema, schemaTypes } from '../../../helpers/sharedApiSchemas';
+import { Static, Type } from "@sinclair/typebox";
+import {
+  baseReplyErrorSchema,
+  contractSchemaTypes,
+} from "../../../helpers/sharedApiSchemas";
 
 /**
  * Basic schema for ERC20 - Normalize Request Query String
  */
 export const normalizeRequestQuerySchema = Type.Object({
   amount: Type.String({
-   description: 'Convert a number of tokens to a number of wei.',
-   examples: ["100"]
+    description: "Convert a number of tokens to a number of wei.",
+    examples: ["100"],
   }),
 });
 
 export const getReplyBodySchema = Type.Object({
-  result: Type.Optional(Type.Object({
-    data: Type.String(),
-  })),
+  result: Type.Optional(
+    Type.Object({
+      data: Type.String(),
+    }),
+  ),
   error: Type.Optional(baseReplyErrorSchema),
 });
 
-export interface normalizeAmountRouteSchema extends schemaTypes {
+export interface normalizeAmountRouteSchema extends contractSchemaTypes {
   Reply: Static<typeof getReplyBodySchema>;
   Querystring: Static<typeof normalizeRequestQuerySchema>;
 }

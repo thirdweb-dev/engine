@@ -7,6 +7,7 @@ import fastifyCors from '@fastify/cors';
 import { openapi } from './helpers/openapi';
 import { errorHandler } from './errorHandler';
 import { apiRoutes } from './api';
+import { checkTablesExistence } from './helpers/index';
 
 const logSettings: any = {
   local: {
@@ -88,6 +89,9 @@ const main = async () => {
     host: getEnv('HOST'),
     port: Number(getEnv('PORT')),
   });
+
+  // Check for the Tables Existence post startup
+  await checkTablesExistence()
 };
 
 main();

@@ -2,20 +2,24 @@ import { Knex } from 'knex';
 import pg from 'knex';
 import { getEnv } from '../loadEnv';
 
+const DATABASE_NAME = getEnv('DATABASE_NAME');
+
 // Defaults to postgres
 const dbClient = getEnv('DATABASE_CLIENT') ?? 'pg';
 
 export const connectToDB = async () : Promise<Knex> => {
 
     // Creating KNEX Config
-    const knexConfig: Knex.Config = {
+    let connection: Knex.ConnectionConfig = {
+        host: getEnv('POSTGRES_HOST'),
+        user: getEnv('POSTGRES_USER'),
+        password: getEnv('POSTGRES_PASSWORD'),
+        database: ''
+    };
+
+    let knexConfig: Knex.Config = {
         client: dbClient,
-        connection: {
-            host: getEnv('DATABASE_HOST'),
-            user: getEnv('DATABASE_USER'),
-            password: getEnv('DATABASE_PASSWORD'),
-            database: getEnv('DATABASE_NAME'),
-        }
+        connection,
     };
 
     // Set the appropriate databse client package
@@ -28,7 +32,35 @@ export const connectToDB = async () : Promise<Knex> => {
             throw new Error(`Unsupported database client: ${dbClient}`);
     }
 
-    const knex: Knex = dbClientPackage(knexConfig);
-    
+    let knex = dbClientPackage(knexConfig);
+
+    // Check if Database Exists & create if it doesn't
+    let hasDatabase: any;
+    switch (dbClient) {
+        case 'pg':
+            hasDatabase = await knex.raw(`SELECT 1 from pg_database WHERE datname = '${DATABASE_NAME}'`)
+            console.log('CHECKING for Database');
+            if (!hasDatabase.rows.length) {
+                await knex.raw(`CREATE DATABASE ${DATABASE_NAME}`);
+            } else {
+                console.log(`Database ${DATABASE_NAME} already exists`);
+            }
+            break;
+        default:
+            throw new Error(`Unsupported database client: ${dbClient}. Cannot create database ${DATABASE_NAME}`);
+    }
+
+    // Updated the DATABASE name on connection object
+    connection.database = DATABASE_NAME;
+
+    // Updating knex Config
+    knexConfig = {
+        client: dbClient,
+        connection,
+    };
+
+    // re-instantiate connection with new config
+    knex = dbClientPackage(knexConfig);
+
     return knex;
 }

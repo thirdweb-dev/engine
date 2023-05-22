@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
 
-import { getSDK } from '../../../../../helpers';
+import { getSDK } from '../../../../../helpers/index';
 import { partialRouteSchema } from '../../../../../helpers/sharedApiSchemas';
 import { normalizeRequestQuerySchema, normalizeAmountRouteSchema, getReplyBodySchema } from '../../../../../schemas/erc20/standard/normalizeAmount';
 
