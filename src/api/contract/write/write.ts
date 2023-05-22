@@ -34,7 +34,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const queuedId: string = uuid();
       const contract = await sdk.getContract(contract_address);
       const tx = contract.prepare(function_name, args);
-      const encodedData = tx.encode()
+      const encodedData = tx.encode();
       const value = tx.getValue();
       
     // txType VARCHAR(2),
