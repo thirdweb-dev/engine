@@ -66,7 +66,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       request.log.debug(`Contract Address : ${contract_address}`);
 
       // Connect to DB
-      const dbInstance = await connectToDB();
+      const dbInstance = await connectToDB(request);
       
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);

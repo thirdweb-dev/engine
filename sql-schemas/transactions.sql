@@ -2,7 +2,7 @@ CREATE TABLE transactions (
     identifier uuid NOT NULL UNIQUE PRIMARY KEY,
     "walletAddress" VARCHAR(42) NOT NULL,
     "contractAddress" VARCHAR(42) NOT NULL,
-    "toAddress" VARCHAR(42) NOT NULL,
+    "toAddress" VARCHAR(42),
     "chainId" VARCHAR(40) NOT NULL,
     "extension" VARCHAR(20),
     "submittedTxNonce" INT,

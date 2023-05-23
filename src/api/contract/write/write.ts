@@ -33,7 +33,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { function_name, args } = request.body;
       
       // Connect to DB
-      const dbInstance = await connectToDB();
+      const dbInstance = await connectToDB(request);
       
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
@@ -42,6 +42,8 @@ export async function writeToContract(fastify: FastifyInstance) {
       const value = tx.getValue();
       const walletAddress = await sdk.wallet.getAddress();
 
+      request.log.info("Contract/Write Called");
+      
       const txDataToInsert: TransactionSchema = {
         identifier: uuid(),
         walletAddress: walletAddress.toLowerCase(),
@@ -56,6 +58,8 @@ export async function writeToContract(fastify: FastifyInstance) {
         txSubmitted: false,
         encodedInputData: encodedData,
       };
+
+      request.log.debug({ txDataToInsert }, "Transaction Data To Insert");
       
       await insertTransactionData(dbInstance, txDataToInsert, request);
 

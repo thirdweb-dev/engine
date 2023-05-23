@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
 import { Static, Type } from '@sinclair/typebox';
 import {
-    connectToDB,
+    connectWithDatabase,
     findTxDetailsWithQueueId
 } from '../../helpers';
 import { createCustomError } from '../../helpers/customError';
@@ -48,8 +48,8 @@ export async function checkTxStatus(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { tx_queue_id } = request.params;
-      
-      const dbConnection = await connectToDB();
+      // request.log.info("Transaction/Status Called");
+      const dbConnection = await connectWithDatabase(request);
       const returnData = await findTxDetailsWithQueueId(dbConnection, tx_queue_id, request);
       
       if (!returnData) {

@@ -3,15 +3,18 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
 import { getEnv } from "../loadEnv";
-import { connectToDB } from "./dbConnect";
+import { connectWithDatabase } from "./dbConnect";
+import { FastifyInstance } from 'fastify';
+import { createCustomError } from '../customError';
+import { StatusCodes } from 'http-status-codes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const checkTablesExistence = async () : Promise<void> => {
+export const checkTablesExistence = async (server: FastifyInstance) : Promise<void> => {
     try {
         // Connect to the DB
-        const knex = await connectToDB();
+        const knex = await connectWithDatabase(server);
 
         // Check if the tables Exists
         const tablesList: string[] = getEnv('DB_TABLES_LIST').split(",").map(function(item) {
@@ -19,8 +22,10 @@ export const checkTablesExistence = async () : Promise<void> => {
         });
 
         if (!tablesList) {
-            throw new Error(`DB_TABLES_LIST ENV variable is empty`);
+            const error = createCustomError("DB_TABLES_LIST ENV variable is empty", StatusCodes.NOT_FOUND, 'DB_TABLES_LIST_NOT_FOUND');
+            throw error;
         }
+        
 
         for (const tableName of tablesList) {
             const tableExists: boolean = await knex.schema.hasTable(tableName);
@@ -31,15 +36,16 @@ export const checkTablesExistence = async () : Promise<void> => {
                 // Create Table using schema
                 await knex.schema.raw(schemaSQL);
 
-                console.log(`Table ${tableName} created on startup successfully`);
+                server.log.info(`Table ${tableName} created on startup successfully`);
             } else {
-                console.log(`Table ${tableName} already exists`);
+                server.log.info(`Table ${tableName} already exists`);
             }
         }
 
         // Disconnect from DB
         await knex.destroy();
-    } catch (error) {
-        console.error('An error occurred while checking the tables:', error);
+    } catch (error: any) {
+        const customError = createCustomError(error.message, StatusCodes.INTERNAL_SERVER_ERROR, 'INTERNAL_SERVER_ERROR');
+        throw customError;
     }
 };

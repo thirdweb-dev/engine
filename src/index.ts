@@ -7,7 +7,7 @@ import fastifyCors from '@fastify/cors';
 import { openapi } from './helpers/openapi';
 import { errorHandler } from './errorHandler';
 import { apiRoutes } from './api';
-import { checkTablesExistence } from './helpers/index';
+import { checkTablesExistence, connectToDB } from './helpers/index';
 
 const logSettings: any = {
   local: {
@@ -36,11 +36,6 @@ const main = async () => {
     
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.addHook("onRequest", (request, reply, done) => {
-    request.log.info(`Request received - ${request.method} - ${request.routerPath}`);
-    done();
-  });
-
   server.addHook('preHandler', function (req, reply, done) {
     if (req.body) {
       req.log.info({ ...req.body }, 'Request Body : ')
@@ -53,8 +48,14 @@ const main = async () => {
     if (req.query) {
       req.log.info({ ...req.query }, 'Request Querystring : ')
     }
+    
     done()
-  })
+  });
+
+  server.addHook("onRequest", (request, reply, done) => {
+    request.log.info(`Request received - ${request.method} - ${request.routerPath}`);
+    done();
+  });
 
   server.addHook("onResponse", (request, reply, done) => {
     request.log.info(
@@ -73,6 +74,9 @@ const main = async () => {
   
   await server.register(apiRoutes);
 
+  const dbConnect = await connectToDB(server);
+  await server.decorateRequest('db', dbConnect);
+
   await server.ready();
   
   // Command to Generate Swagger File
@@ -85,13 +89,18 @@ const main = async () => {
     fs.writeFileSync('./swagger.yml', yaml);
   }
 
-  await server.listen({
+  server.listen({
     host: getEnv('HOST'),
     port: Number(getEnv('PORT')),
+  }, (err) => { 
+    if (err) {
+      server.log.error(err);
+      process.exit(1);
+    }
   });
 
   // Check for the Tables Existence post startup
-  await checkTablesExistence()
+  await checkTablesExistence(server)
 };
 
 main();
