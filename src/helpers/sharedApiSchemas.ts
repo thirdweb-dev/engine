@@ -120,3 +120,23 @@ export interface publishedDeploySchemaTypes extends RouteGenericInterface {
   Params: Static<typeof publishedDeployParamSchema>;
   Reply: Static<typeof replyBodySchema>;
 }
+
+export interface TransactionSchema {
+  identifier?: string;
+  walletaddress?: string;
+  contractaddress?: string;
+  chainid?: string;
+  extension?: string;
+  rawfunctionname?: string;
+  rawfunctionargs?: string;
+  txprocessed?: boolean;
+  txsubmitted?: boolean;
+  txerrored?: boolean;
+  txmined?: boolean;
+  encodedinputdata?: string;
+  txtype?: number;
+  gasprice?: string;
+  gaslimit?: string;
+  maxpriorityfeepergas?: string;
+  maxfeepergas?: string;
+}
