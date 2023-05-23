@@ -7,7 +7,7 @@ import {
   contractParamSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { currencyValueSchema } from "src/schemas/erc20/standard/currencyValue";
+import { currencyValueSchema } from "../../../../../schemas/erc20/standard/currencyValue";
 
 // INPUTS
 const requestSchema = contractParamSchema;

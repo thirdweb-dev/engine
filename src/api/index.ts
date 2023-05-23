@@ -6,6 +6,7 @@ import { writeToContract } from "./contract/write/write";
 import { erc20Routes } from "./contract/extensions/erc20/index";
 import { deployPrebuilt } from "./deployer/prebuilt";
 import { deployPublished } from "./deployer/published";
+import { erc721Routes } from "./contract/extensions/erc721";
 
 export const apiRoutes = async (fastify: FastifyInstance) => {
   // deployer
@@ -18,4 +19,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
 
   // ERC20
   await fastify.register(erc20Routes);
+
+  // ERC721
+  await fastify.register(erc721Routes);
 };
