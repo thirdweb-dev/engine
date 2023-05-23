@@ -53,16 +53,12 @@ export async function erc721GetAll(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { start, count } = request.query;
-      request.log.debug(`Chain : ${chain_name_or_id}`);
-      request.log.debug(`Contract Address : ${contract_address}`);
-
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
       const result = await contract.erc721.getAll({
         start,
         count,
       });
-
       reply.status(StatusCodes.OK).send({
         result,
       });
