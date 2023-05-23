@@ -1,33 +1,53 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getSDK } from '../../../../../helpers/index';
-import { partialRouteSchema, } from '../../../../../helpers/sharedApiSchemas';
+import { getSDK } from "../../../../../helpers/index";
 import {
-  balanceOfRequestQuerySchema,
-  balanceOfRouteSchema,
-  balanceOfReplyBodySchema
-} from '../../../../../schemas/erc20/standard/balanceOf';
+  baseReplyErrorSchema,
+  contractParamSchema,
+} from "../../../../../helpers/sharedApiSchemas";
+import { Static, Type } from "@sinclair/typebox";
+import { currencyValueSchema } from "src/schemas/erc20/standard/currencyValue";
 
+// INPUTS
+const requestSchema = contractParamSchema;
+const querystringSchema = Type.Object({
+  wallet_address: Type.String({
+    description: "Address of the wallet to check token balance",
+    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
+  }),
+});
+
+// OUTPUT
+const responseSchema = Type.Object({
+  result: Type.Optional(currencyValueSchema),
+  error: Type.Optional(baseReplyErrorSchema),
+});
+
+// LOGIC
 export async function erc20BalanceOf(fastify: FastifyInstance) {
-  fastify.route<balanceOfRouteSchema>({
+  fastify.route<{
+    Params: Static<typeof requestSchema>;
+    Reply: Static<typeof responseSchema>;
+    Querystring: Static<typeof querystringSchema>;
+  }>({
     method: "GET",
     url: "/contract/:chain_name_or_id/:contract_address/erc20/balanceOf",
     schema: {
       description: "Check the balance Of the wallet address",
       tags: ["ERC20"],
-      operationId: "balanceOf",
-      ...partialRouteSchema,
-      querystring: balanceOfRequestQuerySchema,
+      operationId: "erc20_balanceOf",
+      params: requestSchema,
+      querystring: querystringSchema,
       response: {
-        [StatusCodes.OK]: balanceOfReplyBodySchema,
+        [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address } = request.query;
-      request.log.info('Inside ERC20 BalanceOf Function');
-      request.log.debug(`Chain : ${chain_name_or_id}`)
+      request.log.info("Inside ERC20 BalanceOf Function");
+      request.log.debug(`Chain : ${chain_name_or_id}`);
       request.log.debug(`Contract Address : ${contract_address}`);
 
       const sdk = await getSDK(chain_name_or_id);
@@ -37,7 +57,11 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: {
-          data: returnData,
+          name: returnData.name,
+          symbol: returnData.symbol,
+          decimals: returnData.decimals.toString(),
+          displayValue: returnData.displayValue,
+          value: returnData.value.toString(),
         },
       });
     },
