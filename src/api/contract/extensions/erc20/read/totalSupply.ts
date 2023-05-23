@@ -1,26 +1,50 @@
-import { FastifyInstance } from 'fastify';
-import { StatusCodes } from 'http-status-codes';
-import { getSDK } from '../../../../../helpers/index';
-import { partialRouteSchema, } from '../../../../../helpers/sharedApiSchemas';
-import { totalSupplyRouteSchema, totalSupplyReplyBodySchema } from '../../../../../schemas/erc20/standard/totalSupply';
+import { FastifyInstance } from "fastify";
+import { StatusCodes } from "http-status-codes";
+import { getSDK } from "../../../../../helpers/index";
+import {
+  baseReplyErrorSchema,
+  contractParamSchema,
+} from "../../../../../helpers/sharedApiSchemas";
+import { Static, Type } from "@sinclair/typebox";
 
+// INPUT
+const requestSchema = contractParamSchema;
+
+// OUPUT
+const responseSchema = Type.Object({
+  result: Type.Optional(
+    Type.Object({
+      name: Type.String(),
+      symbol: Type.String(),
+      decimals: Type.String(),
+      value: Type.String(),
+      displayValue: Type.String(),
+    }),
+  ),
+  error: Type.Optional(baseReplyErrorSchema),
+});
+
+// LOGIC
 export async function erc20TotalSupply(fastify: FastifyInstance) {
-  fastify.route<totalSupplyRouteSchema>({
-    method: 'GET',
-    url: '/contract/:chain_name_or_id/:contract_address/erc20/totalSupply',
+  fastify.route<{
+    Params: Static<typeof requestSchema>;
+    Reply: Static<typeof responseSchema>;
+  }>({
+    method: "GET",
+    url: "/contract/:chain_name_or_id/:contract_address/erc20/totalSupply",
     schema: {
-      description: 'Get the number of tokens in circulation for the contract.',
-      tags: ['ERC20'],
-      operationId: 'totalSupply',
-      ...partialRouteSchema,
+      description: "Get the number of tokens in circulation for the contract.",
+      tags: ["ERC20"],
+      operationId: "erc20_totalSupply",
+      params: requestSchema,
       response: {
-        [StatusCodes.OK]: totalSupplyReplyBodySchema,
-      }
+        [StatusCodes.OK]: responseSchema,
+      },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      request.log.info('Inside ERC20 TotalSupply Function');
-      request.log.debug(`Chain : ${chain_name_or_id}`)
+      request.log.info("Inside ERC20 TotalSupply Function");
+      request.log.debug(`Chain : ${chain_name_or_id}`);
       request.log.debug(`Contract Address : ${contract_address}`);
 
       const sdk = await getSDK(chain_name_or_id);
@@ -31,14 +55,12 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: {
-          data: {
-            value: returnData.value.toString(),
-            symbol: returnData.symbol,
-            name: returnData.name,
-            decimals: returnData.decimals.toString(),
-            displayValue: returnData.displayValue,
-          }
-        }
+          value: returnData.value.toString(),
+          symbol: returnData.symbol,
+          name: returnData.name,
+          decimals: returnData.decimals.toString(),
+          displayValue: returnData.displayValue,
+        },
       });
     },
   });
