@@ -11,7 +11,7 @@ import { currencyValueSchema } from "src/schemas/erc20/standard/currencyValue";
 
 // INPUTS
 const requestSchema = contractParamSchema;
-export const querystringSchema = Type.Object({
+const querystringSchema = Type.Object({
   owner_wallet: Type.String({
     description: "Address of the wallet who owns the funds",
     examples: ["0x3EcDBF3B911d0e9052b64850693888b008e18373"],

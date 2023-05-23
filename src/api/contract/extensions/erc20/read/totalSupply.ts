@@ -6,21 +6,14 @@ import {
   contractParamSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
+import { currencyValueSchema } from "src/schemas/erc20/standard/currencyValue";
 
 // INPUT
 const requestSchema = contractParamSchema;
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(
-    Type.Object({
-      name: Type.String(),
-      symbol: Type.String(),
-      decimals: Type.String(),
-      value: Type.String(),
-      displayValue: Type.String(),
-    }),
-  ),
+  result: Type.Optional(currencyValueSchema),
   error: Type.Optional(baseReplyErrorSchema),
 });
 
