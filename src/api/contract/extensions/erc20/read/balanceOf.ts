@@ -46,15 +46,9 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address } = request.query;
-      request.log.info("Inside ERC20 BalanceOf Function");
-      request.log.debug(`Chain : ${chain_name_or_id}`);
-      request.log.debug(`Contract Address : ${contract_address}`);
-
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-
       const returnData = await contract.erc20.balanceOf(wallet_address);
-
       reply.status(StatusCodes.OK).send({
         result: {
           name: returnData.name,

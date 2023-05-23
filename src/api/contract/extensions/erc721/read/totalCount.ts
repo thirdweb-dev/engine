@@ -1,6 +1,5 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-
 import { getSDK } from "../../../../../helpers/index";
 import {
   baseReplyErrorSchema,
@@ -8,57 +7,39 @@ import {
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 
-// INPUTS
+// INPUT
 const requestSchema = contractParamSchema;
-const querystringSchema = Type.Object({
-  owner_wallet: Type.String({
-    description: "Address of the wallet who owns the NFT",
-    examples: ["0x3EcDBF3B911d0e9052b64850693888b008e18373"],
-  }),
-  operator: Type.String({
-    description: "Address of the operator to check approval on",
-    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
-  }),
-});
 
-// OUTPUT
+// OUPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.Boolean()),
+  result: Type.Optional(Type.String()),
   error: Type.Optional(baseReplyErrorSchema),
 });
 
 // LOGIC
-export async function erc721IsApproved(fastify: FastifyInstance) {
+export async function erc721TotalCount(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/isApproved",
+    url: "/contract/:chain_name_or_id/:contract_address/erc721/totalCount",
     schema: {
-      description:
-        "Get whether this wallet has approved transfers from the given operator.",
+      description: "Get the number of tokens in circulation for the contract.",
       tags: ["ERC721"],
-      operationId: "erc721_isApproved",
+      operationId: "erc721_totalCount",
       params: requestSchema,
-      querystring: querystringSchema,
       response: {
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { owner_wallet, operator } = request.query;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const returnData: any = await contract.erc721.isApproved(
-        owner_wallet,
-        operator,
-      );
-
+      const returnData = await contract.erc721.totalCount();
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        result: returnData.toString(),
       });
     },
   });
