@@ -5,7 +5,7 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
   baseReplyErrorSchema,
-} from "src/helpers/sharedApiSchemas";
+} from "../../../../../helpers/sharedApiSchemas";
 
 // INPUT
 const requestSchema = contractParamSchema;

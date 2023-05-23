@@ -2,15 +2,20 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static } from "@sinclair/typebox";
 import { v4 as uuid } from 'uuid';
-import { getSDK, connectToDB } from "../../../helpers/index";
+import {
+  getSDK,
+  connectToDB,
+  insertTransactionData,
+} from "../../../helpers/index";
 import {
   partialRouteSchema,
+  TransactionSchema
 } from "../../../helpers/sharedApiSchemas";
 import {
   writeRequestBodySchema,
   writeSchema,
 } from "../../../schemas/contract/write";
-import { getEnv } from "../../../helpers/loadEnv";
+import { createCustomError } from "../../../helpers/customError";
 
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<writeSchema>({
@@ -31,62 +36,35 @@ export async function writeToContract(fastify: FastifyInstance) {
       const dbInstance = await connectToDB();
       
       const sdk = await getSDK(chain_name_or_id);
-      const queuedId: string = uuid();
       const contract = await sdk.getContract(contract_address);
-      const tx = contract.prepare(function_name, args);
+      const tx = await contract.prepare(function_name, args);
       const encodedData = tx.encode();
       const value = tx.getValue();
+      const walletAddress = await sdk.wallet.getAddress();
+
+      const txDataToInsert: TransactionSchema = {
+        identifier: uuid(),
+        walletAddress: walletAddress.toLowerCase(),
+        contractAddress: contract_address.toLowerCase(),
+        chainId: chain_name_or_id.toLowerCase(),
+        extension: 'non-extension',
+        rawFunctionName: function_name,
+        rawFunctionArgs: args.toString(),
+        txProcessed: false,
+        txErrored: false,
+        txMined: false,
+        txSubmitted: false,
+        encodedInputData: encodedData,
+      };
       
-    // txType VARCHAR(2),
-    // txHash VARCHAR(255),
-    // encodedInputData TEXT,
-    // rawFunctionName VARCHAR(255),
-    // rawFunctionArgs VARCHAR(255),
-    // createdTimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    // updatedTimestamp TIMESTAMP,
-    // txSubmittedTimestamp TIMESTAMP,
-    // txProcessedTimestamp TIMESTAMP,
-    // txRetryTimestamp TIMESTAMP,
-    // txProcessed BOOLEAN,
-    // txSubmitted BOOLEAN,
-    // txMined BOOLEAN,
-    // txErrored BOOLEAN,
-    // gasPrice VARCHAR(50),
-    // gasLimit VARCHAR(50),
-    // maxPriorityFeePerGas VARCHAR(50),
-    // maxFeePerGas VARCHAR(50),
-      await dbInstance.raw(`INSERT INTO transactions 
-        ( identifier,
-          walletaddress,
-          contractaddress,
-          chainid,
-          extension,
-          rawfunctionname,
-          rawfunctionargs,
-          txprocessed,
-          txsubmitted,
-          txerrored,
-          txmined)
-        VALUES (
-          '${queuedId}',
-          '${getEnv('WALLET_ADDRESS').toLowerCase()}',
-          '${contract_address.toLowerCase()}',
-          '${chain_name_or_id.toLowerCase()}',
-          'non-extension',
-          '${function_name}',
-          '${args}',
-          false,
-          false,
-          false,
-          false
-        )`);
+      await insertTransactionData(dbInstance, txDataToInsert, request);
 
       // Closing the DB Connection
       await dbInstance.destroy();
 
       reply.status(StatusCodes.OK).send({
         result: {
-          queuedId, 
+          queuedId: txDataToInsert.identifier, 
         }
       });
     },

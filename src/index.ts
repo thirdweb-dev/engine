@@ -63,7 +63,7 @@ const main = async () => {
     done();
   });
 
-  await server.register(errorHandler);
+  await errorHandler(server);
 
   await server.register(fastifyCors);
 

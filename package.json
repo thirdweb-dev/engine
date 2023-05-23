@@ -10,6 +10,10 @@
     "start": "node --experimental-specifier-resolution=node dist/index.js",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' --files src/index.ts",
     "infra": "docker compose --env-file ./.env up",
+    "docker-build-run": "docker compose build --no-cache && docker compose --env-file ./.env up --remove-orphans",
+    "build-worker": "cd worker && yarn && rimraf distWorker && tsc -p ./tsconfig.json --outDir distWorker",
+    "start-worker": "node --experimental-specifier-resolution=node dist/index.js",
+    "dev-worker": "nodemon --watch 'worker/**/*.ts' --exec 'ts-node' --files worker/index.ts",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint --fix 'src/**/*.ts'",
     "prepare": "husky install"
