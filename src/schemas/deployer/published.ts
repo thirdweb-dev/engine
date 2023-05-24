@@ -1,5 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
-import { publishedDeploySchemaTypes } from "../../sharedApiSchemas";
+import { publishedDeploySchemaTypes } from "../../helpers/sharedApiSchemas";
 
 export const deployPublishedRequestBodySchema = Type.Object({
   constructorParams: Type.Array(Type.Any(), {

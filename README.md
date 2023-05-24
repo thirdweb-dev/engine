@@ -1,15 +1,31 @@
-# 🔑 web3-api
+# 🔑 web3-api & worker server
 
-Thirdweb's Web3-API server.
+Thirdweb's Web3-API & Web3-Worker server.
 
 ## ENV Variables
+
+use the below values when running locally
 
 ```
 PORT=3005
 OPENAPI_BASE_ORIGIN="http://localhost:3005"
 HOST="0.0.0.0"
-WALLET_PRIVATE_KEY="<ppk>"
+WALLET_PRIVATE_KEY="<your_wallet_ppk>"
 API_KEY="TEST"
+DATABASE_CLIENT="pg"
+POSTGRES_HOST="host.docker.internal"
+DATABASE_NAME="thirdweb"
+POSTGRES_USER="postgres"
+POSTGRES_PASSWORD="postgres"
+POSTGRES_DB_NAME="thirdweb"
+POSTGRES_PORT=5432
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres"
+DB_TABLES_LIST="wallets,transactions"
+WORKER_PORT=3006
+WORKER_HOST="0.0.0.0"
+MIN_TRANSACTION_TO_PROCESS=1
+TRANSACTIONS_TO_BATCH=10
+DB_TRIGGERS_LIST="trigger_notification,trigger_tx_table"
 ```
 
 ## Getting Started
@@ -20,17 +36,15 @@ API_KEY="TEST"
 
 ## ToDo
 
-- [X] Fastify Server Up & Running
-- [X] Dockerize the Server
-- [X] Add logging capabilty with winston
-- [ ] Add OpenAPI/Swagger Document Generation
-- [X] Add API-Key validation as middleware
-- [ ] Make API-Key Validation work with ThirdWeb Access check
-- [ ] Add wallet-id validation as middleware
-- [X] Add Read End-point
-- [X] Add Write End-point
-- [ ] Add Deployer End-point
-
+- [x] Fastify Server Up & Running
+- [x] Dockerize the Server
+- [x] Add logging capabilty with winston
+- [x] Add OpenAPI/Swagger Document Generation
+- [x] Add API-Key validation as middleware
+- [x] Add Read End-point
+- [x] Add Write End-point
+- [x] Add Deployer End-point
+- [x] Add Worker Server to send Tx on chain
 
 ## Note:
 
@@ -66,7 +80,7 @@ Example 2:
  - x-api-key : <pass_any_random_string_as_we_are_not_doing_any_checks_in_this_implementation> [future iterations will have key checking too]
  - x-wallet_id : <pass_any_random_string_as_we_are_not_doing_any_checks_in_this_implementation> [future iterations will have wallet checking/retrieval too]
 
-Response: 
+Response:
 
 {
   "result": {

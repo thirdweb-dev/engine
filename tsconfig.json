@@ -21,6 +21,8 @@
     "src/**/*.d.ts",
     "src/**/*.js"
   ],
-  "exclude": ["node_modules"],
+  "exclude": [
+    "node_modules",
+    "worker"],
   "types": ["node"]
 }

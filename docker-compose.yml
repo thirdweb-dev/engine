@@ -2,20 +2,49 @@ version: '3.8'
 
 services:
   web3-api:
-    # environment:
-    #   - PORT=3005
-    #   - OPENAPI_BASE_ORIGIN="http://localhost:3005"
-    #   - HOST="0.0.0.0"
-    #   - WALLET_PRIVATE_KEY=""
     build:
       dockerfile: Dockerfile
       context: .
-      target: local
+      target: local_server
     ports:
       - 3005:3005
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules  
+  
+  db:
+    image: postgres:latest
+    env_file:
+      - .env
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+  
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+  
+  web3-worker:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: local_worker
+    ports:
+      - 3006:3006
     volumes:
       - ./:/app
       - node_modules:/app/node_modules  
 
 volumes:
   node_modules:
+  db_data:
+  pgadmin:

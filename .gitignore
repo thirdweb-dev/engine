@@ -1,5 +1,5 @@
 .env
 dist/
 node_modules
-sql-schemas
 swagger.yml
+worker/distWorker/
