@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+
 import { getSDK } from "../../../../../helpers/index";
 import {
   baseReplyErrorSchema,
@@ -7,37 +8,53 @@ import {
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 
-// INPUT
+// INPUTS
 const requestSchema = contractParamSchema;
+const querystringSchema = Type.Object({
+  wallet_address: Type.String({
+    description: "Address of the wallet to check NFT balance",
+    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
+  }),
+  token_id: Type.String({
+    description: "The tokenId of the NFT to check balance of",
+    examples: ["0"],
+  }),
+});
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
   error: Type.Optional(baseReplyErrorSchema),
 });
 
 // LOGIC
-export async function erc721TotalCount(fastify: FastifyInstance) {
+export async function erc1155BalanceOf(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
+    Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/totalCount",
+    url: "/contract/:chain_name_or_id/:contract_address/erc1155/balanceOf",
     schema: {
-      description: "Get the total number of NFTs minted.",
-      tags: ["ERC721"],
-      operationId: "erc721_totalCount",
+      description: "Check the balance Of the wallet address",
+      tags: ["ERC1155"],
+      operationId: "erc1155_balanceOf",
       params: requestSchema,
+      querystring: querystringSchema,
       response: {
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
+      const { wallet_address, token_id } = request.query;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const returnData = await contract.erc721.totalCount();
+      const returnData = await contract.erc1155.balanceOf(
+        wallet_address,
+        token_id,
+      );
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
       });
