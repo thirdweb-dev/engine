@@ -16,7 +16,7 @@ export const processTransaction = async (server: FastifyInstance) : Promise<void
             .where('txProcessed', false)
             .where('txMined', false)
             .where('txErrored', false)
-            .orderBy('createdTimestamp', 'desc')
+            .orderBy('createdTimestamp')
             .limit(10);
         
         if (data.length < MIN_TRANSACTION_TO_PROCESS){
