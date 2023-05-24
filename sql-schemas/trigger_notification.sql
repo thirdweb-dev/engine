@@ -1,4 +1,3 @@
--- Create a trigger function that sends a notification
 CREATE OR REPLACE FUNCTION notify_transactions_insert()
   RETURNS TRIGGER
   LANGUAGE plpgsql

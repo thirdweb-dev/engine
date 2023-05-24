@@ -3,7 +3,7 @@ import { TransactionSchema } from "../sharedApiSchemas";
 import { createCustomError } from "../customError";
 import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
-import { connectToDB } from "./dbConnect";
+import { connectWithDatabase } from "./dbConnect";
 import { FastifyRequest } from "fastify";
 import { Transaction } from "@thirdweb-dev/sdk";
 
@@ -38,7 +38,7 @@ export const queueTransaction = async (
   };
 
   // Insert to DB
-  const dbInstance = await connectToDB(request);
+  const dbInstance = await connectWithDatabase(request);
   await insertTransactionData(dbInstance, txDataToInsert, request);
   await dbInstance.destroy();
 

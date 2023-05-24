@@ -20,7 +20,7 @@ export const processTransaction = async (
       .where("txMined", false)
       .where("txErrored", false)
       .orderBy("createdTimestamp")
-      .limit(10);
+      .limit(MIN_TRANSACTION_TO_PROCESS);
 
     if (data.length < MIN_TRANSACTION_TO_PROCESS) {
       server.log.warn(
@@ -50,7 +50,7 @@ export const processTransaction = async (
         if (blockchainNonce > nonce) {
           nonce = blockchainNonce;
         }
-        console.debug(
+        server.log.debug(
           `Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${walletData.lastUsedNonce}, Tx Nonce: ${nonce}`,
         );
 
@@ -68,7 +68,7 @@ export const processTransaction = async (
           data: tx.encodedInputData,
           nonce: txSubmittedNonce,
         };
-        console.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
+        server.log.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
         const txHash = await sdk.getSigner()?.sendTransaction(txObject);
 
         try {
@@ -77,7 +77,7 @@ export const processTransaction = async (
               txProcessed: true,
               txSubmitted: true,
               txProcessedTimestamp: new Date(),
-              txSubmittedTimestamp: txHash?.timestamp,
+              txSubmittedTimestamp: new Date(),
               updatedTimestamp: new Date(),
               submittedTxNonce: txHash?.nonce,
               txHash: txHash?.hash,
