@@ -139,3 +139,8 @@ export interface TransactionSchema {
   maxFeePerGas?: string;
   txHash?: string;
 }
+
+export const transactionWritesResponseSchema = Type.Object({
+  queuedId: Type.Optional(Type.String()),
+  error: Type.Optional(baseReplyErrorSchema),
+});
