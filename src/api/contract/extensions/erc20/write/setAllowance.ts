@@ -14,7 +14,6 @@ import {
   standardResponseSchema,
   baseReplyErrorSchema
 } from '../../../../../helpers/sharedApiSchemas';
-import { createCustomError } from "../../../../../helpers/customError";
 
 // INPUTS
 const requestSchema = contractParamSchema;

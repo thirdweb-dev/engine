@@ -9,7 +9,7 @@ COPY yarn*.json .
 
 EXPOSE 3005
 
-FROM base AS local
+FROM base AS local_server
 
 ENV NODE_ENV="local"
 
@@ -18,6 +18,14 @@ RUN apk del build-dependencies
 ENV PATH /app/node_modules/.bin:$PATH
 
 CMD [ "yarn", "dev" ]
+
+FROM base AS local_worker
+
+EXPOSE 3006
+
+ENV NODE_ENV="local"
+
+CMD [ "yarn", "dev-worker" ]
 
 # FROM base AS dev
 

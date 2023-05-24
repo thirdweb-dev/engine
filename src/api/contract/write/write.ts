@@ -4,8 +4,8 @@ import { Static } from "@sinclair/typebox";
 import { v4 as uuid } from 'uuid';
 import {
   getSDK,
-  connectToDB,
   insertTransactionData,
+  connectWithDatabase,
 } from "../../../helpers/index";
 import {
   partialRouteSchema,
@@ -33,16 +33,14 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { function_name, args } = request.body;
       
       // Connect to DB
-      const dbInstance = await connectToDB(request);
+      const dbInstance = await connectWithDatabase(request);
       
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
       const tx = await contract.prepare(function_name, args);
       const encodedData = tx.encode();
       const value = tx.getValue();
-      const walletAddress = await sdk.wallet.getAddress();
-
-      request.log.info("Contract/Write Called");
+      const walletAddress = await sdk.wallet.getAddress();      
       
       const txDataToInsert: TransactionSchema = {
         identifier: uuid(),
@@ -59,8 +57,6 @@ export async function writeToContract(fastify: FastifyInstance) {
         encodedInputData: encodedData,
       };
 
-      request.log.debug({ txDataToInsert }, "Transaction Data To Insert");
-      
       await insertTransactionData(dbInstance, txDataToInsert, request);
 
       // Closing the DB Connection
