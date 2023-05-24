@@ -11,18 +11,18 @@ import {
 // INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  spender_address: Type.String({
-    description: "Address of the wallet to allow transfers from",
+  to: Type.String({
+    description: "Address of the wallet to transfer to",
   }),
-  amount: Type.String({
-    description: "The number of tokens to give as allowance",
+  token_id: Type.String({
+    description: "the tokenId to transfer",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    spender_address: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-    amount: "100",
+    to: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+    token_id: "0",
   },
 ];
 
@@ -32,19 +32,19 @@ const responseSchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
 });
 
-export async function erc20SetAlowance(fastify: FastifyInstance) {
+export async function erc721transfer(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc20/setAllowance",
+    url: "/contract/:chain_name_or_id/:contract_address/erc721/transfer",
     schema: {
       description:
-        "Grant allowance to another wallet address to spend the connected (Admin) wallet's funds (of this token).",
-      tags: ["ERC20"],
-      operationId: "erc20_setAllowance",
+        "Transfer an NFT from the connected wallet to another wallet.",
+      tags: ["ERC721"],
+      operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -54,18 +54,15 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { spender_address, amount } = request.body;
+      const { to, token_id } = request.body;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const tx = await contract.erc20.setAllowance.prepare(
-        spender_address,
-        amount,
-      );
+      const tx = await contract.erc721.transfer.prepare(to, token_id);
       const queuedId = await queueTransaction(
         request,
         tx,
         chain_name_or_id,
-        "erc20",
+        "erc721",
       );
       reply.status(StatusCodes.OK).send({
         queuedId,
