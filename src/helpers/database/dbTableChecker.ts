@@ -49,3 +49,33 @@ export const checkTablesExistence = async (server: FastifyInstance) : Promise<vo
         throw customError;
     }
 };
+
+export const implementTriggerOnStartUp = async (server: FastifyInstance) : Promise<void> => {
+    try {
+        // Connect to the DB
+        const knex = await connectWithDatabase(server);
+
+        const triggersList: string[] = getEnv('DB_TRIGGERS_LIST').split(",").map(function(item) {
+            return item.trim();
+        });
+
+        if (!triggersList) {
+            const error = createCustomError("DB_TRIGGERS_LIST ENV variable is empty", StatusCodes.NOT_FOUND, 'DB_TRIGGERS_LIST_NOT_FOUND');
+            throw error;
+        }
+        
+
+        for (const dbTriggers of triggersList) {
+            server.log.debug(`Reading Trigger File ${dbTriggers}.sql`);
+            const schemaSQL = await fs.readFile(`${__dirname}/../../../sql-schemas/${dbTriggers}.sql`, 'utf-8');
+            await knex.raw(schemaSQL);
+            server.log.debug(`Trigger ${dbTriggers} created/replaced on startup successfully`);
+        }
+
+        // Disconnect from DB
+        await knex.destroy();
+    } catch (error: any) {
+        const customError = createCustomError(error.message, StatusCodes.INTERNAL_SERVER_ERROR, 'INTERNAL_SERVER_ERROR');
+        throw customError;
+    }
+};

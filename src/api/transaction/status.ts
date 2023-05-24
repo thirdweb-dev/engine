@@ -18,16 +18,21 @@ const txStatusRequestParamSchema = Type.Object({
 export const txStatusReplyBodySchema = Type.Object({
   result: Type.Object({
     queueId: Type.String(),
-    status: Type.Object({
-      processed: Type.Boolean(),
-      submitted: Type.Boolean(),
-      errored: Type.Boolean(),
-      mined: Type.Boolean(),
-      queued: Type.Boolean(),
-    })
+    status: Type.String(),
+    txHash: Type.Optional(Type.String()),
   }),
   error: Type.Optional(baseReplyErrorSchema),
 });
+
+// OUTPUT
+
+enum Status {
+  Processed = 'processed',
+  Queued = 'queued',
+  Submitted = 'submitted',
+  Errored = 'errored',
+  Mined = 'mined',
+};
 
 export async function checkTxStatus(fastify: FastifyInstance) {
   fastify.route<{
@@ -57,18 +62,27 @@ export async function checkTxStatus(fastify: FastifyInstance) {
         throw error;
       }
 
+      let status : Status;
+
+      if (returnData.txMined) {
+        status = Status.Mined;
+      } else if (returnData.txSubmitted) {
+        status = Status.Submitted;
+      } else if (returnData.txProcessed) {
+        status = Status.Processed;
+      } else if (returnData.txErrored) {
+        status = Status.Errored;
+      } else {
+        status = Status.Queued;
+      }
+
       dbConnection.destroy();
 
       reply.status(StatusCodes.OK).send({
         result: {
           queueId: tx_queue_id,
-          status: {
-            processed: returnData.txProcessed!,
-            mined: returnData?.txMined!,
-            submitted: returnData?.txSubmitted!,
-            errored: returnData?.txErrored!,
-            queued: true,
-          }
+          status,
+          txHash: returnData.txHash ?? undefined,
         }
       });
     },

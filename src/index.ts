@@ -7,7 +7,7 @@ import fastifyCors from '@fastify/cors';
 import { openapi } from './helpers/openapi';
 import { errorHandler } from './errorHandler';
 import { apiRoutes } from './api';
-import { checkTablesExistence, connectToDB } from './helpers/index';
+import { checkTablesExistence, connectToDB, implementTriggerOnStartUp } from './helpers/index';
 
 const logSettings: any = {
   local: {
@@ -101,6 +101,7 @@ const main = async () => {
 
   // Check for the Tables Existence post startup
   await checkTablesExistence(server)
+  await implementTriggerOnStartUp(server);
 };
 
 main();
