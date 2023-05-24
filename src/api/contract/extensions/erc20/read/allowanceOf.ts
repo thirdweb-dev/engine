@@ -5,6 +5,7 @@ import { getSDK } from "../../../../../helpers/index";
 import {
   baseReplyErrorSchema,
   contractParamSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 import { currencyValueSchema } from "../../../../../schemas/erc20/standard/currencyValue";
@@ -44,6 +45,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },

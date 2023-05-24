@@ -1,8 +1,8 @@
 import { ReasonPhrases, StatusCodes } from 'http-status-codes';
-import { getCodeFromStatusCode } from './utilities/errorCodes';
-import { getEnv } from './helpers/loadEnv';
+import { getCodeFromStatusCode } from '../utilities/errorCodes';
+import { getEnv } from './loadEnv';
 import { FastifyInstance } from 'fastify';
-import { CustomError } from './helpers/customError';
+import { CustomError } from './customError';
 
 export const errorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler((error: Error | CustomError, request, reply) => {

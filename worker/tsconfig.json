@@ -17,12 +17,13 @@
     "experimentalSpecifierResolution": "node"
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.js"
+    "./**/*.ts",
+    "./**/*.d.ts",
+    "./**/*.js"
   ],
   "exclude": [
     "node_modules",
-    "worker"],
+    "src"
+  ],
   "types": ["node"]
 }

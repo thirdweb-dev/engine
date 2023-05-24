@@ -5,7 +5,7 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
-      target: local
+      target: local_server
     ports:
       - 3005:3005
     volumes:
@@ -30,7 +30,21 @@ services:
       PGADMIN_DEFAULT_PASSWORD: root
     ports:
       - "5050:80"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+  
+  web3-worker:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: local_worker
+    ports:
+      - 3006:3006
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules  
 
 volumes:
   node_modules:
   db_data:
+  pgadmin:

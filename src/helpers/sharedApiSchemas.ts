@@ -8,13 +8,7 @@ export const baseReplyErrorSchema = Type.Object({
   code: Type.String(),
   stack: Type.Optional(Type.String()),
   statusCode: Type.Number(),
-  data: Type.Optional(Type.Any()),
 });
-
-/**
- * Used to surface application errors to the client. The `code` field is set by the request handler.
- */
-// export const baseReplyErrorSchema = Nullable(errorSchema);
 
 /**
  * Basic schema for all Contract Request Parameters
@@ -78,18 +72,19 @@ const replyBodySchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
 });
 
+export const writeReplyBodySchema = Type.Object({
+  queuedId: Type.Optional(Type.String()),
+  error: Type.Optional(baseReplyErrorSchema),
+});
+
 export const standardResponseSchema = {
   [StatusCodes.OK]: replyBodySchema,
-  [StatusCodes.UNAUTHORIZED]: {
-    description: "Authentication information is missing or invalid",
-    ...replyBodySchema,
-  },
   [StatusCodes.BAD_REQUEST]: {
     description: "Bad Request",
     ...replyBodySchema,
   },
   [StatusCodes.NOT_FOUND]: {
-    description: "Method Nor Found",
+    description: "Not Found",
     ...replyBodySchema,
   },
   [StatusCodes.INTERNAL_SERVER_ERROR]: {
@@ -119,4 +114,24 @@ export interface prebuiltDeploySchemaTypes extends RouteGenericInterface {
 export interface publishedDeploySchemaTypes extends RouteGenericInterface {
   Params: Static<typeof publishedDeployParamSchema>;
   Reply: Static<typeof replyBodySchema>;
+}
+
+export interface TransactionSchema {
+  identifier?: string;
+  walletAddress?: string;
+  contractAddress?: string;
+  chainId?: string;
+  extension?: string;
+  rawFunctionName?: string;
+  rawFunctionArgs?: string;
+  txProcessed?: boolean;
+  txSubmitted?: boolean;
+  txErrored?: boolean;
+  txMined?: boolean;
+  encodedInputData?: string;
+  txType?: number;
+  gasPrice?: string;
+  gasLimit?: string;
+  maxPriorityFeePerGas?: string;
+  maxFeePerGas?: string;
 }
