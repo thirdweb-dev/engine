@@ -8,6 +8,11 @@ import { erc20GetMetadata } from "./read/get";
 import { erc20SetAlowance } from "./write/setAllowance";
 import { erc20Transfer } from "./write/transfer";
 import { erc20TransferFrom } from "./write/transferFrom";
+import { erc20burn } from "./write/burn";
+import { erc20burnFrom } from "./write/burnFrom";
+import { erc20claimTo } from "./write/claimTo";
+import { erc20mintBatchTo } from "./write/mintBatchTo";
+import { erc20mintTo } from "./write/mintTo";
 
 export const erc20Routes = async (fastify: FastifyInstance) => {
   // GET
@@ -20,4 +25,10 @@ export const erc20Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc20SetAlowance);
   await fastify.register(erc20Transfer);
   await fastify.register(erc20TransferFrom);
+  await fastify.register(erc20burn);
+  await fastify.register(erc20burnFrom);
+  await fastify.register(erc20claimTo);
+  await fastify.register(erc20mintBatchTo);
+  await fastify.register(erc20mintTo);
+
 };
