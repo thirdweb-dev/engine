@@ -32,9 +32,7 @@ export const connectToDB = async (server: FastifyInstance) : Promise<Knex> => {
         default:
             throw new Error(`Unsupported database client: ${dbClient}`);
     }
-
-    let db = dbClientPackage(knexConfig);
+    
     server.log.info(`Connected to ${DATABASE_NAME} database`)
-
-    return db;
+    return dbClientPackage(knexConfig);
 }

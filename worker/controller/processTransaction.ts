@@ -16,30 +16,84 @@ export const processTransaction = async (server: FastifyInstance) : Promise<void
             .where('txProcessed', false)
             .where('txMined', false)
             .where('txErrored', false)
-            .limit(MIN_TRANSACTION_TO_PROCESS);
+            .orderBy('createdTimestamp', 'desc')
+            .limit(10);
         
         if (data.length < MIN_TRANSACTION_TO_PROCESS){
             server.log.warn(`Number of transactions to process less than Minimum Transactions to Process: ${MIN_TRANSACTION_TO_PROCESS}`);
             server.log.warn(`Waiting for more transactions requests to start processing`);
+            return;
         }
 
-        data.forEach(async (tx: any) => {
-            server.log.info(`Processing Transaction: ${tx.identifier}`);
-            const walletData = await getWalletDetails(tx.walletAddress, tx.chainId, knex);
-            const sdk = await getSDK(tx.chainId);
-            const contract = await sdk.getContract(tx.contractAddress);
-            switch (tx.extension) {
-                case 'non-extension':
-                    
-                    break;
-                case 'erc20':
-                    break;
-                case 'erc1155':
-                    break;
-                case 'erc721':
-                    break;
-            }
+        data.forEach(async (tx: any, index: number) => {
+            await setTimeout(async () => {
+                server.log.info(`Processing Transaction: ${tx.identifier}`);
+                const walletData = await getWalletDetails(tx.walletAddress, tx.chainId, knex);
+                const sdk = await getSDK(tx.chainId);
+                let blockchainNonce = await getWalletNonce(tx.walletAddress, tx.chainId);
+                let nonce = walletData.lastUsedNonce;
+                
+                if (blockchainNonce > nonce) {
+                    nonce = blockchainNonce;
+                }
+                console.debug(`Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${walletData.lastUsedNonce}, Tx Nonce: ${nonce}`);
 
+                const trx = await knex.transaction();
+                server.log.debug(`Transaction started for ${tx.identifier}`);
+                const txSubmittedNonce = nonce + index;
+                server.log.debug(`Transaction nonce: ${txSubmittedNonce} for ${tx.identifier}`);
+                
+                // Submit transaction to the blockchain
+                const txObject = {
+                    to: tx.contractAddress ?? tx.toAddress,
+                    from: tx.walletAddress,
+                    data: tx.encodedInputData,
+                    nonce: txSubmittedNonce,
+                };
+                console.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
+                const txHash = await sdk.getSigner()?.sendTransaction(txObject);
+
+                try {
+
+                    await knex('transactions')
+                        .update({
+                            txProcessed: true,
+                            txSubmitted: true,
+                            txProcessedTimestamp: new Date(),
+                            txSubmittedTimestamp: txHash?.timestamp,
+                            updatedTimestamp: new Date(),
+                            submittedTxNonce: txHash?.nonce,
+                            txHash: txHash?.hash,
+                            txType: txHash?.type,
+                        })
+                        .where('identifier', tx.identifier)
+                        .transacting(trx);
+                    
+                    server.log.debug(`Transaction submitted for ${tx.identifier}`);
+
+                    await knex('wallets')
+                        .update({
+                            lastUsedNonce: txSubmittedNonce,
+                        })
+                        .where('walletAddress', tx.walletAddress)
+                        .where('chainId', tx.chainId)
+                        .transacting(trx);
+                    
+                    server.log.debug(`Wallet nonce updated ${txSubmittedNonce} for ${tx.identifier}`);
+                    
+                    // If all operations within the transaction succeed, commit the changes
+                    await trx.commit();
+                    server.log.info('Transaction committed successfully!');
+                } catch (error) {
+                    // Handle the error & rollback actions
+                    console.error('Transaction failed:', error);
+                    
+                    await trx.rollback();
+                } finally {
+                    // Release the database connection
+                    await knex.destroy();
+                }
+            }, 1000);
         });
 
     } catch (error) {
