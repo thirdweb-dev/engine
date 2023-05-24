@@ -8,6 +8,9 @@ import { getSDK } from "../helpers";
 const MIN_TRANSACTION_TO_PROCESS =
   parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS"), 10) ?? 1;
 
+const TRANSACTIONS_TO_BATCH =
+parseInt(getEnv("TRANSACTIONS_TO_BATCH"), 10) ?? 10;
+
 export const processTransaction = async (
   server: FastifyInstance,
 ): Promise<void> => {
@@ -20,7 +23,7 @@ export const processTransaction = async (
       .where("txMined", false)
       .where("txErrored", false)
       .orderBy("createdTimestamp")
-      .limit(10);
+      .limit(TRANSACTIONS_TO_BATCH);
 
     if (data.length < MIN_TRANSACTION_TO_PROCESS) {
       server.log.warn(
@@ -45,13 +48,15 @@ export const processTransaction = async (
           tx.walletAddress,
           sdk.getProvider(),
         );
-        let nonce = walletData.lastUsedNonce;
+        
+        let nonce = walletData?.lastUsedNonce ?? 0;
 
         if (blockchainNonce > nonce) {
           nonce = blockchainNonce;
         }
-        console.debug(
-          `Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${walletData.lastUsedNonce}, Tx Nonce: ${nonce}`,
+
+        server.log.debug(
+          `Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${walletData?.lastUsedNonce ?? 0}, Tx Nonce: ${nonce}`,
         );
 
         const trx = await knex.transaction();
@@ -68,7 +73,7 @@ export const processTransaction = async (
           data: tx.encodedInputData,
           nonce: txSubmittedNonce,
         };
-        console.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
+        server.log.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
         const txHash = await sdk.getSigner()?.sendTransaction(txObject);
 
         try {
@@ -77,7 +82,7 @@ export const processTransaction = async (
               txProcessed: true,
               txSubmitted: true,
               txProcessedTimestamp: new Date(),
-              txSubmittedTimestamp: txHash?.timestamp,
+              txSubmittedTimestamp: new Date(),
               updatedTimestamp: new Date(),
               submittedTxNonce: txHash?.nonce,
               txHash: txHash?.hash,

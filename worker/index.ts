@@ -26,10 +26,7 @@ const logSettings: any = {
 
 const main = async () => {
   const server: FastifyInstance = fastify({
-    logger: {
-      msgPrefix: 'web3-api-worker: ',
-      enabled: true,
-    },
+    logger: logSettings[getEnv('NODE_ENV')] ?? true,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 

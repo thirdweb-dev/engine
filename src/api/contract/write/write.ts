@@ -1,31 +1,67 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static } from "@sinclair/typebox";
-import { v4 as uuid } from 'uuid';
+import { Static, Type } from "@sinclair/typebox";
 import {
   getSDK,
-  insertTransactionData,
   connectWithDatabase,
+  queueTransaction,
 } from "../../../helpers/index";
 import {
-  partialRouteSchema,
-  TransactionSchema
+  baseReplyErrorSchema,
+  contractParamSchema,
+  standardResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
-import {
-  writeRequestBodySchema,
-  writeSchema,
-} from "../../../schemas/contract/write";
 import { createCustomError } from "../../../helpers/customError";
 
+// INPUT
+const writeRequestBodySchema = Type.Object({
+  function_name: Type.String({
+    description: "Name of the function to call on Contract",
+  }),
+  args: Type.Array(
+    Type.String({
+      description: "Arguments for the function. Comma Separated",
+    }),
+  ),
+});
+
+// Adding example for Swagger File
+writeRequestBodySchema.examples = [
+  {
+    function_name: "transferFrom",
+    args: [
+      "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+      "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+      "0",
+    ],
+  },
+];
+
+// OUTPUT
+const replyBodySchema = Type.Object({
+  result: Type.Optional(
+    Type.Object({
+      queuedId: Type.Optional(Type.String()),
+    }),
+  ),
+  error: Type.Optional(baseReplyErrorSchema),
+});
+
+// LOGIC
 export async function writeToContract(fastify: FastifyInstance) {
-  fastify.route<writeSchema>({
+  fastify.route<{
+    Body: Static<typeof writeRequestBodySchema>,
+    Params: Static<typeof contractParamSchema>;
+    Reply: Static<typeof replyBodySchema>;
+  }>({
     method: "POST",
     url: "/contract/:chain_name_or_id/:contract_address/write",
     schema: {
       description: "Write to Contract",
       tags: ["Contract"],
       operationId: "write",
-      ...partialRouteSchema,
+      params: contractParamSchema,
+      response: standardResponseSchema,
       body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
@@ -38,33 +74,17 @@ export async function writeToContract(fastify: FastifyInstance) {
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
       const tx = await contract.prepare(function_name, args);
-      const encodedData = tx.encode();
-      const value = tx.getValue();
-      const walletAddress = await sdk.wallet.getAddress();      
       
-      const txDataToInsert: TransactionSchema = {
-        identifier: uuid(),
-        walletAddress: walletAddress.toLowerCase(),
-        contractAddress: contract_address.toLowerCase(),
-        chainId: chain_name_or_id.toLowerCase(),
-        extension: 'non-extension',
-        rawFunctionName: function_name,
-        rawFunctionArgs: args.toString(),
-        txProcessed: false,
-        txErrored: false,
-        txMined: false,
-        txSubmitted: false,
-        encodedInputData: encodedData,
-      };
-
-      await insertTransactionData(dbInstance, txDataToInsert, request);
-
-      // Closing the DB Connection
-      await dbInstance.destroy();
+      const queuedId = await queueTransaction(
+        request,
+        tx,
+        chain_name_or_id,
+        "non-extension",
+      );
 
       reply.status(StatusCodes.OK).send({
         result: {
-          queuedId: txDataToInsert.identifier, 
+          queuedId, 
         }
       });
     },

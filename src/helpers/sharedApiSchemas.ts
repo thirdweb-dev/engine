@@ -137,4 +137,5 @@ export interface TransactionSchema {
   gasLimit?: string;
   maxPriorityFeePerGas?: string;
   maxFeePerGas?: string;
+  txHash?: string;
 }
