@@ -11,18 +11,18 @@ import {
 // INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  spender_address: Type.String({
-    description: "Address of the wallet to allow transfers from",
+  operator: Type.String({
+    description: "Address of the operator to give approval to",
   }),
-  amount: Type.String({
-    description: "The number of tokens to give as allowance",
+  approved: Type.Boolean({
+    description: "wheter to approve or revoke approval",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    spender_address: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-    amount: "100",
+    operator: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+    approved: "true",
   },
 ];
 
@@ -32,19 +32,19 @@ const responseSchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
 });
 
-export async function erc20SetAlowance(fastify: FastifyInstance) {
+export async function erc721SetApprovalForAll(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc20/setAllowance",
+    url: "/contract/:chain_name_or_id/:contract_address/erc721/setApprovalForAll",
     schema: {
       description:
-        "Grant allowance to another wallet address to spend the connected (Admin) wallet's funds (of this token).",
-      tags: ["ERC20"],
-      operationId: "setAllowance",
+        "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token in the specified contract owned by the caller.",
+      tags: ["ERC721"],
+      operationId: "setApprovalForAll",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -54,27 +54,19 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { spender_address, amount } = request.body;
-
-      request.log.info("Inside ERC20 Set Allowance Function");
-      request.log.debug(`Chain : ${chain_name_or_id}`);
-      request.log.debug(`Contract Address : ${contract_address}`);
-
+      const { operator, approved } = request.body;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-
-      // const returnData: any = await contract.erc20.setAllowance(spender_address, amount);
-      const tx = await contract.erc20.setAllowance.prepare(
-        spender_address,
-        amount,
+      const tx = await contract.erc721.setApprovalForAll.prepare(
+        operator,
+        approved,
       );
       const queuedId = await queueTransaction(
         request,
         tx,
         chain_name_or_id,
-        "erc20",
+        "erc721",
       );
-
       reply.status(StatusCodes.OK).send({
         queuedId,
       });
