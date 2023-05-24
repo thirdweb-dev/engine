@@ -64,8 +64,12 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
       const { from, to, token_id, amount } = request.body;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      // TODO switch to transferFromFrom
-      const tx = await contract.erc1155.transfer.prepare(to, token_id, amount);
+      const tx = await contract.erc1155.transferFrom.prepare(
+        from,
+        to,
+        token_id,
+        amount,
+      );
       const queuedId = await queueTransaction(
         request,
         tx,
