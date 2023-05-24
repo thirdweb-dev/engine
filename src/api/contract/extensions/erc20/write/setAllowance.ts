@@ -44,7 +44,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       description:
         "Grant allowance to another wallet address to spend the connected (Admin) wallet's funds (of this token).",
       tags: ["ERC20"],
-      operationId: "setAllowance",
+      operationId: "erc20_setAllowance",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -55,15 +55,8 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { spender_address, amount } = request.body;
-
-      request.log.info("Inside ERC20 Set Allowance Function");
-      request.log.debug(`Chain : ${chain_name_or_id}`);
-      request.log.debug(`Contract Address : ${contract_address}`);
-
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-
-      // const returnData: any = await contract.erc20.setAllowance(spender_address, amount);
       const tx = await contract.erc20.setAllowance.prepare(
         spender_address,
         amount,
@@ -74,7 +67,6 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
         chain_name_or_id,
         "erc20",
       );
-
       reply.status(StatusCodes.OK).send({
         queuedId,
       });
