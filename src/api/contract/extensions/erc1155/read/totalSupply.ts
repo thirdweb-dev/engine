@@ -1,12 +1,11 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../../helpers/index";
-import { Static, Type } from "@sinclair/typebox";
 import {
-  contractParamSchema,
   baseReplyErrorSchema,
+  contractParamSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { nftSchema } from "../../../../../schemas/nft";
+import { Static, Type } from "@sinclair/typebox";
 
 // INPUT
 const requestSchema = contractParamSchema;
@@ -19,23 +18,23 @@ const querystringSchema = Type.Object({
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: nftSchema,
+  result: Type.Optional(Type.String()),
   error: Type.Optional(baseReplyErrorSchema),
 });
 
 // LOGIC
-export async function erc721Get(fastify: FastifyInstance) {
+export async function erc1155TotalSupply(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/get",
+    url: "/contract/:chain_name_or_id/:contract_address/erc1155/totalSupply",
     schema: {
-      description: "Get the metadata of a single NFT.",
-      tags: ["ERC721"],
-      operationId: "erc721_get",
+      description: "Get the total number of NFTs minted.",
+      tags: ["ERC1155"],
+      operationId: "erc1155_totalSupply",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -47,9 +46,9 @@ export async function erc721Get(fastify: FastifyInstance) {
       const { token_id } = request.query;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const result = await contract.erc721.get(token_id);
+      const returnData = await contract.erc1155.totalSupply(token_id);
       reply.status(StatusCodes.OK).send({
-        result,
+        result: returnData.toString(),
       });
     },
   });

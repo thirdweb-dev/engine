@@ -1,55 +1,45 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../../helpers/index";
-import { Static, Type } from "@sinclair/typebox";
 import {
-  contractParamSchema,
   baseReplyErrorSchema,
+  contractParamSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { nftSchema } from "../../../../../schemas/nft";
+import { Static, Type } from "@sinclair/typebox";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const querystringSchema = Type.Object({
-  token_id: Type.String({
-    description: "The tokenId of the NFT to retrieve",
-    examples: ["0"],
-  }),
-});
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: nftSchema,
+  result: Type.Optional(Type.String()),
   error: Type.Optional(baseReplyErrorSchema),
 });
 
 // LOGIC
-export async function erc721Get(fastify: FastifyInstance) {
+export async function erc721TotalClaimedSupply(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/get",
+    url: "/contract/:chain_name_or_id/:contract_address/erc721/totalClaimedSupply",
     schema: {
-      description: "Get the metadata of a single NFT.",
+      description: "Get the claimed NFT supply for the contract.",
       tags: ["ERC721"],
-      operationId: "erc721_get",
+      operationId: "erc721_totalClaimedSupply",
       params: requestSchema,
-      querystring: querystringSchema,
       response: {
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { token_id } = request.query;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const result = await contract.erc721.get(token_id);
+      const returnData = await contract.erc721.totalClaimedSupply();
       reply.status(StatusCodes.OK).send({
-        result,
+        result: returnData.toString(),
       });
     },
   });

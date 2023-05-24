@@ -60,6 +60,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { spender_address, amount } = request.body;
+
       request.log.info('Inside ERC20 Set Allowance Function');
       request.log.debug(`Chain : ${chain_name_or_id}`)
       request.log.debug(`Contract Address : ${contract_address}`);

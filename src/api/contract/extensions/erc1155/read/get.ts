@@ -24,18 +24,18 @@ const responseSchema = Type.Object({
 });
 
 // LOGIC
-export async function erc721Get(fastify: FastifyInstance) {
+export async function erc1155Get(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/get",
+    url: "/contract/:chain_name_or_id/:contract_address/erc1155/get",
     schema: {
       description: "Get the metadata of a single NFT.",
-      tags: ["ERC721"],
-      operationId: "erc721_get",
+      tags: ["ERC1155"],
+      operationId: "erc1155_get",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -47,7 +47,7 @@ export async function erc721Get(fastify: FastifyInstance) {
       const { token_id } = request.query;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const result = await contract.erc721.get(token_id);
+      const result = await contract.erc1155.get(token_id);
       reply.status(StatusCodes.OK).send({
         result,
       });

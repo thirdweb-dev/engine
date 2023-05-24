@@ -1,41 +1,41 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../helpers/index";
-import { Static, Type } from "@sinclair/typebox";
-import {
-  contractParamSchema,
-  baseReplyErrorSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { nftSchema } from "../../../../../schemas/nft";
 
-// INPUT
+import { getSDK } from "../../../../../helpers/index";
+import {
+  baseReplyErrorSchema,
+  contractParamSchema,
+} from "../../../../../helpers/sharedApiSchemas";
+import { Static, Type } from "@sinclair/typebox";
+
+// INPUTS
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
-  token_id: Type.String({
-    description: "The tokenId of the NFT to retrieve",
-    examples: ["0"],
+  wallet_address: Type.String({
+    description: "Address of the wallet to check NFT balance",
+    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
 });
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
-  result: nftSchema,
+  result: Type.Optional(Type.String()),
   error: Type.Optional(baseReplyErrorSchema),
 });
 
 // LOGIC
-export async function erc721Get(fastify: FastifyInstance) {
+export async function erc721BalanceOf(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/get",
+    url: "/contract/:chain_name_or_id/:contract_address/erc721/balanceOf",
     schema: {
-      description: "Get the metadata of a single NFT.",
+      description: "Check the balance Of the wallet address",
       tags: ["ERC721"],
-      operationId: "erc721_get",
+      operationId: "erc721_balanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -44,12 +44,12 @@ export async function erc721Get(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { token_id } = request.query;
+      const { wallet_address } = request.query;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const result = await contract.erc721.get(token_id);
+      const returnData = await contract.erc721.balanceOf(wallet_address);
       reply.status(StatusCodes.OK).send({
-        result,
+        result: returnData.toString(),
       });
     },
   });

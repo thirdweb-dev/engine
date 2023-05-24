@@ -1,9 +1,12 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getSDK } from '../../../../../helpers/index';
-import { partialRouteSchema } from '../../../../../helpers/sharedApiSchemas';
-import { transferRequestBodySchema, transferRouteSchema } from '../../../../../schemas/erc20/standard/transfer';
+import { getSDK } from "../../../../../helpers/index";
+import { partialRouteSchema } from "../../../../../helpers/sharedApiSchemas";
+import {
+  transferRequestBodySchema,
+  transferRouteSchema,
+} from "../../../../../schemas/erc20/standard/transfer";
 
 export async function erc20Transfer(fastify: FastifyInstance) {
   fastify.route<transferRouteSchema>({
@@ -20,21 +23,12 @@ export async function erc20Transfer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { to_address, amount } = request.body;
-      request.log.info("Inside ERC20 - Transfer Function");
-      request.log.debug(`Chain : ${chain_name_or_id}`);
-      request.log.debug(`Contract Address : ${contract_address}`);
-
-      request.log.debug(`To Address : ${to_address}`);
-      request.log.debug(`Amount : ${amount}`);
-
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-
-      const returnData: any = await contract.erc20.transfer(to_address, amount);
-
+      const returnData = await contract.erc20.transfer(to_address, amount);
       reply.status(StatusCodes.OK).send({
         result: {
-          transaction: returnData?.receipt,
+          transaction: returnData.receipt,
         },
       });
     },

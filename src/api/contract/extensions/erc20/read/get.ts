@@ -44,15 +44,9 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      request.log.info("Inside ERC20 - Get Function");
-      request.log.debug(`Chain : ${chain_name_or_id}`);
-      request.log.debug(`Contract Address : ${contract_address}`);
-
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-
       const returnData: any = await contract.erc20.get();
-
       reply.status(StatusCodes.OK).send({
         result: {
           data: {
