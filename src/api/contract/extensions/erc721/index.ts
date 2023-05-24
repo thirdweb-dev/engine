@@ -8,7 +8,10 @@ import { erc721TotalClaimedSupply } from "./read/totalClaimedSupply";
 import { erc721GetOwned } from "./read/getOwned";
 import { erc721TotalUnclaimedSupply } from "./read/totalUnclaimedSupply";
 import { erc721SetApprovalForAll } from "./write/setApprovalForAll";
-import { erc721SetApprovalForToken } from "./write/setApprovalForToken";
+import { erc721SetApprovalForToken } from "./write/setApprovalForToken copy";
+import { erc721transfer } from "./write/transfer";
+import { erc721transferFrom } from "./write/transferFrom";
+import { erc721mintTo } from "./write/mintTo";
 
 export const erc721Routes = async (fastify: FastifyInstance) => {
   // GET
@@ -24,4 +27,7 @@ export const erc721Routes = async (fastify: FastifyInstance) => {
   // POST
   await fastify.register(erc721SetApprovalForAll);
   await fastify.register(erc721SetApprovalForToken);
+  await fastify.register(erc721transfer);
+  await fastify.register(erc721transferFrom);
+  await fastify.register(erc721mintTo);
 };
