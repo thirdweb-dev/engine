@@ -4,10 +4,11 @@ import { StatusCodes } from "http-status-codes";
 import { RouteGenericInterface } from "fastify";
 
 export const baseReplyErrorSchema = Type.Object({
-  message: Type.String(),
-  code: Type.String(),
+  message: Type.Optional(Type.String()),
+  reason: Type.Optional(Type.String()),
+  code: Type.Optional(Type.String()),
   stack: Type.Optional(Type.String()),
-  statusCode: Type.Number(),
+  statusCode: Type.Optional(Type.Number()),
 });
 
 /**
@@ -64,11 +65,13 @@ export const publishedDeployParamSchema = Type.Object({
  * Basic schema for all Response Body
  */
 const replyBodySchema = Type.Object({
-  result: Type.Optional(Type.Object({
-    data: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
-    transaction: Type.Optional(Type.Any()),
-    queuedId: Type.Optional(Type.String())
-  })),
+  result: Type.Optional(
+    Type.Object({
+      data: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
+      transaction: Type.Optional(Type.Any()),
+      queuedId: Type.Optional(Type.String()),
+    }),
+  ),
   error: Type.Optional(baseReplyErrorSchema),
 });
 
