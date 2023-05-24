@@ -4,6 +4,7 @@ import { getEnv } from "../helpers/loadEnv";
 import { getWalletNonce } from "../services/blockchain";
 import { getWalletDetails } from "../services/dbOperations";
 import { getSDK } from "../helpers";
+import { ethers } from "ethers";
 
 const MIN_TRANSACTION_TO_PROCESS =
   parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS"), 10) ?? 1;
@@ -75,7 +76,7 @@ export const processTransaction = async (
         };
         server.log.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
 
-        let txHash;
+        let txHash: ethers.providers.TransactionResponse | undefined;
         try {
           txHash = await sdk.getSigner()?.sendTransaction(txObject);
         } catch (error) {
