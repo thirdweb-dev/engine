@@ -1,91 +1,26 @@
 # 🔑 web3-api & worker server
 
-Thirdweb's Web3-API & Web3-Worker server.
+Thirdweb's Web3-API & Worker server.
 
-## ENV Variables
+> **Update the ENV vaiables as per your settings/environment.**
 
-use the below values when running locally
+## Requirements
 
-```
-PORT=3005
-OPENAPI_BASE_ORIGIN="http://localhost:3005"
-HOST="0.0.0.0"
-WALLET_PRIVATE_KEY="<your_wallet_ppk>"
-API_KEY="TEST"
-DATABASE_CLIENT="pg"
-POSTGRES_HOST="host.docker.internal"
-DATABASE_NAME="thirdweb"
-POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="postgres"
-POSTGRES_DB_NAME="thirdweb"
-POSTGRES_PORT=5432
-DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres"
-DB_TABLES_LIST="wallets,transactions"
-WORKER_PORT=3006
-WORKER_HOST="0.0.0.0"
-MIN_TRANSACTION_TO_PROCESS=1
-TRANSACTIONS_TO_BATCH=10
-DB_TRIGGERS_LIST="trigger_notification,trigger_tx_table"
-```
+1. Docker 
+2. Nodesjs (>= v18)
+3. PostgreSQL
+4. ENV Variables (Check `.example.env`)
+5. PG-Admin (Optional. PostgreSQL GUI)
 
 ## Getting Started
 
-1. Install packages: `yarn`
-2. Start local Docker containers: `yarn infra`
-3. Start server for local development with hot reloading: `yarn dev`
+1. Create a `.env` and add all the environment variables.
+2. Run command: `yarn infra`
 
-## ToDo
+## Docs
 
-- [x] Fastify Server Up & Running
-- [x] Dockerize the Server
-- [x] Add logging capabilty with winston
-- [x] Add OpenAPI/Swagger Document Generation
-- [x] Add API-Key validation as middleware
-- [x] Add Read End-point
-- [x] Add Write End-point
-- [x] Add Deployer End-point
-- [x] Add Worker Server to send Tx on chain
+Swagger Docs (OAS3) : http://localhost:3005
 
 ## Note:
 
-`docker-compose.yaml` has commented out env variables value. You will need to add a PPK of your test wallet and then you should be able to intereact with the APIs
-
-## Example
-
-```
-Example 1:
- - function_name: balanceOf
- - args: <eth_address> // My Wallet: 0x1946267d81fb8adeeea28e6b98bcd446c8248473
- - chain_or_rpc: mumbai
- - contract_address: 0xc8be6265C06aC376876b4F62670adB3c4d72EABA
- - x-api-key : <pass_any_random_string_as_we_are_not_doing_any_checks_in_this_implementation> [future iterations will have key checking too]
- - x-wallet_id : <pass_any_random_string_as_we_are_not_doing_any_checks_in_this_implementation> [future iterations will have wallet checking/retrieval too]
-
-Response:
-
-{
-  "result": {
-    "data": "1" //Since my wallet has 1 NFT
-  },
-  "error": null
-}
-
-----------
-
-Example 2:
- - function_name: name
- - args: // Leave Empty
- - chain_or_rpc: mumbai
- - contract_address: 0xc8be6265C06aC376876b4F62670adB3c4d72EABA
- - x-api-key : <pass_any_random_string_as_we_are_not_doing_any_checks_in_this_implementation> [future iterations will have key checking too]
- - x-wallet_id : <pass_any_random_string_as_we_are_not_doing_any_checks_in_this_implementation> [future iterations will have wallet checking/retrieval too]
-
-Response:
-
-{
-  "result": {
-    "data": "Mumba"
-  },
-  "error": null
-}
-```
+- You will need to add ENV variables with their values, as the server expects these. `.example.env` file has the details.
