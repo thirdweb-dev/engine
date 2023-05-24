@@ -12,6 +12,8 @@ import { erc721SetApprovalForToken } from "./write/setApprovalForToken copy";
 import { erc721transfer } from "./write/transfer";
 import { erc721transferFrom } from "./write/transferFrom";
 import { erc721mintTo } from "./write/mintTo";
+import { erc721mintBatchTo } from "./write/mintBatchTo";
+import { erc721burn } from "./write/burn";
 
 export const erc721Routes = async (fastify: FastifyInstance) => {
   // GET
@@ -30,4 +32,6 @@ export const erc721Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc721transfer);
   await fastify.register(erc721transferFrom);
   await fastify.register(erc721mintTo);
+  await fastify.register(erc721mintBatchTo);
+  await fastify.register(erc721burn);
 };
