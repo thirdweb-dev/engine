@@ -26,7 +26,7 @@
     "@fastify/swagger-ui": "^1.8.1",
     "@fastify/type-provider-typebox": "^3.0.0",
     "@sinclair/typebox": "^0.27.8",
-    "@thirdweb-dev/sdk": "0.0.0-dev-f54e0d9-20230524174903",
+    "@thirdweb-dev/sdk": "^3.10.18-nightly-98efd090-20230524213053",
     "@types/pg": "^8.6.6",
     "@types/uuid": "^9.0.1",
     "body-parser": "^1.20.2",
