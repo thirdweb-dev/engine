@@ -67,7 +67,7 @@ export const findTxDetailsWithQueueId = async (
   knex: Knex,
   queueId: string,
   request: any,
-): Promise<TransactionStatusSchema> => {
+): Promise<TransactionSchema> => {
   try {
     const data = await knex("transactions")
       .where("identifier", queueId)

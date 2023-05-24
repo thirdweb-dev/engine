@@ -10,8 +10,7 @@ use the below values when running locally
 PORT=3005
 OPENAPI_BASE_ORIGIN="http://localhost:3005"
 HOST="0.0.0.0"
-WALLET_ADDRESS="0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"
-WALLET_PRIVATE_KEY="20f32da46940d6cd93ab01a3717b339f1fad5e72df72740d6c489834859dd075"
+WALLET_PRIVATE_KEY="<your_wallet_ppk>"
 API_KEY="TEST"
 DATABASE_CLIENT="pg"
 POSTGRES_HOST="host.docker.internal"
@@ -25,6 +24,8 @@ DB_TABLES_LIST="wallets,transactions"
 WORKER_PORT=3006
 WORKER_HOST="0.0.0.0"
 MIN_TRANSACTION_TO_PROCESS=1
+TRANSACTIONS_TO_BATCH=10
+DB_TRIGGERS_LIST="trigger_notification,trigger_tx_table"
 ```
 
 ## Getting Started

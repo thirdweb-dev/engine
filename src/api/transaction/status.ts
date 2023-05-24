@@ -24,7 +24,8 @@ export const txStatusReplyBodySchema = Type.Object({
       errored: Type.Boolean(),
       mined: Type.Boolean(),
       queued: Type.Boolean(),
-    })
+    }),
+    txHash: Type.Optional(Type.String()),
   }),
   error: Type.Optional(baseReplyErrorSchema),
 });
@@ -68,7 +69,8 @@ export async function checkTxStatus(fastify: FastifyInstance) {
             submitted: returnData?.txSubmitted!,
             errored: returnData?.txErrored!,
             queued: true,
-          }
+          },
+          txHash: returnData.txHash ?? "In-Queue",
         }
       });
     },

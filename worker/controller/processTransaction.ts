@@ -8,6 +8,9 @@ import { getSDK } from "../helpers";
 const MIN_TRANSACTION_TO_PROCESS =
   parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS"), 10) ?? 1;
 
+const TRANSACTIONS_TO_BATCH =
+parseInt(getEnv("TRANSACTIONS_TO_BATCH"), 10) ?? 10;
+
 export const processTransaction = async (
   server: FastifyInstance,
 ): Promise<void> => {
@@ -20,7 +23,7 @@ export const processTransaction = async (
       .where("txMined", false)
       .where("txErrored", false)
       .orderBy("createdTimestamp")
-      .limit(MIN_TRANSACTION_TO_PROCESS);
+      .limit(TRANSACTIONS_TO_BATCH);
 
     if (data.length < MIN_TRANSACTION_TO_PROCESS) {
       server.log.warn(
@@ -45,13 +48,15 @@ export const processTransaction = async (
           tx.walletAddress,
           sdk.getProvider(),
         );
-        let nonce = walletData.lastUsedNonce;
+        
+        let nonce = walletData?.lastUsedNonce ?? 0;
 
         if (blockchainNonce > nonce) {
           nonce = blockchainNonce;
         }
+
         server.log.debug(
-          `Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${walletData.lastUsedNonce}, Tx Nonce: ${nonce}`,
+          `Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${walletData?.lastUsedNonce ?? 0}, Tx Nonce: ${nonce}`,
         );
 
         const trx = await knex.transaction();
