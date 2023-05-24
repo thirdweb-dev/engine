@@ -14,13 +14,15 @@ Thirdweb's Web3-API & Worker server.
 
 ## Getting Started
 
-1. Create a `.env` and add all the environment variables.
+1. Create a `.env` file and add all the environment variables from `.example.env`.
 2. Run command: `yarn infra`
 
 ## Docs
 
 Swagger Docs (OAS3) : http://localhost:3005
 
-## Note:
 
-- You will need to add ENV variables with their values, as the server expects these. `.example.env` file has the details.
+## Data Inpection
+
+PG-Admin (Optional) : http://localhost:5050
+
