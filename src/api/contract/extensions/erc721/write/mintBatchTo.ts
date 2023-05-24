@@ -7,22 +7,32 @@ import {
   standardResponseSchema,
   baseReplyErrorSchema,
 } from "../../../../../helpers/sharedApiSchemas";
+import { nftOrInputSchema } from "../../../../../schemas/nft";
 
 // INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  spender_address: Type.String({
-    description: "Address of the wallet to allow transfers from",
+  receiver: Type.String({
+    description: "Address of the wallet to mint the NFT to",
   }),
-  amount: Type.String({
-    description: "The number of tokens to give as allowance",
-  }),
+  metadatas: Type.Array(nftOrInputSchema),
 });
 
 requestBodySchema.examples = [
   {
-    spender_address: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-    amount: "100",
+    receiver: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+    metadata: [
+      {
+        name: "My NFT #1",
+        description: "My NFT #1 description",
+        image: "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
+      },
+      {
+        name: "My NFT #2",
+        description: "My NFT #2 description",
+        image: "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
+      },
+    ],
   },
 ];
 
@@ -32,19 +42,18 @@ const responseSchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
 });
 
-export async function erc20SetAlowance(fastify: FastifyInstance) {
+export async function erc721mintBatchTo(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc20/setAllowance",
+    url: "/contract/:chain_name_or_id/:contract_address/erc721/mintBatchTo",
     schema: {
-      description:
-        "Grant allowance to another wallet address to spend the connected (Admin) wallet's funds (of this token).",
-      tags: ["ERC20"],
-      operationId: "erc20_setAllowance",
+      description: "Mint multiple NFTs to a specific wallet.",
+      tags: ["ERC721"],
+      operationId: "mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -54,18 +63,15 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { spender_address, amount } = request.body;
+      const { receiver, metadatas } = request.body;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const tx = await contract.erc20.setAllowance.prepare(
-        spender_address,
-        amount,
-      );
+      const tx = await contract.erc721.mintBatchTo.prepare(receiver, metadatas);
       const queuedId = await queueTransaction(
         request,
         tx,
         chain_name_or_id,
-        "erc20",
+        "erc721",
       );
       reply.status(StatusCodes.OK).send({
         queuedId,
