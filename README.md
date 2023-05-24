@@ -1,15 +1,30 @@
-# 🔑 web3-api
+# 🔑 web3-api & worker server
 
-Thirdweb's Web3-API server.
+Thirdweb's Web3-API & Web3-Worker server.
 
 ## ENV Variables
+
+use the below values when running locally
 
 ```
 PORT=3005
 OPENAPI_BASE_ORIGIN="http://localhost:3005"
 HOST="0.0.0.0"
-WALLET_PRIVATE_KEY="<ppk>"
+WALLET_ADDRESS="0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"
+WALLET_PRIVATE_KEY="20f32da46940d6cd93ab01a3717b339f1fad5e72df72740d6c489834859dd075"
 API_KEY="TEST"
+DATABASE_CLIENT="pg"
+POSTGRES_HOST="host.docker.internal"
+DATABASE_NAME="thirdweb"
+POSTGRES_USER="postgres"
+POSTGRES_PASSWORD="postgres"
+POSTGRES_DB_NAME="thirdweb"
+POSTGRES_PORT=5432
+DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres"
+DB_TABLES_LIST="wallets,transactions"
+WORKER_PORT=3006
+WORKER_HOST="0.0.0.0"
+MIN_TRANSACTION_TO_PROCESS=3
 ```
 
 ## Getting Started
@@ -23,13 +38,12 @@ API_KEY="TEST"
 - [X] Fastify Server Up & Running
 - [X] Dockerize the Server
 - [X] Add logging capabilty with winston
-- [ ] Add OpenAPI/Swagger Document Generation
+- [X] Add OpenAPI/Swagger Document Generation
 - [X] Add API-Key validation as middleware
-- [ ] Make API-Key Validation work with ThirdWeb Access check
-- [ ] Add wallet-id validation as middleware
 - [X] Add Read End-point
 - [X] Add Write End-point
-- [ ] Add Deployer End-point
+- [X] Add Deployer End-point
+- [X] Add Worker Server to send Tx on chain
 
 
 ## Note:
