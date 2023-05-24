@@ -74,7 +74,29 @@ export const processTransaction = async (
           nonce: txSubmittedNonce,
         };
         server.log.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
-        const txHash = await sdk.getSigner()?.sendTransaction(txObject);
+
+        let txHash;
+        try {
+          txHash = await sdk.getSigner()?.sendTransaction(txObject);
+        } catch (error) {
+          server.log.debug('Send Transaction errored');
+
+          await knex("transactions")
+            .update({
+              txProcessed: true,
+              txErrored: true,
+              txProcessedTimestamp: new Date(),
+              updatedTimestamp: new Date(),
+            })
+            .where("identifier", tx.identifier)
+            .transacting(trx);
+          
+          await trx.commit();
+          server.log.debug('Request processed but errored out: Commited to db')
+          // Release the database connection
+          await knex.destroy();
+          return;
+        }
 
         try {
           await knex("transactions")
