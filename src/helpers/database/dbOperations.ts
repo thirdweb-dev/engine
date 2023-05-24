@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
 import { connectWithDatabase } from "./dbConnect";
 import { FastifyRequest } from "fastify";
-import { Transaction } from "@thirdweb-dev/sdk";
+import { Transaction, TransactionError } from "@thirdweb-dev/sdk";
 
 interface TransactionStatusSchema {
   txProcessed: boolean;
@@ -20,6 +20,13 @@ export const queueTransaction = async (
   chain_name_or_id: string,
   extension: string,
 ) => {
+  // first simulate tx
+  try {
+    await tx.simulate();
+  } catch (e) {
+    const message = (e as TransactionError)?.reason || (e as any).message || e;
+    throw new Error(`Transaction simulation failed with reason: ${message}`);
+  }
   // encode tx
   const encodedData = tx.encode();
   const txDataToInsert: TransactionSchema = {

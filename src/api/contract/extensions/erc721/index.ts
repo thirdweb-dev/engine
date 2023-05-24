@@ -14,6 +14,8 @@ import { erc721transferFrom } from "./write/transferFrom";
 import { erc721mintTo } from "./write/mintTo";
 import { erc721mintBatchTo } from "./write/mintBatchTo";
 import { erc721burn } from "./write/burn";
+import { erc721lazyMint } from "./write/lazyMint";
+import { erc721claimTo } from "./write/claimTo";
 
 export const erc721Routes = async (fastify: FastifyInstance) => {
   // GET
@@ -34,4 +36,6 @@ export const erc721Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc721mintTo);
   await fastify.register(erc721mintBatchTo);
   await fastify.register(erc721burn);
+  await fastify.register(erc721lazyMint);
+  await fastify.register(erc721claimTo);
 };
