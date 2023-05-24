@@ -4,14 +4,10 @@ import { Static, Type } from "@sinclair/typebox";
 import { v4 as uuid } from "uuid";
 import {
   getSDK,
-  connectToDB,
-  insertTransactionData,
   queueTransaction,
 } from "../../../../../helpers/index";
 import {
   contractParamSchema,
-  writeReplyBodySchema,
-  TransactionSchema,
   standardResponseSchema,
   baseReplyErrorSchema,
 } from "../../../../../helpers/sharedApiSchemas";
@@ -52,7 +48,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       description:
         "Grant allowance to another wallet address to spend the connected (Admin) wallet's funds (of this token).",
       tags: ["ERC20"],
-      operationId: "setAllowance",
+      operationId: "erc20_setAllowance",
       params: requestSchema,
       body: requestBodySchema,
       response: {
