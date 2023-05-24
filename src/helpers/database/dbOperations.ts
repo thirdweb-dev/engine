@@ -16,7 +16,7 @@ interface TransactionStatusSchema {
 
 export const queueTransaction = async (
   request: FastifyRequest,
-  tx: Transaction,
+  tx: Transaction<any>,
   chain_name_or_id: string,
   extension: string,
 ) => {

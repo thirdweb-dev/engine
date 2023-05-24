@@ -7,25 +7,18 @@ import {
   standardResponseSchema,
   baseReplyErrorSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { nftOrInputSchema } from "../../../../../schemas/nft";
 
 // INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  receiver: Type.String({
-    description: "Address of the wallet to mint the NFT to",
+  token_id: Type.String({
+    description: "The token ID to burn",
   }),
-  metadata: nftOrInputSchema,
 });
 
 requestBodySchema.examples = [
   {
-    receiver: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-    metadata: {
-      name: "My NFT",
-      description: "My NFT description",
-      image: "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
-    },
+    token_id: "0",
   },
 ];
 
@@ -35,18 +28,18 @@ const responseSchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
 });
 
-export async function erc721mintTo(fastify: FastifyInstance) {
+export async function erc721burn(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/mintTo",
+    url: "/contract/:chain_name_or_id/:contract_address/erc721/burn",
     schema: {
-      description: "Mint an NFT to a specific wallet.",
+      description: "Burn an NFT.",
       tags: ["ERC721"],
-      operationId: "mintTo",
+      operationId: "burn",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -56,10 +49,10 @@ export async function erc721mintTo(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { receiver, metadata } = request.body;
+      const { token_id } = request.body;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
-      const tx = await contract.erc721.mintTo.prepare(receiver, metadata);
+      const tx = await contract.erc721.burn.prepare(token_id);
       const queuedId = await queueTransaction(
         request,
         tx,
