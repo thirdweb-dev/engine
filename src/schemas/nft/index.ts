@@ -27,6 +27,11 @@ export const nftOrInputSchema = Type.Union([
   Type.String(),
 ]);
 
+export const nftAndSupplySchema = Type.Object({
+  metadata: nftOrInputSchema,
+  supply: Type.String(),
+});
+
 export const nftSchema = Type.Object({
   metadata: nftMetadataSchema,
   owner: Type.String(),
