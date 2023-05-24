@@ -24,7 +24,7 @@ DATABASE_URL="postgres://postgres:postgres@localhost:5432/postgres"
 DB_TABLES_LIST="wallets,transactions"
 WORKER_PORT=3006
 WORKER_HOST="0.0.0.0"
-MIN_TRANSACTION_TO_PROCESS=3
+MIN_TRANSACTION_TO_PROCESS=1
 ```
 
 ## Getting Started
@@ -35,16 +35,15 @@ MIN_TRANSACTION_TO_PROCESS=3
 
 ## ToDo
 
-- [X] Fastify Server Up & Running
-- [X] Dockerize the Server
-- [X] Add logging capabilty with winston
-- [X] Add OpenAPI/Swagger Document Generation
-- [X] Add API-Key validation as middleware
-- [X] Add Read End-point
-- [X] Add Write End-point
-- [X] Add Deployer End-point
-- [X] Add Worker Server to send Tx on chain
-
+- [x] Fastify Server Up & Running
+- [x] Dockerize the Server
+- [x] Add logging capabilty with winston
+- [x] Add OpenAPI/Swagger Document Generation
+- [x] Add API-Key validation as middleware
+- [x] Add Read End-point
+- [x] Add Write End-point
+- [x] Add Deployer End-point
+- [x] Add Worker Server to send Tx on chain
 
 ## Note:
 
@@ -80,7 +79,7 @@ Example 2:
  - x-api-key : <pass_any_random_string_as_we_are_not_doing_any_checks_in_this_implementation> [future iterations will have key checking too]
  - x-wallet_id : <pass_any_random_string_as_we_are_not_doing_any_checks_in_this_implementation> [future iterations will have wallet checking/retrieval too]
 
-Response: 
+Response:
 
 {
   "result": {

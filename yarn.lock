@@ -703,10 +703,10 @@
     "@swc/core-win32-ia32-msvc" "1.3.57"
     "@swc/core-win32-x64-msvc" "1.3.57"
 
-"@thirdweb-dev/chains@0.1.16":
-  version "0.1.16"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.16.tgz#a07ae4a77e83108c0ff50f42759cd398a283c591"
-  integrity sha512-7Apy59STl+pKIU+jWGPNOwStfU1COkQrX2OD6qKhGMGxC2qkjviGiZTSeKRdVPzn6tXVWPOuKMgApZsjPnH1Pw==
+"@thirdweb-dev/chains@0.0.0-dev-f54e0d9-20230524174903":
+  version "0.0.0-dev-f54e0d9-20230524174903"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.0.0-dev-f54e0d9-20230524174903.tgz#45083003daf93f02e8823e30dee5f66ef3e89f2e"
+  integrity sha512-CIezoZntKPsz9jq9GsXbTnZYKHj3M4AzzEEpQdUgoig5vX91RosOxm+9zbhW1TbiyulwmmQHEdFXYmiAbUYFmA==
 
 "@thirdweb-dev/contracts-js@1.3.4":
   version "1.3.4"
@@ -725,15 +725,15 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/generated-abis/-/generated-abis-0.0.1.tgz#0d788d6aff0ac08f11e9eeb9ae4c8321845272a8"
   integrity sha512-vO9/3lSLO8smyyH1QVeYravSTzFwV1nf1C/Im1NBDPdH8//YvcbhtETGGiNfHWpyCvSi0vRYwvf+/7FKdwpDGQ==
 
-"@thirdweb-dev/sdk@^3.10.15":
-  version "3.10.15"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.15.tgz#6b4d184f01a44f9693ab73de7045a68d2f8446ee"
-  integrity sha512-8UAfT0rICzvU9O0kD72BmALv20EBOanWAwkah8A8AN5MzI4kC4Q7MGx6VUE4kgEEnQOb0SFBbTDsOG+lLZIZlA==
+"@thirdweb-dev/sdk@0.0.0-dev-f54e0d9-20230524174903":
+  version "0.0.0-dev-f54e0d9-20230524174903"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-0.0.0-dev-f54e0d9-20230524174903.tgz#c4d015839d148ce41307e58f3783340ba40e9f17"
+  integrity sha512-7J2NOJ/ERadpkiM8P5UHAh8dfKNqjdo8FvTCk3V/QzQwI3XmXf1oJuiwQ59zbkbkJWBo/1d1k20x0ESM/gU8vQ==
   dependencies:
-    "@thirdweb-dev/chains" "0.1.16"
+    "@thirdweb-dev/chains" "0.0.0-dev-f54e0d9-20230524174903"
     "@thirdweb-dev/contracts-js" "1.3.4"
     "@thirdweb-dev/generated-abis" "0.0.1"
-    "@thirdweb-dev/storage" "1.1.2"
+    "@thirdweb-dev/storage" "1.1.3"
     abitype "^0.2.5"
     bn.js "^5.2.1"
     bs58 "^5.0.0"
@@ -748,10 +748,10 @@
     yaml "^2.1.1"
     zod "^3.20.2"
 
-"@thirdweb-dev/storage@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-1.1.2.tgz#8de899e9579f49dc2da1eb4a04694ee86ec5e62e"
-  integrity sha512-l5cNliQ/BuoYjCouWR0lJ97ByJVNksKKoDuPaI6rTZuMXNEgJliTa2M5nyjM8FKK6GnykcEvAEzB2g4sar3NxA==
+"@thirdweb-dev/storage@1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-1.1.3.tgz#dab2692d393c19ba41931fae0dde91ad69c48015"
+  integrity sha512-V/hiJqf+zYY0Jfoc+jWx24hyRXtFIOt6yMAqz87Zv9ilIsaYyuBHRNOyFzvnmCQ8DMwj97Gt0lCFYyzXXo4HFw==
   dependencies:
     cross-fetch "^3.1.5"
     form-data "^4.0.0"

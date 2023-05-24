@@ -13,7 +13,7 @@ FROM base AS local_server
 
 ENV NODE_ENV="local"
 
-RUN yarn install
+RUN yarn install --force
 RUN apk del build-dependencies
 ENV PATH /app/node_modules/.bin:$PATH
 
