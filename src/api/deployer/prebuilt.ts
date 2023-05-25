@@ -26,7 +26,9 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
 
       request.log.info(`Deploying Prebuilt Contract: ${contract_type}`);
       request.log.debug(`Chain : ${chain_name_or_id}`);
-      request.log.debug(`contractMetadata : ${JSON.stringify(contractMetadata)}`);
+      request.log.debug(
+        `contractMetadata : ${JSON.stringify(contractMetadata)}`,
+      );
 
       const sdk = await getSDK(chain_name_or_id);
       const deployedAddress = await sdk.deployer.deployBuiltInContract(

@@ -3,7 +3,7 @@ import pg from "knex";
 import { getEnv } from "../loadEnv";
 import { FastifyInstance, FastifyRequest } from "fastify";
 
-const DATABASE_NAME = getEnv("DATABASE_NAME");
+const DATABASE_NAME = getEnv("POSTGRES_DATABASE_NAME");
 
 // Defaults to postgres
 const dbClient = getEnv("DATABASE_CLIENT") ?? "pg";
@@ -17,9 +17,12 @@ export const connectToDB = async (
     user: getEnv("POSTGRES_USER"),
     password: getEnv("POSTGRES_PASSWORD"),
     database: "postgres",
-    ssl: {
-      rejectUnauthorized: false,
-    },
+    ssl:
+      getEnv("NODE_ENV") === "production"
+        ? {
+            rejectUnauthorized: false,
+          }
+        : false,
   };
 
   let knexConfig: Knex.Config = {
@@ -83,9 +86,12 @@ export const connectWithDatabase = async (
     user: getEnv("POSTGRES_USER"),
     password: getEnv("POSTGRES_PASSWORD"),
     database: DATABASE_NAME,
-    ssl: {
-      rejectUnauthorized: false,
-    },
+    ssl:
+      getEnv("NODE_ENV") === "production"
+        ? {
+            rejectUnauthorized: false,
+          }
+        : false,
   };
 
   let knexConfig: Knex.Config = {
