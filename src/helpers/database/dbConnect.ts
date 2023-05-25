@@ -17,7 +17,9 @@ export const connectToDB = async (
     user: getEnv("POSTGRES_USER"),
     password: getEnv("POSTGRES_PASSWORD"),
     database: "",
-    ssl: true,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   };
 
   let knexConfig: Knex.Config = {
