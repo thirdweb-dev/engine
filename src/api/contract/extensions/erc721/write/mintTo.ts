@@ -46,7 +46,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
     schema: {
       description: "Mint an NFT to a specific wallet.",
       tags: ["ERC721"],
-      operationId: "mintTo",
+      operationId: "erc721_mintTo",
       params: requestSchema,
       body: requestBodySchema,
       response: {

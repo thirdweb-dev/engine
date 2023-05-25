@@ -47,7 +47,7 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
     schema: {
       description: "Transfer an NFT from a specific wallet to another wallet.",
       tags: ["ERC721"],
-      operationId: "transferFrom",
+      operationId: "erc721_transferFrom",
       params: requestSchema,
       body: requestBodySchema,
       response: {
