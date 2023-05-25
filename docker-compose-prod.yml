@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  web3-api:
+    build:
+      context: .
+      target: prod
+    image: thirdweb/web3-api:latest

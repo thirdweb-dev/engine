@@ -34,12 +34,14 @@ CMD [ "yarn", "dev-worker" ]
 
 # CMD [ "yarn", "dev" ]
 
-# FROM base AS prod
+FROM base AS prod
 
-# ENV NODE_ENV="production"
+RUN yarn install
+RUN yarn build
+RUN yarn build-worker
 
-# RUN yarn install
-# RUN yarn build
+ENV NODE_ENV="production"
 
-# RUN yarn install --production
-# CMD [ "yarn", "start" ]
+RUN yarn install --production
+RUN apk del build-dependencies
+CMD [ "yarn", "start", "yarn", "start-worker" ]

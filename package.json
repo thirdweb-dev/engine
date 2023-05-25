@@ -1,7 +1,8 @@
 {
   "name": "web3-api",
-  "version": "1.0.0",
-  "description": "Thirdweb's web3-api server",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "thirdweb's web3-api server",
   "main": "src/index.ts",
   "author": "Farhan Khwaja <farhan@thirdweb.com>",
   "type": "module",
@@ -11,8 +12,8 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' --files src/index.ts",
     "infra": "docker compose --env-file ./.env up",
     "docker-build-run": "docker compose build --no-cache && docker compose --env-file ./.env up --remove-orphans",
-    "build-worker": "cd worker && yarn && rimraf distWorker && tsc -p ./tsconfig.json --outDir distWorker",
-    "start-worker": "node --experimental-specifier-resolution=node dist/index.js",
+    "build-worker": "cd worker && yarn && rimraf dist && tsc -p ./tsconfig.json --outDir dist",
+    "start-worker": "cd worker && node --experimental-specifier-resolution=node dist/index.js",
     "dev-worker": "nodemon --watch 'worker/**/*.ts' --exec 'ts-node' --files worker/index.ts",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint --fix 'src/**/*.ts'",
@@ -58,10 +59,6 @@
     "rimraf": "^5.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
-  },
-  "volta": {
-    "node": "18.15.0",
-    "yarn": "3.5.0"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",
