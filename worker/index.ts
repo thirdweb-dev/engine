@@ -47,7 +47,9 @@ const main = async () => {
   // });
 
   // Start Listening to the Table for new insertion
-  await startNotificationListener(server);
+  setTimeout(async () => {
+    await startNotificationListener(server);
+  }, 10000);
 };
 
 main();
