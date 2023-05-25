@@ -60,10 +60,6 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },
-  "volta": {
-    "node": "18.15.0",
-    "yarn": "3.5.0"
-  },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",
     "*.{js,ts,md}": "prettier --write"
