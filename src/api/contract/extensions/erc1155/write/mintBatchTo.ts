@@ -61,7 +61,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
     schema: {
       description: "Mint multiple NFTs to a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "mintBatchTo",
+      operationId: "erc1155_mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
       response: {
