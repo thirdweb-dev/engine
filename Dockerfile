@@ -44,4 +44,4 @@ ENV NODE_ENV="production"
 
 RUN yarn install --production
 RUN apk del build-dependencies
-CMD [ "yarn", "start", "yarn", "start-worker" ]
+CMD [ "yarn", "start"]
