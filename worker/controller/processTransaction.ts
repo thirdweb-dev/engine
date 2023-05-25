@@ -5,6 +5,8 @@ import { getWalletNonce } from "../services/blockchain";
 import { getWalletDetails } from "../services/dbOperations";
 import { getSDK } from "../helpers";
 import { ethers } from "ethers";
+import { createCustomError } from "helpers/customError";
+import e from "express";
 
 const MIN_TRANSACTION_TO_PROCESS =
   parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS"), 10) ?? 1;
@@ -18,13 +20,21 @@ export const processTransaction = async (
   try {
     // Connect to the DB
     const knex = await connectToDB(server);
-
-    const data = await knex("transactions")
-      .where("txProcessed", false)
-      .where("txMined", false)
-      .where("txErrored", false)
-      .orderBy("createdTimestamp")
-      .limit(TRANSACTIONS_TO_BATCH);
+    let data :any;
+    try {
+      data = await knex("transactions")
+        .select("*")
+        .rowNumber("rownum", "createdTimestamp", ["walletAddress", "chainId"])
+        .where("txProcessed", false)
+        .where("txMined", false)
+        .where("txErrored", false)
+        .orderBy("createdTimestamp")
+        .limit(TRANSACTIONS_TO_BATCH);
+    } catch (error) {
+      server.log.error(error);
+      server.log.warn("Stopping Execution as error occurred.");
+      return;
+    }
 
     if (data.length < MIN_TRANSACTION_TO_PROCESS) {
       server.log.warn(
@@ -64,7 +74,7 @@ export const processTransaction = async (
 
         const trx = await knex.transaction();
         server.log.debug(`Transaction started for ${tx.identifier}`);
-        const txSubmittedNonce = nonce + index;
+        const txSubmittedNonce = nonce + parseInt(tx.rownum, 10) - 1;
         server.log.debug(
           `Transaction nonce: ${txSubmittedNonce} for ${tx.identifier}`,
         );
@@ -144,6 +154,7 @@ export const processTransaction = async (
           await knex.destroy();
         }
       }, 1000);
+
     });
   } catch (error) {
     server.log.error(error);
