@@ -15,16 +15,24 @@ Thirdweb's Web3-API & Worker server.
 ## Running locally
 
 1. Create a `.env` file and add all the environment variables from `.example.env`.
-2. Run command: `yarn infra`
+2. Run: `yarn infra`.
 
-Locally, we use `docker-compose` to spin up the services, database and pg-admin GUI altogether.
+Locally, we use `docker-compose` to spin up the services, a postgres database and the pg-admin GUI altogether.
 
 The API will be accessible on `http://localhost:3005` by default.
 
+## Running with docker
+
+1. If you don't have one already, run a postgres instance: `docker run postgres`.
+1. Create a `.env` file based off `.example.env` with all the variables filled in.
+1. Run `docker run thirdweb/web3-api:0.1.0 --env-file ./.env up`.
+
 ## Running on a server
 
-1. Set all environment variables defined in `.example.env`
-2. Run command: `yarn start`
+1. Clone the project on the remote server
+2. Create a `.env` file based off `.example.env` with all the variables filled in.
+3. Run: `yarn install`
+4. Run: `yarn start`
 
 This will only run the required services. You will need to have a running postgres database that can be accessed from those services.
 
