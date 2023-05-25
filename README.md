@@ -30,8 +30,10 @@ This will only run the required services. You will need to have a running postgr
 
 ## Docs
 
-Swagger Docs (OAS3) : `http://localhost:3005` or your remote server URL.
+You can view a live version of the Swagger documentation at: https://web3-api-akbv.chainsaw-dev.zeet.app
+
+When running locally, the swagger docs are automatically deployed at `http://localhost:3005` or your remote server URL.
 
 ## Data Inpection
 
-PG-Admin (Optional) : `http://localhost:5050`
+In local development, you can inspect your databaes through PG-Admin (Optional) at `http://localhost:5050`.
