@@ -16,7 +16,7 @@ export const connectToDB = async (
     host: getEnv("POSTGRES_HOST"),
     user: getEnv("POSTGRES_USER"),
     password: getEnv("POSTGRES_PASSWORD"),
-    database: DATABASE_NAME,
+    database: "postgres",
     ssl: {
       rejectUnauthorized: false,
     },
