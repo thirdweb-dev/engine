@@ -47,7 +47,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
     schema: {
       description: "Claim an NFT to a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "claimTo",
+      operationId: "erc1155_claimTo",
       params: requestSchema,
       body: requestBodySchema,
       response: {
