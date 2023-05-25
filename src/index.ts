@@ -9,7 +9,6 @@ import { errorHandler } from "./errorHandler";
 import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
-  connectToDB,
   implementTriggerOnStartUp,
 } from "./helpers/index";
 
@@ -80,9 +79,6 @@ const main = async () => {
   openapi(server);
 
   await server.register(apiRoutes);
-
-  const dbConnect = await connectToDB(server);
-  await server.decorateRequest("db", dbConnect);
 
   await server.ready();
 

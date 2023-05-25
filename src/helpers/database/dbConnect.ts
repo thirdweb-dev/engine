@@ -26,6 +26,10 @@ export const connectToDB = async (
   server: FastifyInstance | FastifyRequest,
 ): Promise<Knex> => {
   // Creating KNEX Config
+  
+  // Adding the below as by default PG created the below database
+  // We connect to this as a default and then create the DB passed an ENV variable
+  connection.database = "postgres";
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection,
@@ -80,7 +84,7 @@ export const connectToDB = async (
 
 export const connectWithDatabase = async (
   server: FastifyInstance | FastifyRequest,
-): Promise<Knex> => {
+  ): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection,
