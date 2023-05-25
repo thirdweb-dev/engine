@@ -22,21 +22,17 @@ export const processTransaction = async (
     const knex = await connectToDB(server);
     let data :any;
     try {
-      data = await knex("transactions")
-        .select("*")
-        .rowNumber("rownum", "createdTimestamp", ["walletAddress", "chainId"])
-        .where("txProcessed", false)
-        .where("txMined", false)
-        .where("txErrored", false)
-        .orderBy("createdTimestamp", "asc")
-        .limit(TRANSACTIONS_TO_BATCH);
+      data = await knex.raw(`select *, ROW_NUMBER()
+      OVER (PARTITION BY "walletAddress", "chainId" ORDER BY "createdTimestamp" ASC) AS rownum
+      FROM "transactions"
+      WHERE "txProcessed" = false AND "txMined" = false AND "txErrored" = false`);
     } catch (error) {
       server.log.error(error);
       server.log.warn("Stopping Execution as error occurred.");
       return;
     }
 
-    if (data.length < MIN_TRANSACTION_TO_PROCESS) {
+    if (data.rows.length < MIN_TRANSACTION_TO_PROCESS) {
       server.log.warn(
         `Number of transactions to process less than Minimum Transactions to Process: ${MIN_TRANSACTION_TO_PROCESS}`,
       );
@@ -46,7 +42,7 @@ export const processTransaction = async (
       return;
     }
 
-    data.forEach(async (tx: any, index: number) => {
+    data.rows.forEach(async (tx: any, index: number) => {
       await setTimeout(async () => {
         server.log.info(`Processing Transaction: ${tx.identifier}`);
         const walletData = await getWalletDetails(
