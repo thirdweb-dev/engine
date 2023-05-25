@@ -43,7 +43,7 @@ export async function erc1155burn(fastify: FastifyInstance) {
     schema: {
       description: "Burn an NFT.",
       tags: ["ERC1155"],
-      operationId: "burn",
+      operationId: "erc1155_burn",
       params: requestSchema,
       body: requestBodySchema,
       response: {

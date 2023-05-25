@@ -50,7 +50,7 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
       description:
         "Lazy mint multiple NFTs on this contract to be claimed later.",
       tags: ["ERC1155"],
-      operationId: "lazyMint",
+      operationId: "erc1155_lazyMint",
       params: requestSchema,
       body: requestBodySchema,
       response: {
