@@ -78,11 +78,14 @@ export const connectWithDatabase = async (
   server: FastifyInstance | FastifyRequest,
 ): Promise<Knex> => {
   // Creating KNEX Config
-  let connection: Knex.ConnectionConfig = {
+  let connection: Knex.PgConnectionConfig = {
     host: getEnv("POSTGRES_HOST"),
     user: getEnv("POSTGRES_USER"),
     password: getEnv("POSTGRES_PASSWORD"),
     database: DATABASE_NAME,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   };
 
   let knexConfig: Knex.Config = {
