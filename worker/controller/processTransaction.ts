@@ -10,7 +10,7 @@ const MIN_TRANSACTION_TO_PROCESS =
   parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS"), 10) ?? 1;
 
 const TRANSACTIONS_TO_BATCH =
-parseInt(getEnv("TRANSACTIONS_TO_BATCH"), 10) ?? 10;
+  parseInt(getEnv("TRANSACTIONS_TO_BATCH"), 10) ?? 10;
 
 export const processTransaction = async (
   server: FastifyInstance,
@@ -49,7 +49,7 @@ export const processTransaction = async (
           tx.walletAddress,
           sdk.getProvider(),
         );
-        
+
         let nonce = walletData?.lastUsedNonce ?? 0;
 
         if (blockchainNonce > nonce) {
@@ -57,7 +57,9 @@ export const processTransaction = async (
         }
 
         server.log.debug(
-          `Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${walletData?.lastUsedNonce ?? 0}, Tx Nonce: ${nonce}`,
+          `Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${
+            walletData?.lastUsedNonce ?? 0
+          }, Tx Nonce: ${nonce}`,
         );
 
         const trx = await knex.transaction();
@@ -80,7 +82,8 @@ export const processTransaction = async (
         try {
           txHash = await sdk.getSigner()?.sendTransaction(txObject);
         } catch (error) {
-          server.log.debug('Send Transaction errored');
+          server.log.debug("Send Transaction errored");
+          server.log.error(error);
 
           await knex("transactions")
             .update({
@@ -91,9 +94,9 @@ export const processTransaction = async (
             })
             .where("identifier", tx.identifier)
             .transacting(trx);
-          
+
           await trx.commit();
-          server.log.debug('Request processed but errored out: Commited to db')
+          server.log.debug("Request processed but errored out: Commited to db");
           // Release the database connection
           await knex.destroy();
           return;

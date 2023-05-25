@@ -1,13 +1,14 @@
 {
   "name": "web3-api",
-  "version": "1.0.0",
-  "description": "Thirdweb's web3-api server",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "thirdweb's web3-api server",
   "main": "src/index.ts",
   "author": "Farhan Khwaja <farhan@thirdweb.com>",
   "type": "module",
   "scripts": {
     "build": "yarn && rimraf dist && tsc -p ./tsconfig.json --outDir dist",
-    "start": "node --experimental-specifier-resolution=node dist/index.js && yarn start-worker",
+    "start": "node --experimental-specifier-resolution=node dist/index.js & yarn start-worker",
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' --files src/index.ts",
     "infra": "docker compose --env-file ./.env up",
     "docker-build-run": "docker compose build --no-cache && docker compose --env-file ./.env up --remove-orphans",
@@ -58,10 +59,6 @@
     "rimraf": "^5.0.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
-  },
-  "volta": {
-    "node": "18.15.0",
-    "yarn": "3.5.0"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",
