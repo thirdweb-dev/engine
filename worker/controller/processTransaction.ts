@@ -28,7 +28,7 @@ export const processTransaction = async (
         .where("txProcessed", false)
         .where("txMined", false)
         .where("txErrored", false)
-        .orderBy("createdTimestamp")
+        .orderBy("createdTimestamp", "asc")
         .limit(TRANSACTIONS_TO_BATCH);
     } catch (error) {
       server.log.error(error);
