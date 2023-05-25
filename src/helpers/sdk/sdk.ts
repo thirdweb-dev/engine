@@ -1,5 +1,5 @@
-import { ThirdwebSDK, ChainOrRpc } from '@thirdweb-dev/sdk';
-import { getEnv } from '../loadEnv';
+import { ThirdwebSDK, ChainOrRpc } from "@thirdweb-dev/sdk";
+import { getEnv } from "../loadEnv";
 // import { AwsKmsWallet } from '@thirdweb-dev/sdk/evm/wallets';
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
@@ -14,7 +14,11 @@ export async function getSDK(chainName: ChainOrRpc): Promise<ThirdwebSDK> {
   // Need to make this instantiate SDK with read/write. For that will need wallet information
   // Currently only doing read-only mode as per Docs
   // if (getEnv('NODE_ENV') === 'local'){
-  sdkMap[chainName] = await ThirdwebSDK.fromPrivateKey(getEnv('WALLET_PRIVATE_KEY'), chainName, {thirdwebApiKey: getEnv('API_KEY')});  
+  sdkMap[chainName] = await ThirdwebSDK.fromPrivateKey(
+    getEnv("WALLET_PRIVATE_KEY"),
+    chainName,
+    { thirdwebApiKey: getEnv("THIRDWEB_API_KEY") },
+  );
   // }
   // else if (getEnv('USE_WALLET') === 'true') {
   //   const wallet = new AwsKmsWallet({
@@ -28,6 +32,6 @@ export async function getSDK(chainName: ChainOrRpc): Promise<ThirdwebSDK> {
   // else {
   //   sdkMap[chainName] = new ThirdwebSDK(chainName);
   // }
-  
+
   return sdkMap[chainName] as ThirdwebSDK;
 }
