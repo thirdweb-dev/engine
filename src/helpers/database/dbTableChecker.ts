@@ -18,8 +18,6 @@ export const checkTablesExistence = async (
     // Connect to the DB
     const knex = await connectWithDatabase(server);
 
-    server.log.info("thirdweb DB connected");
-
     // Check if the tables Exists
     const tablesList: string[] = getEnv("DB_TABLES_LIST")
       .split(",")
@@ -37,30 +35,15 @@ export const checkTablesExistence = async (
     }
 
     for (const tableName of tablesList) {
-      server.log.info("processing table", tableName);
-      let tableExists: boolean;
-      try {
-        tableExists = await knex.schema.hasTable(tableName);
-      } catch (error: any) {
-        server.log.info(`DB Init Error`);
-        console.log(`DB Init Error`, error);
-        throw error;
-      }
+      const tableExists = await knex.schema.hasTable(tableName);
 
       if (!tableExists) {
-        try {
-          server.log.info("creating table", tableName);
-          const schemaSQL = await fs.readFile(
-            `${__dirname}/../../../sql-schemas/${tableName}.sql`,
-            "utf-8",
-          );
-          server.log.info("file read, executing SQL", tableName);
-          // Create Table using schema
-          await knex.schema.raw(schemaSQL);
-        } catch (error: any) {
-          server.log.info("DB Init Error", error);
-          throw error;
-        }
+        const schemaSQL = await fs.readFile(
+          `${__dirname}/../../../sql-schemas/${tableName}.sql`,
+          "utf-8",
+        );
+        // Create Table using schema
+        await knex.schema.raw(schemaSQL);
 
         server.log.info(`Table ${tableName} created on startup successfully`);
       } else {

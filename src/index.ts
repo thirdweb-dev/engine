@@ -109,8 +109,6 @@ const main = async () => {
     },
   );
 
-  console.log("Server Started, checking DBs");
-
   // Check for the Tables Existence post startup
   await checkTablesExistence(server);
   await implementTriggerOnStartUp(server);
