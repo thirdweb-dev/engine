@@ -1,7 +1,8 @@
 {
   "name": "web3-api",
-  "version": "1.0.0",
-  "description": "Thirdweb's web3-api server",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "description": "thirdweb's web3-api server",
   "main": "src/index.ts",
   "author": "Farhan Khwaja <farhan@thirdweb.com>",
   "type": "module",

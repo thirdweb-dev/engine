@@ -1,65 +1,72 @@
-import { getEnv } from './helpers/loadEnv';
-import fastify, { FastifyInstance } from 'fastify';
-import fastifyExpress from '@fastify/express';
-import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import * as fs from 'fs';
-import fastifyCors from '@fastify/cors';
-import { openapi } from './helpers/openapi';
-import { errorHandler } from './errorHandler';
-import { apiRoutes } from './api';
-import { checkTablesExistence, connectToDB, implementTriggerOnStartUp } from './helpers/index';
+import { getEnv } from "./helpers/loadEnv";
+import fastify, { FastifyInstance } from "fastify";
+import fastifyExpress from "@fastify/express";
+import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import * as fs from "fs";
+import fastifyCors from "@fastify/cors";
+import { openapi } from "./helpers/openapi";
+import { errorHandler } from "./errorHandler";
+import { apiRoutes } from "./api";
+import {
+  checkTablesExistence,
+  connectToDB,
+  implementTriggerOnStartUp,
+} from "./helpers/index";
 
 const logSettings: any = {
   local: {
-    redact: ["headers.authorization",],
-    level: 'debug',
+    redact: ["headers.authorization"],
+    level: "debug",
     transport: {
-      target: 'pino-pretty',
+      target: "pino-pretty",
       options: {
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname,reqId',
+        translateTime: "HH:MM:ss Z",
+        ignore: "pid,hostname,reqId",
         singleLine: true,
-        minimumLevel: 'debug',
+        minimumLevel: "debug",
       },
     },
   },
   production: true,
-  development: {
-    
-  },
+  development: {},
 };
 
 const main = async () => {
   const server: FastifyInstance = fastify({
-    logger: logSettings[getEnv('NODE_ENV')] ?? true,
+    logger: logSettings[getEnv("NODE_ENV")] ?? true,
     disableRequestLogging: true,
-    
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.addHook('preHandler', function (req, reply, done) {
+  server.addHook("preHandler", function (req, reply, done) {
     if (req.body) {
-      req.log.info({ ...req.body }, 'Request Body : ')
+      req.log.info({ ...req.body }, "Request Body : ");
     }
 
     if (req.params) {
-      req.log.info({ ...req.params }, 'Request Params : ')
+      req.log.info({ ...req.params }, "Request Params : ");
     }
 
     if (req.query) {
-      req.log.info({ ...req.query }, 'Request Querystring : ')
+      req.log.info({ ...req.query }, "Request Querystring : ");
     }
-    
-    done()
+
+    done();
   });
 
   server.addHook("onRequest", (request, reply, done) => {
-    request.log.info(`Request received - ${request.method} - ${request.routerPath}`);
+    request.log.info(
+      `Request received - ${request.method} - ${request.routerPath}`,
+    );
     done();
   });
 
   server.addHook("onResponse", (request, reply, done) => {
     request.log.info(
-      `Request completed - ${request.method} - ${reply.request.routerPath} - StatusCode: ${reply.statusCode} - Response Time: ${reply.getResponseTime().toFixed(2)}ms`
+      `Request completed - ${request.method} - ${
+        reply.request.routerPath
+      } - StatusCode: ${reply.statusCode} - Response Time: ${reply
+        .getResponseTime()
+        .toFixed(2)}ms`,
     );
     done();
   });
@@ -69,38 +76,43 @@ const main = async () => {
   await server.register(fastifyCors);
 
   await server.register(fastifyExpress);
-  
+
   openapi(server);
-  
+
   await server.register(apiRoutes);
 
   const dbConnect = await connectToDB(server);
-  await server.decorateRequest('db', dbConnect);
+  await server.decorateRequest("db", dbConnect);
 
   await server.ready();
-  
+
   // Command to Generate Swagger File
   // Needs to be called post Fastify Server is Ready
   server.swagger();
-  
+
   // To Generate Swagger YAML File
-  if (getEnv('NODE_ENV') === "local") {
+  if (getEnv("NODE_ENV") === "local") {
     const yaml = server.swagger({ yaml: true });
-    fs.writeFileSync('./swagger.yml', yaml);
+    fs.writeFileSync("./swagger.yml", yaml);
   }
 
-  server.listen({
-    host: getEnv('HOST'),
-    port: Number(getEnv('PORT')),
-  }, (err) => { 
-    if (err) {
-      server.log.error(err);
-      process.exit(1);
-    }
-  });
+  server.listen(
+    {
+      host: getEnv("HOST"),
+      port: Number(getEnv("PORT")),
+    },
+    (err) => {
+      if (err) {
+        server.log.error(err);
+        process.exit(1);
+      }
+    },
+  );
+
+  console.log("Server Started, checking DBs");
 
   // Check for the Tables Existence post startup
-  await checkTablesExistence(server)
+  await checkTablesExistence(server);
   await implementTriggerOnStartUp(server);
 };
 
