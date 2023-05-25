@@ -1,5 +1,5 @@
 import { Knex } from "knex";
-import * as Chains from "@thirdweb-dev/chains";
+import { getChainBySlug } from "@thirdweb-dev/chains";
 import { TransactionSchema } from "../sharedApiSchemas";
 import { createCustomError } from "../customError";
 import { StatusCodes } from "http-status-codes";
@@ -32,7 +32,14 @@ export const queueTransaction = async (
   // get chain ID
   let chainId: string;
   if (isNaN(Number(chain_name_or_id))) {
-    chainId = Chains.getChainBySlug(chain_name_or_id).chainId.toString();
+    const chainData = getChainBySlug(chain_name_or_id);
+
+    if (!chainData) {
+        const error = createCustomError(`Chain with name/id ${chain_name_or_id} not found`, StatusCodes.NOT_FOUND, "NOT_FOUND");
+        throw error;
+    }
+
+    chainId = chainData.chainId.toString();
   } else {
     chainId = chain_name_or_id;
   }

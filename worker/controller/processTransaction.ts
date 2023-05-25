@@ -5,8 +5,6 @@ import { getWalletNonce } from "../services/blockchain";
 import { getWalletDetails } from "../services/dbOperations";
 import { getSDK } from "../helpers";
 import { ethers } from "ethers";
-import { createCustomError } from "helpers/customError";
-import e from "express";
 
 const MIN_TRANSACTION_TO_PROCESS =
   parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS"), 10) ?? 1;
@@ -25,7 +23,9 @@ export const processTransaction = async (
       data = await knex.raw(`select *, ROW_NUMBER()
       OVER (PARTITION BY "walletAddress", "chainId" ORDER BY "createdTimestamp" ASC) AS rownum
       FROM "transactions"
-      WHERE "txProcessed" = false AND "txMined" = false AND "txErrored" = false`);
+      WHERE "txProcessed" = false AND "txMined" = false AND "txErrored" = false
+      ORDER BY "createdTimestamp" ASC
+      LIMIT ${TRANSACTIONS_TO_BATCH}`);
     } catch (error) {
       server.log.error(error);
       server.log.warn("Stopping Execution as error occurred.");
