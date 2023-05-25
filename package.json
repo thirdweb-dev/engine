@@ -16,8 +16,7 @@
     "start-worker": "cd worker && node --experimental-specifier-resolution=node dist/index.js",
     "dev-worker": "nodemon --watch 'worker/**/*.ts' --exec 'ts-node' --files worker/index.ts",
     "lint": "eslint 'src/**/*.ts'",
-    "lint:fix": "eslint --fix 'src/**/*.ts'",
-    "prepare": "husky install"
+    "lint:fix": "eslint --fix 'src/**/*.ts'"
   },
   "dependencies": {
     "@fastify/cookie": "^8.3.0",
@@ -26,7 +25,7 @@
     "@fastify/swagger": "^8.3.1",
     "@fastify/swagger-ui": "^1.8.1",
     "@fastify/type-provider-typebox": "^3.0.0",
-    "@sinclair/typebox": "^0.27.8",
+    "@sinclair/typebox": "^0.28",
     "@thirdweb-dev/sdk": "^3.10.18-nightly-98efd090-20230524213053",
     "@types/express": "^4.17.17",
     "@types/pg": "^8.6.6",
@@ -52,7 +51,6 @@
     "@typescript-eslint/parser": "^5.55.0",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.7.0",
-    "husky": "^8.0.3",
     "nodemon": "^2.0.21",
     "pino-pretty": "^10.0.0",
     "prettier": "^2.8.7",
