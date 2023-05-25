@@ -44,7 +44,7 @@ export async function erc721SetApprovalForAll(fastify: FastifyInstance) {
       description:
         "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token in the specified contract owned by the caller.",
       tags: ["ERC721"],
-      operationId: "setApprovalForAll",
+      operationId: "erc721_setApprovalForAll",
       params: requestSchema,
       body: requestBodySchema,
       response: {
