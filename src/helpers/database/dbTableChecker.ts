@@ -3,7 +3,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 import { getEnv } from "../loadEnv";
-import { connectWithDatabase } from "./dbConnect";
+import { connectToDB, connectWithDatabase } from "./dbConnect";
 import { FastifyInstance } from "fastify";
 import { createCustomError } from "../customError";
 import { StatusCodes } from "http-status-codes";
@@ -16,7 +16,7 @@ export const checkTablesExistence = async (
 ): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectWithDatabase(server);
+    const knex = await connectToDB(server);
 
     // Check if the tables Exists
     const tablesList: string[] = getEnv("DB_TABLES_LIST")

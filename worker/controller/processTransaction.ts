@@ -18,15 +18,21 @@ export const processTransaction = async (
   try {
     // Connect to the DB
     const knex = await connectToDB(server);
+    let data :any;
+    try {
+      data = await knex.raw(`select *, ROW_NUMBER()
+      OVER (PARTITION BY "walletAddress", "chainId" ORDER BY "createdTimestamp" ASC) AS rownum
+      FROM "transactions"
+      WHERE "txProcessed" = false AND "txMined" = false AND "txErrored" = false
+      ORDER BY "createdTimestamp" ASC
+      LIMIT ${TRANSACTIONS_TO_BATCH}`);
+    } catch (error) {
+      server.log.error(error);
+      server.log.warn("Stopping Execution as error occurred.");
+      return;
+    }
 
-    const data = await knex("transactions")
-      .where("txProcessed", false)
-      .where("txMined", false)
-      .where("txErrored", false)
-      .orderBy("createdTimestamp")
-      .limit(TRANSACTIONS_TO_BATCH);
-
-    if (data.length < MIN_TRANSACTION_TO_PROCESS) {
+    if (data.rows.length < MIN_TRANSACTION_TO_PROCESS) {
       server.log.warn(
         `Number of transactions to process less than Minimum Transactions to Process: ${MIN_TRANSACTION_TO_PROCESS}`,
       );
@@ -36,7 +42,7 @@ export const processTransaction = async (
       return;
     }
 
-    data.forEach(async (tx: any, index: number) => {
+    data.rows.forEach(async (tx: any, index: number) => {
       await setTimeout(async () => {
         server.log.info(`Processing Transaction: ${tx.identifier}`);
         const walletData = await getWalletDetails(
@@ -64,7 +70,7 @@ export const processTransaction = async (
 
         const trx = await knex.transaction();
         server.log.debug(`Transaction started for ${tx.identifier}`);
-        const txSubmittedNonce = nonce + index;
+        const txSubmittedNonce = nonce + parseInt(tx.rownum, 10) - 1;
         server.log.debug(
           `Transaction nonce: ${txSubmittedNonce} for ${tx.identifier}`,
         );
@@ -144,6 +150,7 @@ export const processTransaction = async (
           await knex.destroy();
         }
       }, 1000);
+
     });
   } catch (error) {
     server.log.error(error);
