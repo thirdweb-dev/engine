@@ -2,10 +2,8 @@
 
 Thirdweb's Web3-API & Worker server.
 
-||
-|--|
 |NOTE: Update ENV vaiables as per your settings/environment.|
-||
+|---|
 
 ## Requirements
 
