@@ -2,8 +2,8 @@
 
 Thirdweb's Web3-API & Worker server.
 
-|NOTE: Update ENV vaiables as per your settings/environment.|
-|---|
+| NOTE: Update ENV variables as per your settings/environment. |
+| ------------------------------------------------------------ |
 
 ## Requirements
 
@@ -15,8 +15,8 @@ Thirdweb's Web3-API & Worker server.
 
 ## Running locally
 
-|NOTE: Do not run `yarn install` |
-|---|
+| NOTE: Do not run `yarn install` |
+| ------------------------------- |
 
 1. Create a `.env` file and add all the environment variables from `.example.env`.
 2. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
@@ -29,8 +29,8 @@ The API will be accessible on `http://localhost:3005` by default.
 
 ## Running with docker
 
-|Required: A PostgreSQL running instance. |
-|---|
+| Required: A PostgreSQL running instance. |
+| ---------------------------------------- |
 
 1. If you don't have one already, run a postgres instance: `docker run postgres`.
 2. Create a `.env` file based off `.example.env` with all the variables filled in.
@@ -40,9 +40,8 @@ The API will be accessible on `http://localhost:3005` by default.
 
 ## Running on a server
 
-
-|Required: A PostgreSQL running instance. |
-|---|
+| Required: A PostgreSQL running instance. |
+| ---------------------------------------- |
 
 1. Clone the project on the remote server
 2. Create a `.env` file based off `.example.env` with all the variables filled in.

@@ -32,7 +32,7 @@ const logSettings: any = {
 
 const main = async () => {
   const server: FastifyInstance = fastify({
-    logger: logSettings[getEnv("NODE_ENV")] ?? true,
+    logger: logSettings[getEnv("NODE_ENV", "development")] ?? true,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
@@ -71,15 +71,11 @@ const main = async () => {
   });
 
   await errorHandler(server);
-
   await server.register(fastifyCors);
-
   await server.register(fastifyExpress);
 
   openapi(server);
-
   await server.register(apiRoutes);
-
   await server.ready();
 
   // Command to Generate Swagger File
@@ -87,15 +83,15 @@ const main = async () => {
   server.swagger();
 
   // To Generate Swagger YAML File
-  if (getEnv("NODE_ENV") === "local") {
+  if (getEnv("NODE_ENV", "development") === "development") {
     const yaml = server.swagger({ yaml: true });
     fs.writeFileSync("./swagger.yml", yaml);
   }
 
   server.listen(
     {
-      host: getEnv("HOST"),
-      port: Number(getEnv("PORT")),
+      host: getEnv("HOST", "0.0.0.0"),
+      port: Number(getEnv("PORT", 3005)),
     },
     (err) => {
       if (err) {

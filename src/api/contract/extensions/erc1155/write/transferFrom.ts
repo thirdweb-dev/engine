@@ -64,6 +64,7 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
       const { from, to, token_id, amount } = request.body;
       const sdk = await getSDK(chain_name_or_id);
       const contract = await sdk.getContract(contract_address);
+      //@ts-ignore
       const tx = await contract.erc1155.transferFrom.prepare(
         from,
         to,

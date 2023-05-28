@@ -2,10 +2,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Type, Static } from "@sinclair/typebox";
 import { getSDK, queueTransaction } from "../../../../../helpers/index";
-import { 
+import {
   contractParamSchema,
   standardResponseSchema,
-  transactionWritesResponseSchema
+  transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 
 // INPUTS
@@ -64,7 +64,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
         to_address,
         amount,
       );
-      
+
       const queuedId = await queueTransaction(
         request,
         tx,
@@ -73,7 +73,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        queuedId
+        queuedId,
       });
     },
   });

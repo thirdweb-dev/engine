@@ -11,7 +11,7 @@ EXPOSE 3005
 
 FROM base AS local_server
 
-ENV NODE_ENV="local"
+ENV NODE_ENV="development"
 
 RUN yarn install --force
 RUN apk del build-dependencies
@@ -23,16 +23,9 @@ FROM base AS local_worker
 
 EXPOSE 3006
 
-ENV NODE_ENV="local"
+ENV NODE_ENV="development"
 
 CMD [ "yarn", "dev-worker" ]
-
-# FROM base AS dev
-
-# ENV NODE_ENV="development"
-# RUN yarn install
-
-# CMD [ "yarn", "dev" ]
 
 FROM base AS prod
 

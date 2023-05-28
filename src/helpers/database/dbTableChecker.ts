@@ -21,7 +21,7 @@ export const checkTablesExistence = async (
     // Check if the tables Exists
     const tablesList: string[] = getEnv("DB_TABLES_LIST")
       .split(",")
-      .map(function (item) {
+      .map(function (item: any) {
         return item.trim();
       });
 
@@ -72,7 +72,7 @@ export const implementTriggerOnStartUp = async (
 
     const triggersList: string[] = getEnv("DB_TRIGGERS_LIST")
       .split(",")
-      .map(function (item) {
+      .map(function (item: any) {
         return item.trim();
       });
 

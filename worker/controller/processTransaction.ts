@@ -18,7 +18,7 @@ export const processTransaction = async (
   try {
     // Connect to the DB
     const knex = await connectToDB(server);
-    let data :any;
+    let data: any;
     try {
       data = await knex.raw(`select *, ROW_NUMBER()
       OVER (PARTITION BY "walletAddress", "chainId" ORDER BY "createdTimestamp" ASC) AS rownum
@@ -43,7 +43,7 @@ export const processTransaction = async (
     }
 
     data.rows.forEach(async (tx: any, index: number) => {
-      await setTimeout(async () => {
+      setTimeout(async () => {
         server.log.info(`Processing Transaction: ${tx.identifier}`);
         const walletData = await getWalletDetails(
           tx.walletAddress,
@@ -150,7 +150,6 @@ export const processTransaction = async (
           await knex.destroy();
         }
       }, 1000);
-
     });
   } catch (error) {
     server.log.error(error);

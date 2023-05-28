@@ -10,16 +10,16 @@ const dbClient = getEnv("DATABASE_CLIENT") ?? "pg";
 
 // Database Connection Setup
 const connection: Knex.PgConnectionConfig = {
-    host: getEnv("POSTGRES_HOST"),
-    user: getEnv("POSTGRES_USER"),
-    password: getEnv("POSTGRES_PASSWORD"),
-    database: DATABASE_NAME,
-    ssl:
-      getEnv("NODE_ENV") === "production"
-        ? {
-            rejectUnauthorized: false,
-          }
-        : false,
+  host: getEnv("POSTGRES_HOST"),
+  user: getEnv("POSTGRES_USER"),
+  password: getEnv("POSTGRES_PASSWORD"),
+  database: DATABASE_NAME,
+  ssl:
+    getEnv("NODE_ENV", "development") === "production"
+      ? {
+          rejectUnauthorized: false,
+        }
+      : false,
 };
 
 export const connectToDB = async (server: FastifyInstance): Promise<Knex> => {
