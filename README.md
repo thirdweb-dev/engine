@@ -21,7 +21,9 @@ Thirdweb's Web3-API & Worker server.
 1. Create a `.env` file and add all the environment variables from `.example.env`.
 2. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
 3. Update the `THIRDWEB_API_KEY` value on the `.env` file
-4. Run: `yarn infra`
+4. Run: `yarn dev:infra`
+5. Run: `yarn dev:server`
+6. Run: `yarn dev:worker`
 
 Locally, we use `docker-compose` to spin up the services, a postgres database and the pg-admin GUI altogether.
 

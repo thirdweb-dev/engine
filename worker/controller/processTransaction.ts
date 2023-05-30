@@ -7,10 +7,10 @@ import { getSDK } from "../helpers";
 import { ethers } from "ethers";
 
 const MIN_TRANSACTION_TO_PROCESS =
-  parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS"), 10) ?? 1;
+  parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS", 10), 10) ?? 1;
 
 const TRANSACTIONS_TO_BATCH =
-  parseInt(getEnv("TRANSACTIONS_TO_BATCH"), 10) ?? 10;
+  parseInt(getEnv("TRANSACTIONS_TO_BATCH", 10), 10) ?? 10;
 
 export const processTransaction = async (
   server: FastifyInstance,

@@ -33,6 +33,5 @@ services:
       - ./swagger.yml:/app/swagger.yml
 
 volumes:
-  node_modules:
   db_data:
   pgadmin:
