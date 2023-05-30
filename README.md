@@ -47,7 +47,7 @@ The API will be accessible on `http://localhost:3005` by default.
 1. Clone the project on the remote server
 2. Create a `.env` file based off `.example.env` with all the variables filled in.
 3. Run: `yarn install`
-4. Run: `yarn build && yarn build-worker`
+4. Run: `yarn build && yarn copy-files`
 5. Run: `yarn start`
 
 This will only run the required services. You will need to have a running postgres database that can be accessed from those services.
