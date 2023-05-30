@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
-import { getSDK } from '../../../helpers';
+import { getSDK } from '../../../../core';
 import { partialRouteSchema } from '../../../helpers/sharedApiSchemas';
 import { readRequestQuerySchema, readSchema } from '../../../schemas/contract/read';
 import { bigNumberReplacer } from '../../../utilities/convertor';

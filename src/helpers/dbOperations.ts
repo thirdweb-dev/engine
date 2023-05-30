@@ -1,19 +1,12 @@
 import { Knex } from "knex";
 import { getChainBySlug } from "@thirdweb-dev/chains";
-import { TransactionSchema } from "../sharedApiSchemas";
-import { createCustomError } from "../customError";
+import { TransactionSchema } from "./sharedApiSchemas";
+import { createCustomError } from "../../core/error/customError";
 import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
-import { connectWithDatabase } from "./dbConnect";
+import { connectWithDatabase } from "../../core";
 import { FastifyRequest } from "fastify";
 import { Transaction, TransactionError } from "@thirdweb-dev/sdk";
-
-interface TransactionStatusSchema {
-  txProcessed: boolean;
-  txSubmitted: boolean;
-  txErrored: boolean;
-  txMined: boolean;
-}
 
 export const queueTransaction = async (
   request: FastifyRequest,

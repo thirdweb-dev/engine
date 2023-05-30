@@ -19,10 +19,12 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
-    "src/**/*.js"
+    "src/**/*.js",
+    "core/**/*.ts",
+    "worker/**/*.ts",
+    "worker/**/*.d.ts",
+    "worker/**/*.js",
   ],
-  "exclude": [
-    "node_modules",
-    "worker"],
+  "exclude": ["node_modules"],
   "types": ["node"]
 }
