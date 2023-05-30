@@ -9,7 +9,6 @@ export const getWalletNonce = async (
       walletAddress,
       "pending",
     );
-    console.debug(`Pending Tx Count: ${txCount}`);
     return txCount;
   } catch (error) {
     throw error;

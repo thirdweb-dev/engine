@@ -12,25 +12,8 @@ import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
   implementTriggerOnStartUp,
+  logSettings
 } from "../core";
-
-const logSettings: any = {
-  local: {
-    redact: ["headers.authorization"],
-    level: "debug",
-    transport: {
-      target: "pino-pretty",
-      options: {
-        translateTime: "HH:MM:ss Z",
-        ignore: "pid,hostname,reqId",
-        singleLine: true,
-        minimumLevel: "debug",
-      },
-    },
-  },
-  production: true,
-  development: {},
-};
 
 const main = async () => {
   const server: FastifyInstance = fastify({

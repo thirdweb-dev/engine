@@ -5,27 +5,7 @@ import {
     getEnv,
 } from '../core';
 import { startNotificationListener } from "./controller/listener";
-
-
-const logSettings: any = {
-  local: {
-    redact: ["headers.authorization",],
-    level: 'debug',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname,reqId',
-        singleLine: true,
-        minimumLevel: 'debug',
-      },
-    },
-  },
-  production: true,
-  development: {
-    
-  },
-};
+import { logSettings } from "../core";
 
 const main = async () => {
   const server: FastifyInstance = fastify({

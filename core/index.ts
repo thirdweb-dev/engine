@@ -4,3 +4,4 @@ export * from './database/dbPrereqs';
 export * from "./error/customError";
 export * from "./loadEnv";
 export * from "./error/errorHandler";
+export * from "./fastify/logSetting";

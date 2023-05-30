@@ -104,7 +104,7 @@ export const processTransaction = async (
             .transacting(trx);
 
           await trx.commit();
-          server.log.debug("Request processed but errored out: Commited to db");
+          server.log.warn(`Request-ID: ${tx.identifier} processed but errored out: Commited to db`);
           // Release the database connection
           await knex.destroy();
           return;
@@ -144,7 +144,8 @@ export const processTransaction = async (
           server.log.info("Transaction committed successfully!");
         } catch (error) {
           // Handle the error & rollback actions
-          console.error("Transaction failed:", error);
+          server.log.warn("Transaction failed with error:");
+          server.log.error(error);
 
           await trx.rollback();
         } finally {
