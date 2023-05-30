@@ -13,8 +13,9 @@
     "infra": "docker compose --env-file ./.env up",
     "docker-build-run": "docker compose build --no-cache && docker compose --env-file ./.env up --remove-orphans",
     "build-worker": "cd worker && yarn && rm -rf dist && tsc -p ./tsconfig.json --outDir dist",
-    "start-worker": "cd worker && node --experimental-specifier-resolution=node dist/worker/index.js",
+    "start-worker": "node --experimental-specifier-resolution=node dist/worker/index.js",
     "dev-worker": "nodemon --watch 'worker/**/*.ts' --watch 'core/**/*.ts' --exec 'ts-node' --files worker/index.ts",
+    "copy-files": "copyfiles ./core/database/sql-schemas/*.sql ./dist/",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint --fix 'src/**/*.ts'"
   },
@@ -51,6 +52,7 @@
     "@types/ws": "^8.5.4",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.7.0",
     "nodemon": "^2.0.21",

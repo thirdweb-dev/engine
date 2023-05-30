@@ -39,7 +39,7 @@ export const checkTablesExistence = async (
 
       if (!tableExists) {
         const schemaSQL = await fs.readFile(
-          `${__dirname}/../../sql-schemas/${tableName}.sql`,
+          `${__dirname}/sql-schemas/${tableName}.sql`,
           "utf-8",
         );
         // Create Table using schema
@@ -88,7 +88,7 @@ export const implementTriggerOnStartUp = async (
     for (const dbTriggers of triggersList) {
       server.log.debug(`Reading Trigger File ${dbTriggers}.sql`);
       const schemaSQL = await fs.readFile(
-        `${__dirname}/../../sql-schemas/${dbTriggers}.sql`,
+        `${__dirname}/sql-schemas/${dbTriggers}.sql`,
         "utf-8",
       );
       await knex.raw(schemaSQL);
