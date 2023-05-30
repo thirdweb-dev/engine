@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { connectToDB } from "../../core/helpers";
+import { connectToDB } from "../../core";
 import { processTransaction } from './processTransaction';
 
 export const startNotificationListener = async (server: FastifyInstance) : Promise<void> => {

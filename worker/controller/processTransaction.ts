@@ -1,9 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { connectToDB } from "../helpers/database/dbConnect";
-import { getEnv } from "../helpers/loadEnv";
+import {
+    connectWithDatabase,
+    getEnv,
+    getSDK,
+} from "../../core";
 import { getWalletNonce } from "../services/blockchain";
 import { getWalletDetails } from "../services/dbOperations";
-import { getSDK } from "../helpers";
 import { ethers } from "ethers";
 
 const MIN_TRANSACTION_TO_PROCESS =
@@ -17,7 +19,7 @@ export const processTransaction = async (
 ): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectToDB(server);
+    const knex = await connectWithDatabase(server);
     let data :any;
     try {
       data = await knex.raw(`select *, ROW_NUMBER()

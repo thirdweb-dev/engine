@@ -19,8 +19,8 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
-    "src/**/*.js"
-  ],
+    "src/**/*.js",
+    "core/**/*.ts"],
   "exclude": [
     "node_modules",
     "worker"],

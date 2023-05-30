@@ -1,13 +1,14 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getSDK, queueTransaction } from "../../../../../helpers/index";
+import { getSDK } from "../../../../../../core";
 import {
   contractParamSchema,
   standardResponseSchema,
   baseReplyErrorSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
+import { queueTransaction } from "../../../../../helpers";
 
 // INPUTS
 const requestSchema = contractParamSchema;

@@ -1,16 +1,18 @@
-import { getEnv } from "./helpers/loadEnv";
 import fastify, { FastifyInstance } from "fastify";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import * as fs from "fs";
 import fastifyCors from "@fastify/cors";
-import { openapi } from "./helpers/openapi";
-import { errorHandler } from "./errorHandler";
+import { openapi } from "./helpers";
+import {
+    errorHandler,
+    getEnv,
+} from "../core";
 import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
   implementTriggerOnStartUp,
-} from "./helpers/index";
+} from "../core";
 
 const logSettings: any = {
   local: {

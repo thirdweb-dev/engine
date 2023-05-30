@@ -19,7 +19,8 @@
   "include": [
     "./**/*.ts",
     "./**/*.d.ts",
-    "./**/*.js"
+    "./**/*.js",
+    "../core/**/*.ts",
   ],
   "exclude": [
     "node_modules",
