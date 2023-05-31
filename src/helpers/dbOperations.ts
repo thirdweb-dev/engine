@@ -6,11 +6,15 @@ import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
 import { connectWithDatabase } from "../../core";
 import { FastifyRequest } from "fastify";
-import { Transaction, TransactionError } from "@thirdweb-dev/sdk";
+import {
+  DeployTransaction,
+  Transaction,
+  TransactionError,
+} from "@thirdweb-dev/sdk";
 
 export const queueTransaction = async (
   request: FastifyRequest,
-  tx: Transaction<any>,
+  tx: Transaction<any> | DeployTransaction,
   chain_name_or_id: string,
   extension: string,
 ) => {
@@ -28,8 +32,12 @@ export const queueTransaction = async (
     const chainData = getChainBySlug(chain_name_or_id);
 
     if (!chainData) {
-        const error = createCustomError(`Chain with name/id ${chain_name_or_id} not found`, StatusCodes.NOT_FOUND, "NOT_FOUND");
-        throw error;
+      const error = createCustomError(
+        `Chain with name/id ${chain_name_or_id} not found`,
+        StatusCodes.NOT_FOUND,
+        "NOT_FOUND",
+      );
+      throw error;
     }
 
     chainId = chainData.chainId.toString();
@@ -53,6 +61,7 @@ export const queueTransaction = async (
     txSubmitted: false,
     encodedInputData: encodedData,
   };
+  console.log("txDataToInsert", txDataToInsert);
 
   // Insert to DB
   const dbInstance = await connectWithDatabase(request);
