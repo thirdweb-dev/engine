@@ -19,8 +19,15 @@ export const txStatusReplyBodySchema = Type.Object({
     status: Type.String(),
     txHash: Type.Optional(Type.String()),
   }),
-  error: Type.Optional(baseReplyErrorSchema),
 });
+
+txStatusReplyBodySchema.examples = [{
+  result: {
+    queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+    status: "submitted",
+    txHash: "0x0e397d1459353ffa32a6e86ab85b3d60c8840975a96c936f3066022d22c3633f", 
+  }
+}];
 
 // OUTPUT
 

@@ -6,6 +6,7 @@ import {
   contractParamSchema,
   standardResponseSchema,
   baseReplyErrorSchema,
+  transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
 
@@ -29,15 +30,12 @@ const requestBodySchema = Type.Object({
   ];
 
 // OUTPUT
-const responseSchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
-  error: Type.Optional(baseReplyErrorSchema),
-});
+
 
 export async function erc20burnFrom(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
-    Reply: Static<typeof responseSchema>;
+    Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
@@ -50,7 +48,7 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: responseSchema,
+        [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {

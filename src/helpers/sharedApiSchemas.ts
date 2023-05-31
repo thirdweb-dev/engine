@@ -75,8 +75,7 @@ const replyBodySchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
 });
 
-export const writeReplyBodySchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
+const replyErrorBodySchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
 });
 
@@ -84,15 +83,36 @@ export const standardResponseSchema = {
   [StatusCodes.OK]: replyBodySchema,
   [StatusCodes.BAD_REQUEST]: {
     description: "Bad Request",
-    ...replyBodySchema,
+    ...replyErrorBodySchema,
+    examples: [{
+      error: {
+        message: "",
+        code: "BAD_REQUEST",
+        statusCode: StatusCodes.BAD_REQUEST,
+      }
+    }],
   },
   [StatusCodes.NOT_FOUND]: {
     description: "Not Found",
-    ...replyBodySchema,
+    ...replyErrorBodySchema,
+    examples: [{
+      error: {
+        message: "Transaction not found with queueId 9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+        code: "NOT_FOUND",
+        statusCode: StatusCodes.NOT_FOUND,
+      }
+    }],
   },
   [StatusCodes.INTERNAL_SERVER_ERROR]: {
     description: "Internal Server Error",
-    ...replyBodySchema,
+    ...replyErrorBodySchema,
+    examples: [{
+      error: {
+        message: "Transaction simulation failed with reason: types/values length mismatch",
+        code: "INTERNAL_SERVER_ERROR",
+        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+      }
+    }],
   },
 };
 
@@ -142,5 +162,8 @@ export interface TransactionSchema {
 
 export const transactionWritesResponseSchema = Type.Object({
   queuedId: Type.Optional(Type.String()),
-  error: Type.Optional(baseReplyErrorSchema),
 });
+
+transactionWritesResponseSchema.examples = [{
+  queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+}];

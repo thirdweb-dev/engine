@@ -6,6 +6,7 @@ import {
   contractParamSchema,
   standardResponseSchema,
   baseReplyErrorSchema,
+  transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftAndSupplySchema } from "../../../../../schemas/nft";
 import { queueTransaction } from "../../../../../helpers";
@@ -34,15 +35,12 @@ requestBodySchema.examples = [
 ];
 
 // OUTPUT
-const responseSchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
-  error: Type.Optional(baseReplyErrorSchema),
-});
+
 
 export async function erc1155mintTo(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
-    Reply: Static<typeof responseSchema>;
+    Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
@@ -55,7 +53,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: responseSchema,
+        [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {

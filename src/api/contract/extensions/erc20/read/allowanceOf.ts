@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getSDK } from "../../../../../../core/index";
+import { getSDK } from "../../../../../../core";
 import {
   baseReplyErrorSchema,
   contractParamSchema,

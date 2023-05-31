@@ -38,12 +38,7 @@ writeRequestBodySchema.examples = [
 
 // OUTPUT
 const replyBodySchema = Type.Object({
-  result: Type.Optional(
-    Type.Object({
-      queuedId: Type.Optional(Type.String()),
-    }),
-  ),
-  error: Type.Optional(baseReplyErrorSchema),
+  queuedId: Type.Optional(Type.String()),
 });
 
 // LOGIC
@@ -60,7 +55,10 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
-      response: standardResponseSchema,
+      response: {
+        ...standardResponseSchema,
+        [StatusCodes.OK]: replyBodySchema,
+      },
       body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
@@ -82,9 +80,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        result: {
-          queuedId, 
-        }
+        queuedId, 
       });
     },
   });

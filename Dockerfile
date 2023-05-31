@@ -44,4 +44,6 @@ ENV NODE_ENV="production"
 
 RUN yarn install --production
 RUN apk del build-dependencies
+
+ENTRYPOINT [ "docker-entrypoint.sh" ]
 CMD [ "yarn", "start"]
