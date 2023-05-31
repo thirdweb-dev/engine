@@ -1,11 +1,6 @@
 version: "3.8"
 
 services:
-  web3-api:
-    build:
-      context: .
-    image: thirdweb/web3-api:0.1.0
-
   db:
     image: postgres:latest
     env_file:
@@ -15,28 +10,12 @@ services:
     ports:
       - 5432:5432
 
-  pgadmin:
-    container_name: pgadmin4_container
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: root
+  web3-api:
+    build:
+      context: .
+    image: thirdweb/web3-api:0.1.0
     ports:
-      - 5050:80
-    volumes:
-      - pgadmin:/var/lib/pgadmin
-
-  swaggerui:
-    image: swaggerapi/swagger-ui
-    restart: always
-    ports:
-      - 3015:8080
-    environment:
-      SWAGGER_JSON: /app/swagger.yml
-    volumes:
-      - ./swagger.yml:/app/swagger.yml
+      - 5432:5432
 
 volumes:
   db_data:
-  pgadmin:

@@ -8,7 +8,7 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "skipLibCheck": true,
     "allowJs": true
   },
@@ -21,6 +21,7 @@
     "src/**/*.d.ts",
     "src/**/*.js",
     "core/**/*.ts",
+    "core/**/*.sql",
     "worker/**/*.ts",
     "worker/**/*.d.ts",
     "worker/**/*.js"

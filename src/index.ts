@@ -4,15 +4,12 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import * as fs from "fs";
 import fastifyCors from "@fastify/cors";
 import { openapi } from "./helpers";
-import {
-    errorHandler,
-    getEnv,
-} from "../core";
+import { errorHandler, getEnv } from "../core";
 import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
   implementTriggerOnStartUp,
-  logSettings
+  logSettings,
 } from "../core";
 
 const main = async () => {
@@ -55,22 +52,26 @@ const main = async () => {
     done();
   });
 
-  await errorHandler(server);
-  await server.register(fastifyCors);
-  await server.register(fastifyExpress);
+  try {
+    await errorHandler(server);
+    await server.register(fastifyCors);
+    await server.register(fastifyExpress);
 
-  openapi(server);
-  await server.register(apiRoutes);
-  await server.ready();
+    openapi(server);
+    await server.register(apiRoutes);
+    await server.ready();
 
-  // Command to Generate Swagger File
-  // Needs to be called post Fastify Server is Ready
-  server.swagger();
-
-  // To Generate Swagger YAML File
-  if (getEnv("NODE_ENV", "development") === "development") {
-    const yaml = server.swagger({ yaml: true });
-    fs.writeFileSync("./swagger.yml", yaml);
+    // Command to Generate Swagger File
+    // Needs to be called post Fastify Server is Ready
+    server.swagger();
+    // To Generate Swagger YAML File
+    if (getEnv("NODE_ENV", "development") === "development") {
+      const yaml = server.swagger({ yaml: true });
+      fs.writeFileSync("./swagger.yml", yaml);
+    }
+  } catch (err) {
+    server.log.error(err);
+    process.exit(1);
   }
 
   server.listen(
@@ -86,9 +87,14 @@ const main = async () => {
     },
   );
 
-  // Check for the Tables Existence post startup
-  await checkTablesExistence(server);
-  await implementTriggerOnStartUp(server);
+  try {
+    // Check for the Tables Existence post startup
+    await checkTablesExistence(server);
+    await implementTriggerOnStartUp(server);
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 main();
+
