@@ -43,8 +43,7 @@ export const processTransaction = async (
       return;
     }
 
-    data.rows.forEach(async (tx: any, index: number) => {
-      await setTimeout(async () => {
+    data.rows.forEach(async (tx: any) => {
         server.log.info(`Processing Transaction: ${tx.identifier}`);
         const walletData = await getWalletDetails(
           tx.walletAddress,
@@ -64,21 +63,11 @@ export const processTransaction = async (
           nonce = blockchainNonce;
         }
 
-        server.log.debug(
-          `Blockchain Nonce: ${blockchainNonce}, Wallet Nonce: ${
-            walletData?.lastUsedNonce ?? 0
-          }, Tx Nonce: ${nonce}`,
-        );
-
         const trx = await knex.transaction();
         await updateTransactionState(knex, tx.identifier, "processed", trx);
-        server.log.debug(`Transaction started for ${tx.identifier}`);
 
         // Get the nonce for the blockchain transaction
         const txSubmittedNonce = nonce + parseInt(tx.rownum, 10) - 1;
-        server.log.debug(
-          `Transaction nonce: ${txSubmittedNonce} for ${tx.identifier}`,
-        );
 
         // Submit transaction to the blockchain
         // Create transaction object
@@ -91,8 +80,6 @@ export const processTransaction = async (
             "Hello": "World",
           },
         };
-
-        server.log.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
 
         // Send transaction to the blockchain
         let txHash: ethers.providers.TransactionResponse | undefined;
@@ -111,11 +98,8 @@ export const processTransaction = async (
 
         try {
           await updateTransactionState(knex, tx.identifier, "submitted", trx, txHash);
-          server.log.debug(`Transaction submitted for ${tx.identifier}`);
+          server.log.info(`Transaction submitted for ${tx.identifier} with Nonce ${txSubmittedNonce}, Tx Hash: ${txHash?.hash} `);
           await updateWalletNonceValue(txSubmittedNonce, tx.walletAddress, tx.chainId, knex, trx);
-          server.log.debug(
-            `Wallet nonce updated ${txSubmittedNonce} for ${tx.identifier}`,
-          );
 
           // If all operations within the transaction succeed, commit the changes
           await trx.commit();
@@ -129,10 +113,9 @@ export const processTransaction = async (
           // Release the database connection
           await knex.destroy();
         }
-      }, 1000);
-
     });
   } catch (error) {
     server.log.error(error);
   }
+  return;
 };

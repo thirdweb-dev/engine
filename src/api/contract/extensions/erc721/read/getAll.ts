@@ -1,10 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
-  baseReplyErrorSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftSchema } from "../../../../../schemas/nft";
 
@@ -28,8 +28,41 @@ const querystringSchema = Type.Object({
 // OUPUT
 const responseSchema = Type.Object({
   result: Type.Array(nftSchema),
-  error: Type.Optional(baseReplyErrorSchema),
 });
+
+responseSchema.examples = [{
+  result: [{
+    "metadata": {
+      "id": "0",
+      "uri": "<ipfs_url_if_any>",
+      "name": "ERC2721-Test I",
+      "description": "ERC721 Test Description",
+      "external_url": "",
+      "attributes": []
+    },
+    "owner": "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+    "type": "ERC721",
+    "supply": "1"
+  },
+  {
+    "metadata": {
+      "id": "1",
+      "uri": "<ipfs_url_if_any>",
+      "name": "ERC2721-Test II",
+      "description": "ERC721 Test Description",
+      "external_url": "",
+      "attributes": [
+        {
+          "trait_type": "type",
+          "value": "<value>"
+        }
+      ]
+    },
+    "owner": "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+    "type": "ERC721",
+    "supply": "1"
+  }]
+}];
 
 // LOGIC
 export async function erc721GetAll(fastify: FastifyInstance) {
@@ -47,20 +80,20 @@ export async function erc721GetAll(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { start, count } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const result = await contract.erc721.getAll({
         start,
         count,
       });
       reply.status(StatusCodes.OK).send({
-        result,
+        result
       });
     },
   });

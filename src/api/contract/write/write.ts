@@ -2,13 +2,13 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
 import {
-  getSDK,
-  connectWithDatabase,
+  getContractInstace
 } from "../../../../core";
+
 import {
-  baseReplyErrorSchema,
   contractParamSchema,
   standardResponseSchema,
+  transactionWritesResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../helpers";
 
@@ -36,17 +36,12 @@ writeRequestBodySchema.examples = [
   },
 ];
 
-// OUTPUT
-const replyBodySchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
-});
-
 // LOGIC
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof writeRequestBodySchema>,
     Params: Static<typeof contractParamSchema>;
-    Reply: Static<typeof replyBodySchema>;
+    Reply: Static<typeof transactionWritesResponseSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain_name_or_id/:contract_address/write",
@@ -57,7 +52,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: replyBodySchema,
+        [StatusCodes.OK]: transactionWritesResponseSchema,
       },
       body: writeRequestBodySchema,
     },
@@ -65,11 +60,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { function_name, args } = request.body;
       
-      // Connect to DB
-      const dbInstance = await connectWithDatabase(request);
-      
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const tx = await contract.prepare(function_name, args);
       
       const queuedId = await queueTransaction(
@@ -80,7 +71,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        queuedId, 
+        result: queuedId!, 
       });
     },
   });

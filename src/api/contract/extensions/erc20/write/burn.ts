@@ -1,9 +1,9 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
-  contractParamSchema,
+  erc20ContractParamSchema,
   standardResponseSchema,
   baseReplyErrorSchema,
   transactionWritesResponseSchema,
@@ -11,21 +11,19 @@ import {
 import { queueTransaction } from "../../../../../helpers";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-    amount: Type.String({
-      description: 'The amount of tokens you want to burn',
-     }),
-  });
+  amount: Type.String({
+    description: 'The amount of tokens you want to burn',
+    }),
+});
   
-  // Example for the Request Body
-  requestBodySchema.examples = [
-      {
-        amount: "0.1",
-      },
-  ];
-
-// OUTPUT
+// Example for the Request Body
+requestBodySchema.examples = [
+  {
+    amount: "0.1",
+  },
+];
 
 
 export async function erc20burn(fastify: FastifyInstance) {
@@ -50,8 +48,7 @@ export async function erc20burn(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { amount } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const tx = await contract.erc20.burn.prepare(amount);
       const queuedId = await queueTransaction(
         request,
@@ -60,7 +57,7 @@ export async function erc20burn(fastify: FastifyInstance) {
         "erc20",
       );
       reply.status(StatusCodes.OK).send({
-        queuedId,
+        result: queuedId!,
       });
     },
   });

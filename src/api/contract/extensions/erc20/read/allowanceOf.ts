@@ -1,17 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getSDK } from "../../../../../../core";
+import { getContractInstace } from "../../../../../../core";
 import {
-  baseReplyErrorSchema,
-  contractParamSchema,
+  erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { currencyValueSchema } from "../../../../../schemas/erc20/standard/currencyValue";
+import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc20ContractParamSchema;
 const querystringSchema = Type.Object({
   owner_wallet: Type.String({
     description: "Address of the wallet who owns the funds",
@@ -25,9 +24,18 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(currencyValueSchema),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: erc20MetadataSchema,
 });
+
+responseSchema.examples = [{
+  result: {
+    "name": "ERC20",
+    "symbol": "",
+    "decimals": "18",
+    "value": "0",
+    "displayValue": "0.0"
+  }
+}];
 
 // LOGIC
 export async function erc20AllowanceOf(fastify: FastifyInstance) {
@@ -52,8 +60,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { spender_wallet, owner_wallet } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData: any = await contract.erc20.allowanceOf(
         owner_wallet ? owner_wallet : "",
         spender_wallet ? spender_wallet : "",
@@ -65,7 +72,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
           decimals: returnData.decimals.toString(),
           displayValue: returnData.displayValue,
           value: returnData.value.toString(),
-        },
+        }
       });
     },
   });

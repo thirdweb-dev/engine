@@ -1,28 +1,31 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import { Static, Type } from "@sinclair/typebox";
 import {
-  contractParamSchema,
-  baseReplyErrorSchema,
+  erc20ContractParamSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = erc20ContractParamSchema;
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(
-    Type.Object({
-      data: Type.Object({
-        name: Type.String(),
-        symbol: Type.String(),
-        decimals: Type.String(),
-      }),
-    }),
-  ),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: Type.Object({
+    name: Type.String(),
+    symbol: Type.String(),
+    decimals: Type.String(),
+  }),
 });
+
+responseSchema.examples = [{
+  result: {
+    "name": "ERC20",
+    "symbol": "",
+    "decimals": "18"
+  }
+}];
 
 // LOGIC
 export async function erc20GetMetadata(fastify: FastifyInstance) {
@@ -39,22 +42,20 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
       operationId: "erc20_get",
       params: requestSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData: any = await contract.erc20.get();
       reply.status(StatusCodes.OK).send({
         result: {
-          data: {
-            symbol: returnData.symbol,
-            name: returnData.name,
-            decimals: returnData.decimals,
-          },
-        },
+          symbol: returnData.symbol,
+          name: returnData.name,
+          decimals: returnData.decimals,
+        }
       });
     },
   });

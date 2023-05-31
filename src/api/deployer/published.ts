@@ -33,7 +33,6 @@ requestBodySchema.examples = [
 const responseSchema = Type.Object({
   queuedId: Type.Optional(Type.String()),
   deployedAddress: Type.Optional(Type.String()),
-  error: Type.Optional(baseReplyErrorSchema),
 });
 
 export async function deployPublished(fastify: FastifyInstance) {

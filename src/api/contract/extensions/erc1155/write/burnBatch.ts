@@ -1,17 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getSDK } from "../../../../../../core";
+import { getContractInstace } from "../../../../../../core";
 import {
-  contractParamSchema,
+  erc1155ContractParamSchema,
   standardResponseSchema,
-  baseReplyErrorSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   token_ids: Type.Array(
     Type.String({
@@ -57,8 +56,7 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { token_ids, amounts } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const tx = await contract.erc1155.burnBatch.prepare(token_ids, amounts);
       const queuedId = await queueTransaction(
         request,
@@ -67,7 +65,7 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
         "erc1155",
       );
       reply.status(StatusCodes.OK).send({
-        queuedId,
+        result: queuedId!,
       });
     },
   });

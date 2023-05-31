@@ -1,14 +1,14 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../../core";
+import { getContractInstace } from "../../../../../../core";
 import {
-  baseReplyErrorSchema,
-  contractParamSchema,
+  standardResponseSchema,
+  erc1155ContractParamSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
   token_id: Type.String({
     description: "The tokenId of the NFT to retrieve",
@@ -19,8 +19,11 @@ const querystringSchema = Type.Object({
 // OUPUT
 const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
-  error: Type.Optional(baseReplyErrorSchema),
 });
+
+responseSchema.examples = [{
+  "result": "100000000"
+}];
 
 // LOGIC
 export async function erc1155TotalSupply(fastify: FastifyInstance) {
@@ -38,14 +41,14 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { token_id } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData = await contract.erc1155.totalSupply(token_id);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

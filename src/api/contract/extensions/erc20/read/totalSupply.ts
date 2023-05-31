@@ -1,21 +1,33 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
-  baseReplyErrorSchema,
-  contractParamSchema,
+  erc20ContractParamSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
-import { currencyValueSchema } from "../../../../../schemas/erc20/standard/currencyValue";
+import {
+  Static,
+  Type
+} from "@sinclair/typebox";
+import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = erc20ContractParamSchema;
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(currencyValueSchema),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: erc20MetadataSchema,
 });
+
+responseSchema.examples = [{
+  result: {
+    "name": "Mumba20",
+    "symbol": "",
+    "decimals": "18",
+    "value": "10000000000000000000",
+    "displayValue": "10.0"
+  }
+}];
 
 // LOGIC
 export async function erc20TotalSupply(fastify: FastifyInstance) {
@@ -31,13 +43,13 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
       operationId: "erc20_totalSupply",
       params: requestSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData = await contract.erc20.totalSupply();
       reply.status(StatusCodes.OK).send({
         result: {
@@ -46,7 +58,7 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
           name: returnData.name,
           decimals: returnData.decimals.toString(),
           displayValue: returnData.displayValue,
-        },
+        }
       });
     },
   });

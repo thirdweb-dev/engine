@@ -1,16 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
-  baseReplyErrorSchema,
-  contractParamSchema,
+  erc20ContractParamSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { currencyValueSchema } from "../../../../../schemas/erc20/standard/currencyValue";
+import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc20ContractParamSchema;
 const querystringSchema = Type.Object({
   wallet_address: Type.String({
     description: "Address of the wallet to check token balance",
@@ -20,9 +20,18 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(currencyValueSchema),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: erc20MetadataSchema,
 });
+
+responseSchema.examples = [{
+  "result": {
+    "name": "ERC20",
+    "symbol": "",
+    "decimals": "18",
+    "value": "7799999999615999974",
+    "displayValue": "7.799999999615999974"
+  }
+}];
 
 // LOGIC
 export async function erc20BalanceOf(fastify: FastifyInstance) {
@@ -40,14 +49,14 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData = await contract.erc20.balanceOf(wallet_address);
       reply.status(StatusCodes.OK).send({
         result: {
@@ -56,7 +65,7 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
           decimals: returnData.decimals.toString(),
           displayValue: returnData.displayValue,
           value: returnData.value.toString(),
-        },
+        }
       });
     },
   });

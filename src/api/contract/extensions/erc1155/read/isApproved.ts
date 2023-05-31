@@ -1,15 +1,15 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getSDK } from "../../../../../../core";
+import { getContractInstace } from "../../../../../../core";
 import {
-  baseReplyErrorSchema,
-  contractParamSchema,
+  standardResponseSchema,
+  erc1155ContractParamSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
   owner_wallet: Type.String({
     description: "Address of the wallet who owns the NFT",
@@ -23,9 +23,12 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.Boolean()),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: Type.Optional(Type.Boolean())
 });
+
+responseSchema.examples = [{
+  "result": true
+}];
 
 // LOGIC
 export async function erc1155IsApproved(fastify: FastifyInstance) {
@@ -44,14 +47,14 @@ export async function erc1155IsApproved(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { owner_wallet, operator } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData: any = await contract.erc1155.isApproved(
         owner_wallet,
         operator,

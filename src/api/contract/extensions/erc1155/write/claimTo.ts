@@ -1,17 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getSDK } from "../../../../../../core";
+import { getContractInstace } from "../../../../../../core";
 import {
-  contractParamSchema,
+  erc1155ContractParamSchema,
   standardResponseSchema,
-  baseReplyErrorSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   receiver: Type.String({
     description: "Address of the wallet to claim the NFT to",
@@ -31,9 +30,6 @@ requestBodySchema.examples = [
     quantity: "1",
   },
 ];
-
-// OUTPUT
-
 
 export async function erc1155claimTo(fastify: FastifyInstance) {
   fastify.route<{
@@ -57,8 +53,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { receiver, token_id, quantity } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const tx = await contract.erc1155.claimTo.prepare(
         receiver,
         token_id,
@@ -71,7 +66,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
         "erc1155",
       );
       reply.status(StatusCodes.OK).send({
-        queuedId,
+        result: queuedId!,
       });
     },
   });

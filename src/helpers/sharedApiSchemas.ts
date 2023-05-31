@@ -12,7 +12,7 @@ export const baseReplyErrorSchema = Type.Object({
 });
 
 /**
- * Basic schema for all Contract Request Parameters
+ * Basic schema for Contract Request Parameters
  */
 export const contractParamSchema = Type.Object({
   chain_name_or_id: Type.String({
@@ -65,15 +65,12 @@ export const publishedDeployParamSchema = Type.Object({
  * Basic schema for all Response Body
  */
 const replyBodySchema = Type.Object({
-  result: Type.Optional(
-    Type.Object({
-      data: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
-      transaction: Type.Optional(Type.Any()),
-      queuedId: Type.Optional(Type.String()),
-    }),
-  ),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: Type.Optional(Type.Union([Type.String(), Type.Object({})]))
 });
+
+replyBodySchema.examples = [{
+  result: 'ERC20-Test-Token'
+}];
 
 const replyErrorBodySchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
@@ -161,9 +158,53 @@ export interface TransactionSchema {
 }
 
 export const transactionWritesResponseSchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
+  result: Type.String({
+    description: "Queue ID",
+  }),
 });
 
 transactionWritesResponseSchema.examples = [{
-  queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+  result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
 }];
+
+/**
+ * Basic schema for ERC721 Contract Request Parameters
+ */
+export const erc20ContractParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+  contract_address: Type.String({
+    examples: ["0x365b83D67D5539C6583b9c0266A548926Bf216F4"],
+    description: "ERC20 Contract Addres on the Chain",
+  }),
+});
+
+/**
+ * Basic schema for ERC721 Contract Request Parameters
+ */
+export const erc1155ContractParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+  contract_address: Type.String({
+    examples: ["0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"],
+    description: "ERC1155 Contract Addres on the Chain",
+  }),
+});
+
+/**
+ * Basic schema for ERC721 Contract Request Parameters
+ */
+export const erc721ContractParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+  contract_address: Type.String({
+    examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
+    description: "ERC721 Contract Addres on the Chain",
+  }),
+});

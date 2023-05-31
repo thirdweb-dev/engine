@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
-  baseReplyErrorSchema,
+  standardResponseSchema,
   contractParamSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
@@ -12,9 +12,12 @@ const requestSchema = contractParamSchema;
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.String()),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: Type.Optional(Type.String())
 });
+
+responseSchema.examples = [{
+  "result": "1"
+}];
 
 // LOGIC
 export async function erc721TotalCount(fastify: FastifyInstance) {
@@ -30,13 +33,13 @@ export async function erc721TotalCount(fastify: FastifyInstance) {
       operationId: "erc721_totalCount",
       params: requestSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData = await contract.erc721.totalCount();
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

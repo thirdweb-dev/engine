@@ -41,8 +41,7 @@ requestBodySchema.examples = [
 // OUTPUT
 const responseSchema = Type.Object({
   queuedId: Type.Optional(Type.String()),
-  deployedAddress: Type.Optional(Type.String()),
-  error: Type.Optional(baseReplyErrorSchema),
+  deployedAddress: Type.Optional(Type.String())
 });
 
 export async function deployPrebuilt(fastify: FastifyInstance) {

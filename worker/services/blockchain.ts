@@ -14,7 +14,3 @@ export const getWalletNonce = async (
     throw error;
   }
 };
-
-const getRPCURL = async (chainId: string): Promise<string> => {
-  return `https://${chainId}.rpc.thirdweb.com`;
-};

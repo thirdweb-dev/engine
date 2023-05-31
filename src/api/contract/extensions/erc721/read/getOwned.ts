@@ -1,10 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
-  baseReplyErrorSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftSchema } from "../../../../../schemas/nft";
 
@@ -20,8 +20,28 @@ const querystringSchema = Type.Object({
 // OUPUT
 const responseSchema = Type.Object({
   result: Type.Array(nftSchema),
-  error: Type.Optional(baseReplyErrorSchema),
 });
+
+responseSchema.examples = [{
+  result: [{
+    "metadata": {
+      "id": "1",
+      "uri": "<ipfs_uri>>",
+      "name": "ERC20-Test Token II",
+      "description": "ERC20-Test Token II",
+      "external_url": "",
+      "attributes": [
+        {
+          "trait_type": "type",
+          "value": "<value>"
+        }
+      ]
+    },
+    "owner": "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+    "type": "ERC721",
+    "supply": "1"
+  }]
+}];
 
 // LOGIC
 export async function erc721GetOwned(fastify: FastifyInstance) {
@@ -40,17 +60,17 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const result = await contract.erc721.getOwned(wallet_address);
       reply.status(StatusCodes.OK).send({
-        result,
+        result
       });
     },
   });

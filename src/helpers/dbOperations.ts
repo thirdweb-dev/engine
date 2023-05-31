@@ -61,8 +61,7 @@ export const queueTransaction = async (
     txSubmitted: false,
     encodedInputData: encodedData,
   };
-  console.log("txDataToInsert", txDataToInsert);
-
+  
   // Insert to DB
   const dbInstance = await connectWithDatabase(request);
   await insertTransactionData(dbInstance, txDataToInsert, request);

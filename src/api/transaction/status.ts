@@ -58,7 +58,6 @@ export async function checkTxStatus(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { tx_queue_id } = request.params;
-      // request.log.info("Transaction/Status Called");
       const dbConnection = await connectWithDatabase(request);
       const returnData = await findTxDetailsWithQueueId(dbConnection, tx_queue_id, request);
       

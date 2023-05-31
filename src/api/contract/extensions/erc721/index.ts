@@ -8,7 +8,7 @@ import { erc721TotalClaimedSupply } from "./read/totalClaimedSupply";
 import { erc721GetOwned } from "./read/getOwned";
 import { erc721TotalUnclaimedSupply } from "./read/totalUnclaimedSupply";
 import { erc721SetApprovalForAll } from "./write/setApprovalForAll";
-import { erc721SetApprovalForToken } from "./write/setApprovalForToken copy";
+import { erc721SetApprovalForToken } from "./write/setApprovalForToken";
 import { erc721transfer } from "./write/transfer";
 import { erc721transferFrom } from "./write/transferFrom";
 import { erc721mintTo } from "./write/mintTo";

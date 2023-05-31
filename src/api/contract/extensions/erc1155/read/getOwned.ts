@@ -1,15 +1,15 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../../../core";
+import { getContractInstace } from "../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
-  contractParamSchema,
-  baseReplyErrorSchema,
+  erc1155ContractParamSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftSchema } from "../../../../../schemas/nft";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
   wallet_address: Type.String({
     description: "Address of the wallet to get NFTs for",
@@ -19,9 +19,32 @@ const querystringSchema = Type.Object({
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(nftSchema),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: Type.Array(nftSchema)
 });
+
+responseSchema.examples = [{
+  "result": [
+    {
+      "metadata": {
+        "id": "0",
+        "uri": "<ipfs_uri>",
+        "name": "TJ-Origin",
+        "description": "Origin",
+        "external_url": "",
+        "attributes": [
+          {
+            "trait_type": "Mode",
+            "value": "GOD"
+          }
+        ]
+      },
+      "owner": "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+      "type": "ERC1155",
+      "supply": "600000150000000000000000000000000000000000009000000000000000000000712",
+      "quantityOwned": "9000000000000000000000000"
+    }
+  ]
+}];
 
 // LOGIC
 export async function erc1155GetOwned(fastify: FastifyInstance) {
@@ -40,14 +63,14 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const result = await contract.erc1155.getOwned(wallet_address);
       reply.status(StatusCodes.OK).send({
         result,

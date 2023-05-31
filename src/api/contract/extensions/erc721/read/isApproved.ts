@@ -1,10 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
-  baseReplyErrorSchema,
   contractParamSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 
@@ -23,9 +23,12 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.Boolean()),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: Type.Optional(Type.Boolean())
 });
+
+responseSchema.examples = [{
+  "result": false
+}];
 
 // LOGIC
 export async function erc721IsApproved(fastify: FastifyInstance) {
@@ -44,14 +47,14 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { owner_wallet, operator } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData: any = await contract.erc721.isApproved(
         owner_wallet,
         operator,

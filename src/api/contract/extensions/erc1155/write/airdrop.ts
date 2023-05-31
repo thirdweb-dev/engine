@@ -1,17 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getSDK } from "../../../../../../core";
+import { getContractInstace } from "../../../../../../core";
 import {
-  contractParamSchema,
+  erc1155ContractParamSchema,
   standardResponseSchema,
-  baseReplyErrorSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   token_id: Type.String({
     description: "Token ID of the NFT to airdrop",
@@ -45,9 +44,6 @@ requestBodySchema.examples = [
   },
 ];
 
-// OUTPUT
-
-
 export async function erc1155airdrop(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
@@ -70,8 +66,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { token_id, addresses } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const tx = await contract.erc1155.airdrop.prepare(token_id, addresses);
       const queuedId = await queueTransaction(
         request,
@@ -80,7 +75,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
         "erc1155",
       );
       reply.status(StatusCodes.OK).send({
-        queuedId,
+        result: queuedId!,
       });
     },
   });

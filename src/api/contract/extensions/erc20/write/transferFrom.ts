@@ -1,16 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Type, Static } from "@sinclair/typebox";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import { 
-  contractParamSchema,
+  erc20ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
   from_address: Type.String({
     description: "Address of the wallet sending the tokens",
@@ -57,8 +57,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { from_address, to_address, amount } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
 
       const tx = await contract.erc20.transferFrom.prepare(
         from_address,
@@ -74,7 +73,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        queuedId
+        result: queuedId!,
       });
     },
   });

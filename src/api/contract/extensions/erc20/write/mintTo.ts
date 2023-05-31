@@ -1,17 +1,16 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
-  contractParamSchema,
+  erc20ContractParamSchema,
   standardResponseSchema,
-  baseReplyErrorSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
   to_address: Type.String({
     description: "Address of the wallet to mint the NFT to",
@@ -28,9 +27,6 @@ requestBodySchema.examples = [
     amount: "0.1",
   },
 ];
-
-// OUTPUT
-
 
 export async function erc20mintTo(fastify: FastifyInstance) {
   fastify.route<{
@@ -54,8 +50,7 @@ export async function erc20mintTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { to_address, amount } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const tx = await contract.erc20.mintTo.prepare(to_address, amount);
       const queuedId = await queueTransaction(
         request,
@@ -64,7 +59,7 @@ export async function erc20mintTo(fastify: FastifyInstance) {
         "erc20",
       );
       reply.status(StatusCodes.OK).send({
-        queuedId,
+        result: queuedId!,
       });
     },
   });

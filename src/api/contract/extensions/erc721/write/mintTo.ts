@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -31,9 +31,6 @@ requestBodySchema.examples = [
   },
 ];
 
-// OUTPUT
-
-
 export async function erc721mintTo(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
@@ -56,8 +53,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { receiver, metadata } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const tx = await contract.erc721.mintTo.prepare(receiver, metadata);
       const queuedId = await queueTransaction(
         request,
@@ -66,7 +62,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
         "erc721",
       );
       reply.status(StatusCodes.OK).send({
-        queuedId,
+        result: queuedId!,
       });
     },
   });

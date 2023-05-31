@@ -1,15 +1,15 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getSDK } from "../../../../../../core";
+import { getContractInstace } from "../../../../../../core";
 import {
-  baseReplyErrorSchema,
-  contractParamSchema,
+  erc1155ContractParamSchema,
+  standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
   wallet_address: Type.String({
     description: "Address of the wallet to check NFT balance",
@@ -23,9 +23,12 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.String()),
-  error: Type.Optional(baseReplyErrorSchema),
+  result: Type.Optional(Type.String())
 });
+
+responseSchema.examples = [{
+  "result": "1"
+}];
 
 // LOGIC
 export async function erc1155BalanceOf(fastify: FastifyInstance) {
@@ -43,14 +46,14 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
       params: requestSchema,
       querystring: querystringSchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address, token_id } = request.query;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const returnData = await contract.erc1155.balanceOf(
         wallet_address,
         token_id,

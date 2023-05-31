@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 
-export const currencyValueSchema = Type.Object({
+export const erc20MetadataSchema = Type.Object({
   name: Type.String(),
   symbol: Type.String(),
   decimals: Type.String(),

@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getSDK } from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -22,9 +22,6 @@ requestBodySchema.examples = [
     token_id: "0",
   },
 ];
-
-// OUTPUT
-
 
 export async function erc721burn(fastify: FastifyInstance) {
   fastify.route<{
@@ -48,8 +45,7 @@ export async function erc721burn(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { token_id } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstace(chain_name_or_id, contract_address);
       const tx = await contract.erc721.burn.prepare(token_id);
       const queuedId = await queueTransaction(
         request,
@@ -58,7 +54,7 @@ export async function erc721burn(fastify: FastifyInstance) {
         "erc721",
       );
       reply.status(StatusCodes.OK).send({
-        queuedId,
+        result: queuedId!,
       });
     },
   });
