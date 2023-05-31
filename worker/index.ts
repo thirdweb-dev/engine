@@ -2,7 +2,6 @@ import fastify, { FastifyInstance } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import {
     errorHandler,
-    getEnv,
 } from '../core';
 import { startNotificationListener } from "./controller/listener";
 import { getLogSettings } from "../core";
