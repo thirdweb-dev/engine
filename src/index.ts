@@ -12,12 +12,14 @@ import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
   implementTriggerOnStartUp,
-  logSettings
+  getLogSettings
 } from "../core";
 
 const main = async () => {
+  const logOptions = getLogSettings("API-Server");
+
   const server: FastifyInstance = fastify({
-    logger: logSettings[getEnv("NODE_ENV")] ?? true,
+    logger: logOptions ?? true,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
