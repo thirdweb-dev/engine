@@ -10,7 +10,7 @@ CREATE TABLE transactions (
     "txHash" VARCHAR(255),
     "encodedInputData" TEXT,
     "rawFunctionName" VARCHAR(255),
-    "rawFunctionArgs" VARCHAR(255),
+    "rawFunctionArgs" TEXT,
     "createdTimestamp" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     "updatedTimestamp" TIMESTAMP,
     "txSubmittedTimestamp" TIMESTAMP,

@@ -686,10 +686,10 @@
     "@swc/core-win32-ia32-msvc" "1.3.57"
     "@swc/core-win32-x64-msvc" "1.3.57"
 
-"@thirdweb-dev/chains@0.1.19-nightly-98efd090-20230524213053":
-  version "0.1.19-nightly-98efd090-20230524213053"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.19-nightly-98efd090-20230524213053.tgz#023f529d89ef5fe0140eb549e0f7a36315f885c5"
-  integrity sha512-sWV09BZE6aaxr9SHkSEXj2GzY3uBG+xq3l5VjIWGQM7wes5LDI1mUUDZb5x+0eUj2EOEIiq1ns4jMBQkgltcpg==
+"@thirdweb-dev/chains@0.1.19-nightly-35984362-20230531005908":
+  version "0.1.19-nightly-35984362-20230531005908"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.19-nightly-35984362-20230531005908.tgz#7703eec6747fc30848829fa3486e516506421888"
+  integrity sha512-hVMTQWUaGG77S5WUoL8Jtzet8yqOvwhJ03vsJBdThE0JiM2iBOsCjhjN7RN/MhoYUXWOmZhpvSHflQQ0tKSy6Q==
 
 "@thirdweb-dev/chains@^0.1.18":
   version "0.1.18"
@@ -713,12 +713,12 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/generated-abis/-/generated-abis-0.0.1.tgz#0d788d6aff0ac08f11e9eeb9ae4c8321845272a8"
   integrity sha512-vO9/3lSLO8smyyH1QVeYravSTzFwV1nf1C/Im1NBDPdH8//YvcbhtETGGiNfHWpyCvSi0vRYwvf+/7FKdwpDGQ==
 
-"@thirdweb-dev/sdk@^3.10.18-nightly-98efd090-20230524213053":
-  version "3.10.18-nightly-98efd090-20230524213053"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.18-nightly-98efd090-20230524213053.tgz#d2f0661f33a42536a61b8b88b8cc47b855f60b7d"
-  integrity sha512-X/UxJ2W5lMljFBX32h8I/E6FaAyopC3q4tZehoY1FiEo3oWETfFRnfCLMiE/vSEL6v1ENHOW/NemCepIC0bPdg==
+"@thirdweb-dev/sdk@^3.10.18-nightly-35984362-20230531005908":
+  version "3.10.18-nightly-35984362-20230531005908"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.18-nightly-35984362-20230531005908.tgz#25e8a48e4a6868f65edf09b0847fc24155d8cb3c"
+  integrity sha512-hX+WrbSE+PTlmP9Iu2sbuvckW9zGPsFD9oR3aulUz3eqLduOD5xsQBleHmkoA/gu4ApHmKV5uaQvnZmUAeAa7Q==
   dependencies:
-    "@thirdweb-dev/chains" "0.1.19-nightly-98efd090-20230524213053"
+    "@thirdweb-dev/chains" "0.1.19-nightly-35984362-20230531005908"
     "@thirdweb-dev/contracts-js" "1.3.4"
     "@thirdweb-dev/generated-abis" "0.0.1"
     "@thirdweb-dev/storage" "1.1.3"
