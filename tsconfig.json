@@ -16,7 +16,15 @@
     "esm": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.js"],
-  "exclude": ["node_modules", "worker"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.js",
+    "core/**/*.ts",
+    "worker/**/*.ts",
+    "worker/**/*.d.ts",
+    "worker/**/*.js"
+  ],
+  "exclude": ["node_modules"],
   "types": ["node"]
 }

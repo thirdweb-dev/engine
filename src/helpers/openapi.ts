@@ -1,7 +1,7 @@
 import swagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
-import { getEnv } from "./loadEnv";
 import { FastifyInstance } from "fastify";
+import { getEnv } from "../../core/loadEnv";
 
 // fastify-swagger v8 requires the swagger-ui & openapi specs
 // to be separate unlike old implementation

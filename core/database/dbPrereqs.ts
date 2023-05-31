@@ -5,8 +5,11 @@ import { dirname } from "path";
 import { getEnv } from "../loadEnv";
 import { connectToDB, connectWithDatabase } from "./dbConnect";
 import { FastifyInstance } from "fastify";
-import { createCustomError } from "../customError";
+import { createCustomError } from "../error/customError";
 import { StatusCodes } from "http-status-codes";
+
+// TODO migration versioning
+const DROP_ON_STARTUP = false;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,11 +44,15 @@ export const checkTablesExistence = async (
     }
 
     for (const tableName of tablesList) {
-      const tableExists = await knex.schema.hasTable(tableName);
+      if (DROP_ON_STARTUP) {
+        await knex.schema.dropTableIfExists(tableName);
+        server.log.info(`Table ${tableName} dropped on startup successfully`);
+      }
 
+      const tableExists = await knex.schema.hasTable(tableName);
       if (!tableExists) {
         const schemaSQL = await fs.readFile(
-          `${__dirname}/../../../sql-schemas/${tableName}.sql`,
+          `${__dirname}/sql-schemas/${tableName}.sql`,
           "utf-8",
         );
         // Create Table using schema
@@ -97,7 +104,7 @@ export const implementTriggerOnStartUp = async (
     for (const dbTriggers of triggersList) {
       server.log.debug(`Reading Trigger File ${dbTriggers}.sql`);
       const schemaSQL = await fs.readFile(
-        `${__dirname}/../../../sql-schemas/${dbTriggers}.sql`,
+        `${__dirname}/sql-schemas/${dbTriggers}.sql`,
         "utf-8",
       );
       await knex.raw(schemaSQL);

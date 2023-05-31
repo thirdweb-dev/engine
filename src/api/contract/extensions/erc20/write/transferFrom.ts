@@ -1,12 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Type, Static } from "@sinclair/typebox";
-import { getSDK, queueTransaction } from "../../../../../helpers/index";
+import { getSDK } from "../../../../../../core/index";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
+import { queueTransaction } from "../../../../../helpers";
 
 // INPUTS
 const requestSchema = contractParamSchema;

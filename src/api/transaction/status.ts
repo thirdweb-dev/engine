@@ -1,12 +1,10 @@
 import { FastifyInstance } from 'fastify';
 import { StatusCodes } from 'http-status-codes';
 import { Static, Type } from '@sinclair/typebox';
-import {
-    connectWithDatabase,
-    findTxDetailsWithQueueId
-} from '../../helpers';
-import { createCustomError } from '../../helpers/customError';
+import { connectWithDatabase } from '../../../core';
+import { createCustomError } from '../../../core/error/customError';
 import { baseReplyErrorSchema, standardResponseSchema } from '../../helpers/sharedApiSchemas';
+import { findTxDetailsWithQueueId } from "../../helpers";
 
 const txStatusRequestParamSchema = Type.Object({
   tx_queue_id: Type.String({
