@@ -1,7 +1,6 @@
 import { ThirdwebSDK, ChainOrRpc } from "@thirdweb-dev/sdk";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { getEnv } from "../loadEnv";
-import { getChainIdFromNetwork } from "@thirdweb-dev/sdk";
 import { getChainBySlug } from "@thirdweb-dev/chains";
 // import { AwsKmsWallet } from '@thirdweb-dev/sdk/evm/wallets';
 
@@ -15,12 +14,13 @@ export async function getSDK(chainName: ChainOrRpc): Promise<ThirdwebSDK> {
   }
 
   const THIRDWEB_API_KEY = getEnv("THIRDWEB_API_KEY");
-  const WALLET_PRIVATE_KEY = getEnv("WALLET_PRIVATE_KEY");
+  const WALLET_PRIVATE_KEY = getEnv("WALLET_PRIVATE_KEY", undefined);
   const wallet = new LocalWallet({ chain: getChainBySlug(chainName) });
   if (WALLET_PRIVATE_KEY) {
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
   } else {
     wallet.generate();
+    //wallet.save({ encryption: false, strategy: "privateKey" });
   }
 
   // Need to make this instantiate SDK with read/write. For that will need wallet information

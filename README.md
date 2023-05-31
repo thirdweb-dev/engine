@@ -15,19 +15,16 @@ Thirdweb's Web3-API & Worker server.
 
 ## Running locally
 
-| NOTE: Do not run `yarn install` |
-| ------------------------------- |
-
-1. Create a `.env` file and add all the environment variables from `.example.env`.
-2. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
+1. run `yarn install`
+2. Create a `.env` file and add all the environment variables from `.example.env`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
 3. Update the `THIRDWEB_API_KEY` value on the `.env` file
 4. Run: `yarn dev:infra`
 5. Run: `yarn dev:server`
 6. Run: `yarn dev:worker`
 
-Locally, we use `docker-compose` to spin up the services, a postgres database and the pg-admin GUI altogether.
+Locally, we use `docker-compose` to spin up the supporting infra services, a postgres database, the pg-admin GUI and swaggerui altogether.
 
-The API will be accessible on `http://localhost:3005` by default.
+The API defaults to `http://localhost:3005`.
 
 ## Running with docker
 

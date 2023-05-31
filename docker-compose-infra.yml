@@ -1,11 +1,6 @@
 version: "3.8"
 
 services:
-  web3-api:
-    build:
-      context: .
-    image: thirdweb/web3-api:0.1.0
-
   db:
     image: postgres:latest
     env_file:

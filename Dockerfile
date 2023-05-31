@@ -7,31 +7,13 @@ COPY . .
 COPY package*.json .
 COPY yarn*.json .
 
-EXPOSE 3005
-
-FROM base AS local_server
-
-ENV NODE_ENV="development"
-
-RUN yarn install --force
-RUN apk del build-dependencies
-ENV PATH /app/node_modules/.bin:$PATH
-
-CMD [ "yarn", "dev" ]
-
-FROM base AS local_worker
-
-EXPOSE 3006
-
-ENV NODE_ENV="development"
-
-CMD [ "yarn", "dev-worker" ]
-
 FROM base AS prod
+
+EXPOSE 3005 3006
 
 RUN yarn install
 RUN yarn build
-RUN yarn build-worker
+RUN yarn start
 
 ENV NODE_ENV="production"
 

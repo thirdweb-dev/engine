@@ -8,21 +8,15 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "skipLibCheck": true,
-    "allowJs": true,
+    "allowJs": true
   },
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.js"
-  ],
-  "exclude": [
-    "node_modules",
-    "worker"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.js"],
+  "exclude": ["node_modules", "worker"],
   "types": ["node"]
 }

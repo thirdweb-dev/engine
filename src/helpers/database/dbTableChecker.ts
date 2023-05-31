@@ -11,6 +11,9 @@ import { StatusCodes } from "http-status-codes";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const DB_TABLES_LIST_DEFAULT = "wallets,transactions";
+const DB_TRIGGERS_LIST_DEFAULT = "trigger_notification,trigger_tx_table";
+
 export const checkTablesExistence = async (
   server: FastifyInstance,
 ): Promise<void> => {
@@ -19,7 +22,10 @@ export const checkTablesExistence = async (
     const knex = await connectToDB(server);
 
     // Check if the tables Exists
-    const tablesList: string[] = getEnv("DB_TABLES_LIST")
+    const tablesList: string[] = getEnv(
+      "DB_TABLES_LIST",
+      DB_TABLES_LIST_DEFAULT,
+    )
       .split(",")
       .map(function (item: any) {
         return item.trim();
@@ -70,7 +76,10 @@ export const implementTriggerOnStartUp = async (
     // Connect to the DB
     const knex = await connectWithDatabase(server);
 
-    const triggersList: string[] = getEnv("DB_TRIGGERS_LIST")
+    const triggersList: string[] = getEnv(
+      "DB_TRIGGERS_LIST",
+      DB_TRIGGERS_LIST_DEFAULT,
+    )
       .split(",")
       .map(function (item: any) {
         return item.trim();

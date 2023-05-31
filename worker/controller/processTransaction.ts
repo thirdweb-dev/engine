@@ -6,11 +6,19 @@ import { getWalletDetails } from "../services/dbOperations";
 import { getSDK } from "../helpers";
 import { ethers } from "ethers";
 
+const MIN_TRANSACTION_TO_PROCESS_DEFAULT = 1;
 const MIN_TRANSACTION_TO_PROCESS =
-  parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS", 10), 10) ?? 1;
+  parseInt(
+    getEnv("MIN_TRANSACTION_TO_PROCESS", MIN_TRANSACTION_TO_PROCESS_DEFAULT),
+    10,
+  ) ?? 1;
 
+const TRANSACTIONS_TO_BATCH_DEFAULT = 10;
 const TRANSACTIONS_TO_BATCH =
-  parseInt(getEnv("TRANSACTIONS_TO_BATCH", 10), 10) ?? 10;
+  parseInt(
+    getEnv("TRANSACTIONS_TO_BATCH", TRANSACTIONS_TO_BATCH_DEFAULT),
+    10,
+  ) ?? 10;
 
 export const processTransaction = async (
   server: FastifyInstance,
