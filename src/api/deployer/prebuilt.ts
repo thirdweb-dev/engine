@@ -67,13 +67,6 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_type } = request.params;
       const { contractMetadata, version } = request.body;
-
-      request.log.info(`Deploying Prebuilt Contract: ${contract_type}`);
-      request.log.debug(`Chain : ${chain_name_or_id}`);
-      request.log.debug(
-        `contractMetadata : ${JSON.stringify(contractMetadata)}`,
-      );
-
       const sdk = await getSDK(chain_name_or_id);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         contract_type,
@@ -81,14 +74,12 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      request.log.debug(`deployedAddress : ${deployedAddress}`);
       const queuedId = await queueTransaction(
         request,
         tx,
         chain_name_or_id,
-        "deployer",
+        "deployer_prebuilt",
       );
-
       reply.status(StatusCodes.OK).send({
         deployedAddress,
         queuedId,
