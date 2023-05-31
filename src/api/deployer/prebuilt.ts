@@ -1,14 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK, queueTransaction } from "../../helpers/index";
+import { getSDK } from "../../../core";
 import {
   baseReplyErrorSchema,
   prebuiltDeployParamSchema,
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
-import { deployPrebuiltSchema } from "../../schemas/deployer/prebuilt";
-import { deployPrebuiltRequestBodySchema } from "../../schemas/deployer/prebuilt";
 import { Static, Type } from "@sinclair/typebox";
+import { queueTransaction } from "../../helpers";
 
 // INPUTS
 const requestSchema = prebuiltDeployParamSchema;
@@ -90,8 +89,6 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
         "deployer",
       );
 
-      // TODO unwrap the nesting
-      // TODO return the transaction receipt too
       reply.status(StatusCodes.OK).send({
         deployedAddress,
         queuedId,

@@ -1,34 +1,19 @@
-import { getEnv } from "./helpers/loadEnv";
 import fastify, { FastifyInstance } from "fastify";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import * as fs from "fs";
 import fastifyCors from "@fastify/cors";
-import { openapi } from "./helpers/openapi";
-import { errorHandler } from "./errorHandler";
+import { openapi } from "./helpers";
+import {
+    errorHandler,
+    getEnv,
+} from "../core";
 import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
   implementTriggerOnStartUp,
-} from "./helpers/index";
-
-const logSettings: any = {
-  local: {
-    redact: ["headers.authorization"],
-    level: "debug",
-    transport: {
-      target: "pino-pretty",
-      options: {
-        translateTime: "HH:MM:ss Z",
-        ignore: "pid,hostname,reqId",
-        singleLine: true,
-        minimumLevel: "debug",
-      },
-    },
-  },
-  production: true,
-  development: {},
-};
+  logSettings
+} from "../core";
 
 const main = async () => {
   const server: FastifyInstance = fastify({

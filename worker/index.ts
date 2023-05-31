@@ -1,28 +1,11 @@
-import { getEnv } from './helpers/loadEnv';
 import fastify, { FastifyInstance } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { errorHandler } from './helpers';
-import { startNotificationListener } from './controller/listener';
-
-const logSettings: any = {
-  local: {
-    redact: ["headers.authorization",],
-    level: 'debug',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname,reqId',
-        singleLine: true,
-        minimumLevel: 'debug',
-      },
-    },
-  },
-  production: true,
-  development: {
-    
-  },
-};
+import {
+    errorHandler,
+    getEnv,
+} from '../core';
+import { startNotificationListener } from "./controller/listener";
+import { logSettings } from "../core";
 
 const main = async () => {
   const server: FastifyInstance = fastify({
@@ -32,10 +15,11 @@ const main = async () => {
 
   await errorHandler(server);
 
+  // The below code is commented out because worker doesn't require any routes
+  // but for health-check, if needed in future, uncomment the below code and add the routes
+  
   // await server.register(fastifyExpress);
-  
   // await server.ready();
-  
   // server.listen({
   //   host: getEnv('WORKER_HOST'),
   //   port: Number(getEnv('WORKER_PORT')),

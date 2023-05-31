@@ -1,4 +1,4 @@
-import {Knex} from 'knex';
+import { Knex } from 'knex';
 
 export const getWalletDetails = async (walletAddress: string, chainId: string, database: Knex) : Promise<any> => {
     try {
