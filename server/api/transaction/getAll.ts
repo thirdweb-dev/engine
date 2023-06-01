@@ -50,7 +50,7 @@ export async function getAllTx(fastify: FastifyInstance) {
     method: "GET",
     url: "/transaction/getAll",
     schema: {
-      description: "Get Submitted Transaction Status",
+      description: "Get All Transaction Requests",
       tags: ["Transaction"],
       operationId: "getAllTx",
       querystring: requestQuerySchema,
