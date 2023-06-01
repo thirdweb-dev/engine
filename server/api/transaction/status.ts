@@ -4,10 +4,10 @@ import { Static, Type } from "@sinclair/typebox";
 import { connectWithDatabase } from "../../../core";
 import { createCustomError } from "../../../core/error/customError";
 import {
-  baseReplyErrorSchema,
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
 import { findTxDetailsWithQueueId } from "../../helpers";
+import { TransactionStatusEnum, transactionResponseSchema } from "../../schemas/transaction";
 
 // INPUT
 const requestSchema = Type.Object({
@@ -19,30 +19,33 @@ const requestSchema = Type.Object({
 
 // OUTPUT
 export const responseBodySchema = Type.Object({
-  result: Type.Object({
-    queueId: Type.String(),
-    status: Type.String(),
-    txHash: Type.Optional(Type.String()),
-  }),
+  result: transactionResponseSchema
 });
 
 responseBodySchema.examples = [{
-  result: {
-    queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
-    status: "submitted",
-    txHash: "0x0e397d1459353ffa32a6e86ab85b3d60c8840975a96c936f3066022d22c3633f", 
+  "result": {
+    "queueId": "d09e5849-a262-4f0f-84be-55389c6c7bce",
+    "walletAddress": "0x1946267d81fb8adeeea28e6b98bcd446c8248473",
+    "contractAddress": "0x365b83d67d5539c6583b9c0266a548926bf216f4",
+    "chainId": "80001",
+    "extension": "non-extension",
+    "functionName": "transfer",
+    "functionArgs": "0x3EcDBF3B911d0e9052b64850693888b008e18373,1000000",
+    "status": "submitted",
+    "encodedInputData": "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e1837300000000000000000000000000000000000000000000000000000000000f4240",
+    "txType": 2,
+    "gasPrice": "",
+    "gasLimit": "46512",
+    "maxPriorityFeePerGas": "1500000000",
+    "maxFeePerGas": "1500000032",
+    "txHash": "0x6b63bbe29afb2813e8466c0fc48b22f6c2cc835de8b5fd2d9815c28f63b2b701",
+    "submittedTxNonce": 562,
+    "createdTimestamp": "2023-06-01T18:56:50.787Z",
+    "txSubmittedTimestamp": "2023-06-01T18:56:54.908Z"
   }
 }];
 
 // OUTPUT
-
-enum Status {
-  Processed = "processed",
-  Queued = "queued",
-  Submitted = "submitted",
-  Errored = "errored",
-  Mined = "mined",
-}
 
 export async function checkTxStatus(fastify: FastifyInstance) {
   fastify.route<{
@@ -63,9 +66,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { tx_queue_id } = request.params;
-      const dbConnection = await connectWithDatabase(request);
       const returnData = await findTxDetailsWithQueueId(
-        dbConnection,
         tx_queue_id,
         request,
       );
@@ -79,28 +80,8 @@ export async function checkTxStatus(fastify: FastifyInstance) {
         throw error;
       }
 
-      let status: Status;
-
-      if (returnData.txMined) {
-        status = Status.Mined;
-      } else if (returnData.txSubmitted) {
-        status = Status.Submitted;
-      } else if (returnData.txProcessed) {
-        status = Status.Processed;
-      } else if (returnData.txErrored) {
-        status = Status.Errored;
-      } else {
-        status = Status.Queued;
-      }
-
-      dbConnection.destroy();
-
       reply.status(StatusCodes.OK).send({
-        result: {
-          queueId: tx_queue_id,
-          status,
-          txHash: returnData.txHash ?? undefined,
-        },
+        result: returnData,
       });
     },
   });

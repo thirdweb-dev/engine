@@ -3,6 +3,7 @@ import { readContract } from "./contract/read/read";
 import { writeToContract } from "./contract/write/write";
 
 import { checkTxStatus } from "./transaction/status";
+import { getAllTx } from "./transaction/getAll";
 
 // Extensions
 import { erc20Routes } from "./contract/extensions/erc20/index";
@@ -24,6 +25,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
 
   // transaction status
   await fastify.register(checkTxStatus);
+  await fastify.register(getAllTx);
 
   // Extensions
   await fastify.register(erc20Routes);

@@ -1,6 +1,5 @@
 import { Knex } from "knex";
 import { getChainBySlug } from "@thirdweb-dev/chains";
-import { TransactionSchema } from "./sharedApiSchemas";
 import { createCustomError } from "../../core/error/customError";
 import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
@@ -11,6 +10,12 @@ import {
   Transaction,
   TransactionError,
 } from "@thirdweb-dev/sdk";
+import {
+  TransactionStatusEnum,
+  TransactionSchema,
+  transactionResponseSchema
+} from "../schemas/transaction";
+import { Static } from "@sinclair/typebox";
 
 export const queueTransaction = async (
   request: FastifyRequest,
@@ -79,7 +84,7 @@ export const queueTransaction = async (
 export const insertTransactionData = async (
   knex: Knex,
   insertObject: TransactionSchema,
-  request: any,
+  request: FastifyRequest,
 ): Promise<void> => {
   try {
     await knex("transactions").insert(insertObject);
@@ -94,16 +99,18 @@ export const insertTransactionData = async (
 };
 
 export const findTxDetailsWithQueueId = async (
-  knex: Knex,
   queueId: string,
-  request: any,
-): Promise<TransactionSchema> => {
+  request: FastifyRequest,
+): Promise<Static<typeof transactionResponseSchema>> => {
   try {
-    const data = await knex("transactions")
+    const dbInstance = await connectWithDatabase(request);
+    const data = await dbInstance("transactions")
       .where("identifier", queueId)
       .first();
+    dbInstance.destroy();
 
-    return data;
+    const transformedData = transformData([data]);
+    return transformedData[0];
   } catch (error: any) {
     const customError = createCustomError(
       error.message,
@@ -112,4 +119,76 @@ export const findTxDetailsWithQueueId = async (
     );
     throw customError;
   }
+};
+
+export const getAllTxFromDB = async (
+  request: FastifyRequest,
+  page: number,
+  limit: number,
+  sort?: string,
+  sort_order?: string,
+  filter?: string,
+
+): Promise<Static<typeof transactionResponseSchema>[]> => {
+  try {
+
+    const dbInstance = await connectWithDatabase(request);
+    const data = await dbInstance("transactions")
+      .where((builder)=>{
+        if (filter === TransactionStatusEnum.Submitted){
+          builder.where("txSubmitted", true);
+        } else if (filter === TransactionStatusEnum.Processed) {
+          builder.where("txProcessed", true);
+        } else if (filter === TransactionStatusEnum.Mined) {
+          builder.where("txMined", true);
+        } else if (filter === TransactionStatusEnum.Errored) {
+          builder.where("txErrored", true);
+        } else if (filter === TransactionStatusEnum.Queued) {
+          builder.where("txSubmitted", false);
+          builder.where("txProcessed", false);
+          builder.where("txMined", false);
+          builder.where("txErrored", false);
+        }
+      })
+      .orderBy(sort || "createdTimestamp", sort_order || "asc")
+      .limit(limit)
+      .offset((page - 1) * limit) as TransactionSchema[];
+    dbInstance.destroy();
+    
+    const transformedData = transformData(data);
+    return transformedData;
+  } catch (error: any) {
+    const customError = createCustomError(
+      error.message,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "INTERNAL_SERVER_ERROR",
+    );
+    throw customError;
+  }
+};
+
+const transformData = (txResult: TransactionSchema[]) : Static<typeof transactionResponseSchema>[] => {
+  const transformedData = txResult.map((row) => {
+    let status = '';
+    if (row.txMined) {
+      status = TransactionStatusEnum.Mined;
+    } else if (row.txSubmitted) {
+      status = TransactionStatusEnum.Submitted;
+    } else if (row.txProcessed) {
+      status = TransactionStatusEnum.Processed;
+    } else if (row.txErrored) {
+      status = TransactionStatusEnum.Errored;
+    } else {
+      status = TransactionStatusEnum.Queued;
+    }
+    let queueId = row.identifier;
+    let functionName = row.rawFunctionName;
+    let functionArgs = row.rawFunctionArgs;
+    delete row.identifier;
+    delete row.rawFunctionName;
+    delete row.rawFunctionArgs;
+    return { ...row, status, queueId, functionName, functionArgs};
+  });
+
+  return transformedData;
 };
