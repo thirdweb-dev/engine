@@ -1,0 +1,33 @@
+import { FastifyInstance } from "fastify";
+import { StatusCodes } from "http-status-codes";
+import { Static, Type } from "@sinclair/typebox";
+import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
+
+// OUTPUT
+export const responseBodySchema = Type.Object({
+  result: Type.Array(Type.String()),
+});
+
+export async function contractTypes(fastify: FastifyInstance) {
+  fastify.route<{
+    Reply: Static<typeof responseBodySchema>;
+  }>({
+    method: "GET",
+    url: "/deployer/contractTypes",
+    schema: {
+      description: "Get all prebuilt contract types",
+      tags: ["Deploy"],
+      operationId: "deployContractTypes",
+      response: {
+        ...standardResponseSchema,
+        [StatusCodes.OK]: responseBodySchema,
+      },
+    },
+    handler: async (request, reply) => {
+      reply.status(StatusCodes.OK).send({
+        result: Object.keys(PREBUILT_CONTRACTS_MAP),
+      });
+    },
+  });
+}
