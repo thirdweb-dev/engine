@@ -15,7 +15,7 @@ let connection: Knex.PgConnectionConfig = {
     password: getEnv("POSTGRES_PASSWORD"),
     database: DATABASE_NAME,
     ssl:
-      getEnv("NODE_ENV") === "production"
+      getEnv("POSTGRES_USE_SSL") === "true"
         ? {
             rejectUnauthorized: false,
           }

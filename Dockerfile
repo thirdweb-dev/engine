@@ -36,12 +36,11 @@ CMD [ "yarn", "dev-worker" ]
 
 FROM base AS prod
 
+ENV NODE_ENV="production"
 RUN yarn install
 RUN yarn build
-RUN yarn build-worker
-
-ENV NODE_ENV="production"
-
-RUN yarn install --production
+RUN yarn copy-files
 RUN apk del build-dependencies
+
+ENTRYPOINT [ "docker-entrypoint.sh" ]
 CMD [ "yarn", "start"]

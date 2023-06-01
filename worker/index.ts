@@ -2,14 +2,14 @@ import fastify, { FastifyInstance } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import {
     errorHandler,
-    getEnv,
 } from '../core';
 import { startNotificationListener } from "./controller/listener";
-import { logSettings } from "../core";
+import { getLogSettings } from "../core";
 
 const main = async () => {
+  const logOptions = getLogSettings("Worker-Server");
   const server: FastifyInstance = fastify({
-    logger: logSettings[getEnv('NODE_ENV')] ?? true,
+    logger: logOptions ?? true,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 

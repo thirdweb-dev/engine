@@ -30,6 +30,7 @@ export const errorHandler = async (server: FastifyInstance) => {
       reply.status(500).send({
         error: {
           statusCode: 500,
+          code: 'INTERNAL_SERVER_ERROR',
           message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
           stack: getEnv('NODE_ENV') !== 'production' ? error.stack : undefined,
         },
