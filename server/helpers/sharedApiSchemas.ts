@@ -1,7 +1,8 @@
-import { TSchema, Type, Static } from "@sinclair/typebox";
+import { Type, Static } from "@sinclair/typebox";
 import { FastifySchema } from "fastify/types/schema";
 import { StatusCodes } from "http-status-codes";
 import { RouteGenericInterface } from "fastify";
+import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
 
 export const baseReplyErrorSchema = Type.Object({
   message: Type.Optional(Type.String()),
@@ -31,17 +32,7 @@ export const prebuiltDeployParamSchema = Type.Object({
     description: "Add Chain ID or Chain Name",
   }),
   contract_type: Type.String({
-    examples: [
-      "nft-collection",
-      "nft-drop",
-      "edition",
-      "edition-drop",
-      "token",
-      "token-drop",
-      "marketplace-v3",
-      "pack",
-      "split",
-    ],
+    examples: Object.keys(PREBUILT_CONTRACTS_MAP),
     description: "Contract Type to deploy",
   }),
 });
