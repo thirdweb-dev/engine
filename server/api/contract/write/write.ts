@@ -71,7 +71,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId!, 
+        result: queuedId, 
       });
     },
   });

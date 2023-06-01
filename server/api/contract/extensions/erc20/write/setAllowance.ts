@@ -62,7 +62,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
         "erc20",
       );
       reply.status(StatusCodes.OK).send({
-        result: queuedId!,
+        result: queuedId,
       });
     },
   });

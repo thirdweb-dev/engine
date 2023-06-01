@@ -82,7 +82,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
         "erc1155",
       );
       reply.status(StatusCodes.OK).send({
-        result: queuedId!,
+        result: queuedId,
       });
     },
   });

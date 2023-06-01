@@ -61,6 +61,11 @@ export const queueTransaction = async (
     txSubmitted: false,
     encodedInputData: encodedData,
   };
+
+  if (!txDataToInsert.identifier){
+    const error = createCustomError("Transaction identifier not found", StatusCodes.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    throw error;
+  }
   
   // Insert to DB
   const dbInstance = await connectWithDatabase(request);

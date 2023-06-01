@@ -137,7 +137,7 @@ export interface publishedDeploySchemaTypes extends RouteGenericInterface {
 }
 
 export interface TransactionSchema {
-  identifier?: string;
+  identifier: string;
   walletAddress?: string;
   contractAddress?: string;
   chainId?: string;

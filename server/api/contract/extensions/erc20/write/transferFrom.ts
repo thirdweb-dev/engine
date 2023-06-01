@@ -73,7 +73,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId!,
+        result: queuedId,
       });
     },
   });

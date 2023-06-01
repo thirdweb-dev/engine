@@ -60,7 +60,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
         "erc20",
       );
       reply.status(StatusCodes.OK).send({
-        result: queuedId!,
+        result: queuedId,
       });
     },
   });

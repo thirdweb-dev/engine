@@ -57,7 +57,7 @@ export async function erc20burn(fastify: FastifyInstance) {
         "erc20",
       );
       reply.status(StatusCodes.OK).send({
-        result: queuedId!,
+        result: queuedId,
       });
     },
   });
