@@ -4,10 +4,10 @@ import { Static, Type } from "@sinclair/typebox";
 import { connectWithDatabase } from "../../../core";
 import { createCustomError } from "../../../core/error/customError";
 import {
-  baseReplyErrorSchema,
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
 import { findTxDetailsWithQueueId } from "../../helpers";
+import { TransactionStatusEnum } from "../../schemas/transaction";
 
 // INPUT
 const requestSchema = Type.Object({
@@ -36,14 +36,6 @@ responseBodySchema.examples = [{
 
 // OUTPUT
 
-enum Status {
-  Processed = "processed",
-  Queued = "queued",
-  Submitted = "submitted",
-  Errored = "errored",
-  Mined = "mined",
-}
-
 export async function checkTxStatus(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
@@ -63,9 +55,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { tx_queue_id } = request.params;
-      const dbConnection = await connectWithDatabase(request);
       const returnData = await findTxDetailsWithQueueId(
-        dbConnection,
         tx_queue_id,
         request,
       );
@@ -79,26 +69,10 @@ export async function checkTxStatus(fastify: FastifyInstance) {
         throw error;
       }
 
-      let status: Status;
-
-      if (returnData.txMined) {
-        status = Status.Mined;
-      } else if (returnData.txSubmitted) {
-        status = Status.Submitted;
-      } else if (returnData.txProcessed) {
-        status = Status.Processed;
-      } else if (returnData.txErrored) {
-        status = Status.Errored;
-      } else {
-        status = Status.Queued;
-      }
-
-      dbConnection.destroy();
-
       reply.status(StatusCodes.OK).send({
         result: {
           queueId: tx_queue_id,
-          status,
+          status: returnData.status as TransactionStatusEnum,
           txHash: returnData.txHash ?? undefined,
         },
       });

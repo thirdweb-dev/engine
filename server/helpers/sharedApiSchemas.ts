@@ -127,27 +127,6 @@ export interface publishedDeploySchemaTypes extends RouteGenericInterface {
   Reply: Static<typeof replyBodySchema>;
 }
 
-export interface TransactionSchema {
-  identifier: string;
-  walletAddress?: string;
-  contractAddress?: string;
-  chainId?: string;
-  extension?: string;
-  rawFunctionName?: string;
-  rawFunctionArgs?: string;
-  txProcessed?: boolean;
-  txSubmitted?: boolean;
-  txErrored?: boolean;
-  txMined?: boolean;
-  encodedInputData?: string;
-  txType?: number;
-  gasPrice?: string;
-  gasLimit?: string;
-  maxPriorityFeePerGas?: string;
-  maxFeePerGas?: string;
-  txHash?: string;
-}
-
 export const transactionWritesResponseSchema = Type.Object({
   result: Type.String({
     description: "Queue ID",
