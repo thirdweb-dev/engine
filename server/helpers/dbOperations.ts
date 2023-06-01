@@ -145,7 +145,6 @@ export const getAllTxFromDB = async (
 ): Promise<Static<typeof transactionResponseSchema>[]> => {
   try {
 
-    request.log.debug(`Inside GetAll ${page} ${limit} ${sort} ${sort_order} ${filter}`);
     const dbInstance = await connectWithDatabase(request);
     const data = await dbInstance("transactions")
       .where((builder)=>{

@@ -78,8 +78,6 @@ export async function getAllTx(fastify: FastifyInstance) {
         sort_order,
         filter,
       );
-      
-      request.log.debug(`Got All Transaction Data ${returnData}`)
       reply.status(StatusCodes.OK).send({
         result: returnData,
       });

@@ -47,7 +47,7 @@ export const transactionResponseSchema = Type.Object({
   txHash: Type.Optional(Type.String({
     description: "Submitted Transaction Hash",
   })),
-  submittedTxNonce: Type.Optional(Type.String({
+  submittedTxNonce: Type.Optional(Type.Number({
     description: "Submitted Transaction Nonce",
   })),
   createdTimestamp: Type.Optional(Type.String({
@@ -111,4 +111,7 @@ export interface TransactionSchema {
   maxFeePerGas?: string;
   txHash?: string;
   status?: string;
+  createdTimestamp?: string;
+  txSubmittedTimestamp?: string;
+  submittedTxNonce?: number;
 }

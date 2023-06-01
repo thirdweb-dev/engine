@@ -23,6 +23,9 @@ export const responseBodySchema = Type.Object({
     queueId: Type.String(),
     status: Type.String(),
     txHash: Type.Optional(Type.String()),
+    submittedTxNonce: Type.Optional(Type.Number()),
+    createdTimestamp: Type.Optional(Type.String()),
+    txSubmittedTimestamp: Type.Optional(Type.String()),
   }),
 });
 
@@ -73,6 +76,9 @@ export async function checkTxStatus(fastify: FastifyInstance) {
         result: {
           queueId: tx_queue_id,
           status: returnData.status as TransactionStatusEnum,
+          createdTimestamp: returnData.createdTimestamp,
+          txSubmittedTimestamp: returnData.txSubmittedTimestamp ?? undefined,
+          submittedTxNonce: returnData.submittedTxNonce ?? undefined,
           txHash: returnData.txHash ?? undefined,
         },
       });
