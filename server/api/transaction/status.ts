@@ -7,7 +7,7 @@ import {
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
 import { findTxDetailsWithQueueId } from "../../helpers";
-import { TransactionStatusEnum } from "../../schemas/transaction";
+import { TransactionStatusEnum, transactionResponseSchema } from "../../schemas/transaction";
 
 // INPUT
 const requestSchema = Type.Object({
@@ -19,14 +19,7 @@ const requestSchema = Type.Object({
 
 // OUTPUT
 export const responseBodySchema = Type.Object({
-  result: Type.Object({
-    queueId: Type.String(),
-    status: Type.String(),
-    txHash: Type.Optional(Type.String()),
-    submittedTxNonce: Type.Optional(Type.Number()),
-    createdTimestamp: Type.Optional(Type.String()),
-    txSubmittedTimestamp: Type.Optional(Type.String()),
-  }),
+  result: transactionResponseSchema
 });
 
 responseBodySchema.examples = [{
@@ -73,14 +66,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       }
 
       reply.status(StatusCodes.OK).send({
-        result: {
-          queueId: tx_queue_id,
-          status: returnData.status as TransactionStatusEnum,
-          createdTimestamp: returnData.createdTimestamp,
-          txSubmittedTimestamp: returnData.txSubmittedTimestamp ?? undefined,
-          submittedTxNonce: returnData.submittedTxNonce ?? undefined,
-          txHash: returnData.txHash ?? undefined,
-        },
+        result: returnData,
       });
     },
   });

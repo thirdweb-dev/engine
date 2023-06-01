@@ -101,7 +101,7 @@ export const insertTransactionData = async (
 export const findTxDetailsWithQueueId = async (
   queueId: string,
   request: FastifyRequest,
-): Promise<TransactionSchema> => {
+): Promise<Static<typeof transactionResponseSchema>> => {
   try {
     const dbInstance = await connectWithDatabase(request);
     const data = await dbInstance("transactions")
@@ -109,21 +109,8 @@ export const findTxDetailsWithQueueId = async (
       .first();
     dbInstance.destroy();
 
-    let status: TransactionStatusEnum;
-
-    if (data.txMined) {
-      status = TransactionStatusEnum.Mined;
-    } else if (data.txSubmitted) {
-      status = TransactionStatusEnum.Submitted;
-    } else if (data.txProcessed) {
-      status = TransactionStatusEnum.Processed;
-    } else if (data.txErrored) {
-      status = TransactionStatusEnum.Errored;
-    } else {
-      status = TransactionStatusEnum.Queued;
-    }
-
-    return { ...data, status};
+    const transformedData = transformData([data]);
+    return transformedData[0];
   } catch (error: any) {
     const customError = createCustomError(
       error.message,
@@ -167,28 +154,8 @@ export const getAllTxFromDB = async (
       .limit(limit)
       .offset((page - 1) * limit) as TransactionSchema[];
     dbInstance.destroy();
-    const transformedData = data.map((row) => {
-      let status = '';
-      if (row.txMined) {
-        status = TransactionStatusEnum.Mined;
-      } else if (row.txSubmitted) {
-        status = TransactionStatusEnum.Submitted;
-      } else if (row.txProcessed) {
-        status = TransactionStatusEnum.Processed;
-      } else if (row.txErrored) {
-        status = TransactionStatusEnum.Errored;
-      } else {
-        status = TransactionStatusEnum.Queued;
-      }
-      let queueId = row.identifier;
-      let functionName = row.rawFunctionName;
-      let functionArgs = row.rawFunctionArgs;
-      delete row.identifier;
-      delete row.rawFunctionName;
-      delete row.rawFunctionArgs;
-      return { ...row, status, queueId, functionName, functionArgs};
-    });
-
+    
+    const transformedData = transformData(data);
     return transformedData;
   } catch (error: any) {
     const customError = createCustomError(
@@ -198,4 +165,30 @@ export const getAllTxFromDB = async (
     );
     throw customError;
   }
+};
+
+const transformData = (txResult: TransactionSchema[]) : Static<typeof transactionResponseSchema>[] => {
+  const transformedData = txResult.map((row) => {
+    let status = '';
+    if (row.txMined) {
+      status = TransactionStatusEnum.Mined;
+    } else if (row.txSubmitted) {
+      status = TransactionStatusEnum.Submitted;
+    } else if (row.txProcessed) {
+      status = TransactionStatusEnum.Processed;
+    } else if (row.txErrored) {
+      status = TransactionStatusEnum.Errored;
+    } else {
+      status = TransactionStatusEnum.Queued;
+    }
+    let queueId = row.identifier;
+    let functionName = row.rawFunctionName;
+    let functionArgs = row.rawFunctionArgs;
+    delete row.identifier;
+    delete row.rawFunctionName;
+    delete row.rawFunctionArgs;
+    return { ...row, status, queueId, functionName, functionArgs};
+  });
+
+  return transformedData;
 };
