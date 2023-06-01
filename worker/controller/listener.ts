@@ -2,8 +2,6 @@ import { FastifyInstance } from 'fastify';
 import { connectToDB } from "../../core";
 import { processTransaction } from './processTransaction';
 
-let PROCESS_RUNNING = false;
-
 export const startNotificationListener = async (server: FastifyInstance) : Promise<void> => {
   try {
     // Connect to the DB
@@ -15,14 +13,7 @@ export const startNotificationListener = async (server: FastifyInstance) : Promi
 
     connection.on('notification', async (msg: { channel: string; payload: string }) => {
       server.log.info(msg.payload);
-      if (PROCESS_RUNNING) {
-        server.log.info(`Process Requests already running`);
-        return;
-      }
-      PROCESS_RUNNING = true;
       await processTransaction(server);
-      server.log.info(`Process Requests Completed`);
-      PROCESS_RUNNING = false;
     });
 
     connection.on('end', () => {

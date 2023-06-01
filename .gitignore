@@ -4,3 +4,4 @@ node_modules
 swagger.yml
 worker/distWorker/
 .vscode/
+.DS_Store

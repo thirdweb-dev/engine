@@ -27,7 +27,7 @@ responseSchema.examples = [{
     {
       "metadata": {
         "id": "0",
-        "uri": "<ipfs_uri>",
+        "uri": "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
         "name": "TJ-Origin",
         "description": "Origin",
         "external_url": "",

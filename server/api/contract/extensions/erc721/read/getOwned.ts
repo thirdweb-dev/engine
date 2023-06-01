@@ -26,7 +26,7 @@ responseSchema.examples = [{
   result: [{
     "metadata": {
       "id": "1",
-      "uri": "<ipfs_uri>>",
+      "uri": "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
       "name": "ERC20-Test Token II",
       "description": "ERC20-Test Token II",
       "external_url": "",

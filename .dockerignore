@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+Dockerfile
+.dockerignore
+.env
+yarn-error.log
+.husky
+scripts
+docker-compose-prod.yml
+docker-compose.yml
+Dockerfile
