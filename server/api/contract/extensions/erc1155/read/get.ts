@@ -30,21 +30,16 @@ const responseSchema = Type.Object({
 responseSchema.examples = [{
   "result": {
     "metadata": {
-      "id": "0",
-      "uri": "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
-      "name": "TJ-Origin",
-      "description": "Origin",
-      "external_url": "",
-      "attributes": [
-        {
-          "trait_type": "Mode",
-          "value": "GOD"
-        }
-      ]
+        "id": "0",
+        "uri": "ipfs://QmdaWX1GEwnFW4NooYRej5BQybKNLdxkWtMwyw8KiWRueS/0",
+        "name": "My Edition NFT",
+        "description": "My Edition NFT description",
+        "image": "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png"
     },
-    "owner": "0x0000000000000000000000000000000000000000",
+    "owner": "0xE79ee09bD47F4F5381dbbACaCff2040f2FbC5803",
     "type": "ERC1155",
-    "supply": "600000150000000000000000000000000000000000009000000000000000000000712"
+    "supply": "100",
+    "quantityOwned": "100"
   }
 }];
 

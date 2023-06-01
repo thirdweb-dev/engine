@@ -25,19 +25,13 @@ const responseSchema = Type.Object({
 responseSchema.examples = [{
   result: [{
     "metadata": {
-      "id": "1",
-      "uri": "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
-      "name": "ERC20-Test Token II",
-      "description": "ERC20-Test Token II",
-      "external_url": "",
-      "attributes": [
-        {
-          "trait_type": "type",
-          "value": "<value>"
-        }
-      ]
+        "id": "2",
+        "uri": "ipfs://QmWDdRcLqVMzFeawADAPr2EFCzdqCzx373VpWK3Kfx25GJ/0",
+        "name": "My NFT",
+        "description": "My NFT description",
+        "image": "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png"
     },
-    "owner": "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+    "owner": "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     "type": "ERC721",
     "supply": "1"
   }]

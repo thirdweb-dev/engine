@@ -3,14 +3,13 @@ import { StatusCodes } from "http-status-codes";
 
 import { getContractInstace } from "../../../../../../core/index";
 import {
-  baseReplyErrorSchema,
-  erc20ContractParamSchema,
+  erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 
 // INPUTS
-const requestSchema = erc20ContractParamSchema;
+const requestSchema = erc721ContractParamSchema;
 const querystringSchema = Type.Object({
   wallet_address: Type.String({
     description: "Address of the wallet to check NFT balance",
