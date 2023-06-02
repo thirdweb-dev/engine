@@ -143,7 +143,7 @@ export const transactionWritesResponseSchema = Type.Object({
   }),
 });
 
-transactionWritesResponseSchema.examples = [
+transactionWritesResponseSchema.example = [
   {
     result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
   },

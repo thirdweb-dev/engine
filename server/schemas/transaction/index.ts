@@ -94,7 +94,7 @@ export const transactionResponseSchema = Type.Object({
   ),
 });
 
-transactionResponseSchema.examples = [
+transactionResponseSchema.example = [
   {
     result: [
       {

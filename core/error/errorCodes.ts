@@ -1,4 +1,4 @@
-import { StatusCodes } from 'http-status-codes';
+import { StatusCodes } from "http-status-codes";
 
 const flipObject = (data: any) =>
   Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));

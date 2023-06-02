@@ -16,7 +16,7 @@ const responseSchema = Type.Object({
   result: erc20MetadataSchema,
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: {
       name: "Mumba20",

@@ -26,7 +26,7 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.Boolean()),
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: false,
   },

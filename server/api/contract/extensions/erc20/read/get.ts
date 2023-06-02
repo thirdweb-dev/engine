@@ -19,7 +19,7 @@ const responseSchema = Type.Object({
   }),
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: {
       name: "ERC20",

@@ -23,7 +23,7 @@ export const responseBodySchema = Type.Object({
   result: transactionResponseSchema,
 });
 
-responseBodySchema.examples = [
+responseBodySchema.example = [
   {
     result: {
       queueId: "d09e5849-a262-4f0f-84be-55389c6c7bce",

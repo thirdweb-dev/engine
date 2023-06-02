@@ -30,7 +30,7 @@ const responseSchema = Type.Object({
   result: Type.Array(nftSchema),
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: [
       {
