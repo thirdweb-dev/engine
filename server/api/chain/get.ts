@@ -9,7 +9,7 @@ import { MinimalChain, allChains } from "@thirdweb-dev/chains";
 const requestQuerySchema = Type.Object({
   chain_name_or_id: Type.String({
     description: "Chain name or id",
-    examples: allChains.map((chain) => chain.name),
+    examples: allChains.map((chain) => chain.slug),
   }),
 });
 
@@ -96,7 +96,8 @@ export async function getChainData(fastify: FastifyInstance) {
       const chain: MinimalChain | undefined = allChains.find(
         (chain) =>
           chain.name === chain_name_or_id ||
-          chain.chainId === Number(chain_name_or_id),
+          chain.chainId === Number(chain_name_or_id) ||
+          chain.slug === chain_name_or_id,
       );
 
       if (!chain) {
