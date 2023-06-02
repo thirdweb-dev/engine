@@ -4,51 +4,14 @@ import { createCustomError, getContractInstace } from "../../../core/index";
 import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
-
-// INPUT
-const requestQuerySchema = Type.Object({
-  chain_name_or_id: Type.String({
-    description: "Chain name or id",
-    examples: allChains.map((chain) => chain.slug),
-  }),
-});
+import {
+  chainRequestQuerystringSchema,
+  chainResponseSchema,
+} from "../../schemas/chain";
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(
-    Type.Object({
-      name: Type.String({
-        description: "Chain name",
-      }),
-      chain: Type.String({
-        description: "Chain name",
-      }),
-      rpc: Type.String(),
-      nativeCurrency: Type.Object({
-        name: Type.String({
-          description: "Native currency name",
-        }),
-        symbol: Type.String({
-          description: "Native currency symbol",
-        }),
-        decimals: Type.Number({
-          description: "Native currency decimals",
-        }),
-      }),
-      shortName: Type.String({
-        description: "Chain short name",
-      }),
-      chainId: Type.Number({
-        description: "Chain ID",
-      }),
-      testnet: Type.Boolean({
-        description: "Is testnet",
-      }),
-      slug: Type.String({
-        description: "Chain slug",
-      }),
-    }),
-  ),
+  result: chainResponseSchema,
 });
 
 responseSchema.examples = [
@@ -57,7 +20,7 @@ responseSchema.examples = [
       result: {
         name: "Mumbai",
         chain: "Polygon",
-        rpc: "https://mumbai.rpc.thirdweb.com/${THIRDWEB_API_KEY}",
+        rpc: ["https://mumbai.rpc.thirdweb.com/${THIRDWEB_API_KEY}"],
         nativeCurrency: {
           name: "MATIC",
           symbol: "MATIC",
@@ -75,7 +38,7 @@ responseSchema.examples = [
 // LOGIC
 export async function getChainData(fastify: FastifyInstance) {
   fastify.route<{
-    Querystring: Static<typeof requestQuerySchema>;
+    Querystring: Static<typeof chainRequestQuerystringSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
@@ -84,7 +47,7 @@ export async function getChainData(fastify: FastifyInstance) {
       description: "Get a particular chain information",
       tags: ["Chain"],
       operationId: "getChainData",
-      querystring: requestQuerySchema,
+      querystring: chainRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -99,7 +62,7 @@ export async function getChainData(fastify: FastifyInstance) {
           chain.chainId === Number(chain_name_or_id) ||
           chain.slug === chain_name_or_id
         ) {
-          return { ...minimizeChain(chain) };
+          return minimizeChain(chain);
         }
       });
 
@@ -117,7 +80,7 @@ export async function getChainData(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           ...minimizeChainData,
-          rpc: minimizeChainData.rpc[0],
+          rpc: [minimizeChainData.rpc[0]],
         },
       });
     },

@@ -3,43 +3,11 @@ import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
+import { chainResponseSchema } from "../../schemas/chain";
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(
-    Type.Object({
-      name: Type.String({
-        description: "Chain name",
-      }),
-      chain: Type.String({
-        description: "Chain name",
-      }),
-      rpc: Type.Optional(Type.String()),
-      nativeCurrency: Type.Object({
-        name: Type.String({
-          description: "Native currency name",
-        }),
-        symbol: Type.String({
-          description: "Native currency symbol",
-        }),
-        decimals: Type.Number({
-          description: "Native currency decimals",
-        }),
-      }),
-      shortName: Type.String({
-        description: "Chain short name",
-      }),
-      chainId: Type.Number({
-        description: "Chain ID",
-      }),
-      testnet: Type.Boolean({
-        description: "Is testnet",
-      }),
-      slug: Type.String({
-        description: "Chain slug",
-      }),
-    }),
-  ),
+  result: Type.Array(chainResponseSchema),
 });
 
 responseSchema.examples = [
@@ -48,7 +16,7 @@ responseSchema.examples = [
       {
         name: "Ethereum Mainnet",
         chain: "ETH",
-        rpc: "https://ethereum.rpc.thirdweb.com/${THIRDWEB_API_KEY}",
+        rpc: ["https://ethereum.rpc.thirdweb.com/${THIRDWEB_API_KEY}"],
         nativeCurrency: {
           name: "Ether",
           symbol: "ETH",
@@ -62,7 +30,7 @@ responseSchema.examples = [
       {
         name: "Ropsten",
         chain: "ETH",
-        rpc: "https://ropsten.rpc.thirdweb.com/${THIRDWEB_API_KEY}",
+        rpc: ["https://ropsten.rpc.thirdweb.com/${THIRDWEB_API_KEY}"],
         nativeCurrency: {
           name: "Ropsten Ether",
           symbol: "ETH",
@@ -96,7 +64,7 @@ export async function getAllChainData(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const chain = allChains.map((chain) => {
         const minimizeChainData = minimizeChain(chain);
-        return { ...minimizeChainData, rpc: minimizeChainData.rpc[0] };
+        return { ...minimizeChainData, rpc: [minimizeChainData.rpc[0]] };
       });
 
       reply.status(StatusCodes.OK).send({
