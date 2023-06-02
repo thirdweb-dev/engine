@@ -12,20 +12,20 @@ const requestQuerySchema = Type.Object({
     description:
       "This parameter allows the user to specify the page number for pagination purposes",
     examples: ["1"],
-    default: ["1"],
+    default: "1",
   }),
   limit: Type.String({
     description:
       "This parameter defines the maximum number of transaction request data to return per page.",
     examples: ["10"],
-    default: ["10"],
+    default: "10",
   }),
   sort: Type.Optional(
     Type.String({
       description:
         "This parameter specifies the sorting order of the results based on a particular field or attribute",
       examples: ["createdTimestamp"],
-      default: ["createdTimestamp"],
+      default: "createdTimestamp",
     }),
   ),
   sort_order: Type.Optional(
@@ -33,7 +33,7 @@ const requestQuerySchema = Type.Object({
       description:
         "This parameter specifies the sorting order of the results based on a particular field or attribute",
       examples: ["desc", "asc"],
-      default: ["asc"],
+      default: "asc",
     }),
   ),
   filter: Type.Optional(
@@ -41,7 +41,7 @@ const requestQuerySchema = Type.Object({
       description:
         "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
       examples: ["all", "submitted", "processed", "errored", "queued"],
-      default: ["all"],
+      default: "all",
     }),
   ),
 });
@@ -51,34 +51,33 @@ export const responseBodySchema = Type.Object({
   result: Type.Array(transactionResponseSchema),
 });
 
-responseBodySchema.example = [
-  {
-    result: [
-      {
-        queueId: "d09e5849-a262-4f0f-84be-55389c6c7bce",
-        walletAddress: "0x1946267d81fb8adeeea28e6b98bcd446c8248473",
-        contractAddress: "0x365b83d67d5539c6583b9c0266a548926bf216f4",
-        chainId: "80001",
-        extension: "non-extension",
-        functionName: "transfer",
-        functionArgs: "0x3EcDBF3B911d0e9052b64850693888b008e18373,1000000",
-        status: "submitted",
-        encodedInputData:
-          "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e1837300000000000000000000000000000000000000000000000000000000000f4240",
-        txType: 2,
-        gasPrice: "",
-        gasLimit: "46512",
-        maxPriorityFeePerGas: "1500000000",
-        maxFeePerGas: "1500000032",
-        txHash:
-          "0x6b63bbe29afb2813e8466c0fc48b22f6c2cc835de8b5fd2d9815c28f63b2b701",
-        submittedTxNonce: 562,
-        createdTimestamp: "2023-06-01T18:56:50.787Z",
-        txSubmittedTimestamp: "2023-06-01T18:56:54.908Z",
-      },
-    ],
-  },
-];
+responseBodySchema.example = {
+  result: [
+    {
+      queueId: "d09e5849-a262-4f0f-84be-55389c6c7bce",
+      walletAddress: "0x1946267d81fb8adeeea28e6b98bcd446c8248473",
+      contractAddress: "0x365b83d67d5539c6583b9c0266a548926bf216f4",
+      chainId: "80001",
+      extension: "non-extension",
+      functionName: "transfer",
+      functionArgs: "0x3EcDBF3B911d0e9052b64850693888b008e18373,1000000",
+      status: "submitted",
+      encodedInputData:
+        "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e1837300000000000000000000000000000000000000000000000000000000000f4240",
+      txType: 2,
+      gasPrice: "",
+      gasLimit: "46512",
+      maxPriorityFeePerGas: "1500000000",
+      maxFeePerGas: "1500000032",
+      txHash:
+        "0x6b63bbe29afb2813e8466c0fc48b22f6c2cc835de8b5fd2d9815c28f63b2b701",
+      submittedTxNonce: 562,
+      createdTimestamp: "2023-06-01T18:56:50.787Z",
+      txSubmittedTimestamp: "2023-06-01T18:56:54.908Z",
+    },
+  ],
+};
+
 export async function getAllTx(fastify: FastifyInstance) {
   fastify.route<{
     Querystring: Static<typeof requestQuerySchema>;

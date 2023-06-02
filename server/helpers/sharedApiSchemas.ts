@@ -143,11 +143,9 @@ export const transactionWritesResponseSchema = Type.Object({
   }),
 });
 
-transactionWritesResponseSchema.example = [
-  {
-    result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
-  },
-];
+transactionWritesResponseSchema.example = {
+  result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+};
 
 /**
  * Basic schema for ERC721 Contract Request Parameters

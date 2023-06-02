@@ -22,11 +22,9 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
 });
 
-responseSchema.example = [
-  {
-    result: "1",
-  },
-];
+responseSchema.example = {
+  result: "1",
+};
 
 // LOGIC
 export async function erc721BalanceOf(fastify: FastifyInstance) {

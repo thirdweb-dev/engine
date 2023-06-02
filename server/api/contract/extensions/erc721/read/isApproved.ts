@@ -26,11 +26,9 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.Boolean()),
 });
 
-responseSchema.example = [
-  {
-    result: false,
-  },
-];
+responseSchema.example = {
+  result: false,
+};
 
 // LOGIC
 export async function erc721IsApproved(fastify: FastifyInstance) {
