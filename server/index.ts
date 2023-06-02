@@ -4,15 +4,12 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import * as fs from "fs";
 import fastifyCors from "@fastify/cors";
 import { openapi } from "./helpers";
-import {
-    errorHandler,
-    getEnv,
-} from "../core";
+import { errorHandler, getEnv } from "../core";
 import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
   implementTriggerOnStartUp,
-  getLogSettings
+  getLogSettings,
 } from "../core";
 
 const main = async () => {

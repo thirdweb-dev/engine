@@ -53,7 +53,10 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { from, to, token_id } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc721.transferFrom.prepare(from, to, token_id);
       const queuedId = await queueTransaction(
         request,

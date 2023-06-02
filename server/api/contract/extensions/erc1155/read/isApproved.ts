@@ -23,12 +23,14 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.Boolean())
+  result: Type.Optional(Type.Boolean()),
 });
 
-responseSchema.examples = [{
-  "result": true
-}];
+responseSchema.examples = [
+  {
+    result: true,
+  },
+];
 
 // LOGIC
 export async function erc1155IsApproved(fastify: FastifyInstance) {
@@ -54,7 +56,10 @@ export async function erc1155IsApproved(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { owner_wallet, operator } = request.query;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const returnData: any = await contract.erc1155.isApproved(
         owner_wallet,
         operator,

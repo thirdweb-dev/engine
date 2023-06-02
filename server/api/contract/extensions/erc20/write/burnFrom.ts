@@ -13,13 +13,13 @@ import { queueTransaction } from "../../../../../helpers";
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
   holder_address: Type.String({
-      description: "Address of the wallet sending the tokens",
+    description: "Address of the wallet sending the tokens",
   }),
   amount: Type.String({
-    description: 'The amount of this token you want to burn',
-    }),
+    description: "The amount of this token you want to burn",
+  }),
 });
-  
+
 // Example for the Request Body
 requestBodySchema.examples = [
   {
@@ -37,7 +37,8 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain_name_or_id/:contract_address/erc20/burnFrom",
     schema: {
-      description: "Burn tokens held by a specified wallet (requires allowance).",
+      description:
+        "Burn tokens held by a specified wallet (requires allowance).",
       tags: ["ERC20"],
       operationId: "erc20_burnFrom",
       params: requestSchema,
@@ -50,7 +51,10 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { holder_address, amount } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc20.burnFrom.prepare(holder_address, amount);
       const queuedId = await queueTransaction(
         request,

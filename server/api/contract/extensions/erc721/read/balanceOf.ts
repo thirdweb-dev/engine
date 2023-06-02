@@ -19,12 +19,14 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.String())
+  result: Type.Optional(Type.String()),
 });
 
-responseSchema.examples = [{
-  "result": "1"
-}];
+responseSchema.examples = [
+  {
+    result: "1",
+  },
+];
 
 // LOGIC
 export async function erc721BalanceOf(fastify: FastifyInstance) {
@@ -49,7 +51,10 @@ export async function erc721BalanceOf(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const returnData = await contract.erc721.balanceOf(wallet_address);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

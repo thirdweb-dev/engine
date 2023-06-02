@@ -30,5 +30,4 @@ export const erc20Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc20claimTo);
   await fastify.register(erc20mintBatchTo);
   await fastify.register(erc20mintTo);
-
 };

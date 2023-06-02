@@ -27,15 +27,17 @@ const responseSchema = Type.Object({
   result: erc20MetadataSchema,
 });
 
-responseSchema.examples = [{
-  result: {
-    "name": "ERC20",
-    "symbol": "",
-    "decimals": "18",
-    "value": "0",
-    "displayValue": "0.0"
-  }
-}];
+responseSchema.examples = [
+  {
+    result: {
+      name: "ERC20",
+      symbol: "",
+      decimals: "18",
+      value: "0",
+      displayValue: "0.0",
+    },
+  },
+];
 
 // LOGIC
 export async function erc20AllowanceOf(fastify: FastifyInstance) {
@@ -60,7 +62,10 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { spender_wallet, owner_wallet } = request.query;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const returnData: any = await contract.erc20.allowanceOf(
         owner_wallet ? owner_wallet : "",
         spender_wallet ? spender_wallet : "",
@@ -72,7 +77,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
           decimals: returnData.decimals.toString(),
           displayValue: returnData.displayValue,
           value: returnData.value.toString(),
-        }
+        },
       });
     },
   });
