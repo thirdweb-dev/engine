@@ -56,12 +56,14 @@ export const publishedDeployParamSchema = Type.Object({
  * Basic schema for all Response Body
  */
 const replyBodySchema = Type.Object({
-  result: Type.Optional(Type.Union([Type.String(), Type.Object({})]))
+  result: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
 });
 
-replyBodySchema.examples = [{
-  result: 'ERC20-Test-Token'
-}];
+replyBodySchema.examples = [
+  {
+    result: "ERC20-Test-Token",
+  },
+];
 
 const replyErrorBodySchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
@@ -72,35 +74,43 @@ export const standardResponseSchema = {
   [StatusCodes.BAD_REQUEST]: {
     description: "Bad Request",
     ...replyErrorBodySchema,
-    examples: [{
-      error: {
-        message: "",
-        code: "BAD_REQUEST",
-        statusCode: StatusCodes.BAD_REQUEST,
-      }
-    }],
+    examples: [
+      {
+        error: {
+          message: "",
+          code: "BAD_REQUEST",
+          statusCode: StatusCodes.BAD_REQUEST,
+        },
+      },
+    ],
   },
   [StatusCodes.NOT_FOUND]: {
     description: "Not Found",
     ...replyErrorBodySchema,
-    examples: [{
-      error: {
-        message: "Transaction not found with queueId 9eb88b00-f04f-409b-9df7-7dcc9003bc35",
-        code: "NOT_FOUND",
-        statusCode: StatusCodes.NOT_FOUND,
-      }
-    }],
+    examples: [
+      {
+        error: {
+          message:
+            "Transaction not found with queueId 9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+          code: "NOT_FOUND",
+          statusCode: StatusCodes.NOT_FOUND,
+        },
+      },
+    ],
   },
   [StatusCodes.INTERNAL_SERVER_ERROR]: {
     description: "Internal Server Error",
     ...replyErrorBodySchema,
-    examples: [{
-      error: {
-        message: "Transaction simulation failed with reason: types/values length mismatch",
-        code: "INTERNAL_SERVER_ERROR",
-        statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-      }
-    }],
+    examples: [
+      {
+        error: {
+          message:
+            "Transaction simulation failed with reason: types/values length mismatch",
+          code: "INTERNAL_SERVER_ERROR",
+          statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
+        },
+      },
+    ],
   },
 };
 
@@ -133,9 +143,11 @@ export const transactionWritesResponseSchema = Type.Object({
   }),
 });
 
-transactionWritesResponseSchema.examples = [{
-  result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
-}];
+transactionWritesResponseSchema.examples = [
+  {
+    result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+  },
+];
 
 /**
  * Basic schema for ERC721 Contract Request Parameters

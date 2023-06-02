@@ -49,7 +49,10 @@ export async function erc721claimTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { receiver, quantity } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc721.claimTo.prepare(receiver, quantity);
       const queuedId = await queueTransaction(
         request,

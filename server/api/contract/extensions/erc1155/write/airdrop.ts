@@ -66,7 +66,10 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { token_id, addresses } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc1155.airdrop.prepare(token_id, addresses);
       const queuedId = await queueTransaction(
         request,

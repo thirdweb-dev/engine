@@ -21,9 +21,11 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
 });
 
-responseSchema.examples = [{
-  "result": "100000000"
-}];
+responseSchema.examples = [
+  {
+    result: "100000000",
+  },
+];
 
 // LOGIC
 export async function erc1155TotalSupply(fastify: FastifyInstance) {
@@ -48,7 +50,10 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { token_id } = request.query;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const returnData = await contract.erc1155.totalSupply(token_id);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
