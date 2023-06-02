@@ -85,7 +85,7 @@ export async function getAllChainData(fastify: FastifyInstance) {
     method: "GET",
     url: "/chain/getAll",
     schema: {
-      description: "Get a particular chain information",
+      description: "Get all chain information",
       tags: ["Chain"],
       operationId: "getAllChainData",
       response: {
