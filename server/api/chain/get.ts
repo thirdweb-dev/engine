@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { createCustomError, getContractInstace } from "../../../core/index";
 import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { MinimalChain, allChains } from "@thirdweb-dev/chains";
+import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 
 // INPUT
 const requestQuerySchema = Type.Object({
@@ -93,12 +93,15 @@ export async function getChainData(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id } = request.query;
 
-      const chain: MinimalChain | undefined = allChains.find(
-        (chain) =>
+      const chain = allChains.find((chain) => {
+        if (
           chain.name === chain_name_or_id ||
           chain.chainId === Number(chain_name_or_id) ||
-          chain.slug === chain_name_or_id,
-      );
+          chain.slug === chain_name_or_id
+        ) {
+          return { ...minimizeChain(chain) };
+        }
+      });
 
       if (!chain) {
         const error = createCustomError(
@@ -109,10 +112,12 @@ export async function getChainData(fastify: FastifyInstance) {
         throw error;
       }
 
+      const minimizeChainData = minimizeChain(chain);
+
       reply.status(StatusCodes.OK).send({
         result: {
-          ...chain,
-          rpc: chain.rpc[0],
+          ...minimizeChainData,
+          rpc: minimizeChainData.rpc[0],
         },
       });
     },

@@ -95,7 +95,8 @@ export async function getAllChainData(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const chain = allChains.map((chain) => {
-        return { ...minimizeChain(chain), rpc: chain?.rpc[0] };
+        const minimizeChainData = minimizeChain(chain);
+        return { ...minimizeChainData, rpc: minimizeChainData.rpc[0] };
       });
 
       reply.status(StatusCodes.OK).send({
