@@ -4,8 +4,12 @@ export type CustomError = {
   code: string;
   stack?: string;
 };
-  
-export const createCustomError = (message: string, statusCode: number, code: string): CustomError => ({
+
+export const createCustomError = (
+  message: string,
+  statusCode: number,
+  code: string,
+): CustomError => ({
   message,
   statusCode,
   code,

@@ -19,13 +19,15 @@ const responseSchema = Type.Object({
   }),
 });
 
-responseSchema.examples = [{
-  result: {
-    "name": "ERC20",
-    "symbol": "",
-    "decimals": "18"
-  }
-}];
+responseSchema.examples = [
+  {
+    result: {
+      name: "ERC20",
+      symbol: "",
+      decimals: "18",
+    },
+  },
+];
 
 // LOGIC
 export async function erc20GetMetadata(fastify: FastifyInstance) {
@@ -48,14 +50,17 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const returnData: any = await contract.erc20.get();
       reply.status(StatusCodes.OK).send({
         result: {
           symbol: returnData.symbol,
           name: returnData.name,
           decimals: returnData.decimals,
-        }
+        },
       });
     },
   });

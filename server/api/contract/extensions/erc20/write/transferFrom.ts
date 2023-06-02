@@ -2,10 +2,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Type, Static } from "@sinclair/typebox";
 import { getContractInstace } from "../../../../../../core/index";
-import { 
+import {
   erc20ContractParamSchema,
   standardResponseSchema,
-  transactionWritesResponseSchema
+  transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
 
@@ -57,14 +57,17 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { from_address, to_address, amount } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
 
       const tx = await contract.erc20.transferFrom.prepare(
         from_address,
         to_address,
         amount,
       );
-      
+
       const queuedId = await queueTransaction(
         request,
         tx,

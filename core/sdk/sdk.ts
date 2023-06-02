@@ -6,9 +6,7 @@ import {
   BaseContractForAddress,
 } from "@thirdweb-dev/sdk";
 
-import {
-  ContractAddress
-} from "@thirdweb-dev/generated-abis";
+import { ContractAddress } from "@thirdweb-dev/generated-abis";
 
 import { BaseContract } from "ethers";
 import { getEnv } from "../loadEnv";
@@ -29,14 +27,19 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   );
 
   return sdkMap[chainName] as ThirdwebSDK;
-}
+};
 
-
-export const getContractInstace = async <TContractAddress extends AddressOrEns | ContractAddress>(
+export const getContractInstace = async <
+  TContractAddress extends AddressOrEns | ContractAddress,
+>(
   chain_name_or_id: ChainOrRpc,
-  contract_address: TContractAddress
-): Promise<TContractAddress extends ContractAddress ? SmartContract<BaseContractForAddress<TContractAddress>> : SmartContract<BaseContract>> => {
+  contract_address: TContractAddress,
+): Promise<
+  TContractAddress extends ContractAddress
+    ? SmartContract<BaseContractForAddress<TContractAddress>>
+    : SmartContract<BaseContract>
+> => {
   const sdk = await getSDK(chain_name_or_id);
   const contract = await sdk.getContract(contract_address);
   return contract;
-}
+};

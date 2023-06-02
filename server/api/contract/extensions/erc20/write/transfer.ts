@@ -6,7 +6,7 @@ import { getContractInstace } from "../../../../../../core";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
-  transactionWritesResponseSchema
+  transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
 
@@ -17,7 +17,7 @@ const requestBodySchema = Type.Object({
     description: "Address of the wallet you want to send the tokens to",
   }),
   amount: Type.String({
-   description: 'The amount of tokens you want to send',
+    description: "The amount of tokens you want to send",
   }),
 });
 
@@ -52,9 +52,12 @@ export async function erc20Transfer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { to_address, amount } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc20.transfer.prepare(to_address, amount);
-      
+
       const queuedId = await queueTransaction(
         request,
         tx,

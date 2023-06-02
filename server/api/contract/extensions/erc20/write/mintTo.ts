@@ -16,8 +16,8 @@ const requestBodySchema = Type.Object({
     description: "Address of the wallet to mint the NFT to",
   }),
   amount: Type.String({
-    description: 'The amount of tokens you want to send',
-   }),
+    description: "The amount of tokens you want to send",
+  }),
 });
 
 // Example for the Request Body
@@ -50,7 +50,10 @@ export async function erc20mintTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { to_address, amount } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc20.mintTo.prepare(to_address, amount);
       const queuedId = await queueTransaction(
         request,

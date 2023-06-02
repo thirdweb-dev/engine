@@ -1,8 +1,6 @@
-import fastify, { FastifyInstance } from 'fastify';
-import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import {
-    errorHandler,
-} from '../core';
+import fastify, { FastifyInstance } from "fastify";
+import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import { errorHandler } from "../core";
 import { startNotificationListener } from "./controller/listener";
 import { getLogSettings } from "../core";
 
@@ -17,7 +15,7 @@ const main = async () => {
 
   // The below code is commented out because worker doesn't require any routes
   // but for health-check, if needed in future, uncomment the below code and add the routes
-  
+
   // await server.register(fastifyExpress);
   // await server.ready();
   // server.listen({
@@ -31,21 +29,35 @@ const main = async () => {
   // });
 
   // Start Listening to the Table for new insertion
-  await retryWithTimeout(() => startNotificationListener(server), 3, 5000, server);
+  await retryWithTimeout(
+    () => startNotificationListener(server),
+    3,
+    5000,
+    server,
+  );
 };
 
 // Retry logic with timeout
-const retryWithTimeout = async (fn: () => Promise<any>, retries: number, timeout: number, server: FastifyInstance): Promise<any> => {
+const retryWithTimeout = async (
+  fn: () => Promise<any>,
+  retries: number,
+  timeout: number,
+  server: FastifyInstance,
+): Promise<any> => {
   try {
-    server.log.info('Trying to connect to the database');
+    server.log.info("Trying to connect to the database");
     return await fn();
   } catch (error) {
-    server.log.info(`Retries left: ${retries}, every ${timeout / 1000} seconds`);
+    server.log.info(
+      `Retries left: ${retries}, every ${timeout / 1000} seconds`,
+    );
     if (retries > 0) {
       await new Promise((resolve) => setTimeout(resolve, timeout));
       return await retryWithTimeout(fn, retries - 1, timeout, server);
     } else {
-      throw new Error('Maximum retries exceeded. Unable to recover from the error.');
+      throw new Error(
+        "Maximum retries exceeded. Unable to recover from the error.",
+      );
     }
   }
 };

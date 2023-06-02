@@ -10,23 +10,23 @@ const dbClient = getEnv("DATABASE_CLIENT") ?? "pg";
 
 // Database Connection Setup// Database Connection Setup
 let connection: Knex.PgConnectionConfig = {
-    host: getEnv("POSTGRES_HOST"),
-    user: getEnv("POSTGRES_USER"),
-    password: getEnv("POSTGRES_PASSWORD"),
-    database: DATABASE_NAME,
-    ssl:
-      getEnv("POSTGRES_USE_SSL") === "true"
-        ? {
-            rejectUnauthorized: false,
-          }
-        : false,
+  host: getEnv("POSTGRES_HOST"),
+  user: getEnv("POSTGRES_USER"),
+  password: getEnv("POSTGRES_PASSWORD"),
+  database: DATABASE_NAME,
+  ssl:
+    getEnv("POSTGRES_USE_SSL") === "true"
+      ? {
+          rejectUnauthorized: false,
+        }
+      : false,
 };
 
 export const connectToDB = async (
   server: FastifyInstance | FastifyRequest,
 ): Promise<Knex> => {
   // Creating KNEX Config
-  
+
   // Adding the below as by default PG created the below database
   // We connect to this as a default and then create the DB passed an ENV variable
   connection.database = "postgres";
@@ -84,7 +84,7 @@ export const connectToDB = async (
 
 export const connectWithDatabase = async (
   server: FastifyInstance | FastifyRequest,
-  ): Promise<Knex> => {
+): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection,

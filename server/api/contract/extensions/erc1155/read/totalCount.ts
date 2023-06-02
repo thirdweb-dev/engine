@@ -15,9 +15,11 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
 });
 
-responseSchema.examples = [{
-  result: "1",
-}];
+responseSchema.examples = [
+  {
+    result: "1",
+  },
+];
 
 // LOGIC
 export async function erc1155TotalCount(fastify: FastifyInstance) {
@@ -39,7 +41,10 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const returnData = await contract.erc1155.totalCount();
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

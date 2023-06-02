@@ -12,14 +12,16 @@ import { queueTransaction } from "../../../../../helpers";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-  data: Type.Array(Type.Object({
-    toAddress: Type.String({
-      description: "The address to mint tokens to",
+  data: Type.Array(
+    Type.Object({
+      toAddress: Type.String({
+        description: "The address to mint tokens to",
+      }),
+      amount: Type.String({
+        description: "The number of tokens to mint to the specified address.",
+      }),
     }),
-    amount: Type.String({
-      description: 'The number of tokens to mint to the specified address.',
-    }),
-  })),
+  ),
 });
 
 requestBodySchema.examples = [
@@ -33,8 +35,8 @@ requestBodySchema.examples = [
         toAddress: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
         amount: "0.1",
       },
-    ]
-  }
+    ],
+  },
 ];
 
 export async function erc20mintBatchTo(fastify: FastifyInstance) {
@@ -59,7 +61,10 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { data } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstace(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc20.mintBatchTo.prepare(data);
       const queuedId = await queueTransaction(
         request,

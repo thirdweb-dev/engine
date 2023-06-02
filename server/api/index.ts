@@ -13,15 +13,23 @@ import { erc721Routes } from "./contract/extensions/erc721";
 import { erc1155Routes } from "./contract/extensions/erc1155";
 import { contractTypes } from "./deployer/contractTypes";
 
+// Chain
+import { getChainData } from "./chain/get";
+import { getAllChainData } from "./chain/getAll";
+
 export const apiRoutes = async (fastify: FastifyInstance) => {
-  // deployer
-  await fastify.register(deployPrebuilt);
-  await fastify.register(deployPublished);
-  await fastify.register(contractTypes);
+  // Chains
+  await fastify.register(getChainData);
+  await fastify.register(getAllChainData);
 
   // generic
   await fastify.register(readContract);
   await fastify.register(writeToContract);
+
+  // deployer
+  await fastify.register(deployPrebuilt);
+  await fastify.register(deployPublished);
+  await fastify.register(contractTypes);
 
   // transaction status
   await fastify.register(checkTxStatus);
