@@ -54,9 +54,20 @@ const responseSchema = Type.Object({
 responseSchema.examples = [
   {
     result: {
-      name: "ERC20",
-      symbol: "",
-      decimals: "18",
+      result: {
+        name: "Mumbai",
+        chain: "Polygon",
+        rpc: "https://mumbai.rpc.thirdweb.com/${THIRDWEB_API_KEY}",
+        nativeCurrency: {
+          name: "MATIC",
+          symbol: "MATIC",
+          decimals: 18,
+        },
+        shortName: "maticmum",
+        chainId: 80001,
+        testnet: true,
+        slug: "mumbai",
+      },
     },
   },
 ];

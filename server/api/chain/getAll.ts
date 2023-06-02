@@ -44,11 +44,36 @@ const responseSchema = Type.Object({
 
 responseSchema.examples = [
   {
-    result: {
-      name: "ERC20",
-      symbol: "",
-      decimals: "18",
-    },
+    result: [
+      {
+        name: "Ethereum Mainnet",
+        chain: "ETH",
+        rpc: "https://ethereum.rpc.thirdweb.com/${THIRDWEB_API_KEY}",
+        nativeCurrency: {
+          name: "Ether",
+          symbol: "ETH",
+          decimals: 18,
+        },
+        shortName: "eth",
+        chainId: 1,
+        testnet: false,
+        slug: "ethereum",
+      },
+      {
+        name: "Ropsten",
+        chain: "ETH",
+        rpc: "https://ropsten.rpc.thirdweb.com/${THIRDWEB_API_KEY}",
+        nativeCurrency: {
+          name: "Ropsten Ether",
+          symbol: "ETH",
+          decimals: 18,
+        },
+        shortName: "rop",
+        chainId: 3,
+        testnet: true,
+        slug: "ropsten",
+      },
+    ],
   },
 ];
 
