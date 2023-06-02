@@ -59,11 +59,9 @@ const replyBodySchema = Type.Object({
   result: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
 });
 
-replyBodySchema.examples = [
-  {
-    result: "ERC20-Test-Token",
-  },
-];
+replyBodySchema.example = {
+  result: "ERC20-Test-Token",
+};
 
 const replyErrorBodySchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
