@@ -25,15 +25,15 @@ const main = async () => {
       !request.routerPath.includes("static") &&
       !request.routerPath.includes("json")
     ) {
-      if (request.body) {
+      if (request.body && Object.keys(request.body).length > 0) {
         request.log.info({ ...request.body }, "Request Body : ");
       }
 
-      if (request.params) {
+      if (request.params && Object.keys(request.params).length > 0) {
         request.log.info({ ...request.params }, "Request Params : ");
       }
 
-      if (request.query) {
+      if (request.query && Object.keys(request.query).length > 0) {
         request.log.info({ ...request.query }, "Request Querystring : ");
       }
     }
