@@ -22,7 +22,7 @@ const responseSchema = Type.Object({
   result: nftSchema,
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: {
       metadata: {

@@ -27,17 +27,15 @@ const responseSchema = Type.Object({
   result: erc20MetadataSchema,
 });
 
-responseSchema.examples = [
-  {
-    result: {
-      name: "ERC20",
-      symbol: "",
-      decimals: "18",
-      value: "0",
-      displayValue: "0.0",
-    },
+responseSchema.example = {
+  result: {
+    name: "ERC20",
+    symbol: "",
+    decimals: "18",
+    value: "0",
+    displayValue: "0.0",
   },
-];
+};
 
 // LOGIC
 export async function erc20AllowanceOf(fastify: FastifyInstance) {

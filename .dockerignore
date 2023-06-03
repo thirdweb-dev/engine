@@ -10,3 +10,4 @@ docker-compose-prod.yml
 docker-compose.yml
 Dockerfile
 .DS_Store
+swagger.yml

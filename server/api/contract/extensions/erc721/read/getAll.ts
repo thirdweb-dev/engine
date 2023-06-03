@@ -30,25 +30,22 @@ const responseSchema = Type.Object({
   result: Type.Array(nftSchema),
 });
 
-responseSchema.examples = [
-  {
-    result: [
-      {
-        metadata: {
-          id: "2",
-          uri: "ipfs://QmWDdRcLqVMzFeawADAPr2EFCzdqCzx373VpWK3Kfx25GJ/0",
-          name: "My NFT",
-          description: "My NFT description",
-          image:
-            "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
-        },
-        owner: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-        type: "ERC721",
-        supply: "1",
+responseSchema.example = {
+  result: [
+    {
+      metadata: {
+        id: "2",
+        uri: "ipfs://QmWDdRcLqVMzFeawADAPr2EFCzdqCzx373VpWK3Kfx25GJ/0",
+        name: "My NFT",
+        description: "My NFT description",
+        image: "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
       },
-    ],
-  },
-];
+      owner: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+      type: "ERC721",
+      supply: "1",
+    },
+  ],
+};
 
 // LOGIC
 export async function erc721GetAll(fastify: FastifyInstance) {

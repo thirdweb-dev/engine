@@ -21,7 +21,7 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: "100000000",
   },
