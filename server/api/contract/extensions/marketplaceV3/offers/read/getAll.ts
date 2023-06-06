@@ -6,11 +6,9 @@ import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import {
-  getAllFilterSchema,
-  directListingV3OutputSchema,
-} from "../../../../../../schemas/marketplaceV3/directListing";
-import { formatDirectListingV3Result } from "../../../../../../helpers/marketplaceV3";
+import { getAllFilterSchema } from "../../../../../../schemas/marketplaceV3/directListing";
+import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
+import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
 
 // INPUT
 const requestSchema = contractParamSchema;
@@ -18,7 +16,7 @@ const requestQuerySchema = getAllFilterSchema;
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(directListingV3OutputSchema),
+  result: Type.Array(OfferV3OutputSchema),
 });
 
 responseSchema.examples = [
@@ -27,18 +25,18 @@ responseSchema.examples = [
       {
         assetContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
         tokenId: "0",
-        currencyContractAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        currencyContractAddress: "0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889",
         quantity: "1",
-        pricePerToken: "10000000000",
-        isReservedListing: false,
         id: "0",
-        currencyValuePerToken: {
-          name: "MATIC",
-          symbol: "MATIC",
+        offerorAddress: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+        currencyValue: {
+          name: "Wrapped Matic",
+          symbol: "WMATIC",
           decimals: 18,
           value: "10000000000",
           displayValue: "0.00000001",
         },
+        totalPrice: "10000000000",
         asset: {
           id: "0",
           uri: "ipfs://QmPw2Dd1dnB6dQCnqGayCTnxUxHrB7m4YFeyph6PYPMboP/0",
@@ -52,27 +50,27 @@ responseSchema.examples = [
             },
           ],
         },
-        status: 1,
-        startTimeInSeconds: 1686006043038,
         endTimeInSeconds: 1686610889058,
+        status: 4,
       },
     ],
   },
 ];
 
 // LOGIC
-export async function dlGetAllValid(fastify: FastifyInstance) {
+export async function offersGetAll(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/getAllValid",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/offers/getAll",
     schema: {
-      description: "Get all the valid direct listings on the marketplace.",
-      tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_dlGetAllValid",
+      description:
+        "Get all offers on the smart contract. Optionally, provide a filter to filter the offers returned.",
+      tags: ["MarketplaceV3-Offers"],
+      operationId: "mktpv3_offersGetAll",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -88,7 +86,7 @@ export async function dlGetAllValid(fastify: FastifyInstance) {
         chain_name_or_id,
         contract_address,
       );
-      const result = await contract.directListings.getAllValid({
+      const result = await contract.offers.getAll({
         start,
         count,
         tokenContract,
@@ -98,7 +96,7 @@ export async function dlGetAllValid(fastify: FastifyInstance) {
       });
 
       const finalResult = result.map((data) => {
-        return formatDirectListingV3Result(data);
+        return formatOffersV3Result(data);
       });
       reply.status(StatusCodes.OK).send({
         result: finalResult,

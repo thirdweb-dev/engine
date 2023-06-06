@@ -23,18 +23,38 @@ responseSchema.examples = [
   {
     result: [
       {
-        metadata: {
-          id: "0",
-          uri: "ipfs://QmdaWX1GEwnFW4NooYRej5BQybKNLdxkWtMwyw8KiWRueS/0",
-          name: "My Edition NFT",
-          description: "My Edition NFT description",
-          image:
-            "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
+        assetContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
+        tokenId: "0",
+        currencyContractAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        quantity: "1",
+        id: "0",
+        minimumBidAmount: "10000000000",
+        buyoutBidAmount: "10000000000",
+        buyoutCurrencyValue: {
+          name: "MATIC",
+          symbol: "MATIC",
+          decimals: 18,
+          value: "10000000000",
+          displayValue: "0.00000001",
         },
-        owner: "0xE79ee09bD47F4F5381dbbACaCff2040f2FbC5803",
-        type: "ERC1155",
-        supply: "100",
-        quantityOwned: "100",
+        timeBufferInSeconds: 600,
+        bidBufferBps: 100,
+        startTimeInSeconds: 1686006043038,
+        endTimeInSeconds: 1686610889058,
+        asset: {
+          id: "0",
+          uri: "ipfs://QmPw2Dd1dnB6dQCnqGayCTnxUxHrB7m4YFeyph6PYPMboP/0",
+          name: "TJ-Origin",
+          description: "Origin",
+          external_url: "",
+          attributes: [
+            {
+              trait_type: "Mode",
+              value: "GOD",
+            },
+          ],
+        },
+        status: 1,
       },
     ],
   },
@@ -51,7 +71,7 @@ export async function eaGetAll(fastify: FastifyInstance) {
     url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/getAll",
     schema: {
       description: "Retrieve data for all auction listings on the marketplace.",
-      tags: ["MarketplaceV3-EnglishAuction"],
+      tags: ["MarketplaceV3-EnglishAuctions"],
       operationId: "mktpv3_eaGetAll",
       params: requestSchema,
       querystring: requestQuerySchema,

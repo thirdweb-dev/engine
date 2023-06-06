@@ -37,7 +37,7 @@ export async function dlCreateListing(fastify: FastifyInstance) {
     url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/createListing",
     schema: {
       description: "Create a new direct listing on the marketplace.",
-      tags: ["MarketplaceV3-DirectListing"],
+      tags: ["MarketplaceV3-DirectListings"],
       operationId: "mktpv3_dlCreateListing",
       params: requestSchema,
       body: requestBodySchema,
@@ -78,7 +78,7 @@ export async function dlCreateListing(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktplcV3-directListing",
+        "mktV3-directListings",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

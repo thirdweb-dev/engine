@@ -32,7 +32,7 @@ export async function dlGetTotalCount(fastify: FastifyInstance) {
     schema: {
       description:
         "Get the total number of direct listings on the marketplace.",
-      tags: ["MarketplaceV3-DirectListing"],
+      tags: ["MarketplaceV3-DirectListings"],
       operationId: "mktpv3_getTotalCount",
       params: requestSchema,
       response: {

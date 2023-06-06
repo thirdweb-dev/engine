@@ -24,8 +24,12 @@ export const formatEnglishAuctionResult = (listing: EnglishAuction) => {
   };
 };
 
-export const formatOffersResult = (offer: OfferV3) => {
+export const formatOffersV3Result = (offer: OfferV3) => {
   return {
     ...offer,
+    currencyValue: {
+      ...offer.currencyValue,
+      value: offer.currencyValue.value.toString(),
+    },
   };
 };

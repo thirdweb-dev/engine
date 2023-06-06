@@ -6,20 +6,20 @@ import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import { formatEnglishAuctionResult } from "../../../../../../helpers/marketplaceV3";
-import { englishAuctionOutputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
+import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
+import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
 
 // INPUT
 const requestSchema = contractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
-    description: "The id of the listing to retrieve.",
+  offer_id: Type.String({
+    description: "The ID of the offer to get information about.",
   }),
 });
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: englishAuctionOutputSchema,
+  result: OfferV3OutputSchema,
 });
 
 responseSchema.examples = [
@@ -44,19 +44,19 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function eaGetAuction(fastify: FastifyInstance) {
+export async function offersGetOffer(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/getAuction",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/offers/getOffer",
     schema: {
       description:
-        "Retrieve data for a specific auction listing on the marketplace using the listing ID.",
-      tags: ["MarketplaceV3-EnglishAuctions"],
-      operationId: "mktpv3_eaGetAuction",
+        "Get information about a specific offer using the offer’s ID.",
+      tags: ["MarketplaceV3-Offers"],
+      operationId: "mktpv3_offersGetOffer",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -66,15 +66,15 @@ export async function eaGetAuction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { listing_id } = request.query;
+      const { offer_id } = request.query;
       const contract = await getContractInstace(
         chain_name_or_id,
         contract_address,
       );
-      const result = await contract.englishAuctions.getAuction(listing_id);
+      const result = await contract.offers.getOffer(offer_id);
 
       reply.status(StatusCodes.OK).send({
-        result: formatEnglishAuctionResult(result),
+        result: formatOffersV3Result(result),
       });
     },
   });

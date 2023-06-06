@@ -20,6 +20,21 @@ import { eaGetMinimumNextBid } from "./englishAuctions/read/getMinimumNextBid";
 import { eaGetWinningBid } from "./englishAuctions/read/getWinningBid";
 import { eaIsWinningBid } from "./englishAuctions/read/isWinningBid";
 import { eaGetTotalCount } from "./englishAuctions/read/getTotalCount";
+import { eaBuyoutAuction } from "./englishAuctions/write/buyoutAuction";
+import { eaCancelAuction } from "./englishAuctions/write/cancelAuction";
+import { eaCreateAuction } from "./englishAuctions/write/createAuction";
+import { eaCloseAuctionForBidder } from "./englishAuctions/write/closeAuctionForBidder";
+import { eaCloseAuctionForSeller } from "./englishAuctions/write/closeAuctionForSeller";
+import { eaExecuteSale } from "./englishAuctions/write/executeSale";
+import { eaMakeBid } from "./englishAuctions/write/makeBid";
+
+import { offersGetAll } from "./offers/read/getAll";
+import { offersGetAllValid } from "./offers/read/getAllValid";
+import { offersGetOffer } from "./offers/read/getOffer";
+import { offersGetTotalCount } from "./offers/read/getTotalCount";
+import { offersCancelOffer } from "./offers/write/cancelOffer";
+import { offersAcceptOffer } from "./offers/write/acceptOffer";
+import { offersMakeOffer } from "./offers/write/makeOffer";
 
 export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
   // READ
@@ -42,6 +57,12 @@ export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
   await fastify.register(eaGetTotalCount);
   await fastify.register(eaIsWinningBid);
 
+  // Offers
+  await fastify.register(offersGetAll);
+  await fastify.register(offersGetAllValid);
+  await fastify.register(offersGetOffer);
+  await fastify.register(offersGetTotalCount);
+
   // WRITE
 
   // Direct Listings
@@ -51,4 +72,18 @@ export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
   await fastify.register(dlApproveBuyerForReservedListing);
   await fastify.register(dlRevokeBuyerApprovalForReservedListing);
   await fastify.register(dlRevokeCurrencyApprovalForListing);
+
+  // English Auctions
+  await fastify.register(eaBuyoutAuction);
+  await fastify.register(eaCancelAuction);
+  await fastify.register(eaCreateAuction);
+  await fastify.register(eaCloseAuctionForBidder);
+  await fastify.register(eaCloseAuctionForSeller);
+  await fastify.register(eaExecuteSale);
+  await fastify.register(eaMakeBid);
+
+  // Offers
+  await fastify.register(offersMakeOffer);
+  await fastify.register(offersCancelOffer);
+  await fastify.register(offersAcceptOffer);
 };

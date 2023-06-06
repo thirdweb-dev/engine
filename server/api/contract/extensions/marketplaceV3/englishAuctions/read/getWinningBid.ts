@@ -38,7 +38,7 @@ export async function eaGetWinningBid(fastify: FastifyInstance) {
     url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/getWinningBid",
     schema: {
       description: "Get the current highest bid of an active auction.",
-      tags: ["MarketplaceV3-EnglishAuction"],
+      tags: ["MarketplaceV3-EnglishAuctions"],
       operationId: "mktpv3_eaGetWinningBid",
       params: requestSchema,
       querystring: requestQuerySchema,

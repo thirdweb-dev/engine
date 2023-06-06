@@ -183,30 +183,6 @@ export const erc721ContractParamSchema = Type.Object({
   }),
 });
 
-/**
- * Basic schema for Marketplace V3
- *
- */
-export const basicMarketPlaceInputSchema = Type.Object({
-  assetContractAddress: Type.String({
-    description: "The address of the asset being listed.",
-  }),
-  tokenId: Type.String({
-    description: "The ID of the token to list.",
-  }),
-  currencyContractAddress: Type.Optional(
-    Type.String({
-      description: "The address of the currency to accept for the listing.",
-    }),
-  ),
-  quantity: Type.Optional(
-    Type.String({
-      description:
-        "The quantity of tokens to include in the listing. NOTE: For ERC721s, this value should always be 1 (and will be forced internally regardless of what is passed here).",
-    }),
-  ),
-});
-
 export const currencyValueSchema = Type.Object({
   name: Type.String(),
   symbol: Type.String(),
@@ -217,3 +193,12 @@ export const currencyValueSchema = Type.Object({
 
 currencyValueSchema.description =
   "The `CurrencyValue` of the listing. Useful for displaying the price information.";
+
+export enum Status {
+  UNSET = 0,
+  Created = 1,
+  Completed = 2,
+  Cancelled = 3,
+  Active = 4,
+  Expired = 5,
+}

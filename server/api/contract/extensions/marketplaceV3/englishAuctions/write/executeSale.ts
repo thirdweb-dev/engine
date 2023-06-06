@@ -66,7 +66,7 @@ export async function eaExecuteSale(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktplcV3-englishAuction",
+        "mktV3-engAuctions",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

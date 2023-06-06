@@ -41,7 +41,7 @@ export async function dlIsBuyerApprovedForListing(fastify: FastifyInstance) {
     schema: {
       description:
         "Check if a buyer is approved to purchase a reserved listing.",
-      tags: ["MarketplaceV3-DirectListing"],
+      tags: ["MarketplaceV3-DirectListings"],
       operationId: "mktpv3_isBuyerApprovedForListing",
       params: requestSchema,
       querystring: requestQuerySchema,

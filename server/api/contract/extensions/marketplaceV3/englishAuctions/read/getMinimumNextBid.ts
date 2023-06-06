@@ -40,7 +40,7 @@ export async function eaGetMinimumNextBid(fastify: FastifyInstance) {
       description: `Helper function to calculate the value that the next bid must be in order to be accepted. 
         If there is no current bid, the bid must be at least the minimum bid amount.
         If there is a current bid, the bid must be at least the current bid amount + the bid buffer.`,
-      tags: ["MarketplaceV3-EnglishAuction"],
+      tags: ["MarketplaceV3-EnglishAuctions"],
       operationId: "mktpv3_eaGetMinimumNextBid",
       params: requestSchema,
       querystring: requestQuerySchema,

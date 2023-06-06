@@ -55,7 +55,7 @@ export async function dlGetListing(fastify: FastifyInstance) {
     schema: {
       description:
         "Retrieve data for a specific direct listing on the marketplace using the listing ID.",
-      tags: ["MarketplaceV3-DirectListing"],
+      tags: ["MarketplaceV3-DirectListings"],
       operationId: "mktpv3_getListing",
       params: requestSchema,
       querystring: requestQuerySchema,

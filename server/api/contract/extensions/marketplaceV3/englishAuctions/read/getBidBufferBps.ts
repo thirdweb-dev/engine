@@ -43,7 +43,7 @@ export async function eaGetBidBufferBps(fastify: FastifyInstance) {
         This is the percentage higher that a new bid must be than the current highest bid in order to be placed. 
         If there is no current bid, the bid must be at least the minimum bid amount.
         Returns the value in percentage format, e.g. 100 = 1%.`,
-      tags: ["MarketplaceV3-EnglishAuction"],
+      tags: ["MarketplaceV3-EnglishAuctions"],
       operationId: "mktpv3_eaGetBidBufferBps",
       params: requestSchema,
       querystring: requestQuerySchema,

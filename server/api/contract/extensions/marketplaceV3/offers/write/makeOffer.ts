@@ -8,40 +8,37 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../../helpers";
-import { englishAuctionInputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
+import { OfferV3InputSchema } from "../../../../../../schemas/marketplaceV3/offer";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestBodySchema = englishAuctionInputSchema;
+const requestBodySchema = OfferV3InputSchema;
 
 requestBodySchema.examples = [
   {
     assetContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
     tokenId: "0",
     quantity: "1",
-    startTimestamp: 1686006043038,
     endTimestamp: 1686610889058,
-    buyoutBidAmount: "0.00000001",
-    minimumBidAmount: "0.00000001",
     currencyContractAddress: "0x...",
-    bidBufferBps: 100,
-    timeBufferInSeconds: 60 * 10,
+    totalPrice: "0.00000001",
   },
 ];
 
 // LOGIC
-export async function eaCreateAuction(fastify: FastifyInstance) {
+export async function offersMakeOffer(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/createAuction",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/offers/makeOffer",
     schema: {
-      description: "Create a new auction listing on the marketplace.",
-      tags: ["MarketplaceV3-EnglishAuctions"],
-      operationId: "mktpv3_eaCreateAuction",
+      description:
+        "Make a new offer on an NFT. Offers can be made on any NFT, regardless of whether it is listed for sale or not.",
+      tags: ["MarketplaceV3-Offers"],
+      operationId: "mktpv3_offerMakeOffer",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -54,38 +51,30 @@ export async function eaCreateAuction(fastify: FastifyInstance) {
       const {
         assetContractAddress,
         tokenId,
-        buyoutBidAmount,
-        minimumBidAmount,
+        totalPrice,
         currencyContractAddress,
-        quantity,
-        startTimestamp,
         endTimestamp,
-        bidBufferBps,
-        timeBufferInSeconds,
+        quantity,
       } = request.body;
 
       const contract = await getContractInstace(
         chain_name_or_id,
         contract_address,
       );
-      const tx = await contract.englishAuctions.createAuction.prepare({
+      const tx = await contract.offers.makeOffer.prepare({
         assetContractAddress,
         tokenId,
-        buyoutBidAmount,
-        minimumBidAmount,
+        totalPrice,
         currencyContractAddress,
-        quantity,
-        startTimestamp,
         endTimestamp,
-        bidBufferBps,
-        timeBufferInSeconds,
+        quantity,
       });
 
       const queuedId = await queueTransaction(
         request,
         tx,
         chain_name_or_id,
-        "mktV3-engAuctions",
+        "mktV3-offers",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

@@ -38,7 +38,7 @@ export async function eaGetAuction(fastify: FastifyInstance) {
     schema: {
       description:
         "Get the wallet address that won an auction. Can only be called after the auction has ended.",
-      tags: ["MarketplaceV3-EnglishAuction"],
+      tags: ["MarketplaceV3-EnglishAuctions"],
       operationId: "mktpv3_eaGetWinner",
       params: requestSchema,
       querystring: requestQuerySchema,

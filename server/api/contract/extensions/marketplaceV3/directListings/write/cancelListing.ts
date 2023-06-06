@@ -62,7 +62,7 @@ export async function dlCancelListing(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktplcV3-directListing",
+        "mktV3-directListings",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

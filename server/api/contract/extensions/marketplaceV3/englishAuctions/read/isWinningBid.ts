@@ -42,7 +42,7 @@ export async function eaIsWinningBid(fastify: FastifyInstance) {
     schema: {
       description:
         "Check if a value is/would be the current winning bid of an auction.",
-      tags: ["MarketplaceV3-EnglishAuction"],
+      tags: ["MarketplaceV3-EnglishAuctions"],
       operationId: "mktpv3_eaIsWinningBid",
       params: requestSchema,
       querystring: requestQuerySchema,
