@@ -7,12 +7,15 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import { directListingV3InputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import { queueTransaction } from "../../../../../../helpers";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestBodySchema = directListingV3InputSchema;
+const requestBodySchema = Type.Object({
+  listing_id: Type.String({
+    description: "The ID of the listing to execute the sale for.",
+  }),
+});
 
 requestBodySchema.examples = [
   {
@@ -27,18 +30,21 @@ requestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function dlCreateListing(fastify: FastifyInstance) {
+export async function eaExecuteSale(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/createListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/executeSale",
     schema: {
-      description: "Create a new direct listing on the marketplace.",
-      tags: ["MarketplaceV3-DirectListing"],
-      operationId: "mktpv3_dlCreateListing",
+      description: `Close the auction for both buyer and seller.
+      This means the NFT(s) will be transferred to the buyer and the seller will receive the funds.
+      This function can only be called after the auction has ended.
+      `,
+      tags: ["MarketplaceV3-EnglishAuctions"],
+      operationId: "mktpv3_eaExecuteSale",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -48,37 +54,19 @@ export async function dlCreateListing(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const {
-        assetContractAddress,
-        tokenId,
-        pricePerToken,
-        currencyContractAddress,
-        isReservedListing,
-        quantity,
-        startTimestamp,
-        endTimestamp,
-      } = request.body;
+      const { listing_id } = request.body;
 
       const contract = await getContractInstace(
         chain_name_or_id,
         contract_address,
       );
-      const tx = await contract.directListings.createListing.prepare({
-        assetContractAddress,
-        tokenId,
-        pricePerToken,
-        currencyContractAddress,
-        isReservedListing,
-        quantity,
-        startTimestamp,
-        endTimestamp,
-      });
+      const tx = await contract.englishAuctions.executeSale.prepare(listing_id);
 
       const queuedId = await queueTransaction(
         request,
         tx,
         chain_name_or_id,
-        "mktplcV3-directListing",
+        "mktplcV3-englishAuction",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

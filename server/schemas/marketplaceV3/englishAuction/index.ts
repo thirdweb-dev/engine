@@ -37,6 +37,24 @@ export const englishAuctionInputSchema = Type.Intersect([
           "The end time of the listing. If not set, defaults to 7 days from now.",
       }),
     ),
+    buyoutBidAmount: Type.String({
+      description: "amount to buy the NFT and close the listing.",
+    }),
+    minimumBidAmount: Type.String({
+      description: "Minimum amount that bids must be to placed",
+    }),
+    bidBufferBps: Type.Optional(
+      Type.String({
+        description:
+          "percentage the next bid must be higher than the current highest bid (default is contract-level bid buffer bps)",
+      }),
+    ),
+    timeBufferInSeconds: Type.Optional(
+      Type.String({
+        description:
+          "time in seconds that are added to the end time when a bid is placed (default is contract-level time buffer in seconds)",
+      }),
+    ),
   }),
 ]);
 

@@ -7,12 +7,12 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import { directListingV3InputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import { queueTransaction } from "../../../../../../helpers";
+import { englishAuctionInputSchema } from "server/schemas/marketplaceV3/englishAuction";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestBodySchema = directListingV3InputSchema;
+const requestBodySchema = englishAuctionInputSchema;
 
 requestBodySchema.examples = [
   {
@@ -27,18 +27,18 @@ requestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function dlCreateListing(fastify: FastifyInstance) {
+export async function eaCreateAuction(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/createListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/createAuction",
     schema: {
-      description: "Create a new direct listing on the marketplace.",
-      tags: ["MarketplaceV3-DirectListing"],
-      operationId: "mktpv3_dlCreateListing",
+      description: "Create a new auction listing on the marketplace.",
+      tags: ["MarketplaceV3-EnglishAuctions"],
+      operationId: "mktpv3_eaCreateAuction",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -51,34 +51,38 @@ export async function dlCreateListing(fastify: FastifyInstance) {
       const {
         assetContractAddress,
         tokenId,
-        pricePerToken,
+        buyoutBidAmount,
+        minimumBidAmount,
         currencyContractAddress,
-        isReservedListing,
         quantity,
         startTimestamp,
         endTimestamp,
+        bidBufferBps,
+        timeBufferInSeconds,
       } = request.body;
 
       const contract = await getContractInstace(
         chain_name_or_id,
         contract_address,
       );
-      const tx = await contract.directListings.createListing.prepare({
+      const tx = await contract.englishAuctions.createAuction.prepare({
         assetContractAddress,
         tokenId,
-        pricePerToken,
+        buyoutBidAmount,
+        minimumBidAmount,
         currencyContractAddress,
-        isReservedListing,
         quantity,
         startTimestamp,
         endTimestamp,
+        bidBufferBps,
+        timeBufferInSeconds,
       });
 
       const queuedId = await queueTransaction(
         request,
         tx,
         chain_name_or_id,
-        "mktplcV3-directListing",
+        "mktplcV3-englishAuction",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,
