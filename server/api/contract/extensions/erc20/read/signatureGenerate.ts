@@ -70,27 +70,11 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
         contract_address,
       );
 
-      if (!timestampValidator(mintStartTime)) {
-        throw createCustomError(
-          "Invalid mintStartTime. Must be a valid timestamp",
-          StatusCodes.BAD_REQUEST,
-          "INVALID_TIMESTAMP_ERROR",
-        );
-      }
-
-      if (!timestampValidator(mintEndTime)) {
-        throw createCustomError(
-          "Invalid mintEndTime. Must be a valid timestamp",
-          StatusCodes.BAD_REQUEST,
-          "INVALID_TIMESTAMP_ERROR",
-        );
-      }
-
       const payload = {
         to,
         currencyAddress,
-        mintEndTime, //: mintEndTime ? new Date(mintEndTime) : undefined,
-        mintStartTime, //: mintStartTime ? new Date(mintStartTime) : undefined,
+        mintEndTime: mintEndTime ? new Date(mintEndTime) : undefined,
+        mintStartTime: mintStartTime ? new Date(mintStartTime) : undefined,
         price,
         primarySaleRecipient,
         quantity,

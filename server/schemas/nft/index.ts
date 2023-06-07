@@ -95,17 +95,17 @@ export const signature721InputSchema = Type.Object({
     }),
   ),
   mintStartTime: Type.Optional(
-    Type.Number({
+    Type.String({
+      format: "date-time",
       description:
-        "The time from which the signature can be used to mint tokens. Defaults to now.",
-      default: Date.now(),
+        "The time from which the signature can be used to mint tokens. Defaults to now. Value must be an ISO 8601 date-time string format",
     }),
   ),
   mintEndTime: Type.Optional(
-    Type.Number({
+    Type.String({
+      format: "date-time",
       description:
-        "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
-      default: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).getTime(),
+        "The time until which the signature can be used to mint tokens. Defaults to 10 years from now. Value must be an ISO 8601 date-time string format",
     }),
   ),
 });
@@ -150,12 +150,10 @@ export const signature721OutputSchema = Type.Object({
   mintStartTime: Type.Number({
     description:
       "The time from which the signature can be used to mint tokens. Defaults to now.",
-    default: Date.now(),
   }),
   mintEndTime: Type.Number({
     description:
       "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
-    default: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).getTime(),
   }),
 });
 
@@ -199,15 +197,15 @@ export const signature1155InputSchema = Type.Object({
       "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
     default: "0",
   }),
-  mintStartTime: Type.Number({
+  mintStartTime: Type.String({
+    format: "date-time",
     description:
-      "The time from which the signature can be used to mint tokens. Defaults to now.",
-    default: Date.now(),
+      "The time from which the signature can be used to mint tokens. Defaults to now. Value must be an ISO 8601 date-time string format",
   }),
-  mintEndTime: Type.Number({
+  mintEndTime: Type.String({
+    format: "date-time",
     description:
-      "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
-    default: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).getTime(),
+      "The time until which the signature can be used to mint tokens. Defaults to 10 years from now. Value must be an ISO 8601 date-time string format",
   }),
 });
 
@@ -251,13 +249,11 @@ export const signature1155OutputSchema = Type.Object({
   }),
   mintStartTime: Type.Number({
     description:
-      "The time from which the signature can be used to mint tokens. Defaults to now.",
-    default: Date.now(),
+      "The time from which the signature can be used to mint tokens. Defaults to now if value not provided.",
   }),
   mintEndTime: Type.Number({
     description:
       "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
-    default: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).getTime(),
   }),
 });
 
@@ -271,6 +267,8 @@ signature721InputSchema.examples = [
       name: "test tokenII",
       description: "test token",
     },
+    mintStartTime: "2023-06-07T21:51:33.386Z",
+    mintEndTime: "2023-07-07T21:51:33.386Z",
   },
 ];
 
