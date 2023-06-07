@@ -20,10 +20,12 @@ export const signature20InputSchema = Type.Object({
   quantity: Type.String({
     description: "The number of tokens this signature can be used to mint.",
   }),
-  primarySaleRecipient: Type.String({
-    description:
-      "If a price is specified, the funds will be sent to the primarySaleRecipient address. Defaults to the primarySaleRecipient address of the contract.",
-  }),
+  primarySaleRecipient: Type.Optional(
+    Type.String({
+      description:
+        "If a price is specified, the funds will be sent to the primarySaleRecipient address. Defaults to the primarySaleRecipient address of the contract.",
+    }),
+  ),
   uid: Type.Optional(
     Type.String({
       description: `A unique identifier for the payload, used to prevent replay attacks and other types of exploits.
@@ -38,21 +40,27 @@ export const signature20InputSchema = Type.Object({
         "The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS",
     }),
   ),
-  price: Type.String({
-    description:
-      "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
-    default: "0",
-  }),
-  mintStartTime: Type.Number({
-    description:
-      "The time from which the signature can be used to mint tokens. Defaults to now.",
-    default: Date.now(),
-  }),
-  mintEndTime: Type.Number({
-    description:
-      "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
-    default: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).getTime(),
-  }),
+  price: Type.Optional(
+    Type.String({
+      description:
+        "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
+      default: "0",
+    }),
+  ),
+  mintStartTime: Type.Optional(
+    Type.String({
+      format: "date-time",
+      description:
+        "The time from which the signature can be used to mint tokens. Value must be an ISO 8601 date-time string format. Defaults to now. ",
+    }),
+  ),
+  mintEndTime: Type.Optional(
+    Type.String({
+      format: "date-time",
+      description:
+        "The time until which the signature can be used to mint tokens. Value must be an ISO 8601 date-time string format. Defaults to 10 years from now.",
+    }),
+  ),
 });
 
 export const signature20OutputSchema = Type.Object({
@@ -93,3 +101,29 @@ export const signature20OutputSchema = Type.Object({
     default: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).getTime(),
   }),
 });
+
+signature20InputSchema.examples = [
+  {
+    to: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+    quantity: "1",
+    mintStartTime: "2023-06-07T21:51:33.386Z",
+    mintEndTime: "2023-07-07T21:51:33.386Z",
+  },
+];
+
+signature20OutputSchema.examples = [
+  {
+    payload: {
+      to: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+      quantity: "1",
+      primarySaleRecipient: "0x0000000000000000000000000000000000000000",
+      uid: "0x3834383133343631326235613434363261623532623264643462336239373634",
+      currencyAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      price: "0",
+      mintStartTime: 1686174693,
+      mintEndTime: 1688766693,
+    },
+    signature:
+      "0xe16697bf7ede4ff4918f0dbc84953b964a84fed70cb3a0b0afb3ee9a55c9ff4d14e029bce8d8c74e71c1de32889c4eff529a9f7d45402455b8d15c7e6993c1c91b",
+  },
+];
