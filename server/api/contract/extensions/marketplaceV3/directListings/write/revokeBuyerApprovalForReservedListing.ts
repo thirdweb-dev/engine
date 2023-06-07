@@ -43,7 +43,7 @@ export async function dlRevokeBuyerApprovalForReservedListing(
       description:
         "Revoke approval for a buyer to purchase a reserved listing.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_approveBuyerForReservedListing",
+      operationId: "mktpv3_revokeBuyerApprovalForReservedListing",
       params: requestSchema,
       body: requestBodySchema,
       response: {
