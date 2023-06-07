@@ -21,7 +21,7 @@ const requestBodySchema = Type.Intersect([
   directListingV3InputSchema,
 ]);
 
-requestBodySchema.example = [
+requestBodySchema.examples = [
   {
     listing_id: "0",
     assetContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
