@@ -3,39 +3,41 @@ import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
 import { getContractInstace } from "../../../../../../core/index";
 import {
-  erc20ContractParamSchema,
+  contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
+import { signature1155OutputSchema } from "../../../../../schemas/nft";
+import { SignedPayload1155 } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
 
 // INPUTS
-const requestSchema = erc20ContractParamSchema;
+const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  amount: Type.String({
-    description: "The amount of tokens you want to burn",
-  }),
+  payload: signature1155OutputSchema,
+  signature: Type.String(),
 });
 
-// Example for the Request Body
 requestBodySchema.examples = [
   {
-    amount: "0.1",
+    payload: {},
+    signature: "",
   },
 ];
 
-export async function erc20burn(fastify: FastifyInstance) {
+export async function erc1155SignatureMint(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc20/burn",
+    url: "/contract/:chain_name_or_id/:contract_address/erc1155/signature/mint",
     schema: {
-      description: "Burn Tokens held by the connected wallet.",
-      tags: ["ERC20"],
-      operationId: "erc20_burn",
+      description: "Mint tokens from a previously generated signature.",
+      tags: ["ERC1155"],
+      operationId: "erc1155_signature_mint",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -45,17 +47,29 @@ export async function erc20burn(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const { amount } = request.body;
+      const { payload, signature } = request.body;
       const contract = await getContractInstace(
         chain_name_or_id,
         contract_address,
       );
-      const tx = await contract.erc20.burn.prepare(amount);
+
+      const signedPayload: SignedPayload1155 = {
+        payload: {
+          ...payload,
+          royaltyBps: BigNumber.from(payload.royaltyBps),
+          quantity: BigNumber.from(payload.quantity),
+          mintStartTime: BigNumber.from(payload.mintStartTime),
+          mintEndTime: BigNumber.from(payload.mintEndTime),
+          tokenId: BigNumber.from(payload.tokenId),
+        },
+        signature,
+      };
+      const tx = await contract.erc1155.signature.mint.prepare(signedPayload);
       const queuedId = await queueTransaction(
         request,
         tx,
         chain_name_or_id,
-        "erc20",
+        "erc721",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

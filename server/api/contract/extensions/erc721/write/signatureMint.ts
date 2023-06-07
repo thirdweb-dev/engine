@@ -10,6 +10,7 @@ import {
 import { queueTransaction } from "../../../../../helpers";
 import { signature721OutputSchema } from "../../../../../schemas/nft";
 import { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -53,7 +54,13 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
       );
 
       const signedPayload: SignedPayload721WithQuantitySignature = {
-        payload,
+        payload: {
+          ...payload,
+          royaltyBps: BigNumber.from(payload.royaltyBps),
+          quantity: BigNumber.from(payload.quantity),
+          mintStartTime: BigNumber.from(payload.mintStartTime),
+          mintEndTime: BigNumber.from(payload.mintEndTime),
+        },
         signature,
       };
       const tx = await contract.erc721.signature.mint.prepare(signedPayload);
