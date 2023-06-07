@@ -71,9 +71,6 @@ export const processTransaction = async (
         from: tx.walletAddress,
         data: tx.encodedInputData,
         nonce: txSubmittedNonce,
-        customData: {
-          Hello: "World",
-        },
       };
 
       // Send transaction to the blockchain
