@@ -21,7 +21,7 @@ const responseSchema = Type.Object({
   result: Type.Array(directListingV3OutputSchema),
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: [
       {
