@@ -1,32 +1,32 @@
 import { FastifyInstance } from "fastify";
-import { dlGetAll } from "./directListings/read/getAll";
-import { dlGetAllValid } from "./directListings/read/getAllValid";
-import { dlGetListing } from "./directListings/read/getListing";
-import { dlIsBuyerApprovedForListing } from "./directListings/read/isBuyerApprovedForListing";
-import { dlIsCurrencyApprovedForListing } from "./directListings/read/isCurrencyApprovedForListing";
-import { dlCreateListing } from "./directListings/write/createListing";
-import { dlGetTotalCount } from "./directListings/read/getTotalCount";
-import { dlUpdateListing } from "./directListings/write/updateListing";
-import { dlBuyFromListing } from "./directListings/write/buyFromListing";
-import { dlRevokeBuyerApprovalForReservedListing } from "./directListings/write/revokeBuyerApprovalForReservedListing";
-import { dlRevokeCurrencyApprovalForListing } from "./directListings/write/revokeCurrencyApprovalForListing";
-import { dlApproveBuyerForReservedListing } from "./directListings/write/approveBuyerForReservedListing";
+import { directListingsGetAll } from "./directListings/read/getAll";
+import { directListingsGetAllValid } from "./directListings/read/getAllValid";
+import { directListingsGetListing } from "./directListings/read/getListing";
+import { directListingsIsBuyerApprovedForListing } from "./directListings/read/isBuyerApprovedForListing";
+import { directListingsIsCurrencyApprovedForListing } from "./directListings/read/isCurrencyApprovedForListing";
+import { directListingsCreateListing } from "./directListings/write/createListing";
+import { directListingsGetTotalCount } from "./directListings/read/getTotalCount";
+import { directListingsUpdateListing } from "./directListings/write/updateListing";
+import { directListingsBuyFromListing } from "./directListings/write/buyFromListing";
+import { directListingsRevokeBuyerApprovalForReservedListing } from "./directListings/write/revokeBuyerApprovalForReservedListing";
+import { directListingsRevokeCurrencyApprovalForListing } from "./directListings/write/revokeCurrencyApprovalForListing";
+import { directListingsApproveBuyerForReservedListing } from "./directListings/write/approveBuyerForReservedListing";
 
-import { eaGetAll } from "./englishAuctions/read/getAll";
-import { eaGetAllValid } from "./englishAuctions/read/getAllValid";
-import { eaGetAuction } from "./englishAuctions/read/getAuction";
-import { eaGetBidBufferBps } from "./englishAuctions/read/getBidBufferBps";
-import { eaGetMinimumNextBid } from "./englishAuctions/read/getMinimumNextBid";
-import { eaGetWinningBid } from "./englishAuctions/read/getWinningBid";
-import { eaIsWinningBid } from "./englishAuctions/read/isWinningBid";
-import { eaGetTotalCount } from "./englishAuctions/read/getTotalCount";
-import { eaBuyoutAuction } from "./englishAuctions/write/buyoutAuction";
-import { eaCancelAuction } from "./englishAuctions/write/cancelAuction";
-import { eaCreateAuction } from "./englishAuctions/write/createAuction";
-import { eaCloseAuctionForBidder } from "./englishAuctions/write/closeAuctionForBidder";
-import { eaCloseAuctionForSeller } from "./englishAuctions/write/closeAuctionForSeller";
-import { eaExecuteSale } from "./englishAuctions/write/executeSale";
-import { eaMakeBid } from "./englishAuctions/write/makeBid";
+import { englishAuctionsGetAll } from "./englishAuctions/read/getAll";
+import { englishAuctionsGetAllValid } from "./englishAuctions/read/getAllValid";
+import { englishAuctionsGetAuction } from "./englishAuctions/read/getAuction";
+import { englishAuctionsGetBidBufferBps } from "./englishAuctions/read/getBidBufferBps";
+import { englishAuctionsGetMinimumNextBid } from "./englishAuctions/read/getMinimumNextBid";
+import { englishAuctionsGetWinningBid } from "./englishAuctions/read/getWinningBid";
+import { englishAuctionsIsWinningBid } from "./englishAuctions/read/isWinningBid";
+import { englishAuctionsGetTotalCount } from "./englishAuctions/read/getTotalCount";
+import { englishAuctionsBuyoutAuction } from "./englishAuctions/write/buyoutAuction";
+import { englishAuctionsCancelAuction } from "./englishAuctions/write/cancelAuction";
+import { englishAuctionsCreateAuction } from "./englishAuctions/write/createAuction";
+import { englishAuctionsCloseAuctionForBidder } from "./englishAuctions/write/closeAuctionForBidder";
+import { englishAuctionsCloseAuctionForSeller } from "./englishAuctions/write/closeAuctionForSeller";
+import { englishAuctionsExecuteSale } from "./englishAuctions/write/executeSale";
+import { englishAuctionsMakeBid } from "./englishAuctions/write/makeBid";
 
 import { offersGetAll } from "./offers/read/getAll";
 import { offersGetAllValid } from "./offers/read/getAllValid";
@@ -40,22 +40,22 @@ export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
   // READ
 
   // Direct Listings
-  await fastify.register(dlGetAll);
-  await fastify.register(dlGetAllValid);
-  await fastify.register(dlGetListing);
-  await fastify.register(dlIsBuyerApprovedForListing);
-  await fastify.register(dlIsCurrencyApprovedForListing);
-  await fastify.register(dlGetTotalCount);
+  await fastify.register(directListingsGetAll);
+  await fastify.register(directListingsGetAllValid);
+  await fastify.register(directListingsGetListing);
+  await fastify.register(directListingsIsBuyerApprovedForListing);
+  await fastify.register(directListingsIsCurrencyApprovedForListing);
+  await fastify.register(directListingsGetTotalCount);
 
   // English Auctions
-  await fastify.register(eaGetAll);
-  await fastify.register(eaGetAllValid);
-  await fastify.register(eaGetAuction);
-  await fastify.register(eaGetBidBufferBps);
-  await fastify.register(eaGetMinimumNextBid);
-  await fastify.register(eaGetWinningBid);
-  await fastify.register(eaGetTotalCount);
-  await fastify.register(eaIsWinningBid);
+  await fastify.register(englishAuctionsGetAll);
+  await fastify.register(englishAuctionsGetAllValid);
+  await fastify.register(englishAuctionsGetAuction);
+  await fastify.register(englishAuctionsGetBidBufferBps);
+  await fastify.register(englishAuctionsGetMinimumNextBid);
+  await fastify.register(englishAuctionsGetWinningBid);
+  await fastify.register(englishAuctionsGetTotalCount);
+  await fastify.register(englishAuctionsIsWinningBid);
 
   // Offers
   await fastify.register(offersGetAll);
@@ -66,21 +66,21 @@ export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
   // WRITE
 
   // Direct Listings
-  await fastify.register(dlCreateListing);
-  await fastify.register(dlUpdateListing);
-  await fastify.register(dlBuyFromListing);
-  await fastify.register(dlApproveBuyerForReservedListing);
-  await fastify.register(dlRevokeBuyerApprovalForReservedListing);
-  await fastify.register(dlRevokeCurrencyApprovalForListing);
+  await fastify.register(directListingsCreateListing);
+  await fastify.register(directListingsUpdateListing);
+  await fastify.register(directListingsBuyFromListing);
+  await fastify.register(directListingsApproveBuyerForReservedListing);
+  await fastify.register(directListingsRevokeBuyerApprovalForReservedListing);
+  await fastify.register(directListingsRevokeCurrencyApprovalForListing);
 
   // English Auctions
-  await fastify.register(eaBuyoutAuction);
-  await fastify.register(eaCancelAuction);
-  await fastify.register(eaCreateAuction);
-  await fastify.register(eaCloseAuctionForBidder);
-  await fastify.register(eaCloseAuctionForSeller);
-  await fastify.register(eaExecuteSale);
-  await fastify.register(eaMakeBid);
+  await fastify.register(englishAuctionsBuyoutAuction);
+  await fastify.register(englishAuctionsCancelAuction);
+  await fastify.register(englishAuctionsCreateAuction);
+  await fastify.register(englishAuctionsCloseAuctionForBidder);
+  await fastify.register(englishAuctionsCloseAuctionForSeller);
+  await fastify.register(englishAuctionsExecuteSale);
+  await fastify.register(englishAuctionsMakeBid);
 
   // Offers
   await fastify.register(offersMakeOffer);

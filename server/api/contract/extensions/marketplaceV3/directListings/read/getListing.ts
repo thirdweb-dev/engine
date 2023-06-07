@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -44,19 +44,19 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function dlGetListing(fastify: FastifyInstance) {
+export async function directListingsGetListing(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/getListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/getListing",
     schema: {
       description:
         "Retrieve data for a specific direct listing on the marketplace using the listing ID.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_getListing",
+      operationId: "mktpv3_directListings_getListing",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -67,7 +67,7 @@ export async function dlGetListing(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

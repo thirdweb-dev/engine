@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -30,21 +30,21 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function eaGetBidBufferBps(fastify: FastifyInstance) {
+export async function englishAuctionsGetBidBufferBps(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/getBidBufferBps",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/getBidBufferBps",
     schema: {
       description: `Get the basis points of the bid buffer. 
         This is the percentage higher that a new bid must be than the current highest bid in order to be placed. 
         If there is no current bid, the bid must be at least the minimum bid amount.
         Returns the value in percentage format, e.g. 100 = 1%.`,
       tags: ["MarketplaceV3-EnglishAuctions"],
-      operationId: "mktpv3_eaGetBidBufferBps",
+      operationId: "mktpv3_englishAuctions_getBidBufferBps",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -55,7 +55,7 @@ export async function eaGetBidBufferBps(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -32,18 +32,18 @@ requestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function dlBuyFromListing(fastify: FastifyInstance) {
+export async function directListingsBuyFromListing(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/buyFromListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/buyFromListing",
     schema: {
       description: "Buy an NFT from a listing.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_buyFromListing",
+      operationId: "mktpv3_directListings_buyFromListing",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -55,7 +55,7 @@ export async function dlBuyFromListing(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id, quantity, buyer } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
@@ -69,7 +69,7 @@ export async function dlBuyFromListing(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktV3-directListings",
+        "V3-directListings",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

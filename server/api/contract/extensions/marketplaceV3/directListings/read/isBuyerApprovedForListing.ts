@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -30,19 +30,21 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function dlIsBuyerApprovedForListing(fastify: FastifyInstance) {
+export async function directListingsIsBuyerApprovedForListing(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/isBuyerApprovedForListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/isBuyerApprovedForListing",
     schema: {
       description:
         "Check if a buyer is approved to purchase a reserved listing.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_isBuyerApprovedForListing",
+      operationId: "mktpv3_directListings_isBuyerApprovedForListing",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -53,7 +55,7 @@ export async function dlIsBuyerApprovedForListing(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id, wallet_address } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

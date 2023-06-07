@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -29,7 +29,7 @@ requestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function dlRevokeBuyerApprovalForReservedListing(
+export async function directListingsRevokeBuyerApprovalForReservedListing(
   fastify: FastifyInstance,
 ) {
   fastify.route<{
@@ -38,12 +38,13 @@ export async function dlRevokeBuyerApprovalForReservedListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/revokeBuyerApprovalForReservedListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/revokeBuyerApprovalForReservedListing",
     schema: {
       description:
         "Revoke approval for a buyer to purchase a reserved listing.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_revokeBuyerApprovalForReservedListing",
+      operationId:
+        "mktpv3_directListings_revokeBuyerApprovalForReservedListing",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -55,7 +56,7 @@ export async function dlRevokeBuyerApprovalForReservedListing(
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id, buyer_address } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
@@ -69,7 +70,7 @@ export async function dlRevokeBuyerApprovalForReservedListing(
         request,
         tx,
         chain_name_or_id,
-        "mktV3-directListings",
+        "V3-directListings",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

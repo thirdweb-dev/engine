@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -27,19 +27,19 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function eaGetAuction(fastify: FastifyInstance) {
+export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/getWinner",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/getWinner",
     schema: {
       description:
         "Get the wallet address that won an auction. Can only be called after the auction has ended.",
       tags: ["MarketplaceV3-EnglishAuctions"],
-      operationId: "mktpv3_eaGetWinner",
+      operationId: "mktpv3_englishAuctions_getWinner",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -50,7 +50,7 @@ export async function eaGetAuction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -36,7 +36,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
     schema: {
       description: "Cancel an offer you made on an NFT.",
       tags: ["MarketplaceV3-Offers"],
-      operationId: "mktpv3_offerCancelOffer",
+      operationId: "mktpv3_offer_cancelOffer",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -48,7 +48,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { offer_id } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
@@ -58,7 +58,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktV3-offers",
+        "V3-offers",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

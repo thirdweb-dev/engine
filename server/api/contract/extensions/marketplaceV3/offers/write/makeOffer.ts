@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -38,7 +38,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       description:
         "Make a new offer on an NFT. Offers can be made on any NFT, regardless of whether it is listed for sale or not.",
       tags: ["MarketplaceV3-Offers"],
-      operationId: "mktpv3_offerMakeOffer",
+      operationId: "mktpv3_offer_makeOffer",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -57,7 +57,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         quantity,
       } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
@@ -74,7 +74,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktV3-offers",
+        "V3-offers",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

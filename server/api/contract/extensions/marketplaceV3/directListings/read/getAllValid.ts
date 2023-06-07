@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -53,26 +53,26 @@ responseSchema.examples = [
           ],
         },
         status: 1,
-        startTimeInSeconds: 1686006043038,
-        endTimeInSeconds: 1686610889058,
+        startTimeInSeconds: 1686006043,
+        endTimeInSeconds: 1686610889,
       },
     ],
   },
 ];
 
 // LOGIC
-export async function dlGetAllValid(fastify: FastifyInstance) {
+export async function directListingsGetAllValid(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/getAllValid",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/getAllValid",
     schema: {
       description: "Get all the valid direct listings on the marketplace.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_dlGetAllValid",
+      operationId: "mktpv3_directListings_getAllValid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -84,7 +84,7 @@ export async function dlGetAllValid(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { start, count, offeror, seller, tokenContract, tokenId } =
         request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

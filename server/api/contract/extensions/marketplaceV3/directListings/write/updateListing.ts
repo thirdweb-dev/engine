@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -35,18 +35,18 @@ requestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function dlUpdateListing(fastify: FastifyInstance) {
+export async function directListingsUpdateListing(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/updateListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/updateListing",
     schema: {
       description: "Create a new direct listing on the marketplace.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_updateListing",
+      operationId: "mktpv3_directListings_updateListing",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -68,7 +68,7 @@ export async function dlUpdateListing(fastify: FastifyInstance) {
         endTimestamp,
       } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
@@ -90,7 +90,7 @@ export async function dlUpdateListing(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktV3-directListings",
+        "V3-directListings",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

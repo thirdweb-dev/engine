@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -50,7 +50,7 @@ responseSchema.examples = [
             },
           ],
         },
-        endTimeInSeconds: 1686610889058,
+        endTimeInSeconds: 1686610889,
         status: 4,
       },
     ],
@@ -70,7 +70,7 @@ export async function offersGetAll(fastify: FastifyInstance) {
       description:
         "Get all offers on the smart contract. Optionally, provide a filter to filter the offers returned.",
       tags: ["MarketplaceV3-Offers"],
-      operationId: "mktpv3_offersGetAll",
+      operationId: "mktpv3_offers_getAll",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -82,7 +82,7 @@ export async function offersGetAll(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { start, count, offeror, seller, tokenContract, tokenId } =
         request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -30,19 +30,21 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function dlIsCurrencyApprovedForListing(fastify: FastifyInstance) {
+export async function directListingsIsCurrencyApprovedForListing(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/isCurrencyApprovedForListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/isCurrencyApprovedForListing",
     schema: {
       description:
         "Check whether you can use a specific currency to purchase a listing.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_isCurrencyApprovedForListing",
+      operationId: "mktpv3_directListings_isCurrencyApprovedForListing",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -53,7 +55,7 @@ export async function dlIsCurrencyApprovedForListing(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id, currency_contract_address } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

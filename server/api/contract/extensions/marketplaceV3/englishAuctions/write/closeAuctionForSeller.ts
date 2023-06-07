@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -30,20 +30,22 @@ requestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function eaCloseAuctionForSeller(fastify: FastifyInstance) {
+export async function englishAuctionsCloseAuctionForSeller(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/closeAuctionForSeller",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/closeAuctionForSeller",
     schema: {
       description: `After an auction has concluded (and a buyout did not occur),
         execute the sale for the seller, meaning the seller receives the payment from the highest bid.
         You must also call closeAuctionForBidder to execute the sale for the buyer, meaning the buyer receives the NFT(s).`,
       tags: ["MarketplaceV3-EnglishAuctions"],
-      operationId: "mktpv3_eaCloseAuctionForSeller",
+      operationId: "mktpv3_englishAuctions_closeAuctionForSeller",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -55,7 +57,7 @@ export async function eaCloseAuctionForSeller(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
@@ -67,7 +69,7 @@ export async function eaCloseAuctionForSeller(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktV3-engAuctions",
+        "V3-englishAuctions",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

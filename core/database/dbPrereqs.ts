@@ -9,7 +9,7 @@ import { createCustomError } from "../error/customError";
 import { StatusCodes } from "http-status-codes";
 
 // TODO migration versioning
-const DROP_ON_STARTUP = false;
+const DROP_ON_STARTUP = true;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

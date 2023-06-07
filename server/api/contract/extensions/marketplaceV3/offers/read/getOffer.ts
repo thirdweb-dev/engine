@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -56,7 +56,7 @@ export async function offersGetOffer(fastify: FastifyInstance) {
       description:
         "Get information about a specific offer using the offer’s ID.",
       tags: ["MarketplaceV3-Offers"],
-      operationId: "mktpv3_offersGetOffer",
+      operationId: "mktpv3_offers_getOffer",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -67,7 +67,7 @@ export async function offersGetOffer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { offer_id } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

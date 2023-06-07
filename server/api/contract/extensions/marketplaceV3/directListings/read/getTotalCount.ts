@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -22,18 +22,18 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function dlGetTotalCount(fastify: FastifyInstance) {
+export async function directListingsGetTotalCount(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/getTotalCount",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/getTotalCount",
     schema: {
       description:
         "Get the total number of direct listings on the marketplace.",
       tags: ["MarketplaceV3-DirectListings"],
-      operationId: "mktpv3_getTotalCount",
+      operationId: "mktpv3_directListings_getTotalCount",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -42,7 +42,7 @@ export async function dlGetTotalCount(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

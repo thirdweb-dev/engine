@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -39,8 +39,8 @@ responseSchema.examples = [
         },
         timeBufferInSeconds: 600,
         bidBufferBps: 100,
-        startTimeInSeconds: 1686006043038,
-        endTimeInSeconds: 1686610889058,
+        startTimeInSeconds: 1686006043,
+        endTimeInSeconds: 1686610889,
         asset: {
           id: "0",
           uri: "ipfs://QmPw2Dd1dnB6dQCnqGayCTnxUxHrB7m4YFeyph6PYPMboP/0",
@@ -61,18 +61,18 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function eaGetAll(fastify: FastifyInstance) {
+export async function englishAuctionsGetAll(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/getAll",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/getAll",
     schema: {
       description: "Retrieve data for all auction listings on the marketplace.",
       tags: ["MarketplaceV3-EnglishAuctions"],
-      operationId: "mktpv3_eaGetAll",
+      operationId: "mktpv3_englishAuctions_getAll",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -84,7 +84,7 @@ export async function eaGetAll(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { start, count, offeror, seller, tokenContract, tokenId } =
         request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

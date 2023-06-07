@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -26,19 +26,19 @@ requestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function dlCancelListing(fastify: FastifyInstance) {
+export async function directListingsCancelListing(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directListing/cancelListing",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/cancelListing",
     schema: {
       description:
         "Cancel a listing that you created. Only the creator of the listing can cancel it.",
       tags: ["MarketplaceV3"],
-      operationId: "mktpv3_cancelListing",
+      operationId: "mktpv3_directListings_cancelListing",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -50,7 +50,7 @@ export async function dlCancelListing(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
@@ -62,7 +62,7 @@ export async function dlCancelListing(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktV3-directListings",
+        "V3-directListings",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

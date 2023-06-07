@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -34,18 +34,18 @@ requestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function eaMakeBid(fastify: FastifyInstance) {
+export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/makeBid",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/makeBid",
     schema: {
       description: "Place a new bid on an auction listing.",
       tags: ["MarketplaceV3-EnglishAuctions"],
-      operationId: "mktpv3_eaMakeBid",
+      operationId: "mktpv3_englishAuctions_makeBid",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -57,7 +57,7 @@ export async function eaMakeBid(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id, bid_amount } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
@@ -70,7 +70,7 @@ export async function eaMakeBid(fastify: FastifyInstance) {
         request,
         tx,
         chain_name_or_id,
-        "mktV3-engAuctions",
+        "V3-englishAuctions",
       );
       reply.status(StatusCodes.OK).send({
         result: queuedId,

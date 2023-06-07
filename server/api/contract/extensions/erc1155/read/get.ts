@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../core";
+import { getContractInstance } from "../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   erc1155ContractParamSchema,
@@ -65,7 +65,7 @@ export async function erc1155Get(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { token_id } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

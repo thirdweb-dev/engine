@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../../core";
+import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -28,20 +28,22 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function eaGetMinimumNextBid(fastify: FastifyInstance) {
+export async function englishAuctionsGetMinimumNextBid(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishAuction/getMinimumNextBid",
+    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/getMinimumNextBid",
     schema: {
       description: `Helper function to calculate the value that the next bid must be in order to be accepted. 
         If there is no current bid, the bid must be at least the minimum bid amount.
         If there is a current bid, the bid must be at least the current bid amount + the bid buffer.`,
       tags: ["MarketplaceV3-EnglishAuctions"],
-      operationId: "mktpv3_eaGetMinimumNextBid",
+      operationId: "mktpv3_englishAuctions_getMinimumNextBid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -52,7 +54,7 @@ export async function eaGetMinimumNextBid(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { listing_id } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
