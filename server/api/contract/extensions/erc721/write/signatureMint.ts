@@ -21,8 +21,25 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    payload: {},
-    signature: "",
+    payload: {
+      uri: "ipfs://QmP1i29T534877ptz8bazU1eYiYLzQ1GRK4cnZWngsz9ud/0",
+      to: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+      royaltyRecipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+      quantity: "1",
+      royaltyBps: "0",
+      primarySaleRecipient: "0x0000000000000000000000000000000000000000",
+      uid: "0x3862386334363135326230303461303939626136653361643131343836373563",
+      metadata: {
+        name: "test tokenII",
+        description: "test token",
+      },
+      currencyAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      price: "0",
+      mintStartTime: 1686169938,
+      mintEndTime: 2001529938,
+    },
+    signature:
+      "0xe6f2e29f32f7da65385effa2ed4f39b8d3caf08b025eb0004fd4695b42ee145f2c7afdf2764f0097c9ed5d88b50e97c4c638f91289408fa7d7a0834cd707c4a41b",
   },
 ];
 
