@@ -43,8 +43,6 @@ export const checkTablesExistence = async (
         server.log.info(`Table ${tableName} dropped on startup successfully`);
       }
 
-      // const tableExists = await knex.schema.hasTable(tableName);
-      // if (!tableExists) {
       const schemaSQL = await fs.readFile(
         `${__dirname}/sql-schemas/${tableName}.sql`,
         "utf-8",
