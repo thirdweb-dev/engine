@@ -1,4 +1,4 @@
-CREATE TABLE transactions (
+CREATE TABLE IF NOT EXISTS transactions (
     identifier uuid NOT NULL UNIQUE PRIMARY KEY,
     "walletAddress" VARCHAR(42) NOT NULL,
     "contractAddress" VARCHAR(42) NOT NULL,
@@ -25,3 +25,9 @@ CREATE TABLE transactions (
     "maxPriorityFeePerGas" VARCHAR(50),
     "maxFeePerGas" VARCHAR(50)
 );
+
+ALTER TABLE transactions
+ALTER COLUMN "rawFunctionArgs" TYPE TEXT,
+ALTER COLUMN "extension" TYPE VARCHAR(100),
+ALTER COLUMN "submittedTxNonce" TYPE BIGINT,
+ALTER COLUMN "chainId" TYPE VARCHAR(100);
