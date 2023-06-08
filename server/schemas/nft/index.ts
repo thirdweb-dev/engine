@@ -8,6 +8,7 @@ export const nftMetadataInputSchema = Type.Object({
   animation_url: Type.Optional(Type.Union([Type.String(), Type.Null()])),
   properties: Type.Optional(Type.Union([Type.Any(), Type.Null()])),
   attributes: Type.Optional(Type.Union([Type.Any(), Type.Null()])),
+  background_color: Type.Optional(Type.Union([Type.Any(), Type.Null()])),
 });
 
 export const nftMetadataSchema = Type.Object({

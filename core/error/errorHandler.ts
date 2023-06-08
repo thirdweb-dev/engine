@@ -6,7 +6,7 @@ import { CustomError } from "./customError";
 
 export const errorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler((error: Error | CustomError, request, reply) => {
-    request.log.error(error);
+    server.log.error(error);
 
     if ("statusCode" in error && "code" in error) {
       // Transform unexpected errors into a standard payload

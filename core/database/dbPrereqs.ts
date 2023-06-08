@@ -90,12 +90,22 @@ export const implementTriggerOnStartUp = async (
     }
 
     for (const dbTriggers of triggersList) {
-      server.log.debug(`Reading Trigger File ${dbTriggers}.sql`);
-      const schemaSQL = await fs.readFile(
-        `${__dirname}/sql-schemas/${dbTriggers}.sql`,
-        "utf-8",
-      );
-      await knex.raw(schemaSQL);
+      try {
+        server.log.debug(`Reading Trigger File ${dbTriggers}.sql`);
+        const schemaSQL = await fs.readFile(
+          `${__dirname}/sql-schemas/${dbTriggers}.sql`,
+          "utf-8",
+        );
+        await knex.raw(schemaSQL);
+      } catch (error) {
+        const customError = createCustomError(
+          "Error when executing triggers.",
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "INTERNAL_SERVER_ERROR",
+        );
+        throw customError;
+      }
+
       server.log.info(
         `Trigger ${dbTriggers} created/replaced on startup successfully`,
       );

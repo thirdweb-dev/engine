@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../core";
+import { getContractInstance } from "../../../../core";
 import { partialRouteSchema } from "../../../helpers/sharedApiSchemas";
 import {
   readRequestQuerySchema,
@@ -23,7 +23,7 @@ export async function readContract(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { function_name, args } = request.query;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

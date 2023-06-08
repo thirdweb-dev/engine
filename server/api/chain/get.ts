@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { createCustomError, getContractInstace } from "../../../core/index";
+import { createCustomError, getContractInstance } from "../../../core/index";
 import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
