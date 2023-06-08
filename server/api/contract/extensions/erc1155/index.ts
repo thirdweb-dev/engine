@@ -17,6 +17,8 @@ import { erc1155mintTo } from "./write/mintTo";
 import { erc1155SetApprovalForAll } from "./write/setApprovalForAll";
 import { erc1155transfer } from "./write/transfer";
 import { erc1155transferFrom } from "./write/transferFrom";
+import { erc1155SignatureGenerate } from "./read/signatureGenerate";
+import { erc1155SignatureMint } from "./write/signatureMint";
 
 export const erc1155Routes = async (fastify: FastifyInstance) => {
   // GET
@@ -27,6 +29,7 @@ export const erc1155Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc1155IsApproved);
   await fastify.register(erc1155TotalCount);
   await fastify.register(erc1155TotalSupply);
+  await fastify.register(erc1155SignatureGenerate);
 
   // POST
   await fastify.register(erc1155airdrop);
@@ -40,4 +43,5 @@ export const erc1155Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc1155SetApprovalForAll);
   await fastify.register(erc1155transfer);
   await fastify.register(erc1155transferFrom);
+  await fastify.register(erc1155SignatureMint);
 };

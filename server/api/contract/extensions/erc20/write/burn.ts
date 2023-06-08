@@ -5,7 +5,6 @@ import { getContractInstance } from "../../../../../../core/index";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
-  baseReplyErrorSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";

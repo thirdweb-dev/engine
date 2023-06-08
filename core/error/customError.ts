@@ -14,3 +14,11 @@ export const createCustomError = (
   statusCode,
   code,
 });
+
+export const createCustomDateTimestampError = (key: string): CustomError => {
+  return createCustomError(
+    `Invalid ${key} Value. Needs to new Date() / new Date().toISOstring() / new Date().getTime() / Unix Epoch`,
+    404,
+    "INVALID_DATE_TIME",
+  );
+};
