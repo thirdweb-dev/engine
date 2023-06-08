@@ -43,10 +43,10 @@ export const checkAndReturnERC20SignaturePayload = <
 
   const updatedPayload: U = payload as unknown as U;
   updatedPayload.mintEndTime = payload.mintEndTime
-    ? new Date(payload.mintEndTime).getTime()
+    ? new Date(payload.mintEndTime)
     : undefined;
   updatedPayload.mintStartTime = payload.mintStartTime
-    ? new Date(payload.mintStartTime).getTime()
+    ? new Date(payload.mintStartTime)
     : undefined;
 
   return updatedPayload;
@@ -84,6 +84,5 @@ export const checkAndReturnNFTSignaturePayload = <
     ? new Date(payload.mintStartTime)
     : undefined;
 
-  console.log(updatedPayload.mintStartTime, updatedPayload.mintEndTime);
   return updatedPayload;
 };
