@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -54,7 +54,7 @@ export async function erc1155transfer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { to, token_id, amount } = request.body;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

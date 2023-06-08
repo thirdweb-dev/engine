@@ -49,8 +49,17 @@ export const checkTablesExistence = async (
           `${__dirname}/sql-schemas/${tableName}.sql`,
           "utf-8",
         );
-        // Create Table using schema
-        await knex.schema.raw(schemaSQL);
+        try {
+          // Create Table using schema
+          await knex.schema.raw(schemaSQL);
+        } catch (error) {
+          const customError = createCustomError(
+            "Error while creating table.",
+            StatusCodes.INTERNAL_SERVER_ERROR,
+            "INTERNAL_SERVER_ERROR",
+          );
+          throw customError;
+        }
 
         server.log.info(`Table ${tableName} created on startup successfully`);
       } else {
@@ -62,7 +71,7 @@ export const checkTablesExistence = async (
     await knex.destroy();
   } catch (error: any) {
     const customError = createCustomError(
-      error.message,
+      "Error while checking tables existence.",
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );
@@ -93,12 +102,22 @@ export const implementTriggerOnStartUp = async (
     }
 
     for (const dbTriggers of triggersList) {
-      server.log.debug(`Reading Trigger File ${dbTriggers}.sql`);
-      const schemaSQL = await fs.readFile(
-        `${__dirname}/sql-schemas/${dbTriggers}.sql`,
-        "utf-8",
-      );
-      await knex.raw(schemaSQL);
+      try {
+        server.log.debug(`Reading Trigger File ${dbTriggers}.sql`);
+        const schemaSQL = await fs.readFile(
+          `${__dirname}/sql-schemas/${dbTriggers}.sql`,
+          "utf-8",
+        );
+        await knex.raw(schemaSQL);
+      } catch (error) {
+        const customError = createCustomError(
+          "Error when executing triggers.",
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "INTERNAL_SERVER_ERROR",
+        );
+        throw customError;
+      }
+
       server.log.info(
         `Trigger ${dbTriggers} created/replaced on startup successfully`,
       );
