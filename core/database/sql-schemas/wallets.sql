@@ -11,5 +11,4 @@ ALTER TABLE wallets
 ALTER COLUMN "chainId" TYPE VARCHAR(255),
 ALTER COLUMN "walletType" TYPE VARCHAR(255),
 ALTER COLUMN "blockchainNonce" TYPE BIGINT,
-ALTER COLUMN "lastUsedNonce" TYPE BIGINT,
-ADD CONSTRAINT wallets_pkey PRIMARY KEY ("walletAddress", "chainId");
+ALTER COLUMN "lastUsedNonce" TYPE BIGINT;
