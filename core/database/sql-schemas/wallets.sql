@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS wallets (
     "walletAddress" VARCHAR(42) NOT NULL,
-    "chainId" VARCHAR(40) NOT NULL,
-    "walletType" VARCHAR(10) NOT NULL,
-    "blockchainNonce" INT NOT NULL,
+    "chainId" VARCHAR(100) NOT NULL,
+    "walletType" VARCHAR(100) NOT NULL,
+    "blockchainNonce" BIGINT NOT NULL,
     "lastSyncedTimestamp" TIMESTAMP,
-    "lastUsedNonce" INT NOT NULL
+    "lastUsedNonce" BIGINT NOT NULL
 );
 
 ALTER TABLE wallets
