@@ -1,4 +1,5 @@
-import { Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
+import { BigNumber } from "ethers";
 
 export const nftMetadataInputSchema = Type.Object({
   name: Type.Optional(Type.Union([Type.String(), Type.Number(), Type.Null()])),
@@ -95,18 +96,22 @@ export const signature721InputSchema = Type.Object({
     }),
   ),
   mintStartTime: Type.Optional(
-    Type.String({
-      format: "date-time",
-      description:
-        "The time from which the signature can be used to mint tokens. Defaults to now. Value must be an ISO 8601 date-time string format",
-    }),
+    Type.Union([
+      Type.String({
+        description:
+          "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
+      }),
+      Type.Number(),
+    ]),
   ),
   mintEndTime: Type.Optional(
-    Type.String({
-      format: "date-time",
-      description:
-        "The time until which the signature can be used to mint tokens. Defaults to 10 years from now. Value must be an ISO 8601 date-time string format",
-    }),
+    Type.Union([
+      Type.String({
+        description:
+          "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
+      }),
+      Type.Number(),
+    ]),
   ),
 });
 
@@ -206,18 +211,22 @@ export const signature1155InputSchema = Type.Object({
     }),
   ),
   mintStartTime: Type.Optional(
-    Type.String({
-      format: "date-time",
-      description:
-        "The time from which the signature can be used to mint tokens. Defaults to now. Value must be an ISO 8601 date-time string format",
-    }),
+    Type.Union([
+      Type.String({
+        description:
+          "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
+      }),
+      Type.Number(),
+    ]),
   ),
   mintEndTime: Type.Optional(
-    Type.String({
-      format: "date-time",
-      description:
-        "The time until which the signature can be used to mint tokens. Defaults to 10 years from now. Value must be an ISO 8601 date-time string format",
-    }),
+    Type.Union([
+      Type.String({
+        description:
+          "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
+      }),
+      Type.Number(),
+    ]),
   ),
 });
 
@@ -268,6 +277,21 @@ export const signature1155OutputSchema = Type.Object({
       "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
   }),
 });
+
+export type ercNFTResponseType = (
+  | Omit<
+      Omit<Static<typeof signature721InputSchema>, "mintStartTime">,
+      "mintEndTime"
+    >
+  | Omit<
+      Omit<Static<typeof signature1155InputSchema>, "mintStartTime">,
+      "mintEndTime"
+    >
+) & {
+  mintStartTime: number | Date | undefined;
+  mintEndTime: number | Date | undefined;
+  quantity: string | number | bigint | BigNumber;
+};
 
 // Examples
 

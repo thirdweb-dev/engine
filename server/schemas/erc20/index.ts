@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 
 export const erc20MetadataSchema = Type.Object({
   name: Type.String(),
@@ -48,18 +48,22 @@ export const signature20InputSchema = Type.Object({
     }),
   ),
   mintStartTime: Type.Optional(
-    Type.String({
-      format: "date-time",
-      description:
-        "The time from which the signature can be used to mint tokens. Value must be an ISO 8601 date-time string format. Defaults to now. ",
-    }),
+    Type.Union([
+      Type.String({
+        description:
+          "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
+      }),
+      Type.Number(),
+    ]),
   ),
   mintEndTime: Type.Optional(
-    Type.String({
-      format: "date-time",
-      description:
-        "The time until which the signature can be used to mint tokens. Value must be an ISO 8601 date-time string format. Defaults to 10 years from now.",
-    }),
+    Type.Union([
+      Type.String({
+        description:
+          "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
+      }),
+      Type.Number(),
+    ]),
   ),
 });
 
@@ -127,3 +131,11 @@ signature20OutputSchema.examples = [
       "0xe16697bf7ede4ff4918f0dbc84953b964a84fed70cb3a0b0afb3ee9a55c9ff4d14e029bce8d8c74e71c1de32889c4eff529a9f7d45402455b8d15c7e6993c1c91b",
   },
 ];
+
+export type erc20ResponseType = Omit<
+  Omit<Static<typeof signature20InputSchema>, "mintStartTime">,
+  "mintEndTime"
+> & {
+  mintStartTime: number | Date | undefined;
+  mintEndTime: number | Date | undefined;
+};

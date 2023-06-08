@@ -1,19 +1,17 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  createCustomError,
-  getContractInstace,
-} from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 import {
+  ercNFTResponseType,
   signature1155InputSchema,
   signature1155OutputSchema,
 } from "../../../../../schemas/nft";
-import { timestampValidator } from "../../../../../utilities/validator";
+import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
@@ -73,19 +71,23 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
         contract_address,
       );
 
-      const payload = {
+      const payload = checkAndReturnNFTSignaturePayload<
+        Static<typeof signature1155InputSchema>,
+        ercNFTResponseType
+      >({
         to,
         currencyAddress,
         metadata,
-        mintEndTime: mintEndTime ? new Date(mintEndTime) : undefined,
-        mintStartTime: mintStartTime ? new Date(mintStartTime) : undefined,
+        mintEndTime,
+        mintStartTime,
         price,
         primarySaleRecipient,
         quantity,
         royaltyBps,
         royaltyRecipient,
         uid,
-      };
+      });
+
       const signedPayload = await contract.erc1155.signature.generate(payload);
       reply.status(StatusCodes.OK).send({
         result: {

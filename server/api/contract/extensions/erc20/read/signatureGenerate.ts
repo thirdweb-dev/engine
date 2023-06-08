@@ -1,9 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  createCustomError,
-  getContractInstace,
-} from "../../../../../../core/index";
+import { getContractInstace } from "../../../../../../core/index";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
@@ -12,8 +9,9 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   signature20InputSchema,
   signature20OutputSchema,
+  erc20ResponseType,
 } from "../../../../../schemas/erc20";
-import { timestampValidator } from "../../../../../utilities/validator";
+import { checkAndReturnERC20SignaturePayload } from "../../../../../utilities/validator";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
@@ -70,16 +68,20 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
         contract_address,
       );
 
-      const payload = {
+      const payload = checkAndReturnERC20SignaturePayload<
+        Static<typeof signature20InputSchema>,
+        erc20ResponseType
+      >({
         to,
         currencyAddress,
-        mintEndTime: mintEndTime ? new Date(mintEndTime) : undefined,
-        mintStartTime: mintStartTime ? new Date(mintStartTime) : undefined,
+        mintEndTime,
+        mintStartTime,
         price,
         primarySaleRecipient,
         quantity,
         uid,
-      };
+      });
+
       const signedPayload = await contract.erc20.signature.generate(payload);
       reply.status(StatusCodes.OK).send({
         result: {
