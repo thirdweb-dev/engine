@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS transactions (
     identifier uuid NOT NULL UNIQUE PRIMARY KEY,
-    "walletAddress" VARCHAR(42) NOT NULL,
-    "contractAddress" VARCHAR(42) NOT NULL,
-    "toAddress" VARCHAR(42),
-    "chainId" VARCHAR(100) NOT NULL,
-    "extension" VARCHAR(100),
+    "walletAddress" VARCHAR(255) NOT NULL,
+    "contractAddress" VARCHAR(255) NOT NULL,
+    "toAddress" VARCHAR(255),
+    "chainId" VARCHAR(255) NOT NULL,
+    "extension" VARCHAR(255),
     "submittedTxNonce" BIGINT,
-    "txType" VARCHAR(2),
+    "txType" VARCHAR(255),
     "txHash" VARCHAR(255),
     "encodedInputData" TEXT,
     "rawFunctionName" TEXT,
@@ -20,14 +20,21 @@ CREATE TABLE IF NOT EXISTS transactions (
     "txSubmitted" BOOLEAN,
     "txMined" BOOLEAN,
     "txErrored" BOOLEAN,
-    "gasPrice" VARCHAR(50),
-    "gasLimit" VARCHAR(50),
-    "maxPriorityFeePerGas" VARCHAR(50),
-    "maxFeePerGas" VARCHAR(50)
+    "gasPrice" VARCHAR(255),
+    "gasLimit" VARCHAR(255),
+    "maxPriorityFeePerGas" VARCHAR(255),
+    "maxFeePerGas" VARCHAR(255)
 );
 
 ALTER TABLE transactions
 ALTER COLUMN "rawFunctionArgs" TYPE TEXT,
-ALTER COLUMN "extension" TYPE VARCHAR(100),
+ALTER COLUMN "extension" TYPE VARCHAR(255),
 ALTER COLUMN "submittedTxNonce" TYPE BIGINT,
-ALTER COLUMN "chainId" TYPE VARCHAR(100);
+ALTER COLUMN "walletAddress" TYPE VARCHAR(255),
+ALTER COLUMN "toAddress" TYPE VARCHAR(255),
+ALTER COLUMN "contractAddress" TYPE VARCHAR(255),
+ALTER COLUMN "gasPrice" TYPE VARCHAR(255),
+ALTER COLUMN "gasLimit" TYPE VARCHAR(255),
+ALTER COLUMN "maxPriorityFeePerGas" TYPE VARCHAR(255),
+ALTER COLUMN "maxFeePerGas" TYPE VARCHAR(255),
+ALTER COLUMN "txType" TYPE VARCHAR(255);
