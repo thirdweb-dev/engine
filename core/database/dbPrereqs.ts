@@ -43,37 +43,25 @@ export const checkTablesExistence = async (
         server.log.info(`Table ${tableName} dropped on startup successfully`);
       }
 
-      const tableExists = await knex.schema.hasTable(tableName);
-      if (!tableExists) {
-        const schemaSQL = await fs.readFile(
-          `${__dirname}/sql-schemas/${tableName}.sql`,
-          "utf-8",
-        );
-        try {
-          // Create Table using schema
-          await knex.schema.raw(schemaSQL);
-        } catch (error) {
-          const customError = createCustomError(
-            "Error while creating table.",
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            "INTERNAL_SERVER_ERROR",
-          );
-          throw customError;
-        }
+      const schemaSQL = await fs.readFile(
+        `${__dirname}/sql-schemas/${tableName}.sql`,
+        "utf-8",
+      );
+      // Create Table using schema
+      await knex.schema.raw(schemaSQL);
 
-        server.log.info(`Table ${tableName} created on startup successfully`);
-      } else {
-        server.log.info(`Table ${tableName} already exists`);
-      }
+      server.log.info(
+        `SQL for  ${tableName} processed successfully on start-up`,
+      );
     }
 
     // Disconnect from DB
     await knex.destroy();
   } catch (error: any) {
     const customError = createCustomError(
-      "Error while checking tables existence.",
+      "Error while executing Table SQLs on startup",
       StatusCodes.INTERNAL_SERVER_ERROR,
-      "INTERNAL_SERVER_ERROR",
+      "SERVER_STARTUP_TABLES_CREATION_ERROR",
     );
     throw customError;
   }
@@ -127,9 +115,9 @@ export const implementTriggerOnStartUp = async (
     await knex.destroy();
   } catch (error: any) {
     const customError = createCustomError(
-      error.message,
+      "Error while executing Trigger/Notification SQLs on startup",
       StatusCodes.INTERNAL_SERVER_ERROR,
-      "INTERNAL_SERVER_ERROR",
+      "SERVER_STARTUP_TRIGGER_CREATION_ERROR",
     );
     throw customError;
   }
