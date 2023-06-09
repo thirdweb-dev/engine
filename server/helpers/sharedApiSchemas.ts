@@ -182,6 +182,36 @@ export const erc721ContractParamSchema = Type.Object({
     description: "ERC721 Contract Addres on the Chain",
   }),
 });
+export const currencyValueSchema = Type.Object({
+  name: Type.String(),
+  symbol: Type.String(),
+  decimals: Type.Number(),
+  value: Type.String(),
+  displayValue: Type.String(),
+});
+
+currencyValueSchema.description =
+  "The `CurrencyValue` of the listing. Useful for displaying the price information.";
+
+export enum Status {
+  UNSET = 0,
+  Created = 1,
+  Completed = 2,
+  Cancelled = 3,
+  Active = 4,
+  Expired = 5,
+}
+
+export const marketplaceV3ContractParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+  contract_address: Type.String({
+    examples: ["0xE8Bf1a01106F3acD7F84acaf5D668D7C9eA11535"],
+    description: "Contract Addres on the Chain",
+  }),
+});
 
 export const prebuiltDeployContractParamSchema = Type.Object({
   chain_name_or_id: Type.String({

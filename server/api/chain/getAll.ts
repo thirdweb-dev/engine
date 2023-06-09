@@ -63,7 +63,15 @@ export async function getAllChainData(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const chain = allChains.map((chain) => {
+        if (chain.rpc.length === 0) {
+          request.log.warn(
+            `Chain ${chain.name} ${chain.rpc} has no RPC endpoint. Please add more endpoints.`,
+          );
+        }
         const minimizeChainData = minimizeChain(chain);
+        if (chain.rpc.length === 0) {
+          return { ...minimizeChainData, rpc: [""] };
+        }
         return { ...minimizeChainData, rpc: [minimizeChainData.rpc[0]] };
       });
 
