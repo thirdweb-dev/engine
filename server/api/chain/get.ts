@@ -62,7 +62,7 @@ export async function getChainData(fastify: FastifyInstance) {
           chain.chainId === Number(chain_name_or_id) ||
           chain.slug === chain_name_or_id
         ) {
-          return minimizeChain(chain);
+          return chain;
         }
       });
 
@@ -80,7 +80,7 @@ export async function getChainData(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           ...minimizeChainData,
-          rpc: [minimizeChainData.rpc[0]],
+          rpc: [chain.rpc.length === 0 ? "" : minimizeChainData.rpc[0]],
         },
       });
     },
