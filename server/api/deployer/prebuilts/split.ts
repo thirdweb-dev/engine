@@ -57,11 +57,6 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
       const { chain_name_or_id } = request.params;
       const { contractMetadata, version } = request.body;
       const sdk = await getSDK(chain_name_or_id);
-      request.log.info(
-        `Deploying prebuilt Split contract with metadata: ${JSON.stringify(
-          contractMetadata,
-        )}`,
-      );
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "split",
         contractMetadata,
