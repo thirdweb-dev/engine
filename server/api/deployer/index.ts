@@ -11,6 +11,9 @@ import { deployPrebuiltSplit } from "./prebuilts/split";
 import { deployPrebuiltToken } from "./prebuilts/token";
 import { deployPrebuiltTokenDrop } from "./prebuilts/tokenDrop";
 import { deployPrebuiltVote } from "./prebuilts/vote";
+import { deployPrebuilt } from "./prebuilt";
+import { deployPublished } from "./published";
+import { contractTypes } from "./contractTypes";
 
 export const prebuiltsRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(deployPrebuiltEdition);
@@ -25,4 +28,8 @@ export const prebuiltsRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(deployPrebuiltToken);
   await fastify.register(deployPrebuiltTokenDrop);
   await fastify.register(deployPrebuiltVote);
+
+  await fastify.register(deployPrebuilt);
+  await fastify.register(deployPublished);
+  await fastify.register(contractTypes);
 };

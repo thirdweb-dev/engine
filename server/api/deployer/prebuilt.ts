@@ -58,6 +58,7 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
       operationId: "deployPrebuilt",
       params: requestSchema,
       body: requestBodySchema,
+      hide: true,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

@@ -178,10 +178,10 @@ const transformData = (
       status = TransactionStatusEnum.Mined;
     } else if (row.txSubmitted) {
       status = TransactionStatusEnum.Submitted;
-    } else if (row.txProcessed) {
-      status = TransactionStatusEnum.Processed;
     } else if (row.txErrored) {
       status = TransactionStatusEnum.Errored;
+    } else if (row.txProcessed) {
+      status = TransactionStatusEnum.Processed;
     } else {
       status = TransactionStatusEnum.Queued;
     }

@@ -1,6 +1,7 @@
 import { Type } from "@sinclair/typebox";
-import { MAX_BPS } from "@thirdweb-dev/sdk/dist/declarations/src/core/schema/shared";
 import { constants } from "ethers";
+
+const MAX_BPS = 10000;
 
 export const commonContractSchema = Type.Object({
   name: Type.String(),
@@ -8,11 +9,6 @@ export const commonContractSchema = Type.Object({
   image: Type.Optional(Type.String()),
   external_link: Type.Optional(Type.String()),
   app_uri: Type.Optional(Type.String()),
-});
-
-const basisPointsSchema = Type.Number({
-  maximum: MAX_BPS,
-  minimum: 0,
 });
 
 export const splitRecipientInputSchema = Type.Object({
@@ -26,10 +22,15 @@ export const splitRecipientInputSchema = Type.Object({
 const percentSchema = Type.Number({
   maximum: 100,
   minimum: 0,
+  default: 0,
 });
 
 export const commonRoyaltySchema = Type.Object({
-  seller_fee_basis_points: basisPointsSchema.default(0),
+  seller_fee_basis_points: Type.Number({
+    maximum: MAX_BPS,
+    minimum: 0,
+    default: 0,
+  }),
 
   fee_recipient: Type.String({
     default: constants.AddressZero,
@@ -37,19 +38,46 @@ export const commonRoyaltySchema = Type.Object({
 });
 
 export const merkleSchema = Type.Object({
-  merkle: Type.Record(Type.String(), Type.String()).default({}),
+  merkle: Type.Record(Type.String(), Type.String(), { default: {} }),
 });
 
 export const commonSymbolSchema = Type.Object({
-  symbol: Type.String().default(""),
+  symbol: Type.String({
+    default: "",
+  }),
 });
 
 export const voteSettingsInputSchema = Type.Object({
-  voting_delay_in_blocks: Type.Number().min(0).default(0),
-  voting_period_in_blocks: Type.Number().min(1).default(1),
+  voting_delay_in_blocks: Type.Number({
+    minimum: 0,
+    default: 0,
+  }),
+  voting_period_in_blocks: Type.Number({
+    minimum: 1,
+    default: 1,
+  }),
   voting_token_address: Type.String(),
-  voting_quorum_fraction: percentSchema.default(0),
+  voting_quorum_fraction: percentSchema,
   proposal_token_threshold: Type.String({
     default: "0",
   }),
+});
+
+export const commonPrimarySaleSchema = Type.Object({
+  primary_sale_recipient: Type.String(),
+});
+
+export const commonPlatformFeeSchema = Type.Object({
+  platform_fee_basis_points: Type.Number({
+    maximum: MAX_BPS,
+    minimum: 0,
+    default: 0,
+  }),
+  platform_fee_recipient: Type.String({
+    default: constants.AddressZero,
+  }),
+});
+
+export const commonTrustedForwarderSchema = Type.Object({
+  trusted_forwarders: Type.Array(Type.String(), { default: [] }),
 });

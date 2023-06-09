@@ -10,18 +10,18 @@ import { Static, Type } from "@sinclair/typebox";
 import { queueTransaction } from "../../../helpers";
 import {
   commonContractSchema,
+  commonTrustedForwarderSchema,
   splitRecipientInputSchema,
 } from "../../../schemas/prebuilts";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
-  contractMetadata: Type.Union([
-    commonContractSchema,
-    Type.Object({
-      recipient: Type.Array(splitRecipientInputSchema),
-    }),
-  ]),
+  contractMetadata: Type.Object({
+    ...commonContractSchema.properties,
+    recipients: Type.Array(splitRecipientInputSchema),
+    ...commonTrustedForwarderSchema.properties,
+  }),
   version: Type.Optional(
     Type.String({
       description: "Version of the contract to deploy. Defaults to latest.",
@@ -30,14 +30,6 @@ const requestBodySchema = Type.Object({
 });
 
 // Example for the Request Body
-requestBodySchema.examples = [
-  {
-    contractMetadata: {
-      name: `My Contract`,
-      description: "Contract deployed from web3 api",
-    },
-  },
-];
 
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
@@ -65,6 +57,11 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
       const { chain_name_or_id } = request.params;
       const { contractMetadata, version } = request.body;
       const sdk = await getSDK(chain_name_or_id);
+      request.log.info(
+        `Deploying prebuilt Split contract with metadata: ${JSON.stringify(
+          contractMetadata,
+        )}`,
+      );
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "split",
         contractMetadata,

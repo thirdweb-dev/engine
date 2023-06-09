@@ -12,16 +12,22 @@ import {
   commonContractSchema,
   merkleSchema,
   commonSymbolSchema,
+  commonPlatformFeeSchema,
+  commonPrimarySaleSchema,
+  commonTrustedForwarderSchema,
 } from "../../../schemas/prebuilts";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
-  contractMetadata: Type.Union([
-    commonContractSchema,
-    merkleSchema,
-    commonSymbolSchema,
-  ]),
+  contractMetadata: Type.Object({
+    ...commonContractSchema.properties,
+    ...merkleSchema.properties,
+    ...commonSymbolSchema.properties,
+    ...commonPlatformFeeSchema.properties,
+    ...commonPrimarySaleSchema.properties,
+    ...commonTrustedForwarderSchema.properties,
+  }),
   version: Type.Optional(
     Type.String({
       description: "Version of the contract to deploy. Defaults to latest.",
@@ -30,14 +36,6 @@ const requestBodySchema = Type.Object({
 });
 
 // Example for the Request Body
-requestBodySchema.examples = [
-  {
-    contractMetadata: {
-      name: `My Contract`,
-      description: "Contract deployed from web3 api",
-    },
-  },
-];
 
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;

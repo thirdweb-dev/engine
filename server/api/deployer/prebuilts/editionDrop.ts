@@ -13,17 +13,23 @@ import {
   commonRoyaltySchema,
   merkleSchema,
   commonSymbolSchema,
+  commonPlatformFeeSchema,
+  commonPrimarySaleSchema,
+  commonTrustedForwarderSchema,
 } from "../../../schemas/prebuilts";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
-  contractMetadata: Type.Union([
-    commonContractSchema,
-    commonRoyaltySchema,
-    merkleSchema,
-    commonSymbolSchema,
-  ]),
+  contractMetadata: Type.Object({
+    ...commonContractSchema.properties,
+    ...commonRoyaltySchema.properties,
+    ...merkleSchema.properties,
+    ...commonSymbolSchema.properties,
+    ...commonPlatformFeeSchema.properties,
+    ...commonPrimarySaleSchema.properties,
+    ...commonTrustedForwarderSchema.properties,
+  }),
   version: Type.Optional(
     Type.String({
       description: "Version of the contract to deploy. Defaults to latest.",
@@ -32,14 +38,6 @@ const requestBodySchema = Type.Object({
 });
 
 // Example for the Request Body
-requestBodySchema.examples = [
-  {
-    contractMetadata: {
-      name: `My Contract`,
-      description: "Contract deployed from web3 api",
-    },
-  },
-];
 
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
@@ -51,11 +49,11 @@ export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:chain_name_or_id/prebuilts/edition",
+    url: "/deployer/:chain_name_or_id/prebuilts/editionDrop",
     schema: {
-      description: "Deploy prebuilt Edition contract",
+      description: "Deploy prebuilt Edition Drop contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltEdition",
+      operationId: "deployPrebuiltEditionDrop",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -68,7 +66,7 @@ export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
       const { contractMetadata, version } = request.body;
       const sdk = await getSDK(chain_name_or_id);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "edition",
+        "edition-drop",
         contractMetadata,
         version,
       );

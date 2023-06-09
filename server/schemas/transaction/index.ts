@@ -26,16 +26,6 @@ export const transactionResponseSchema = Type.Object({
       description: "ThirdWeb Extension type",
     }),
   ),
-  functionName: Type.Optional(
-    Type.String({
-      description: "Function Name that was interacted with on the contract",
-    }),
-  ),
-  functionArgs: Type.Optional(
-    Type.String({
-      description: "Function Arguments that were passed to the contract",
-    }),
-  ),
   status: Type.Optional(
     Type.String({
       description: "Status of the transaction",
