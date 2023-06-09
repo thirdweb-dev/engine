@@ -3,13 +3,13 @@ import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
-  contractParamSchema,
+  marketplaceV3ContractParamSchema,
   currencyValueSchema,
   standardResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
   listing_id: Type.String({
     description: "The id of the listing to retrieve.",

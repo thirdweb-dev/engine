@@ -202,3 +202,14 @@ export enum Status {
   Active = 4,
   Expired = 5,
 }
+
+export const marketplaceV3ContractParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+  contract_address: Type.String({
+    examples: ["0xE8Bf1a01106F3acD7F84acaf5D668D7C9eA11535"],
+    description: "Contract Addres on the Chain",
+  }),
+});

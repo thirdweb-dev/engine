@@ -3,12 +3,12 @@ import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
-  contractParamSchema,
+  marketplaceV3ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = marketplaceV3ContractParamSchema;
 
 // OUPUT
 const responseSchema = Type.Object({

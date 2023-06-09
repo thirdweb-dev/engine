@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
-  contractParamSchema,
+  marketplaceV3ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 import { getAllFilterSchema } from "../../../../../../schemas/marketplaceV3/directListing";
@@ -11,7 +11,7 @@ import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/off
 import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = getAllFilterSchema;
 
 // OUPUT
