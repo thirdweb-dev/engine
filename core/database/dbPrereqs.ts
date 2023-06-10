@@ -108,7 +108,7 @@ export const implementTriggerOnStartUp = async (
         "utf-8",
       );
       await knex.raw(schemaSQL);
-      server.log.debug(
+      server.log.info(
         `Trigger ${dbTriggers} created/replaced on startup successfully`,
       );
     }

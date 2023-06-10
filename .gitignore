@@ -130,5 +130,6 @@ dist
 .pnp.*
 
 swagger.yml
+worker/distWorker/
 .vscode/
 .DS_Store

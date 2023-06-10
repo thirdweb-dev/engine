@@ -15,11 +15,11 @@ let connection: Knex.PgConnectionConfig = {
   password: getEnv("POSTGRES_PASSWORD"),
   database: DATABASE_NAME,
   ssl:
-    getEnv("NODE_ENV", "development") === "production"
-      ? {
-          rejectUnauthorized: false,
-        }
-      : false,
+      getEnv("POSTGRES_USE_SSL") === "true"
+        ? {
+            rejectUnauthorized: false,
+          }
+        : false,
 };
 
 export const connectToDB = async (

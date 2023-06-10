@@ -11,12 +11,11 @@ FROM base AS prod
 
 EXPOSE 3005 3006
 
-RUN yarn install
-RUN yarn build
-RUN yarn start
-
 ENV NODE_ENV="production"
-
 RUN yarn install --production
+RUN yarn build
+RUN yarn copy-files
 RUN apk del build-dependencies
+
+ENTRYPOINT [ "docker-entrypoint.sh" ]
 CMD [ "yarn", "start"]

@@ -16,21 +16,17 @@ export const startNotificationListener = async (
     connection.on(
       "notification",
       async (msg: { channel: string; payload: string }) => {
-        try {
-          server.log.info(">>> new notification", msg.payload);
-          await processTransaction(server);
-        } catch (err) {
-          server.log.error("failed to process notification", err);
-        }
+        server.log.info(msg.payload);
+        await processTransaction(server);
       },
     );
 
     connection.on("end", () => {
-      server.log.info(`Worker Notification DB connection ended`);
+      server.log.info(`Connection database ended`);
     });
 
     connection.on("error", (err: any) => {
-      console.error("Worker Notification DB error", err);
+      server.log.error(err);
     });
 
     knex.client.releaseConnection(connection);

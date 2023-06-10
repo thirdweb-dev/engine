@@ -35,7 +35,7 @@ The API defaults to `http://localhost:3005`.
 2. Create a `.env` file based off `.example.env` with all the variables filled in.
 3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
 4. Update the `THIRDWEB_API_KEY` value on the `.env` file
-5. Run `docker run thirdweb/web3-api:0.1.0 --env-file ./.env`.
+5. Run `docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest`.
 
 ## Running on a server
 
