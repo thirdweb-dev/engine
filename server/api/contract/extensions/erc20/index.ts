@@ -13,6 +13,8 @@ import { erc20burnFrom } from "./write/burnFrom";
 import { erc20claimTo } from "./write/claimTo";
 import { erc20mintBatchTo } from "./write/mintBatchTo";
 import { erc20mintTo } from "./write/mintTo";
+import { erc20SignatureGenerate } from "./read/signatureGenerate";
+import { erc20SignatureMint } from "./write/signatureMint";
 
 export const erc20Routes = async (fastify: FastifyInstance) => {
   // GET
@@ -20,6 +22,7 @@ export const erc20Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc20BalanceOf);
   await fastify.register(erc20GetMetadata);
   await fastify.register(erc20TotalSupply);
+  await fastify.register(erc20SignatureGenerate);
 
   //POST
   await fastify.register(erc20SetAlowance);
@@ -30,5 +33,5 @@ export const erc20Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc20claimTo);
   await fastify.register(erc20mintBatchTo);
   await fastify.register(erc20mintTo);
-
+  await fastify.register(erc20SignatureMint);
 };

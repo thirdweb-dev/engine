@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
@@ -17,7 +17,7 @@ const requestBodySchema = Type.Object({
     description: "The wallet address to receive the claimed tokens.",
   }),
   amount: Type.String({
-    description: 'The amount of tokens to claim.',
+    description: "The amount of tokens to claim.",
   }),
 });
 
@@ -51,7 +51,10 @@ export async function erc20claimTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { recipient, amount } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstance(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc20.claimTo.prepare(recipient, amount);
       const queuedId = await queueTransaction(
         request,

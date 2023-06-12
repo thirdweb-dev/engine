@@ -16,8 +16,6 @@ const MIN_TRANSACTION_TO_PROCESS =
     10,
   ) ?? 1;
 
-const TRANSACTIONS_TO_BATCH_DEFAULT = 10;
-
 export const processTransaction = async (
   server: FastifyInstance,
 ): Promise<void> => {
@@ -25,7 +23,6 @@ export const processTransaction = async (
     // Connect to the DB
     const knex = await connectWithDatabase(server);
     let data: any;
-
     try {
       data = await getTransactionsToProcess(knex);
     } catch (error) {
@@ -77,9 +74,6 @@ export const processTransaction = async (
         from: tx.walletAddress,
         data: tx.encodedInputData,
         nonce: txSubmittedNonce,
-        customData: {
-          Hello: "World",
-        },
       };
 
       // Send transaction to the blockchain

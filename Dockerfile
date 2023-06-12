@@ -1,13 +1,26 @@
-FROM node:18.15.0-alpine AS base
+FROM node:18.15.0-alpine
 
+# Set the working directory
 WORKDIR /app
+
+# Install build dependencies
 RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip
 
-COPY . .
-COPY package*.json .
-COPY yarn*.json .
+# Copy package.json and yarn.lock files
+COPY package*.json yarn*.json ./
 
-FROM base AS prod
+# Copy the entire project directory
+COPY . .
+
+# Install dependencies for both development and production
+RUN yarn install --frozen-lockfile
+
+# Build the project
+RUN yarn build
+RUN yarn copy-files
+
+# Clean up build dependencies
+RUN apk del build-dependencies
 
 EXPOSE 3005 3006
 

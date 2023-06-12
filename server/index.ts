@@ -20,37 +20,52 @@ const main = async () => {
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.addHook("preHandler", function (req, reply, done) {
-    if (req.body) {
-      req.log.info({ ...req.body }, "Request Body : ");
-    }
+  server.addHook("preHandler", function (request, reply, done) {
+    if (
+      !request.routerPath.includes("static") &&
+      !request.routerPath.includes("json")
+    ) {
+      if (request.body && Object.keys(request.body).length > 0) {
+        request.log.info({ ...request.body }, "Request Body : ");
+      }
 
-    if (req.params) {
-      req.log.info({ ...req.params }, "Request Params : ");
-    }
+      if (request.params && Object.keys(request.params).length > 0) {
+        request.log.info({ ...request.params }, "Request Params : ");
+      }
 
-    if (req.query) {
-      req.log.info({ ...req.query }, "Request Querystring : ");
+      if (request.query && Object.keys(request.query).length > 0) {
+        request.log.info({ ...request.query }, "Request Querystring : ");
+      }
     }
 
     done();
   });
 
   server.addHook("onRequest", (request, reply, done) => {
-    request.log.info(
-      `Request received - ${request.method} - ${request.routerPath}`,
-    );
+    if (
+      !request.routerPath.includes("static") &&
+      !request.routerPath.includes("json")
+    ) {
+      request.log.info(
+        `Request received - ${request.method} - ${request.routerPath}`,
+      );
+    }
     done();
   });
 
   server.addHook("onResponse", (request, reply, done) => {
-    request.log.info(
-      `Request completed - ${request.method} - ${
-        reply.request.routerPath
-      } - StatusCode: ${reply.statusCode} - Response Time: ${reply
-        .getResponseTime()
-        .toFixed(2)}ms`,
-    );
+    if (
+      !request.routerPath.includes("static") &&
+      !request.routerPath.includes("json")
+    ) {
+      request.log.info(
+        `Request completed - ${request.method} - ${
+          reply.request.routerPath
+        } - StatusCode: ${reply.statusCode} - Response Time: ${reply
+          .getResponseTime()
+          .toFixed(2)}ms`,
+      );
+    }
     done();
   });
 

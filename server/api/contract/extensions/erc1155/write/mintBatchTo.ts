@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -47,7 +47,6 @@ requestBodySchema.examples = [
 
 // OUTPUT
 
-
 export async function erc1155mintBatchTo(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
@@ -70,7 +69,10 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { receiver, metadataWithSupply } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstance(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc1155.mintBatchTo.prepare(
         receiver,
         metadataWithSupply,

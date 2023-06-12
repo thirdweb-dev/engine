@@ -13,7 +13,7 @@ import {
 import {
   TransactionStatusEnum,
   TransactionSchema,
-  transactionResponseSchema
+  transactionResponseSchema,
 } from "../schemas/transaction";
 import { Static } from "@sinclair/typebox";
 
@@ -67,11 +67,15 @@ export const queueTransaction = async (
     encodedInputData: encodedData,
   };
 
-  if (!txDataToInsert.identifier){
-    const error = createCustomError("Transaction identifier not found", StatusCodes.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+  if (!txDataToInsert.identifier) {
+    const error = createCustomError(
+      "Transaction identifier not found",
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "INTERNAL_SERVER_ERROR",
+    );
     throw error;
   }
-  
+
   // Insert to DB
   const dbInstance = await connectWithDatabase(request);
   await insertTransactionData(dbInstance, txDataToInsert, request);
@@ -90,7 +94,7 @@ export const insertTransactionData = async (
     await knex("transactions").insert(insertObject);
   } catch (error: any) {
     const customError = createCustomError(
-      error.message,
+      error.message.split(" - ")[1],
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );
@@ -113,7 +117,7 @@ export const findTxDetailsWithQueueId = async (
     return transformedData[0];
   } catch (error: any) {
     const customError = createCustomError(
-      error.message,
+      `Error while fetching transaction details for identifier: ${queueId} from Table.`,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );
@@ -128,14 +132,12 @@ export const getAllTxFromDB = async (
   sort?: string,
   sort_order?: string,
   filter?: string,
-
 ): Promise<Static<typeof transactionResponseSchema>[]> => {
   try {
-
     const dbInstance = await connectWithDatabase(request);
-    const data = await dbInstance("transactions")
-      .where((builder)=>{
-        if (filter === TransactionStatusEnum.Submitted){
+    const data = (await dbInstance("transactions")
+      .where((builder) => {
+        if (filter === TransactionStatusEnum.Submitted) {
           builder.where("txSubmitted", true);
         } else if (filter === TransactionStatusEnum.Processed) {
           builder.where("txProcessed", true);
@@ -152,14 +154,14 @@ export const getAllTxFromDB = async (
       })
       .orderBy(sort || "createdTimestamp", sort_order || "asc")
       .limit(limit)
-      .offset((page - 1) * limit) as TransactionSchema[];
+      .offset((page - 1) * limit)) as TransactionSchema[];
     dbInstance.destroy();
-    
+
     const transformedData = transformData(data);
     return transformedData;
   } catch (error: any) {
     const customError = createCustomError(
-      error.message,
+      "Error while fetching all transaction requests from Table.",
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );
@@ -167,9 +169,11 @@ export const getAllTxFromDB = async (
   }
 };
 
-const transformData = (txResult: TransactionSchema[]) : Static<typeof transactionResponseSchema>[] => {
+const transformData = (
+  txResult: TransactionSchema[],
+): Static<typeof transactionResponseSchema>[] => {
   const transformedData = txResult.map((row) => {
-    let status = '';
+    let status = "";
     if (row.txMined) {
       status = TransactionStatusEnum.Mined;
     } else if (row.txSubmitted) {
@@ -187,7 +191,7 @@ const transformData = (txResult: TransactionSchema[]) : Static<typeof transactio
     delete row.identifier;
     delete row.rawFunctionName;
     delete row.rawFunctionArgs;
-    return { ...row, status, queueId, functionName, functionArgs};
+    return { ...row, status, queueId, functionName, functionArgs };
   });
 
   return transformedData;

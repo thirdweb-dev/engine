@@ -1,7 +1,7 @@
 import swagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
-import { FastifyInstance } from "fastify";
 import { getEnv } from "../../core/loadEnv";
+import { FastifyInstance } from "fastify";
 
 // fastify-swagger v8 requires the swagger-ui & openapi specs
 // to be separate unlike old implementation
@@ -25,12 +25,6 @@ export const openapi = async (server: FastifyInstance) => {
         },
       ],
       components: {
-        // To show schemas on the Docs if needed, uncomment
-        // schemas:{
-        //   'read': {
-        //     'type': 'object'
-        //   }
-        // },
         securitySchemes: {
           sharedSecret: {
             type: "apiKey",
@@ -58,14 +52,7 @@ export const openapi = async (server: FastifyInstance) => {
       deepLinking: true,
       displayOperationId: false,
     },
-    uiHooks: {
-      onRequest: function (request, reply, done) {
-        done();
-      },
-      preHandler: function (request, reply, done) {
-        done();
-      },
-    },
+
     staticCSP: true,
     transformStaticCSP: (header) => header,
   });

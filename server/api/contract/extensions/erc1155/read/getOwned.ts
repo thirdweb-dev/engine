@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../core";
+import { getContractInstance } from "../../../../../../core";
 import { Static, Type } from "@sinclair/typebox";
 import {
   erc1155ContractParamSchema,
@@ -19,32 +19,35 @@ const querystringSchema = Type.Object({
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(nftSchema)
+  result: Type.Array(nftSchema),
 });
 
-responseSchema.examples = [{
-  "result": [
-    {
-      "metadata": {
-        "id": "0",
-        "uri": "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
-        "name": "TJ-Origin",
-        "description": "Origin",
-        "external_url": "",
-        "attributes": [
-          {
-            "trait_type": "Mode",
-            "value": "GOD"
-          }
-        ]
+responseSchema.examples = [
+  {
+    result: [
+      {
+        metadata: {
+          id: "0",
+          uri: "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
+          name: "TJ-Origin",
+          description: "Origin",
+          external_url: "",
+          attributes: [
+            {
+              trait_type: "Mode",
+              value: "GOD",
+            },
+          ],
+        },
+        owner: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+        type: "ERC1155",
+        supply:
+          "600000150000000000000000000000000000000000009000000000000000000000712",
+        quantityOwned: "9000000000000000000000000",
       },
-      "owner": "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      "type": "ERC1155",
-      "supply": "600000150000000000000000000000000000000000009000000000000000000000712",
-      "quantityOwned": "9000000000000000000000000"
-    }
-  ]
-}];
+    ],
+  },
+];
 
 // LOGIC
 export async function erc1155GetOwned(fastify: FastifyInstance) {
@@ -70,7 +73,10 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstance(
+        chain_name_or_id,
+        contract_address,
+      );
       const result = await contract.erc1155.getOwned(wallet_address);
       reply.status(StatusCodes.OK).send({
         result,

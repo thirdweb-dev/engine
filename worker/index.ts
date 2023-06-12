@@ -1,4 +1,4 @@
-import { errorHandler, getEnv } from "../core";
+import { errorHandler } from "../core";
 import fastify, { FastifyInstance } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { startNotificationListener } from "./controller/listener";

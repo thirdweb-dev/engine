@@ -1,9 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import {
-  getContractInstace
-} from "../../../../core";
+import { getContractInstance } from "../../../../core";
 
 import {
   contractParamSchema,
@@ -39,7 +37,7 @@ writeRequestBodySchema.examples = [
 // LOGIC
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof writeRequestBodySchema>,
+    Body: Static<typeof writeRequestBodySchema>;
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
   }>({
@@ -59,10 +57,13 @@ export async function writeToContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { function_name, args } = request.body;
-      
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+
+      const contract = await getContractInstance(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.prepare(function_name, args);
-      
+
       const queuedId = await queueTransaction(
         request,
         tx,
@@ -71,7 +72,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId, 
+        result: queuedId,
       });
     },
   });

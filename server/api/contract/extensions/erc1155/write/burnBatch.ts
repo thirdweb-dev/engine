@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getContractInstace } from "../../../../../../core";
+import { getContractInstance } from "../../../../../../core";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -33,7 +33,6 @@ requestBodySchema.examples = [
 
 // OUTPUT
 
-
 export async function erc1155burnBatch(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
@@ -56,7 +55,10 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { token_ids, amounts } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstance(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc1155.burnBatch.prepare(token_ids, amounts);
       const queuedId = await queueTransaction(
         request,

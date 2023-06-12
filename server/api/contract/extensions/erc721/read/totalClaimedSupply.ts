@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import {
   standardResponseSchema,
   contractParamSchema,
@@ -12,7 +12,7 @@ const requestSchema = contractParamSchema;
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.String())
+  result: Type.Optional(Type.String()),
 });
 
 // LOGIC
@@ -35,7 +35,10 @@ export async function erc721TotalClaimedSupply(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstance(
+        chain_name_or_id,
+        contract_address,
+      );
       const returnData = await contract.erc721.totalClaimedSupply();
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

@@ -27,7 +27,7 @@
     "@fastify/express": "^2.3.0",
     "@fastify/swagger": "^8.3.1",
     "@fastify/swagger-ui": "^1.8.1",
-    "@fastify/type-provider-typebox": "^3.0.0",
+    "@fastify/type-provider-typebox": "^3.2.0",
     "@sinclair/typebox": "^0.28",
     "@thirdweb-dev/chains": "^0.1.18",
     "@thirdweb-dev/wallets": "^0.2.22",

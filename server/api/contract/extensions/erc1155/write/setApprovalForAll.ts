@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -29,7 +29,6 @@ requestBodySchema.examples = [
 
 // OUTPUT
 
-
 export async function erc1155SetApprovalForAll(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
@@ -53,7 +52,10 @@ export async function erc1155SetApprovalForAll(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { operator, approved } = request.body;
-      const contract = await getContractInstace(chain_name_or_id, contract_address);
+      const contract = await getContractInstance(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc1155.setApprovalForAll.prepare(
         operator,
         approved,

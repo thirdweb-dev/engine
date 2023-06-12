@@ -6,7 +6,7 @@ import { FastifyInstance, FastifyRequest } from "fastify";
 const DATABASE_NAME = getEnv("POSTGRES_DATABASE_NAME");
 
 // Defaults to postgres
-const dbClient = getEnv("DATABASE_CLIENT") ?? "pg";
+const dbClient = getEnv("DATABASE_CLIENT", "pg");
 
 // Database Connection Setup// Database Connection Setup
 let connection: Knex.PgConnectionConfig = {
@@ -15,11 +15,11 @@ let connection: Knex.PgConnectionConfig = {
   password: getEnv("POSTGRES_PASSWORD"),
   database: DATABASE_NAME,
   ssl:
-      getEnv("POSTGRES_USE_SSL") === "true"
-        ? {
-            rejectUnauthorized: false,
-          }
-        : false,
+    getEnv("POSTGRES_USE_SSL") === "true"
+      ? {
+          rejectUnauthorized: false,
+        }
+      : false,
 };
 
 export const connectToDB = async (

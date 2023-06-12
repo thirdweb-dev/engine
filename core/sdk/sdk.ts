@@ -1,6 +1,5 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { getChainBySlug } from "@thirdweb-dev/chains";
-// import { AwsKmsWallet } from '@thirdweb-dev/sdk/evm/wallets';
 import {
   ThirdwebSDK,
   ChainOrRpc,
@@ -9,9 +8,7 @@ import {
   BaseContractForAddress,
 } from "@thirdweb-dev/sdk";
 
-import {
-  ContractAddress
-} from "@thirdweb-dev/generated-abis";
+import { ContractAddress } from "@thirdweb-dev/generated-abis";
 
 import { BaseContract } from "ethers";
 import { getEnv } from "../loadEnv";
@@ -32,6 +29,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
   } else {
     wallet.generate();
+    //TODO - save the private key to file system
     //wallet.save({ encryption: false, strategy: "privateKey" });
   }
 
@@ -42,14 +40,18 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   sdkMap[chainName] = sdk;
 
   return sdk;
-}
-
-
-export const getContractInstace = async <TContractAddress extends AddressOrEns | ContractAddress>(
+};
+export const getContractInstance = async <
+  TContractAddress extends AddressOrEns | ContractAddress,
+>(
   chain_name_or_id: ChainOrRpc,
-  contract_address: TContractAddress
-): Promise<TContractAddress extends ContractAddress ? SmartContract<BaseContractForAddress<TContractAddress>> : SmartContract<BaseContract>> => {
+  contract_address: TContractAddress,
+): Promise<
+  TContractAddress extends ContractAddress
+    ? SmartContract<BaseContractForAddress<TContractAddress>>
+    : SmartContract<BaseContract>
+> => {
   const sdk = await getSDK(chain_name_or_id);
   const contract = await sdk.getContract(contract_address);
   return contract;
-}
+};

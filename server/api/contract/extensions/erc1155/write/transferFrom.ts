@@ -7,7 +7,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
-import { getSDK } from "core";
+import { getContractInstance } from "core";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -59,8 +59,10 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { from, to, token_id, amount } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
-      const contract = await sdk.getContract(contract_address);
+      const contract = await getContractInstance(
+        chain_name_or_id,
+        contract_address,
+      );
       const tx = await contract.erc1155.transferFrom.prepare(
         from,
         to,
