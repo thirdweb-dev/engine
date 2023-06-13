@@ -1,4 +1,4 @@
-import { providers } from "ethers";
+import { BigNumber, providers } from "ethers";
 import { createCustomError, getEnv } from "../../core";
 import { Knex } from "knex";
 
@@ -9,12 +9,15 @@ export const getWalletDetails = async (
   walletAddress: string,
   chainId: string,
   database: Knex,
+  trx: Knex.Transaction,
 ): Promise<any> => {
   try {
     const walletDetails = await database("wallets")
       .select("*")
       .where({ walletAddress, chainId })
-      .first();
+      .first()
+      .forUpdate()
+      .transacting(trx);
 
     return walletDetails;
   } catch (error) {
@@ -100,7 +103,8 @@ export const updateTransactionState = async (
 };
 
 export const updateWalletNonceValue = async (
-  lastUsedNonce: number,
+  lastUsedNonce: BigNumber,
+  blockchainNonce: BigNumber,
   walletAddress: string,
   chainId: string,
   database: Knex,
@@ -109,7 +113,8 @@ export const updateWalletNonceValue = async (
   try {
     const updatedWallet = await database("wallets")
       .update({
-        lastUsedNonce,
+        lastUsedNonce: +lastUsedNonce,
+        blockchainNonce: +blockchainNonce,
       })
       .where("walletAddress", walletAddress)
       .where("chainId", chainId)

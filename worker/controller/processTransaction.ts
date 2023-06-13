@@ -12,7 +12,7 @@ import {
   updateTransactionState,
   updateWalletNonceValue,
 } from "../services/dbOperations";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { Knex } from "knex";
 import { StatusCodes } from "http-status-codes";
 
@@ -58,6 +58,7 @@ export const processTransaction = async (
         tx.walletAddress,
         tx.chainId,
         knex,
+        trx,
       );
 
       const sdk = await getSDK(tx.chainId);
@@ -66,16 +67,25 @@ export const processTransaction = async (
         sdk.getProvider(),
       );
 
-      let nonce = walletData?.lastUsedNonce ?? 0;
+      let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
+      let txSubmittedNonce = BigNumber.from(0);
 
-      if (blockchainNonce > nonce) {
-        nonce = blockchainNonce;
+      if (lastUsedNonce.eq(BigNumber.from(-1))) {
+        txSubmittedNonce = BigNumber.from(tx.rownum)
+          .add(blockchainNonce)
+          .sub(1);
+      } else if (blockchainNonce == lastUsedNonce) {
+        txSubmittedNonce = BigNumber.from(tx.rownum).add(lastUsedNonce);
+      } else {
+        txSubmittedNonce = BigNumber.from(blockchainNonce);
       }
 
       await updateTransactionState(knex, tx.identifier, "processed", trx);
-
       // Get the nonce for the blockchain transaction
-      const txSubmittedNonce = nonce + parseInt(tx.rownum, 10) - 1;
+
+      server.log.debug(
+        `Transaction ${tx.identifier}, Submit Nonce ${txSubmittedNonce}, Wallet DB Nonce ${lastUsedNonce}, rownum ${tx.rownum}`,
+      );
 
       // Submit transaction to the blockchain
       // Create transaction object
@@ -90,12 +100,22 @@ export const processTransaction = async (
       let txHash: ethers.providers.TransactionResponse | undefined;
       try {
         txHash = await sdk.getSigner()?.sendTransaction(txObject);
-      } catch (error) {
+      } catch (error: any) {
         server.log.debug("Send Transaction errored");
-        server.log.error(error);
         server.log.warn(
           `Request-ID: ${tx.identifier} processed but errored out: Commited to db`,
         );
+
+        if (error.message.includes("nonce has already been used")) {
+          await updateWalletNonceValue(
+            txSubmittedNonce,
+            BigNumber.from(blockchainNonce),
+            tx.walletAddress,
+            tx.chainId,
+            knex,
+            trx,
+          );
+        }
         await updateTransactionState(knex, tx.identifier, "errored", trx);
         await trx.commit();
         await knex.destroy();
@@ -115,6 +135,7 @@ export const processTransaction = async (
         );
         await updateWalletNonceValue(
           txSubmittedNonce,
+          BigNumber.from(blockchainNonce),
           tx.walletAddress,
           tx.chainId,
           knex,
@@ -130,7 +151,8 @@ export const processTransaction = async (
     await knex.destroy();
   } catch (error) {
     server.log.error(error);
-    if (trx) {
+    if (trx && trx.isCompleted() === false) {
+      server.log.warn("Rolling back transaction");
       await trx.rollback();
     }
   } finally {
