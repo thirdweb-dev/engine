@@ -5,7 +5,7 @@ export const queue = new PQueue({
   autoStart: true,
 });
 
-queue.on("error", (error) => {
+queue.on("error", (error: any) => {
   console.log(`Process Error. Size: ${queue.size}  Pending: ${queue.pending}`);
   console.error(error);
   throw error;

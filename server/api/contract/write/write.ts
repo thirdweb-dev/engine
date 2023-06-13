@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
-import { getContractInstace } from "../../../../core";
+import { getContractInstance } from "../../../../core";
 
 import {
   contractParamSchema,
@@ -58,7 +58,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { chain_name_or_id, contract_address } = request.params;
       const { function_name, args } = request.body;
 
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

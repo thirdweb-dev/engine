@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -26,11 +26,9 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.Boolean()),
 });
 
-responseSchema.examples = [
-  {
-    result: false,
-  },
-];
+responseSchema.example = {
+  result: false,
+};
 
 // LOGIC
 export async function erc721IsApproved(fastify: FastifyInstance) {
@@ -56,7 +54,7 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { owner_wallet, operator } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

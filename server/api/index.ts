@@ -7,11 +7,10 @@ import { getAllTx } from "./transaction/getAll";
 
 // Extensions
 import { erc20Routes } from "./contract/extensions/erc20/index";
-import { deployPrebuilt } from "./deployer/prebuilt";
-import { deployPublished } from "./deployer/published";
 import { erc721Routes } from "./contract/extensions/erc721";
 import { erc1155Routes } from "./contract/extensions/erc1155";
-import { contractTypes } from "./deployer/contractTypes";
+import { prebuiltsRoutes } from "./deployer";
+import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
 
 // Chain
 import { getChainData } from "./chain/get";
@@ -27,9 +26,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(writeToContract);
 
   // deployer
-  await fastify.register(deployPrebuilt);
-  await fastify.register(deployPublished);
-  await fastify.register(contractTypes);
+  await fastify.register(prebuiltsRoutes);
 
   // transaction status
   await fastify.register(checkTxStatus);
@@ -39,4 +36,5 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(erc20Routes);
   await fastify.register(erc721Routes);
   await fastify.register(erc1155Routes);
+  await fastify.register(marketplaceV3Routes);
 };

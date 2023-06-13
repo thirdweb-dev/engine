@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import {
   standardResponseSchema,
   contractParamSchema,
@@ -15,7 +15,7 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: "1",
   },
@@ -41,7 +41,7 @@ export async function erc721TotalCount(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

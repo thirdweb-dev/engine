@@ -94,7 +94,7 @@ export const insertTransactionData = async (
     await knex("transactions").insert(insertObject);
   } catch (error: any) {
     const customError = createCustomError(
-      error.message,
+      error.message.split(" - ")[1],
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );
@@ -117,7 +117,7 @@ export const findTxDetailsWithQueueId = async (
     return transformedData[0];
   } catch (error: any) {
     const customError = createCustomError(
-      error.message,
+      `Error while fetching transaction details for identifier: ${queueId} from Table.`,
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );
@@ -161,7 +161,7 @@ export const getAllTxFromDB = async (
     return transformedData;
   } catch (error: any) {
     const customError = createCustomError(
-      error.message,
+      "Error while fetching all transaction requests from Table.",
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );
@@ -178,10 +178,10 @@ const transformData = (
       status = TransactionStatusEnum.Mined;
     } else if (row.txSubmitted) {
       status = TransactionStatusEnum.Submitted;
-    } else if (row.txProcessed) {
-      status = TransactionStatusEnum.Processed;
     } else if (row.txErrored) {
       status = TransactionStatusEnum.Errored;
+    } else if (row.txProcessed) {
+      status = TransactionStatusEnum.Processed;
     } else {
       status = TransactionStatusEnum.Queued;
     }

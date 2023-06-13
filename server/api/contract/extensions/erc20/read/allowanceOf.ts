@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getContractInstace } from "../../../../../../core";
+import { getContractInstance } from "../../../../../../core";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
@@ -27,17 +27,15 @@ const responseSchema = Type.Object({
   result: erc20MetadataSchema,
 });
 
-responseSchema.examples = [
-  {
-    result: {
-      name: "ERC20",
-      symbol: "",
-      decimals: "18",
-      value: "0",
-      displayValue: "0.0",
-    },
+responseSchema.example = {
+  result: {
+    name: "ERC20",
+    symbol: "",
+    decimals: "18",
+    value: "0",
+    displayValue: "0.0",
   },
-];
+};
 
 // LOGIC
 export async function erc20AllowanceOf(fastify: FastifyInstance) {
@@ -62,7 +60,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { spender_wallet, owner_wallet } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

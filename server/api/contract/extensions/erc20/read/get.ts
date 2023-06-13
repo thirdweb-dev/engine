@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import { Static, Type } from "@sinclair/typebox";
 import {
   erc20ContractParamSchema,
@@ -19,15 +19,13 @@ const responseSchema = Type.Object({
   }),
 });
 
-responseSchema.examples = [
-  {
-    result: {
-      name: "ERC20",
-      symbol: "",
-      decimals: "18",
-    },
+responseSchema.example = {
+  result: {
+    name: "ERC20",
+    symbol: "",
+    decimals: "18",
   },
-];
+};
 
 // LOGIC
 export async function erc20GetMetadata(fastify: FastifyInstance) {
@@ -50,7 +48,7 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

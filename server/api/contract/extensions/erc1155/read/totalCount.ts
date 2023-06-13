@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../core";
+import { getContractInstance } from "../../../../../../core";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -15,11 +15,9 @@ const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
 });
 
-responseSchema.examples = [
-  {
-    result: "1",
-  },
-];
+responseSchema.example = {
+  result: "1",
+};
 
 // LOGIC
 export async function erc1155TotalCount(fastify: FastifyInstance) {
@@ -41,7 +39,7 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );

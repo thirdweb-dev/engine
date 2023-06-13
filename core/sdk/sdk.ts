@@ -29,7 +29,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   return sdkMap[chainName] as ThirdwebSDK;
 };
 
-export const getContractInstace = async <
+export const getContractInstance = async <
   TContractAddress extends AddressOrEns | ContractAddress,
 >(
   chain_name_or_id: ChainOrRpc,

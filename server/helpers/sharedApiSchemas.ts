@@ -59,12 +59,6 @@ const replyBodySchema = Type.Object({
   result: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
 });
 
-replyBodySchema.examples = [
-  {
-    result: "ERC20-Test-Token",
-  },
-];
-
 const replyErrorBodySchema = Type.Object({
   error: Type.Optional(baseReplyErrorSchema),
 });
@@ -143,11 +137,9 @@ export const transactionWritesResponseSchema = Type.Object({
   }),
 });
 
-transactionWritesResponseSchema.examples = [
-  {
-    result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
-  },
-];
+transactionWritesResponseSchema.example = {
+  result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+};
 
 /**
  * Basic schema for ERC721 Contract Request Parameters
@@ -189,4 +181,46 @@ export const erc721ContractParamSchema = Type.Object({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
     description: "ERC721 Contract Addres on the Chain",
   }),
+});
+export const currencyValueSchema = Type.Object({
+  name: Type.String(),
+  symbol: Type.String(),
+  decimals: Type.Number(),
+  value: Type.String(),
+  displayValue: Type.String(),
+});
+
+currencyValueSchema.description =
+  "The `CurrencyValue` of the listing. Useful for displaying the price information.";
+
+export enum Status {
+  UNSET = 0,
+  Created = 1,
+  Completed = 2,
+  Cancelled = 3,
+  Active = 4,
+  Expired = 5,
+}
+
+export const marketplaceV3ContractParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+  contract_address: Type.String({
+    examples: ["0xE8Bf1a01106F3acD7F84acaf5D668D7C9eA11535"],
+    description: "Contract Addres on the Chain",
+  }),
+});
+
+export const prebuiltDeployContractParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+});
+
+export const prebuiltDeployResponseSchema = Type.Object({
+  queuedId: Type.Optional(Type.String()),
+  deployedAddress: Type.Optional(Type.String()),
 });

@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstace } from "../../../../../../core/index";
+import { getContractInstance } from "../../../../../../core/index";
 import { Static, Type } from "@sinclair/typebox";
 import {
   contractParamSchema,
@@ -22,7 +22,7 @@ const responseSchema = Type.Object({
   result: Type.Array(nftSchema),
 });
 
-responseSchema.examples = [
+responseSchema.example = [
   {
     result: [
       {
@@ -66,7 +66,7 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain_name_or_id, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const contract = await getContractInstace(
+      const contract = await getContractInstance(
         chain_name_or_id,
         contract_address,
       );
