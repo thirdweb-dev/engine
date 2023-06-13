@@ -34,7 +34,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc20/setAllowance",
+    url: "/contract/:network/:contract_address/erc20/setAllowance",
     schema: {
       description:
         "Grant allowance to another wallet address to spend the connected (Admin) wallet's funds (of this token).",
@@ -48,22 +48,14 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { spender_address, amount } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.erc20.setAllowance.prepare(
         spender_address,
         amount,
       );
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        chain_name_or_id,
-        "erc20",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "erc20");
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

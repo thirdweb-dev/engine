@@ -49,7 +49,7 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:chain_name_or_id/prebuilts/edition",
+    url: "/deployer/:network/prebuilts/edition",
     schema: {
       description: "Deploy prebuilt Edition contract",
       tags: ["Deploy"],
@@ -62,9 +62,9 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id } = request.params;
+      const { network } = request.params;
       const { contractMetadata, version } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
+      const sdk = await getSDK(network);
 
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "edition",
@@ -75,7 +75,7 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "deployer_prebuilt",
       );
       reply.status(StatusCodes.OK).send({

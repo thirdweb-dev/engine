@@ -51,11 +51,11 @@ export async function offersGetOffer(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/offers/getOffer",
+    url: "/marketplace/:network/:contract_address/offers/getOffer",
     schema: {
       description:
         "Get information about a specific offer using the offer’s ID.",
-      tags: ["MarketplaceV3-Offers"],
+      tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offers_getOffer",
       params: requestSchema,
       querystring: requestQuerySchema,
@@ -65,12 +65,9 @@ export async function offersGetOffer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { offer_id } = request.query;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const result = await contract.offers.getOffer(offer_id);
 
       reply.status(StatusCodes.OK).send({

@@ -68,10 +68,10 @@ export async function directListingsGetAllValid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/getAllValid",
+    url: "/marketplace/:network/:contract_address/directListings/getAllValid",
     schema: {
       description: "Get all the valid direct listings on the marketplace.",
-      tags: ["MarketplaceV3-DirectListings"],
+      tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_getAllValid",
       params: requestSchema,
       querystring: requestQuerySchema,
@@ -81,13 +81,10 @@ export async function directListingsGetAllValid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { start, count, offeror, seller, tokenContract, tokenId } =
         request.query;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const result = await contract.directListings.getAllValid({
         start,
         count,

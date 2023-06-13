@@ -57,7 +57,7 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc1155/getOwned",
+    url: "/contract/:network/:contract_address/erc1155/getOwned",
     schema: {
       description:
         "Get all NFTs owned by a specific wallet from a given contract.",
@@ -71,12 +71,9 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const result = await contract.erc1155.getOwned(wallet_address);
       reply.status(StatusCodes.OK).send({
         result,

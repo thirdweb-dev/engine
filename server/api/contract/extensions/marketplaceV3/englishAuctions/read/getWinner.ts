@@ -34,11 +34,11 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/getWinner",
+    url: "/marketplace/:network/:contract_address/englishAuctions/getWinner",
     schema: {
       description:
         "Get the wallet address that won an auction. Can only be called after the auction has ended.",
-      tags: ["MarketplaceV3-EnglishAuctions"],
+      tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_getWinner",
       params: requestSchema,
       querystring: requestQuerySchema,
@@ -48,12 +48,9 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { listing_id } = request.query;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const result = await contract.englishAuctions.getWinner(listing_id);
 
       reply.status(StatusCodes.OK).send({

@@ -38,11 +38,11 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/isWinningBid",
+    url: "/marketplace/:network/:contract_address/englishAuctions/isWinningBid",
     schema: {
       description:
         "Check if a value is/would be the current winning bid of an auction.",
-      tags: ["MarketplaceV3-EnglishAuctions"],
+      tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_isWinningBid",
       params: requestSchema,
       querystring: requestQuerySchema,
@@ -52,12 +52,9 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { listing_id, bid_amount } = request.query;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const result = await contract.englishAuctions.isWinningBid(
         listing_id,
         bid_amount,

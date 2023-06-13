@@ -38,7 +38,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc1155/claimTo",
+    url: "/contract/:network/:contract_address/erc1155/claimTo",
     schema: {
       description: "Claim an NFT to a specific wallet.",
       tags: ["ERC1155"],
@@ -51,23 +51,15 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { receiver, token_id, quantity } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.erc1155.claimTo.prepare(
         receiver,
         token_id,
         quantity,
       );
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        chain_name_or_id,
-        "erc1155",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "erc1155");
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });
