@@ -1,20 +1,34 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../core";
+import { getSDK } from "../../../../core";
 import {
-  baseReplyErrorSchema,
-  prebuiltDeployParamSchema,
+  prebuiltDeployContractParamSchema,
   standardResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+  prebuiltDeployResponseSchema,
+} from "../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { queueTransaction } from "../../helpers";
+import { queueTransaction } from "../../../helpers";
+import {
+  commonContractSchema,
+  commonRoyaltySchema,
+  merkleSchema,
+  commonSymbolSchema,
+  commonPlatformFeeSchema,
+  commonPrimarySaleSchema,
+  commonTrustedForwarderSchema,
+} from "../../../schemas/prebuilts";
 
 // INPUTS
-const requestSchema = prebuiltDeployParamSchema;
+const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
-  // TODO need to type this
-  contractMetadata: Type.Any({
-    description: "Arguments for the deployment.",
+  contractMetadata: Type.Object({
+    ...commonContractSchema.properties,
+    ...commonRoyaltySchema.properties,
+    ...merkleSchema.properties,
+    ...commonSymbolSchema.properties,
+    ...commonPlatformFeeSchema.properties,
+    ...commonPrimarySaleSchema.properties,
+    ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
     Type.String({
@@ -24,52 +38,35 @@ const requestBodySchema = Type.Object({
 });
 
 // Example for the Request Body
-requestBodySchema.examples = [
-  {
-    contractMetadata: {
-      name: `My Contract`,
-      description: "Contract deployed from web3 api",
-      primary_sale_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      seller_fee_basis_points: 500,
-      fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      platform_fee_basis_points: 10,
-      platform_fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-    },
-  },
-];
 
 // OUTPUT
-const responseSchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
-  deployedAddress: Type.Optional(Type.String()),
-});
+const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuilt(fastify: FastifyInstance) {
+export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:chain_name_or_id/:contract_type",
+    url: "/deployer/:chain_name_or_id/prebuilts/nftDrop",
     schema: {
-      description: "Deploy prebuilt contract",
+      description: "Deploy prebuilt NFT-Drop contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuilt",
+      operationId: "deployPrebuiltNFTDrop",
       params: requestSchema,
       body: requestBodySchema,
-      hide: true,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_type } = request.params;
+      const { chain_name_or_id } = request.params;
       const { contractMetadata, version } = request.body;
       const sdk = await getSDK(chain_name_or_id);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        contract_type,
+        "nft-drop",
         contractMetadata,
         version,
       );

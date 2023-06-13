@@ -182,7 +182,6 @@ export const erc721ContractParamSchema = Type.Object({
     description: "ERC721 Contract Addres on the Chain",
   }),
 });
-
 export const currencyValueSchema = Type.Object({
   name: Type.String(),
   symbol: Type.String(),
@@ -212,4 +211,16 @@ export const marketplaceV3ContractParamSchema = Type.Object({
     examples: ["0xE8Bf1a01106F3acD7F84acaf5D668D7C9eA11535"],
     description: "Contract Addres on the Chain",
   }),
+});
+
+export const prebuiltDeployContractParamSchema = Type.Object({
+  chain_name_or_id: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+});
+
+export const prebuiltDeployResponseSchema = Type.Object({
+  queuedId: Type.Optional(Type.String()),
+  deployedAddress: Type.Optional(Type.String()),
 });

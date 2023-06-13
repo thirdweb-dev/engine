@@ -59,8 +59,6 @@ responseBodySchema.example = {
       contractAddress: "0x365b83d67d5539c6583b9c0266a548926bf216f4",
       chainId: "80001",
       extension: "non-extension",
-      functionName: "transfer",
-      functionArgs: "0x3EcDBF3B911d0e9052b64850693888b008e18373,1000000",
       status: "submitted",
       encodedInputData:
         "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e1837300000000000000000000000000000000000000000000000000000000000f4240",
