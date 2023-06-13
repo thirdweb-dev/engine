@@ -224,3 +224,28 @@ export const prebuiltDeployResponseSchema = Type.Object({
   queuedId: Type.Optional(Type.String()),
   deployedAddress: Type.Optional(Type.String()),
 });
+
+export const TEventSchema = Type.Record(Type.String(), Type.Any());
+
+// export const contractEventSchema = <TEvent = Record<string, any>>(
+//   TEvent: TEvent,
+// ) =>
+//   Type.Array(
+//     Type.Object({
+//       eventName: Type.String(),
+//       data: Type.Record(Type.String(), Type.Any()),
+//       transaction: Type.Object({
+//         blockNumber: Type.Number(),
+//         blockHash: Type.String(),
+//         transactionIndex: Type.Number(),
+//         removed: Type.Boolean(),
+//         address: Type.String(),
+//         data: Type.String(),
+//         topics: Type.Array(Type.String()),
+//         transactionHash: Type.String(),
+//         logIndex: Type.Number(),
+//       }),
+//     }),
+//   );
+
+export const contractEventSchema = Type.Record(Type.String(), Type.Any());

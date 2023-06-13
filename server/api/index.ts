@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { readContract } from "./contract/read/read";
 import { writeToContract } from "./contract/write/write";
+import { getContractExtensions } from "./contract/read/getExtensions";
 
 import { checkTxStatus } from "./transaction/status";
 import { getAllTx } from "./transaction/getAll";
@@ -16,6 +17,11 @@ import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
 import { getChainData } from "./chain/get";
 import { getAllChainData } from "./chain/getAll";
 
+// Contract Events
+import { getAll } from "./contract/events/getAll";
+import { getEvents } from "./contract/events/getEvents";
+import { get } from "http";
+
 export const apiRoutes = async (fastify: FastifyInstance) => {
   // Chains
   await fastify.register(getChainData);
@@ -24,6 +30,11 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   // generic
   await fastify.register(readContract);
   await fastify.register(writeToContract);
+  await fastify.register(getContractExtensions);
+
+  // Contract Events
+  await fastify.register(getAll);
+  await fastify.register(getEvents);
 
   // deployer
   await fastify.register(prebuiltsRoutes);
