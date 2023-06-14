@@ -6,13 +6,13 @@ import {
   standardResponseSchema,
 } from "../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { roleKeySchema } from "../../../../schemas/contract";
+import { rolesResponseSchema } from "../../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: roleKeySchema, //Type.Any(),
+  result: rolesResponseSchema,
 });
 
 export async function getAllRoles(fastify: FastifyInstance) {

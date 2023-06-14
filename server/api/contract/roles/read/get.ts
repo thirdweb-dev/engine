@@ -6,7 +6,6 @@ import {
   standardResponseSchema,
 } from "../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { roleKeySchema } from "../../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
