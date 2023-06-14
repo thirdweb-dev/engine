@@ -18,9 +18,13 @@ import { getChainData } from "./chain/get";
 import { getAllChainData } from "./chain/getAll";
 
 // Contract Events
-import { getAll } from "./contract/events/getAll";
+import { getAllEvents } from "./contract/events/getAllEvents";
 import { getEvents } from "./contract/events/getEvents";
-import { get } from "http";
+
+// Contract Metadata
+import { extractEvents } from "./contract/metadata/extractEvents";
+import { extractFunctions } from "./contract/metadata/extractFunctions";
+import { getABI } from "./contract/metadata/abi";
 
 export const apiRoutes = async (fastify: FastifyInstance) => {
   // Chains
@@ -33,8 +37,13 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getContractExtensions);
 
   // Contract Events
-  await fastify.register(getAll);
+  await fastify.register(getAllEvents);
   await fastify.register(getEvents);
+
+  // Contract Metadata
+  await fastify.register(extractEvents);
+  await fastify.register(extractFunctions);
+  await fastify.register(getABI);
 
   // deployer
   await fastify.register(prebuiltsRoutes);

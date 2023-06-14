@@ -103,14 +103,14 @@ responseSchema.example = {
   ],
 };
 
-export async function getAll(fastify: FastifyInstance) {
+export async function getAllEvents(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof querySringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/events/getAll",
+    url: "/contract/:chain_name_or_id/:contract_address/events/getAllEvents",
     schema: {
       description:
         "Get a list of all the events emitted from this contract during the specified time period",
