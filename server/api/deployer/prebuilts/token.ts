@@ -1,11 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../core";
-import {
-  prebuiltDeployContractParamSchema,
-  standardResponseSchema,
-  prebuiltDeployResponseSchema,
-} from "../../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
 import { queueTransaction } from "../../../helpers";
 import {
@@ -14,6 +10,8 @@ import {
   commonPrimarySaleSchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
+  prebuiltDeployContractParamSchema,
+  prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
 
 // INPUTS

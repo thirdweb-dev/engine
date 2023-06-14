@@ -68,3 +68,17 @@ export const abiSchema = Type.Object({
     }),
   ),
 });
+
+export const contractEventSchema = Type.Record(Type.String(), Type.Any());
+
+export const roleKeySchema = Type.Object({
+  admin: Type.Array(Type.String()),
+  transfer: Type.Array(Type.String()),
+  minter: Type.Array(Type.String()),
+  pauser: Type.Array(Type.String()),
+  lister: Type.Array(Type.String()),
+  asset: Type.Array(Type.String()),
+  unwrap: Type.Array(Type.String()),
+  factory: Type.Array(Type.String()),
+  signer: Type.Array(Type.String()),
+});

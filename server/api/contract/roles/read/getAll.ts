@@ -1,35 +1,31 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../core";
+import { getContractInstance } from "../../../../../core";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../helpers/sharedApiSchemas";
+} from "../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { abiSchema } from "../../../schemas/contract";
+import { roleKeySchema } from "../../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Array(abiSchema),
+  result: roleKeySchema, //Type.Any(),
 });
 
-responseSchema.example = {
-  result: [{}],
-};
-
-export async function getABI(fastify: FastifyInstance) {
+export async function getAllRoles(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/metadata/abi",
+    url: "/contract/:network/:contract_address/roles/getAll",
     schema: {
-      description: "Get the ABI of the contract",
-      tags: ["Contract-Metadata"],
-      operationId: "abi",
+      description: "Get all members of all roles",
+      tags: ["Contract-Roles"],
+      operationId: "roles_getAll",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -41,7 +37,9 @@ export async function getABI(fastify: FastifyInstance) {
 
       const contract = await getContractInstance(network, contract_address);
 
-      let returnData = contract.abi as Static<typeof responseSchema>["result"];
+      let returnData = (await contract.roles.getAll()) as Static<
+        typeof responseSchema
+      >["result"];
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

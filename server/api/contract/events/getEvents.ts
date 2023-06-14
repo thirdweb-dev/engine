@@ -2,11 +2,11 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../core";
 import {
-  contractEventSchema,
   contractParamSchema,
   standardResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
+import { contractEventSchema } from "../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
 

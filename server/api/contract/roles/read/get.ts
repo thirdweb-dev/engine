@@ -1,36 +1,39 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../core";
+import { getContractInstance } from "../../../../../core";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../helpers/sharedApiSchemas";
+} from "../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { abiSchema } from "../../../schemas/contract";
+import { roleKeySchema } from "../../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
+const querystringSchema = Type.Object({
+  role: Type.String({
+    description: "The Role to to get a memberlist for.",
+  }),
+});
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Array(abiSchema),
+  result: Type.Array(Type.String()),
 });
 
-responseSchema.example = {
-  result: [{}],
-};
-
-export async function getABI(fastify: FastifyInstance) {
+export async function getRoles(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
+    Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/metadata/abi",
+    url: "/contract/:network/:contract_address/roles/get",
     schema: {
-      description: "Get the ABI of the contract",
-      tags: ["Contract-Metadata"],
-      operationId: "abi",
+      description: "Get all members of a specific role",
+      tags: ["Contract-Roles"],
+      operationId: "roles_getRole",
       params: requestSchema,
+      querystring: querystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -38,10 +41,11 @@ export async function getABI(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
+      const { role } = request.query;
 
       const contract = await getContractInstance(network, contract_address);
 
-      let returnData = contract.abi as Static<typeof responseSchema>["result"];
+      let returnData = await contract.roles.get(role);
 
       reply.status(StatusCodes.OK).send({
         result: returnData,
