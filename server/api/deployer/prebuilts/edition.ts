@@ -24,7 +24,6 @@ const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
     ...commonRoyaltySchema.properties,
-    ...merkleSchema.properties,
     ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
     ...commonPrimarySaleSchema.properties,
