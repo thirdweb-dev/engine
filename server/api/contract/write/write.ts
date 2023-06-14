@@ -42,7 +42,7 @@ export async function writeToContract(fastify: FastifyInstance) {
     Reply: Static<typeof transactionWritesResponseSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/write",
+    url: "/contract/:network/:contract_address/write",
     schema: {
       description: "Write to Contract",
       tags: ["Contract"],
@@ -55,19 +55,16 @@ export async function writeToContract(fastify: FastifyInstance) {
       body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { function_name, args } = request.body;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.prepare(function_name, args);
 
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "non-extension",
       );
 

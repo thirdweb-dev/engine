@@ -42,7 +42,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc1155/mintTo",
+    url: "/contract/:network/:contract_address/erc1155/mintTo",
     schema: {
       description: "Mint an NFT to a specific wallet.",
       tags: ["ERC1155"],
@@ -55,22 +55,14 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { receiver, metadataWithSupply } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.erc1155.mintTo.prepare(
         receiver,
         metadataWithSupply,
       );
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        chain_name_or_id,
-        "erc1155",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "erc1155");
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

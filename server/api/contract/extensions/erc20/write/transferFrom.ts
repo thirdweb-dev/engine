@@ -41,7 +41,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc20/transferFrom",
+    url: "/contract/:network/:contract_address/erc20/transferFrom",
     schema: {
       description:
         "Transfer tokens from the connected wallet to another wallet.",
@@ -55,12 +55,9 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { from_address, to_address, amount } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
 
       const tx = await contract.erc20.transferFrom.prepare(
         from_address,
@@ -68,12 +65,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
         amount,
       );
 
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        chain_name_or_id,
-        "erc20",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "erc20");
 
       reply.status(StatusCodes.OK).send({
         result: queuedId,

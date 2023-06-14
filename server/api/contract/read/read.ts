@@ -11,7 +11,7 @@ import { bigNumberReplacer } from "../../../utilities/convertor";
 export async function readContract(fastify: FastifyInstance) {
   fastify.route<readSchema>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/read",
+    url: "/contract/:network/:contract_address/read",
     schema: {
       description: "Read From Contract",
       tags: ["Contract"],
@@ -20,13 +20,10 @@ export async function readContract(fastify: FastifyInstance) {
       querystring: readRequestQuerySchema,
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { function_name, args } = request.query;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
 
       let returnData = await contract.call(
         function_name,

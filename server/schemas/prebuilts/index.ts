@@ -37,9 +37,11 @@ export const commonRoyaltySchema = Type.Object({
   }),
 });
 
-export const merkleSchema = Type.Object({
-  merkle: Type.Record(Type.String(), Type.String(), { default: {} }),
-});
+export const merkleSchema = Type.Optional(
+  Type.Object({
+    merkle: Type.Optional(Type.Record(Type.String(), Type.String())),
+  }),
+);
 
 export const commonSymbolSchema = Type.Object({
   symbol: Type.String({

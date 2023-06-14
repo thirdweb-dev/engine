@@ -5,13 +5,13 @@ import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import {
-  chainRequestQuerystringSchema,
-  chainResponseSchema,
-} from "../../schemas/chain";
+  networkRequestQuerystringSchema,
+  networkResponseSchema,
+} from "../../schemas/network";
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: chainResponseSchema,
+  result: networkResponseSchema,
 });
 
 responseSchema.examples = [
@@ -38,29 +38,29 @@ responseSchema.examples = [
 // LOGIC
 export async function getChainData(fastify: FastifyInstance) {
   fastify.route<{
-    Querystring: Static<typeof chainRequestQuerystringSchema>;
+    Querystring: Static<typeof networkRequestQuerystringSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/chain/get",
+    url: "/network/get",
     schema: {
-      description: "Get a particular chain information",
-      tags: ["Chain"],
-      operationId: "getChainData",
-      querystring: chainRequestQuerystringSchema,
+      description: "Get a particular network/chain information",
+      tags: ["Network"],
+      operationId: "getNetworkData",
+      querystring: networkRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id } = request.query;
+      const { network } = request.query;
 
       const chain = allChains.find((chain) => {
         if (
-          chain.name === chain_name_or_id ||
-          chain.chainId === Number(chain_name_or_id) ||
-          chain.slug === chain_name_or_id
+          chain.name === network ||
+          chain.chainId === Number(network) ||
+          chain.slug === network
         ) {
           return chain;
         }
