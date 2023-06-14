@@ -37,10 +37,10 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/createAuction",
+    url: "/marketplace/:network/:contract_address/englishAuctions/createAuction",
     schema: {
       description: "Create a new auction listing on the marketplace.",
-      tags: ["MarketplaceV3-EnglishAuctions"],
+      tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_createAuction",
       params: requestSchema,
       body: requestBodySchema,
@@ -50,7 +50,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -64,10 +64,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
         timeBufferInSeconds,
       } = request.body;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.englishAuctions.createAuction.prepare({
         assetContractAddress,
         tokenId,
@@ -84,7 +81,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "V3-englishAuctions",
       );
       reply.status(StatusCodes.OK).send({

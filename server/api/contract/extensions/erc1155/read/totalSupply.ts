@@ -35,7 +35,7 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc1155/totalSupply",
+    url: "/contract/:network/:contract_address/erc1155/totalSupply",
     schema: {
       description: "Get the total number of NFTs minted.",
       tags: ["ERC1155"],
@@ -48,12 +48,9 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { token_id } = request.query;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const returnData = await contract.erc1155.totalSupply(token_id);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

@@ -38,11 +38,11 @@ export async function directListingsRevokeCurrencyApprovalForListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/revokeCurrencyApprovalForListing",
+    url: "/marketplace/:network/:contract_address/directListings/revokeCurrencyApprovalForListing",
     schema: {
       description:
         "Revoke approval for a buyer to purchase a reserved listing.",
-      tags: ["MarketplaceV3-DirectListings"],
+      tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_revokeCurrencyApprovalForListing",
       params: requestSchema,
       body: requestBodySchema,
@@ -52,13 +52,10 @@ export async function directListingsRevokeCurrencyApprovalForListing(
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { listing_id, currency_contract_address } = request.body;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx =
         await contract.directListings.revokeCurrencyApprovalForListing.prepare(
           listing_id,
@@ -68,7 +65,7 @@ export async function directListingsRevokeCurrencyApprovalForListing(
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "V3-directListings",
       );
       reply.status(StatusCodes.OK).send({

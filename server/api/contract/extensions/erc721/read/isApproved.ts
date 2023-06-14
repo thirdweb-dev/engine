@@ -38,7 +38,7 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/isApproved",
+    url: "/contract/:network/:contract_address/erc721/isApproved",
     schema: {
       description:
         "Get whether this wallet has approved transfers from the given operator.",
@@ -52,12 +52,9 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { owner_wallet, operator } = request.query;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const returnData: any = await contract.erc721.isApproved(
         owner_wallet,
         operator,

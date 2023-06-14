@@ -39,12 +39,12 @@ export async function englishAuctionsCloseAuctionForSeller(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/closeAuctionForSeller",
+    url: "/marketplace/:network/:contract_address/englishAuctions/closeAuctionForSeller",
     schema: {
       description: `After an auction has concluded (and a buyout did not occur),
         execute the sale for the seller, meaning the seller receives the payment from the highest bid.
         You must also call closeAuctionForBidder to execute the sale for the buyer, meaning the buyer receives the NFT(s).`,
-      tags: ["MarketplaceV3-EnglishAuctions"],
+      tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_closeAuctionForSeller",
       params: requestSchema,
       body: requestBodySchema,
@@ -54,13 +54,10 @@ export async function englishAuctionsCloseAuctionForSeller(
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { listing_id } = request.body;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.englishAuctions.closeAuctionForSeller.prepare(
         listing_id,
       );
@@ -68,7 +65,7 @@ export async function englishAuctionsCloseAuctionForSeller(
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "V3-englishAuctions",
       );
       reply.status(StatusCodes.OK).send({

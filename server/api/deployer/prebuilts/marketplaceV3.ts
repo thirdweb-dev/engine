@@ -41,7 +41,7 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:chain_name_or_id/prebuilts/marketplaceV3",
+    url: "/deployer/:network/prebuilts/marketplaceV3",
     schema: {
       description: "Deploy prebuilt Marketplace-V3 contract",
       tags: ["Deploy"],
@@ -54,9 +54,9 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id } = request.params;
+      const { network } = request.params;
       const { contractMetadata, version } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
+      const sdk = await getSDK(network);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "marketplace-v3",
         contractMetadata,
@@ -66,7 +66,7 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "deployer_prebuilt",
       );
       reply.status(StatusCodes.OK).send({

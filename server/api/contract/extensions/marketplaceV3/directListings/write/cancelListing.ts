@@ -33,11 +33,11 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/directlistings/cancelListing",
+    url: "/marketplace/:network/:contract_address/directListings/cancelListing",
     schema: {
       description:
         "Cancel a listing that you created. Only the creator of the listing can cancel it.",
-      tags: ["MarketplaceV3"],
+      tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_cancelListing",
       params: requestSchema,
       body: requestBodySchema,
@@ -47,13 +47,10 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { listing_id } = request.body;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.directListings.cancelListing.prepare(
         listing_id,
       );
@@ -61,7 +58,7 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "V3-directListings",
       );
       reply.status(StatusCodes.OK).send({

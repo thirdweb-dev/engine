@@ -41,10 +41,10 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/makeBid",
+    url: "/marketplace/:network/:contract_address/englishAuctions/makeBid",
     schema: {
       description: "Place a new bid on an auction listing.",
-      tags: ["MarketplaceV3-EnglishAuctions"],
+      tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_makeBid",
       params: requestSchema,
       body: requestBodySchema,
@@ -54,13 +54,10 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { listing_id, bid_amount } = request.body;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.englishAuctions.makeBid.prepare(
         listing_id,
         bid_amount,
@@ -69,7 +66,7 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "V3-englishAuctions",
       );
       reply.status(StatusCodes.OK).send({

@@ -3,11 +3,11 @@ import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
-import { chainResponseSchema } from "../../schemas/chain";
+import { networkResponseSchema } from "../../schemas/network";
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(chainResponseSchema),
+  result: Type.Array(networkResponseSchema),
 });
 
 responseSchema.examples = [
@@ -51,11 +51,11 @@ export async function getAllChainData(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/chain/getAll",
+    url: "/network/getAll",
     schema: {
-      description: "Get all chain information",
-      tags: ["Chain"],
-      operationId: "getAllChainData",
+      description: "Get all networks/chains information",
+      tags: ["Network"],
+      operationId: "getAllNetworkData",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

@@ -47,7 +47,7 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:chain_name_or_id/prebuilts/nftCollection",
+    url: "/deployer/:network/prebuilts/nftCollection",
     schema: {
       description: "Deploy prebuilt NFT-Collection contract",
       tags: ["Deploy"],
@@ -60,9 +60,9 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id } = request.params;
+      const { network } = request.params;
       const { contractMetadata, version } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
+      const sdk = await getSDK(network);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "nft-collection",
         contractMetadata,
@@ -72,7 +72,7 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "deployer_prebuilt",
       );
       reply.status(StatusCodes.OK).send({

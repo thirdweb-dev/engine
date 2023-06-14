@@ -22,7 +22,7 @@ export async function erc721TotalClaimedSupply(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/totalClaimedSupply",
+    url: "/contract/:network/:contract_address/erc721/totalClaimedSupply",
     schema: {
       description: "Get the claimed NFT supply for the contract.",
       tags: ["ERC721"],
@@ -34,11 +34,8 @@ export async function erc721TotalClaimedSupply(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const { network, contract_address } = request.params;
+      const contract = await getContractInstance(network, contract_address);
       const returnData = await contract.erc721.totalClaimedSupply();
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
