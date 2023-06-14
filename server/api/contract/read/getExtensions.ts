@@ -42,7 +42,7 @@ export async function getContractExtensions(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/getExtensions",
+    url: "/contract/:network/:contract_address/getExtensions",
     schema: {
       description: "Get all extensions of a contract",
       tags: ["Contract"],
@@ -54,12 +54,9 @@ export async function getContractExtensions(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
 
       let returnData = getAllDetectedExtensionNames(contract.abi);
 

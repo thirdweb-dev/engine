@@ -7,12 +7,13 @@ import {
   standardResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
+import { abiSchema } from "../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Any(),
+  result: Type.Array(abiSchema),
 });
 
 responseSchema.example = {
@@ -25,7 +26,7 @@ export async function getABI(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain_name_or_id/:contract_address/metadata/abi",
+    url: "/contract/:network/:contract_address/metadata/abi",
     schema: {
       description: "Get the ABI of the contract",
       tags: ["Contract-Metadata"],
@@ -37,14 +38,11 @@ export async function getABI(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
 
-      let returnData = contract.abi;
+      let returnData = contract.abi as Static<typeof responseSchema>["result"];
 
       reply.status(StatusCodes.OK).send({
         result: returnData,
