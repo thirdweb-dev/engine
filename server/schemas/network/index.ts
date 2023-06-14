@@ -1,14 +1,14 @@
 import { Type } from "@sinclair/typebox";
 import { allChains } from "@thirdweb-dev/chains";
 
-export const chainRequestQuerystringSchema = Type.Object({
-  chain_name_or_id: Type.String({
-    description: "Chain name or id",
+export const networkRequestQuerystringSchema = Type.Object({
+  network: Type.String({
+    description: "Network name or id",
     examples: allChains.map((chain) => chain.slug),
   }),
 });
 
-export const chainResponseSchema = Type.Object({
+export const networkResponseSchema = Type.Object({
   name: Type.String({
     description: "Chain name",
   }),

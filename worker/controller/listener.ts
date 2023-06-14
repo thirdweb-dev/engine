@@ -16,7 +16,6 @@ export const startNotificationListener = async (
     connection.on(
       "notification",
       async (msg: { channel: string; payload: string }) => {
-        server.log.info(msg.payload);
         await processTransaction(server);
       },
     );

@@ -22,8 +22,8 @@ const main = async () => {
 
   server.addHook("preHandler", function (request, reply, done) {
     if (
-      !request.routerPath.includes("static") &&
-      !request.routerPath.includes("json")
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json")
     ) {
       if (request.body && Object.keys(request.body).length > 0) {
         request.log.info({ ...request.body }, "Request Body : ");
@@ -43,8 +43,8 @@ const main = async () => {
 
   server.addHook("onRequest", (request, reply, done) => {
     if (
-      !request.routerPath.includes("static") &&
-      !request.routerPath.includes("json")
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json")
     ) {
       request.log.info(
         `Request received - ${request.method} - ${request.routerPath}`,
@@ -55,8 +55,8 @@ const main = async () => {
 
   server.addHook("onResponse", (request, reply, done) => {
     if (
-      !request.routerPath.includes("static") &&
-      !request.routerPath.includes("json")
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json")
     ) {
       request.log.info(
         `Request completed - ${request.method} - ${

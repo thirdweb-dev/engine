@@ -37,12 +37,12 @@ export async function englishAuctionsGetMinimumNextBid(
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/englishauctions/getMinimumNextBid",
+    url: "/marketplace/:network/:contract_address/englishAuctions/getMinimumNextBid",
     schema: {
       description: `Helper function to calculate the value that the next bid must be in order to be accepted. 
         If there is no current bid, the bid must be at least the minimum bid amount.
         If there is a current bid, the bid must be at least the current bid amount + the bid buffer.`,
-      tags: ["MarketplaceV3-EnglishAuctions"],
+      tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_getMinimumNextBid",
       params: requestSchema,
       querystring: requestQuerySchema,
@@ -52,12 +52,9 @@ export async function englishAuctionsGetMinimumNextBid(
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { listing_id } = request.query;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const result = await contract.englishAuctions.getMinimumNextBid(
         listing_id,
       );

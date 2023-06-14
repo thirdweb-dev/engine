@@ -35,7 +35,7 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc721/setApprovalForToken",
+    url: "/contract/:network/:contract_address/erc721/setApprovalForToken",
     schema: {
       description:
         "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token in the specified contract owned by the caller.",
@@ -49,22 +49,14 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { operator, token_id } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.erc721.setApprovalForToken.prepare(
         operator,
         token_id,
       );
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        chain_name_or_id,
-        "erc721",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "erc721");
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

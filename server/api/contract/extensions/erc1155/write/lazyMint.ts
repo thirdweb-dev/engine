@@ -40,7 +40,7 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc1155/lazyMint",
+    url: "/contract/:network/:contract_address/erc1155/lazyMint",
     schema: {
       description:
         "Lazy mint multiple NFTs on this contract to be claimed later.",
@@ -54,19 +54,11 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { metadatas } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.erc1155.lazyMint.prepare(metadatas);
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        chain_name_or_id,
-        "erc1155",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "erc1155");
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

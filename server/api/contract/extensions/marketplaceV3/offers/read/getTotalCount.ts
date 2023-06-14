@@ -28,10 +28,10 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/offers/getTotalCount",
+    url: "/marketplace/:network/:contract_address/offers/getTotalCount",
     schema: {
       description: "Get the total number of offers on the smart contract",
-      tags: ["MarketplaceV3-Offers"],
+      tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offers_getTotalCount",
       params: requestSchema,
       response: {
@@ -40,11 +40,8 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const { network, contract_address } = request.params;
+      const contract = await getContractInstance(network, contract_address);
       const result = await contract.englishAuctions.getTotalCount();
 
       reply.status(StatusCodes.OK).send({

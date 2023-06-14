@@ -20,7 +20,7 @@ import { Static } from "@sinclair/typebox";
 export const queueTransaction = async (
   request: FastifyRequest,
   tx: Transaction<any> | DeployTransaction,
-  chain_name_or_id: string,
+  network: string,
   extension: string,
 ) => {
   // first simulate tx
@@ -33,12 +33,12 @@ export const queueTransaction = async (
 
   // get chain ID
   let chainId: string;
-  if (isNaN(Number(chain_name_or_id))) {
-    const chainData = getChainBySlug(chain_name_or_id);
+  if (isNaN(Number(network))) {
+    const chainData = getChainBySlug(network);
 
     if (!chainData) {
       const error = createCustomError(
-        `Chain with name/id ${chain_name_or_id} not found`,
+        `Chain with name/id ${network} not found`,
         StatusCodes.NOT_FOUND,
         "NOT_FOUND",
       );
@@ -47,7 +47,7 @@ export const queueTransaction = async (
 
     chainId = chainData.chainId.toString();
   } else {
-    chainId = chain_name_or_id;
+    chainId = network;
   }
 
   // encode tx
@@ -178,10 +178,10 @@ const transformData = (
       status = TransactionStatusEnum.Mined;
     } else if (row.txSubmitted) {
       status = TransactionStatusEnum.Submitted;
-    } else if (row.txProcessed) {
-      status = TransactionStatusEnum.Processed;
     } else if (row.txErrored) {
       status = TransactionStatusEnum.Errored;
+    } else if (row.txProcessed) {
+      status = TransactionStatusEnum.Processed;
     } else {
       status = TransactionStatusEnum.Queued;
     }

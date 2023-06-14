@@ -34,7 +34,7 @@ export async function erc1155burn(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc1155/burn",
+    url: "/contract/:network/:contract_address/erc1155/burn",
     schema: {
       description: "Burn an NFT.",
       tags: ["ERC1155"],
@@ -47,19 +47,11 @@ export async function erc1155burn(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { token_id, amount } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.erc1155.burn.prepare(token_id, amount);
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        chain_name_or_id,
-        "erc1155",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "erc1155");
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });
