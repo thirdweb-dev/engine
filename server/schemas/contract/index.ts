@@ -26,10 +26,13 @@ const abiTypeSchema = Type.Object({
   name: Type.Optional(Type.String()),
   stateMutability: Type.Optional(Type.String()),
   components: Type.Optional(
-    Type.Object({
-      type: Type.Optional(Type.String()),
-      name: Type.Optional(Type.String()),
-    }),
+    Type.Array(
+      Type.Object({
+        type: Type.Optional(Type.String()),
+        name: Type.Optional(Type.String()),
+        internalType: Type.Optional(Type.String()),
+      }),
+    ),
   ),
 });
 
@@ -52,21 +55,7 @@ export const abiEventSchema = Type.Object({
 export const abiSchema = Type.Object({
   type: Type.String(),
   name: Type.String(),
-  inputs: Type.Array(
-    Type.Object({
-      type: Type.String(),
-      name: Type.String(),
-      stateMutability: Type.Optional(Type.String()),
-      components: Type.Optional(
-        Type.Array(
-          Type.Object({
-            type: Type.String(),
-            name: Type.String(),
-          }),
-        ),
-      ),
-    }),
-  ),
+  inputs: Type.Array(abiTypeSchema),
 });
 
 export const contractEventSchema = Type.Record(Type.String(), Type.Any());
