@@ -82,3 +82,25 @@ export const rolesResponseSchema = Type.Object({
   factory: Type.Array(Type.String()),
   signer: Type.Array(Type.String()),
 });
+
+export const eventsQuerystringSchema = Type.Object(
+  {
+    from_block: Type.Optional(
+      Type.Union([Type.Number(), Type.String()], { default: "0" }),
+    ),
+    to_block: Type.Optional(
+      Type.Union([Type.Number({ default: 0 }), Type.String({ default: "0" })], {
+        default: "latest",
+      }),
+    ),
+    order: Type.Optional(
+      Type.Union([Type.Literal("asc"), Type.Literal("desc")], {
+        default: "desc",
+      }),
+    ),
+  },
+  {
+    description:
+      "Specify the from and to block numbers to get events for, defaults to all blocks",
+  },
+);

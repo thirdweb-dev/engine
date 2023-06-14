@@ -6,34 +6,14 @@ import {
   standardResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { contractEventSchema } from "../../../schemas/contract";
+import {
+  contractEventSchema,
+  eventsQuerystringSchema,
+} from "../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
 
-const querySringSchema = Type.Optional(
-  Type.Object(
-    {
-      from_block: Type.Optional(
-        Type.Union([Type.Number(), Type.String()], { default: "0" }),
-      ),
-      to_block: Type.Optional(
-        Type.Union(
-          [Type.Number({ default: 0 }), Type.String({ default: "0" })],
-          { default: "latest" },
-        ),
-      ),
-      order: Type.Optional(
-        Type.Union([Type.Literal("asc"), Type.Literal("desc")], {
-          default: "desc",
-        }),
-      ),
-    },
-    {
-      description:
-        "Specify the from and to block numbers to get events for, defaults to all blocks",
-    },
-  ),
-);
+const querySringSchema = Type.Optional(eventsQuerystringSchema);
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -135,7 +115,6 @@ export async function getAllEvents(fastify: FastifyInstance) {
         order,
       });
 
-      console.log(JSON.stringify(returnData));
       reply.status(StatusCodes.OK).send({
         result: returnData,
       });

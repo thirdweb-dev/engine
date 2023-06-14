@@ -6,32 +6,18 @@ import {
   standardResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
-import { contractEventSchema } from "../../../schemas/contract";
+import {
+  contractEventSchema,
+  eventsQuerystringSchema,
+} from "../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
 
-const querySringSchema = Type.Object(
+const requestBodyParams = Type.Object(
   {
     event_name: Type.String({ examples: ["Transfer"] }),
-    from_block: Type.Optional(
-      Type.Union([Type.Number(), Type.String()], { default: "0" }),
-    ),
-    to_block: Type.Optional(
-      Type.Union([Type.Number({ default: 0 }), Type.String({ default: "0" })], {
-        default: "latest",
-      }),
-    ),
-    order: Type.Optional(
-      Type.Union([Type.Literal("asc"), Type.Literal("desc")], {
-        default: "desc",
-      }),
-    ),
-    filters: Type.Optional(
-      Type.Object({
-        from: Type.Optional(Type.String()),
-        to: Type.Optional(Type.String()),
-      }),
-    ),
+    ...eventsQuerystringSchema.properties,
+    filters: Type.Optional(Type.Object({})),
   },
   {
     description:
@@ -78,9 +64,9 @@ export async function getEvents(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Querystring: Static<typeof querySringSchema>;
+    Body: Static<typeof requestBodyParams>;
   }>({
-    method: "GET",
+    method: "POST",
     url: "/contract/:network/:contract_address/events/getEvents",
     schema: {
       description:
@@ -88,7 +74,7 @@ export async function getEvents(fastify: FastifyInstance) {
       tags: ["Contract-Events"],
       operationId: "getEvents",
       params: requestSchema,
-      querystring: querySringSchema,
+      body: requestBodyParams,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -96,8 +82,7 @@ export async function getEvents(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { from_block, to_block, order, event_name, filters } =
-        request.query;
+      const { from_block, to_block, order, event_name, filters } = request.body;
 
       const contract = await getContractInstance(network, contract_address);
 
@@ -108,7 +93,6 @@ export async function getEvents(fastify: FastifyInstance) {
         filters,
       });
 
-      console.log(JSON.stringify(returnData));
       reply.status(StatusCodes.OK).send({
         result: returnData,
       });
