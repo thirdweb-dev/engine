@@ -37,7 +37,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc20/signature/generate",
+    url: "/contract/:network/:contract_address/erc20/signature/generate",
     schema: {
       description: `Generate a signature that a wallet address can use to mint the specified number of NFTs.
         This is typically an admin operation, where the owner of the contract generates a signature that 
@@ -52,7 +52,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const {
         to,
         currencyAddress,
@@ -63,10 +63,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
         quantity,
         uid,
       } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
 
       const payload = checkAndReturnERC20SignaturePayload<
         Static<typeof signature20InputSchema>,

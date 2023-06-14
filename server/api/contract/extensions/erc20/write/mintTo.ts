@@ -35,7 +35,7 @@ export async function erc20mintTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain_name_or_id/:contract_address/erc20/mintTo",
+    url: "/contract/:network/:contract_address/erc20/mintTo",
     schema: {
       description: "Mint tokens to the connected wallet.",
       tags: ["ERC20"],
@@ -48,19 +48,11 @@ export async function erc20mintTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const { to_address, amount } = request.body;
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.erc20.mintTo.prepare(to_address, amount);
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        chain_name_or_id,
-        "erc20",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "erc20");
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

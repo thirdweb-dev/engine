@@ -32,14 +32,14 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
 export const getContractInstance = async <
   TContractAddress extends AddressOrEns | ContractAddress,
 >(
-  chain_name_or_id: ChainOrRpc,
+  network: ChainOrRpc,
   contract_address: TContractAddress,
 ): Promise<
   TContractAddress extends ContractAddress
     ? SmartContract<BaseContractForAddress<TContractAddress>>
     : SmartContract<BaseContract>
 > => {
-  const sdk = await getSDK(chain_name_or_id);
+  const sdk = await getSDK(network);
   const contract = await sdk.getContract(contract_address);
   return contract;
 };

@@ -42,7 +42,7 @@ export async function deployPublished(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:chain_name_or_id/:publisher/:contract_name",
+    url: "/deployer/:network/:publisher/:contract_name",
     schema: {
       description: "Deploy published contract",
       tags: ["Deploy"],
@@ -55,9 +55,9 @@ export async function deployPublished(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, publisher, contract_name } = request.params;
+      const { network, publisher, contract_name } = request.params;
       const { constructorParams, version } = request.body;
-      const sdk = await getSDK(chain_name_or_id);
+      const sdk = await getSDK(network);
       const tx = await sdk.deployer.deployReleasedContract.prepare(
         publisher,
         contract_name,
@@ -68,7 +68,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "deployer_published",
       );
       reply.status(StatusCodes.OK).send({

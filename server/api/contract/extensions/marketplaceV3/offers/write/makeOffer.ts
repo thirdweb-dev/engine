@@ -33,11 +33,11 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/v3/:chain_name_or_id/:contract_address/offers/makeOffer",
+    url: "/marketplace/:network/:contract_address/offers/makeOffer",
     schema: {
       description:
         "Make a new offer on an NFT. Offers can be made on any NFT, regardless of whether it is listed for sale or not.",
-      tags: ["MarketplaceV3-Offers"],
+      tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offer_makeOffer",
       params: requestSchema,
       body: requestBodySchema,
@@ -47,7 +47,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain_name_or_id, contract_address } = request.params;
+      const { network, contract_address } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -57,10 +57,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         quantity,
       } = request.body;
 
-      const contract = await getContractInstance(
-        chain_name_or_id,
-        contract_address,
-      );
+      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.offers.makeOffer.prepare({
         assetContractAddress,
         tokenId,
@@ -73,7 +70,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       const queuedId = await queueTransaction(
         request,
         tx,
-        chain_name_or_id,
+        network,
         "V3-offers",
       );
       reply.status(StatusCodes.OK).send({
