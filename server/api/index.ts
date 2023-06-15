@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { readContract } from "./contract/read/read";
 import { writeToContract } from "./contract/write/write";
+import { getContractExtensions } from "./contract/metadata/extensions";
 
 import { checkTxStatus } from "./transaction/status";
 import { getAllTx } from "./transaction/getAll";
@@ -16,6 +17,21 @@ import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
 import { getChainData } from "./network/get";
 import { getAllChainData } from "./network/getAll";
 
+// Contract Events
+import { getAllEvents } from "./contract/events/getAllEvents";
+import { getEvents } from "./contract/events/getEvents";
+
+// Contract Roles
+import { getRoles } from "./contract/roles/read/get";
+import { getAllRoles } from "./contract/roles/read/getAll";
+import { grantRole } from "./contract/roles/write/grant";
+import { revokeRole } from "./contract/roles/write/revoke";
+
+// Contract Metadata
+import { extractEvents } from "./contract/metadata/events";
+import { extractFunctions } from "./contract/metadata/functions";
+import { getABI } from "./contract/metadata/abi";
+
 export const apiRoutes = async (fastify: FastifyInstance) => {
   // Chains
   await fastify.register(getChainData);
@@ -24,6 +40,22 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   // generic
   await fastify.register(readContract);
   await fastify.register(writeToContract);
+
+  // Contract Events
+  await fastify.register(getAllEvents);
+  await fastify.register(getEvents);
+
+  // Contract Metadata
+  await fastify.register(getABI);
+  await fastify.register(extractEvents);
+  await fastify.register(getContractExtensions);
+  await fastify.register(extractFunctions);
+
+  // Contract Roles
+  await fastify.register(getRoles);
+  await fastify.register(getAllRoles);
+  await fastify.register(grantRole);
+  await fastify.register(revokeRole);
 
   // deployer
   await fastify.register(prebuiltsRoutes);

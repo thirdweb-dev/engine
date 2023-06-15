@@ -83,3 +83,15 @@ export const commonPlatformFeeSchema = Type.Object({
 export const commonTrustedForwarderSchema = Type.Object({
   trusted_forwarders: Type.Array(Type.String(), { default: [] }),
 });
+
+export const prebuiltDeployContractParamSchema = Type.Object({
+  network: Type.String({
+    examples: ["mumbai"],
+    description: "Add Chain ID or Chain Name",
+  }),
+});
+
+export const prebuiltDeployResponseSchema = Type.Object({
+  queuedId: Type.Optional(Type.String()),
+  deployedAddress: Type.Optional(Type.String()),
+});
