@@ -19,7 +19,7 @@ const responseSchema = Type.Object({
   result: Type.Array(Type.String()),
 });
 
-responseSchema.example = [
+responseSchema.examples = [
   {
     result: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   },
