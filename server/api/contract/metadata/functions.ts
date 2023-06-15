@@ -18,36 +18,6 @@ const responseSchema = Type.Object({
 responseSchema.example = {
   result: [
     {
-      name: "DEFAULT_ADMIN_ROLE",
-      inputs: [],
-      outputs: [
-        {
-          type: "bytes32",
-          name: "",
-        },
-      ],
-      signature: 'contract.call("DEFAULT_ADMIN_ROLE"): Promise<BytesLike>',
-      stateMutability: "view",
-    },
-    {
-      name: "approve",
-      inputs: [
-        {
-          type: "address",
-          name: "operator",
-        },
-        {
-          type: "uint256",
-          name: "tokenId",
-        },
-      ],
-      outputs: [],
-      comment: "See {ERC721-approve}.",
-      signature:
-        'contract.call("approve", operator: string, tokenId: BigNumberish): Promise<TransactionResult>',
-      stateMutability: "nonpayable",
-    },
-    {
       name: "balanceOf",
       inputs: [
         {

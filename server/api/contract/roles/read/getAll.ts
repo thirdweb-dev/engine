@@ -15,6 +15,23 @@ const responseSchema = Type.Object({
   result: rolesResponseSchema,
 });
 
+requestSchema.example = {
+  result: {
+    admin: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
+    transfer: [
+      "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+      "0x0000000000000000000000000000000000000000",
+    ],
+    minter: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
+    pauser: [],
+    lister: [],
+    asset: [],
+    unwrap: [],
+    factory: [],
+    signer: [],
+  },
+};
+
 export async function getAllRoles(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;

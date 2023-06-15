@@ -53,63 +53,6 @@ responseSchema.example = {
       ],
       outputs: [],
     },
-    {
-      name: "ClaimConditionsUpdated",
-      inputs: [
-        {
-          type: "tuple[]",
-          name: "claimConditions",
-          components: [
-            {
-              type: "uint256",
-              name: "startTimestamp",
-              internalType: "uint256",
-            },
-            {
-              type: "uint256",
-              name: "maxClaimableSupply",
-              internalType: "uint256",
-            },
-            {
-              type: "uint256",
-              name: "supplyClaimed",
-              internalType: "uint256",
-            },
-            {
-              type: "uint256",
-              name: "quantityLimitPerWallet",
-              internalType: "uint256",
-            },
-            {
-              type: "bytes32",
-              name: "merkleRoot",
-              internalType: "bytes32",
-            },
-            {
-              type: "uint256",
-              name: "pricePerToken",
-              internalType: "uint256",
-            },
-            {
-              type: "address",
-              name: "currency",
-              internalType: "address",
-            },
-            {
-              type: "string",
-              name: "metadata",
-              internalType: "string",
-            },
-          ],
-        },
-        {
-          type: "bool",
-          name: "resetEligibility",
-        },
-      ],
-      outputs: [],
-      comment: "Emitted when the contract's claim conditions are updated.",
-    },
   ],
 };
 

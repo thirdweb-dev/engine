@@ -18,29 +18,40 @@ const responseSchema = Type.Object({
 responseSchema.example = {
   result: [
     {
-      type: "constructor",
-      name: "",
-      inputs: [],
+      type: "function",
+      name: "transferFrom",
+      inputs: [
+        {
+          type: "address",
+          name: "from",
+        },
+        {
+          type: "address",
+          name: "to",
+        },
+        {
+          type: "uint256",
+          name: "tokenId",
+        },
+      ],
     },
     {
-      type: "error",
-      name: "ApprovalCallerNotOwnerNorApproved",
-      inputs: [],
-    },
-    {
-      type: "error",
-      name: "ApprovalQueryForNonexistentToken",
-      inputs: [],
-    },
-    {
-      type: "error",
-      name: "ApprovalToCurrentOwner",
-      inputs: [],
-    },
-    {
-      type: "error",
-      name: "ApproveToCaller",
-      inputs: [],
+      type: "event",
+      name: "Transfer",
+      inputs: [
+        {
+          type: "address",
+          name: "from",
+        },
+        {
+          type: "address",
+          name: "to",
+        },
+        {
+          type: "uint256",
+          name: "tokenId",
+        },
+      ],
     },
   ],
 };
