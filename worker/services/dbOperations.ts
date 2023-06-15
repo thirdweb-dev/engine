@@ -125,3 +125,21 @@ export const updateWalletNonceValue = async (
     throw error;
   }
 };
+
+interface WalletData {
+  walletAddress: string;
+  chainId: string;
+  lastUsedNonce: number;
+  blockchainNonce: number;
+  lastSyncedTimestamp: Date;
+}
+
+export const insertIntoWallets = async (
+  walletData: WalletData[],
+  database: Knex,
+): Promise<void> => {
+  await database("wallets")
+    .insert(walletData)
+    .onConflict(["walletAddress", "chainId"])
+    .ignore();
+};

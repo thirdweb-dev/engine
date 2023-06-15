@@ -3,6 +3,7 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { errorHandler } from "../core";
 import { startNotificationListener } from "./controller/listener";
 import { getLogSettings } from "../core";
+import { setupWalletsForWorker } from "./controller/wallet";
 
 const main = async () => {
   const logOptions = getLogSettings("Worker-Server");
@@ -13,21 +14,7 @@ const main = async () => {
 
   await errorHandler(server);
 
-  // The below code is commented out because worker doesn't require any routes
-  // but for health-check, if needed in future, uncomment the below code and add the routes
-
-  // await server.register(fastifyExpress);
-  // await server.ready();
-  // server.listen({
-  //   host: getEnv('WORKER_HOST'),
-  //   port: Number(getEnv('WORKER_PORT')),
-  // }, (err) => {
-  //   if (err) {
-  //     server.log.error(err);
-  //     process.exit(1);
-  //   }
-  // });
-
+  await setupWalletsForWorker(server);
   // Start Listening to the Table for new insertion
   await retryWithTimeout(
     () => startNotificationListener(server),
