@@ -111,7 +111,7 @@ export const findTxDetailsWithQueueId = async (
     const data = await dbInstance("transactions")
       .where("identifier", queueId)
       .first();
-    dbInstance.destroy();
+    await dbInstance.destroy();
 
     const transformedData = transformData([data]);
     return transformedData[0];
@@ -155,7 +155,7 @@ export const getAllTxFromDB = async (
       .orderBy(sort || "createdTimestamp", sort_order || "asc")
       .limit(limit)
       .offset((page - 1) * limit)) as TransactionSchema[];
-    dbInstance.destroy();
+    await dbInstance.destroy();
 
     const transformedData = transformData(data);
     return transformedData;

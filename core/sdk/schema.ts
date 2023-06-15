@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { NextFunction } from 'express';
+import { z } from "zod";
+import { NextFunction } from "express";
 
 interface EnforceSchemaParams<T extends z.ZodSchema> {
   data: any;
