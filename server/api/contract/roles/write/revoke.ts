@@ -48,12 +48,7 @@ export async function revokeRole(fastify: FastifyInstance) {
       const contract = await getContractInstance(network, contract_address);
 
       const tx = await contract.roles.revoke.prepare(role, address);
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        network,
-        "contract_roles",
-      );
+      const queuedId = await queueTransaction(request, tx, network, "roles");
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

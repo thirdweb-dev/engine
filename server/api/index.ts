@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { readContract } from "./contract/read/read";
 import { writeToContract } from "./contract/write/write";
-import { getContractExtensions } from "./contract/read/getExtensions";
+import { getContractExtensions } from "./contract/metadata/extensions";
 
 import { checkTxStatus } from "./transaction/status";
 import { getAllTx } from "./transaction/getAll";
@@ -28,8 +28,8 @@ import { grantRole } from "./contract/roles/write/grant";
 import { revokeRole } from "./contract/roles/write/revoke";
 
 // Contract Metadata
-import { extractEvents } from "./contract/metadata/extractEvents";
-import { extractFunctions } from "./contract/metadata/extractFunctions";
+import { extractEvents } from "./contract/metadata/events";
+import { extractFunctions } from "./contract/metadata/functions";
 import { getABI } from "./contract/metadata/abi";
 
 export const apiRoutes = async (fastify: FastifyInstance) => {
@@ -40,16 +40,16 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   // generic
   await fastify.register(readContract);
   await fastify.register(writeToContract);
-  await fastify.register(getContractExtensions);
 
   // Contract Events
   await fastify.register(getAllEvents);
   await fastify.register(getEvents);
 
   // Contract Metadata
-  await fastify.register(extractEvents);
-  await fastify.register(extractFunctions);
   await fastify.register(getABI);
+  await fastify.register(extractEvents);
+  await fastify.register(getContractExtensions);
+  await fastify.register(extractFunctions);
 
   // Contract Roles
   await fastify.register(getRoles);

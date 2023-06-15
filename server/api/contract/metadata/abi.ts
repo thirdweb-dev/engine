@@ -16,7 +16,33 @@ const responseSchema = Type.Object({
 });
 
 responseSchema.example = {
-  result: [{}],
+  result: [
+    {
+      type: "constructor",
+      name: "",
+      inputs: [],
+    },
+    {
+      type: "error",
+      name: "ApprovalCallerNotOwnerNorApproved",
+      inputs: [],
+    },
+    {
+      type: "error",
+      name: "ApprovalQueryForNonexistentToken",
+      inputs: [],
+    },
+    {
+      type: "error",
+      name: "ApprovalToCurrentOwner",
+      inputs: [],
+    },
+    {
+      type: "error",
+      name: "ApproveToCaller",
+      inputs: [],
+    },
+  ],
 };
 
 export async function getABI(fastify: FastifyInstance) {
@@ -41,7 +67,7 @@ export async function getABI(fastify: FastifyInstance) {
 
       const contract = await getContractInstance(network, contract_address);
 
-      let returnData = contract.abi as Static<typeof responseSchema>["result"];
+      let returnData = contract.abi;
 
       reply.status(StatusCodes.OK).send({
         result: returnData,
