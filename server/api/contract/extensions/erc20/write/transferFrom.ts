@@ -7,7 +7,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
-import { getContractInstance } from "core";
+import { getContractInstance } from "../../../../../../core/index";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;

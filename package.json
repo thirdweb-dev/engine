@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "yarn dev:infra & yarn dev:server & yarn dev:worker",
-    "dev:server": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' --files src/index.ts",
+    "dev:server": "nodemon --watch 'server/**/*.ts' --exec 'ts-node' --files server/index.ts",
     "dev:worker": "nodemon --watch 'worker/**/*.ts' --exec 'ts-node' --files worker/index.ts",
     "dev:infra": "docker compose -f ./docker-compose-infra.yml --env-file ./.env up",
     "build": "rm -rf dist && yarn install && tsc -p ./tsconfig.json && cp package.json dist/package.json && yarn --cwd dist install --production",
