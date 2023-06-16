@@ -135,11 +135,27 @@ interface WalletData {
 }
 
 export const insertIntoWallets = async (
-  walletData: WalletData[],
+  walletData: WalletData,
   database: Knex,
 ): Promise<void> => {
   await database("wallets")
     .insert(walletData)
     .onConflict(["walletAddress", "chainId"])
-    .ignore();
+    .merge();
+};
+
+export const checkTableForPrimaryKey = async (knex: Knex): Promise<boolean> => {
+  const result = await knex.raw(
+    `
+      SELECT COUNT(*) >= 2 AS is_primary_key
+      FROM pg_constraint con 
+      JOIN pg_attribute a ON a.attnum = ANY(con.conkey)
+      WHERE con.contype = 'p' 
+      AND conrelid::regclass::text = ?
+      AND a.attname IN ('walletAddress', 'chainId')
+    `,
+    ["wallets"],
+  );
+
+  return result.rows[0].is_primary_key;
 };

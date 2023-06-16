@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS wallets (
     "walletType" VARCHAR(255) NOT NULL,
     "blockchainNonce" BIGINT NOT NULL,
     "lastSyncedTimestamp" TIMESTAMP,
-    "lastUsedNonce" BIGINT NOT NULL
+    "lastUsedNonce" BIGINT NOT NULL,
+    PRIMARY KEY ("walletAddress", "chainId")
 );
 
 ALTER TABLE wallets

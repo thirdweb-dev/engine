@@ -18,9 +18,13 @@ export const startNotificationListener = async (
       "notification",
       async (msg: { channel: string; payload: string }) => {
         queue.add(async () => {
-          server.log.debug(`processing transactions started at ${new Date()}`);
+          server.log.info(
+            `--- processing Q request started at ${new Date()} ---`,
+          );
           await processTransaction(server);
-          server.log.debug(`processing transactions ended at ${new Date()}`);
+          server.log.info(
+            `--- processing Q request ended at ${new Date()} ---`,
+          );
         });
       },
     );
