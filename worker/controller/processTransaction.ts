@@ -83,8 +83,8 @@ export const processTransaction = async (
       await updateTransactionState(knex, tx.identifier, "processed", trx);
       // Get the nonce for the blockchain transaction
 
-      server.log.debug(
-        `Transaction ${tx.identifier}, Submit Nonce ${txSubmittedNonce}, Wallet DB Nonce ${lastUsedNonce}`,
+      server.log.info(
+        `Tx Request: ${tx.identifier}, Tx Request Submit Nonce: ${txSubmittedNonce}, Wallet Nonce on DB ${lastUsedNonce}`,
       );
 
       // Submit transaction to the blockchain
