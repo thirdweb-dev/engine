@@ -21,13 +21,15 @@ export const setupWalletsForWorker = async (
 
     server.log.info(`Checking for primary key in wallets table`);
     const pkExists = await checkTableForPrimaryKey(knex);
-    server.log.info(pkExists);
+
     if (!pkExists) {
       server.log.info(`Primary key not found in wallets table`);
       await knex.schema.alterTable("wallets", (table) => {
         table.primary(["walletAddress", "chainId"]);
       });
       server.log.info(`Added primary key to wallets table`);
+    } else {
+      server.log.info(`Primary key found in wallets table`);
     }
 
     // Connect to the DB
