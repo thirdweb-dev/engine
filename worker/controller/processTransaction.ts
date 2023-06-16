@@ -75,7 +75,7 @@ export const processTransaction = async (
           .add(blockchainNonce)
           .sub(1);
       } else if (blockchainNonce == lastUsedNonce) {
-        txSubmittedNonce = BigNumber.from(tx.rownum).add(lastUsedNonce);
+        txSubmittedNonce = BigNumber.from(1).add(lastUsedNonce);
       } else {
         txSubmittedNonce = BigNumber.from(blockchainNonce);
       }
@@ -84,7 +84,7 @@ export const processTransaction = async (
       // Get the nonce for the blockchain transaction
 
       server.log.debug(
-        `Transaction ${tx.identifier}, Submit Nonce ${txSubmittedNonce}, Wallet DB Nonce ${lastUsedNonce}, rownum ${tx.rownum}`,
+        `Transaction ${tx.identifier}, Submit Nonce ${txSubmittedNonce}, Wallet DB Nonce ${lastUsedNonce}`,
       );
 
       // Submit transaction to the blockchain
