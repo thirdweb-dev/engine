@@ -212,15 +212,3 @@ export const marketplaceV3ContractParamSchema = Type.Object({
     description: "Contract Addres on the Chain",
   }),
 });
-
-export const prebuiltDeployContractParamSchema = Type.Object({
-  network: Type.String({
-    examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
-  }),
-});
-
-export const prebuiltDeployResponseSchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
-  deployedAddress: Type.Optional(Type.String()),
-});

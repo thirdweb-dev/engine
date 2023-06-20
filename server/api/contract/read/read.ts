@@ -2,10 +2,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../core";
 import { partialRouteSchema } from "../../../helpers/sharedApiSchemas";
-import {
-  readRequestQuerySchema,
-  readSchema,
-} from "../../../schemas/contract/read";
+import { readRequestQuerySchema, readSchema } from "../../../schemas/contract";
 import { bigNumberReplacer } from "../../../utilities/convertor";
 
 export async function readContract(fastify: FastifyInstance) {

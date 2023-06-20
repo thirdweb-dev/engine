@@ -3,6 +3,7 @@ import fastify, { FastifyInstance } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { startNotificationListener } from "./controller/listener";
 import { getLogSettings } from "../core";
+import { setupWalletsForWorker } from "./controller/wallet";
 
 const main = async () => {
   const logOptions = getLogSettings("Worker-Server");
@@ -13,6 +14,8 @@ const main = async () => {
 
   await errorHandler(server);
 
+  await setupWalletsForWorker(server);
+  // Start Listening to the Table for new insertion
   await retryWithTimeout(
     () => startNotificationListener(server),
     3,

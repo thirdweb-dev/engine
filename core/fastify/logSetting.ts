@@ -15,7 +15,9 @@ const pinoLogOptions: PinoLoggerOptions = {
   msgPrefix: "API-Server",
 };
 
-export const getLogSettings = (msgPrefix: string = "API-Server"): PinoLoggerOptions => {
+export const getLogSettings = (
+  msgPrefix: string = "API-Server",
+): PinoLoggerOptions => {
   if (getEnv("NODE_ENV") === "production") {
     pinoLogOptions.level = "info";
   } else if (getEnv("NODE_ENV") === "development") {

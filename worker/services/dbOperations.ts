@@ -1,4 +1,4 @@
-import { providers } from "ethers";
+import { BigNumber, providers } from "ethers";
 import { createCustomError, getEnv } from "../../core";
 import { Knex } from "knex";
 
@@ -9,12 +9,15 @@ export const getWalletDetails = async (
   walletAddress: string,
   chainId: string,
   database: Knex,
+  trx: Knex.Transaction,
 ): Promise<any> => {
   try {
     const walletDetails = await database("wallets")
       .select("*")
       .where({ walletAddress, chainId })
-      .first();
+      .first()
+      .forUpdate()
+      .transacting(trx);
 
     return walletDetails;
   } catch (error) {
@@ -30,13 +33,18 @@ enum TransactionState {
 
 export const getTransactionsToProcess = async (
   database: Knex,
+  trx: Knex.Transaction,
 ): Promise<number> => {
-  return await database.raw(`select *, ROW_NUMBER()
+  return await database
+    .raw(
+      `select *, ROW_NUMBER()
       OVER (PARTITION BY "walletAddress", "chainId" ORDER BY "createdTimestamp" ASC) AS rownum
       FROM "transactions"
       WHERE "txProcessed" = false AND "txMined" = false AND "txErrored" = false
       ORDER BY "createdTimestamp" ASC
-      LIMIT ${TRANSACTIONS_TO_BATCH}`);
+      LIMIT ${TRANSACTIONS_TO_BATCH}`,
+    )
+    .transacting(trx);
 };
 
 export const updateTransactionState = async (
@@ -95,7 +103,8 @@ export const updateTransactionState = async (
 };
 
 export const updateWalletNonceValue = async (
-  lastUsedNonce: number,
+  lastUsedNonce: BigNumber,
+  blockchainNonce: BigNumber,
   walletAddress: string,
   chainId: string,
   database: Knex,
@@ -104,7 +113,8 @@ export const updateWalletNonceValue = async (
   try {
     const updatedWallet = await database("wallets")
       .update({
-        lastUsedNonce,
+        lastUsedNonce: +lastUsedNonce,
+        blockchainNonce: +blockchainNonce,
       })
       .where("walletAddress", walletAddress)
       .where("chainId", chainId)
@@ -114,4 +124,38 @@ export const updateWalletNonceValue = async (
   } catch (error) {
     throw error;
   }
+};
+
+interface WalletData {
+  walletAddress: string;
+  chainId: string;
+  lastUsedNonce: number;
+  blockchainNonce: number;
+  lastSyncedTimestamp: Date;
+}
+
+export const insertIntoWallets = async (
+  walletData: WalletData,
+  database: Knex,
+): Promise<void> => {
+  await database("wallets")
+    .insert(walletData)
+    .onConflict(["walletAddress", "chainId"])
+    .merge();
+};
+
+export const checkTableForPrimaryKey = async (knex: Knex): Promise<boolean> => {
+  const result = await knex.raw(
+    `
+      SELECT COUNT(*) >= 2 AS is_primary_key
+      FROM pg_constraint con 
+      JOIN pg_attribute a ON a.attnum = ANY(con.conkey)
+      WHERE con.contype = 'p' 
+      AND conrelid::regclass::text = ?
+      AND a.attname IN ('walletAddress', 'chainId')
+    `,
+    ["wallets"],
+  );
+
+  return result.rows[0].is_primary_key;
 };
