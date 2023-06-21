@@ -5,7 +5,7 @@ import { getContractExtensions } from "./contract/metadata/extensions";
 
 import { checkTxStatus } from "./transaction/status";
 import { getAllTx } from "./transaction/getAll";
-import { getAllDeployedContract } from "./transaction/getAllDeployedContract";
+import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
 
 // Extensions
 import { erc20Routes } from "./contract/extensions/erc20/index";
@@ -64,7 +64,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   // transaction status
   await fastify.register(checkTxStatus);
   await fastify.register(getAllTx);
-  await fastify.register(getAllDeployedContract);
+  await fastify.register(getAllDeployedContracts);
 
   // Extensions
   await fastify.register(erc20Routes);

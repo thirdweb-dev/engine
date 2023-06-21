@@ -78,17 +78,17 @@ responseBodySchema.example = {
   ],
 };
 
-export async function getAllDeployedContract(fastify: FastifyInstance) {
+export async function getAllDeployedContracts(fastify: FastifyInstance) {
   fastify.route<{
     Querystring: Static<typeof requestQuerySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
-    url: "/transaction/getAllDeployedContract",
+    url: "/transaction/getAllDeployedContracts",
     schema: {
-      description: "Get All Deployed Contract Transaction Requests",
+      description: "Get All Deploy Contract Transaction Requests",
       tags: ["Transaction"],
-      operationId: "getAllDeployedContract",
+      operationId: "getAllDeployedContracts",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,
