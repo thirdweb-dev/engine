@@ -70,6 +70,8 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "pack",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

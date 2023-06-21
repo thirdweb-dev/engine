@@ -74,6 +74,8 @@ export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "signature-drop",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

@@ -70,6 +70,8 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "token",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

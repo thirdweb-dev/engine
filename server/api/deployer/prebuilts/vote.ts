@@ -66,6 +66,8 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "vote",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

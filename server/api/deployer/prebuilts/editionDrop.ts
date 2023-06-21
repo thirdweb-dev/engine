@@ -74,6 +74,8 @@ export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "edition-drop",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

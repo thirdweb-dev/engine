@@ -66,6 +66,8 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "marketplace-v3",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,
