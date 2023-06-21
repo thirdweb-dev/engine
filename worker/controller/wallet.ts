@@ -8,6 +8,7 @@ import {
 } from "../services/dbOperations";
 import { BigNumber } from "ethers";
 import { Knex } from "knex";
+import { getSupportedChains } from "@thirdweb-dev/sdk";
 
 export const setupWalletsForWorker = async (
   server: FastifyInstance,
@@ -35,13 +36,13 @@ export const setupWalletsForWorker = async (
     // Connect to the DB
     server.log.info(`Connected to DB`);
 
-    for (const chain of defaultChains) {
+    for (const chain of getSupportedChains()) {
       const { slug } = chain;
       if (slug === "localhost") {
         server.log.info(`Skipping localhost`);
         return;
       }
-      server.log.info(`Setting up wallet for chain ${chain.slug}`);
+      server.log.info(`Setting up wallet for chain ${slug}`);
       const sdk = await getSDK(slug);
       const walletAddress = (await sdk.getSigner()?.getAddress()) ?? "";
       if (walletAddress.length === 0) {
