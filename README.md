@@ -22,7 +22,7 @@ There are multiple ways to run Web3-API locally.
 | NOTE: Do not run `yarn install` |
 | ------------------------------- |
 
-In this approach we run everything, i.e., Web3-API Server & Worker, Postgres DB, PG-Admin on docker thus allowing you to not worry about dependencies.
+In this approach we run everything, i.e., Web3-API Server & Worker, Postgres DB, PG-Admin on Docker.
 
 1. Create a `.env` file and add all the environment variables from `.example.env`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
 2. Update the `THIRDWEB_API_KEY` value on the `.env` file
