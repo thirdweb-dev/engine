@@ -1,4 +1,4 @@
-FROM node:18.15.0-alpine
+FROM node:18.15.0-alpine AS base
 
 # Set the working directory
 WORKDIR /app
@@ -22,13 +22,34 @@ RUN yarn copy-files
 # Clean up build dependencies
 RUN apk del build-dependencies
 
-EXPOSE 3005 3006
+# Expose the necessary ports
+EXPOSE 3005
+
+FROM base AS local_server
+
+ENV NODE_ENV="local"
+CMD [ "yarn", "dev:server" ]
+
+FROM base AS local_worker
+
+ENV NODE_ENV="local"
+CMD [ "yarn", "dev:worker" ]
+
+# Production stage
+FROM node:18.15.0-alpine AS prod
+
+# Set the working directory
+WORKDIR /app
 
 ENV NODE_ENV="production"
-RUN yarn install --production
-RUN yarn build
-RUN yarn copy-files
-RUN apk del build-dependencies
 
-ENTRYPOINT [ "docker-entrypoint.sh" ]
+# Copy package.json and yarn.lock files
+COPY package*.json yarn*.json ./
+
+# Copy the built dist folder from the base stage to the production stage
+COPY --from=base /app/dist ./dist
+
+# Install production dependencies only
+RUN yarn install --production=true
+
 CMD [ "yarn", "start"]

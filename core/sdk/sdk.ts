@@ -1,5 +1,5 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { getChainBySlug } from "@thirdweb-dev/chains";
+import { Chain, getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
 import {
   ThirdwebSDK,
   ChainOrRpc,
@@ -10,7 +10,7 @@ import {
 
 import { ContractAddress } from "@thirdweb-dev/generated-abis";
 
-import { BaseContract } from "ethers";
+import { BaseContract, BigNumber } from "ethers";
 import { getEnv } from "../loadEnv";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
@@ -24,11 +24,24 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
 
   const THIRDWEB_API_KEY = getEnv("THIRDWEB_API_KEY");
   const WALLET_PRIVATE_KEY = getEnv("WALLET_PRIVATE_KEY", undefined);
-  const wallet = new LocalWallet({ chain: getChainBySlug(chainName) });
+  let chain: Chain | null = null;
+  try {
+    chain = getChainBySlug(chainName);
+  } catch (e) {
+    try {
+      chain = getChainByChainId(BigNumber.from(chainName).toNumber());
+    } catch (er) {
+      throw er;
+    }
+  }
+
+  const wallet = new LocalWallet({
+    chain,
+  });
   if (WALLET_PRIVATE_KEY) {
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
   } else {
-    wallet.generate();
+    // wallet.generate();
     //TODO - save the private key to file system
     //wallet.save({ encryption: false, strategy: "privateKey" });
   }

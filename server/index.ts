@@ -4,7 +4,7 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import * as fs from "fs";
 import fastifyCors from "@fastify/cors";
 import { openapi } from "./helpers";
-import { errorHandler, getEnv } from "../core";
+import { errorHandler, getEnv, envVariablesCheck } from "../core";
 import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
@@ -105,6 +105,18 @@ const main = async () => {
   );
 
   try {
+    await envVariablesCheck(server, [
+      "OPENAPI_BASE_ORIGIN",
+      "WALLET_PRIVATE_KEY",
+      "THIRDWEB_API_KEY",
+      "DATABASE_CLIENT",
+      "POSTGRES_HOST",
+      "POSTGRES_DATABASE_NAME",
+      "POSTGRES_USER",
+      "POSTGRES_PASSWORD",
+      "POSTGRES_PORT",
+      "POSTGRES_USE_SSL",
+    ]);
     // Check for the Tables Existence post startup
     await checkTablesExistence(server);
     await implementTriggerOnStartUp(server);
