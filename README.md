@@ -17,7 +17,11 @@ Thirdweb's Web3-API & Worker server.
 
 There are multiple ways to run Web3-API locally.
 
-### Docker Approach
+---
+
+### 1. Docker Approach
+
+---
 
 | NOTE: Do not run `yarn install` |
 | ------------------------------- |
@@ -33,7 +37,11 @@ Locally, we use `docker-compose.yml` to spin up the supporting infra services, a
 
 The API defaults to `http://localhost:3005`
 
-### Partial - Docker Approach
+---
+
+### 2. Partial - Docker Approach
+
+---
 
 With this approach we run the API server & Worker on the local machine, thus using Docker only to help us run PostgreSQL, PG-Admin.
 
@@ -47,7 +55,11 @@ With this approach we run the API server & Worker on the local machine, thus usi
 
 The API defaults to `http://localhost:3005`
 
-### Non - Docker Approach
+---
+
+### 3. Non - Docker Approach
+
+---
 
 | NOTE: This approach requires you to have the the PostgreSQL instance running locally or on cloud. |
 | ------------------------------------------------------------------------------------------------- |
