@@ -48,7 +48,7 @@ With this approach we run the API server & Worker on the local machine, thus usi
 1. Create a `.env` file and add all the environment variables from `.example.env`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
 2. Update the `THIRDWEB_API_KEY` value on the `.env` file
 3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-4. Update the `HOST` & `WORKER_HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
+4. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
 5. Update the `POSTGRES_HOST` value on the `.env` file to `localhost`. Example: `POSTGRES_HOST=localhost`
 6. Run: `yarn install`
 7. Run: `yarn dev:infra`
