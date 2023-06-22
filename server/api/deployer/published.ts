@@ -71,6 +71,7 @@ export async function deployPublished(fastify: FastifyInstance) {
         network,
         "deployer_published",
         deployedAddress,
+        contract_name,
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,
