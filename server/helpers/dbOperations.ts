@@ -227,7 +227,10 @@ export const getAllDeployedContractTxFromDB = async (
           builder.where("txMined", false);
           builder.where("txErrored", false);
         }
-        builder.where("extension", "deployer_prebuilt");
+        builder.whereIn("extension", [
+          "deployer_prebuilt",
+          "deployer_published",
+        ]);
         builder.whereNotNull("deployedContractAddress");
       })
       .orderBy(sort || "createdTimestamp", sort_order || "asc")

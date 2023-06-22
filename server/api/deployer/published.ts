@@ -70,6 +70,7 @@ export async function deployPublished(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_published",
+        deployedAddress,
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,
