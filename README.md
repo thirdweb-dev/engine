@@ -33,7 +33,7 @@ In this approach we run everything, i.e., Web3-API Server & Worker, Postgres DB,
 3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
 4. Run: `yarn docker`
 
-Locally, we use `docker-compose.yml` to spin up the supporting infra services, a postgres database, the pg-admin GUI and swaggerui altogether.
+We use `docker-compose.yml` to spin up the API Server & Worker along with supporting infra services, a postgres database and the pg-admin GUI.
 
 The API defaults to `http://localhost:3005`
 
@@ -54,6 +54,8 @@ With this approach we run the API server & Worker on the local machine, thus usi
 7. Run: `yarn dev:infra`
 
 The API defaults to `http://localhost:3005`
+
+We use `docker-compose-infra.yml` to spin up the supporting infra services, i.e., a postgres database, the pg-admin GUI altogether.
 
 ---
 
