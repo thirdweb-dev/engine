@@ -61,8 +61,8 @@ The API defaults to `http://localhost:3005`
 
 ---
 
-| NOTE: This approach requires you to have the the PostgreSQL instance running locally or on cloud. |
-| ------------------------------------------------------------------------------------------------- |
+| Required: A PostgreSQL running instance. |
+| ---------------------------------------- |
 
 1. Create a `.env` file and add all the environment variables from `.example.env`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
 2. Update the `THIRDWEB_API_KEY` value on the `.env` file
