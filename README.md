@@ -53,9 +53,9 @@ With this approach we run the API server & Worker on the local machine, thus usi
 6. Run: `yarn install`
 7. Run: `yarn dev:infra`
 
-The API defaults to `http://localhost:3005`
-
 We use `docker-compose-infra.yml` to spin up the supporting infra services, i.e., a postgres database, the pg-admin GUI altogether.
+
+The API defaults to `http://localhost:3005`
 
 ---
 
