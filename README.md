@@ -67,7 +67,7 @@ The API defaults to `http://localhost:3005`
 1. Create a `.env` file and add all the environment variables from `.example.env`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
 2. Update the `THIRDWEB_API_KEY` value on the `.env` file
 3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-4. Update the `HOST` & `WORKER_HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
+4. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
 5. Update the following PostgreSQL DB ENV Variables Value:
 
 - `POSTGRES_HOST` : PostgreSQL Host Name
