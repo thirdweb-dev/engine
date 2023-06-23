@@ -1,3 +1,23 @@
+<p align="center">
+    <br />
+    <a href="https://thirdweb.com">
+        <img src="https://github.com/thirdweb-dev/js/blob/main/packages/sdk/logo.svg?raw=true" width="200" alt=""/></a>
+    <br />
+</p>
+
+<h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> Web3-API Repo</h1>
+
+<p align="center">
+    <!-- <a href="https://github.com/thirdweb-dev/web3-api/actions/workflows/build-test-lint.yml">
+        <img alt="Build Status" src="https://github.com/thirdweb-dev/web3-api/actions/workflows/build-test-lint.yml/badge.svg"/>
+    </a> -->
+    <a href="https://discord.gg/thirdweb">
+        <img alt="Join our Discord!" src="https://img.shields.io/discord/834227967404146718.svg?color=7289da&label=discord&logo=discord&style=flat"/>
+    </a>
+</p>
+
+<p align="center"><strong>Best in class web3 SDKs for Browser, Node and Mobile apps</strong></p>
+
 # 🔑 web3-api & worker server
 
 Thirdweb's Web3-API & Worker server.
@@ -9,16 +29,88 @@ Thirdweb's Web3-API & Worker server.
 
 1. Docker
 2. Nodesjs (>= v18)
-3. PostgreSQL
+3. PostgreSQL DB
 4. ENV Variables (Check `.example.env`)
-5. PG-Admin (Optional. PostgreSQL GUI)
+5. PG-Admin (Optional. PostgreSQL DB GUI)
 
-## How to run locally
+Check the [How to install required packages](./installations.md)
 
-| NOTE: Git Clone the Repo |
-| ------------------------ |
+## Running in Production Mode
 
-There are multiple ways to run Web3-API locally.
+### Using Published Docker Image
+
+| Required: Docker, Postgres |
+| -------------------------- |
+
+1. If you don't have PostgreSQL already, use this docker command to run a postgres instance: `docker run postgres`.
+2. Create a `.env` file based off `.example.env` with all the variables filled in.
+3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
+4. Update the `THIRDWEB_API_KEY` value on the `.env` file
+5. Update the following PostgreSQL DB ENV Variables Value:
+
+- `POSTGRES_HOST` : PostgreSQL Host Name
+- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
+- `POSTGRES_USER` : PostgreSQL Username
+- `POSTGRES_PASSWORD` : PostgreSQL Password
+- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
+- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
+
+6. Run `docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest`
+
+### Running on a Server (EC2 Instance/Google Compute/VM)
+
+| Required: A PostgreSQL running instance. |
+| ---------------------------------------- |
+
+1. Clone the project on the remote server
+2. Create a `.env` file based off `.example.env` with all the variables filled in.
+3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
+4. Update the `THIRDWEB_API_KEY` value on the `.env` file
+5. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
+6. Update the following PostgreSQL DB ENV Variables Value:
+
+- `POSTGRES_HOST` : PostgreSQL Host Name
+- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
+- `POSTGRES_USER` : PostgreSQL Username
+- `POSTGRES_PASSWORD` : PostgreSQL Password
+- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
+- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
+
+7. Run: `yarn install`
+8. Run: `yarn build && yarn copy-files`
+9. Run: `yarn start`
+
+## Local Development
+
+| Required: Docker |
+| ---------------- |
+
+1. Clone the Repo
+2. Create a `.env` file and add all the environment variables from `.example.env`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
+3. Update the `THIRDWEB_API_KEY` value on the `.env` file
+4. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
+5. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
+6. Update the following PostgreSQL DB ENV Variables Value:
+
+- `POSTGRES_HOST` : PostgreSQL Host Name
+- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
+- `POSTGRES_USER` : PostgreSQL Username
+- `POSTGRES_PASSWORD` : PostgreSQL Password
+- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
+- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
+
+6. Run: `yarn install`
+7. Run: `yarn dev`
+
+The API defaults to `http://localhost:3005`
+
+### Other ways to run locally
+
+<details>
+
+<summary>Click to expand</summary>
+
+<br >
 
 ---
 
@@ -46,7 +138,7 @@ The API defaults to `http://localhost:3005`
 
 ---
 
-With this approach we run the API server & Worker on the local machine, thus using Docker only to help us run PostgreSQL, PG-Admin.
+With this approach we run the API Server & Worker on the local machine, thus using Docker only to help us run Infra services, i.e., PostgreSQL DB, PG-Admin.
 
 1. Create a `.env` file and add all the environment variables from `.example.env`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
 2. Update the `THIRDWEB_API_KEY` value on the `.env` file
@@ -55,70 +147,30 @@ With this approach we run the API server & Worker on the local machine, thus usi
 5. Update the `POSTGRES_HOST` value on the `.env` file to `localhost`. Example: `POSTGRES_HOST=localhost`
 6. Run: `yarn install`
 7. Run: `yarn dev:infra`
+8. Run API Server & Worker: `yarn dev:server & yarn dev:worker`
 
 We use `docker-compose-infra.yml` to spin up the supporting infra services, i.e., a postgres database, the pg-admin GUI altogether.
 
 The API defaults to `http://localhost:3005`
 
----
+</details>
 
-### 3. Non - Docker Approach
+<br>
 
----
+## API Documentation
 
-| Required: A PostgreSQL running instance. |
-| ---------------------------------------- |
+You can view the Swagger documentation at: https://web3-api-akbv.chainsaw-dev.zeet.app
 
-1. Create a `.env` file and add all the environment variables from `.example.env`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
-2. Update the `THIRDWEB_API_KEY` value on the `.env` file
-3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-4. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
-5. Update the following PostgreSQL DB ENV Variables Value:
+## Contributing
 
-- `POSTGRES_HOST` : PostgreSQL Host Name
-- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
-- `POSTGRES_USER` : PostgreSQL Username
-- `POSTGRES_PASSWORD` : PostgreSQL Password
-- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
-- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
+We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](.github/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.
 
-6. Run: `yarn install`
-7. Run: `yarn dev`
+## Community
 
-The API defaults to `http://localhost:3005`
+The best place to discuss your ideas, ask questions, and troubleshoot issues is our [Discord server](https://discord.gg/thirdweb).
 
-## How to run in Production
+<br/>
 
-### Using Published Docker Image
+## Security
 
-| Required: Docker |
-| ---------------- |
-
-1. If you don't have one already, run a postgres instance: `docker run postgres`.
-2. Create a `.env` file based off `.example.env` with all the variables filled in.
-3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-4. Update the `THIRDWEB_API_KEY` value on the `.env` file
-5. Run `docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest`
-
-### Running on a Server (EC2 Instance/Google Compute/VM)
-
-| Required: A PostgreSQL running instance. |
-| ---------------------------------------- |
-
-1. Clone the project on the remote server
-2. Create a `.env` file based off `.example.env` with all the variables filled in.
-3. Run: `yarn install`
-4. Run: `yarn build && yarn copy-files`
-5. Run: `yarn start`
-
-This will only run the required services. You will need to have a running postgres database that can be accessed from those services.
-
-## Docs
-
-You can view a live version of the Swagger documentation at: https://web3-api-akbv.chainsaw-dev.zeet.app
-
-When running locally, the swagger docs are automatically deployed at `http://localhost:3005` or your remote server URL.
-
-## Data Inpection
-
-In local development, you can inspect your databaes through PG-Admin (Optional) at `http://localhost:5050`.
+If you believe you have found a security vulnerability in any of our packages, we kindly ask you not to open a public issue; and to disclose this to us by emailing `security@thirdweb.com`.
