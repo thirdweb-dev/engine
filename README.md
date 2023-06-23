@@ -33,7 +33,7 @@ Thirdweb's Web3-API & Worker server.
 4. ENV Variables (Check `.example.env`)
 5. PG-Admin (Optional. PostgreSQL DB GUI)
 
-Check the [How to install required packages](./installations.md)
+Check the [How to install required packages](./.github/installations.md) guide for more details.
 
 ## Running in Production Mode
 
@@ -155,8 +155,6 @@ The API defaults to `http://localhost:3005`
 
 </details>
 
-<br>
-
 ## API Documentation
 
 You can view the Swagger documentation at: https://web3-api-akbv.chainsaw-dev.zeet.app
@@ -168,8 +166,6 @@ We welcome contributions from all developers, regardless of experience level. If
 ## Community
 
 The best place to discuss your ideas, ask questions, and troubleshoot issues is our [Discord server](https://discord.gg/thirdweb).
-
-<br/>
 
 ## Security
 
