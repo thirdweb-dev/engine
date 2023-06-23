@@ -66,6 +66,8 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "split",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

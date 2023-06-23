@@ -72,6 +72,8 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "nft-collection",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

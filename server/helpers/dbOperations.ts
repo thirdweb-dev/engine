@@ -22,6 +22,8 @@ export const queueTransaction = async (
   tx: Transaction<any> | DeployTransaction,
   network: string,
   extension: string,
+  deployedContractAddress?: string,
+  contractType?: string,
 ) => {
   // first simulate tx
   try {
@@ -65,6 +67,8 @@ export const queueTransaction = async (
     txMined: false,
     txSubmitted: false,
     encodedInputData: encodedData,
+    deployedContractAddress,
+    contractType,
   };
 
   if (!txDataToInsert.identifier) {
@@ -195,4 +199,53 @@ const transformData = (
   });
 
   return transformedData;
+};
+
+export const getAllDeployedContractTxFromDB = async (
+  request: FastifyRequest,
+  page: number,
+  limit: number,
+  sort?: string,
+  sort_order?: string,
+  filter?: string,
+): Promise<Static<typeof transactionResponseSchema>[]> => {
+  try {
+    const dbInstance = await connectWithDatabase(request);
+    const data = (await dbInstance("transactions")
+      .where((builder) => {
+        if (filter === TransactionStatusEnum.Submitted) {
+          builder.where("txSubmitted", true);
+        } else if (filter === TransactionStatusEnum.Processed) {
+          builder.where("txProcessed", true);
+        } else if (filter === TransactionStatusEnum.Mined) {
+          builder.where("txMined", true);
+        } else if (filter === TransactionStatusEnum.Errored) {
+          builder.where("txErrored", true);
+        } else if (filter === TransactionStatusEnum.Queued) {
+          builder.where("txSubmitted", false);
+          builder.where("txProcessed", false);
+          builder.where("txMined", false);
+          builder.where("txErrored", false);
+        }
+        builder.whereIn("extension", [
+          "deployer_prebuilt",
+          "deployer_published",
+        ]);
+        builder.whereNotNull("deployedContractAddress");
+      })
+      .orderBy(sort || "createdTimestamp", sort_order || "asc")
+      .limit(limit)
+      .offset((page - 1) * limit)) as TransactionSchema[];
+    await dbInstance.destroy();
+
+    const transformedData = transformData(data);
+    return transformedData;
+  } catch (error: any) {
+    const customError = createCustomError(
+      "Error while fetching all transaction requests from Table.",
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "INTERNAL_SERVER_ERROR",
+    );
+    throw customError;
+  }
 };

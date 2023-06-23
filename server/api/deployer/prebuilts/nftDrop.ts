@@ -74,6 +74,8 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "nft-drop",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

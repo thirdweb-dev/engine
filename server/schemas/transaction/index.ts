@@ -82,6 +82,16 @@ export const transactionResponseSchema = Type.Object({
       description: "Transaction Submission Timestamp",
     }),
   ),
+  deployedContractAddress: Type.Optional(
+    Type.String({
+      description: "Deployed Contract Address",
+    }),
+  ),
+  contractType: Type.Optional(
+    Type.String({
+      description: "Deployed Contract Type",
+    }),
+  ),
 });
 
 export enum TransactionStatusEnum {
@@ -115,4 +125,6 @@ export interface TransactionSchema {
   createdTimestamp?: string;
   txSubmittedTimestamp?: string;
   submittedTxNonce?: number;
+  deployedContractAddress?: string;
+  contractType?: string;
 }

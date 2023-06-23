@@ -68,6 +68,8 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "multiwrap",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

@@ -73,6 +73,8 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "edition",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,

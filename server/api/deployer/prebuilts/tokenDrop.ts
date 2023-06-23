@@ -72,6 +72,8 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
         tx,
         network,
         "deployer_prebuilt",
+        deployedAddress,
+        "token-drop",
       );
       reply.status(StatusCodes.OK).send({
         deployedAddress,
