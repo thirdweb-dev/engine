@@ -13,7 +13,10 @@ Thirdweb's Web3-API & Worker server.
 4. ENV Variables (Check `.example.env`)
 5. PG-Admin (Optional. PostgreSQL GUI)
 
-## Running locally
+## How to run locally
+
+| NOTE: Git Clone the Repo |
+| ------------------------ |
 
 There are multiple ways to run Web3-API locally.
 
@@ -84,18 +87,20 @@ The API defaults to `http://localhost:3005`
 
 The API defaults to `http://localhost:3005`
 
-## Running using Docker Image
+## How to run in Production
 
-| Required: A PostgreSQL running instance. |
-| ---------------------------------------- |
+### Using Published Docker Image
+
+| Required: Docker |
+| ---------------- |
 
 1. If you don't have one already, run a postgres instance: `docker run postgres`.
 2. Create a `.env` file based off `.example.env` with all the variables filled in.
 3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
 4. Update the `THIRDWEB_API_KEY` value on the `.env` file
-5. Run `docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest`.
+5. Run `docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest`
 
-## Running on a server
+### Running on a Server (EC2 Instance/Google Compute/VM)
 
 | Required: A PostgreSQL running instance. |
 | ---------------------------------------- |
