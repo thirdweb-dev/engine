@@ -161,7 +161,7 @@ You can view the Swagger documentation at: https://web3-api-akbv.chainsaw-dev.ze
 
 ## Contributing
 
-We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](.github/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.
+We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](./.github/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.
 
 ## Community
 

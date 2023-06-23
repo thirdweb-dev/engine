@@ -4,13 +4,9 @@ You can find a full video tutorial on how to contribute to thirdweb below:
 
 https://www.youtube.com/watch?v=TXsQ3qok3B0
 
-<br/>
-
 Let's explore how you can set up the repo on your local machine and start contributing!
 
 This section requires some existing knowledge of [Git](https://git-scm.com/), [Node.js](https://nodejs.org/en/) and [yarn](https://yarnpkg.com/).
-
-<br/>
 
 ### Getting the repo
 
