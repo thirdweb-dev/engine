@@ -18,13 +18,6 @@
 
 <p align="center"><strong>Best in class web3 SDKs for Browser, Node and Mobile apps</strong></p>
 
-# 🔑 web3-api & worker server
-
-Thirdweb's Web3-API & Worker server.
-
-| NOTE: Update ENV variables as per your settings/environment. |
-| ------------------------------------------------------------ |
-
 ## Requirements
 
 1. Docker
