@@ -26,3 +26,16 @@ If you don't have NodeJS installed, you can download it from here: https://nodej
 | ---- |
 
 If you don't have Yarn installed, you can download it from here: https://classic.yarnpkg.com/en/docs/install
+
+### Installing PostgreSQL DB
+
+| PostgreSQL DB |
+| ------------- |
+
+If you don't have PostgreSQL DB installed, you can download it from here: https://www.postgresql.org/download/
+
+Or, you can run PostgreSQL DB on Docker. Run the below command:
+
+```
+docker run --name my-local-postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres
+```

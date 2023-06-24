@@ -28,64 +28,80 @@
 
 Check the [How to install required packages](./.github/installations.md) guide for more details.
 
+## API Documentation
+
+View all end-points details (Open API Specification) : https://web3-api-akbv.chainsaw-dev.zeet.app
+
+## Setup Instructions
+
+1. Create a `.env` file based off `.env.example` with all the variables filled in.
+2. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
+3. Update the `THIRDWEB_API_KEY` value on the `.env` file
+
+### Advance Setup : PostgreSQL DB
+
+<details>
+
+<summary>Click to expand</summary>
+
+You will need a PostgreSQL DB running instance to run the API Server & Worker. You can either run PostgreSQL DB on cloud, on a local instance or on docker. Check [installation guide](./.github/installations.md) for more details.
+
+Once you have PostgreSQL DB running on cloud or a local instance, update the following PostgreSQL DB ENV Variables Value on `.env` file:
+
+- `POSTGRES_HOST` : PostgreSQL Host Name
+- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
+- `POSTGRES_USER` : PostgreSQL Username
+- `POSTGRES_PASSWORD` : PostgreSQL Password
+- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
+- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
+
+</details>
+
 ## Running in Production Mode
 
-### Using Published Docker Image
+### Run Docker Image
 
 | Required: Docker, Postgres |
 | -------------------------- |
 
-1. If you don't have PostgreSQL already, use this docker command to run a postgres instance: `docker run --name my-local-postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres`
-2. Create a `.env` file based off `.env.example` with all the variables filled in.
-3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-4. Update the `THIRDWEB_API_KEY` value on the `.env` file
-5. Update the following PostgreSQL DB ENV Variables Value:
+1. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
+2. Run the below command
+   <br />
+   ```
+   docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest
+   ```
 
-- `POSTGRES_HOST` : PostgreSQL Host Name
-- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
-- `POSTGRES_USER` : PostgreSQL Username
-- `POSTGRES_PASSWORD` : PostgreSQL Password
-- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
-- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
+<details>
+ <summary>Run on a Server (EC2 Instance/Google Compute/VM) </summary>
 
-6. Run `docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest`
-
-### Running on a Server (EC2 Instance/Google Compute/VM)
-
-| Required: A PostgreSQL running instance. |
-| ---------------------------------------- |
+| Required: A PostgreSQL DB running instance. |
+| ------------------------------------------- |
 
 1. Clone the project on the remote server
-2. Create a `.env` file based off `.env.example` with all the variables filled in.
-3. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-4. Update the `THIRDWEB_API_KEY` value on the `.env` file
-5. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
-6. Update the following PostgreSQL DB ENV Variables Value:
+2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
+3. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
+4. Run: `yarn install`
+5. Run: `yarn build && yarn copy-files`
+6. Run: `yarn start`
 
-- `POSTGRES_HOST` : PostgreSQL Host Name
-- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
-- `POSTGRES_USER` : PostgreSQL Username
-- `POSTGRES_PASSWORD` : PostgreSQL Password
-- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
-- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
-
-7. Run: `yarn install`
-8. Run: `yarn build && yarn copy-files`
-9. Run: `yarn start`
+</details>
+<br/>
 
 ## Local Development
 
 | Required: Docker |
 | ---------------- |
 
+Note: This is the recommended way to run the API locally. It will spin up infra services, i.e., PostgreSQL DB, PG-Admin on Docker and run the API Server & Worker on local machine.
+
 1. Clone the Repo
-2. Create a `.env` file and add all the environment variables from `.env.example`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
-3. Update the `THIRDWEB_API_KEY` value on the `.env` file
-4. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-5. Run: `yarn install`
-6. Run: `yarn dev`
+2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
+3. Run: `yarn install`
+4. Run: `yarn dev`
 
 The API defaults to `http://localhost:3005`
+
+We use `docker-compose-infra.yml` to spin up the supporting infra services, a postgres database and the pg-admin GUI.
 
 ### Other ways to run locally
 
@@ -97,7 +113,24 @@ The API defaults to `http://localhost:3005`
 
 ---
 
-### 1. Docker Approach
+### 1. Use only NodeJS
+
+---
+
+| REQUIRED: PostgreSQL DB running instance |
+| ---------------------------------------- |
+
+1. Clone the Repo
+2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
+3. Check [Advance Setup : PostgreSQL DB](#advance-setup--postgresql-db) section to update the `.env` file
+4. Run: `yarn install`
+5. Run: `yarn dev:server & yarn dev:worker`
+
+The API defaults to `http://localhost:3005`
+
+---
+
+### 2. Use Docker Compose
 
 ---
 
@@ -107,49 +140,16 @@ The API defaults to `http://localhost:3005`
 In this approach we run everything, i.e., Web3-API Server & Worker, Postgres DB, PG-Admin on Docker.
 
 1. Clone the Repo
-2. Create a `.env` file and add all the environment variables from `.env.example`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
-3. Update the `THIRDWEB_API_KEY` value on the `.env` file
-4. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-5. Update the `HOST` value on the `.env` file to `0.0.0.0`. Example: `HOST=0.0.0.0`
-6. Update the `POSTGRES_HOST` value on the `.env` file to `host.docker.internal`. Example : `POSTGRES_HOST=host.docker.internal`
-7. Run: `yarn docker`
+2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
+3. Update the `HOST` value on the `.env` file to `0.0.0.0`. Example: `HOST=0.0.0.0`
+4. Update the `POSTGRES_HOST` value on the `.env` file to `host.docker.internal`. Example : `POSTGRES_HOST=host.docker.internal`
+5. Run: `yarn docker`
 
 We use `docker-compose.yml` to spin up the API Server & Worker along with supporting infra services, a postgres database and the pg-admin GUI.
 
 The API defaults to `http://localhost:3005`
 
----
-
-### 2. Non - Docker Approach
-
----
-
-| REQUIRED: PostgreSQL DB running instance |
-| ---------------------------------------- |
-
-1. Clone the Repo
-2. Create a `.env` file and add all the environment variables from `.env.example`. (WALLET_PRIVATE_KEY and THIRDWEB_API_KEY are the 2 most important ones)
-3. Update the `THIRDWEB_API_KEY` value on the `.env` file
-4. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-5. Update the following PostgreSQL DB ENV Variables Value:
-
-- `POSTGRES_HOST` : PostgreSQL Host Name
-- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
-- `POSTGRES_USER` : PostgreSQL Username
-- `POSTGRES_PASSWORD` : PostgreSQL Password
-- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
-- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
-
-6. Run: `yarn install`
-7. Run: `yarn dev:server & yarn dev:worker`
-
-The API defaults to `http://localhost:3005`
-
 </details>
-
-## API Documentation
-
-You can view the Swagger documentation at: https://web3-api-akbv.chainsaw-dev.zeet.app
 
 ## Contributing
 
