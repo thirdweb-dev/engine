@@ -5,10 +5,10 @@ dotenv.config({
   override: true,
 });
 
-function getEnv(key: string) {
+function getEnv(key: string, defaultValue: any = undefined): any {
   const value = process.env[key];
   if (!value) {
-    throw new Error(`Missing environment variable: ${key}`);
+    return defaultValue;
   }
   return value;
 }

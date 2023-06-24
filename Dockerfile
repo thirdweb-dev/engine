@@ -28,12 +28,12 @@ EXPOSE 3005
 FROM base AS local_server
 
 ENV NODE_ENV="local"
-CMD [ "yarn", "dev" ]
+CMD [ "yarn", "dev:server" ]
 
 FROM base AS local_worker
 
 ENV NODE_ENV="local"
-CMD [ "yarn", "dev-worker" ]
+CMD [ "yarn", "dev:worker" ]
 
 # Production stage
 FROM node:18.15.0-alpine AS prod

@@ -1,13 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Type, Static } from "@sinclair/typebox";
-import { getContractInstance } from "../../../../../../core/index";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { queueTransaction } from "../../../../../helpers";
+import { getContractInstance } from "../../../../../../core/index";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;

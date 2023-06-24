@@ -1,17 +1,4 @@
-version: '3.8'
-
 services:
-  web3-api:
-    build:
-      dockerfile: Dockerfile
-      context: .
-      target: local_server
-    ports:
-      - 3005:3005
-    volumes:
-      - ./:/app
-      - node_modules:/app/node_modules  
-  
   db:
     image: postgres:latest
     env_file:
@@ -20,7 +7,7 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-  
+
   pgadmin:
     container_name: pgadmin4_container
     image: dpage/pgadmin4
@@ -32,7 +19,18 @@ services:
       - "5050:80"
     volumes:
       - pgadmin:/var/lib/pgadmin
-  
+
+  web3-api:
+    build:
+      dockerfile: Dockerfile
+      context: .
+      target: local_server
+    ports:
+      - 3005:3005
+    volumes:
+      - ./:/app
+      - node_modules:/app/node_modules
+
   web3-worker:
     build:
       dockerfile: Dockerfile
@@ -42,7 +40,7 @@ services:
       - 3006:3006
     volumes:
       - ./:/app
-      - node_modules:/app/node_modules  
+      - node_modules:/app/node_modules
 
 volumes:
   node_modules:

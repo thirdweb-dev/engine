@@ -4,7 +4,7 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import * as fs from "fs";
 import fastifyCors from "@fastify/cors";
 import { openapi } from "./helpers";
-import { errorHandler, getEnv } from "../core";
+import { errorHandler, getEnv, envVariablesCheck } from "../core";
 import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
@@ -69,32 +69,32 @@ const main = async () => {
     done();
   });
 
-  await errorHandler(server);
+  try {
+    await errorHandler(server);
+    await server.register(fastifyCors);
+    await server.register(fastifyExpress);
 
-  await server.register(fastifyCors);
+    openapi(server);
+    await server.register(apiRoutes);
+    await server.ready();
 
-  await server.register(fastifyExpress);
-
-  openapi(server);
-
-  await server.register(apiRoutes);
-
-  await server.ready();
-
-  // Command to Generate Swagger File
-  // Needs to be called post Fastify Server is Ready
-  server.swagger();
-
-  // To Generate Swagger YAML File
-  if (getEnv("NODE_ENV") === "local") {
-    const yaml = server.swagger({ yaml: true });
-    fs.writeFileSync("./swagger.yml", yaml);
+    // Command to Generate Swagger File
+    // Needs to be called post Fastify Server is Ready
+    server.swagger();
+    // To Generate Swagger YAML File
+    if (getEnv("NODE_ENV", "development") === "development") {
+      const yaml = server.swagger({ yaml: true });
+      fs.writeFileSync("./swagger.yml", yaml);
+    }
+  } catch (err) {
+    server.log.error(err);
+    process.exit(1);
   }
 
   server.listen(
     {
-      host: getEnv("HOST"),
-      port: Number(getEnv("PORT")),
+      host: getEnv("HOST", "0.0.0.0"),
+      port: Number(getEnv("PORT", 3005)),
     },
     (err) => {
       if (err) {
@@ -104,9 +104,25 @@ const main = async () => {
     },
   );
 
-  // Check for the Tables Existence post startup
-  await checkTablesExistence(server);
-  await implementTriggerOnStartUp(server);
+  try {
+    await envVariablesCheck(server, [
+      "OPENAPI_BASE_ORIGIN",
+      "WALLET_PRIVATE_KEY",
+      "THIRDWEB_API_KEY",
+      "DATABASE_CLIENT",
+      "POSTGRES_HOST",
+      "POSTGRES_DATABASE_NAME",
+      "POSTGRES_USER",
+      "POSTGRES_PASSWORD",
+      "POSTGRES_PORT",
+      "POSTGRES_USE_SSL",
+    ]);
+    // Check for the Tables Existence post startup
+    await checkTablesExistence(server);
+    await implementTriggerOnStartUp(server);
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 main();

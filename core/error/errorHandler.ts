@@ -22,7 +22,10 @@ export const errorHandler = async (server: FastifyInstance) => {
           code,
           message,
           statusCode,
-          stack: getEnv("NODE_ENV") !== "production" ? error.stack : undefined,
+          stack:
+            getEnv("NODE_ENV", "development") !== "production"
+              ? error.stack
+              : undefined,
         },
       });
     } else {
@@ -32,7 +35,10 @@ export const errorHandler = async (server: FastifyInstance) => {
           statusCode: 500,
           code: "INTERNAL_SERVER_ERROR",
           message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
-          stack: getEnv("NODE_ENV") !== "production" ? error.stack : undefined,
+          stack:
+            getEnv("NODE_ENV", "development") !== "production"
+              ? error.stack
+              : undefined,
         },
       });
     }
