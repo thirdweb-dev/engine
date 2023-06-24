@@ -65,7 +65,8 @@ Once you have PostgreSQL DB running on cloud or a local instance, update the fol
 | -------------------------- |
 
 1. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-2. Run the below command
+2. Check [Advance Setup : PostgreSQL DB](#advance-setup--postgresql-db) section to update the `.env` file
+3. Run the below command
    <br />
    ```
    docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest
@@ -79,10 +80,11 @@ Once you have PostgreSQL DB running on cloud or a local instance, update the fol
 
 1. Clone the project on the remote server
 2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
-4. Run: `yarn install`
-5. Run: `yarn build && yarn copy-files`
-6. Run: `yarn start`
+3. Check [Advance Setup : PostgreSQL DB](#advance-setup--postgresql-db) section to update the `.env` file
+4. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
+5. Run: `yarn install`
+6. Run: `yarn build && yarn copy-files`
+7. Run: `yarn start`
 
 </details>
 <br/>
@@ -113,7 +115,7 @@ We use `docker-compose-infra.yml` to spin up the supporting infra services, a po
 
 ---
 
-### 1. Use only NodeJS
+### 1. Use only NodeJS/Yarn
 
 ---
 
