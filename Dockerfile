@@ -7,7 +7,7 @@ WORKDIR /app
 RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip
 
 # Copy package.json and yarn.lock files
-COPY package*.json yarn*.json ./
+COPY package*.json yarn*.lock ./
 
 # Copy the entire project directory
 COPY . .
@@ -43,13 +43,19 @@ WORKDIR /app
 
 ENV NODE_ENV="production"
 
+# Install build dependencies
+RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip
+
 # Copy package.json and yarn.lock files
-COPY package*.json yarn*.json ./
+COPY package*.json yarn*.lock ./
 
 # Copy the built dist folder from the base stage to the production stage
 COPY --from=base /app/dist ./dist
 
 # Install production dependencies only
-RUN yarn install --production=true
+RUN yarn install --production=true --frozen-lockfile
+
+# Clean up build dependencies
+RUN apk del build-dependencies
 
 CMD [ "yarn", "start"]
