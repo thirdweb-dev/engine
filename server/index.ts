@@ -1,14 +1,16 @@
 import { getEnv } from "../core";
 import createServer from "./helpers/server";
 import { checkTablesExistence, implementTriggerOnStartUp } from "../core";
+import { envVariablesCheck } from "../core/startup";
+import { WEB3_API_SERVER_ENV_VARS } from "../core/constants";
 
 const main = async () => {
   const server = await createServer();
 
   server.listen(
     {
-      host: getEnv("HOST"),
-      port: Number(getEnv("PORT")),
+      host: getEnv("HOST", "0.0.0.0"),
+      port: Number(getEnv("PORT", 3005)),
     },
     (err) => {
       if (err) {
@@ -18,9 +20,14 @@ const main = async () => {
     },
   );
 
-  // Check for the Tables Existence post startup
-  await checkTablesExistence(server);
-  await implementTriggerOnStartUp(server);
+  try {
+    await envVariablesCheck(server, WEB3_API_SERVER_ENV_VARS);
+    // Check for the Tables Existence post startup
+    await checkTablesExistence(server);
+    await implementTriggerOnStartUp(server);
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 main();

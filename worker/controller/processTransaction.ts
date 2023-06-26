@@ -16,8 +16,12 @@ import { BigNumber, ethers } from "ethers";
 import { Knex } from "knex";
 import { StatusCodes } from "http-status-codes";
 
+const MIN_TRANSACTION_TO_PROCESS_DEFAULT = 1;
 const MIN_TRANSACTION_TO_PROCESS =
-  parseInt(getEnv("MIN_TRANSACTION_TO_PROCESS"), 10) ?? 1;
+  parseInt(
+    getEnv("MIN_TRANSACTION_TO_PROCESS", MIN_TRANSACTION_TO_PROCESS_DEFAULT),
+    10,
+  ) ?? 1;
 
 export const processTransaction = async (
   server: FastifyInstance,

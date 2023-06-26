@@ -1,3 +1,5 @@
+import { LocalWallet } from "@thirdweb-dev/wallets";
+import { Chain, getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
 import {
   ThirdwebSDK,
   ChainOrRpc,
@@ -8,7 +10,7 @@ import {
 
 import { ContractAddress } from "@thirdweb-dev/generated-abis";
 
-import { BaseContract } from "ethers";
+import { BaseContract, BigNumber } from "ethers";
 import { getEnv } from "../loadEnv";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
@@ -20,15 +22,36 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     return sdkMap[chainName] as ThirdwebSDK;
   }
 
-  sdkMap[chainName] = ThirdwebSDK.fromPrivateKey(
-    getEnv("WALLET_PRIVATE_KEY"),
-    chainName,
-    { thirdwebApiKey: getEnv("THIRDWEB_API_KEY") },
-  );
+  const THIRDWEB_API_KEY = getEnv("THIRDWEB_API_KEY");
+  const WALLET_PRIVATE_KEY = getEnv("WALLET_PRIVATE_KEY", undefined);
+  let chain: Chain | null = null;
+  try {
+    chain = getChainBySlug(chainName);
+  } catch (e) {
+    try {
+      chain = getChainByChainId(BigNumber.from(chainName).toNumber());
+    } catch (er) {
+      throw er;
+    }
+  }
 
-  return sdkMap[chainName] as ThirdwebSDK;
+  const wallet = new LocalWallet({
+    chain,
+  });
+  wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
+
+  // TODO: PLAT-982
+  // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
+  // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
+
+  // Need to make this instantiate SDK with read/write. For that will need wallet information
+  const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
+    thirdwebApiKey: THIRDWEB_API_KEY,
+  });
+  sdkMap[chainName] = sdk;
+
+  return sdk;
 };
-
 export const getContractInstance = async <
   TContractAddress extends AddressOrEns | ContractAddress,
 >(
