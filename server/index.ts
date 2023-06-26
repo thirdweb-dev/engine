@@ -11,6 +11,7 @@ import {
   implementTriggerOnStartUp,
   getLogSettings,
 } from "../core";
+import { WEB3_API_SERVER_ENV_VARS } from "../core/constants";
 
 const main = async () => {
   const logOptions = getLogSettings("API-Server");
@@ -105,18 +106,7 @@ const main = async () => {
   );
 
   try {
-    await envVariablesCheck(server, [
-      "OPENAPI_BASE_ORIGIN",
-      "WALLET_PRIVATE_KEY",
-      "THIRDWEB_API_KEY",
-      "DATABASE_CLIENT",
-      "POSTGRES_HOST",
-      "POSTGRES_DATABASE_NAME",
-      "POSTGRES_USER",
-      "POSTGRES_PASSWORD",
-      "POSTGRES_PORT",
-      "POSTGRES_USE_SSL",
-    ]);
+    await envVariablesCheck(server, WEB3_API_SERVER_ENV_VARS);
     // Check for the Tables Existence post startup
     await checkTablesExistence(server);
     await implementTriggerOnStartUp(server);

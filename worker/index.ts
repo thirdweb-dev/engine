@@ -4,6 +4,7 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { startNotificationListener } from "./controller/listener";
 import { getLogSettings, envVariablesCheck } from "../core";
 import { setupWalletsForWorker } from "./controller/wallet";
+import { WEB3_API_REQUIRED_ENV_VARS } from "../core/constants";
 
 const main = async () => {
   const logOptions = getLogSettings("Worker-Server");
@@ -14,17 +15,7 @@ const main = async () => {
 
   await errorHandler(server);
 
-  await envVariablesCheck(server, [
-    "WALLET_PRIVATE_KEY",
-    "THIRDWEB_API_KEY",
-    "DATABASE_CLIENT",
-    "POSTGRES_HOST",
-    "POSTGRES_DATABASE_NAME",
-    "POSTGRES_USER",
-    "POSTGRES_PASSWORD",
-    "POSTGRES_PORT",
-    "POSTGRES_USE_SSL",
-  ]);
+  await envVariablesCheck(server, WEB3_API_REQUIRED_ENV_VARS);
 
   await setupWalletsForWorker(server);
   // Start Listening to the Table for new insertion
