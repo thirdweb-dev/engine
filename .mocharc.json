@@ -1,0 +1,9 @@
+{
+  "require": "ts-node/register",
+  "spec": "e2e/**/*.test.ts",
+  "extension": ["ts"],
+  "node-option": [
+    "experimental-specifier-resolution=node",
+    "loader=ts-node/esm"
+  ]
+}

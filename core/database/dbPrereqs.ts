@@ -9,7 +9,7 @@ import { createCustomError } from "../error/customError";
 import { StatusCodes } from "http-status-codes";
 
 // TODO migration versioning
-const DROP_ON_STARTUP = false;
+// const DROP_ON_STARTUP = false;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,11 +44,6 @@ export const checkTablesExistence = async (
     }
 
     for (const tableName of tablesList) {
-      if (DROP_ON_STARTUP) {
-        await knex.schema.dropTableIfExists(tableName);
-        server.log.info(`Table ${tableName} dropped on startup successfully`);
-      }
-
       const schemaSQL = await fs.readFile(
         `${__dirname}/sql-schemas/${tableName}.sql`,
         "utf-8",
