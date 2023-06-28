@@ -7,9 +7,7 @@ import {
   SmartContract,
   BaseContractForAddress,
 } from "@thirdweb-dev/sdk";
-
 import { ContractAddress } from "@thirdweb-dev/generated-abis";
-
 import { BaseContract, BigNumber } from "ethers";
 import { getEnv } from "../loadEnv";
 

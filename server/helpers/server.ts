@@ -7,8 +7,8 @@ import { apiRoutes } from "../../server/api";
 import { openapi } from "./openapi";
 import * as fs from "fs";
 
-const createServer = async (): Promise<FastifyInstance> => {
-  const logOptions = getLogSettings("API-Server");
+const createServer = async (serverName: string): Promise<FastifyInstance> => {
+  const logOptions = getLogSettings(serverName);
 
   const server: FastifyInstance = fastify({
     logger: logOptions ?? true,

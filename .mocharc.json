@@ -1,9 +1,11 @@
 {
-  "require": "ts-node/register",
+  "require": ["./worker/index.ts", "./e2e/setup-init.ts"],
   "spec": "e2e/**/*.test.ts",
   "extension": ["ts"],
   "node-option": [
     "experimental-specifier-resolution=node",
     "loader=ts-node/esm"
-  ]
+  ],
+  "reporter": "spec",
+  "timeout": "90000"
 }

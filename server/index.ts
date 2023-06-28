@@ -5,7 +5,7 @@ import { envVariablesCheck } from "../core/startup";
 import { WEB3_API_SERVER_ENV_VARS } from "../core/constants";
 
 const main = async () => {
-  const server = await createServer();
+  const server = await createServer("API-Server");
 
   server.listen(
     {

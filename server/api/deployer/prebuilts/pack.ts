@@ -74,8 +74,10 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
         "pack",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

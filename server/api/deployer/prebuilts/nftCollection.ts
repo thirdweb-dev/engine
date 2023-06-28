@@ -76,8 +76,10 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
         "nft-collection",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

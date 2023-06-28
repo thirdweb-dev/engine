@@ -76,8 +76,10 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
         "token-drop",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

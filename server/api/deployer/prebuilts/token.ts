@@ -74,8 +74,10 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
         "token",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

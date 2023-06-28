@@ -4,15 +4,15 @@
   "license": "Apache-2.0",
   "description": "thirdweb's web3-api server",
   "main": "server/index.ts",
-  "author": "Farhan Khwaja , Joaqium Verges, Furqan Rydhan",
+  "author": "ThirdWeb Engineer <eng@thirdweb.com>",
   "type": "module",
   "scripts": {
     "docker": "docker compose --env-file ./.env up --remove-orphans",
     "docker:build": "docker compose build --no-cache",
-    "dev": "docker compose -f ./docker-compose-infra.yml up & yarn dev:server & yarn dev:worker",
+    "dev": "docker compose -f ./docker-compose-infra.yml up -d && yarn dev:server & yarn dev:worker",
     "dev:server": "nodemon --watch 'server/**/*.ts' --watch 'core/**/*.ts' --exec 'ts-node' --files server/index.ts",
     "dev:worker": "nodemon --watch 'worker/**/*.ts' --watch 'core/**/*.ts' --exec 'ts-node' --files worker/index.ts",
-    "dev:infra": "docker compose -f ./docker-compose-infra.yml up",
+    "dev:infra": "docker compose -f ./docker-compose-infra.yml up -d",
     "build": "yarn && rm -rf dist && tsc -p ./tsconfig.json --outDir dist",
     "start": "yarn start:server & yarn start:worker",
     "start:server": "node --experimental-specifier-resolution=node ./dist/server/index.js",
@@ -22,7 +22,8 @@
     "copy-files": "copyfiles ./core/database/sql-schemas/*.sql ./dist/",
     "lint": "eslint 'server/**/*.ts'",
     "lint:fix": "eslint --fix 'server/**/*.ts'",
-    "test": "mocha --reporter spec"
+    "test": "make test-evm",
+    "test:all": "NODE_ENV=testing WALLET_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 mocha --exit"
   },
   "dependencies": {
     "@fastify/cookie": "^8.3.0",
@@ -67,7 +68,7 @@
     "chai": "^4.3.7",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.7.0",
-    "hardhat": "^2.16.0",
+    "hardhat": "^2.1.2",
     "mocha": "^10.2.0",
     "nodemon": "^2.0.21",
     "prettier": "^2.8.7",

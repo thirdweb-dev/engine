@@ -78,8 +78,10 @@ export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
         "signature-drop",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

@@ -78,8 +78,10 @@ export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
         "edition-drop",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });
