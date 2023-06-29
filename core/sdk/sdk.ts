@@ -12,6 +12,7 @@ import { ContractAddress } from "@thirdweb-dev/generated-abis";
 
 import { BaseContract, BigNumber } from "ethers";
 import { getEnv } from "../loadEnv";
+import { AwsKmsWallet } from "@thirdweb-dev/sdk/evm/wallets";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
@@ -24,7 +25,14 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
 
   const THIRDWEB_API_KEY = getEnv("THIRDWEB_API_KEY");
   const WALLET_PRIVATE_KEY = getEnv("WALLET_PRIVATE_KEY", undefined);
+  const AWS_REGION = getEnv("AWS_REGION", undefined);
+  const AWS_ACCESS_KEY_ID = getEnv("AWS_ACCESS_KEY_ID", undefined);
+  const AWS_SECRET_ACCESS_KEY = getEnv("AWS_SECRET_ACCESS_KEY", undefined);
+  const AWS_KMS_KEY_ID = getEnv("AWS_KMS_KEY_ID", undefined);
+
   let chain: Chain | null = null;
+  let wallet: AwsKmsWallet | LocalWallet | null = null;
+
   try {
     chain = getChainBySlug(chainName);
   } catch (e) {
@@ -35,10 +43,30 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     }
   }
 
-  const wallet = new LocalWallet({
-    chain,
-  });
-  wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
+  // Check for KMS
+  if (
+    AWS_ACCESS_KEY_ID &&
+    AWS_SECRET_ACCESS_KEY &&
+    AWS_KMS_KEY_ID &&
+    AWS_REGION
+  ) {
+    wallet = new AwsKmsWallet({
+      region: AWS_REGION,
+      accessKeyId: AWS_ACCESS_KEY_ID,
+      secretAccessKey: AWS_SECRET_ACCESS_KEY,
+      keyId: AWS_KMS_KEY_ID,
+    });
+  } else if (WALLET_PRIVATE_KEY) {
+    wallet = new LocalWallet({
+      chain,
+    });
+    wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
+  } else {
+    throw new Error(
+      "No wallet private key or AWS credentials provided. Please set WALLET_PRIVATE_KEY or AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_KMS_KEY_ID",
+    );
+    process.exit(1);
+  }
 
   // TODO: PLAT-982
   // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
