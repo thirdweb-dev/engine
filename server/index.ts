@@ -4,14 +4,22 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import * as fs from "fs";
 import fastifyCors from "@fastify/cors";
 import { openapi } from "./helpers";
-import { errorHandler, getEnv, envVariablesCheck } from "../core";
+import {
+  errorHandler,
+  getEnv,
+  envVariablesCheck,
+  walletEnvVariablesCheck,
+} from "../core";
 import { apiRoutes } from "./api";
 import {
   checkTablesExistence,
   implementTriggerOnStartUp,
   getLogSettings,
 } from "../core";
-import { WEB3_API_SERVER_ENV_VARS } from "../core/constants";
+import {
+  WEB3_API_SERVER_ENV_VARS,
+  WEB3_API_WALLETS_ENV_VARS,
+} from "../core/constants";
 
 const main = async () => {
   const logOptions = getLogSettings("API-Server");
@@ -107,6 +115,7 @@ const main = async () => {
 
   try {
     await envVariablesCheck(server, WEB3_API_SERVER_ENV_VARS);
+    await walletEnvVariablesCheck(server, WEB3_API_WALLETS_ENV_VARS);
     // Check for the Tables Existence post startup
     await checkTablesExistence(server);
     await implementTriggerOnStartUp(server);

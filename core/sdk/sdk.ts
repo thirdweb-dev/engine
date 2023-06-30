@@ -12,7 +12,7 @@ import { ContractAddress } from "@thirdweb-dev/generated-abis";
 
 import { BaseContract, BigNumber } from "ethers";
 import { getEnv } from "../loadEnv";
-import { AwsKmsWallet } from "@thirdweb-dev/sdk/evm/wallets";
+import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
@@ -61,11 +61,6 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
       chain,
     });
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
-  } else {
-    throw new Error(
-      "No wallet private key or AWS credentials provided. Please set WALLET_PRIVATE_KEY or AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_KMS_KEY_ID",
-    );
-    process.exit(1);
   }
 
   // TODO: PLAT-982
@@ -73,7 +68,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
 
   // Need to make this instantiate SDK with read/write. For that will need wallet information
-  const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
+  const sdk = await ThirdwebSDK.fromWallet(wallet!, chainName, {
     thirdwebApiKey: THIRDWEB_API_KEY,
   });
   sdkMap[chainName] = sdk;

@@ -1,5 +1,4 @@
 export const WEB3_API_REQUIRED_ENV_VARS = [
-  "WALLET_PRIVATE_KEY",
   "THIRDWEB_API_KEY",
   "POSTGRES_HOST",
   "POSTGRES_DATABASE_NAME",
@@ -8,6 +7,18 @@ export const WEB3_API_REQUIRED_ENV_VARS = [
   "POSTGRES_PORT",
   "POSTGRES_USE_SSL",
 ];
+
+export const WEB3_API_WALLETS_ENV_VARS = [
+  { walletPPK: ["WALLET_PRIVATE_KEY"] },
+  {
+    awsKms: [
+      "AWS_REGION",
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_KMS_KEY_ID",
+    ],
+  },
+] as { [key: string]: string[] }[];
 
 export const WEB3_API_SERVER_ENV_VARS = WEB3_API_REQUIRED_ENV_VARS.concat([
   "OPENAPI_BASE_ORIGIN",
