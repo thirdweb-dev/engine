@@ -39,7 +39,7 @@ View all end-points details (Open API Specification) : https://web3-api-akbv.cha
 
 ### Wallet Setup
 
-There are multiple ways to setup a wallet ofr Web3-API using the below methods:
+There are multiple ways to setup a wallet for Web3-API using the below methods:
 
 #### Wallet Private Key
 
