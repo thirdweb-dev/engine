@@ -63,12 +63,17 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
   }
 
+  if (!wallet) {
+    throw new Error(
+      "No wallet found. Please check the Wallet Environment Variables.",
+    );
+  }
   // TODO: PLAT-982
   // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
   // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
 
   // Need to make this instantiate SDK with read/write. For that will need wallet information
-  const sdk = await ThirdwebSDK.fromWallet(wallet!, chainName, {
+  const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
     thirdwebApiKey: THIRDWEB_API_KEY,
   });
   sdkMap[chainName] = sdk;

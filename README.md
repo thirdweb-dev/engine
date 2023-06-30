@@ -35,8 +35,25 @@ View all end-points details (Open API Specification) : https://web3-api-akbv.cha
 ## Setup Instructions
 
 1. Create a `.env` file based off `.env.example` with all the variables filled in.
-2. Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-3. Update the `THIRDWEB_API_KEY` value on the `.env` file
+2. Update the `THIRDWEB_API_KEY` value on the `.env` file
+
+### Wallet Setup
+
+There are multiple ways to setup a wallet ofr Web3-API using the below methods:
+
+#### Wallet Private Key
+
+1.Update the `WALLET_PRIVATE_KEY` value on the `.env` file
+
+#### AWS KMS Wallet
+
+1. Get the AWS KMS Support Variables which can be found in `.env.example` file
+2. Update the AWS KMS ENV Variables with the correct values on `.env` file
+
+- `AWS_ACCESS_KEY_ID` : AWS Access Key
+- `AWS_SECRET_ACCESS_KEY` : AWS Secret Access Key
+- `AWS_REGION` : AWS KMS Key Region
+- `AWS_KMS_KEY_ID` : Needs to have the full ARN
 
 ### Advance Setup : PostgreSQL DB
 
