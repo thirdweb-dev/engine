@@ -1,5 +1,10 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { Chain, getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
+import {
+  Chain,
+  MinimalChain,
+  getChainByChainId,
+  getChainBySlug,
+} from "@thirdweb-dev/chains";
 import {
   ThirdwebSDK,
   ChainOrRpc,
@@ -7,11 +12,11 @@ import {
   SmartContract,
   BaseContractForAddress,
 } from "@thirdweb-dev/sdk";
-
 import { ContractAddress } from "@thirdweb-dev/generated-abis";
-
 import { BaseContract, BigNumber } from "ethers";
+import { Static } from "@sinclair/typebox";
 import { getEnv } from "../loadEnv";
+import { networkResponseSchema } from "core/schema";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
@@ -48,16 +53,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     "RPC_OVERRIDE_URLS_FILE_URL",
     undefined,
   );
-  let RPC_OVERRIDES: {
-    rpc: string[];
-    chainId: number;
-    nativeCurrency: {
-      symbol: string;
-      name: string;
-      decimals: number;
-    };
-    slug: string;
-  }[] = [];
+  let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
 
   if (RPC_OVERRIDE_URLS_FILE_URL) {
     // fetch data from url
