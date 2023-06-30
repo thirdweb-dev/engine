@@ -44,14 +44,38 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
   // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
 
+  const RPC_OVERRIDE_URLS_FILE_URL = getEnv(
+    "RPC_OVERRIDE_URLS_FILE_URL",
+    undefined,
+  );
+  let RPC_OVERRIDES: {
+    rpc: string[];
+    chainId: number;
+    nativeCurrency: {
+      symbol: string;
+      name: string;
+      decimals: number;
+    };
+    slug: string;
+  }[] = [];
+
+  if (RPC_OVERRIDE_URLS_FILE_URL) {
+    // fetch data from url
+    const result = await fetch(RPC_OVERRIDE_URLS_FILE_URL);
+    RPC_OVERRIDES = await result.json();
+  }
+
   // Need to make this instantiate SDK with read/write. For that will need wallet information
   const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
     thirdwebApiKey: THIRDWEB_API_KEY,
+    supportedChains: RPC_OVERRIDES,
   });
+
   sdkMap[chainName] = sdk;
 
   return sdk;
 };
+
 export const getContractInstance = async <
   TContractAddress extends AddressOrEns | ContractAddress,
 >(
