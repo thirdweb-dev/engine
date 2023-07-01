@@ -6,7 +6,7 @@ import { FastifyInstance } from "fastify";
 describe("Network Endpoint Test", () => {
   let createdServerInstance: FastifyInstance;
 
-  beforeEach(async () => {
+  before(async () => {
     createdServerInstance = await createServer("Test-Suite");
   });
 

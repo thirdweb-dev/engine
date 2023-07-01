@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "description": "thirdweb's web3-api server",
   "main": "server/index.ts",
-  "author": "ThirdWeb Engineer <eng@thirdweb.com>",
+  "author": "thirdweb engineering <eng@thirdweb.com>",
   "type": "module",
   "scripts": {
     "docker": "docker compose --env-file ./.env up --remove-orphans",

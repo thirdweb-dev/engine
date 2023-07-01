@@ -14,9 +14,6 @@ describe("Contract Endpoints Test Cases", () => {
   let deployedContractAddress: string;
 
   before(async () => {
-    const sdk = await getSDK("localhost");
-    adminWallet = await sdk.getSigner()?.getAddress()!;
-    // [adminWallet, samWallet, bobWallet] = signers;
     createdServerInstance = await createServer("Test-Suite");
     const contractDeployedResponse = await request(createdServerInstance.server)
       .post("/deployer/localhost/prebuilts/editionDrop")
@@ -39,7 +36,6 @@ describe("Contract Endpoints Test Cases", () => {
     createdServerInstance.log.info(
       `Contract deployed ${deployedContractAddress}`,
     );
-    // done();
   });
 
   beforeEach(function (done) {
