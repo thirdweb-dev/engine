@@ -19,7 +19,7 @@ export const getLogSettings = (msgPrefix: string): PinoLoggerOptions => {
   } else if (getEnv("NODE_ENV") === "development") {
     pinoLogOptions.level = "debug";
   } else if (getEnv("NODE_ENV") === "testing") {
-    pinoLogOptions.enabled = false;
+    pinoLogOptions.level = "debug";
   } else {
     pinoLogOptions.level = "trace";
   }

@@ -1,5 +1,5 @@
 {
-  "require": ["./worker/index.ts", "./e2e/setup-init.ts"],
+  "require": ["./e2e/setup-init.ts", "./worker/index.ts"],
   "spec": "e2e/**/*.test.ts",
   "extension": ["ts"],
   "node-option": [
@@ -7,5 +7,5 @@
     "loader=ts-node/esm"
   ],
   "reporter": "spec",
-  "timeout": "90000"
+  "timeout": "300000"
 }

@@ -2,15 +2,10 @@ import request from "supertest";
 import createServer from "../../server/helpers/server";
 import { expect } from "chai";
 import { FastifyInstance } from "fastify";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { getSDK } from "../../core";
+import { awaitTransactionSubmission } from "../helpers";
 
-describe("Contract Endpoints Test Cases", () => {
+describe("Deploy EditionDrop to Test : Contract Endpoints", () => {
   let createdServerInstance: FastifyInstance;
-  let signers: SignerWithAddress[],
-    adminWallet: string,
-    samWallet: SignerWithAddress,
-    bobWallet: SignerWithAddress;
   let deployedContractAddress: string;
 
   before(async () => {
@@ -33,18 +28,15 @@ describe("Contract Endpoints Test Cases", () => {
       });
     deployedContractAddress =
       contractDeployedResponse.body.result.deployedAddress;
-    createdServerInstance.log.info(
-      `Contract deployed ${deployedContractAddress}`,
+
+    await awaitTransactionSubmission(
+      createdServerInstance,
+      contractDeployedResponse.body.result.queuedId,
     );
   });
 
-  beforeEach(function (done) {
-    setTimeout(done, 5000);
-  });
-
-  describe("Roles Testing", () => {
+  describe("Roles End-Point Tests", () => {
     it("should return 200 when contract all roles are fetched successfully", async () => {
-      createdServerInstance.log.info(`Admin wallet: ${adminWallet}`);
       createdServerInstance.log.info(`Deployed: ${deployedContractAddress}`);
 
       const response = await request(createdServerInstance.server)

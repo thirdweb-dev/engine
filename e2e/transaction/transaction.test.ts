@@ -32,5 +32,10 @@ describe("Transaction End-point Test", () => {
     );
 
     expect(response.status).to.equal(200);
+    response.body.result.forEach((element: any) => {
+      expect(element).to.has.property("deployedContractAddress");
+      expect(element).to.has.property("extension");
+      expect(element.extension).equals("deployer_prebuilt");
+    });
   });
 });
