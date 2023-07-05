@@ -3,7 +3,7 @@ import { createCustomError, getEnv } from "../../core";
 import { Knex } from "knex";
 
 const TRANSACTIONS_TO_BATCH =
-  parseInt(getEnv("TRANSACTIONS_TO_BATCH"), 10) ?? 10;
+  parseInt(getEnv("TRANSACTIONS_TO_BATCH", 10), 10) ?? 10;
 
 export const getWalletDetailsWithTrx = async (
   walletAddress: string,
