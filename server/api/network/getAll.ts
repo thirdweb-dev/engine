@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
-import { networkResponseSchema } from "../../schemas/network";
+import { networkResponseSchema } from "../../../core/schema";
 
 // OUPUT
 const responseSchema = Type.Object({

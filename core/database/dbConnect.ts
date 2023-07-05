@@ -12,6 +12,7 @@ const dbClient = getEnv("DATABASE_CLIENT", "pg");
 let connection: Knex.PgConnectionConfig = {
   host: getEnv("POSTGRES_HOST"),
   user: getEnv("POSTGRES_USER"),
+  port: parseInt(getEnv("POSTGRES_PORT")),
   password: getEnv("POSTGRES_PASSWORD"),
   database: DATABASE_NAME,
   ssl:
