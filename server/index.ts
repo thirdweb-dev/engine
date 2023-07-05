@@ -1,8 +1,11 @@
 import { getEnv } from "../core";
 import createServer from "./helpers/server";
 import { checkTablesExistence, implementTriggerOnStartUp } from "../core";
-import { envVariablesCheck } from "../core/startup";
-import { WEB3_API_SERVER_ENV_VARS } from "../core/constants";
+import { envVariablesCheck, walletEnvVariablesCheck } from "../core/startup";
+import {
+  WEB3_API_SERVER_ENV_VARS,
+  WEB3_API_WALLETS_ENV_VARS,
+} from "../core/constants";
 
 const main = async () => {
   const server = await createServer("API-Server");
@@ -22,6 +25,7 @@ const main = async () => {
 
   try {
     await envVariablesCheck(server, WEB3_API_SERVER_ENV_VARS);
+    await walletEnvVariablesCheck(server, WEB3_API_WALLETS_ENV_VARS);
     // Check for the Tables Existence post startup
     await checkTablesExistence(server);
     await implementTriggerOnStartUp(server);

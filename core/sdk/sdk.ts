@@ -11,6 +11,7 @@ import { ContractAddress } from "@thirdweb-dev/generated-abis";
 import { BaseContract, BigNumber } from "ethers";
 import { Static } from "@sinclair/typebox";
 import { getEnv } from "../loadEnv";
+import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { networkResponseSchema } from "../schema";
 import { isValidHttpUrl } from "../helpers";
 import * as fs from "fs";
@@ -26,7 +27,14 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
 
   const THIRDWEB_API_KEY = getEnv("THIRDWEB_API_KEY");
   const WALLET_PRIVATE_KEY = getEnv("WALLET_PRIVATE_KEY", undefined);
+  const AWS_REGION = getEnv("AWS_REGION", undefined);
+  const AWS_ACCESS_KEY_ID = getEnv("AWS_ACCESS_KEY_ID", undefined);
+  const AWS_SECRET_ACCESS_KEY = getEnv("AWS_SECRET_ACCESS_KEY", undefined);
+  const AWS_KMS_KEY_ID = getEnv("AWS_KMS_KEY_ID", undefined);
+
   let chain: Chain | null = null;
+  let wallet: AwsKmsWallet | LocalWallet | null = null;
+
   try {
     chain = getChainBySlug(chainName);
   } catch (e) {
@@ -37,11 +45,31 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     }
   }
 
-  const wallet = new LocalWallet({
-    chain,
-  });
-  wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
+  // Check for KMS
+  if (
+    AWS_ACCESS_KEY_ID &&
+    AWS_SECRET_ACCESS_KEY &&
+    AWS_KMS_KEY_ID &&
+    AWS_REGION
+  ) {
+    wallet = new AwsKmsWallet({
+      region: AWS_REGION,
+      accessKeyId: AWS_ACCESS_KEY_ID,
+      secretAccessKey: AWS_SECRET_ACCESS_KEY,
+      keyId: AWS_KMS_KEY_ID,
+    });
+  } else if (WALLET_PRIVATE_KEY) {
+    wallet = new LocalWallet({
+      chain,
+    });
+    wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
+  }
 
+  if (!wallet) {
+    throw new Error(
+      "No wallet found. Please check the Wallet Environment Variables.",
+    );
+  }
   // TODO: PLAT-982
   // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
   // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
