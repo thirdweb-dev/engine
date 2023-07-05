@@ -7,12 +7,14 @@ import {
   SmartContract,
   BaseContractForAddress,
 } from "@thirdweb-dev/sdk";
-
 import { ContractAddress } from "@thirdweb-dev/generated-abis";
-
 import { BaseContract, BigNumber } from "ethers";
+import { Static } from "@sinclair/typebox";
 import { getEnv } from "../loadEnv";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
+import { networkResponseSchema } from "../schema";
+import { isValidHttpUrl } from "../helpers";
+import * as fs from "fs";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
@@ -72,14 +74,29 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
   // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
 
-  // Need to make this instantiate SDK with read/write. For that will need wallet information
+  const RPC_OVERRIDE_URI = getEnv("RPC_OVERRIDE_URI", undefined);
+  let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
+
+  if (RPC_OVERRIDE_URI) {
+    if (isValidHttpUrl(RPC_OVERRIDE_URI)) {
+      const result = await fetch(RPC_OVERRIDE_URI);
+      RPC_OVERRIDES = await result.json();
+    } else {
+      const text = fs.readFileSync(RPC_OVERRIDE_URI, "utf8");
+      RPC_OVERRIDES = JSON.parse(text);
+    }
+  }
+
   const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
     thirdwebApiKey: THIRDWEB_API_KEY,
+    supportedChains: RPC_OVERRIDES,
   });
+
   sdkMap[chainName] = sdk;
 
   return sdk;
 };
+
 export const getContractInstance = async <
   TContractAddress extends AddressOrEns | ContractAddress,
 >(

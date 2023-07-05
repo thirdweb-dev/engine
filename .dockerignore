@@ -10,3 +10,4 @@ docker-compose*.yml
 Dockerfile
 .DS_Store
 swagger.yml
+e2e

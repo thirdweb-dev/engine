@@ -72,8 +72,10 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
         "multiwrap",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

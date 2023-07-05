@@ -5,7 +5,7 @@ import { Knex } from "knex";
 const TRANSACTIONS_TO_BATCH =
   parseInt(getEnv("TRANSACTIONS_TO_BATCH"), 10) ?? 10;
 
-export const getWalletDetails = async (
+export const getWalletDetailsWithTrx = async (
   walletAddress: string,
   chainId: string,
   database: Knex,
@@ -158,4 +158,21 @@ export const checkTableForPrimaryKey = async (knex: Knex): Promise<boolean> => {
   );
 
   return result.rows[0].is_primary_key;
+};
+
+export const getWalletDetailsWithoutTrx = async (
+  walletAddress: string,
+  chainId: string,
+  database: Knex,
+): Promise<any> => {
+  try {
+    const walletDetails = await database("wallets")
+      .select("*")
+      .where({ walletAddress, chainId })
+      .first();
+
+    return walletDetails;
+  } catch (error) {
+    throw error;
+  }
 };

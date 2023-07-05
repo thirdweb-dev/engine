@@ -32,6 +32,23 @@ Check the [How to install required packages](./.github/installations.md) guide f
 
 View all end-points details (Open API Specification) : https://web3-api-akbv.chainsaw-dev.zeet.app
 
+## Environment Variables
+
+| Variable Name            | Description                                                                                                         | Default Value | Required |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------- | -------- |
+| `HOST`                   | Host name of the API Server                                                                                         | `localhost`   | false    |
+| `PORT`                   | Port number of the API Server                                                                                       | `3005`        | false    |
+| `WALLET_PRIVATE_KEY`     | Private key of the wallet                                                                                           |               | true     |
+| `THIRDWEB_API_KEY`       | API Key to access ThirdWeb API                                                                                      |               | true     |
+| `POSTGRES_HOST`          | PostgreSQL Host Name                                                                                                |               | true     |
+| `POSTGRES_DATABASE_NAME` | PostgreSQL Database Name                                                                                            |               | true     |
+| `POSTGRES_USER`          | PostgreSQL Username                                                                                                 |               | true     |
+| `POSTGRES_PASSWORD`      | PostgreSQL Password                                                                                                 |               | true     |
+| `POSTGRES_PORT`          | PostgreSQL Port                                                                                                     |               | true     |
+| `POSTGRES_USE_SSL`       | Flag to indicate whether to use SSL                                                                                 |               | true     |
+| `TRANSACTIONS_TO_BATCH`  | Number of transactions to batch process at a time.                                                                  | `10`          | false    |
+| `RPC_OVERRIDE_URI`       | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |               | false    |
+
 ## Setup Instructions
 
 1. Create a `.env` file based off `.env.example` with all the variables filled in.

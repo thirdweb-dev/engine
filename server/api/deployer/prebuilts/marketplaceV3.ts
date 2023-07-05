@@ -70,8 +70,10 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
         "marketplace-v3",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

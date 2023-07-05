@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
-import { networkResponseSchema } from "../../schemas/network";
+import { networkResponseSchema } from "../../../core/schema";
 
 // OUPUT
 const responseSchema = Type.Object({
@@ -63,11 +63,6 @@ export async function getAllChainData(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const chain = allChains.map((chain) => {
-        if (chain.rpc.length === 0) {
-          request.log.warn(
-            `Chain ${chain.name} ${chain.rpc} has no RPC endpoint. Please add more endpoints.`,
-          );
-        }
         const minimizeChainData = minimizeChain(chain);
         if (chain.rpc.length === 0) {
           return { ...minimizeChainData, rpc: [""] };
