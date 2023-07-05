@@ -46,22 +46,19 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
   // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
 
-  const RPC_OVERRIDE_URLS_FILE_URL = getEnv(
-    "RPC_OVERRIDE_URLS_FILE_URL",
-    undefined,
-  );
+  const RPC_OVERRIDE_URI = getEnv("RPC_OVERRIDE_URI", undefined);
   let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
 
-  if (isValidHttpUrl(RPC_OVERRIDE_URLS_FILE_URL)) {
-    // fetch data from url
-    const result = await fetch(RPC_OVERRIDE_URLS_FILE_URL);
-    RPC_OVERRIDES = await result.json();
-  } else {
-    const text = fs.readFileSync(RPC_OVERRIDE_URLS_FILE_URL, "utf8");
-    RPC_OVERRIDES = JSON.parse(text);
+  if (RPC_OVERRIDE_URI) {
+    if (isValidHttpUrl(RPC_OVERRIDE_URI)) {
+      const result = await fetch(RPC_OVERRIDE_URI);
+      RPC_OVERRIDES = await result.json();
+    } else {
+      const text = fs.readFileSync(RPC_OVERRIDE_URI, "utf8");
+      RPC_OVERRIDES = JSON.parse(text);
+    }
   }
 
-  // Need to make this instantiate SDK with read/write. For that will need wallet information
   const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
     thirdwebApiKey: THIRDWEB_API_KEY,
     supportedChains: RPC_OVERRIDES,
