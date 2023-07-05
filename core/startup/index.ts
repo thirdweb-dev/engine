@@ -33,11 +33,14 @@ export const walletEnvVariablesCheck = async (
       }
       resultArr.push(keyResult);
     }
+    if (resultArr.includes(true)) {
+      break;
+    }
   }
 
   if (!resultArr.includes(true)) {
     server.log.error(
-      `No wallet private key or AWS KMS credentials provided. Please set WALLET_PRIVATE_KEY or [AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_KMS_KEY_ID] for KMS Wallet`,
+      `Please set WALLET_PRIVATE_KEY or [AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_KMS_KEY_ID] for AWS KMS Wallet on .env file`,
     );
     process.exit(1);
   }

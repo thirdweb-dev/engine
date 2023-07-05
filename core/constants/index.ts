@@ -11,7 +11,7 @@ export const WEB3_API_REQUIRED_ENV_VARS = [
 export const WEB3_API_WALLETS_ENV_VARS = [
   { walletPPK: ["WALLET_PRIVATE_KEY"] },
   {
-    awsKms: [
+    awsKmsWallet: [
       "AWS_REGION",
       "AWS_ACCESS_KEY_ID",
       "AWS_SECRET_ACCESS_KEY",

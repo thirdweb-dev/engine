@@ -38,7 +38,6 @@ View all end-points details (Open API Specification) : https://web3-api-akbv.cha
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------- | ------------- | -------- |
 | `HOST`                   | Host name of the API Server                                                                                         | `localhost`   | false    |
 | `PORT`                   | Port number of the API Server                                                                                       | `3005`        | false    |
-| `WALLET_PRIVATE_KEY`     | Private key of the wallet                                                                                           |               | true     |
 | `THIRDWEB_API_KEY`       | API Key to access ThirdWeb API                                                                                      |               | true     |
 | `POSTGRES_HOST`          | PostgreSQL Host Name                                                                                                |               | true     |
 | `POSTGRES_DATABASE_NAME` | PostgreSQL Database Name                                                                                            |               | true     |
@@ -55,6 +54,9 @@ View all end-points details (Open API Specification) : https://web3-api-akbv.cha
 2. Update the `THIRDWEB_API_KEY` value on the `.env` file
 
 ### Wallet Setup
+
+| Required |
+| -------- |
 
 There are multiple ways to setup a wallet for Web3-API using the below methods:
 
