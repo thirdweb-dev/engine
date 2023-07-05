@@ -23,7 +23,7 @@
     "lint": "eslint 'server/**/*.ts'",
     "lint:fix": "eslint --fix 'server/**/*.ts'",
     "test": "make test-evm",
-    "test:all": "NODE_ENV=testing THIRDWEB_API_KEY=TEST POSTGRES_HOST=localhost POSTGRES_DATABASE_NAME=postgres POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres POSTGRES_PORT=5432 POSTGRES_USE_SSL=false WALLET_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 mocha --exit"
+    "test:all": "mocha --exit"
   },
   "dependencies": {
     "@fastify/cookie": "^8.3.0",
