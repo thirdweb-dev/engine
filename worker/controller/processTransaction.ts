@@ -37,7 +37,7 @@ export const processTransaction = async (
       data = await getTransactionsToProcess(knex, trx);
     } catch (error) {
       const customError = createCustomError(
-        (error as any).message,
+        "Error in getting transactions from table",
         StatusCodes.INTERNAL_SERVER_ERROR,
         "TRANSACTION_PROCESSING_ERROR",
       );
