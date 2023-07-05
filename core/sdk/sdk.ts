@@ -1,10 +1,5 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import {
-  Chain,
-  MinimalChain,
-  getChainByChainId,
-  getChainBySlug,
-} from "@thirdweb-dev/chains";
+import { Chain, getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
 import {
   ThirdwebSDK,
   ChainOrRpc,
@@ -16,7 +11,9 @@ import { ContractAddress } from "@thirdweb-dev/generated-abis";
 import { BaseContract, BigNumber } from "ethers";
 import { Static } from "@sinclair/typebox";
 import { getEnv } from "../loadEnv";
-import { networkResponseSchema } from "core/schema";
+import { networkResponseSchema } from "../schema";
+import { isValidHttpUrl } from "../helpers";
+import * as fs from "fs";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
@@ -55,10 +52,13 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   );
   let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
 
-  if (RPC_OVERRIDE_URLS_FILE_URL) {
+  if (isValidHttpUrl(RPC_OVERRIDE_URLS_FILE_URL)) {
     // fetch data from url
     const result = await fetch(RPC_OVERRIDE_URLS_FILE_URL);
     RPC_OVERRIDES = await result.json();
+  } else {
+    const text = fs.readFileSync(RPC_OVERRIDE_URLS_FILE_URL, "utf8");
+    RPC_OVERRIDES = JSON.parse(text);
   }
 
   // Need to make this instantiate SDK with read/write. For that will need wallet information
