@@ -3,7 +3,6 @@ import { PinoLoggerOptions } from "fastify/types/logger";
 
 const pinoLogOptions: PinoLoggerOptions = {
   redact: ["headers.authorization"],
-  level: "debug",
   transport: {
     target: "pino-pretty",
     options: {
@@ -12,15 +11,14 @@ const pinoLogOptions: PinoLoggerOptions = {
       singleLine: true,
     },
   },
-  msgPrefix: "API-Server",
 };
 
-export const getLogSettings = (
-  msgPrefix: string = "API-Server",
-): PinoLoggerOptions => {
+export const getLogSettings = (msgPrefix: string): PinoLoggerOptions => {
   if (getEnv("NODE_ENV") === "production") {
     pinoLogOptions.level = "info";
   } else if (getEnv("NODE_ENV") === "development") {
+    pinoLogOptions.level = "debug";
+  } else if (getEnv("NODE_ENV") === "testing") {
     pinoLogOptions.level = "debug";
   } else {
     pinoLogOptions.level = "trace";

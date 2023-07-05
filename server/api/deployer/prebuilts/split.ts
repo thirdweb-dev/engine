@@ -70,8 +70,10 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
         "split",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

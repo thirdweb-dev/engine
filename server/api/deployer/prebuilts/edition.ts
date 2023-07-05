@@ -77,8 +77,10 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
         "edition",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

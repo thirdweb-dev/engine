@@ -122,8 +122,8 @@ export const findTxDetailsWithQueueId = async (
   } catch (error: any) {
     const customError = createCustomError(
       `Error while fetching transaction details for identifier: ${queueId} from Table.`,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "INTERNAL_SERVER_ERROR",
+      StatusCodes.NOT_FOUND,
+      "TX_QUEUE_ID_NOT_FOUND",
     );
     throw customError;
   }

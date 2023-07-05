@@ -70,8 +70,10 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
         "vote",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });

@@ -7,7 +7,7 @@ import {
 } from "../../core";
 import { getWalletNonce } from "../services/blockchain";
 import {
-  getWalletDetails,
+  getWalletDetailsWithTrx,
   getTransactionsToProcess,
   updateTransactionState,
   updateWalletNonceValue,
@@ -58,7 +58,7 @@ export const processTransaction = async (
 
     for (const tx of data.rows) {
       server.log.info(`Processing Transaction: ${tx.identifier}`);
-      const walletData = await getWalletDetails(
+      const walletData = await getWalletDetailsWithTrx(
         tx.walletAddress,
         tx.chainId,
         knex,

@@ -78,8 +78,10 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
         "nft-drop",
       );
       reply.status(StatusCodes.OK).send({
-        deployedAddress,
-        queuedId,
+        result: {
+          deployedAddress,
+          queuedId,
+        },
       });
     },
   });
