@@ -21,7 +21,7 @@ export const openapi = async (server: FastifyInstance) => {
       },
       servers: [
         {
-          url: getEnv("OPENAPI_BASE_ORIGIN"),
+          url: getEnv("OPENAPI_BASE_ORIGIN", "http://localhost:3005"),
         },
       ],
       components: {
