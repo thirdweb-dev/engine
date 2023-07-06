@@ -5,14 +5,14 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
+  marketplaceFilterSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
 import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
-import { MarketplaceFilterSchema } from "../../../../../../schemas/marketplaceV3";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
-const requestQuerySchema = Type.Omit(MarketplaceFilterSchema, ["seller"]);
+const requestQuerySchema = Type.Omit(marketplaceFilterSchema, ["seller"]);
 
 // OUPUT
 const responseSchema = Type.Object({
