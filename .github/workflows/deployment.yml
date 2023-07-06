@@ -31,4 +31,4 @@ jobs:
           target: prod
           platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
           push: true
-          tags: thirdweb/web3-api:latest
+          tags: thirdweb/web3-api:0.1.0
