@@ -1,9 +1,10 @@
-# Nightly Build Workflow for Docker Image supporting multiple architectures
-name: Nightly Build
+# Main Branch Build Workflow for Docker Image supporting multiple architectures
+name: Build on Main Merge
 
 on:
-  schedule:
-    - cron: "0 0 * * *" # runs every day at midnight
+  push:
+    branches:
+      - main
 
 jobs:
   build:
