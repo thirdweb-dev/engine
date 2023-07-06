@@ -1,4 +1,4 @@
-name: Deployment
+name: DockerHub Image Gen
 
 on:
   workflow_run:
