@@ -5,14 +5,14 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
+  marketplaceFilterSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import { getAllFilterSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import { englishAuctionOutputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
 import { formatEnglishAuctionResult } from "../../../../../../helpers/marketplaceV3";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
-const requestQuerySchema = getAllFilterSchema;
+const requestQuerySchema = Type.Omit(marketplaceFilterSchema, ["offeror"]);
 
 // OUPUT
 const responseSchema = Type.Object({
@@ -82,15 +82,13 @@ export async function englishAuctionsGetAllValid(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { start, count, offeror, seller, tokenContract, tokenId } =
-        request.query;
+      const { start, count, seller, tokenContract, tokenId } = request.query;
       const contract = await getContractInstance(network, contract_address);
       const result = await contract.englishAuctions.getAllValid({
         start,
         count,
         tokenContract,
         tokenId,
-        offeror,
         seller,
       });
 

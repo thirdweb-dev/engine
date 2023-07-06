@@ -13,7 +13,7 @@ COPY package*.json yarn*.lock ./
 COPY . .
 
 # Install dependencies for both development and production
-RUN yarn install --frozen-lockfile
+RUN yarn install --frozen-lockfile --network-timeout 1000000
 
 # Build the project
 RUN yarn build
@@ -53,7 +53,7 @@ COPY package*.json yarn*.lock ./
 COPY --from=base /app/dist ./dist
 
 # Install production dependencies only
-RUN yarn install --production=true --frozen-lockfile
+RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000
 
 # Clean up build dependencies
 RUN apk del build-dependencies

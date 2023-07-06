@@ -5,14 +5,14 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
+  marketplaceFilterSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import { getAllFilterSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
 import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
-const requestQuerySchema = getAllFilterSchema;
+const requestQuerySchema = Type.Omit(marketplaceFilterSchema, ["seller"]);
 
 // OUPUT
 const responseSchema = Type.Object({
@@ -80,8 +80,7 @@ export async function offersGetAll(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { start, count, offeror, seller, tokenContract, tokenId } =
-        request.query;
+      const { start, count, offeror, tokenContract, tokenId } = request.query;
       const contract = await getContractInstance(network, contract_address);
       const result = await contract.offers.getAll({
         start,
@@ -89,7 +88,6 @@ export async function offersGetAll(fastify: FastifyInstance) {
         tokenContract,
         tokenId,
         offeror,
-        seller,
       });
 
       const finalResult = result.map((data) => {
