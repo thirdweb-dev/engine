@@ -46,7 +46,7 @@ View all end-points details (Open API Specification) : https://web3-api-akbv.cha
 | `POSTGRES_PORT`          | PostgreSQL Port                                                                                                     |                         | true     |
 | `POSTGRES_USE_SSL`       | Flag to indicate whether to use SSL                                                                                 |                         | true     |
 | `TRANSACTIONS_TO_BATCH`  | Number of transactions to batch process at a time.                                                                  | `10`                    | false    |
-| `RPC_OVERRIDE_URI`       | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | false    |
+| `CHAIN_OVERRIDES`        | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | false    |
 | `OPENAPI_BASE_ORIGIN`    | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | false    |
 
 ## Setup Instructions
