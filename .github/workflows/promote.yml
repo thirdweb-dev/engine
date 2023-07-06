@@ -1,0 +1,24 @@
+# workflow can be manually triggered and retags the nightly image as latest.
+name: Promote Nightly
+
+on:
+  workflow_dispatch:
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull Nightly Image
+        run: docker pull thirdweb/web3-api:nightly
+
+      - name: Retag as Latest
+        run: |
+          docker tag thirdweb/web3-api:nightly thirdweb/web3-api:latest
+          docker push thirdweb/web3-api:latest
