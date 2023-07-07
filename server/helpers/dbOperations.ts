@@ -30,7 +30,7 @@ const checkNetworkInWalletDB = async (
   try {
     const walletData = await database("wallets")
       .where("chainId", chainId)
-      .where("walletAddress", walletAddress)
+      .where("walletAddress", walletAddress.toLowerCase())
       .first();
 
     return walletData;

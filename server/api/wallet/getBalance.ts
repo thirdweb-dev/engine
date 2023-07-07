@@ -57,7 +57,7 @@ export async function getBalance(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: {
-          walletAddress: address.toLowerCase(),
+          walletAddress: address,
           ...balanceData,
           value: balanceData.value.toString(),
         },

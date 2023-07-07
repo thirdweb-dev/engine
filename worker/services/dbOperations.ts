@@ -14,7 +14,7 @@ export const getWalletDetailsWithTrx = async (
   try {
     const walletDetails = await database("wallets")
       .select("*")
-      .where({ walletAddress, chainId })
+      .where({ walletAddress: walletAddress.toLowerCase(), chainId })
       .first()
       .forUpdate()
       .transacting(trx);
@@ -115,7 +115,7 @@ export const updateWalletNonceValue = async (
         lastUsedNonce: +lastUsedNonce,
         blockchainNonce: +blockchainNonce,
       })
-      .where("walletAddress", walletAddress)
+      .where("walletAddress", walletAddress.toLowerCase())
       .where("chainId", chainId)
       .transacting(trx);
 
@@ -149,7 +149,7 @@ export const getWalletDetailsWithoutTrx = async (
   try {
     const walletDetails = await database("wallets")
       .select("*")
-      .where({ walletAddress, chainId })
+      .where({ walletAddress: walletAddress.toLowerCase(), chainId })
       .first();
 
     return walletDetails;
