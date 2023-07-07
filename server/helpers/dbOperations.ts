@@ -1,11 +1,12 @@
 import { Knex } from "knex";
-import { getChainBySlug } from "@thirdweb-dev/chains";
+import { getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
 import { createCustomError } from "../../core/error/customError";
 import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
 import { connectWithDatabase, getSDK } from "../../core";
 import { FastifyRequest } from "fastify";
 import {
+  ChainId,
   DeployTransaction,
   Transaction,
   TransactionError,
@@ -54,15 +55,20 @@ export const queueTransaction = async (
     throw new Error(`Transaction simulation failed with reason: ${message}`);
   }
 
-  const chainData = getChainBySlug(network);
+  let chainData;
 
-  if (!chainData) {
-    const error = createCustomError(
-      `Chain with name/id ${network} not found`,
-      StatusCodes.NOT_FOUND,
-      "NOT_FOUND",
-    );
-    throw error;
+  if (isNaN(Number(network))) {
+    chainData = getChainBySlug(network);
+    if (!chainData) {
+      const error = createCustomError(
+        `Chain with name/id ${network} not found`,
+        StatusCodes.NOT_FOUND,
+        "NOT_FOUND",
+      );
+      throw error;
+    }
+  } else {
+    chainData = getChainByChainId(parseInt(network, 10));
   }
 
   const chainId = chainData.chainId.toString();
