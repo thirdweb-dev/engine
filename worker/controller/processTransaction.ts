@@ -5,7 +5,7 @@ import {
   getEnv,
   getSDK,
 } from "../../core";
-import { getWalletNonce } from "../services/blockchain";
+import { getWalletNonce } from "../../core/services/blockchain";
 import {
   getWalletDetailsWithTrx,
   getTransactionsToProcess,

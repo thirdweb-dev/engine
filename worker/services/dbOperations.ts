@@ -14,7 +14,7 @@ export const getWalletDetailsWithTrx = async (
   try {
     const walletDetails = await database("wallets")
       .select("*")
-      .where({ walletAddress, chainId })
+      .where({ walletAddress: walletAddress.toLowerCase(), chainId })
       .first()
       .forUpdate()
       .transacting(trx);
@@ -37,12 +37,11 @@ export const getTransactionsToProcess = async (
 ): Promise<number> => {
   return await database
     .raw(
-      `select *, ROW_NUMBER()
-      OVER (PARTITION BY "walletAddress", "chainId" ORDER BY "createdTimestamp" ASC) AS rownum
-      FROM "transactions"
+      `select * FROM "transactions"
       WHERE "txProcessed" = false AND "txMined" = false AND "txErrored" = false
       ORDER BY "createdTimestamp" ASC
-      LIMIT ${TRANSACTIONS_TO_BATCH}`,
+      LIMIT ${TRANSACTIONS_TO_BATCH}
+      FOR UPDATE SKIP LOCKED`,
     )
     .transacting(trx);
 };
@@ -116,7 +115,7 @@ export const updateWalletNonceValue = async (
         lastUsedNonce: +lastUsedNonce,
         blockchainNonce: +blockchainNonce,
       })
-      .where("walletAddress", walletAddress)
+      .where("walletAddress", walletAddress.toLowerCase())
       .where("chainId", chainId)
       .transacting(trx);
 
@@ -124,24 +123,6 @@ export const updateWalletNonceValue = async (
   } catch (error) {
     throw error;
   }
-};
-
-interface WalletData {
-  walletAddress: string;
-  chainId: string;
-  lastUsedNonce: number;
-  blockchainNonce: number;
-  lastSyncedTimestamp: Date;
-}
-
-export const insertIntoWallets = async (
-  walletData: WalletData,
-  database: Knex,
-): Promise<void> => {
-  await database("wallets")
-    .insert(walletData)
-    .onConflict(["walletAddress", "chainId"])
-    .merge();
 };
 
 export const checkTableForPrimaryKey = async (knex: Knex): Promise<boolean> => {
@@ -168,7 +149,7 @@ export const getWalletDetailsWithoutTrx = async (
   try {
     const walletDetails = await database("wallets")
       .select("*")
-      .where({ walletAddress, chainId })
+      .where({ walletAddress: walletAddress.toLowerCase(), chainId })
       .first();
 
     return walletDetails;

@@ -1,11 +1,12 @@
 import { Knex } from "knex";
-import { getChainBySlug } from "@thirdweb-dev/chains";
+import { getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
 import { createCustomError } from "../../core/error/customError";
 import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
-import { connectWithDatabase } from "../../core";
+import { connectWithDatabase, getSDK } from "../../core";
 import { FastifyRequest } from "fastify";
 import {
+  ChainId,
   DeployTransaction,
   Transaction,
   TransactionError,
@@ -16,6 +17,27 @@ import {
   transactionResponseSchema,
 } from "../schemas/transaction";
 import { Static } from "@sinclair/typebox";
+import { WalletData } from "../../core/interfaces/walletData";
+import { getWalletNonce } from "../../core/services/blockchain";
+import { BigNumber } from "ethers";
+import { insertIntoWallets } from "../../core/database/dbOperation";
+
+const checkNetworkInWalletDB = async (
+  database: Knex,
+  chainId: string,
+  walletAddress: string,
+): Promise<WalletData> => {
+  try {
+    const walletData = await database("wallets")
+      .where("chainId", chainId)
+      .where("walletAddress", walletAddress.toLowerCase())
+      .first();
+
+    return walletData;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const queueTransaction = async (
   request: FastifyRequest,
@@ -33,11 +55,10 @@ export const queueTransaction = async (
     throw new Error(`Transaction simulation failed with reason: ${message}`);
   }
 
-  // get chain ID
-  let chainId: string;
-  if (isNaN(Number(network))) {
-    const chainData = getChainBySlug(network);
+  let chainData;
 
+  if (isNaN(Number(network))) {
+    chainData = getChainBySlug(network);
     if (!chainData) {
       const error = createCustomError(
         `Chain with name/id ${network} not found`,
@@ -46,12 +67,37 @@ export const queueTransaction = async (
       );
       throw error;
     }
-
-    chainId = chainData.chainId.toString();
   } else {
-    chainId = network;
+    chainData = getChainByChainId(parseInt(network, 10));
   }
 
+  const chainId = chainData.chainId.toString();
+  const dbInstance = await connectWithDatabase(request);
+  const walletAddress = await tx.getSignerAddress();
+  const checkForNetworkData = await checkNetworkInWalletDB(
+    dbInstance,
+    chainId,
+    walletAddress.toLowerCase(),
+  );
+
+  if (!checkForNetworkData) {
+    const sdk = await getSDK(chainId);
+    const walletNonce = await getWalletNonce(
+      walletAddress.toLowerCase(),
+      sdk.getProvider(),
+    );
+
+    const walletData = {
+      walletAddress: walletAddress.toLowerCase(),
+      chainId: chainId.toLowerCase(),
+      blockchainNonce: BigNumber.from(walletNonce ?? 0).toNumber(),
+      lastSyncedTimestamp: new Date(),
+      lastUsedNonce: 0,
+      walletType: chainData.slug,
+    };
+
+    await insertIntoWallets(walletData, dbInstance);
+  }
   // encode tx
   const encodedData = tx.encode();
   const txDataToInsert: TransactionSchema = {
@@ -81,7 +127,6 @@ export const queueTransaction = async (
   }
 
   // Insert to DB
-  const dbInstance = await connectWithDatabase(request);
   await insertTransactionData(dbInstance, txDataToInsert, request);
   await dbInstance.destroy();
 
