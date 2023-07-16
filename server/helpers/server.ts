@@ -66,7 +66,9 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
 
   await errorHandler(server);
 
-  await server.register(fastifyCors);
+  await server.register(fastifyCors, {
+    origin: getEnv("ACCESS_CONTROL_ALLOW_ORIGIN", "*").split(","),
+  });
 
   await server.register(fastifyExpress);
 
