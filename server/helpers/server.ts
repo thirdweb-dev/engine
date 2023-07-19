@@ -65,9 +65,24 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await errorHandler(server);
-
+  const originArray = getEnv("ACCESS_CONTROL_ALLOW_ORIGIN", "*").split(
+    ",",
+  ) as string[];
   await server.register(fastifyCors, {
-    origin: getEnv("ACCESS_CONTROL_ALLOW_ORIGIN", "*").split(","),
+    origin: originArray.map((data) => {
+      if (data.startsWith("/") && data.endsWith("/")) {
+        return new RegExp(data.slice(1, -1));
+      }
+
+      if (data.startsWith("*.")) {
+        const regex = data.replace("*.", ".*.");
+        return new RegExp(regex);
+      }
+      return data;
+    }),
+    allowedHeaders: [
+      "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin, Cache-Control",
+    ],
   });
 
   await server.register(fastifyExpress);
