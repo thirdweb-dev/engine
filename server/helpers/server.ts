@@ -7,6 +7,17 @@ import { apiRoutes } from "../../server/api";
 import { openapi } from "./openapi";
 import * as fs from "fs";
 
+const performAuthentication = async (request: any) => {
+  const secretKey = request.headers["x-shared-secret"];
+  if (secretKey) {
+    if (secretKey === getEnv("THIRDWEB_API_KEY")) {
+      //TODO validate once on server load that this is a valid key
+      return true;
+    }
+  }
+  return false;
+};
+
 const createServer = async (serverName: string): Promise<FastifyInstance> => {
   const logOptions = getLogSettings(serverName);
 
@@ -15,7 +26,18 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.addHook("preHandler", function (request, reply, done) {
+  server.addHook("onRequest", async (request, reply) => {
+    if (
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json")
+    ) {
+      request.log.info(
+        `Request received - ${request.method} - ${request.routerPath}`,
+      );
+    }
+  });
+
+  server.addHook("preHandler", async (request, reply) => {
     if (
       !request.routerPath?.includes("static") &&
       !request.routerPath?.includes("json")
@@ -25,7 +47,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       }
 
       if (request.params && Object.keys(request.params).length > 0) {
-        request.log.info({ ...request.params }, "Request Params : ");
+        request.log.info({ ...request.params }, "Request Param{s : ");
       }
 
       if (request.query && Object.keys(request.query).length > 0) {
@@ -33,19 +55,17 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       }
     }
 
-    done();
-  });
+    if (request.method === "POST") {
+      //TODO check if this covers all request types that need to be gated
+      //probably add admin actions, maybe everythign under /wallets to be also gated
+      const isAuthenticated = await performAuthentication(request);
 
-  server.addHook("onRequest", (request, reply, done) => {
-    if (
-      !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json")
-    ) {
-      request.log.info(
-        `Request received - ${request.method} - ${request.routerPath}`,
-      );
+      if (!isAuthenticated) {
+        // Modify the response to send a "403 Forbidden" error
+        reply.code(403).send({ error: "Forbidden" });
+        return;
+      }
     }
-    done();
   });
 
   server.addHook("onResponse", (request, reply, done) => {
