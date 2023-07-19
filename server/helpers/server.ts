@@ -74,7 +74,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
         return new RegExp(data.slice(1, -1));
       }
 
-      // check for wildcard * in the data
       if (data.startsWith("*.")) {
         const regex = data.replace("*.", ".*.");
         return new RegExp(regex);
