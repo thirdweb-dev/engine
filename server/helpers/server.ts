@@ -9,11 +9,9 @@ import * as fs from "fs";
 
 const performAuthentication = async (request: any) => {
   const secretKey = request.headers["x-secret-key"];
-  if (secretKey) {
-    if (secretKey === getEnv("THIRDWEB_API_KEY")) {
-      //TODO validate once on server load that this is a valid key
-      return true;
-    }
+  if (secretKey && secretKey === getEnv("THIRDWEB_API_KEY")) {
+    //TODO validate once on server load that this is a valid key
+    return true;
   }
   return false;
 };
@@ -47,7 +45,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       }
 
       if (request.params && Object.keys(request.params).length > 0) {
-        request.log.info({ ...request.params }, "Request Param{s : ");
+        request.log.info({ ...request.params }, "Request Params : ");
       }
 
       if (request.query && Object.keys(request.query).length > 0) {
