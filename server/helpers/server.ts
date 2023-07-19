@@ -8,7 +8,7 @@ import { openapi } from "./openapi";
 import * as fs from "fs";
 
 const performAuthentication = async (request: any) => {
-  const secretKey = request.headers["x-shared-secret"];
+  const secretKey = request.headers["x-secret-key"];
   if (secretKey) {
     if (secretKey === getEnv("THIRDWEB_API_KEY")) {
       //TODO validate once on server load that this is a valid key
