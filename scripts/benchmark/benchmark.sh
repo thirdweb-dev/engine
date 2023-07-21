@@ -1,14 +1,15 @@
 #!/bin/bash
 
-URL='https://web3api-7dqe.zeet-nftlabs.zeet.app'
-PATH='/contract/mumbai/0x0F25CC46C3a123Afd0fa577B3Bf448EbD093db3b/erc721/claimTo'
-POST_BODY='{"receiver": "0x8b145206f144E3a2111fC1CD2e086540199F34df","quantity": "1"}'
-CONCURRENT=1
-REQUESTS=1
+. .env
 
-echo $POST_BODY > post_data.json
+echo "Benchmarking $BENCHMARK_HOST$BENCHMARK_URL_PATH"
+echo "POST body: $BENCHMARK_POST_BODY"
+echo "With Concurrency: $BENCHMARK_CONCURRENCY and Requests: $BENCHMARK_REQUESTS"
+
+echo $BENCHMARK_POST_BODY > post_data.json
 
 /usr/bin/ab -p ./post_data.json \
   -T 'application/json' \
-  -c $CONCURRENT -n $REQUESTS \
-  "$URL$PATH"
+  -H 'x-secret-key:fa1a21a6d073902986843e45458acf47f721caed91765623e3951a36ae5c8f3b30173c6446087c3cc82f516ee7ce5d115c4e9ed87bc6d1842f5e95349d771a84' \
+  -c $BENCHMARK_CONCURRENCY -n $BENCHMARK_REQUESTS \
+  "$BENCHMARK_HOST$BENCHMARK_URL_PATH"

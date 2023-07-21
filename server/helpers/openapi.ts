@@ -28,7 +28,7 @@ export const openapi = async (server: FastifyInstance) => {
         securitySchemes: {
           sharedSecret: {
             type: "apiKey",
-            name: "x-shared-secret",
+            name: "x-secret-key",
             in: "header",
             description: "For Secure Server-Server Calls",
           },

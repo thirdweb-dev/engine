@@ -133,4 +133,4 @@ swagger.yml
 worker/distWorker/
 .vscode/
 .DS_Store
-scripts/benchmark/post_data.json
+post_data.json
