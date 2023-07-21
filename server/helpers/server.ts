@@ -9,13 +9,13 @@ import * as fs from "fs";
 import { authorizeNode } from "@thirdweb-dev/service-utils/node";
 import { AuthorizationResult } from "@thirdweb-dev/service-utils/dist/declarations/src/core/authorize/types.js";
 
-const THIRDWEB_API_SECRET_KEY = getEnv("THIRDWEB_API_SECRET_KEY");
+const THIRDWEB_SDK_SECRET_KEY = getEnv("THIRDWEB_SDK_SECRET_KEY");
 
 const performAuthentication = async (
   request: any,
 ): Promise<AuthorizationResult> => {
   const secretKey = request.headers["x-secret-key"];
-  if (secretKey && secretKey === THIRDWEB_API_SECRET_KEY) {
+  if (secretKey && secretKey === THIRDWEB_SDK_SECRET_KEY) {
     const authorized = await authorizeNode(
       {
         req: request,
