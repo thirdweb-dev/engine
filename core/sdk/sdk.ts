@@ -31,7 +31,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   const AWS_ACCESS_KEY_ID = getEnv("AWS_ACCESS_KEY_ID", undefined);
   const AWS_SECRET_ACCESS_KEY = getEnv("AWS_SECRET_ACCESS_KEY", undefined);
   const AWS_KMS_KEY_ID = getEnv("AWS_KMS_KEY_ID", undefined);
-  const THIRDWEB_API_SECRET_KEY = getEnv("THIRDWEB_API_SECRET_KEY", undefined);
+  const THIRDWEB_SDK_SECRET_KEY = getEnv("THIRDWEB_SDK_SECRET_KEY", undefined);
 
   let chain: Chain | null = null;
   let wallet: AwsKmsWallet | LocalWallet | null = null;
@@ -90,7 +90,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
 
   const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
     // thirdwebApiKey: THIRDWEB_API_KEY,
-    secretKey: THIRDWEB_API_SECRET_KEY,
+    secretKey: THIRDWEB_SDK_SECRET_KEY,
     supportedChains: RPC_OVERRIDES,
   });
 
