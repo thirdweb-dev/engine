@@ -76,9 +76,7 @@ export const processTransaction = async (
 
       if (blockchainNonce == lastUsedNonce) {
         txSubmittedNonce = BigNumber.from(1).add(lastUsedNonce);
-        console.log("Blockchain Nonce == Last Used", blockchainNonce);
       } else {
-        console.log("Blockchain Nonce", blockchainNonce);
         txSubmittedNonce = BigNumber.from(blockchainNonce);
       }
 
