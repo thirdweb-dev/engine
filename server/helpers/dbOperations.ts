@@ -17,7 +17,7 @@ import {
   transactionResponseSchema,
 } from "../schemas/transaction";
 import { Static } from "@sinclair/typebox";
-import { WalletData } from "../../core/interfaces/walletData";
+import { WalletData } from "../../core/interfaces";
 import { getWalletNonce } from "../../core/services/blockchain";
 import { BigNumber } from "ethers";
 import { insertIntoWallets } from "../../core/database/dbOperation";

@@ -6,14 +6,48 @@ import fastify, { FastifyInstance } from "fastify";
 import { apiRoutes } from "../../server/api";
 import { openapi } from "./openapi";
 import * as fs from "fs";
+import { authorizeNode } from "@thirdweb-dev/service-utils/node";
+import { AuthorizationResult } from "@thirdweb-dev/service-utils/dist/declarations/src/core/authorize/types.js";
 
-const performAuthentication = async (request: any) => {
+const THIRDWEB_API_SECRET_KEY = getEnv("THIRDWEB_API_SECRET_KEY");
+
+const performAuthentication = async (
+  request: any,
+): Promise<AuthorizationResult> => {
   const secretKey = request.headers["x-secret-key"];
-  if (secretKey && secretKey === getEnv("THIRDWEB_API_KEY")) {
-    //TODO validate once on server load that this is a valid key
-    return true;
+  if (secretKey && secretKey === THIRDWEB_API_SECRET_KEY) {
+    const authorized = await authorizeNode(
+      {
+        req: request,
+      },
+      {
+        apiUrl: getEnv("THIRDWEB_API_ORIGIN"),
+        serviceScope: "storage",
+        serviceAction: "write",
+        enforceAuth: true,
+        serviceApiKey: "",
+      },
+    );
+
+    if (!authorized.authorized) {
+      return {
+        authorized: false,
+        status: authorized.status,
+        errorMessage: authorized.errorMessage,
+        errorCode: authorized.errorCode,
+      };
+    }
+    return {
+      authorized: true,
+      apiKeyMeta: authorized.apiKeyMeta,
+    };
   }
-  return false;
+  return {
+    authorized: false,
+    status: 401,
+    errorMessage: "Missing Secret Key",
+    errorCode: "MISSING_SECRET_KEY",
+  };
 };
 
 const createServer = async (serverName: string): Promise<FastifyInstance> => {
@@ -58,7 +92,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       //probably add admin actions, maybe everythign under /wallets to be also gated
       const isAuthenticated = await performAuthentication(request);
 
-      if (!isAuthenticated) {
+      if (!isAuthenticated.authorized) {
         // Modify the response to send a "403 Forbidden" error
         reply.code(403).send({ error: "Forbidden" });
         return;

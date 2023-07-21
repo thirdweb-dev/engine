@@ -74,13 +74,11 @@ export const processTransaction = async (
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
       let txSubmittedNonce = BigNumber.from(0);
 
-      if (lastUsedNonce.eq(BigNumber.from(-1))) {
-        txSubmittedNonce = BigNumber.from(tx.rownum)
-          .add(blockchainNonce)
-          .sub(1);
-      } else if (blockchainNonce == lastUsedNonce) {
+      if (blockchainNonce == lastUsedNonce) {
         txSubmittedNonce = BigNumber.from(1).add(lastUsedNonce);
+        console.log("Blockchain Nonce == Last Used", blockchainNonce);
       } else {
+        console.log("Blockchain Nonce", blockchainNonce);
         txSubmittedNonce = BigNumber.from(blockchainNonce);
       }
 
