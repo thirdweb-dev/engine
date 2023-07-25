@@ -8,9 +8,9 @@
 <h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> Web3-API Repo</h1>
 
 <p align="center">
-    <!-- <a href="https://github.com/thirdweb-dev/web3-api/actions/workflows/build-test-lint.yml">
-        <img alt="Build Status" src="https://github.com/thirdweb-dev/web3-api/actions/workflows/build-test-lint.yml/badge.svg"/>
-    </a> -->
+    <a href="https://github.com/thirdweb-dev/web3-api/actions/workflows/e2eTest.yml">
+        <img alt="Build Status" src="https://github.com/thirdweb-dev/web3-api/actions/workflows/e2eTest.yml/badge.svg"/>
+    </a>
     <a href="https://discord.gg/thirdweb">
         <img alt="Join our Discord!" src="https://img.shields.io/discord/834227967404146718.svg?color=7289da&label=discord&logo=discord&style=flat"/>
     </a>
