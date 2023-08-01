@@ -87,17 +87,17 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       }
     }
 
-    if (request.method === "POST") {
-      //TODO check if this covers all request types that need to be gated
-      //probably add admin actions, maybe everythign under /wallets to be also gated
-      const isAuthenticated = await performAuthentication(request);
+    // if (request.method === "POST") {
+    //   //TODO check if this covers all request types that need to be gated
+    //   //probably add admin actions, maybe everythign under /wallets to be also gated
+    //   const isAuthenticated = await performAuthentication(request);
 
-      if (!isAuthenticated.authorized) {
-        // Modify the response to send a "403 Forbidden" error
-        reply.code(403).send({ error: "Forbidden" });
-        return;
-      }
-    }
+    //   if (!isAuthenticated.authorized) {
+    //     // Modify the response to send a "403 Forbidden" error
+    //     reply.code(403).send({ error: "Forbidden" });
+    //     return;
+    //   }
+    // }
   });
 
   server.addHook("onResponse", (request, reply, done) => {
