@@ -1,6 +1,6 @@
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import fastify, { FastifyInstance } from "fastify";
-import { errorHandler, getLogSettings, walletEnvVariablesCheck } from "../core";
+import { errorHandler, getLogSettings } from "../core";
 import '../env';
 import { startNotificationListener } from "./controller/listener";
 import { setupWalletsForWorker } from "./controller/wallet";
@@ -13,8 +13,6 @@ const main = async () => {
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   await errorHandler(server);
-
-  await walletEnvVariablesCheck(server);
 
   await setupWalletsForWorker(server);
   // Start Listening to the Table for new insertion

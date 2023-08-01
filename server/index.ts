@@ -1,5 +1,4 @@
 import { checkTablesExistence, implementTriggerOnStartUp } from "../core";
-import { walletEnvVariablesCheck } from "../core/startup";
 import "../env";
 import { env } from "../env";
 import createServer from "./helpers/server";
@@ -22,7 +21,6 @@ const main = async () => {
 
   try {
 
-    await walletEnvVariablesCheck(server);
     // Check for the Tables Existence post startup
     await checkTablesExistence(server);
     await implementTriggerOnStartUp(server);

@@ -9,7 +9,7 @@
   "scripts": {
     "docker": "docker compose --env-file ./.env up --remove-orphans",
     "docker:build": "docker compose build --no-cache",
-    "dev": "docker compose -f ./docker-compose-infra.yml up -d && yarn dev:server & sleep 10 && yarn dev:worker",
+    "dev": "yarn dev:infra && yarn dev:server & sleep 10 && yarn dev:worker",
     "dev:server": "nodemon --watch 'server/**/*.ts' --watch 'core/**/*.ts' --exec 'ts-node' --files server/index.ts",
     "dev:worker": "nodemon --watch 'worker/**/*.ts' --watch 'core/**/*.ts' --exec 'ts-node' --files worker/index.ts",
     "dev:infra": "docker compose -f ./docker-compose-infra.yml up -d",

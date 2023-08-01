@@ -25,11 +25,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     return sdkMap[chainName] as ThirdwebSDK;
   }
 
-  const WALLET_PRIVATE_KEY = env.WALLET_PRIVATE_KEY;
-  const AWS_REGION = env.AWS_REGION;
-  const AWS_ACCESS_KEY_ID = env.AWS_ACCESS_KEY_ID;
-  const AWS_SECRET_ACCESS_KEY = env.AWS_SECRET_ACCESS_KEY;
-  const AWS_KMS_KEY_ID = env.AWS_KMS_KEY_ID;
+
   const THIRDWEB_SDK_SECRET_KEY = env.THIRDWEB_SDK_SECRET_KEY;
 
   let chain: Chain | null = null;
@@ -47,18 +43,21 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
 
   // Check for KMS
   if (
-    AWS_ACCESS_KEY_ID &&
-    AWS_SECRET_ACCESS_KEY &&
-    AWS_KMS_KEY_ID &&
-    AWS_REGION
+    "AWS_KMS_KEY_ID" in env.WALLET_KEYS
   ) {
+    const AWS_REGION = env.WALLET_KEYS.AWS_REGION;
+    const AWS_ACCESS_KEY_ID = env.WALLET_KEYS.AWS_ACCESS_KEY_ID;
+    const AWS_SECRET_ACCESS_KEY = env.WALLET_KEYS.AWS_SECRET_ACCESS_KEY;
+    const AWS_KMS_KEY_ID = env.WALLET_KEYS.AWS_KMS_KEY_ID;
+
     wallet = new AwsKmsWallet({
       region: AWS_REGION,
       accessKeyId: AWS_ACCESS_KEY_ID,
       secretAccessKey: AWS_SECRET_ACCESS_KEY,
       keyId: AWS_KMS_KEY_ID,
     });
-  } else if (WALLET_PRIVATE_KEY) {
+  } else if ("WALLET_PRIVATE_KEY" in env.WALLET_KEYS) {
+    const WALLET_PRIVATE_KEY = env.WALLET_KEYS.WALLET_PRIVATE_KEY;
     wallet = new LocalWallet({
       chain,
     });

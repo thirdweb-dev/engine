@@ -5,7 +5,7 @@ import { AuthorizationResult } from "@thirdweb-dev/service-utils/dist/declaratio
 import { authorizeNode } from "@thirdweb-dev/service-utils/node";
 import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
-import { errorHandler, getEnv, getLogSettings } from "../../core";
+import { errorHandler, getLogSettings } from "../../core";
 import { env } from "../../env";
 import { apiRoutes } from "../../server/api";
 import { openapi } from "./openapi";
@@ -22,7 +22,7 @@ const performAuthentication = async (
         req: request,
       },
       {
-        apiUrl: getEnv("THIRDWEB_API_ORIGIN"),
+        apiUrl: env.THIRDWEB_API_ORIGIN,
         serviceScope: "storage",
         serviceAction: "write",
         enforceAuth: true,
