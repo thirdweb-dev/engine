@@ -131,6 +131,5 @@ dist
 
 swagger.yml
 worker/distWorker/
-.vscode/
 .DS_Store
 post_data.json
