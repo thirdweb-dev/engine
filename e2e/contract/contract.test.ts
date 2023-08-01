@@ -1,7 +1,7 @@
-import request from "supertest";
-import createServer from "../../server/helpers/server";
 import { expect } from "chai";
 import { FastifyInstance } from "fastify";
+import request from "supertest";
+import createServer from "../../server/helpers/server";
 import { awaitTransactionSubmission } from "../helpers";
 
 describe("Deploy EditionDrop to Test : Contract Endpoints", () => {
