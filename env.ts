@@ -1,0 +1,84 @@
+import { createEnv } from "@t3-oss/env-core";
+import * as dotenv from "dotenv";
+import type { ZodError } from "zod";
+import { z } from "zod";
+
+dotenv.config({
+  debug: true,
+  override: true,
+});
+
+const boolSchema = (defaultBool: "true" | 'false') => z
+  .string()
+  .default(defaultBool)
+  // only allow "true" or "false"
+  .refine((s) => s === "true" || s === "false", "must be 'true' or 'false'")
+  // transform to boolean
+  .transform((s) => s === "true")
+
+// NOTE: to make something required, just use z.string().min(1)
+export const env = createEnv({
+  server: {
+    NODE_ENV: z.enum(['production', 'development', 'testing', 'local']).default("development"),
+    WALLET_PRIVATE_KEY: z.string().optional(),
+    AWS_ACCESS_KEY_ID: z.string().optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().optional(),
+    AWS_KMS_KEY_ID: z.string().optional(),
+    AWS_REGION: z.string().optional(),
+    THIRDWEB_SDK_SECRET_KEY: z.string().min(1),
+    THIRDWEB_API_ORIGIN: z.string().default("https://api.thirdweb.com"),
+    POSTGRES_HOST: z.string().default("localhost"),
+    POSTGRES_DATABASE_NAME: z.string().default("postgres"),
+    POSTGRES_DATABASE_CLIENT: z.string().default("pg"),
+    POSTGRES_USER: z.string().default("postgres"),
+    POSTGRES_PASSWORD: z.string().default("postgres"),
+    POSTGRES_PORT: z.coerce.number().default(5432),
+    POSTGRES_USE_SSL: boolSchema('false'),
+    OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
+    DB_TABLES_LIST: z.string().default("wallets,transactions"),
+    DB_TRIGGERS_LIST: z.string().default("trigger_notification,trigger_tx_table"),
+    PORT: z.coerce.number().default(3005),
+    HOST: z.string().default("localhost"),
+    MIN_TRANSACTION_TO_PROCESS: z.coerce.number().default(1),
+    TRANSACTIONS_TO_BATCH: z.coerce.number().default(10),
+    CHAIN_OVERRIDES: z.string().default(""),
+    ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
+  },
+  clientPrefix: "NEVER_USED",
+  client: {},
+  isServer: true,
+  runtimeEnvStrict: {
+    NODE_ENV: process.env.NODE_ENV,
+    WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
+    AWS_REGION: process.env.AWS_REGION,
+    THIRDWEB_SDK_SECRET_KEY: process.env.THIRDWEB_SDK_SECRET_KEY,
+    THIRDWEB_API_ORIGIN: process.env.THIRDWEB_API_ORIGIN,
+    POSTGRES_HOST: process.env.POSTGRES_HOST,
+    POSTGRES_DATABASE_NAME: process.env.POSTGRES_DATABASE_NAME,
+    POSTGRES_DATABASE_CLIENT: process.env.POSTGRES_DATABASE_CLIENT,
+    POSTGRES_USER: process.env.POSTGRES_USER,
+    POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
+    POSTGRES_PORT: process.env.POSTGRES_PORT,
+    POSTGRES_USE_SSL: process.env.POSTGRES_USE_SSL,
+    DB_TABLES_LIST: process.env.DB_TABLES_LIST,
+    DB_TRIGGERS_LIST: process.env.DB_TRIGGERS_LIST,
+    PORT: process.env.PORT,
+    HOST: process.env.HOST,
+    OPENAPI_BASE_ORIGIN: process.env.OPENAPI_BASE_ORIGIN,
+    MIN_TRANSACTION_TO_PROCESS: process.env.MIN_TRANSACTION_TO_PROCESS,
+    TRANSACTIONS_TO_BATCH: process.env.TRANSACTIONS_TO_BATCH,
+    CHAIN_OVERRIDES: process.env.CHAIN_OVERRIDES,
+    ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
+
+  },
+  onValidationError: (error: ZodError) => {
+    console.error(
+      "❌ Invalid environment variables:",
+      error.flatten().fieldErrors,
+    );
+    throw new Error("Invalid environment variables");
+  },
+});

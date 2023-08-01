@@ -1,27 +1,22 @@
+import { BigNumber, ethers } from "ethers";
 import { FastifyInstance } from "fastify";
+import { StatusCodes } from "http-status-codes";
+import { Knex } from "knex";
 import {
   connectWithDatabase,
   createCustomError,
-  getEnv,
-  getSDK,
+  getSDK
 } from "../../core";
 import { getWalletNonce } from "../../core/services/blockchain";
+import { env } from "../../env";
 import {
-  getWalletDetailsWithTrx,
   getTransactionsToProcess,
+  getWalletDetailsWithTrx,
   updateTransactionState,
   updateWalletNonceValue,
 } from "../services/dbOperations";
-import { BigNumber, ethers } from "ethers";
-import { Knex } from "knex";
-import { StatusCodes } from "http-status-codes";
 
-const MIN_TRANSACTION_TO_PROCESS_DEFAULT = 1;
-const MIN_TRANSACTION_TO_PROCESS =
-  parseInt(
-    getEnv("MIN_TRANSACTION_TO_PROCESS", MIN_TRANSACTION_TO_PROCESS_DEFAULT),
-    10,
-  ) ?? 1;
+const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS
 
 export const processTransaction = async (
   server: FastifyInstance,
