@@ -1,4 +1,7 @@
+import { BigNumber, ethers } from "ethers";
 import { FastifyInstance } from "fastify";
+import { StatusCodes } from "http-status-codes";
+import { Knex } from "knex";
 import {
   connectWithDatabase,
   createCustomError,
@@ -7,14 +10,11 @@ import {
 } from "../../core";
 import { getWalletNonce } from "../../core/services/blockchain";
 import {
-  getWalletDetailsWithTrx,
   getTransactionsToProcess,
+  getWalletDetailsWithTrx,
   updateTransactionState,
   updateWalletNonceValue,
 } from "../services/dbOperations";
-import { BigNumber, ethers } from "ethers";
-import { Knex } from "knex";
-import { StatusCodes } from "http-status-codes";
 
 const MIN_TRANSACTION_TO_PROCESS_DEFAULT = 1;
 const MIN_TRANSACTION_TO_PROCESS =
