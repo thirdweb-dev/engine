@@ -5,7 +5,7 @@ import { env } from "../../env";
 const DATABASE_NAME = env.POSTGRES_DATABASE_NAME;
 
 // Defaults to postgres
-const dbClient = env.POSTGRES_DATABASE_CLIENT
+const dbClient = env.DATABASE_CLIENT
 
 // Database Connection Setup// Database Connection Setup
 let connection: Knex.PgConnectionConfig = {
