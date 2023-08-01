@@ -16,19 +16,19 @@ const boolSchema = (defaultBool: "true" | 'false') => z
   // transform to boolean
   .transform((s) => s === "true")
 
-// NOTE: to make something required, just use z.string().min(1)
+// ! to make something required, use z.string().min(1) to be sure
 export const env = createEnv({
   server: {
     NODE_ENV: z.enum(['production', 'development', 'testing', 'local']).default("development"),
     // This is more dangerous because it is possible to forget about destructing a given key below, leading to errors. Avoid if possible
     WALLET_KEYS: z.union([
       z.object({
-        WALLET_PRIVATE_KEY: z.string(),
+        WALLET_PRIVATE_KEY: z.string().min(1),
       }), z.object({
-        AWS_ACCESS_KEY_ID: z.string(),
-        AWS_SECRET_ACCESS_KEY: z.string(),
-        AWS_KMS_KEY_ID: z.string(),
-        AWS_REGION: z.string(),
+        AWS_ACCESS_KEY_ID: z.string().min(1),
+        AWS_SECRET_ACCESS_KEY: z.string().min(1),
+        AWS_KMS_KEY_ID: z.string().min(1),
+        AWS_REGION: z.string().min(1),
       })
     ]),
     THIRDWEB_SDK_SECRET_KEY: z.string().min(1),
