@@ -1,25 +1,24 @@
-import { Knex } from "knex";
-import pg from "knex";
-import { getEnv } from "../loadEnv";
 import { FastifyInstance, FastifyRequest } from "fastify";
+import pg, { Knex } from "knex";
+import { env } from "../../env";
 
-const DATABASE_NAME = getEnv("POSTGRES_DATABASE_NAME");
+const DATABASE_NAME = env.POSTGRES_DATABASE_NAME;
 
 // Defaults to postgres
-const dbClient = getEnv("DATABASE_CLIENT", "pg");
+const dbClient = env.DATABASE_CLIENT
 
 // Database Connection Setup// Database Connection Setup
 let connection: Knex.PgConnectionConfig = {
-  host: getEnv("POSTGRES_HOST"),
-  user: getEnv("POSTGRES_USER"),
-  port: parseInt(getEnv("POSTGRES_PORT")),
-  password: getEnv("POSTGRES_PASSWORD"),
+  host: env.POSTGRES_HOST,
+  user: env.POSTGRES_USER,
+  port: env.POSTGRES_PORT,
+  password: env.POSTGRES_PASSWORD,
   database: DATABASE_NAME,
   ssl:
-    getEnv("POSTGRES_USE_SSL") === "true"
+    env.POSTGRES_USE_SSL
       ? {
-          rejectUnauthorized: false,
-        }
+        rejectUnauthorized: false,
+      }
       : false,
 };
 

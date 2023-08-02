@@ -1,5 +1,5 @@
-import { getEnv } from "../loadEnv";
 import { PinoLoggerOptions } from "fastify/types/logger";
+import { env } from "../../env";
 
 const pinoLogOptions: PinoLoggerOptions = {
   redact: ["headers.authorization"],
@@ -14,11 +14,11 @@ const pinoLogOptions: PinoLoggerOptions = {
 };
 
 export const getLogSettings = (msgPrefix: string): PinoLoggerOptions => {
-  if (getEnv("NODE_ENV") === "production") {
+  if (env.NODE_ENV === "production") {
     pinoLogOptions.level = "info";
-  } else if (getEnv("NODE_ENV") === "development") {
+  } else if (env.NODE_ENV === "development") {
     pinoLogOptions.level = "debug";
-  } else if (getEnv("NODE_ENV") === "testing") {
+  } else if (env.NODE_ENV === "testing") {
     pinoLogOptions.level = "debug";
   } else {
     pinoLogOptions.level = "trace";

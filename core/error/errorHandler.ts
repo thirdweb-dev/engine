@@ -1,8 +1,8 @@
-import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { getCodeFromStatusCode } from "./errorCodes";
-import { getEnv } from "../loadEnv";
 import { FastifyInstance } from "fastify";
+import { ReasonPhrases, StatusCodes } from "http-status-codes";
+import { env } from "../../env";
 import { CustomError } from "./customError";
+import { getCodeFromStatusCode } from "./errorCodes";
 
 export const errorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler((error: Error | CustomError, request, reply) => {
@@ -23,7 +23,7 @@ export const errorHandler = async (server: FastifyInstance) => {
           message,
           statusCode,
           stack:
-            getEnv("NODE_ENV", "development") !== "production"
+            env.NODE_ENV !== "production"
               ? error.stack
               : undefined,
         },
@@ -36,7 +36,7 @@ export const errorHandler = async (server: FastifyInstance) => {
           code: "INTERNAL_SERVER_ERROR",
           message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
           stack:
-            getEnv("NODE_ENV", "development") !== "production"
+            env.NODE_ENV !== "production"
               ? error.stack
               : undefined,
         },

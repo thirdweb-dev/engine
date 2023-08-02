@@ -1,9 +1,9 @@
 import { BigNumber, providers } from "ethers";
-import { createCustomError, getEnv } from "../../core";
 import { Knex } from "knex";
+import { createCustomError } from "../../core";
+import { env } from "../../env";
 
-const TRANSACTIONS_TO_BATCH =
-  parseInt(getEnv("TRANSACTIONS_TO_BATCH", 10), 10) ?? 10;
+const TRANSACTIONS_TO_BATCH = env.TRANSACTIONS_TO_BATCH
 
 export const getWalletDetailsWithTrx = async (
   walletAddress: string,

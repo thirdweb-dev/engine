@@ -1,15 +1,16 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { getLogSettings, errorHandler, getEnv } from "../../core";
+import { AuthorizationResult } from "@thirdweb-dev/service-utils/dist/declarations/src/core/authorize/types.js";
+import { authorizeNode } from "@thirdweb-dev/service-utils/node";
 import fastify, { FastifyInstance } from "fastify";
+import * as fs from "fs";
+import { errorHandler, getLogSettings } from "../../core";
+import { env } from "../../env";
 import { apiRoutes } from "../../server/api";
 import { openapi } from "./openapi";
-import * as fs from "fs";
-import { authorizeNode } from "@thirdweb-dev/service-utils/node";
-import { AuthorizationResult } from "@thirdweb-dev/service-utils/dist/declarations/src/core/authorize/types.js";
 
-const THIRDWEB_SDK_SECRET_KEY = getEnv("THIRDWEB_SDK_SECRET_KEY");
+const THIRDWEB_SDK_SECRET_KEY = env.THIRDWEB_SDK_SECRET_KEY
 
 const performAuthentication = async (
   request: any,
@@ -21,7 +22,7 @@ const performAuthentication = async (
         req: request,
       },
       {
-        apiUrl: getEnv("THIRDWEB_API_ORIGIN"),
+        apiUrl: env.THIRDWEB_API_ORIGIN,
         serviceScope: "storage",
         serviceAction: "write",
         enforceAuth: true,
@@ -106,8 +107,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       !request.routerPath?.includes("json")
     ) {
       request.log.info(
-        `Request completed - ${request.method} - ${
-          reply.request.routerPath
+        `Request completed - ${request.method} - ${reply.request.routerPath
         } - StatusCode: ${reply.statusCode} - Response Time: ${reply
           .getResponseTime()
           .toFixed(2)}ms`,
@@ -117,7 +117,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await errorHandler(server);
-  const originArray = getEnv("ACCESS_CONTROL_ALLOW_ORIGIN", "*").split(
+  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(
     ",",
   ) as string[];
   await server.register(fastifyCors, {
@@ -150,7 +150,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   server.swagger();
 
   // To Generate Swagger YAML File
-  if (getEnv("NODE_ENV") === "local") {
+  if (env.NODE_ENV === "local") {
     const yaml = server.swagger({ yaml: true });
     fs.writeFileSync("./swagger.yml", yaml);
   }
