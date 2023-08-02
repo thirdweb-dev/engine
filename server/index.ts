@@ -20,7 +20,6 @@ const main = async () => {
   );
 
   try {
-
     // Check for the Tables Existence post startup
     await checkTablesExistence(server);
     await implementTriggerOnStartUp(server);
