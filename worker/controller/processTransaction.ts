@@ -69,18 +69,16 @@ export const processTransaction = async (
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
       let txSubmittedNonce = BigNumber.from(0);
 
-      if (blockchainNonce == lastUsedNonce) {
-        txSubmittedNonce = BigNumber.from(1).add(lastUsedNonce);
-      } else {
+      if (BigNumber.from(blockchainNonce).gt(lastUsedNonce)) {
         txSubmittedNonce = BigNumber.from(blockchainNonce);
+        server.log.debug("Blockchain Nonce", blockchainNonce);
+      } else {
+        txSubmittedNonce = BigNumber.from(1).add(lastUsedNonce);
+        server.log.debug("Blockchain Nonce !== Last Used", blockchainNonce);
       }
 
       await updateTransactionState(knex, tx.identifier, "processed", trx);
       // Get the nonce for the blockchain transaction
-
-      server.log.info(
-        `Tx Request: ${tx.identifier}, Tx Request Submit Nonce: ${txSubmittedNonce}, Wallet Nonce on DB ${lastUsedNonce}`,
-      );
 
       // Submit transaction to the blockchain
       // Create transaction object
