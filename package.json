@@ -32,6 +32,7 @@
     "@fastify/swagger": "^8.3.1",
     "@fastify/swagger-ui": "^1.8.1",
     "@fastify/type-provider-typebox": "^3.2.0",
+    "@fastify/websocket": "^8.2.0",
     "@sinclair/typebox": "^0.28",
     "@t3-oss/env-core": "^0.6.0",
     "@thirdweb-dev/chains": "^0.1.27",
@@ -55,6 +56,7 @@
     "pg": "^8.11.0",
     "pino-pretty": "^10.0.0",
     "uuidv4": "^6.2.13",
+    "viem": "^1.5.2",
     "zod": "^3.21.4"
   },
   "devDependencies": {
@@ -65,7 +67,7 @@
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.15.4",
     "@types/supertest": "^2.0.12",
-    "@types/ws": "^8.5.4",
+    "@types/ws": "^8.5.5",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
     "chai": "^4.3.7",

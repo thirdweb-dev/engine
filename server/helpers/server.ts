@@ -1,6 +1,7 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import fastifyWebsocket from "@fastify/websocket";
 import { AuthorizationResult } from "@thirdweb-dev/service-utils/dist/declarations/src/core/authorize/types.js";
 import { authorizeNode } from "@thirdweb-dev/service-utils/node";
 import fastify, { FastifyInstance } from "fastify";
@@ -138,6 +139,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await server.register(fastifyExpress);
+  await server.register(fastifyWebsocket);
 
   openapi(server);
 
