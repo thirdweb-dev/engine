@@ -1,4 +1,5 @@
 import { BigNumberish, providers as ethersProviders } from "ethers";
+import { FastifyInstance } from "fastify";
 import WebSocket from "ws";
 import { bigNumberReplacer } from "../../server/utilities/convertor";
 import { getContractInstance, getSDK } from "../sdk/sdk";
@@ -24,7 +25,7 @@ const lastValues = new Map<string, string>();
 const isQuerying = new Map<string, boolean>();
 const isActive = new Map<string, boolean>();
 
-const getNetworkSubscriptions = ({
+const getNetworkQueriesKey = ({
   contractAddress,
   functionName,
   args,
@@ -60,7 +61,7 @@ export const addSubscription = ({
   args?: string;
 }) => {
   const networkSubscriptionsKey = network;
-  const querySubscriptionKey = getNetworkSubscriptions({
+  const querySubscriptionKey = getNetworkQueriesKey({
     contractAddress,
     functionName,
     args,
@@ -81,15 +82,23 @@ export const addSubscription = ({
   }
 };
 
-export const removeSubscription = (
-  network: string,
-  contractAddress: string,
-  functionName: string,
-  websocketId: string,
-  args?: string,
-) => {
+export const removeSubscription = ({
+  server,
+  network,
+  contractAddress,
+  functionName,
+  websocketId,
+  args,
+}: {
+  server: FastifyInstance;
+  network: string;
+  contractAddress: string;
+  functionName: string;
+  websocketId: string;
+  args?: string;
+}) => {
   const networkSubscriptionsKey = network;
-  const querySubscriptionKey = getNetworkSubscriptions({
+  const querySubscriptionKey = getNetworkQueriesKey({
     contractAddress,
     functionName,
     args,
@@ -98,12 +107,21 @@ export const removeSubscription = (
   if (networkSubscriptions) {
     const queries = networkSubscriptions.get(querySubscriptionKey);
     if (queries) {
+      if (!queries[websocketId]) {
+        server.log.info(
+          `no websocket with id ${websocketId} for ${querySubscriptionKey}`,
+        );
+        return;
+      }
+      server.log.info(
+        `removing websocket with id ${websocketId} for ${querySubscriptionKey}`,
+      );
       delete queries[websocketId];
       if (Object.keys(queries).length === 0) {
-        console.log("no more websockets for this query, removing query");
+        server.log.info("no more websockets for this query, removing query");
         networkSubscriptions.delete(querySubscriptionKey);
         if (networkSubscriptions.size === 0) {
-          console.log("no more queries for this network, removing network");
+          server.log.info("no more queries for this network, removing network");
           subscriptions.delete(networkSubscriptionsKey);
           const provider = providers.get(networkSubscriptionsKey);
           if (provider) {
@@ -113,15 +131,19 @@ export const removeSubscription = (
         }
       }
     }
-    console.log(
-      `Number of listeners for ${querySubscriptionKey}`,
+    server.log.info(
+      `Number of listeners left for ${querySubscriptionKey}`,
       Object.keys(networkSubscriptions.get(querySubscriptionKey) ?? {}).length,
     );
   }
 };
 
-export const queryContracts = async (network: string, blockNumber: number) => {
-  console.log(
+export const queryContracts = async (
+  server: FastifyInstance,
+  network: string,
+  blockNumber: number,
+) => {
+  server.log.info(
     `querying contracts on ${network} with blockNumber ${blockNumber}`,
   );
   const networkSubscriptions = subscriptions.get(network);
@@ -137,7 +159,7 @@ export const queryContracts = async (network: string, blockNumber: number) => {
 
     const isQueryingKey = network + query;
     if (isQuerying.get(isQueryingKey)) {
-      console.log(
+      server.log.info(
         `already querying ${contractAddress}'s ${functionName} with ${args} on ${network}, skipping`,
       );
       return;
@@ -151,7 +173,10 @@ export const queryContracts = async (network: string, blockNumber: number) => {
         args ? args.split(",") : [],
       );
       returnData = bigNumberReplacer(returnData);
-      console.log({ newValue: returnData, oldValue: lastValues.get(query) });
+      server.log.info({
+        newValue: returnData,
+        oldValue: lastValues.get(query),
+      });
       if (lastValues.get(query) !== returnData) {
         for (const ws of Object.values(webSockets)) {
           ws.send(
@@ -168,7 +193,7 @@ export const queryContracts = async (network: string, blockNumber: number) => {
         lastValues.set(query, returnData);
       }
     } catch (e) {
-      console.log(
+      server.log.info(
         `error calling ${functionName} with ${args} on ${contractAddress} `,
         e,
       );
@@ -192,12 +217,15 @@ export const queryContracts = async (network: string, blockNumber: number) => {
     }
   });
   await Promise.all(contractReads);
-  console.log(
+  server.log.info(
     `Done querying contracts on ${network} with blockNumber ${blockNumber}`,
   );
 };
 
-export const startSubscription = async (network: string) => {
+export const startSubscription = async (
+  server: FastifyInstance,
+  network: string,
+) => {
   const key = network;
   if (isActive.get(key)) {
     return;
@@ -206,7 +234,7 @@ export const startSubscription = async (network: string) => {
   const sdk = await getSDK(network);
   const provider = sdk.getProvider();
   provider.on("block", async (blockNumber) => {
-    await queryContracts(network, blockNumber);
+    await queryContracts(server, network, blockNumber);
   });
   providers.set(key, provider);
 };

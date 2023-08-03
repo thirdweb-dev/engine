@@ -26,7 +26,7 @@ export async function readContract(fastify: FastifyInstance) {
       const { network, contract_address } = request.params;
       const { function_name, args } = request.query;
       connection.setEncoding("utf-8");
-      startSubscription(network);
+      startSubscription(fastify, network);
       addSubscription({
         network,
         contractAddress: contract_address,
@@ -36,13 +36,14 @@ export async function readContract(fastify: FastifyInstance) {
         args: args,
       });
       connection.socket.on("close", () => {
-        removeSubscription(
+        removeSubscription({
+          server: fastify,
           network,
-          contract_address,
-          function_name,
-          request.headers["sec-websocket-key"] ?? "",
+          contractAddress: contract_address,
+          functionName: function_name,
+          websocketId: request.headers["sec-websocket-key"] ?? "",
           args,
-        );
+        });
       });
     },
     handler: async (request, reply) => {
