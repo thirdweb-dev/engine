@@ -1,6 +1,6 @@
 import { BigNumberish, providers as ethersProviders } from "ethers";
 import { FastifyInstance } from "fastify";
-import WebSocket from "ws";
+import type WebSocket from "ws";
 import { bigNumberReplacer } from "../../server/utilities/convertor";
 import { getContractInstance, getSDK } from "../sdk/sdk";
 
@@ -182,12 +182,14 @@ export const queryContracts = async (
         for (const ws of Object.values(webSockets)) {
           ws.send(
             JSON.stringify({
-              query: {
-                contractAddress,
-                functionName,
-                args,
+              result: {
+                query: {
+                  contractAddress,
+                  functionName,
+                  args,
+                },
+                data: returnData,
               },
-              result: returnData,
             }),
           );
         }
@@ -204,15 +206,17 @@ export const queryContracts = async (
       for (const ws of Object.values(webSockets)) {
         ws.send(
           JSON.stringify({
-            query: {
-              contractAddress,
-              functionName,
-              args,
+            result: {
+              query: {
+                contractAddress,
+                functionName,
+                args,
+              },
+              error:
+                e instanceof Error
+                  ? e.message
+                  : "Something went wrong. Check server logs for more",
             },
-            error:
-              e instanceof Error
-                ? e.message
-                : "Something went wrong. Check server logs for more",
           }),
         );
       }
