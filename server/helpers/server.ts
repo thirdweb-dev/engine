@@ -100,6 +100,13 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
 
   await server.register(apiRoutes);
 
+  // Add Health Check
+  server.get("/health", async () => {
+    return {
+      status: "OK",
+    };
+  });
+
   await server.ready();
 
   // Command to Generate Swagger File
