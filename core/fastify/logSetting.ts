@@ -1,5 +1,5 @@
 import { PinoLoggerOptions } from "fastify/types/logger";
-import { env } from "../../env";
+import { env } from "../env";
 
 const pinoLogOptions: PinoLoggerOptions = {
   redact: ["headers.authorization"],

@@ -1,9 +1,8 @@
 import { BigNumber, providers } from "ethers";
 import { Knex } from "knex";
-import { createCustomError } from "../../core";
-import { env } from "../../env";
+import { createCustomError, env } from "../../core";
 
-const TRANSACTIONS_TO_BATCH = env.TRANSACTIONS_TO_BATCH
+const TRANSACTIONS_TO_BATCH = env.TRANSACTIONS_TO_BATCH;
 
 export const getWalletDetailsWithTrx = async (
   walletAddress: string,

@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { env } from "../../env";
+import { env } from "../env";
 import { CustomError } from "./customError";
 import { getCodeFromStatusCode } from "./errorCodes";
 
@@ -22,10 +22,7 @@ export const errorHandler = async (server: FastifyInstance) => {
           code,
           message,
           statusCode,
-          stack:
-            env.NODE_ENV !== "production"
-              ? error.stack
-              : undefined,
+          stack: env.NODE_ENV !== "production" ? error.stack : undefined,
         },
       });
     } else {
@@ -35,10 +32,7 @@ export const errorHandler = async (server: FastifyInstance) => {
           statusCode: 500,
           code: "INTERNAL_SERVER_ERROR",
           message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
-          stack:
-            env.NODE_ENV !== "production"
-              ? error.stack
-              : undefined,
+          stack: env.NODE_ENV !== "production" ? error.stack : undefined,
         },
       });
     }

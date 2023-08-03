@@ -24,7 +24,7 @@
     "worker/**/*.ts",
     "worker/**/*.d.ts",
     "worker/**/*.js",
-    "./env.ts"
+    "core/env.ts"
   ],
   "exclude": ["node_modules"]
 }
