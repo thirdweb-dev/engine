@@ -1,7 +1,7 @@
 import swagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
-import { getEnv } from "../../core/loadEnv";
 import { FastifyInstance } from "fastify";
+import { env } from "../../core";
 
 // fastify-swagger v8 requires the swagger-ui & openapi specs
 // to be separate unlike old implementation
@@ -21,12 +21,12 @@ export const openapi = async (server: FastifyInstance) => {
       },
       servers: [
         {
-          url: getEnv("OPENAPI_BASE_ORIGIN", "http://localhost:3005"),
+          url: env.OPENAPI_BASE_ORIGIN,
         },
       ],
       components: {
         securitySchemes: {
-          sharedSecret: {
+          secretKey: {
             type: "apiKey",
             name: "x-secret-key",
             in: "header",
@@ -36,7 +36,7 @@ export const openapi = async (server: FastifyInstance) => {
       },
       security: [
         {
-          sharedSecret: [],
+          secretKey: [],
         },
       ],
     },

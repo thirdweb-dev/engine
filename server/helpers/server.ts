@@ -1,54 +1,12 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { getLogSettings, errorHandler, getEnv } from "../../core";
 import fastify, { FastifyInstance } from "fastify";
-import { apiRoutes } from "../../server/api";
-import { openapi } from "./openapi";
 import * as fs from "fs";
-import { authorizeNode } from "@thirdweb-dev/service-utils/node";
-import { AuthorizationResult } from "@thirdweb-dev/service-utils/dist/declarations/src/core/authorize/types.js";
-
-const THIRDWEB_SDK_SECRET_KEY = getEnv("THIRDWEB_SDK_SECRET_KEY");
-
-const performAuthentication = async (
-  request: any,
-): Promise<AuthorizationResult> => {
-  const secretKey = request.headers["x-secret-key"];
-  if (secretKey && secretKey === THIRDWEB_SDK_SECRET_KEY) {
-    const authorized = await authorizeNode(
-      {
-        req: request,
-      },
-      {
-        apiUrl: getEnv("THIRDWEB_API_ORIGIN"),
-        serviceScope: "storage",
-        serviceAction: "write",
-        enforceAuth: true,
-        serviceApiKey: "",
-      },
-    );
-
-    if (!authorized.authorized) {
-      return {
-        authorized: false,
-        status: authorized.status,
-        errorMessage: authorized.errorMessage,
-        errorCode: authorized.errorCode,
-      };
-    }
-    return {
-      authorized: true,
-      apiKeyMeta: authorized.apiKeyMeta,
-    };
-  }
-  return {
-    authorized: false,
-    status: 401,
-    errorMessage: "Missing Secret Key",
-    errorCode: "MISSING_SECRET_KEY",
-  };
-};
+import { env, errorHandler, getLogSettings } from "../../core";
+import { apiRoutes } from "../../server/api";
+import { authMiddleware } from "../middleware/authenticate";
+import { openapi } from "./openapi";
 
 const createServer = async (serverName: string): Promise<FastifyInstance> => {
   const logOptions = getLogSettings(serverName);
@@ -86,19 +44,9 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
         request.log.info({ ...request.query }, "Request Querystring : ");
       }
     }
-
-    // if (request.method === "POST") {
-    //   //TODO check if this covers all request types that need to be gated
-    //   //probably add admin actions, maybe everythign under /wallets to be also gated
-    //   const isAuthenticated = await performAuthentication(request);
-
-    //   if (!isAuthenticated.authorized) {
-    //     // Modify the response to send a "403 Forbidden" error
-    //     reply.code(403).send({ error: "Forbidden" });
-    //     return;
-    //   }
-    // }
   });
+
+  server.addHook("preHandler", authMiddleware);
 
   server.addHook("onResponse", (request, reply, done) => {
     if (
@@ -117,9 +65,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await errorHandler(server);
-  const originArray = getEnv("ACCESS_CONTROL_ALLOW_ORIGIN", "*").split(
-    ",",
-  ) as string[];
+  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
   await server.register(fastifyCors, {
     origin: originArray.map((data) => {
       if (data.startsWith("/") && data.endsWith("/")) {
@@ -150,7 +96,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   server.swagger();
 
   // To Generate Swagger YAML File
-  if (getEnv("NODE_ENV") === "local") {
+  if (env.NODE_ENV === "local") {
     const yaml = server.swagger({ yaml: true });
     fs.writeFileSync("./swagger.yml", yaml);
   }

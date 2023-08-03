@@ -1,27 +1,22 @@
+import { BigNumber, ethers } from "ethers";
 import { FastifyInstance } from "fastify";
+import { StatusCodes } from "http-status-codes";
+import { Knex } from "knex";
 import {
   connectWithDatabase,
   createCustomError,
-  getEnv,
+  env,
   getSDK,
 } from "../../core";
 import { getWalletNonce } from "../../core/services/blockchain";
 import {
-  getWalletDetailsWithTrx,
   getTransactionsToProcess,
+  getWalletDetailsWithTrx,
   updateTransactionState,
   updateWalletNonceValue,
 } from "../services/dbOperations";
-import { BigNumber, ethers } from "ethers";
-import { Knex } from "knex";
-import { StatusCodes } from "http-status-codes";
 
-const MIN_TRANSACTION_TO_PROCESS_DEFAULT = 1;
-const MIN_TRANSACTION_TO_PROCESS =
-  parseInt(
-    getEnv("MIN_TRANSACTION_TO_PROCESS", MIN_TRANSACTION_TO_PROCESS_DEFAULT),
-    10,
-  ) ?? 1;
+const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS;
 
 export const processTransaction = async (
   server: FastifyInstance,
@@ -76,18 +71,12 @@ export const processTransaction = async (
 
       if (BigNumber.from(blockchainNonce).gt(lastUsedNonce)) {
         txSubmittedNonce = BigNumber.from(blockchainNonce);
-        server.log.debug("Blockchain Nonce", blockchainNonce);
       } else {
         txSubmittedNonce = BigNumber.from(1).add(lastUsedNonce);
-        server.log.debug("Blockchain Nonce !== Last Used", blockchainNonce);
       }
 
       await updateTransactionState(knex, tx.identifier, "processed", trx);
       // Get the nonce for the blockchain transaction
-
-      // server.log.info(
-      //   `Tx Request: ${tx.identifier}, Tx Request Submit Nonce: ${txSubmittedNonce}, Wallet Nonce on DB ${lastUsedNonce}`,
-      // );
 
       // Submit transaction to the blockchain
       // Create transaction object
