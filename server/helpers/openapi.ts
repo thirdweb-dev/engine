@@ -26,17 +26,17 @@ export const openapi = async (server: FastifyInstance) => {
       ],
       components: {
         securitySchemes: {
-          secretKey: {
-            type: "apiKey",
-            name: "x-secret-key",
-            in: "header",
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
             description: "For Secure Server-Server Calls",
           },
         },
       },
       security: [
         {
-          secretKey: [],
+          bearerAuth: [],
         },
       ],
     },

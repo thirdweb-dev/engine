@@ -60,7 +60,7 @@ View all end-points details (Open API Specification) : https://web3-api-akbv.cha
 | Required |
 | -------- |
 
-All Requests need to have `x-secret-key` header with the value of `THIRDWEB_SDK_SECRET_KEY` from the `.env` file.
+All Requests need to have `Authorization` header with the value of `Bearer <YOUR_THIRDWEB_SDK_SECRET_KEY>` from the `.env` file.
 
 ### Wallet Setup
 

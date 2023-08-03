@@ -10,6 +10,6 @@ echo $BENCHMARK_POST_BODY > post_data.json
 
 /usr/bin/ab -p ./post_data.json \
   -T 'application/json' \
-  -H 'x-secret-key:<copy_your_tw_secret_key_from_env_file>' \
+  -H 'Authorization: Bearer <copy_your_tw_secret_key_from_env_file>' \
   -c $BENCHMARK_CONCURRENCY -n $BENCHMARK_REQUESTS \
   "$BENCHMARK_HOST$BENCHMARK_URL_PATH"

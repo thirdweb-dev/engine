@@ -8,8 +8,10 @@ export const performAuthentication = async (
 ) => {
   // v0.1.0
   // Next version will be more comprehensive and will use JWT with our AUTH SDK
-  const secretKey = request.headers["x-secret-key"];
-  if (secretKey !== env.THIRDWEB_SDK_SECRET_KEY) {
+  const auth = request.headers.authorization;
+  const token = auth?.split(" ")[1];
+
+  if (token !== env.THIRDWEB_SDK_SECRET_KEY) {
     return reply.status(401).send({
       error: "Unauthorized",
       message: "Please provide a valid secret key",
