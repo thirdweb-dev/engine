@@ -5,7 +5,7 @@ import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
 import { env, errorHandler, getLogSettings } from "../../core";
 import { apiRoutes } from "../../server/api";
-import { authMiddleware } from "../middleware/authenticate";
+import { authMiddleware } from "../middleware/auth";
 import { openapi } from "./openapi";
 
 const createServer = async (serverName: string): Promise<FastifyInstance> => {
