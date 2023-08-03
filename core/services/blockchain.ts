@@ -132,8 +132,9 @@ export const removeSubscription = ({
       }
     }
     server.log.info(
-      `Number of listeners left for ${querySubscriptionKey}`,
-      Object.keys(networkSubscriptions.get(querySubscriptionKey) ?? {}).length,
+      `Number of listeners left for ${querySubscriptionKey}: ${
+        Object.keys(networkSubscriptions.get(querySubscriptionKey) ?? {}).length
+      }`,
     );
   }
 };
@@ -194,8 +195,11 @@ export const queryContracts = async (
       }
     } catch (e) {
       server.log.info(
-        `error calling ${functionName} with ${args} on ${contractAddress} `,
-        e,
+        `error calling ${functionName} with ${args} on ${contractAddress}. ${JSON.stringify(
+          e,
+          null,
+          2,
+        )} `,
       );
       for (const ws of Object.values(webSockets)) {
         ws.send(
