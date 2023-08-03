@@ -68,18 +68,12 @@ export const addSubscription = ({
 
   const networkSubscriptions = subscriptions.get(subscriptionKey);
   if (networkSubscriptions) {
-    console.log(
-      "before networkSubscriptions.get(webSocketKey).size",
-      networkSubscriptions.get(webSocketKey)?.size,
-    );
     const webSockets = networkSubscriptions.get(webSocketKey);
     if (webSockets) {
       webSockets[websocketId] = ws;
+    } else {
+      networkSubscriptions.set(webSocketKey, { [websocketId]: ws });
     }
-    console.log(
-      "after networkSubscriptions.get(webSocketKey).size",
-      networkSubscriptions.get(webSocketKey)?.size,
-    );
   } else {
     const networkSubscriptions = new Map<string, Record<string, WebSocket>>();
     networkSubscriptions.set(webSocketKey, { [websocketId]: ws });
@@ -131,18 +125,11 @@ export const removeSubscription = (
 };
 
 export const queryContracts = async (network: string, blockNumber: number) => {
-  if (isQuerying.get(network)) {
-    console.log(`already querying ${network}`);
-    return;
-  }
-  isQuerying.set(network, true);
-
   console.log(
     `querying contracts on ${network} with blockNumber ${blockNumber}`,
   );
   const networkSubscriptions = subscriptions.get(network);
   if (!networkSubscriptions) {
-    isQuerying.set(network, false);
     return;
   }
 
@@ -150,6 +137,17 @@ export const queryContracts = async (network: string, blockNumber: number) => {
   const contractReads = items.map(async ([key, webSockets]) => {
     const { contractAddress, functionName, args } =
       getFunctionContractAddressAndArgsFromKey(key);
+
+    const queryKey = network + key;
+
+    if (isQuerying.get(queryKey)) {
+      console.log(
+        `already querying ${contractAddress}'s ${functionName} with ${args} on ${network}, skipping`,
+      );
+      return;
+    }
+    isQuerying.set(queryKey, true);
+
     try {
       const contract = await getContractInstance(network, contractAddress);
       let returnData = await contract.call(
@@ -194,14 +192,14 @@ export const queryContracts = async (network: string, blockNumber: number) => {
           }),
         );
       }
+    } finally {
+      isQuerying.set(queryKey, false);
     }
   });
   await Promise.all(contractReads);
   console.log(
     `done querying contracts on ${network} with blockNumber ${blockNumber}`,
   );
-
-  isQuerying.set(network, false);
 };
 
 export const startSubscription = async (network: string) => {
