@@ -145,6 +145,9 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
 
   await server.register(fastifyExpress);
   await server.register(fastifyWebsocket);
+  server.websocketServer.on("connection", onConnection);
+  const interval = checkConnection(server.websocketServer);
+  server.websocketServer.on("close", closeConnection(interval));
 
   openapi(server);
 
