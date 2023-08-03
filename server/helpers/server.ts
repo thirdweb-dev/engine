@@ -27,6 +27,8 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     }
   });
 
+  server.addHook("onRequest", authMiddleware);
+
   server.addHook("preHandler", async (request, reply) => {
     if (
       !request.routerPath?.includes("static") &&
@@ -45,8 +47,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       }
     }
   });
-
-  server.addHook("preHandler", authMiddleware);
 
   server.addHook("onResponse", (request, reply, done) => {
     if (
