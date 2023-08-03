@@ -15,10 +15,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Enable experimental CLI features
+        run: |
+          mkdir -p ~/.docker
+          echo '{"experimental": "enabled"}' > ~/.docker/config.json
+
       - name: Pull Nightly Image
         run: docker pull thirdweb/web3-api:nightly
 
-      - name: Retag as Latest
+      - name: Create and Push Latest Manifest
         run: |
-          docker tag thirdweb/web3-api:nightly thirdweb/web3-api:latest
-          docker push thirdweb/web3-api:latest
+          docker manifest create thirdweb/web3-api:latest thirdweb/web3-api:nightly
+          docker manifest push thirdweb/web3-api:latest
