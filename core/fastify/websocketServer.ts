@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import WebSocket from "ws";
+import type WebSocket from "ws";
 
 interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;
