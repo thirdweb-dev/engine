@@ -33,6 +33,6 @@ jobs:
       - name: Create and Push Latest Manifest
         run: |
           IFS=" " read -r -a array <<< "${{ steps.fetch-manifest.outputs.digests }}"
-          docker manifest create thirdweb/web3-api:latest "${array[@]/#/@}"
+          docker manifest create thirdweb/web3-api:latest "${array[@]/#/'thirdweb/web3-api@'}"
           docker manifest push thirdweb/web3-api:latest
         shell: bash
