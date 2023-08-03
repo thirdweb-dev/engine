@@ -1,18 +1,18 @@
 import { FastifyInstance } from "fastify";
+import { getContractExtensions } from "./contract/metadata/extensions";
 import { readContract } from "./contract/read/read";
 import { writeToContract } from "./contract/write/write";
-import { getContractExtensions } from "./contract/metadata/extensions";
 
-import { checkTxStatus } from "./transaction/status";
 import { getAllTx } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
+import { checkTxStatus } from "./transaction/status";
 
 // Extensions
+import { erc1155Routes } from "./contract/extensions/erc1155";
 import { erc20Routes } from "./contract/extensions/erc20/index";
 import { erc721Routes } from "./contract/extensions/erc721";
-import { erc1155Routes } from "./contract/extensions/erc1155";
-import { prebuiltsRoutes } from "./deployer";
 import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
+import { prebuiltsRoutes } from "./deployer";
 
 // Chain
 import { getChainData } from "./network/get";
@@ -29,9 +29,9 @@ import { grantRole } from "./contract/roles/write/grant";
 import { revokeRole } from "./contract/roles/write/revoke";
 
 // Contract Metadata
+import { getABI } from "./contract/metadata/abi";
 import { extractEvents } from "./contract/metadata/events";
 import { extractFunctions } from "./contract/metadata/functions";
-import { getABI } from "./contract/metadata/abi";
 
 // Admin Wallet
 import { getBalance } from "./wallet/getBalance";

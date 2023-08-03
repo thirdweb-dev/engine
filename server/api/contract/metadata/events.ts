@@ -1,3 +1,4 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../core";
@@ -5,7 +6,6 @@ import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
 import { abiEventSchema } from "../../../schemas/contract";
 
 const requestSchema = contractParamSchema;
@@ -79,7 +79,7 @@ export async function extractEvents(fastify: FastifyInstance) {
 
       const contract = await getContractInstance(network, contract_address);
 
-      let returnData = await contract.publishedMetadata.extractEvents();
+      const returnData = await contract.publishedMetadata.extractEvents();
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

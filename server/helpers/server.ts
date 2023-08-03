@@ -7,11 +7,16 @@ import { authorizeNode } from "@thirdweb-dev/service-utils/node";
 import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
 import { errorHandler, getLogSettings } from "../../core";
+import {
+  checkConnection,
+  closeConnection,
+  onConnection,
+} from "../../core/fastify/websocketServer";
 import { env } from "../../env";
 import { apiRoutes } from "../../server/api";
 import { openapi } from "./openapi";
 
-const THIRDWEB_SDK_SECRET_KEY = env.THIRDWEB_SDK_SECRET_KEY
+const THIRDWEB_SDK_SECRET_KEY = env.THIRDWEB_SDK_SECRET_KEY;
 
 const performAuthentication = async (
   request: any,
@@ -42,6 +47,7 @@ const performAuthentication = async (
     return {
       authorized: true,
       apiKeyMeta: authorized.apiKeyMeta,
+      accountMeta: authorized.accountMeta,
     };
   }
   return {
@@ -108,7 +114,8 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       !request.routerPath?.includes("json")
     ) {
       request.log.info(
-        `Request completed - ${request.method} - ${reply.request.routerPath
+        `Request completed - ${request.method} - ${
+          reply.request.routerPath
         } - StatusCode: ${reply.statusCode} - Response Time: ${reply
           .getResponseTime()
           .toFixed(2)}ms`,
@@ -118,9 +125,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await errorHandler(server);
-  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(
-    ",",
-  ) as string[];
+  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
   await server.register(fastifyCors, {
     origin: originArray.map((data) => {
       if (data.startsWith("/") && data.endsWith("/")) {
