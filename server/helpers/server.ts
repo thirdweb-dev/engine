@@ -5,7 +5,7 @@ import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
 import { env, errorHandler, getLogSettings } from "../../core";
 import { apiRoutes } from "../../server/api";
-import { authMiddleware } from "../middleware/auth";
+import { performAuthentication } from "../middleware/auth";
 import { openapi } from "./openapi";
 
 const createServer = async (serverName: string): Promise<FastifyInstance> => {
@@ -25,9 +25,20 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
         `Request received - ${request.method} - ${request.routerPath}`,
       );
     }
-  });
 
-  server.addHook("onRequest", authMiddleware);
+    const { url } = request;
+    // Skip Authentication for Health Check and Static Files and JSON Files for Swagger
+    // Doing Auth check onRequest helps prevent unauthenticated requests from consuming server resources.
+    if (
+      url === "/health" ||
+      url.startsWith("/static") ||
+      url.startsWith("/json")
+    ) {
+      return;
+    }
+
+    await performAuthentication(request, reply);
+  });
 
   server.addHook("preHandler", async (request, reply) => {
     if (

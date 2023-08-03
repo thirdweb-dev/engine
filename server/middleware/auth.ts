@@ -2,7 +2,7 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 
 import { env } from "../../core";
 
-export const authMiddleware = async (
+export const performAuthentication = async (
   request: FastifyRequest,
   reply: FastifyReply,
 ) => {
