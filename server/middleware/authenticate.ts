@@ -12,7 +12,7 @@ export const authMiddleware = async (
   if (secretKey !== env.THIRDWEB_SDK_SECRET_KEY) {
     return reply.status(401).send({
       error: "Unauthorized",
-      message: "Please provide a valid secret key",
+      message: "Please provide a valid secret key in the header",
     });
   }
 };
