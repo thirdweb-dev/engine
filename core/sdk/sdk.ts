@@ -1,20 +1,20 @@
-import { LocalWallet } from "@thirdweb-dev/wallets";
-import { Chain, getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
-import {
-  ThirdwebSDK,
-  ChainOrRpc,
-  AddressOrEns,
-  SmartContract,
-  BaseContractForAddress,
-} from "@thirdweb-dev/sdk";
-import { ContractAddress } from "@thirdweb-dev/generated-abis";
-import { BaseContract, BigNumber } from "ethers";
 import { Static } from "@sinclair/typebox";
-import { getEnv } from "../loadEnv";
+import { Chain, getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
+import { ContractAddress } from "@thirdweb-dev/generated-abis";
+import {
+  AddressOrEns,
+  BaseContractForAddress,
+  ChainOrRpc,
+  SmartContract,
+  ThirdwebSDK,
+} from "@thirdweb-dev/sdk";
+import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
-import { networkResponseSchema } from "../schema";
-import { isValidHttpUrl } from "../helpers";
+import { BaseContract, BigNumber } from "ethers";
 import * as fs from "fs";
+import { env } from "../env";
+import { isValidHttpUrl } from "../helpers";
+import { networkResponseSchema } from "../schema";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
@@ -25,12 +25,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     return sdkMap[chainName] as ThirdwebSDK;
   }
 
-  const THIRDWEB_API_KEY = getEnv("THIRDWEB_API_KEY");
-  const WALLET_PRIVATE_KEY = getEnv("WALLET_PRIVATE_KEY", undefined);
-  const AWS_REGION = getEnv("AWS_REGION", undefined);
-  const AWS_ACCESS_KEY_ID = getEnv("AWS_ACCESS_KEY_ID", undefined);
-  const AWS_SECRET_ACCESS_KEY = getEnv("AWS_SECRET_ACCESS_KEY", undefined);
-  const AWS_KMS_KEY_ID = getEnv("AWS_KMS_KEY_ID", undefined);
+  const THIRDWEB_SDK_SECRET_KEY = env.THIRDWEB_SDK_SECRET_KEY;
 
   let chain: Chain | null = null;
   let wallet: AwsKmsWallet | LocalWallet | null = null;
@@ -46,19 +41,20 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   }
 
   // Check for KMS
-  if (
-    AWS_ACCESS_KEY_ID &&
-    AWS_SECRET_ACCESS_KEY &&
-    AWS_KMS_KEY_ID &&
-    AWS_REGION
-  ) {
+  if ("AWS_KMS_KEY_ID" in env.WALLET_KEYS) {
+    const AWS_REGION = env.WALLET_KEYS.AWS_REGION;
+    const AWS_ACCESS_KEY_ID = env.WALLET_KEYS.AWS_ACCESS_KEY_ID;
+    const AWS_SECRET_ACCESS_KEY = env.WALLET_KEYS.AWS_SECRET_ACCESS_KEY;
+    const AWS_KMS_KEY_ID = env.WALLET_KEYS.AWS_KMS_KEY_ID;
+
     wallet = new AwsKmsWallet({
       region: AWS_REGION,
       accessKeyId: AWS_ACCESS_KEY_ID,
       secretAccessKey: AWS_SECRET_ACCESS_KEY,
       keyId: AWS_KMS_KEY_ID,
     });
-  } else if (WALLET_PRIVATE_KEY) {
+  } else if ("WALLET_PRIVATE_KEY" in env.WALLET_KEYS) {
+    const WALLET_PRIVATE_KEY = env.WALLET_KEYS.WALLET_PRIVATE_KEY;
     wallet = new LocalWallet({
       chain,
     });
@@ -74,7 +70,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
   // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
 
-  const CHAIN_OVERRIDES = getEnv("CHAIN_OVERRIDES", undefined);
+  const CHAIN_OVERRIDES = env.CHAIN_OVERRIDES;
   let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
 
   if (CHAIN_OVERRIDES) {
@@ -88,7 +84,8 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   }
 
   const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
-    thirdwebApiKey: THIRDWEB_API_KEY,
+    // thirdwebApiKey: THIRDWEB_API_KEY,
+    secretKey: THIRDWEB_SDK_SECRET_KEY,
     supportedChains: RPC_OVERRIDES,
   });
 

@@ -123,6 +123,7 @@ dist
 .vscode-test
 
 # yarn v2
+yarn-error.log
 .yarn/cache
 .yarn/unplugged
 .yarn/build-state.yml
@@ -131,6 +132,5 @@ dist
 
 swagger.yml
 worker/distWorker/
-.vscode/
 .DS_Store
-scripts/benchmark/post_data.json
+post_data.json

@@ -1,11 +1,12 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { getLogSettings, errorHandler, getEnv } from "../../core";
 import fastify, { FastifyInstance } from "fastify";
-import { apiRoutes } from "../../server/api";
-import { openapi } from "./openapi";
 import * as fs from "fs";
+import { env, errorHandler, getLogSettings } from "../../core";
+import { apiRoutes } from "../../server/api";
+import { performAuthentication } from "../middleware/auth";
+import { openapi } from "./openapi";
 
 const createServer = async (serverName: string): Promise<FastifyInstance> => {
   const logOptions = getLogSettings(serverName);
@@ -15,7 +16,33 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.addHook("preHandler", function (request, reply, done) {
+  server.addHook("onRequest", async (request, reply) => {
+    if (
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json")
+    ) {
+      request.log.info(
+        `Request received - ${request.method} - ${request.routerPath}`,
+      );
+    }
+
+    const { url } = request;
+    // Skip Authentication for Health Check and Static Files and JSON Files for Swagger
+    // Doing Auth check onRequest helps prevent unauthenticated requests from consuming server resources.
+    if (
+      url === "/favicon.ico" ||
+      url === "/" ||
+      url === "/health" ||
+      url.startsWith("/static") ||
+      url.startsWith("/json")
+    ) {
+      return;
+    }
+
+    await performAuthentication(request, reply);
+  });
+
+  server.addHook("preHandler", async (request, reply) => {
     if (
       !request.routerPath?.includes("static") &&
       !request.routerPath?.includes("json")
@@ -32,20 +59,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
         request.log.info({ ...request.query }, "Request Querystring : ");
       }
     }
-
-    done();
-  });
-
-  server.addHook("onRequest", (request, reply, done) => {
-    if (
-      !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json")
-    ) {
-      request.log.info(
-        `Request received - ${request.method} - ${request.routerPath}`,
-      );
-    }
-    done();
   });
 
   server.addHook("onResponse", (request, reply, done) => {
@@ -65,9 +78,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await errorHandler(server);
-  const originArray = getEnv("ACCESS_CONTROL_ALLOW_ORIGIN", "*").split(
-    ",",
-  ) as string[];
+  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
   await server.register(fastifyCors, {
     origin: originArray.map((data) => {
       if (data.startsWith("/") && data.endsWith("/")) {
@@ -91,6 +102,13 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
 
   await server.register(apiRoutes);
 
+  // Add Health Check
+  server.get("/health", async () => {
+    return {
+      status: "OK",
+    };
+  });
+
   await server.ready();
 
   // Command to Generate Swagger File
@@ -98,7 +116,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   server.swagger();
 
   // To Generate Swagger YAML File
-  if (getEnv("NODE_ENV") === "local") {
+  if (env.NODE_ENV === "local") {
     const yaml = server.swagger({ yaml: true });
     fs.writeFileSync("./swagger.yml", yaml);
   }

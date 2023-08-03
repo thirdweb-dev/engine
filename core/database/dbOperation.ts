@@ -1,5 +1,5 @@
-import { WalletData } from "../../core/interfaces/walletData";
 import { Knex } from "knex";
+import { WalletData } from "../interfaces";
 
 export const insertIntoWallets = async (
   walletData: WalletData,

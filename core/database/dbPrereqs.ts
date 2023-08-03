@@ -1,18 +1,15 @@
 import { promises as fs } from "fs";
-import { fileURLToPath } from "url";
 import { dirname } from "path";
+import { fileURLToPath } from "url";
 
-import { getEnv } from "../loadEnv";
-import { connectToDB, connectWithDatabase } from "./dbConnect";
 import { FastifyInstance } from "fastify";
-import { createCustomError } from "../error/customError";
 import { StatusCodes } from "http-status-codes";
+import { env } from "../env";
+import { createCustomError } from "../error/customError";
+import { connectToDB, connectWithDatabase } from "./dbConnect";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-const DB_TABLES_LIST_DEFAULT = "wallets,transactions";
-const DB_TRIGGERS_LIST_DEFAULT = "trigger_notification,trigger_tx_table";
 
 export const checkTablesExistence = async (
   server: FastifyInstance,
@@ -22,14 +19,11 @@ export const checkTablesExistence = async (
     const knex = await connectToDB(server);
 
     // Check if the tables Exists
-    const tablesList: string[] = getEnv(
-      "DB_TABLES_LIST",
-      DB_TABLES_LIST_DEFAULT,
-    )
-      .split(",")
-      .map(function (item: any) {
-        return item.trim();
-      });
+    const tablesList: string[] = env.DB_TABLES_LIST.split(",").map(function (
+      item: any,
+    ) {
+      return item.trim();
+    });
 
     if (!tablesList) {
       const error = createCustomError(
@@ -72,14 +66,11 @@ export const implementTriggerOnStartUp = async (
     // Connect to the DB
     const knex = await connectWithDatabase(server);
 
-    const triggersList: string[] = getEnv(
-      "DB_TRIGGERS_LIST",
-      DB_TRIGGERS_LIST_DEFAULT,
-    )
-      .split(",")
-      .map(function (item: any) {
+    const triggersList: string[] = env.DB_TRIGGERS_LIST.split(",").map(
+      function (item: any) {
         return item.trim();
-      });
+      },
+    );
 
     if (!triggersList) {
       const error = createCustomError(

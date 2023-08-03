@@ -1,17 +1,8 @@
-import { errorHandler } from "../core";
-import fastify, { FastifyInstance } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import fastify, { FastifyInstance } from "fastify";
+import { errorHandler, getLogSettings } from "../core";
 import { startNotificationListener } from "./controller/listener";
-import {
-  getLogSettings,
-  envVariablesCheck,
-  walletEnvVariablesCheck,
-} from "../core";
 import { setupWalletsForWorker } from "./controller/wallet";
-import {
-  WEB3_API_REQUIRED_ENV_VARS,
-  WEB3_API_WALLETS_ENV_VARS,
-} from "../core/constants";
 
 const main = async () => {
   const logOptions = getLogSettings("Worker-Server");
@@ -21,9 +12,6 @@ const main = async () => {
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   await errorHandler(server);
-
-  await envVariablesCheck(server, WEB3_API_REQUIRED_ENV_VARS);
-  await walletEnvVariablesCheck(server, WEB3_API_WALLETS_ENV_VARS);
 
   await setupWalletsForWorker(server);
   // Start Listening to the Table for new insertion

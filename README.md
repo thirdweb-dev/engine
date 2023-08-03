@@ -8,9 +8,9 @@
 <h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> Web3-API Repo</h1>
 
 <p align="center">
-    <!-- <a href="https://github.com/thirdweb-dev/web3-api/actions/workflows/build-test-lint.yml">
-        <img alt="Build Status" src="https://github.com/thirdweb-dev/web3-api/actions/workflows/build-test-lint.yml/badge.svg"/>
-    </a> -->
+    <a href="https://github.com/thirdweb-dev/web3-api/actions/workflows/e2eTest.yml">
+        <img alt="Build Status" src="https://github.com/thirdweb-dev/web3-api/actions/workflows/e2eTest.yml/badge.svg"/>
+    </a>
     <a href="https://discord.gg/thirdweb">
         <img alt="Join our Discord!" src="https://img.shields.io/discord/834227967404146718.svg?color=7289da&label=discord&logo=discord&style=flat"/>
     </a>
@@ -34,25 +34,33 @@ View all end-points details (Open API Specification) : https://web3-api-akbv.cha
 
 ## Environment Variables
 
-| Variable Name            | Description                                                                                                         | Default Value           | Required |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------- |
-| `HOST`                   | Host name of the API Server                                                                                         | `localhost`             | false    |
-| `PORT`                   | Port number of the API Server                                                                                       | `3005`                  | false    |
-| `THIRDWEB_API_KEY`       | API Key to access ThirdWeb API                                                                                      |                         | true     |
-| `POSTGRES_HOST`          | PostgreSQL Host Name                                                                                                |                         | true     |
-| `POSTGRES_DATABASE_NAME` | PostgreSQL Database Name                                                                                            |                         | true     |
-| `POSTGRES_USER`          | PostgreSQL Username                                                                                                 |                         | true     |
-| `POSTGRES_PASSWORD`      | PostgreSQL Password                                                                                                 |                         | true     |
-| `POSTGRES_PORT`          | PostgreSQL Port                                                                                                     |                         | true     |
-| `POSTGRES_USE_SSL`       | Flag to indicate whether to use SSL                                                                                 |                         | true     |
-| `TRANSACTIONS_TO_BATCH`  | Number of transactions to batch process at a time.                                                                  | `10`                    | false    |
-| `CHAIN_OVERRIDES`        | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | false    |
-| `OPENAPI_BASE_ORIGIN`    | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | false    |
+| Variable Name             | Description                                                                                                         | Default Value           | Required |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------- |
+| `HOST`                    | Host name of the API Server                                                                                         | `localhost`             | false    |
+| `PORT`                    | Port number of the API Server                                                                                       | `3005`                  | false    |
+| `THIRDWEB_API_KEY`        | API Key to access ThirdWeb API                                                                                      |                         | true     |
+| `POSTGRES_HOST`           | PostgreSQL Host Name                                                                                                |                         | true     |
+| `POSTGRES_DATABASE_NAME`  | PostgreSQL Database Name                                                                                            |                         | true     |
+| `POSTGRES_USER`           | PostgreSQL Username                                                                                                 |                         | true     |
+| `POSTGRES_PASSWORD`       | PostgreSQL Password                                                                                                 |                         | true     |
+| `POSTGRES_PORT`           | PostgreSQL Port                                                                                                     |                         | true     |
+| `POSTGRES_USE_SSL`        | Flag to indicate whether to use SSL                                                                                 |                         | true     |
+| `TRANSACTIONS_TO_BATCH`   | Number of transactions to batch process at a time.                                                                  | `10`                    | false    |
+| `CHAIN_OVERRIDES`         | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | false    |
+| `OPENAPI_BASE_ORIGIN`     | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | false    |
+| `THIRDWEB_SDK_SECRET_KEY` | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | true     |
 
 ## Setup Instructions
 
 1. Create a `.env` file based off `.env.example` with all the variables filled in.
-2. Update the `THIRDWEB_API_KEY` value on the `.env` file
+2. Update the `THIRDWEB_SDK_SECRET_KEY` value on the `.env` file
+
+### Authentication
+
+| Required |
+| -------- |
+
+All Requests need to have `Authorization` header with the value of `Bearer <YOUR_THIRDWEB_SDK_SECRET_KEY>` from the `.env` file.
 
 ### Wallet Setup
 
