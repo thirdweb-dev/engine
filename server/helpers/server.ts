@@ -30,6 +30,8 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     // Skip Authentication for Health Check and Static Files and JSON Files for Swagger
     // Doing Auth check onRequest helps prevent unauthenticated requests from consuming server resources.
     if (
+      url === "/favicon.ico" ||
+      url === "/" ||
       url === "/health" ||
       url.startsWith("/static") ||
       url.startsWith("/json")
