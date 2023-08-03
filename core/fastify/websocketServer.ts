@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import type WebSocket from "ws";
+import WebSocket from "ws";
 
 interface ExtendedWebSocket extends WebSocket {
   isAlive: boolean;
@@ -16,8 +16,8 @@ export function onConnection(server: FastifyInstance) {
 }
 export function checkConnection(server: FastifyInstance) {
   return (websocketServer: WebSocket.Server) => {
-    return setInterval(function ping() {
-      websocketServer.clients.forEach(function each(ws) {
+    return setInterval(() => {
+      websocketServer.clients.forEach((ws: WebSocket) => {
         if (!("isAlive" in ws)) {
           server.log.warn("Missing 'isAlive' on socket connection");
           return;

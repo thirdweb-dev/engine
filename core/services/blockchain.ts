@@ -1,6 +1,6 @@
 import { BigNumberish, providers as ethersProviders } from "ethers";
 import { FastifyInstance } from "fastify";
-import type WebSocket from "ws";
+import WebSocket from "ws";
 import { bigNumberReplacer } from "../../server/utilities/convertor";
 import { getContractInstance, getSDK } from "../sdk/sdk";
 
