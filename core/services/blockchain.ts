@@ -59,25 +59,25 @@ export const addSubscription = ({
   ws: WebSocket;
   args?: string;
 }) => {
-  const subscriptionKey = network;
-  const webSocketKey = getNetworkSubscriptions({
+  const networkSubscriptionsKey = network;
+  const querySubscriptionKey = getNetworkSubscriptions({
     contractAddress,
     functionName,
     args,
   });
 
-  const networkSubscriptions = subscriptions.get(subscriptionKey);
+  const networkSubscriptions = subscriptions.get(networkSubscriptionsKey);
   if (networkSubscriptions) {
-    const webSockets = networkSubscriptions.get(webSocketKey);
-    if (webSockets) {
-      webSockets[websocketId] = ws;
+    const queries = networkSubscriptions.get(querySubscriptionKey);
+    if (queries) {
+      queries[websocketId] = ws;
     } else {
-      networkSubscriptions.set(webSocketKey, { [websocketId]: ws });
+      networkSubscriptions.set(querySubscriptionKey, { [websocketId]: ws });
     }
   } else {
     const networkSubscriptions = new Map<string, Record<string, WebSocket>>();
-    networkSubscriptions.set(webSocketKey, { [websocketId]: ws });
-    subscriptions.set(subscriptionKey, networkSubscriptions);
+    networkSubscriptions.set(querySubscriptionKey, { [websocketId]: ws });
+    subscriptions.set(networkSubscriptionsKey, networkSubscriptions);
   }
 };
 
@@ -88,38 +88,34 @@ export const removeSubscription = (
   websocketId: string,
   args?: string,
 ) => {
-  const subscriptionKey = network;
-  const webSocketKey = getNetworkSubscriptions({
+  const networkSubscriptionsKey = network;
+  const querySubscriptionKey = getNetworkSubscriptions({
     contractAddress,
     functionName,
     args,
   });
-  const networkSubscriptions = subscriptions.get(subscriptionKey);
+  const networkSubscriptions = subscriptions.get(networkSubscriptionsKey);
   if (networkSubscriptions) {
-    console.log(
-      "before Object.keys(networkSubscriptions.get(webSocketKey) ?? {}).length",
-      Object.keys(networkSubscriptions.get(webSocketKey) ?? {}).length,
-    );
-    const webSockets = networkSubscriptions.get(webSocketKey);
-    if (webSockets) {
-      delete webSockets[websocketId];
-      if (Object.keys(webSockets).length === 0) {
+    const queries = networkSubscriptions.get(querySubscriptionKey);
+    if (queries) {
+      delete queries[websocketId];
+      if (Object.keys(queries).length === 0) {
         console.log("no more websockets for this query, removing query");
-        networkSubscriptions.delete(webSocketKey);
+        networkSubscriptions.delete(querySubscriptionKey);
         if (networkSubscriptions.size === 0) {
           console.log("no more queries for this network, removing network");
-          subscriptions.delete(subscriptionKey);
-          const provider = providers.get(subscriptionKey);
+          subscriptions.delete(networkSubscriptionsKey);
+          const provider = providers.get(networkSubscriptionsKey);
           if (provider) {
             provider.removeAllListeners();
           }
-          isActive.set(subscriptionKey, false);
+          isActive.set(networkSubscriptionsKey, false);
         }
       }
     }
     console.log(
-      "after Object.keys(networkSubscriptions.get(webSocketKey) ?? {}).length",
-      Object.keys(networkSubscriptions.get(webSocketKey) ?? {}).length,
+      `Number of listeners for ${querySubscriptionKey}`,
+      Object.keys(networkSubscriptions.get(querySubscriptionKey) ?? {}).length,
     );
   }
 };
@@ -133,20 +129,20 @@ export const queryContracts = async (network: string, blockNumber: number) => {
     return;
   }
 
-  const items = Array.from(networkSubscriptions.entries());
-  const contractReads = items.map(async ([key, webSockets]) => {
+  const queries = Array.from(networkSubscriptions.entries());
+  // TODO: Use multiCall to optimize this
+  const contractReads = queries.map(async ([query, webSockets]) => {
     const { contractAddress, functionName, args } =
-      getFunctionContractAddressAndArgsFromKey(key);
+      getFunctionContractAddressAndArgsFromKey(query);
 
-    const queryKey = network + key;
-
-    if (isQuerying.get(queryKey)) {
+    const isQueryingKey = network + query;
+    if (isQuerying.get(isQueryingKey)) {
       console.log(
         `already querying ${contractAddress}'s ${functionName} with ${args} on ${network}, skipping`,
       );
       return;
     }
-    isQuerying.set(queryKey, true);
+    isQuerying.set(isQueryingKey, true);
 
     try {
       const contract = await getContractInstance(network, contractAddress);
@@ -155,9 +151,8 @@ export const queryContracts = async (network: string, blockNumber: number) => {
         args ? args.split(",") : [],
       );
       returnData = bigNumberReplacer(returnData);
-      console.log("returnData", returnData);
-      console.log("lastValues.get(key)", lastValues.get(key));
-      if (lastValues.get(key) !== returnData) {
+      console.log({ newValue: returnData, oldValue: lastValues.get(query) });
+      if (lastValues.get(query) !== returnData) {
         for (const ws of Object.values(webSockets)) {
           ws.send(
             JSON.stringify({
@@ -170,7 +165,7 @@ export const queryContracts = async (network: string, blockNumber: number) => {
             }),
           );
         }
-        lastValues.set(key, returnData);
+        lastValues.set(query, returnData);
       }
     } catch (e) {
       console.log(
@@ -193,12 +188,12 @@ export const queryContracts = async (network: string, blockNumber: number) => {
         );
       }
     } finally {
-      isQuerying.set(queryKey, false);
+      isQuerying.set(isQueryingKey, false);
     }
   });
   await Promise.all(contractReads);
   console.log(
-    `done querying contracts on ${network} with blockNumber ${blockNumber}`,
+    `Done querying contracts on ${network} with blockNumber ${blockNumber}`,
   );
 };
 
