@@ -2,9 +2,13 @@ import { BigNumber, ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
-import { connectWithDatabase, createCustomError, getSDK } from "../../core";
+import {
+  connectWithDatabase,
+  createCustomError,
+  env,
+  getSDK,
+} from "../../core";
 import { getWalletNonce } from "../../core/services/blockchain";
-import { env } from "../../env";
 import {
   getTransactionsToProcess,
   getWalletDetailsWithTrx,

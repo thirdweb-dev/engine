@@ -1,6 +1,4 @@
-import { checkTablesExistence, implementTriggerOnStartUp } from "../core";
-import "../env";
-import { env } from "../env";
+import { checkTablesExistence, env, implementTriggerOnStartUp } from "../core";
 import createServer from "./helpers/server";
 
 const main = async () => {

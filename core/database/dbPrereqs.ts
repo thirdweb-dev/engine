@@ -4,13 +4,12 @@ import { fileURLToPath } from "url";
 
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../../env";
+import { env } from "../env";
 import { createCustomError } from "../error/customError";
 import { connectToDB, connectWithDatabase } from "./dbConnect";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
 
 export const checkTablesExistence = async (
   server: FastifyInstance,
@@ -20,11 +19,11 @@ export const checkTablesExistence = async (
     const knex = await connectToDB(server);
 
     // Check if the tables Exists
-    const tablesList: string[] = env.DB_TABLES_LIST
-      .split(",")
-      .map(function (item: any) {
-        return item.trim();
-      });
+    const tablesList: string[] = env.DB_TABLES_LIST.split(",").map(function (
+      item: any,
+    ) {
+      return item.trim();
+    });
 
     if (!tablesList) {
       const error = createCustomError(
@@ -67,11 +66,11 @@ export const implementTriggerOnStartUp = async (
     // Connect to the DB
     const knex = await connectWithDatabase(server);
 
-    const triggersList: string[] = env.DB_TRIGGERS_LIST
-      .split(",")
-      .map(function (item: any) {
+    const triggersList: string[] = env.DB_TRIGGERS_LIST.split(",").map(
+      function (item: any) {
         return item.trim();
-      });
+      },
+    );
 
     if (!triggersList) {
       const error = createCustomError(

@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { FastifyInstance } from "fastify";
 import request from "supertest";
+import { env } from "../../core";
 import createServer from "../../server/helpers/server";
 import { awaitTransactionSubmission } from "../helpers";
 
@@ -12,6 +13,7 @@ describe("Deploy EditionDrop to Test : Contract Endpoints", () => {
     createdServerInstance = await createServer("Test-Suite");
     const contractDeployedResponse = await request(createdServerInstance.server)
       .post("/deployer/localhost/prebuilts/editionDrop")
+      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
       .send({
         contractMetadata: {
           name: "Test",
@@ -41,6 +43,7 @@ describe("Deploy EditionDrop to Test : Contract Endpoints", () => {
 
       const response = await request(createdServerInstance.server)
         .get(`/contract/localhost/${deployedContractAddress}/roles/getAll`)
+        .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
         .send();
 
       expect(response.status).to.equal(200);

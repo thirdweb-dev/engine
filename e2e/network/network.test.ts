@@ -1,7 +1,8 @@
-import request from "supertest";
-import createServer from "../../server/helpers/server";
 import { expect } from "chai";
 import { FastifyInstance } from "fastify";
+import request from "supertest";
+import { env } from "../../core";
+import createServer from "../../server/helpers/server";
 
 describe("Network Endpoint Test", () => {
   let createdServerInstance: FastifyInstance;
@@ -11,9 +12,10 @@ describe("Network Endpoint Test", () => {
   });
 
   it("should return mumbai network details", async () => {
-    const response = await request(createdServerInstance.server).get(
-      "/network/get?network=mumbai",
-    );
+    const response = await request(createdServerInstance.server)
+      .get("/network/get?network=mumbai")
+      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+      .send();
 
     expect(response.status).to.equal(200);
 
@@ -32,9 +34,10 @@ describe("Network Endpoint Test", () => {
   });
 
   it("should return all 700+ network details", async () => {
-    const response = await request(createdServerInstance.server).get(
-      "/network/getAll",
-    );
+    const response = await request(createdServerInstance.server)
+      .get("/network/getAll")
+      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+      .send();
 
     expect(response.status).to.equal(200);
 

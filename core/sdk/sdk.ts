@@ -12,7 +12,7 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { BaseContract, BigNumber } from "ethers";
 import * as fs from "fs";
-import { env } from "../../env";
+import { env } from "../env";
 import { isValidHttpUrl } from "../helpers";
 import { networkResponseSchema } from "../schema";
 
