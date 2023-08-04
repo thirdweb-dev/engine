@@ -57,7 +57,6 @@ export async function readContract(fastify: FastifyInstance) {
         args ? args.split(",") : [],
       );
       returnData = bigNumberReplacer(returnData);
-
       reply.status(StatusCodes.OK).send({
         result: returnData,
       });
