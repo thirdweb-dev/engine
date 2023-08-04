@@ -72,6 +72,19 @@ export const addSubscription = ({
     const queries = networkSubscriptions.get(querySubscriptionKey);
     if (queries) {
       queries[websocketId] = ws;
+      const returnData = lastValues.get(querySubscriptionKey);
+      ws.send(
+        JSON.stringify({
+          result: {
+            query: {
+              contractAddress,
+              functionName,
+              args,
+            },
+            data: returnData,
+          },
+        }),
+      );
     } else {
       networkSubscriptions.set(querySubscriptionKey, { [websocketId]: ws });
     }
@@ -120,6 +133,7 @@ export const removeSubscription = ({
       if (Object.keys(queries).length === 0) {
         server.log.info("no more websockets for this query, removing query");
         networkSubscriptions.delete(querySubscriptionKey);
+        lastValues.delete(querySubscriptionKey);
         if (networkSubscriptions.size === 0) {
           server.log.info("no more queries for this network, removing network");
           subscriptions.delete(networkSubscriptionsKey);
@@ -178,7 +192,10 @@ export const queryContracts = async (
         newValue: returnData,
         oldValue: lastValues.get(query),
       });
-      if (lastValues.get(query) !== returnData) {
+      if (
+        // naive deep comparer
+        JSON.stringify(lastValues.get(query)) !== JSON.stringify(returnData)
+      ) {
         for (const ws of Object.values(webSockets)) {
           ws.send(
             JSON.stringify({

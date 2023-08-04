@@ -22,6 +22,12 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
+  // we have to register websocket first so that we can detect the type of connection subsequently
+  await server.register(fastifyWebsocket);
+  server.websocketServer.on("connection", onConnection(server));
+  const interval = checkConnection(server)(server.websocketServer);
+  server.websocketServer.on("close", closeConnection(interval));
+
   server.addHook("onRequest", async (request, reply) => {
     if (
       !request.routerPath?.includes("static") &&
@@ -33,14 +39,17 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     }
 
     const { url } = request;
+
     // Skip Authentication for Health Check and Static Files and JSON Files for Swagger
+    // Also temporarily skip for Websocket Connections
     // Doing Auth check onRequest helps prevent unauthenticated requests from consuming server resources.
     if (
       url === "/favicon.ico" ||
       url === "/" ||
       url === "/health" ||
       url.startsWith("/static") ||
-      url.startsWith("/json")
+      url.startsWith("/json") ||
+      request.ws
     ) {
       return;
     }
@@ -103,10 +112,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await server.register(fastifyExpress);
-  await server.register(fastifyWebsocket);
-  server.websocketServer.on("connection", onConnection(server));
-  const interval = checkConnection(server)(server.websocketServer);
-  server.websocketServer.on("close", closeConnection(interval));
 
   openapi(server);
 
