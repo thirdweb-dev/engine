@@ -1,8 +1,8 @@
-import { Type, Static } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
+import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
+import { RouteGenericInterface } from "fastify";
 import { FastifySchema } from "fastify/types/schema";
 import { StatusCodes } from "http-status-codes";
-import { RouteGenericInterface } from "fastify";
-import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
 
 export const baseReplyErrorSchema = Type.Object({
   message: Type.Optional(Type.String()),
@@ -56,7 +56,9 @@ export const publishedDeployParamSchema = Type.Object({
  * Basic schema for all Response Body
  */
 const replyBodySchema = Type.Object({
-  result: Type.Optional(Type.Union([Type.String(), Type.Object({})])),
+  result: Type.Optional(
+    Type.Union([Type.String(), Type.Object({}), Type.Array(Type.Any())]),
+  ),
 });
 
 const replyErrorBodySchema = Type.Object({
