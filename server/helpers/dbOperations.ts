@@ -1,26 +1,25 @@
-import { Knex } from "knex";
+import { Static } from "@sinclair/typebox";
 import { getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
-import { createCustomError } from "../../core/error/customError";
-import { StatusCodes } from "http-status-codes";
-import { v4 as uuid } from "uuid";
-import { connectWithDatabase, getSDK } from "../../core";
-import { FastifyRequest } from "fastify";
 import {
-  ChainId,
   DeployTransaction,
   Transaction,
   TransactionError,
 } from "@thirdweb-dev/sdk";
-import {
-  TransactionStatusEnum,
-  TransactionSchema,
-  transactionResponseSchema,
-} from "../schemas/transaction";
-import { Static } from "@sinclair/typebox";
+import { BigNumber } from "ethers";
+import { FastifyRequest } from "fastify";
+import { StatusCodes } from "http-status-codes";
+import { Knex } from "knex";
+import { v4 as uuid } from "uuid";
+import { connectWithDatabase, getSDK } from "../../core";
+import { insertIntoWallets } from "../../core/database/dbOperation";
+import { createCustomError } from "../../core/error/customError";
 import { WalletData } from "../../core/interfaces";
 import { getWalletNonce } from "../../core/services/blockchain";
-import { BigNumber } from "ethers";
-import { insertIntoWallets } from "../../core/database/dbOperation";
+import {
+  TransactionSchema,
+  TransactionStatusEnum,
+  transactionResponseSchema,
+} from "../schemas/transaction";
 
 const checkNetworkInWalletDB = async (
   database: Knex,
@@ -165,6 +164,7 @@ export const findTxDetailsWithQueueId = async (
     const transformedData = transformData([data]);
     return transformedData[0];
   } catch (error: any) {
+    request.log.error(error);
     const customError = createCustomError(
       `Error while fetching transaction details for identifier: ${queueId} from Table.`,
       StatusCodes.NOT_FOUND,
@@ -222,6 +222,9 @@ const transformData = (
   txResult: TransactionSchema[],
 ): Static<typeof transactionResponseSchema>[] => {
   const transformedData = txResult.map((row) => {
+    if (!row) {
+      return {};
+    }
     let status = "";
     if (row.txMined) {
       status = TransactionStatusEnum.Mined;

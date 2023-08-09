@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { connectWithDatabase } from "../../core";
-import { processTransaction } from "./processTransaction";
 import { queue } from "../services/pQueue";
+import { processTransaction } from "./processTransaction";
 
 export const startNotificationListener = async (
   server: FastifyInstance,
@@ -38,13 +38,15 @@ export const startNotificationListener = async (
 
     connection.on("end", () => {
       server.log.info(`Connection database ended`);
+      knex.client.releaseConnection(connection);
+      server.log.debug(`Released connection : on end`);
     });
 
     connection.on("error", (err: any) => {
       server.log.error(err);
+      knex.client.releaseConnection(connection);
+      server.log.debug(`Released connection: on error`);
     });
-
-    knex.client.releaseConnection(connection);
   } catch (error) {
     server.log.error(`Error in notification listener: ${error}`);
     throw error;
