@@ -77,6 +77,12 @@ export const transactionResponseSchema = Type.Object({
       description: "Transaction Request Creation Timestamp",
     }),
   ),
+  txProcessedTimestamp: Type.Optional(
+    Type.String({
+      description:
+        "Transaction Processed Timestamp (happens right before submission timestamp)",
+    }),
+  ),
   txSubmittedTimestamp: Type.Optional(
     Type.String({
       description: "Transaction Submission Timestamp",
@@ -124,6 +130,7 @@ export interface TransactionSchema {
   status?: string;
   createdTimestamp?: string;
   txSubmittedTimestamp?: string;
+  txProcessedTimestamp?: string;
   submittedTxNonce?: number;
   deployedContractAddress?: string;
   contractType?: string;

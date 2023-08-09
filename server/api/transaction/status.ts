@@ -1,9 +1,9 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { createCustomError } from "../../../core/error/customError";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { findTxDetailsWithQueueId } from "../../helpers";
+import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { transactionResponseSchema } from "../../schemas/transaction";
 
 // INPUT
@@ -39,6 +39,7 @@ responseBodySchema.example = {
     submittedTxNonce: 562,
     createdTimestamp: "2023-06-01T18:56:50.787Z",
     txSubmittedTimestamp: "2023-06-01T18:56:54.908Z",
+    txProcessedTimestamp: "2023-06-01T18:56:54.908Z",
   },
 };
 
