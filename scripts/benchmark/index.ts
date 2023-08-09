@@ -192,6 +192,7 @@ async function processTransaction(
   const erroredTransaction: txn[] = [];
   const submittedTransaction: txn[] = [];
   const processedTransaction: txn[] = [];
+  console.log("statuses", statuses);
   statuses.map((status) => {
     const parsedStatus = parseStatus(status);
     switch (parsedStatus.status) {
@@ -216,14 +217,14 @@ async function processTransaction(
           status: parsedStatus.status,
           timeTaken:
             new Date(parsedStatus.txProcessedTimestamp).getTime() -
-            new Date(parsedStatus.txProcessedTimestamp).getTime(),
+            new Date(parsedStatus.createdTimestamp).getTime(),
         });
         break;
       }
       case "submitted": {
         if (
           !parsedStatus.txSubmittedTimestamp ||
-          !parsedStatus.txProcessedTimestamp
+          !parsedStatus.createdTimestamp
         ) {
           throw new Error(
             `Invalid response from server for submitted transaction: ${JSON.stringify(
@@ -235,7 +236,7 @@ async function processTransaction(
           status: parsedStatus.status,
           timeTaken:
             new Date(parsedStatus.txSubmittedTimestamp).getTime() -
-            new Date(parsedStatus.txProcessedTimestamp).getTime(),
+            new Date(parsedStatus.createdTimestamp).getTime(),
           txnHash: parsedStatus.txHash,
         });
         break;
