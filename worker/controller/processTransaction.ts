@@ -1,4 +1,5 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber, ethers, providers } from "ethers";
+import { parseUnits } from "ethers/lib/utils";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
@@ -8,7 +9,7 @@ import {
   env,
   getSDK,
 } from "../../core";
-import { getWalletNonce } from "../../core/services/blockchain";
+import { getFeeData, getWalletNonce } from "../../core/services/blockchain";
 import {
   getTransactionsToProcess,
   getWalletDetailsWithTrx,
@@ -20,9 +21,10 @@ const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS;
 
 export const processTransaction = async (
   server: FastifyInstance,
-): Promise<void> => {
+): Promise<string[]> => {
   let knex: Knex | null = null;
   let trx: Knex.Transaction | null = null;
+  let processedIds: string[] = [];
   try {
     // Connect to the DB
     knex = await connectWithDatabase(server);
@@ -48,11 +50,13 @@ export const processTransaction = async (
       );
       await trx.commit();
       await knex.destroy();
-      return;
+      return [];
     }
 
+    processedIds = data.rows.map((row: any) => row.identifier);
     for (const tx of data.rows) {
       server.log.info(`Processing Transaction: ${tx.identifier}`);
+
       const walletData = await getWalletDetailsWithTrx(
         tx.walletAddress,
         tx.chainId,
@@ -80,11 +84,19 @@ export const processTransaction = async (
 
       // Submit transaction to the blockchain
       // Create transaction object
-      const txObject = {
+      const feeData = await getFeeData(sdk.getProvider());
+      feeData.maxPriorityFeePerGas = parseUnits("60", "gwei");
+      feeData.maxFeePerGas = feeData.maxPriorityFeePerGas.add(
+        feeData.lastBaseFeePerGas?.mul(2) ?? BigNumber.from(0),
+      );
+
+      const txObject: providers.TransactionRequest = {
         to: tx.contractAddress ?? tx.toAddress,
         from: tx.walletAddress,
         data: tx.encodedInputData,
         nonce: txSubmittedNonce,
+        maxFeePerGas: feeData.maxFeePerGas ?? undefined,
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ?? undefined,
       };
 
       // Send transaction to the blockchain
@@ -150,6 +162,6 @@ export const processTransaction = async (
     if (knex) {
       await knex.destroy();
     }
+    return processedIds;
   }
-  return;
 };
