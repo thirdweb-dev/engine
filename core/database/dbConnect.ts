@@ -90,7 +90,7 @@ export const connectWithDatabase = async (
   };
 
   // Set the appropriate databse client package
-  let dbClientPackage: any;
+  let dbClientPackage: typeof pg;
   switch (dbClient) {
     case "pg":
       dbClientPackage = pg;
