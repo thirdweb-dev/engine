@@ -1,3 +1,8 @@
+// ! Winston Notes: This file is currently not in used.
+// Keeping it around for when we might want to track specific function timings.
+// Note that you cannot track functions in worker and output timings in server.
+// Tracking and outputting timings must be done in the same docker image.
+// Might release this as my own npm package and bring it in as a dependency in the future
 import { randomUUID } from "crypto";
 import { PerformanceObserver, performance } from "perf_hooks";
 
