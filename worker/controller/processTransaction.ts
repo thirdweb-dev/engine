@@ -1,5 +1,4 @@
 import { BigNumber, ethers, providers } from "ethers";
-import { parseUnits } from "ethers/lib/utils";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
@@ -9,7 +8,7 @@ import {
   env,
   getSDK,
 } from "../../core";
-import { getFeeData, getWalletNonce } from "../../core/services/blockchain";
+import { getWalletNonce } from "../../core/services/blockchain";
 import {
   getTransactionsToProcess,
   getWalletDetailsWithTrx,
@@ -84,19 +83,12 @@ export const processTransaction = async (
 
       // Submit transaction to the blockchain
       // Create transaction object
-      const feeData = await getFeeData(sdk.getProvider());
-      feeData.maxPriorityFeePerGas = parseUnits("60", "gwei");
-      feeData.maxFeePerGas = feeData.maxPriorityFeePerGas.add(
-        feeData.lastBaseFeePerGas?.mul(2) ?? BigNumber.from(0),
-      );
 
       const txObject: providers.TransactionRequest = {
         to: tx.contractAddress ?? tx.toAddress,
         from: tx.walletAddress,
         data: tx.encodedInputData,
         nonce: txSubmittedNonce,
-        maxFeePerGas: feeData.maxFeePerGas ?? undefined,
-        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas ?? undefined,
       };
 
       // Send transaction to the blockchain
