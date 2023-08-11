@@ -1,15 +1,15 @@
-import { FastifyInstance } from "fastify";
-import { connectToDB, getSDK } from "../../core";
 import { getChainBySlug } from "@thirdweb-dev/chains";
+import { getSupportedChains } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
+import { FastifyInstance } from "fastify";
+import { Knex } from "knex";
+import { connectToDB, getSDK } from "../../core";
+import { insertIntoWallets } from "../../core/database/dbOperation";
 import { getWalletNonce } from "../../core/services/blockchain";
 import {
   checkTableForPrimaryKey,
   getWalletDetailsWithoutTrx,
 } from "../services/dbOperations";
-import { BigNumber } from "ethers";
-import { Knex } from "knex";
-import { getSupportedChains } from "@thirdweb-dev/sdk";
-import { insertIntoWallets } from "../../core/database/dbOperation";
 
 export const setupWalletsForWorker = async (
   server: FastifyInstance,
