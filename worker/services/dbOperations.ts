@@ -51,6 +51,7 @@ export const updateTransactionState = async (
   state: string,
   trx: Knex.Transaction,
   txResponse?: providers.TransactionResponse | undefined,
+  errorMessage?: string | undefined,
 ): Promise<any> => {
   try {
     let updateData = {};
@@ -79,6 +80,7 @@ export const updateTransactionState = async (
         txProcessed: true,
         txProcessedTimestamp: new Date(),
         updatedTimestamp: new Date(),
+        errorMessage,
       };
     } else {
       const error = createCustomError(

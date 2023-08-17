@@ -107,7 +107,14 @@ export const processTransaction = async (
             trx,
           );
         }
-        await updateTransactionState(knex, tx.identifier, "errored", trx);
+        await updateTransactionState(
+          knex,
+          tx.identifier,
+          "errored",
+          trx,
+          undefined,
+          error.message,
+        );
         await trx.commit();
         await knex.destroy();
         throw error;
