@@ -59,9 +59,7 @@ export const setupWalletsForWorker = async (
           lastUsedNonce = walletDataInDB.lastUsedNonce;
         }
 
-        // Fixing a bug when blockchainNonce is 0 and lastUsedNonce is 0
-        // as lastUsedNonce is set to -1 when wallet is created
-        // for already running web3-api instances
+        // lastUsedNonce should be set to -1 if blockchainNonce is 0
         if (
           BigNumber.from(walletNonce).eq(BigNumber.from(0)) &&
           BigNumber.from(lastUsedNonce).eq(BigNumber.from(0))
