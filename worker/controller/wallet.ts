@@ -45,7 +45,7 @@ export const setupWalletsForWorker = async (
           server.log.warn(`Wallet address not found for chain ${slug}.`);
           continue;
         }
-        const walletNonce = await getWalletNonce(
+        const walletBlockchainNonce = await getWalletNonce(
           walletAddress,
           sdk.getProvider(),
         );
@@ -61,7 +61,7 @@ export const setupWalletsForWorker = async (
 
         // lastUsedNonce should be set to -1 if blockchainNonce is 0
         if (
-          BigNumber.from(walletNonce).eq(BigNumber.from(0)) &&
+          BigNumber.from(walletBlockchainNonce).eq(BigNumber.from(0)) &&
           BigNumber.from(lastUsedNonce).eq(BigNumber.from(0))
         ) {
           lastUsedNonce = -1;
@@ -70,7 +70,9 @@ export const setupWalletsForWorker = async (
         const walletData = {
           walletAddress: walletAddress.toLowerCase(),
           chainId: getChainBySlug(slug).chainId.toString(),
-          blockchainNonce: BigNumber.from(walletNonce ?? 0).toNumber(),
+          blockchainNonce: BigNumber.from(
+            walletBlockchainNonce ?? 0,
+          ).toNumber(),
           lastSyncedTimestamp: new Date(),
           lastUsedNonce,
           walletType: slug,
