@@ -1,15 +1,15 @@
-import { FastifyInstance } from "fastify";
-import { connectToDB, getSDK } from "../../core";
 import { getChainBySlug } from "@thirdweb-dev/chains";
+import { getSupportedChains } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
+import { FastifyInstance } from "fastify";
+import { Knex } from "knex";
+import { connectToDB, getSDK } from "../../core";
+import { insertIntoWallets } from "../../core/database/dbOperation";
 import { getWalletNonce } from "../../core/services/blockchain";
 import {
   checkTableForPrimaryKey,
   getWalletDetailsWithoutTrx,
 } from "../services/dbOperations";
-import { BigNumber } from "ethers";
-import { Knex } from "knex";
-import { getSupportedChains } from "@thirdweb-dev/sdk";
-import { insertIntoWallets } from "../../core/database/dbOperation";
 
 export const setupWalletsForWorker = async (
   server: FastifyInstance,
@@ -36,7 +36,7 @@ export const setupWalletsForWorker = async (
     for (const chain of getSupportedChains()) {
       try {
         const { slug } = chain;
-        let lastUsedNonce = 0;
+        let lastUsedNonce = -1;
         server.log.info(`Setting up wallet for chain ${slug}`);
         const sdk = await getSDK(slug);
         const walletAddress =
@@ -45,7 +45,7 @@ export const setupWalletsForWorker = async (
           server.log.warn(`Wallet address not found for chain ${slug}.`);
           continue;
         }
-        const walletNonce = await getWalletNonce(
+        const walletBlockchainNonce = await getWalletNonce(
           walletAddress,
           sdk.getProvider(),
         );
@@ -59,10 +59,20 @@ export const setupWalletsForWorker = async (
           lastUsedNonce = walletDataInDB.lastUsedNonce;
         }
 
+        // lastUsedNonce should be set to -1 if blockchainNonce is 0
+        if (
+          BigNumber.from(walletBlockchainNonce).eq(BigNumber.from(0)) &&
+          BigNumber.from(lastUsedNonce).eq(BigNumber.from(0))
+        ) {
+          lastUsedNonce = -1;
+        }
+
         const walletData = {
           walletAddress: walletAddress.toLowerCase(),
           chainId: getChainBySlug(slug).chainId.toString(),
-          blockchainNonce: BigNumber.from(walletNonce ?? 0).toNumber(),
+          blockchainNonce: BigNumber.from(
+            walletBlockchainNonce ?? 0,
+          ).toNumber(),
           lastSyncedTimestamp: new Date(),
           lastUsedNonce,
           walletType: slug,
