@@ -1,26 +1,25 @@
-import { Knex } from "knex";
+import { Static } from "@sinclair/typebox";
 import { getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
-import { createCustomError } from "../../core/error/customError";
-import { StatusCodes } from "http-status-codes";
-import { v4 as uuid } from "uuid";
-import { connectWithDatabase, getSDK } from "../../core";
-import { FastifyRequest } from "fastify";
 import {
-  ChainId,
   DeployTransaction,
   Transaction,
   TransactionError,
 } from "@thirdweb-dev/sdk";
-import {
-  TransactionStatusEnum,
-  TransactionSchema,
-  transactionResponseSchema,
-} from "../schemas/transaction";
-import { Static } from "@sinclair/typebox";
+import { BigNumber } from "ethers";
+import { FastifyRequest } from "fastify";
+import { StatusCodes } from "http-status-codes";
+import { Knex } from "knex";
+import { v4 as uuid } from "uuid";
+import { connectWithDatabase, getSDK } from "../../core";
+import { insertIntoWallets } from "../../core/database/dbOperation";
+import { createCustomError } from "../../core/error/customError";
 import { WalletData } from "../../core/interfaces";
 import { getWalletNonce } from "../../core/services/blockchain";
-import { BigNumber } from "ethers";
-import { insertIntoWallets } from "../../core/database/dbOperation";
+import {
+  TransactionSchema,
+  TransactionStatusEnum,
+  transactionResponseSchema,
+} from "../schemas/transaction";
 
 const checkNetworkInWalletDB = async (
   database: Knex,
@@ -92,7 +91,7 @@ export const queueTransaction = async (
       chainId: chainId.toLowerCase(),
       blockchainNonce: BigNumber.from(walletNonce ?? 0).toNumber(),
       lastSyncedTimestamp: new Date(),
-      lastUsedNonce: 0,
+      lastUsedNonce: -1,
       walletType: chainData.slug,
     };
 
