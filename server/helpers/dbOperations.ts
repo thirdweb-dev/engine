@@ -91,7 +91,7 @@ export const queueTransaction = async (
       chainId: chainId.toLowerCase(),
       blockchainNonce: BigNumber.from(walletNonce ?? 0).toNumber(),
       lastSyncedTimestamp: new Date(),
-      lastUsedNonce: 0,
+      lastUsedNonce: -1,
       walletType: chainData.slug,
     };
 
