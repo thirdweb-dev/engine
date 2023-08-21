@@ -30,7 +30,7 @@ function getBenchmarkOpts() {
       "/contract/polygon/0x01De66609582B874FA34ab288859ACC4592aec04/write",
     BENCHMARK_POST_BODY:
       env.BENCHMARK_POST_BODY ??
-      '{ "function_name": "grantRole", "args": ["0x0000000000000000000000000000000000000000000000000000000000000000", "0xcf3d06a19263976a540cff8e7be7b026801c52a6"]}',
+      '{ "function_name": "mintTo", "args": ["0xCF3D06a19263976A540CFf8e7Be7b026801C52A6", "0","", "1"] }',
     BENCHMARK_CONCURRENCY: parseInt(env.BENCHMARK_CONCURRENCY ?? "1"),
     BENCHMARK_REQUESTS: parseInt(env.BENCHMARK_REQUESTS ?? "1"),
   };
