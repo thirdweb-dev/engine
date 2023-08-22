@@ -36,7 +36,6 @@ export const checkTablesExistence = async (
         "utf-8",
       );
       // Create Table using schema
-      server.log.warn(server.hasDecorator("database"));
       await server.database.schema.raw(schemaSQL);
 
       server.log.info(
