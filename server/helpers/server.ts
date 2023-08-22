@@ -4,7 +4,7 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
 import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
-import { env, errorHandler, getLogSettings } from "../../core";
+import { connectToDB, env, errorHandler, getLogSettings } from "../../core";
 import { apiRoutes } from "../../server/api";
 import {
   performHTTPAuthentication,
@@ -19,6 +19,13 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     logger: logOptions ?? true,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
+
+  // Connect to the DB
+  const knex = await connectToDB(server);
+
+  // Decorate the Fastify instance with the knex instance
+  server.decorate("database", knex);
+  server.decorateRequest("database", knex);
 
   server.addHook("onRequest", async (request, reply) => {
     if (

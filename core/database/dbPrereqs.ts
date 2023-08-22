@@ -6,7 +6,6 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../env";
 import { createCustomError } from "../error/customError";
-import { connectToDB, connectWithDatabase } from "./dbConnect";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -15,9 +14,6 @@ export const checkTablesExistence = async (
   server: FastifyInstance,
 ): Promise<void> => {
   try {
-    // Connect to the DB
-    const knex = await connectToDB(server);
-
     // Check if the tables Exists
     const tablesList: string[] = env.DB_TABLES_LIST.split(",").map(function (
       item: any,
@@ -40,7 +36,8 @@ export const checkTablesExistence = async (
         "utf-8",
       );
       // Create Table using schema
-      await knex.schema.raw(schemaSQL);
+      server.log.warn(server.hasDecorator("database"));
+      await server.database.schema.raw(schemaSQL);
 
       server.log.info(
         `SQL for  ${tableName} processed successfully on start-up`,
@@ -48,7 +45,7 @@ export const checkTablesExistence = async (
     }
 
     // Disconnect from DB
-    await knex.destroy();
+    // await knex.destroy();
   } catch (error: any) {
     const customError = createCustomError(
       "Error while executing Table SQLs on startup",
@@ -64,7 +61,7 @@ export const implementTriggerOnStartUp = async (
 ): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectWithDatabase();
+    // const knex = await connectWithDatabase();
 
     const triggersList: string[] = env.DB_TRIGGERS_LIST.split(",").map(
       function (item: any) {
@@ -88,7 +85,7 @@ export const implementTriggerOnStartUp = async (
           `${__dirname}/sql-schemas/${dbTriggers}.sql`,
           "utf-8",
         );
-        await knex.raw(schemaSQL);
+        await server.database.raw(schemaSQL);
       } catch (error) {
         const customError = createCustomError(
           "Error when executing triggers.",
@@ -104,7 +101,7 @@ export const implementTriggerOnStartUp = async (
     }
 
     // Disconnect from DB
-    await knex.destroy();
+    // await knex.destroy();
   } catch (error: any) {
     const customError = createCustomError(
       "Error while executing Trigger/Notification SQLs on startup",

@@ -2,12 +2,7 @@ import { BigNumber, ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
-import {
-  connectWithDatabase,
-  createCustomError,
-  env,
-  getSDK,
-} from "../../core";
+import { createCustomError, env, getSDK } from "../../core";
 import { getWalletNonce } from "../../core/services/blockchain";
 import {
   getTransactionsToProcess,
@@ -20,12 +15,11 @@ const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS;
 
 export const processTransaction = async (
   server: FastifyInstance,
+  knex: Knex,
 ): Promise<void> => {
-  let knex: Knex | null = null;
   let trx: Knex.Transaction | null = null;
   try {
     // Connect to the DB
-    knex = await connectWithDatabase();
     trx = await knex.transaction();
     let data: any;
     try {
@@ -47,7 +41,7 @@ export const processTransaction = async (
         `Waiting for more transactions requests to start processing`,
       );
       await trx.commit();
-      await knex.destroy();
+      // await knex.destroy();
       return;
     }
 
@@ -116,7 +110,7 @@ export const processTransaction = async (
           error.message,
         );
         await trx.commit();
-        await knex.destroy();
+        // await knex.destroy();
         throw error;
       }
 
@@ -146,7 +140,7 @@ export const processTransaction = async (
       }
     }
     await trx.commit();
-    await knex.destroy();
+    // await knex.destroy();
   } catch (error) {
     server.log.error(error);
     if (trx && trx.isCompleted() === false) {
@@ -154,9 +148,9 @@ export const processTransaction = async (
       await trx.rollback();
     }
   } finally {
-    if (knex) {
-      await knex.destroy();
-    }
+    // if (knex) {
+    //   await knex.destroy();
+    // }
   }
   return;
 };

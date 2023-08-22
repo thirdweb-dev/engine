@@ -26,6 +26,17 @@ const main = async () => {
   } catch (err) {
     console.log(err);
   }
+
+  // Listen for the SIGTERM signal (e.g., when the process is being stopped)
+  process.on("SIGTERM", async () => {
+    console.log("Received SIGTERM, shutting down gracefully...");
+
+    // Destroy the knex instance, closing all pooled connections
+    await server.database.destroy();
+
+    console.log("Shutdown complete");
+    process.exit(0);
+  });
 };
 
 main();

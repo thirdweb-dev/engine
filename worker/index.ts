@@ -1,10 +1,12 @@
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import fastify, { FastifyInstance } from "fastify";
 import * as cron from "node-cron";
-import { errorHandler, getLogSettings } from "../core";
+import { connectToDB, env, errorHandler, getLogSettings } from "../core";
 import { checkForMinedTransactionsOnBlockchain } from "./controller/blockchainReader";
 import { startNotificationListener } from "./controller/listener";
 import { setupWalletsForWorker } from "./controller/wallet";
+
+const MINED_TX_CRON_SCHEDULE = env.MINED_TX_CRON_SCHEDULE;
 
 const main = async () => {
   const logOptions = getLogSettings("Worker-Server");
@@ -12,21 +14,33 @@ const main = async () => {
     logger: logOptions ?? true,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
+  const knex = await connectToDB(server);
 
   await errorHandler(server);
 
-  await setupWalletsForWorker(server);
+  await setupWalletsForWorker(server, knex);
   // Start Listening to the Table for new insertion
   await retryWithTimeout(
-    () => startNotificationListener(server),
+    () => startNotificationListener(server, knex),
     3,
     5000,
     server,
   );
 
   // setup a cron job to updated transaction confirmed status
-  cron.schedule("*/15 * * * * *", async () => {
-    await checkForMinedTransactionsOnBlockchain(server);
+  cron.schedule(MINED_TX_CRON_SCHEDULE, async () => {
+    await checkForMinedTransactionsOnBlockchain(server, knex);
+  });
+
+  // Listen for the SIGTERM signal (e.g., when the process is being stopped)
+  process.on("SIGTERM", async () => {
+    console.log("Received SIGTERM, shutting down gracefully...");
+
+    // Destroy the knex instance, closing all pooled connections
+    await knex.destroy();
+
+    console.log("Shutdown complete");
+    process.exit(0);
   });
 };
 

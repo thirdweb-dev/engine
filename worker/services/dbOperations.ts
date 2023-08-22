@@ -4,6 +4,7 @@ import { createCustomError, env } from "../../core";
 import { TransactionSchema } from "../../server/schemas/transaction";
 
 const TRANSACTIONS_TO_BATCH = env.TRANSACTIONS_TO_BATCH;
+const MIN_TX_TO_CHECK_FOR_MINED_STATUS = env.MIN_TX_TO_CHECK_FOR_MINED_STATUS;
 
 export const getWalletDetailsWithTrx = async (
   walletAddress: string,
@@ -177,6 +178,6 @@ export const getSubmittedTransactions = async (
     and "txMined" = false
     and "txSubmittedTimestamp" < NOW() - INTERVAL'30 SECOND'
     order by "txSubmittedTimestamp" ASC
-    limit 50`);
+    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}`);
   return data.rows;
 };

@@ -32,6 +32,10 @@ export const connectToDB = async (
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection,
+    pool: {
+      min: 5,
+      max: 25,
+    },
   };
 
   // Set the appropriate databse client package
@@ -85,6 +89,10 @@ export const connectWithDatabase = async (): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection,
+    pool: {
+      min: 5,
+      max: 25,
+    },
   };
 
   // Set the appropriate databse client package

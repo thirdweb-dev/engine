@@ -115,6 +115,7 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
       }
 
       const returnData = await getAllDeployedContractTxFromDB(
+        request,
         parseInt(page, 10),
         parseInt(limit, 10),
         sort,

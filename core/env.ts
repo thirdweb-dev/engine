@@ -55,6 +55,9 @@ export const env = createEnv({
     TRANSACTIONS_TO_BATCH: z.coerce.number().default(10),
     CHAIN_OVERRIDES: z.string().default(""),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
+    MINED_TX_CRON_ENABLED: boolSchema("true"),
+    MINED_TX_CRON_SCHEDULE: z.string().default("*/30 * * * *"),
+    MIN_TX_TO_CHECK_FOR_MINED_STATUS: z.coerce.number().default(50),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -87,6 +90,10 @@ export const env = createEnv({
     TRANSACTIONS_TO_BATCH: process.env.TRANSACTIONS_TO_BATCH,
     CHAIN_OVERRIDES: process.env.CHAIN_OVERRIDES,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
+    MINED_TX_CRON_ENABLED: process.env.MINED_TX_CRON_ENABLED,
+    MINED_TX_CRON_SCHEDULE: process.env.MINED_TX_CRON_SCHEDULE,
+    MIN_TX_TO_CHECK_FOR_MINED_STATUS:
+      process.env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

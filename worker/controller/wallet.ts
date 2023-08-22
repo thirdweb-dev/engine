@@ -3,7 +3,7 @@ import { getSupportedChains } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { Knex } from "knex";
-import { connectToDB, getSDK } from "../../core";
+import { getSDK } from "../../core";
 import { insertIntoWallets } from "../../core/database/dbOperation";
 import { getWalletNonce } from "../../core/services/blockchain";
 import {
@@ -13,10 +13,9 @@ import {
 
 export const setupWalletsForWorker = async (
   server: FastifyInstance,
+  knex: Knex,
 ): Promise<void> => {
-  let knex: Knex | null = null;
   try {
-    knex = await connectToDB(server);
     if (!knex) {
       throw new Error("DB connection not found");
     }
@@ -83,7 +82,7 @@ export const setupWalletsForWorker = async (
         continue;
       }
     }
-    await knex.destroy();
+    // await knex.destroy();
   } catch (error) {
     server.log.error(error);
     throw error;

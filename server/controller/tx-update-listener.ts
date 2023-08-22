@@ -1,5 +1,4 @@
 import { FastifyInstance } from "fastify";
-import { connectWithDatabase } from "../../core";
 import { findTxDetailsWithQueueId } from "../helpers";
 import { subscriptionsData } from "../schemas/websocket";
 
@@ -8,10 +7,10 @@ export const startTxUpdatesNotificationListener = async (
 ): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectWithDatabase();
+    // const knex = await connectWithDatabase();
     server.log.info(`Starting update notification listener`);
     // Acquire a connection
-    const connection = await knex.client.acquireConnection();
+    const connection = await server.database.client.acquireConnection();
     connection.query("LISTEN updated_transaction_data");
 
     connection.on(
@@ -50,13 +49,13 @@ export const startTxUpdatesNotificationListener = async (
 
     connection.on("end", () => {
       server.log.info(`Connection database ended`);
-      knex.client.releaseConnection(connection);
+      server.database.client.releaseConnection(connection);
       server.log.debug(`Released connection : on end`);
     });
 
     connection.on("error", (err: any) => {
       server.log.error(err);
-      knex.client.releaseConnection(connection);
+      server.database.client.releaseConnection(connection);
       server.log.debug(`Released connection: on error`);
     });
   } catch (error) {
