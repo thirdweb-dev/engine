@@ -18,7 +18,7 @@ const main = async () => {
 
   await errorHandler(server);
 
-  await setupWalletsForWorker(server, knex);
+  await setupWalletsForWorker(server);
   // Start Listening to the Table for new insertion
   await retryWithTimeout(
     () => startNotificationListener(server, knex),
@@ -29,7 +29,7 @@ const main = async () => {
 
   // setup a cron job to updated transaction confirmed status
   cron.schedule(MINED_TX_CRON_SCHEDULE, async () => {
-    await checkForMinedTransactionsOnBlockchain(server, knex);
+    await checkForMinedTransactionsOnBlockchain(server);
   });
 
   // Listen for the SIGTERM signal (e.g., when the process is being stopped)

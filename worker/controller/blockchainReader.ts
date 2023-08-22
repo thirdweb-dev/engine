@@ -1,8 +1,7 @@
 import { ChainOrRpc } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
-import { Knex } from "knex";
-import { env, getSDK } from "../../core";
+import { connectWithDatabase, env, getSDK } from "../../core";
 import {
   getSubmittedTransactions,
   updateTransactionState,
@@ -12,8 +11,8 @@ const MINED_TX_CRON_ENABLED = env.MINED_TX_CRON_ENABLED;
 
 export const checkForMinedTransactionsOnBlockchain = async (
   server: FastifyInstance,
-  knex: Knex,
 ) => {
+  const knex = await connectWithDatabase();
   if (!MINED_TX_CRON_ENABLED) {
     server.log.warn("Mined Tx Cron is disabled");
     return;
@@ -56,5 +55,5 @@ export const checkForMinedTransactionsOnBlockchain = async (
     }
   }
   await trx.commit();
-  // await knex.destroy();
+  await knex.destroy();
 };
