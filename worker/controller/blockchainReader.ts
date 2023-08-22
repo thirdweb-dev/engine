@@ -15,6 +15,7 @@ export const checkForMinedTransactionsOnBlockchain = async (
   const knex = await connectWithDatabase();
   if (!MINED_TX_CRON_ENABLED) {
     server.log.warn("Mined Tx Cron is disabled");
+    await knex.destroy();
     return;
   }
   server.log.info("Running Cron to check for mined transactions on blockchain");

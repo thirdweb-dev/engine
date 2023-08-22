@@ -23,7 +23,7 @@
     "lint": "eslint 'server/**/*.ts'",
     "lint:fix": "eslint --fix 'server/**/*.ts'",
     "test": "make test-evm",
-    "test:all": "mocha --exit"
+    "test:all": "mocha --project tsconfig.e2e.json --exit"
   },
   "dependencies": {
     "@fastify/cookie": "^8.3.0",
