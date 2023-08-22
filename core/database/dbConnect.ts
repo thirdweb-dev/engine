@@ -79,6 +79,7 @@ export const connectToDB = async (
     connection,
   };
 
+  await knex.destroy();
   // re-instantiate connection with new config
   knex = dbClientPackage(knexConfig);
 

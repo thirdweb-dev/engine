@@ -15,14 +15,16 @@ export const checkForMinedTransactionsOnBlockchain = async (
   const knex = await connectWithDatabase();
   if (!MINED_TX_CRON_ENABLED) {
     server.log.warn("Mined Tx Cron is disabled");
-    await knex.destroy();
     return;
   }
   server.log.info("Running Cron to check for mined transactions on blockchain");
   const trx = await knex.transaction();
-  const transactions = await getSubmittedTransactions(knex);
+  const transactions = await getSubmittedTransactions(knex, trx);
   if (transactions.length === 0) {
     server.log.warn("No transactions to check for mined status");
+    await trx.commit();
+    await trx.destroy();
+    await knex.destroy();
     return;
   }
 
@@ -56,5 +58,6 @@ export const checkForMinedTransactionsOnBlockchain = async (
     }
   }
   await trx.commit();
+  await trx.destroy();
   await knex.destroy();
 };

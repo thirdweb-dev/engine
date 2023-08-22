@@ -1,22 +1,22 @@
 import { FastifyInstance } from "fastify";
-import { Knex } from "knex";
+import { connectWithDatabase } from "../../core";
 import { queue } from "../services/pQueue";
 import { processTransaction } from "./processTransaction";
 
 export const startNotificationListener = async (
   server: FastifyInstance,
-  knex: Knex,
 ): Promise<void> => {
   try {
     server.log.info(`Starting notification listener`);
     // Acquire a connection
+    const knex = await connectWithDatabase();
     const connection = await knex.client.acquireConnection();
     connection.query("LISTEN new_transaction_data");
     // Adding to Queue to Process Requests
 
     queue.add(async () => {
       server.log.info(`--- processing Q request started at ${new Date()} ---`);
-      await processTransaction(server, knex);
+      await processTransaction(server);
       server.log.info(`--- processing Q request ended at ${new Date()} ---`);
     });
 
@@ -27,7 +27,7 @@ export const startNotificationListener = async (
           server.log.info(
             `--- processing Q request started at ${new Date()} ---`,
           );
-          await processTransaction(server, knex);
+          await processTransaction(server);
           server.log.info(
             `--- processing Q request ended at ${new Date()} ---`,
           );

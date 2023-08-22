@@ -10,7 +10,7 @@ import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
 import { v4 as uuid } from "uuid";
-import { getSDK } from "../../core";
+import { connectWithDatabase, getSDK } from "../../core";
 import { insertIntoWallets } from "../../core/database/dbOperation";
 import { createCustomError } from "../../core/error/customError";
 import { WalletData } from "../../core/interfaces";
@@ -71,7 +71,7 @@ export const queueTransaction = async (
   }
 
   const chainId = chainData.chainId.toString();
-  const dbInstance = request.database;
+  const dbInstance = await connectWithDatabase();
   const walletAddress = await tx.getSignerAddress();
   const checkForNetworkData = await checkNetworkInWalletDB(
     dbInstance,
@@ -127,7 +127,7 @@ export const queueTransaction = async (
 
   // Insert to DB
   await insertTransactionData(dbInstance, txDataToInsert, request);
-  // await dbInstance.destroy();
+  await dbInstance.destroy();
 
   // return queued id
   return txDataToInsert.identifier;
@@ -155,11 +155,11 @@ export const findTxDetailsWithQueueId = async (
   request: FastifyRequest | FastifyInstance,
 ): Promise<Static<typeof transactionResponseSchema>> => {
   try {
-    const dbInstance = request.database;
+    const dbInstance = await connectWithDatabase();
     const data = await dbInstance("transactions")
       .where("identifier", queueId)
       .first();
-    // await dbInstance.destroy();
+    await dbInstance.destroy();
 
     const transformedData = transformData([data]);
     return transformedData[0];
@@ -183,7 +183,7 @@ export const getAllTxFromDB = async (
   filter?: string,
 ): Promise<Static<typeof transactionResponseSchema>[]> => {
   try {
-    const dbInstance = request.database; //await connectWithDatabase();
+    const dbInstance = await connectWithDatabase();
     const data = (await dbInstance("transactions")
       .where((builder) => {
         if (filter === TransactionStatusEnum.Submitted) {
@@ -204,7 +204,7 @@ export const getAllTxFromDB = async (
       .orderBy(sort || "createdTimestamp", sort_order || "asc")
       .limit(limit)
       .offset((page - 1) * limit)) as TransactionSchema[];
-    // await dbInstance.destroy();
+    await dbInstance.destroy();
 
     const transformedData = transformData(data);
     return transformedData;
@@ -258,7 +258,7 @@ export const getAllDeployedContractTxFromDB = async (
   filter?: string,
 ): Promise<Static<typeof transactionResponseSchema>[]> => {
   try {
-    const dbInstance = request.database; //await connectWithDatabase();
+    const dbInstance = await connectWithDatabase();
     const data = (await dbInstance("transactions")
       .where((builder) => {
         if (filter === TransactionStatusEnum.Submitted) {
@@ -284,7 +284,7 @@ export const getAllDeployedContractTxFromDB = async (
       .orderBy(sort || "createdTimestamp", sort_order || "asc")
       .limit(limit)
       .offset((page - 1) * limit)) as TransactionSchema[];
-    // await dbInstance.destroy();
+    await dbInstance.destroy();
 
     const transformedData = transformData(data);
     return transformedData;

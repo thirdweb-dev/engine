@@ -56,7 +56,7 @@ export const env = createEnv({
     CHAIN_OVERRIDES: z.string().default(""),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
     MINED_TX_CRON_ENABLED: boolSchema("true"),
-    MINED_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
+    MINED_TX_CRON_SCHEDULE: z.string().default("*/10 * * * * *"),
     MIN_TX_TO_CHECK_FOR_MINED_STATUS: z.coerce.number().default(50),
   },
   clientPrefix: "NEVER_USED",
