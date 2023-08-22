@@ -8,7 +8,7 @@ export const startNotificationListener = async (
 ): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectWithDatabase(server);
+    const knex = await connectWithDatabase();
     server.log.info(`Starting notification listener`);
     // Acquire a connection
     const connection = await knex.client.acquireConnection();

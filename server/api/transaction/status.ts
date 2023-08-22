@@ -1,11 +1,17 @@
+import { SocketStream } from "@fastify/websocket";
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../core/error/customError";
 import { findTxDetailsWithQueueId } from "../../helpers";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import {
+  findOrAddWSConnectionInSharedState,
+  onClose,
+  onError,
+  onMessage,
+} from "../../helpers/websocket";
 import { transactionResponseSchema } from "../../schemas/transaction";
-import { UserSubscription } from "../../schemas/websocket";
 
 // INPUT
 const requestSchema = Type.Object({
@@ -43,8 +49,6 @@ responseBodySchema.example = {
   },
 };
 
-export const subscriptions: UserSubscription[] = [];
-
 // OUTPUT
 
 export async function checkTxStatus(fastify: FastifyInstance) {
@@ -81,67 +85,27 @@ export async function checkTxStatus(fastify: FastifyInstance) {
         result: returnData,
       });
     },
-    wsHandler: async (connection, request) => {
+    wsHandler: async (connection: SocketStream, request) => {
       request.log.info(request, "Websocket Route Handler");
       const { tx_queue_id } = request.params;
-      let userSubscription: UserSubscription | undefined = undefined;
-      const index = subscriptions.findIndex(
-        (sub) => sub.socket === connection.socket,
-      );
-      if (index > -1) {
-        userSubscription = subscriptions[index];
-      }
+      // const timeout = await wsTimeout(connection, tx_queue_id, request);
+      request.log.info(`Websocket Connection Established for ${tx_queue_id}`);
+      findOrAddWSConnectionInSharedState(connection, tx_queue_id, request);
 
-      userSubscription = {
-        socket: connection.socket,
-        requestId: tx_queue_id,
-      };
-
-      subscriptions.push(userSubscription);
-
-      const returnData = await findTxDetailsWithQueueId(tx_queue_id, request);
-      if (returnData && Object.keys(returnData).length === 0) {
-        userSubscription.socket.send(
-          JSON.stringify({
-            result: null,
-            requestId: tx_queue_id,
-            status: "pending",
-            message: "Transaction is still pending. Stay connected...",
-          }),
-        );
-      } else {
-        userSubscription.socket.send(
-          JSON.stringify({
-            result: returnData,
-            requestId: tx_queue_id,
-            status: "success",
-            message: "Transaction is successful. Closing Socket...",
-          }),
-        );
-        userSubscription.socket.close();
-      }
-
-      userSubscription.socket.on("connection", () => {
-        request.log.info(`Websocket Connection Established for ${tx_queue_id}`);
-      });
-
-      userSubscription.socket.on("error", (error) => {
+      connection.socket.on("error", (error) => {
         request.log.error(error, "Websocket Error");
+        onError(error, connection, request);
       });
 
-      userSubscription.socket.on("message", async (message, isBinary) => {
+      connection.socket.on("message", async (message, isBinary) => {
         request.log.info(message, "Websocket Message Received");
+        onMessage(connection, request);
       });
 
-      userSubscription.socket.on("close", () => {
+      connection.socket.on("close", () => {
         request.log.info("Websocket Connection Closed");
-        const index = subscriptions.findIndex(
-          (sub) => sub.socket === connection.socket,
-        );
-        const userSubscription = subscriptions[index];
-        if (index > -1) {
-          subscriptions.splice(index, 1);
-        }
+        onClose(connection, request);
+        // clearTimeout(timeout);
       });
     },
   });

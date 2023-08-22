@@ -1,10 +1,10 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { createCustomError } from "../../../core/error/customError";
+import { getAllDeployedContractTxFromDB } from "../../helpers";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { transactionResponseSchema } from "../../schemas/transaction";
-import { getAllDeployedContractTxFromDB } from "../../helpers";
 
 // INPUT
 const requestQuerySchema = Type.Object({
@@ -115,7 +115,6 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
       }
 
       const returnData = await getAllDeployedContractTxFromDB(
-        request,
         parseInt(page, 10),
         parseInt(limit, 10),
         sort,

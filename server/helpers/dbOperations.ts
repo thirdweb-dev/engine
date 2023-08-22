@@ -6,7 +6,7 @@ import {
   TransactionError,
 } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
-import { FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
 import { v4 as uuid } from "uuid";
@@ -71,7 +71,7 @@ export const queueTransaction = async (
   }
 
   const chainId = chainData.chainId.toString();
-  const dbInstance = await connectWithDatabase(request);
+  const dbInstance = await connectWithDatabase();
   const walletAddress = await tx.getSignerAddress();
   const checkForNetworkData = await checkNetworkInWalletDB(
     dbInstance,
@@ -152,10 +152,10 @@ export const insertTransactionData = async (
 
 export const findTxDetailsWithQueueId = async (
   queueId: string,
-  request: FastifyRequest,
+  request: FastifyRequest | FastifyInstance,
 ): Promise<Static<typeof transactionResponseSchema>> => {
   try {
-    const dbInstance = await connectWithDatabase(request);
+    const dbInstance = await connectWithDatabase();
     const data = await dbInstance("transactions")
       .where("identifier", queueId)
       .first();
@@ -183,7 +183,7 @@ export const getAllTxFromDB = async (
   filter?: string,
 ): Promise<Static<typeof transactionResponseSchema>[]> => {
   try {
-    const dbInstance = await connectWithDatabase(request);
+    const dbInstance = await connectWithDatabase();
     const data = (await dbInstance("transactions")
       .where((builder) => {
         if (filter === TransactionStatusEnum.Submitted) {
@@ -250,7 +250,6 @@ const transformData = (
 };
 
 export const getAllDeployedContractTxFromDB = async (
-  request: FastifyRequest,
   page: number,
   limit: number,
   sort?: string,
@@ -258,7 +257,7 @@ export const getAllDeployedContractTxFromDB = async (
   filter?: string,
 ): Promise<Static<typeof transactionResponseSchema>[]> => {
   try {
-    const dbInstance = await connectWithDatabase(request);
+    const dbInstance = await connectWithDatabase();
     const data = (await dbInstance("transactions")
       .where((builder) => {
         if (filter === TransactionStatusEnum.Submitted) {

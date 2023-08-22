@@ -25,7 +25,7 @@ export const processTransaction = async (
   let trx: Knex.Transaction | null = null;
   try {
     // Connect to the DB
-    knex = await connectWithDatabase(server);
+    knex = await connectWithDatabase();
     trx = await knex.transaction();
     let data: any;
     try {

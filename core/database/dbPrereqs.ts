@@ -64,7 +64,7 @@ export const implementTriggerOnStartUp = async (
 ): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectWithDatabase(server);
+    const knex = await connectWithDatabase();
 
     const triggersList: string[] = env.DB_TRIGGERS_LIST.split(",").map(
       function (item: any) {
