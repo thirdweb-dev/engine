@@ -55,6 +55,8 @@ export const env = createEnv({
     TRANSACTIONS_TO_BATCH: z.coerce.number().default(10),
     CHAIN_OVERRIDES: z.string().default(""),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
+    IPFS_UPLOAD_URL: z.string().trim().url().optional(),
+    IPFS_DOWNLOAD_URL: z.string().trim().url().optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -87,6 +89,8 @@ export const env = createEnv({
     TRANSACTIONS_TO_BATCH: process.env.TRANSACTIONS_TO_BATCH,
     CHAIN_OVERRIDES: process.env.CHAIN_OVERRIDES,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
+    IPFS_UPLOAD_URL: process.env.IPFS_UPLOAD_URL,
+    IPFS_DOWNLOAD_URL: process.env.IPFS_DOWNLOAD_URL,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {
