@@ -92,6 +92,34 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       request.log.info(`Websocket Connection Established for ${tx_queue_id}`);
       findOrAddWSConnectionInSharedState(connection, tx_queue_id, request);
 
+      const returnData = await findTxDetailsWithQueueId(tx_queue_id, request);
+
+      if (returnData.status === "mined" || returnData.status === "errored") {
+        connection.socket.send(
+          JSON.stringify({
+            result: JSON.stringify(returnData),
+            requestId: tx_queue_id,
+            status: returnData.status,
+            message:
+              returnData.errorMessage ||
+              "Transaction mined. Closing connection.",
+          }),
+        );
+        connection.socket.close();
+        return;
+      } else {
+        connection.socket.send(
+          JSON.stringify({
+            result: JSON.stringify(returnData),
+            requestId: tx_queue_id,
+            status: returnData.status,
+            message:
+              returnData.errorMessage ||
+              "Transaction not mined yet. Waiting for transaction to be mined...",
+          }),
+        );
+      }
+
       connection.socket.on("error", (error) => {
         request.log.error(error, "Websocket Error");
         onError(error, connection, request);
