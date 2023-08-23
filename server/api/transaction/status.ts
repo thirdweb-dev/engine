@@ -3,6 +3,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../core/error/customError";
+import { getStatusMessageAndConnectionStatus } from "../../../core/helpers";
 import { findTxDetailsWithQueueId } from "../../helpers";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import {
@@ -94,30 +95,20 @@ export async function checkTxStatus(fastify: FastifyInstance) {
 
       const returnData = await findTxDetailsWithQueueId(tx_queue_id, request);
 
-      if (returnData.status === "mined" || returnData.status === "errored") {
-        connection.socket.send(
-          JSON.stringify({
-            result: JSON.stringify(returnData),
-            requestId: tx_queue_id,
-            status: returnData.status,
-            message:
-              returnData.errorMessage ||
-              "Transaction mined. Closing connection.",
-          }),
-        );
+      const { message, closeConnection } =
+        await getStatusMessageAndConnectionStatus(returnData);
+
+      connection.socket.send(
+        JSON.stringify({
+          result: JSON.stringify(returnData),
+          requestId: tx_queue_id,
+          message,
+        }),
+      );
+
+      if (closeConnection) {
         connection.socket.close();
         return;
-      } else {
-        connection.socket.send(
-          JSON.stringify({
-            result: JSON.stringify(returnData),
-            requestId: tx_queue_id,
-            status: returnData.status,
-            message:
-              returnData.errorMessage ||
-              "Transaction not mined yet. Waiting for transaction to be mined...",
-          }),
-        );
       }
 
       connection.socket.on("error", (error) => {

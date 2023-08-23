@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { connectWithDatabase } from "../../core";
+import { getStatusMessageAndConnectionStatus } from "../../core/helpers";
 import { findTxDetailsWithQueueId } from "../helpers";
 import { subscriptionsData } from "../schemas/websocket";
 
@@ -37,26 +38,30 @@ export const startTxUpdatesNotificationListener = async (
           parsedPayload.identifier,
           server,
         );
+        const { message, closeConnection } =
+          await getStatusMessageAndConnectionStatus(returnData);
         userSubscription.socket.send(
           JSON.stringify({
-            result: returnData,
+            result: JSON.stringify(returnData),
             requestId: parsedPayload.identifier,
-            status: "success",
-            message: "Updated transaction data",
+            message,
           }),
         );
+        closeConnection ? userSubscription.socket.close() : null;
       },
     );
 
-    connection.on("end", () => {
+    connection.on("end", async () => {
       server.log.info(`Connection database ended`);
       knex.client.releaseConnection(connection);
+      await knex.destroy();
       server.log.debug(`Released connection : on end`);
     });
 
-    connection.on("error", (err: any) => {
+    connection.on("error", async (err: any) => {
       server.log.error(err);
       knex.client.releaseConnection(connection);
+      await knex.destroy();
       server.log.debug(`Released connection: on error`);
     });
   } catch (error) {

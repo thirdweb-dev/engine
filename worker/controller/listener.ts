@@ -35,15 +35,17 @@ export const startNotificationListener = async (
       },
     );
 
-    connection.on("end", () => {
+    connection.on("end", async () => {
       server.log.info(`Connection database ended`);
+      await knex.destroy();
       knex.client.releaseConnection(connection);
       server.log.debug(`Released connection : on end`);
     });
 
-    connection.on("error", (err: any) => {
+    connection.on("error", async (err: any) => {
       server.log.error(err);
       knex.client.releaseConnection(connection);
+      await knex.destroy();
       server.log.debug(`Released connection: on error`);
     });
   } catch (error) {
