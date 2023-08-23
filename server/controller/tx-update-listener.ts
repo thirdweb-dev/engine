@@ -1,7 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { connectWithDatabase } from "../../core";
-import { getStatusMessageAndConnectionStatus } from "../../core/helpers";
-import { findTxDetailsWithQueueId } from "../helpers";
+import {
+  findTxDetailsWithQueueId,
+  formatSocketMessage,
+  getStatusMessageAndConnectionStatus,
+} from "../helpers";
 import { subscriptionsData } from "../schemas/websocket";
 
 export const startTxUpdatesNotificationListener = async (
@@ -41,11 +44,7 @@ export const startTxUpdatesNotificationListener = async (
         const { message, closeConnection } =
           await getStatusMessageAndConnectionStatus(returnData);
         userSubscription.socket.send(
-          JSON.stringify({
-            result: JSON.stringify(returnData),
-            requestId: parsedPayload.identifier,
-            message,
-          }),
+          await formatSocketMessage(returnData, message),
         );
         closeConnection ? userSubscription.socket.close() : null;
       },

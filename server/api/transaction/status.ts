@@ -3,8 +3,11 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../core/error/customError";
-import { getStatusMessageAndConnectionStatus } from "../../../core/helpers";
-import { findTxDetailsWithQueueId } from "../../helpers";
+import {
+  findTxDetailsWithQueueId,
+  formatSocketMessage,
+  getStatusMessageAndConnectionStatus,
+} from "../../helpers";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import {
   findOrAddWSConnectionInSharedState,
@@ -98,13 +101,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);
 
-      connection.socket.send(
-        JSON.stringify({
-          result: JSON.stringify(returnData),
-          requestId: tx_queue_id,
-          message,
-        }),
-      );
+      connection.socket.send(await formatSocketMessage(returnData, message));
 
       if (closeConnection) {
         connection.socket.close();
