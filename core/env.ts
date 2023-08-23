@@ -56,7 +56,34 @@ export const env = createEnv({
     CHAIN_OVERRIDES: z.string().default(""),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
     IPFS_UPLOAD_URL: z.string().trim().url().optional(),
-    IPFS_DOWNLOAD_URLS: z.string().trim().url().array().optional(),
+    IPFS_GATEWAY_URLS: z
+      .string()
+      .transform((val, ctx) => {
+        const parsed = val.split(",");
+        if (parsed.length === 0) {
+          return;
+        }
+
+        parsed.forEach((url) => {
+          if (z.string().trim().url().safeParse(url).success === false) {
+            const index = parsed.indexOf(url);
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Invalid IPFS_GATEWAY_URLS value: ${parsed.find(
+                (u) => u === url,
+              )}, at index ${index + 1}`,
+            });
+
+            // This is a special symbol you can use to
+            // return early from the transform function.
+            // It has type `never` so it does not affect the
+            // inferred return type.
+            return z.NEVER;
+          }
+        });
+        return parsed;
+      })
+      .optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -90,7 +117,7 @@ export const env = createEnv({
     CHAIN_OVERRIDES: process.env.CHAIN_OVERRIDES,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
     IPFS_UPLOAD_URL: process.env.IPFS_UPLOAD_URL,
-    IPFS_DOWNLOAD_URLS: process.env.IPFS_DOWNLOAD_URLS,
+    IPFS_GATEWAY_URLS: process.env.IPFS_GATEWAY_URLS,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

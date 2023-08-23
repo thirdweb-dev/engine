@@ -86,11 +86,12 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
 
   let sdk: ThirdwebSDK;
   const IPFS_UPLOAD_URL = env.IPFS_UPLOAD_URL;
-  const IPFS_DOWNLOAD_URLS = env.IPFS_DOWNLOAD_URLS;
+  const IPFS_GATEWAY_URLS = env.IPFS_GATEWAY_URLS;
 
-  if (IPFS_UPLOAD_URL || IPFS_DOWNLOAD_URLS) {
+  if (IPFS_UPLOAD_URL || IPFS_GATEWAY_URLS) {
+    console.log(`Using IPFS for storage ${IPFS_GATEWAY_URLS}`);
     const storage = new ThirdwebStorage({
-      gatewayUrls: IPFS_DOWNLOAD_URLS,
+      gatewayUrls: IPFS_GATEWAY_URLS,
       uploadServerUrl: IPFS_UPLOAD_URL,
     });
 
