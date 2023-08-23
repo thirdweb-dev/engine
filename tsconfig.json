@@ -14,8 +14,7 @@
   },
   "ts-node": {
     "esm": true,
-    "experimentalSpecifierResolution": "node",
-    "files": true
+    "experimentalSpecifierResolution": "node"
   },
   "include": [
     "server/**/*.ts",
@@ -25,8 +24,7 @@
     "worker/**/*.ts",
     "worker/**/*.d.ts",
     "worker/**/*.js",
-    "core/env.ts",
-    "@types/**/*.ts"
+    "core/env.ts"
   ],
   "exclude": ["node_modules"]
 }
