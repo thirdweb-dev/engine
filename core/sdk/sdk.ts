@@ -8,6 +8,7 @@ import {
   SmartContract,
   ThirdwebSDK,
 } from "@thirdweb-dev/sdk";
+import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { BaseContract, BigNumber } from "ethers";
@@ -83,11 +84,32 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     }
   }
 
-  const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
-    // thirdwebApiKey: THIRDWEB_API_KEY,
-    secretKey: THIRDWEB_SDK_SECRET_KEY,
-    supportedChains: RPC_OVERRIDES,
-  });
+  let sdk: ThirdwebSDK;
+  const IPFS_UPLOAD_URL = env.IPFS_UPLOAD_URL;
+  const IPFS_DOWNLOAD_URLS = env.IPFS_DOWNLOAD_URLS;
+
+  if (IPFS_UPLOAD_URL || IPFS_DOWNLOAD_URLS) {
+    const storage = new ThirdwebStorage({
+      gatewayUrls: IPFS_DOWNLOAD_URLS,
+      uploadServerUrl: IPFS_UPLOAD_URL,
+    });
+
+    sdk = await ThirdwebSDK.fromWallet(
+      wallet,
+      chainName,
+      {
+        secretKey: THIRDWEB_SDK_SECRET_KEY,
+        supportedChains: RPC_OVERRIDES,
+      },
+      storage,
+    );
+  } else {
+    sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
+      // thirdwebApiKey: THIRDWEB_API_KEY,
+      secretKey: THIRDWEB_SDK_SECRET_KEY,
+      supportedChains: RPC_OVERRIDES,
+    });
+  }
 
   sdkMap[chainName] = sdk;
 
