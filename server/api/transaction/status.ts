@@ -1,9 +1,18 @@
+import { SocketStream } from "@fastify/websocket";
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { createCustomError } from "../../../core/error/customError";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { findTxDetailsWithQueueId } from "../../helpers";
+import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import {
+  findOrAddWSConnectionInSharedState,
+  formatSocketMessage,
+  getStatusMessageAndConnectionStatus,
+  onClose,
+  onError,
+  onMessage,
+} from "../../helpers/websocket";
 import { transactionResponseSchema } from "../../schemas/transaction";
 
 // INPUT
@@ -76,6 +85,41 @@ export async function checkTxStatus(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: returnData,
+      });
+    },
+    wsHandler: async (connection: SocketStream, request) => {
+      request.log.info(request, "Websocket Route Handler");
+      const { tx_queue_id } = request.params;
+      // const timeout = await wsTimeout(connection, tx_queue_id, request);
+      request.log.info(`Websocket Connection Established for ${tx_queue_id}`);
+      findOrAddWSConnectionInSharedState(connection, tx_queue_id, request);
+
+      const returnData = await findTxDetailsWithQueueId(tx_queue_id, request);
+
+      const { message, closeConnection } =
+        await getStatusMessageAndConnectionStatus(returnData);
+
+      connection.socket.send(await formatSocketMessage(returnData, message));
+
+      if (closeConnection) {
+        connection.socket.close();
+        return;
+      }
+
+      connection.socket.on("error", (error) => {
+        request.log.error(error, "Websocket Error");
+        onError(error, connection, request);
+      });
+
+      connection.socket.on("message", async (message, isBinary) => {
+        request.log.info(message, "Websocket Message Received");
+        onMessage(connection, request);
+      });
+
+      connection.socket.on("close", () => {
+        request.log.info("Websocket Connection Closed");
+        onClose(connection, request);
+        // clearTimeout(timeout);
       });
     },
   });

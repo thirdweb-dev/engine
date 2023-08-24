@@ -25,7 +25,7 @@ export const processTransaction = async (
   let trx: Knex.Transaction | null = null;
   try {
     // Connect to the DB
-    knex = await connectWithDatabase(server);
+    knex = await connectWithDatabase();
     trx = await knex.transaction();
     let data: any;
     try {
@@ -47,6 +47,7 @@ export const processTransaction = async (
         `Waiting for more transactions requests to start processing`,
       );
       await trx.commit();
+      await trx.destroy();
       await knex.destroy();
       return;
     }
@@ -96,17 +97,6 @@ export const processTransaction = async (
         server.log.warn(
           `Request-ID: ${tx.identifier} processed but errored out: Commited to db`,
         );
-
-        if (error.message.includes("nonce has already been used")) {
-          await updateWalletNonceValue(
-            txSubmittedNonce,
-            BigNumber.from(blockchainNonce),
-            tx.walletAddress,
-            tx.chainId,
-            knex,
-            trx,
-          );
-        }
         await updateTransactionState(
           knex,
           tx.identifier,
@@ -116,6 +106,7 @@ export const processTransaction = async (
           error.message,
         );
         await trx.commit();
+        await trx.destroy();
         await knex.destroy();
         throw error;
       }
@@ -146,12 +137,14 @@ export const processTransaction = async (
       }
     }
     await trx.commit();
+    await trx.destroy();
     await knex.destroy();
   } catch (error) {
     server.log.error(error);
     if (trx && trx.isCompleted() === false) {
       server.log.warn("Rolling back transaction");
       await trx.rollback();
+      await trx.destroy();
     }
   } finally {
     if (knex) {

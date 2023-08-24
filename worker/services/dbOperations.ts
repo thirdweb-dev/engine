@@ -1,8 +1,10 @@
 import { BigNumber, providers } from "ethers";
 import { Knex } from "knex";
 import { createCustomError, env } from "../../core";
+import { TransactionSchema } from "../../server/schemas/transaction";
 
 const TRANSACTIONS_TO_BATCH = env.TRANSACTIONS_TO_BATCH;
+const MIN_TX_TO_CHECK_FOR_MINED_STATUS = env.MIN_TX_TO_CHECK_FOR_MINED_STATUS;
 
 export const getWalletDetailsWithTrx = async (
   walletAddress: string,
@@ -28,12 +30,13 @@ enum TransactionState {
   submitted = "submitted",
   processed = "processed",
   errored = "errored",
+  mined = "mined",
 }
 
 export const getTransactionsToProcess = async (
   database: Knex,
   trx: Knex.Transaction,
-): Promise<number> => {
+): Promise<any> => {
   return await database
     .raw(
       `select * FROM "transactions"
@@ -52,10 +55,17 @@ export const updateTransactionState = async (
   trx: Knex.Transaction,
   txResponse?: providers.TransactionResponse | undefined,
   errorMessage?: string | undefined,
+  extraData?: TransactionSchema,
 ): Promise<any> => {
   try {
     let updateData = {};
-    if (state == TransactionState.processed) {
+    if (state == TransactionState.mined) {
+      updateData = {
+        txMined: true,
+        updatedTimestamp: new Date(),
+        ...extraData,
+      };
+    } else if (state == TransactionState.processed) {
       updateData = {
         txProcessed: true,
         txProcessedTimestamp: new Date(),
@@ -157,4 +167,23 @@ export const getWalletDetailsWithoutTrx = async (
   } catch (error) {
     throw error;
   }
+};
+
+export const getSubmittedTransactions = async (
+  database: Knex,
+  transaction: Knex.Transaction,
+): Promise<TransactionSchema[]> => {
+  const data = await database
+    .raw(
+      `select * from transactions
+    where "txProcessed" = true
+    and "txSubmitted" = true
+    and "txMined" = false
+    and "txErrored" = false
+    order by "txSubmittedTimestamp" ASC
+    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}
+    for update skip locked`,
+    )
+    .transacting(transaction);
+  return data.rows;
 };

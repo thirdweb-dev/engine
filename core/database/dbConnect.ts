@@ -75,15 +75,14 @@ export const connectToDB = async (
     connection,
   };
 
+  await knex.destroy();
   // re-instantiate connection with new config
   knex = dbClientPackage(knexConfig);
 
   return knex;
 };
 
-export const connectWithDatabase = async (
-  server: FastifyInstance | FastifyRequest,
-): Promise<Knex> => {
+export const connectWithDatabase = async (): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection,
