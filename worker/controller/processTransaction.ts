@@ -97,17 +97,6 @@ export const processTransaction = async (
         server.log.warn(
           `Request-ID: ${tx.identifier} processed but errored out: Commited to db`,
         );
-
-        if (error.message.includes("nonce has already been used")) {
-          await updateWalletNonceValue(
-            txSubmittedNonce,
-            BigNumber.from(blockchainNonce),
-            tx.walletAddress,
-            tx.chainId,
-            knex,
-            trx,
-          );
-        }
         await updateTransactionState(
           knex,
           tx.identifier,

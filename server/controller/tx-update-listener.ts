@@ -1,10 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { connectWithDatabase } from "../../core";
+import { findTxDetailsWithQueueId } from "../helpers";
 import {
-  findTxDetailsWithQueueId,
   formatSocketMessage,
   getStatusMessageAndConnectionStatus,
-} from "../helpers";
+} from "../helpers/websocket";
 import { subscriptionsData } from "../schemas/websocket";
 
 export const startTxUpdatesNotificationListener = async (

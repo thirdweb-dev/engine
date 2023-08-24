@@ -3,14 +3,12 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../core/error/customError";
-import {
-  findTxDetailsWithQueueId,
-  formatSocketMessage,
-  getStatusMessageAndConnectionStatus,
-} from "../../helpers";
+import { findTxDetailsWithQueueId } from "../../helpers";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import {
   findOrAddWSConnectionInSharedState,
+  formatSocketMessage,
+  getStatusMessageAndConnectionStatus,
   onClose,
   onError,
   onMessage,

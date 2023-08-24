@@ -179,7 +179,7 @@ export const getSubmittedTransactions = async (
     where "txProcessed" = true
     and "txSubmitted" = true
     and "txMined" = false
-    and "txSubmittedTimestamp" < NOW() - INTERVAL'30 SECOND'
+    and "txErrored" = false
     order by "txSubmittedTimestamp" ASC
     limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}
     for update skip locked`,
