@@ -6,10 +6,7 @@ import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
 import { env, errorHandler, getLogSettings } from "../../core";
 import { apiRoutes } from "../../server/api";
-import {
-  performHTTPAuthentication,
-  performWSAuthentication,
-} from "../middleware/auth";
+import { performHTTPAuthentication } from "../middleware/auth";
 import { openapi } from "./openapi";
 
 const createServer = async (serverName: string): Promise<FastifyInstance> => {
@@ -48,7 +45,8 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       request.headers.upgrade.toLowerCase() === "websocket"
     ) {
       server.log.info("WebSocket connection attempt");
-      await performWSAuthentication(request, reply);
+      // ToDo: Uncomment WebSocket Authentication post Auth SDK is implemented
+      // await performWSAuthentication(request, reply);
     } else {
       server.log.info("Regular HTTP request");
       await performHTTPAuthentication(request, reply);
