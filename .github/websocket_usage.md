@@ -36,7 +36,7 @@ socket.onmessage = (event) => {
 };
 ```
 
-The console will start printing the updates on the requestId as and when they are trasmitted.
+The console will start logging the updates on the requestId as and when they are trasmitted.
 
 The websocket connection will be closed automatically after the last update of either `errored` or `mined` status is sent.
 
