@@ -32,6 +32,10 @@ Check the [How to install required packages](./.github/installations.md) guide f
 
 View all end-points details (Open API Specification) : https://web3-api-akbv.chainsaw-dev.zeet.app
 
+### Websocket Listener
+
+For updates on your requests, you can either poll using the `get` (`/tranasction/status/<tx_queue_id>`) method or use websockets. [How to use websockets](./.github/websocket_usage.md)
+
 ## Environment Variables
 
 | Variable Name                      | Description                                                                                                         | Default Value           | Required |
