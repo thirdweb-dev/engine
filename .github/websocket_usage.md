@@ -36,7 +36,47 @@ socket.onmessage = (event) => {
 };
 ```
 
-The console will start logging the updates on the requestId as and when they are trasmitted.
+Received Data will be of the following format:
+
+```json
+{
+  "message": string,
+  "queueId": string,
+  "result": {
+    "chainId": string,
+    "contractAddress": string,
+    "contractType": string | null,
+    "createdTimestamp": datetime,
+    "deployedContractAddress": string | null,
+    "encodedInputData": string,
+    "errorMessage": string | null,
+    "extension": string,
+    "functionArgs": string,
+    "functionName": string,
+    "gasLimit": string | null,
+    "gasPrice": string | null,
+    "maxFeePerGas": string | null,
+    "maxPriorityFeePerGas": string | null,
+    "queueId": string | null,
+    "status": string | null,
+    "submittedTxNonce": string | null,
+    "toAddress": string | null,
+    "txErrored": boolean,
+    "txHash": string,
+    "txMined": boolean,
+    "txProcessed": boolean,
+    "txProcessedTimestamp": datetime | null,
+    "txRetryTimestamp": datetime | null,
+    "txSubmitted": boolean,
+    "txSubmittedTimestamp": datetime | null,
+    "txType": string | null,
+    "updatedTimestamp": datetime | null,
+    "walletAddress": string
+  }
+}
+```
+
+The console will start logging the updates on the queueId as and when they are trasmitted.
 
 The websocket connection will be closed automatically after the last update of either `errored` or `mined` status is sent.
 
