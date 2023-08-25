@@ -44,12 +44,15 @@ export const checkForMinedTransactionsOnBlockchain = async (
     );
 
     for (let txReceipt of txReceipts) {
+      if (!txReceipt) {
+        continue;
+      }
       const txData = transactions.find(
         (tx) => tx.txHash === txReceipt.transactionHash,
       );
       if (txData) {
         server.log.debug(
-          `Got receipt for tx: ${txData.txHash} ${txData.identifier}, ${txReceipt.effectiveGasPrice}`,
+          `Got receipt for tx: ${txData.txHash}, queueId: ${txData.identifier}, effectiveGasPrice: ${txReceipt.effectiveGasPrice}`,
         );
         await updateTransactionState(
           knex,

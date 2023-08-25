@@ -29,9 +29,6 @@ export const startTxUpdatesNotificationListener = async (
           (sub) => sub.requestId === parsedPayload.identifier,
         );
 
-        server.log.debug(
-          `Index of the subscription: ${index}: ${subscriptionsData}`,
-        );
         if (index == -1) {
           return;
         }
