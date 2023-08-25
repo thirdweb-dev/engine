@@ -13,6 +13,7 @@ export const checkForMinedTransactionsOnBlockchain = async (
   server: FastifyInstance,
 ) => {
   let knex: Knex | undefined;
+  let trx: Knex.Transaction | undefined;
   try {
     knex = await connectWithDatabase();
     if (!MINED_TX_CRON_ENABLED) {
@@ -22,8 +23,8 @@ export const checkForMinedTransactionsOnBlockchain = async (
     server.log.info(
       "Running Cron to check for mined transactions on blockchain",
     );
-    const trx = await knex.transaction();
-    const transactions = await getSubmittedTransactions(knex, trx);
+    trx = await knex.transaction();
+    const transactions = await getSubmittedTransactions(knex);
     if (transactions.length === 0) {
       server.log.warn("No transactions to check for mined status");
       await trx.commit();
@@ -66,6 +67,10 @@ export const checkForMinedTransactionsOnBlockchain = async (
     await knex.destroy();
     return;
   } catch (error) {
+    if (trx) {
+      await trx.rollback();
+      await trx.destroy();
+    }
     if (knex) {
       await knex.destroy();
     }
