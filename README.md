@@ -205,6 +205,16 @@ The API defaults to `http://localhost:3005`
 
 </details>
 
+## Local Benchmarking
+
+As a way to support quantifying the robustness of our system, we have added benchmarking. Benchmark results may vary based on the machine that is being used.
+
+To run the benchmark:
+
+1. Run local server with `yarn dev`
+1. Set-up `.env.benchmark` (For sensible defaults: `cp .env.benchmark.example .env.benchmark`)
+1. Run benchmark in a separate terminal with `yarn benchmark`
+
 ## Contributing
 
 We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](./.github/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.
