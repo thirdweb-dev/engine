@@ -1,11 +1,12 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import WebSocketPlugin from "@fastify/websocket";
 import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
 import { env, errorHandler, getLogSettings } from "../../core";
 import { apiRoutes } from "../../server/api";
-import { performAuthentication } from "../middleware/auth";
+import { performHTTPAuthentication } from "../middleware/auth";
 import { openapi } from "./openapi";
 
 const createServer = async (serverName: string): Promise<FastifyInstance> => {
@@ -39,7 +40,17 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       return;
     }
 
-    await performAuthentication(request, reply);
+    if (
+      request.headers.upgrade &&
+      request.headers.upgrade.toLowerCase() === "websocket"
+    ) {
+      server.log.info("WebSocket connection attempt");
+      // ToDo: Uncomment WebSocket Authentication post Auth SDK is implemented
+      // await performWSAuthentication(request, reply);
+    } else {
+      server.log.info("Regular HTTP request");
+      await performHTTPAuthentication(request, reply);
+    }
   });
 
   server.addHook("preHandler", async (request, reply) => {
@@ -97,6 +108,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await server.register(fastifyExpress);
+  await server.register(WebSocketPlugin);
 
   openapi(server);
 

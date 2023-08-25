@@ -98,6 +98,11 @@ export const transactionResponseSchema = Type.Object({
       description: "Deployed Contract Type",
     }),
   ),
+  errorMessage: Type.Optional(
+    Type.String({
+      description: "Error Message",
+    }),
+  ),
 });
 
 export enum TransactionStatusEnum {

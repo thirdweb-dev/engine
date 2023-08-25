@@ -1,8 +1,12 @@
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import fastify, { FastifyInstance } from "fastify";
-import { errorHandler, getLogSettings } from "../core";
+import * as cron from "node-cron";
+import { env, errorHandler, getLogSettings } from "../core";
+import { checkForMinedTransactionsOnBlockchain } from "./controller/blockchainReader";
 import { startNotificationListener } from "./controller/listener";
 import { setupWalletsForWorker } from "./controller/wallet";
+
+const MINED_TX_CRON_SCHEDULE = env.MINED_TX_CRON_SCHEDULE;
 
 const main = async () => {
   const logOptions = getLogSettings("Worker-Server");
@@ -21,6 +25,11 @@ const main = async () => {
     5000,
     server,
   );
+
+  // setup a cron job to updated transaction confirmed status
+  cron.schedule(MINED_TX_CRON_SCHEDULE, async () => {
+    await checkForMinedTransactionsOnBlockchain(server);
+  });
 };
 
 // Retry logic with timeout

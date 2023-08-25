@@ -15,10 +15,9 @@ export const startNotificationListener = async (
   server: FastifyInstance,
 ): Promise<void> => {
   try {
-    // Connect to the DB
-    const knex = await connectWithDatabase(server);
     server.log.info(`Starting notification listener`);
     // Acquire a connection
+    const knex = await connectWithDatabase();
     const connection = await knex.client.acquireConnection();
     connection.query("LISTEN new_transaction_data");
 
@@ -32,14 +31,19 @@ export const startNotificationListener = async (
       },
     );
 
-    connection.on("end", () => {
+    connection.on("end", async () => {
       server.log.info(`Connection database ended`);
+      await knex.destroy();
+      knex.client.releaseConnection(connection);
+      server.log.info(`Released sql connection : on end`);
     });
 
-    connection.on("error", (err: any) => {
+    connection.on("error", async (err: any) => {
       server.log.error(err);
+      knex.client.releaseConnection(connection);
+      await knex.destroy();
+      server.log.info(`Released sql connection: on error`);
     });
-    knex.client.releaseConnection(connection);
   } catch (error) {
     server.log.error(`Error in notification listener: ${error}`);
     throw error;

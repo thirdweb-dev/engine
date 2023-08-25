@@ -17,7 +17,7 @@ describe("Transaction End-point Test", () => {
       .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
       .send();
 
-    expect(response.status).to.equal(404);
+    expect(response.status).to.equal(200);
   });
 
   it("should return all transaction requests data", async () => {

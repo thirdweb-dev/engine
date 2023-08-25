@@ -135,3 +135,4 @@ swagger.yml
 worker/distWorker/
 .DS_Store
 post_data.json
+benchmark.local.sh
