@@ -171,19 +171,16 @@ export const getWalletDetailsWithoutTrx = async (
 
 export const getSubmittedTransactions = async (
   database: Knex,
-  transaction: Knex.Transaction,
 ): Promise<TransactionSchema[]> => {
-  const data = await database
-    .raw(
-      `select * from transactions
+  const data = await database.raw(
+    `select * from transactions
     where "txProcessed" = true
     and "txSubmitted" = true
     and "txMined" = false
     and "txErrored" = false
+    and "txHash" is not null
     order by "txSubmittedTimestamp" ASC
-    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}
-    for update skip locked`,
-    )
-    .transacting(transaction);
+    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}`,
+  );
   return data.rows;
 };
