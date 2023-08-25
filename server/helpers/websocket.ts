@@ -88,10 +88,7 @@ export const onClose = async (
     return;
   }
   subscriptionsData.splice(index, 1);
-  request.log.debug(
-    `Removed Subscription from localMem, new state`,
-    JSON.stringify(subscriptionsData),
-  );
+  request.log.debug(`Removed Subscription from localMem`);
 };
 
 export const wsTimeout = async (
