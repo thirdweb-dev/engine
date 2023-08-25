@@ -103,6 +103,16 @@ export const transactionResponseSchema = Type.Object({
       description: "Error Message",
     }),
   ),
+  txMinedTimestamp: Type.Optional(
+    Type.String({
+      description: "Transaction Mined Status Update Timestamp",
+    }),
+  ),
+  blockNumber: Type.Optional(
+    Type.Number({
+      description: "Block Number where the transaction was mined",
+    }),
+  ),
 });
 
 export enum TransactionStatusEnum {
@@ -139,4 +149,7 @@ export interface TransactionSchema {
   submittedTxNonce?: number;
   deployedContractAddress?: string;
   contractType?: string;
+  errorMessage?: string;
+  txMinedTimestamp?: string;
+  blockNumber?: number;
 }

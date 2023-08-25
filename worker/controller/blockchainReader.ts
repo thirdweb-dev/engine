@@ -1,7 +1,8 @@
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { Knex } from "knex";
-import { connectWithDatabase, env, getSDK } from "../../core";
+import { connectWithDatabase, env } from "../../core";
+import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
 import {
   getSubmittedTransactions,
   updateTransactionState,
@@ -25,6 +26,7 @@ export const checkForMinedTransactionsOnBlockchain = async (
     );
     trx = await knex.transaction();
     const transactions = await getSubmittedTransactions(knex);
+
     if (transactions.length === 0) {
       server.log.warn("No transactions to check for mined status");
       await trx.commit();
@@ -33,38 +35,46 @@ export const checkForMinedTransactionsOnBlockchain = async (
       return;
     }
 
-    const txReceipts = await Promise.all(
-      transactions.map(async (txData) => {
-        server.log.debug(
-          `Getting receipt for tx: ${txData.txHash} on chain: ${txData.chainId} for queueId: ${txData.identifier}`,
-        );
-        const sdk = await getSDK(txData.chainId!);
-        return sdk.getProvider().getTransactionReceipt(txData.txHash!);
-      }),
+    const blockNumbers: {
+      blockNumber: number;
+      chainId: string;
+      queueId: string;
+    }[] = [];
+    const txReceiptsWithChainId = await getTransactionReceiptWithBlockDetails(
+      server,
+      transactions,
     );
 
-    for (let txReceipt of txReceipts) {
-      if (!txReceipt) {
-        continue;
-      }
-      const txData = transactions.find(
-        (tx) => tx.txHash === txReceipt.transactionHash,
-      );
-      if (txData) {
+    for (let txReceiptData of txReceiptsWithChainId) {
+      if (
+        txReceiptData.blockNumber &&
+        txReceiptData.chainId &&
+        txReceiptData.queueId &&
+        txReceiptData.txHash &&
+        txReceiptData.effectiveGasPrice &&
+        txReceiptData.timestamp
+      ) {
         server.log.debug(
-          `Got receipt for tx: ${txData.txHash}, queueId: ${txData.identifier}, effectiveGasPrice: ${txReceipt.effectiveGasPrice}`,
+          `Got receipt for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId}, effectiveGasPrice: ${txReceiptData.effectiveGasPrice}`,
         );
         await updateTransactionState(
           knex,
-          txData.identifier!,
+          txReceiptData.queueId,
           "mined",
           trx,
           undefined,
           undefined,
-          { gasPrice: BigNumber.from(txReceipt.effectiveGasPrice).toString() },
+          {
+            gasPrice: BigNumber.from(
+              txReceiptData.effectiveGasPrice,
+            ).toString(),
+            txMinedTimestamp: new Date(txReceiptData.timestamp).toISOString(),
+            blockNumber: txReceiptData.blockNumber,
+          },
         );
       }
     }
+
     await trx.commit();
     await trx.destroy();
     await knex.destroy();

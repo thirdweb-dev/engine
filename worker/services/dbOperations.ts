@@ -174,11 +174,17 @@ export const getSubmittedTransactions = async (
 ): Promise<TransactionSchema[]> => {
   const data = await database.raw(
     `select * from transactions
-    where "txProcessed" = true
+    where ("txProcessed" = true
     and "txSubmitted" = true
     and "txMined" = false
     and "txErrored" = false
+    and "txHash" is not null)
+    or ("txProcessed" = true
+    and "txSubmitted" = true
+    and "txMined" = true
+    and "txErrored" = false
     and "txHash" is not null
+    and "blockNumber" is null)
     order by "txSubmittedTimestamp" ASC
     limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}`,
   );
