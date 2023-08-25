@@ -143,13 +143,13 @@ export interface TransactionSchema {
   maxFeePerGas?: string;
   txHash?: string;
   status?: string;
-  createdTimestamp?: string;
-  txSubmittedTimestamp?: string;
-  txProcessedTimestamp?: string;
+  createdTimestamp?: Date;
+  txSubmittedTimestamp?: Date;
+  txProcessedTimestamp?: Date;
   submittedTxNonce?: number;
   deployedContractAddress?: string;
   contractType?: string;
   errorMessage?: string;
-  txMinedTimestamp?: string;
+  txMinedTimestamp?: Date;
   blockNumber?: number;
 }

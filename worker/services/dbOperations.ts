@@ -172,21 +172,27 @@ export const getWalletDetailsWithoutTrx = async (
 export const getSubmittedTransactions = async (
   database: Knex,
 ): Promise<TransactionSchema[]> => {
-  const data = await database.raw(
-    `select * from transactions
-    where ("txProcessed" = true
-    and "txSubmitted" = true
-    and "txMined" = false
-    and "txErrored" = false
-    and "txHash" is not null)
-    or ("txProcessed" = true
-    and "txSubmitted" = true
-    and "txMined" = true
-    and "txErrored" = false
-    and "txHash" is not null
-    and "blockNumber" is null)
-    order by "txSubmittedTimestamp" ASC
-    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}`,
-  );
-  return data.rows;
+  const now = new Date(); // Current date and time
+  now.setSeconds(now.getSeconds() - 30);
+
+  const data = await database("transactions")
+    .where(function () {
+      this.whereNotNull("txHash")
+        .andWhere("txSubmitted", true)
+        .andWhere("txMined", false)
+        .andWhere("txErrored", false)
+        .andWhere("txProcessed", true)
+        .orWhere(function () {
+          this.whereNotNull("txHash")
+            .andWhere("txSubmitted", true)
+            .andWhere("txMined", true)
+            .andWhere("txErrored", false)
+            .andWhere("txProcessed", true)
+            .whereNull("blockNumber");
+        });
+    })
+    .andWhere("txSubmittedTimestamp", "<", now)
+    .orderBy("txSubmittedTimestamp", "asc")
+    .limit(MIN_TX_TO_CHECK_FOR_MINED_STATUS);
+  return data;
 };

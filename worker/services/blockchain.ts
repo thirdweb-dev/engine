@@ -36,6 +36,19 @@ export const getTransactionReceiptWithBlockDetails = async (
 
     const txDatawithBlockDetails = await Promise.all(
       txReceiptData.map(async (dt) => {
+        if (!dt.receipt) {
+          server.log.debug(
+            `Receipt not found for tx: ${dt.queueId} on chain: ${dt.chainId}`,
+          );
+          return {
+            txHash: "",
+            blockNumber: -1,
+            timestamp: -1,
+            chainId: dt.chainId!,
+            queueId: dt.queueId!,
+            effectiveGasPrice: BigNumber.from(0),
+          };
+        }
         const sdk = await getSDK(dt.chainId!);
         const blockNumberDetails = await sdk
           .getProvider()

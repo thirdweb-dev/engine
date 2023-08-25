@@ -47,12 +47,12 @@ export const checkForMinedTransactionsOnBlockchain = async (
 
     for (let txReceiptData of txReceiptsWithChainId) {
       if (
-        txReceiptData.blockNumber &&
+        txReceiptData.blockNumber != -1 &&
         txReceiptData.chainId &&
         txReceiptData.queueId &&
-        txReceiptData.txHash &&
-        txReceiptData.effectiveGasPrice &&
-        txReceiptData.timestamp
+        txReceiptData.txHash != "" &&
+        txReceiptData.effectiveGasPrice != BigNumber.from(-1) &&
+        txReceiptData.timestamp != -1
       ) {
         server.log.debug(
           `Got receipt for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId}, effectiveGasPrice: ${txReceiptData.effectiveGasPrice}`,
@@ -68,7 +68,7 @@ export const checkForMinedTransactionsOnBlockchain = async (
             gasPrice: BigNumber.from(
               txReceiptData.effectiveGasPrice,
             ).toString(),
-            txMinedTimestamp: new Date(txReceiptData.timestamp).toISOString(),
+            txMinedTimestamp: new Date(txReceiptData.timestamp),
             blockNumber: txReceiptData.blockNumber,
           },
         );
