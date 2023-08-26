@@ -25,11 +25,11 @@ export const checkForMinedTransactionsOnBlockchain = async (
       "Running Cron to check for mined transactions on blockchain",
     );
     trx = await knex.transaction();
-    const transactions = await getSubmittedTransactions(knex);
+    const transactions = await getSubmittedTransactions(knex, trx);
 
     if (transactions.length === 0) {
       server.log.warn("No transactions to check for mined status");
-      await trx.commit();
+      await trx.rollback();
       await trx.destroy();
       await knex.destroy();
       return;

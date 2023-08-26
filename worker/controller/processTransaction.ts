@@ -8,7 +8,6 @@ import {
   env,
   getSDK,
 } from "../../core";
-import { getWalletNonce } from "../../core/services/blockchain";
 import {
   getTransactionsToProcess,
   getWalletDetailsWithTrx,
@@ -65,10 +64,7 @@ export const processTransaction = async (
       );
 
       const sdk = await getSDK(tx.chainId);
-      let blockchainNonce = await getWalletNonce(
-        tx.walletAddress,
-        sdk.getProvider(),
-      );
+      let blockchainNonce = await sdk.wallet.getNonce("pending");
 
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
       let txSubmittedNonce = BigNumber.from(0);

@@ -171,9 +171,10 @@ export const getWalletDetailsWithoutTrx = async (
 
 export const getSubmittedTransactions = async (
   database: Knex,
+  trx: Knex.Transaction,
 ): Promise<TransactionSchema[]> => {
   const now = new Date(); // Current date and time
-  now.setSeconds(now.getSeconds() - 30);
+  now.setSeconds(now.getSeconds() - 15);
 
   const data = await database("transactions")
     .where(function () {
@@ -193,6 +194,9 @@ export const getSubmittedTransactions = async (
     })
     .andWhere("txSubmittedTimestamp", "<", now)
     .orderBy("txSubmittedTimestamp", "asc")
-    .limit(MIN_TX_TO_CHECK_FOR_MINED_STATUS);
+    .limit(MIN_TX_TO_CHECK_FOR_MINED_STATUS)
+    .forUpdate()
+    .skipLocked()
+    .transacting(trx);
   return data;
 };

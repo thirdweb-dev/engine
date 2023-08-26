@@ -110,6 +110,36 @@ async function fetchStatus({
   return raw.result;
 }
 
+async function tryUntilCompleted({
+  txnId,
+  host,
+  apiKey,
+}: {
+  txnId: string;
+  host: string;
+  apiKey: string;
+}): Promise<any> {
+  try {
+    const resp = await fetch(`${host}/transaction/status/${txnId}`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    const raw = await resp.json();
+    // logInfo(
+    //   `Got status: ${raw.result.status}, queueId: ${raw.result.queueId}. Retrying...`,
+    // );
+    if (raw.result.status === "mined" || raw.result.status === "errored") {
+      return raw.result;
+    }
+    // logInfo("Sleeping for 10 second...");
+    await sleep(10);
+    return tryUntilCompleted({ txnId, host, apiKey });
+  } catch (error) {
+    console.error("tryUntilCompleted error", error);
+  }
+}
+
 function parseStatus(
   status: unknown,
 ): Static<typeof transactionResponseSchema> {
@@ -130,59 +160,19 @@ async function processTransaction(
   opts: ReturnType<typeof getBenchmarkOpts>,
 ) {
   // give queue some time to process things
-  await sleep(2);
-
+  logInfo(
+    "Checking for status until all transactions are mined/errored. Can take upto 30 seconds or more...",
+  );
+  // await sleep(30);
   const statuses = await Promise.all(
     txnIds.map((txnId) => {
-      return fetchStatus({
+      return tryUntilCompleted({
         apiKey: opts.THIRDWEB_SDK_SECRET_KEY,
         host: opts.BENCHMARK_HOST,
         txnId,
       });
     }),
   );
-
-  const queuedTxn: Record<
-    string,
-    Static<typeof transactionResponseSchema>
-  > = {};
-  statuses.forEach((status) => {
-    const parsedStatus = parseStatus(status);
-    if (!parsedStatus.queueId) {
-      throw new Error(`Missing queueId in status: ${status}`);
-    }
-    if (parsedStatus.status === "queued") {
-      queuedTxn[parsedStatus.queueId] = status;
-    }
-  });
-  while (Object.keys(queuedTxn).length > 0) {
-    logInfo(
-      `${
-        Object.keys(queuedTxn).length
-      } tranasctions have not been processed, waiting...`,
-    );
-    // give things time to process before spamming again.
-    await sleep(6);
-    const newStatuses = await Promise.all(
-      Object.keys(queuedTxn).map(async (queueId) => {
-        return fetchStatus({
-          apiKey: opts.THIRDWEB_SDK_SECRET_KEY,
-          host: opts.BENCHMARK_HOST,
-          txnId: queueId,
-        });
-      }),
-    );
-    newStatuses.forEach((status) => {
-      const parsedStatus = parseStatus(status);
-      if (!parsedStatus.queueId) {
-        throw new Error(`Missing queueId in status: ${status}`);
-      }
-      if (status.status !== "queued") {
-        delete queuedTxn[status.queueId];
-      }
-      statuses.push(status);
-    });
-  }
 
   type txn = {
     timeTaken?: number;
@@ -192,7 +182,8 @@ async function processTransaction(
   const erroredTransaction: txn[] = [];
   const submittedTransaction: txn[] = [];
   const processedTransaction: txn[] = [];
-  console.log("statuses", statuses);
+  const minedTransaction: txn[] = [];
+  // logInfo("statuses", statuses);
   statuses.map((status) => {
     const parsedStatus = parseStatus(status);
     switch (parsedStatus.status) {
@@ -202,55 +193,57 @@ async function processTransaction(
         });
         break;
       }
-      case "processed": {
-        if (
-          !parsedStatus.txProcessedTimestamp ||
-          !parsedStatus.createdTimestamp
-        ) {
-          throw new Error(
-            `Invalid response from server for status transaction: ${JSON.stringify(
-              parsedStatus,
-            )}`,
-          );
-        }
-        processedTransaction.push({
-          status: parsedStatus.status,
-          timeTaken:
-            new Date(parsedStatus.txProcessedTimestamp).getTime() -
-            new Date(parsedStatus.createdTimestamp).getTime(),
-        });
-        break;
-      }
-      case "submitted": {
-        if (
-          !parsedStatus.txSubmittedTimestamp ||
-          !parsedStatus.createdTimestamp
-        ) {
-          throw new Error(
-            `Invalid response from server for submitted transaction: ${JSON.stringify(
-              parsedStatus,
-            )}`,
-          );
-        }
-        submittedTransaction.push({
-          status: parsedStatus.status,
-          timeTaken:
-            new Date(parsedStatus.txSubmittedTimestamp).getTime() -
-            new Date(parsedStatus.createdTimestamp).getTime(),
-          txnHash: parsedStatus.txHash,
-        });
-        break;
-      }
-      case "queued": {
-        // old transactions
-        break;
-      }
-      case "mined": {
-        // not supported today
-        break;
-      }
       default: {
-        throw new Error(`Invalid status: ${parsedStatus.status}`);
+        if (
+          parsedStatus.txProcessedTimestamp &&
+          parsedStatus.createdTimestamp
+        ) {
+          // throw new Error(
+          //   `Invalid response from server for status transaction: ${JSON.stringify(
+          //     parsedStatus,
+          //   )}`,
+          // );
+          processedTransaction.push({
+            status: parsedStatus.status!,
+            timeTaken:
+              new Date(parsedStatus.txProcessedTimestamp).getTime() -
+              new Date(parsedStatus.createdTimestamp).getTime(),
+            txnHash: parsedStatus.txHash,
+          });
+        }
+
+        if (
+          parsedStatus.txSubmittedTimestamp &&
+          parsedStatus.createdTimestamp
+        ) {
+          // throw new Error(
+          //   `Invalid response from server for submitted transaction: ${JSON.stringify(
+          //     parsedStatus,
+          //   )}`,
+          // );
+          submittedTransaction.push({
+            status: parsedStatus.status!,
+            timeTaken:
+              new Date(parsedStatus.txSubmittedTimestamp).getTime() -
+              new Date(parsedStatus.createdTimestamp).getTime(),
+            txnHash: parsedStatus.txHash,
+          });
+        }
+
+        if (parsedStatus.txMinedTimestamp && parsedStatus.createdTimestamp) {
+          // throw new Error(
+          //   `Invalid response from server for mined transaction: ${JSON.stringify(
+          //     parsedStatus,
+          //   )}`,
+          minedTransaction.push({
+            status: parsedStatus.status!,
+            timeTaken:
+              new Date(parsedStatus.txMinedTimestamp).getTime() -
+              new Date(parsedStatus.createdTimestamp).getTime(),
+            txnHash: parsedStatus.txHash,
+          });
+        }
+        break;
       }
     }
   });
@@ -259,11 +252,44 @@ async function processTransaction(
     error: erroredTransaction.length,
     processing: processedTransaction.length,
     submittedToMempool: submittedTransaction.length,
+    minedTransaction: minedTransaction.length,
   });
+
+  const sortedProcessedTransaction = processedTransaction.sort(
+    (a, b) => (a.timeTaken ?? 0) - (b.timeTaken ?? 0),
+  );
 
   const sortedSubmittedTransaction = submittedTransaction.sort(
     (a, b) => (a.timeTaken ?? 0) - (b.timeTaken ?? 0),
   );
+
+  const sortedMinedTransaction = minedTransaction.sort(
+    (a, b) => (a.timeTaken ?? 0) - (b.timeTaken ?? 0),
+  );
+
+  console.table({
+    "Avg Processing Time":
+      processedTransaction.reduce(
+        (acc, curr) => acc + (curr.timeTaken ?? 0),
+        0,
+      ) /
+        processedTransaction.length /
+        1_000 +
+      " sec",
+    "Median Processing Time":
+      (sortedProcessedTransaction[
+        Math.floor(sortedProcessedTransaction.length / 2)
+      ].timeTaken ?? 0) /
+        1_000 +
+      " sec",
+    "Min Processing Time":
+      (sortedProcessedTransaction[0].timeTaken ?? 0) / 1_000 + " sec",
+    "Max Processing Time":
+      (sortedProcessedTransaction[sortedProcessedTransaction.length - 1]
+        .timeTaken ?? 0) /
+        1_000 +
+      " sec",
+  });
 
   console.table({
     "Avg Submission Time":
@@ -288,10 +314,31 @@ async function processTransaction(
       " sec",
   });
 
+  console.table({
+    "Avg Mined Time":
+      minedTransaction.reduce((acc, curr) => acc + (curr.timeTaken ?? 0), 0) /
+        minedTransaction.length /
+        1_000 +
+      " sec",
+    "Median Mined Time":
+      (sortedMinedTransaction[Math.floor(minedTransaction.length / 2)]
+        .timeTaken ?? 0) /
+        1_000 +
+      " sec",
+    "Min Mined Time":
+      (sortedMinedTransaction[0].timeTaken ?? 0) / 1_000 + " sec",
+    "Max Mined Time":
+      (sortedMinedTransaction[sortedMinedTransaction.length - 1].timeTaken ??
+        0) /
+        1_000 +
+      " sec",
+  });
+
   return {
     erroredTransaction,
     submittedTransaction,
     processedTransaction,
+    minedTransaction,
   };
 }
 

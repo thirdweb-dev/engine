@@ -1,3 +1,4 @@
+import { getBlock } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { getSDK } from "../../core";
@@ -50,9 +51,10 @@ export const getTransactionReceiptWithBlockDetails = async (
           };
         }
         const sdk = await getSDK(dt.chainId!);
-        const blockNumberDetails = await sdk
-          .getProvider()
-          .getBlock(dt.receipt.blockNumber);
+        const blockNumberDetails = await getBlock({
+          block: dt.receipt.blockNumber,
+          network: sdk.getProvider(),
+        });
         return {
           txHash: dt.receipt.transactionHash,
           blockNumber: dt.receipt.blockNumber,
