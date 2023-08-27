@@ -16,7 +16,7 @@ responseSchema.examples = [
       {
         name: "Ethereum Mainnet",
         chain: "ETH",
-        rpc: ["https://ethereum.rpc.thirdweb.com/${THIRDWEB_API_KEY}"],
+        rpc: ["https://ethereum.rpc.thirdweb.com/${THIRDWEB_SDK_SECRET_KEY}"],
         nativeCurrency: {
           name: "Ether",
           symbol: "ETH",
@@ -30,7 +30,7 @@ responseSchema.examples = [
       {
         name: "Ropsten",
         chain: "ETH",
-        rpc: ["https://ropsten.rpc.thirdweb.com/${THIRDWEB_API_KEY}"],
+        rpc: ["https://ropsten.rpc.thirdweb.com/${THIRDWEB_SDK_SECRET_KEY}"],
         nativeCurrency: {
           name: "Ropsten Ether",
           symbol: "ETH",

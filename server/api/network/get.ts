@@ -18,7 +18,7 @@ responseSchema.examples = [
       result: {
         name: "Mumbai",
         chain: "Polygon",
-        rpc: ["https://mumbai.rpc.thirdweb.com/${THIRDWEB_API_KEY}"],
+        rpc: ["https://mumbai.rpc.thirdweb.com/${THIRDWEB_SDK_SECRET_KEY}"],
         nativeCurrency: {
           name: "MATIC",
           symbol: "MATIC",

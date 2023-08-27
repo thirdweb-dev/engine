@@ -7,6 +7,24 @@ import { env } from "../../core";
 // to be separate unlike old implementation
 
 export const openapi = async (server: FastifyInstance) => {
+  // Not all options are required below
+  // We can change/remove them too.
+  await server.register(fastifySwaggerUI, {
+    routePrefix: "/",
+    initOAuth: {},
+    uiConfig: {
+      docExpansion: "list",
+      deepLinking: true,
+      displayOperationId: false,
+    },
+
+    staticCSP: true,
+    transformStaticCSP: (header) => header,
+  });
+
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
   await server.register(swagger, {
     mode: "dynamic",
     openapi: {
