@@ -18,17 +18,21 @@
 
 <p align="center"><strong>Best in class web3 SDKs for Browser, Node and Mobile apps</strong></p>
 
-## Intro
+## Web3API
 
-Web3-api is a http server that provides deep web3 functionality, here's some of the major features:
+HTTP server that provides server side web3 functionality:
 
-- http interface with server and client auth
-- create and interact with wallets (local, aws kms, google secret, smart wallets)
-- manage wallet nonce and transaction queing
-- automatic transaction retry and gas management
+- http interface with server and client authentication
+- create and interact with web3 wallets (local, aws kms, google secret, smart wallets, etc)
+- automatic wallet nonce management
+- built in transaction queueing
+- intelligent transaction retry and gas management
 - read, write and deploy any smart contract on any evm blockchain
 - create gasless relayers
 - fine grained controls over user behavior
+- run in your own cloud or managed service (coming soon)
+
+The server is meant to facilitate blockchain transactions in your existing architecture. The goal of this server is to provide a high performance, production grade server for any web3 app, game or platform. The project is still early so if you're looking for specific features, have bugs or feedback feel free to reach out.
 
 ## Requirements
 
@@ -39,7 +43,7 @@ Web3-api is a http server that provides deep web3 functionality, here's some of 
 
 ### Set up required Environment Variables
 
-Set these variables in the .env file (check .env.example)
+Set these variables in the .env file (copy .env.example to get started)
 
 | Variable Name             | Description                                                     |
 | ------------------------- | --------------------------------------------------------------- |
@@ -59,7 +63,7 @@ Docker
 docker run -e .env thirdweb/web3-api
 ```
 
-## Local Dev
+## Local Development
 
 ### Requirements
 
@@ -73,15 +77,13 @@ docker run -e .env thirdweb/web3-api
 yarn
 ```
 
-Check the [How to install required packages](./.github/installations.md) guide for more details.
-
 ### Run:
 
 ```
 yarn dev
 ```
 
-This command runs the server, worker and postgres, for fine grained control you can use:
+This command runs the server, worker and sets up a postgres db, for fine grained control you can use these individually:
 
 ```
 yarn dev:server
@@ -89,11 +91,11 @@ yarn dev:worker
 yarn dev:infra
 ```
 
-## API Documentation
+## User Guide
 
 View all end-points details (Open API Specification) : [User Guide](./docs/UserGuide.md)
 
-## User Guide
+## API Documentation
 
 View all end-points details (Open API Specification) : https://web3-api-akbv.chainsaw-dev.zeet.app
 
