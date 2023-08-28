@@ -63,6 +63,25 @@ Docker
 docker run -e .env thirdweb/web3-api
 ```
 
+### Using the server
+
+- Server comes pre-bundled with a swagger interface, this lets you test out the server
+- Every call requires an authentication token (thirdweb SecretKey), ass this in the Authorization header:
+  - `Authorization: Bearer: <thirdweb secret key>`
+- Contract API
+
+  - GET /contract/[network]/[contract_address]/[func or variable name]
+  - POST /contract/[network]/[contract_address]/[function name]
+    - JSON body with params
+
+- Wallet API (in development)
+
+  - POST /wallet
+  - GET /wallet/[wallet_address]/balances
+
+- Auth API (In development)
+- Relayer API (In Progress development)
+
 ## Local Development
 
 ### Requirements
