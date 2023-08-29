@@ -20,19 +20,19 @@
 
 ## Web3API
 
-HTTP server that provides server side web3 functionality:
+HTTP server that provides production grade web3 functionality:
 
 - http interface with server and client authentication
-- create and interact with web3 wallets (local, aws kms, google secret, smart wallets, etc)
+- create & interface with backend web3 wallets (local, aws kms, google kms, smart wallets, etc)
 - automatic wallet nonce management
-- built in transaction queueing
+- built in high performance transaction queueing
 - intelligent transaction retry and gas management
 - read, write and deploy any smart contract on any evm blockchain
 - create gasless relayers
-- fine grained controls over user behavior
+- fine grained controls over user access
 - run in your own cloud or managed service (coming soon)
 
-The server is meant to facilitate blockchain transactions in your existing architecture. The goal of this server is to provide a high performance, production grade server for any web3 app, game or platform. The project is still early so if you're looking for specific features, have bugs or feedback feel free to reach out.
+The server is meant to facilitate blockchain transactions within your existing architecture. The server provides a high performance, production grade server to interact with smart contracts on any evm blockchain. The project is still early so if you're looking for specific features, have bugs or feedback feel free to reach out.
 
 ## Requirements
 
@@ -65,22 +65,28 @@ docker run -e .env thirdweb/web3-api
 
 ### Using the server
 
-- Server comes pre-bundled with a swagger interface, this lets you test out the server
-- Every call requires an authentication token (thirdweb SecretKey), ass this in the Authorization header:
-  - `Authorization: Bearer: <thirdweb secret key>`
+- In development mode, go to the server url to see an admin interface
+- Every request to the server requires an authentication token, for admin actions use the thirdweb SecretKey. Use the `Authorization` Header to set the value shown below:
+  - `Authorization: Bearer: <thirdweb SecretKey>`
 - Contract API
 
-  - GET /contract/[network]/[contract_address]/[func or variable name]
-  - POST /contract/[network]/[contract_address]/[function name]
+  - Read from any contract
+    - GET /contract/[network]/[contract_address]/[func or variable name]
+  - Write to any contract function
+    - POST /contract/[network]/[contract_address]/[function name]
     - JSON body with params
+  - Deploy published contracts
+    - POST /deploy/[network]/[publisher_address]/[published_name]
 
 - Wallet API (in development)
 
-  - POST /wallet
-  - GET /wallet/[wallet_address]/balances
+  - Create Wallets
+    - POST /wallet
+  - Get Wallet Info
+    - Balances - GET /wallet/[wallet_address]
 
 - Auth API (In development)
-- Relayer API (In Progress development)
+- Relayer API (In development)
 
 ## Local Development
 
