@@ -45,15 +45,10 @@ The server is meant to facilitate blockchain transactions within your existing a
 
 Set these variables in the .env file (copy .env.example to get started)
 
-| Variable Name             | Description                                                     |
-| ------------------------- | --------------------------------------------------------------- |
-| `THIRDWEB_SDK_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey. |
-| `POSTGRES_HOST`           | PostgreSQL Host Name                                            |
-| `POSTGRES_DATABASE_NAME`  | PostgreSQL Database Name                                        |
-| `POSTGRES_USER`           | PostgreSQL Username                                             |
-| `POSTGRES_PASSWORD`       | PostgreSQL Password                                             |
-| `POSTGRES_PORT`           | PostgreSQL Port                                                 |
-| `POSTGRES_USE_SSL`        | Flag to indicate whether to use SSL                             |
+| Variable Name             | Description                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `THIRDWEB_SDK_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey.                                               |
+| `POSTGRES_CONNECTION`     | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...] |
 
 ### Run the server
 

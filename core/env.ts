@@ -37,13 +37,12 @@ export const env = createEnv({
     ]),
     THIRDWEB_SDK_SECRET_KEY: z.string().min(1),
     THIRDWEB_API_ORIGIN: z.string().default("http://api.thirdweb.com"),
-    POSTGRES_HOST: z.string().default("localhost"),
-    POSTGRES_DATABASE_NAME: z.string().default("postgres"),
     DATABASE_CLIENT: z.string().default("pg"),
-    POSTGRES_USER: z.string().default("postgres"),
-    POSTGRES_PASSWORD: z.string().default("postgres"),
-    POSTGRES_PORT: z.coerce.number().default(5432),
-    POSTGRES_USE_SSL: boolSchema("false"),
+    POSTGRES_CONNECTION: z
+      .string()
+      .default(
+        "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable",
+      ),
     OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
     DB_TABLES_LIST: z.string().default("wallets,transactions"),
     DB_TRIGGERS_LIST: z
@@ -74,13 +73,7 @@ export const env = createEnv({
     } as any,
     THIRDWEB_SDK_SECRET_KEY: process.env.THIRDWEB_SDK_SECRET_KEY,
     THIRDWEB_API_ORIGIN: process.env.THIRDWEB_API_ORIGIN,
-    POSTGRES_HOST: process.env.POSTGRES_HOST,
-    POSTGRES_DATABASE_NAME: process.env.POSTGRES_DATABASE_NAME,
-    DATABASE_CLIENT: process.env.DATABASE_CLIENT,
-    POSTGRES_USER: process.env.POSTGRES_USER,
-    POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
-    POSTGRES_PORT: process.env.POSTGRES_PORT,
-    POSTGRES_USE_SSL: process.env.POSTGRES_USE_SSL,
+    POSTGRES_CONNECTION: process.env.POSTGRES_CONNECTION,
     DB_TABLES_LIST: process.env.DB_TABLES_LIST,
     DB_TRIGGERS_LIST: process.env.DB_TRIGGERS_LIST,
     PORT: process.env.PORT,
