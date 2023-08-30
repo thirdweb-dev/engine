@@ -50,13 +50,10 @@ export const connectToDB = async (
       );
   }
 
-  // Updated the DATABASE name on connection object
-  connection.database = DATABASE_NAME;
-
   // Updating knex Config
   knexConfig = {
     client: dbClient,
-    connection,
+    connection: connectionString,
   };
 
   await knex.destroy();
@@ -69,7 +66,7 @@ export const connectToDB = async (
 export const connectWithDatabase = async (): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
-    connection,
+    connection: connectionString,
   };
 
   // Set the appropriate databse client package
