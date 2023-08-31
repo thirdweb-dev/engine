@@ -12,17 +12,36 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { BaseContract, BigNumber } from "ethers";
 import * as fs from "fs";
+import { walletTableSchema } from "../../server/schemas/wallet";
+import { getWalletDetails } from "../database/dbOperation";
 import { env } from "../env";
 import { isValidHttpUrl } from "../helpers";
 import { networkResponseSchema } from "../schema";
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
-const sdkMap: Partial<Record<ChainOrRpc, ThirdwebSDK>> = {};
+const sdkMap: Map<string, ThirdwebSDK> = new Map();
+const walletDataMap: Map<string, string> = new Map();
 
-export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
-  if (!!sdkMap[chainName]) {
-    return sdkMap[chainName] as ThirdwebSDK;
+const AWS_REGION = env.AWS_REGION;
+const AWS_ACCESS_KEY_ID = env.AWS_ACCESS_KEY_ID;
+const AWS_SECRET_ACCESS_KEY = env.AWS_SECRET_ACCESS_KEY;
+const AWS_KMS_KEY_ID =
+  "AWS_KMS_KEY_ID" in env.WALLET_KEYS ? env.WALLET_KEYS.AWS_KMS_KEY_ID : "";
+
+export const getSDK = async (
+  chainName: ChainOrRpc,
+  walletOptions?: {
+    walletAddress?: string;
+    walletType?: string;
+    awsKmsKeyId?: string;
+    gcpKmsKeyId?: string;
+  },
+): Promise<ThirdwebSDK> => {
+  let walletAddress = walletOptions?.walletAddress || "";
+  let sdkMapKey = chainName + "_" + walletAddress;
+  if (sdkMap.get(sdkMapKey)) {
+    return sdkMap.get(sdkMapKey) as ThirdwebSDK;
   }
 
   const THIRDWEB_SDK_SECRET_KEY = env.THIRDWEB_SDK_SECRET_KEY;
@@ -31,29 +50,34 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   let wallet: AwsKmsWallet | LocalWallet | null = null;
 
   try {
-    chain = getChainBySlug(chainName);
+    chain = getChainBySlug(chainName.toLowerCase());
   } catch (e) {
     try {
-      chain = getChainByChainId(BigNumber.from(chainName).toNumber());
+      chain = getChainByChainId(
+        BigNumber.from(chainName.toLowerCase()).toNumber(),
+      );
     } catch (er) {
       throw er;
     }
   }
 
-  // Check for KMS
-  if ("AWS_KMS_KEY_ID" in env.WALLET_KEYS) {
-    const AWS_REGION = env.WALLET_KEYS.AWS_REGION;
-    const AWS_ACCESS_KEY_ID = env.WALLET_KEYS.AWS_ACCESS_KEY_ID;
-    const AWS_SECRET_ACCESS_KEY = env.WALLET_KEYS.AWS_SECRET_ACCESS_KEY;
-    const AWS_KMS_KEY_ID = env.WALLET_KEYS.AWS_KMS_KEY_ID;
+  if (walletOptions?.awsKmsKeyId || "AWS_KMS_KEY_ID" in env.WALLET_KEYS) {
+    if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
+      throw new Error(
+        "AWS_REGION, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY must be set in order to use AWS KMS.",
+      );
+    }
 
     wallet = new AwsKmsWallet({
       region: AWS_REGION,
       accessKeyId: AWS_ACCESS_KEY_ID,
       secretAccessKey: AWS_SECRET_ACCESS_KEY,
-      keyId: AWS_KMS_KEY_ID,
+      keyId: walletOptions?.awsKmsKeyId || AWS_KMS_KEY_ID,
     });
-  } else if ("WALLET_PRIVATE_KEY" in env.WALLET_KEYS) {
+  } else if (
+    walletOptions?.walletType === "ppk" ||
+    "WALLET_PRIVATE_KEY" in env.WALLET_KEYS
+  ) {
     const WALLET_PRIVATE_KEY = env.WALLET_KEYS.WALLET_PRIVATE_KEY;
     wallet = new LocalWallet({
       chain,
@@ -88,8 +112,9 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     secretKey: THIRDWEB_SDK_SECRET_KEY,
     supportedChains: RPC_OVERRIDES,
   });
-
-  sdkMap[chainName] = sdk;
+  walletAddress = await sdk.wallet.getAddress();
+  sdkMapKey = chainName + "_" + walletAddress;
+  sdkMap.set(sdkMapKey, sdk);
 
   return sdk;
 };
@@ -99,12 +124,28 @@ export const getContractInstance = async <
 >(
   network: ChainOrRpc,
   contract_address: TContractAddress,
+  from?: string,
 ): Promise<
   TContractAddress extends ContractAddress
     ? SmartContract<BaseContractForAddress<TContractAddress>>
     : SmartContract<BaseContract>
 > => {
-  const sdk = await getSDK(network);
+  let walletData: Static<typeof walletTableSchema> | undefined;
+  if (from) {
+    from = from.toLowerCase();
+    const rawData = walletDataMap.get(from);
+    if (!rawData) {
+      walletData = await getWalletDetails(from, network);
+      walletDataMap.set(from, JSON.stringify(walletData));
+    } else {
+      walletData = JSON.parse(rawData);
+    }
+  }
+  const sdk = await getSDK(network, {
+    walletAddress: from,
+    walletType: walletData?.walletType,
+    awsKmsKeyId: walletData?.awsKmsKeyId,
+  });
   const contract = await sdk.getContract(contract_address);
   return contract;
 };

@@ -26,6 +26,7 @@
     "test:all": "mocha --exit"
   },
   "dependencies": {
+    "@aws-sdk/client-kms": "^3.398.0",
     "@fastify/cookie": "^8.3.0",
     "@fastify/cors": "^8.2.1",
     "@fastify/express": "^2.3.0",

@@ -5,16 +5,13 @@ import {
   Transaction,
   TransactionError,
 } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
 import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
 import { v4 as uuid } from "uuid";
-import { connectWithDatabase, getSDK } from "../../core";
-import { insertIntoWallets } from "../../core/database/dbOperation";
+import { addWalletToDB, connectWithDatabase } from "../../core";
 import { createCustomError } from "../../core/error/customError";
 import { WalletData } from "../../core/interfaces";
-import { getWalletNonce } from "../../core/services/blockchain";
 import {
   TransactionSchema,
   TransactionStatusEnum,
@@ -80,22 +77,7 @@ export const queueTransaction = async (
   );
 
   if (!checkForNetworkData) {
-    const sdk = await getSDK(chainId);
-    const walletNonce = await getWalletNonce(
-      walletAddress.toLowerCase(),
-      sdk.getProvider(),
-    );
-
-    const walletData = {
-      walletAddress: walletAddress.toLowerCase(),
-      chainId: chainId.toLowerCase(),
-      blockchainNonce: BigNumber.from(walletNonce ?? 0).toNumber(),
-      lastSyncedTimestamp: new Date(),
-      lastUsedNonce: -1,
-      walletType: chainData.slug,
-    };
-
-    await insertIntoWallets(walletData, dbInstance);
+    await addWalletToDB(chainId, walletAddress, chainData.slug, dbInstance);
   }
   // encode tx
   const encodedData = tx.encode();

@@ -48,6 +48,7 @@ export const checkTablesExistence = async (
     // Disconnect from DB
     await knex.destroy();
   } catch (error: any) {
+    server.log.error(error);
     const customError = createCustomError(
       "Error while executing Table SQLs on startup",
       StatusCodes.INTERNAL_SERVER_ERROR,

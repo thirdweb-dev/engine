@@ -2,10 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../core";
-import {
-  currencyValueSchema,
-  standardResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { walletParamSchema } from "../../schemas/wallet";
 
 // INPUTS
@@ -13,34 +10,24 @@ const requestSchema = walletParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Object({
-    walletAddress: Type.String(),
-    ...currencyValueSchema.properties,
-  }),
+  result: Type.Object({}),
 });
 
 responseSchema.example = {
-  result: {
-    walletAddress: "0x...",
-    name: "ERC20",
-    symbol: "",
-    decimals: "18",
-    value: "0",
-    displayValue: "0.0",
-  },
+  result: {},
 };
 
-export async function getBalance(fastify: FastifyInstance) {
+export async function getAll(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/wallet/:network/:wallet_address/getBalance",
+    url: "/wallet/getAll",
     schema: {
-      description: "Get Wallet Balance",
+      description: "Get all created EOA wallet",
       tags: ["Wallet"],
-      operationId: "wallet_getBalance",
+      operationId: "wallet_getAll",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -48,9 +35,9 @@ export async function getBalance(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, wallet_address } = request.params;
+      const { network, walletAddress } = request.params;
 
-      const sdk = await getSDK(network, { walletAddress: wallet_address });
+      const sdk = await getSDK(network, walletAddress);
 
       let balanceData = await sdk.wallet.balance();
       let address = await sdk.wallet.getAddress();

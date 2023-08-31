@@ -1,14 +1,15 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { getContractInstance } from "../../../../core";
 
+import { queueTransaction } from "../../../helpers";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
-import { queueTransaction } from "../../../helpers";
+import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
@@ -20,6 +21,7 @@ const writeRequestBodySchema = Type.Object({
       description: "Arguments for the function. Comma Separated",
     }),
   ),
+  ...web3APIOverridesForWriteRequest.properties,
 });
 
 // Adding example for Swagger File
@@ -56,9 +58,13 @@ export async function writeToContract(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { function_name, args } = request.body;
+      const { function_name, args, web3api_overrides } = request.body;
 
-      const contract = await getContractInstance(network, contract_address);
+      const contract = await getContractInstance(
+        network,
+        contract_address,
+        web3api_overrides?.from,
+      );
       const tx = await contract.prepare(function_name, args);
 
       const queuedId = await queueTransaction(
@@ -69,7 +75,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: queuedId!,
       });
     },
   });

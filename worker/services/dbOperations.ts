@@ -6,7 +6,7 @@ import { TransactionSchema } from "../../server/schemas/transaction";
 const TRANSACTIONS_TO_BATCH = env.TRANSACTIONS_TO_BATCH;
 const MIN_TX_TO_CHECK_FOR_MINED_STATUS = env.MIN_TX_TO_CHECK_FOR_MINED_STATUS;
 
-export const getWalletDetailsWithTrx = async (
+export const getWalletDetailsWithTransaction = async (
   walletAddress: string,
   chainId: string,
   database: Knex,
@@ -150,23 +150,6 @@ export const checkTableForPrimaryKey = async (knex: Knex): Promise<boolean> => {
   );
 
   return result.rows[0].is_primary_key;
-};
-
-export const getWalletDetailsWithoutTrx = async (
-  walletAddress: string,
-  chainId: string,
-  database: Knex,
-): Promise<any> => {
-  try {
-    const walletDetails = await database("wallets")
-      .select("*")
-      .where({ walletAddress: walletAddress.toLowerCase(), chainId })
-      .first();
-
-    return walletDetails;
-  } catch (error) {
-    throw error;
-  }
 };
 
 export const getSubmittedTransactions = async (

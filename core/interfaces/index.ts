@@ -4,4 +4,5 @@ export interface WalletData {
   lastUsedNonce: number;
   blockchainNonce: number;
   lastSyncedTimestamp: Date;
+  walletType: string;
 }
