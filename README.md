@@ -40,22 +40,22 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 
 | Variable Name                      | Description                                                                                                         | Default Value           | Required |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------- |
-| `HOST`                             | Host name of the API Server                                                                                         | `localhost`             | false    |
-| `PORT`                             | Port number of the API Server                                                                                       | `3005`                  | false    |
-| `THIRDWEB_API_KEY`                 | API Key to access ThirdWeb API                                                                                      |                         | true     |
-| `POSTGRES_HOST`                    | PostgreSQL Host Name                                                                                                |                         | true     |
-| `POSTGRES_DATABASE_NAME`           | PostgreSQL Database Name                                                                                            |                         | true     |
-| `POSTGRES_USER`                    | PostgreSQL Username                                                                                                 |                         | true     |
-| `POSTGRES_PASSWORD`                | PostgreSQL Password                                                                                                 |                         | true     |
-| `POSTGRES_PORT`                    | PostgreSQL Port                                                                                                     |                         | true     |
-| `POSTGRES_USE_SSL`                 | Flag to indicate whether to use SSL                                                                                 |                         | true     |
-| `TRANSACTIONS_TO_BATCH`            | Number of transactions to batch process at a time.                                                                  | `10`                    | false    |
-| `CHAIN_OVERRIDES`                  | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | false    |
-| `OPENAPI_BASE_ORIGIN`              | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | false    |
+| `HOST`                             | Host name of the API Server                                                                                         | `localhost`             | ❌       |
+| `PORT`                             | Port number of the API Server                                                                                       | `3005`                  | ❌       |
+| `THIRDWEB_API_KEY`                 | API Key to access ThirdWeb API                                                                                      |                         | ✅       |
+| `POSTGRES_HOST`                    | PostgreSQL Host Name                                                                                                |                         | ✅       |
+| `POSTGRES_DATABASE_NAME`           | PostgreSQL Database Name                                                                                            |                         | ✅       |
+| `POSTGRES_USER`                    | PostgreSQL Username                                                                                                 |                         | ✅       |
+| `POSTGRES_PASSWORD`                | PostgreSQL Password                                                                                                 |                         | ✅       |
+| `POSTGRES_PORT`                    | PostgreSQL Port                                                                                                     |                         | ✅       |
+| `POSTGRES_USE_SSL`                 | Flag to indicate whether to use SSL                                                                                 |                         | ✅       |
+| `TRANSACTIONS_TO_BATCH`            | Number of transactions to batch process at a time.                                                                  | `10`                    | ❌       |
+| `CHAIN_OVERRIDES`                  | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | ❌       |
+| `OPENAPI_BASE_ORIGIN`              | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | ❌       |
 | `THIRDWEB_SDK_SECRET_KEY`          | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | true     |
-| `MINED_TX_CRON_ENABLED`            | Flag to indicate whether to run the cron job to check mined transactions.                                           | `true`                  | false    |
-| `MINED_TX_CRON_SCHEDULE`           | Cron Schedule for the cron job to check mined transactions.                                                         | `*/30 * * * *`          | false    |
-| `MIN_TX_TO_CHECK_FOR_MINED_STATUS` | Number of transactions to check for mined status at a time.                                                         | `50`                    | false    |
+| `MINED_TX_CRON_ENABLED`            | Flag to indicate whether to run the cron job to check mined transactions.                                           | `true`                  | ❌       |
+| `MINED_TX_CRON_SCHEDULE`           | Cron Schedule for the cron job to check mined transactions.                                                         | `*/30 * * * *`          | ❌       |
+| `MIN_TX_TO_CHECK_FOR_MINED_STATUS` | Number of transactions to check for mined status at a time.                                                         | `50`                    | ❌       |
 
 ## Setup Instructions
 
