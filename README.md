@@ -52,7 +52,7 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 | `TRANSACTIONS_TO_BATCH`            | Number of transactions to batch process at a time.                                                                  | `10`                    | ❌       |
 | `CHAIN_OVERRIDES`                  | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | ❌       |
 | `OPENAPI_BASE_ORIGIN`              | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | ❌       |
-| `THIRDWEB_SDK_SECRET_KEY`          | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | true     |
+| `THIRDWEB_SDK_SECRET_KEY`          | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | ✅       |
 | `MINED_TX_CRON_ENABLED`            | Flag to indicate whether to run the cron job to check mined transactions.                                           | `true`                  | ❌       |
 | `MINED_TX_CRON_SCHEDULE`           | Cron Schedule for the cron job to check mined transactions.                                                         | `*/30 * * * *`          | ❌       |
 | `MIN_TX_TO_CHECK_FOR_MINED_STATUS` | Number of transactions to check for mined status at a time.                                                         | `50`                    | ❌       |
