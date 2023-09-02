@@ -5,6 +5,7 @@ import {
   Transaction,
   TransactionError,
 } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
 import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
@@ -83,6 +84,7 @@ export const queueTransaction = async (
     await addWalletToDB(chainId, walletAddress, chainData.slug, dbInstance);
   }
   // encode tx
+  const value = await tx.getValue();
   const encodedData = tx.encode();
   const txDataToInsert: TransactionSchema = {
     identifier: uuid(),
@@ -99,7 +101,7 @@ export const queueTransaction = async (
     encodedInputData: encodedData,
     deployedContractAddress,
     contractType,
-    txValue: await tx.getValue().toString(),
+    txValue: value ? BigNumber.from(value).toHexString() : undefined,
   };
 
   if (!txDataToInsert.identifier) {

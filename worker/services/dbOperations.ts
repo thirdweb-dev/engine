@@ -163,7 +163,8 @@ export const getSubmittedTransactions = async (
     and "txErrored" = false
     and "txHash" is not null
     order by "txSubmittedTimestamp" ASC
-    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}`,
+    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}
+    for update skip locked`,
   );
   return data.rows;
 };
