@@ -5,15 +5,26 @@ import { StatusCodes } from "http-status-codes";
 import {
   addWalletDataWithSupportChainsNonceToDB,
   connectWithDatabase,
+  env,
 } from "../../../core";
-import { getWalletBackUpType } from "../../../core/helpers";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { createAWSKMSWallet } from "../../helpers/wallets";
+import { WalletConfigType } from "../../schemas/wallet";
 
 // INPUTS
-const AWS_REGION = process.env.AWS_REGION;
-const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
-const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
+
+const requestBodySchema = Type.Object({
+  walletType: Type.String({
+    description: "Wallet Type",
+    examples: ["aws_kms", "gcp_kms"],
+  }),
+});
+
+requestBodySchema.examples = [
+  {
+    walletType: "aws_kms",
+  },
+];
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -30,6 +41,7 @@ responseSchema.example = {
 export async function createEOAWallet(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/wallet/create",
@@ -37,26 +49,35 @@ export async function createEOAWallet(fastify: FastifyInstance) {
       description: "Create EOA wallet as Admin Wallet for web3api",
       tags: ["Wallet"],
       operationId: "wallet_create",
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
-      const walletType = getWalletBackUpType();
-      if (walletType === "ppk") {
-        throw new Error(
-          "Cannot use Private Key to create EOA wallet. Please use AWS KMS or GCP KMS. See <link> for more details.",
-        );
-      }
-
       let wallet: AwsKmsWallet | undefined;
       let awsKmsArn = undefined;
       let awsKmsKeyId = undefined;
+      let gcpKmsKeyId = undefined;
+      let gcpKmsKeyRingId = undefined;
       let walletAddress = "";
+
+      const { walletType } = request.body;
+
       request.log.info(`walletType: ${walletType}`);
 
-      if (walletType === "aws_kms") {
+      if (walletType === WalletConfigType.aws_kms) {
+        if (
+          !env.AWS_REGION ||
+          !env.AWS_ACCESS_KEY_ID ||
+          !env.AWS_SECRET_ACCESS_KEY
+        ) {
+          throw new Error(
+            "AWS_REGION or AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not defined. Please check .env file",
+          );
+        }
+
         const { keyId, arn } = await createAWSKMSWallet(
           fastify,
           "Web3 API KMS Admin Wallet",
@@ -66,15 +87,22 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         awsKmsKeyId = keyId;
 
         const wallet = new AwsKmsWallet({
-          region: AWS_REGION!,
-          accessKeyId: AWS_ACCESS_KEY_ID!,
-          secretAccessKey: AWS_SECRET_ACCESS_KEY!,
+          region: env.AWS_REGION!,
+          accessKeyId: env.AWS_ACCESS_KEY_ID!,
+          secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
           keyId,
         });
 
         walletAddress = await wallet.getAddress();
-      } else if (walletType === "gcp") {
-        // ToDo GCP KMS
+      } else if (walletType === WalletConfigType.gcp_kms) {
+        // ToDo
+        // const key = await createGCPKMSWallet();
+        // const name = "test-web3-api";
+        // // console.log("GCP", name);
+        // const publicKey = await getGCPPublicKey(name!);
+        // walletAddress = publicKey;
+        // request.log.info(`GCP walletAddress: ${walletAddress}`);
+        throw new Error("GCP KMS Wallet is not supported yet");
       }
 
       const dbInstance = await connectWithDatabase();

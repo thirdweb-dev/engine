@@ -1,13 +1,14 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { getContractInstance } from "../../../../../../core/index";
+import { queueTransaction } from "../../../../../helpers";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { queueTransaction } from "../../../../../helpers";
+import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -18,6 +19,7 @@ const requestBodySchema = Type.Object({
   approved: Type.Boolean({
     description: "wheter to approve or revoke approval",
   }),
+  ...web3APIOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -49,8 +51,13 @@ export async function erc721SetApprovalForAll(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { operator, approved } = request.body;
-      const contract = await getContractInstance(network, contract_address);
+      const { operator, approved, web3api_overrides } = request.body;
+
+      const contract = await getContractInstance(
+        network,
+        contract_address,
+        web3api_overrides?.from,
+      );
       const tx = await contract.erc721.setApprovalForAll.prepare(
         operator,
         approved,

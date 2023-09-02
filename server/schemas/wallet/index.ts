@@ -55,10 +55,32 @@ export const walletTableSchema = Type.Optional(
         description: "AWS KMS ARN",
       }),
     ),
+    gcpKmsKeyRingId: Type.Optional(
+      Type.String({
+        description: "Google Cloud KMS Key Ring ID",
+      }),
+    ),
+    gcpKmsKeyId: Type.Optional(
+      Type.String({
+        description: "Google Cloud KMS Key ID",
+      }),
+    ),
+    gcpKmsKeyVersion: Type.Optional(
+      Type.String({
+        description: "Google Cloud KMS Key Version",
+      }),
+    ),
   }),
 );
 
 export interface createKMSEOAResponse {
   arn: string;
   keyId: string;
+}
+
+export enum WalletConfigType {
+  aws_kms = "aws_kms",
+  local = "local",
+  gcp_kms = "gcp_kms",
+  ppk = "ppk",
 }

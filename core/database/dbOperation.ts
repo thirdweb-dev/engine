@@ -13,6 +13,8 @@ interface WalletExtraData {
   awsKmsKeyId?: string;
   awsKmsArn?: string;
   walletType?: string;
+  gcpKmsKeyId?: string;
+  gcpKmsKeyRingId?: string;
 }
 
 export const insertIntoWallets = async (

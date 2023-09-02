@@ -1,13 +1,14 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { getContractInstance } from "../../../../../../core/index";
+import { queueTransaction } from "../../../../../helpers";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { queueTransaction } from "../../../../../helpers";
+import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -15,6 +16,7 @@ const requestBodySchema = Type.Object({
   token_id: Type.String({
     description: "The token ID to burn",
   }),
+  ...web3APIOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -44,8 +46,13 @@ export async function erc721burn(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { token_id } = request.body;
-      const contract = await getContractInstance(network, contract_address);
+      const { token_id, web3api_overrides } = request.body;
+
+      const contract = await getContractInstance(
+        network,
+        contract_address,
+        web3api_overrides?.from,
+      );
       const tx = await contract.erc721.burn.prepare(token_id);
       const queuedId = await queueTransaction(request, tx, network, "erc721");
       reply.status(StatusCodes.OK).send({

@@ -56,8 +56,11 @@ export const env = createEnv({
     CHAIN_OVERRIDES: z.string().default(""),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
     MINED_TX_CRON_ENABLED: boolSchema("true"),
-    MINED_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
+    MINED_TX_CRON_SCHEDULE: z.string().default("*/5 * * * * *"),
     MIN_TX_TO_CHECK_FOR_MINED_STATUS: z.coerce.number().default(50),
+    GCP_PROJECT_ID: z.string().min(1).optional(),
+    GCP_KEY_RING_ID: z.string().min(1).optional(),
+    GCP_LOCATION_ID: z.string().min(1).optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -94,6 +97,9 @@ export const env = createEnv({
     MINED_TX_CRON_SCHEDULE: process.env.MINED_TX_CRON_SCHEDULE,
     MIN_TX_TO_CHECK_FOR_MINED_STATUS:
       process.env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
+    GCP_PROJECT_ID: process.env.GCP_PROJECT_ID,
+    GCP_KEY_RING_ID: process.env.GCP_KEY_RING_ID,
+    GCP_LOCATION_ID: process.env.GCP_LOCATION_ID,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

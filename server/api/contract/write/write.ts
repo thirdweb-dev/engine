@@ -65,7 +65,10 @@ export async function writeToContract(fastify: FastifyInstance) {
         contract_address,
         web3api_overrides?.from,
       );
-      const tx = await contract.prepare(function_name, args);
+      const tx = await contract.prepare(function_name, args, {
+        value: web3api_overrides?.value,
+        from: web3api_overrides?.from,
+      });
 
       const queuedId = await queueTransaction(
         request,
@@ -75,7 +78,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       );
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId!,
+        result: queuedId,
       });
     },
   });

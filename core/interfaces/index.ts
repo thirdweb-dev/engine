@@ -5,4 +5,9 @@ export interface WalletData {
   blockchainNonce: number;
   lastSyncedTimestamp: Date;
   walletType: string;
+  awsKmsKeyId?: string;
+  gcpKmsKeyId?: string;
+  awsKmsKeyArn?: string;
+  gcpKmsKeyRingId?: string;
+  gcpKmsKeyVersion?: string;
 }

@@ -57,8 +57,10 @@ export async function deployPublished(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, publisher, contract_name } = request.params;
-      const { constructorParams, version } = request.body;
-      const sdk = await getSDK(network);
+      const { constructorParams, version, web3api_overrides } = request.body;
+      const sdk = await getSDK(network, {
+        walletAddress: web3api_overrides?.from,
+      });
       const tx = await sdk.deployer.deployReleasedContract.prepare(
         publisher,
         contract_name,

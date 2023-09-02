@@ -17,6 +17,7 @@ import {
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../schemas/transaction";
+import { walletTableSchema } from "../schemas/wallet";
 
 const checkNetworkInWalletDB = async (
   database: Knex,
@@ -45,7 +46,9 @@ export const queueTransaction = async (
 ) => {
   // first simulate tx
   try {
-    await tx.simulate();
+    if (!deployedContractAddress) {
+      await tx.simulate();
+    }
   } catch (e) {
     const message = (e as TransactionError)?.reason || (e as any).message || e;
     throw new Error(`Transaction simulation failed with reason: ${message}`);
@@ -96,6 +99,7 @@ export const queueTransaction = async (
     encodedInputData: encodedData,
     deployedContractAddress,
     contractType,
+    txValue: await tx.getValue().toString(),
   };
 
   if (!txDataToInsert.identifier) {
@@ -273,6 +277,27 @@ export const getAllDeployedContractTxFromDB = async (
   } catch (error: any) {
     const customError = createCustomError(
       "Error while fetching all transaction requests from Table.",
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "INTERNAL_SERVER_ERROR",
+    );
+    throw customError;
+  }
+};
+
+export const getAllWallets = async (
+  network: string,
+): Promise<Static<typeof walletTableSchema>[]> => {
+  try {
+    const dbInstance = await connectWithDatabase();
+    const data = await dbInstance("wallets")
+      .where("chainId", network)
+      .orWhere("slug", network);
+    await dbInstance.destroy();
+
+    return data;
+  } catch (error: any) {
+    const customError = createCustomError(
+      "Error while fetching all wallets from Table.",
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );

@@ -61,7 +61,10 @@ export const processTransaction = async (
         trx,
       );
 
-      const sdk = await getSDK(tx.chainId, tx.walletAddress);
+      const sdk = await getSDK(tx.chainId, {
+        walletAddress: tx.walletAddress,
+        awsKmsKeyId: walletData?.awsKmsKeyId,
+      });
       let blockchainNonce = await getWalletNonce(
         tx.walletAddress,
         sdk.getProvider(),
@@ -86,6 +89,7 @@ export const processTransaction = async (
         from: tx.walletAddress,
         data: tx.encodedInputData,
         nonce: txSubmittedNonce,
+        value: tx.txValue,
       };
 
       // Send transaction to the blockchain

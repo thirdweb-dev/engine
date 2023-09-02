@@ -1,9 +1,9 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../core";
-import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
 import { queueTransaction } from "../../../helpers";
+import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
@@ -13,6 +13,7 @@ import {
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
+import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
@@ -29,6 +30,7 @@ const requestBodySchema = Type.Object({
       description: "Version of the contract to deploy. Defaults to latest.",
     }),
   ),
+  ...web3APIOverridesForWriteRequest.properties,
 });
 
 // Example for the Request Body
@@ -57,8 +59,10 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network } = request.params;
-      const { contractMetadata, version } = request.body;
-      const sdk = await getSDK(network);
+      const { contractMetadata, version, web3api_overrides } = request.body;
+      const sdk = await getSDK(network, {
+        walletAddress: web3api_overrides?.from,
+      });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "token",
         contractMetadata,

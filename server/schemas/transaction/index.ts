@@ -132,4 +132,5 @@ export interface TransactionSchema {
   submittedTxNonce?: number;
   deployedContractAddress?: string;
   contractType?: string;
+  txValue?: string;
 }
