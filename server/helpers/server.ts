@@ -3,7 +3,6 @@ import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
 import fastify, { FastifyInstance } from "fastify";
-import * as fs from "fs";
 import { env, errorHandler, getLogSettings } from "../../core";
 import { apiRoutes } from "../../server/api";
 import { performHTTPAuthentication } from "../middleware/auth";
@@ -110,11 +109,16 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   await server.register(fastifyExpress);
   await server.register(WebSocketPlugin);
 
-  openapi(server);
+  await openapi(server);
 
   await server.register(apiRoutes);
 
-  // Add Health Check
+  /* TODO Add a real health check
+   * check if postgres connection is valid
+   * have worker write a heartbeat to db
+   * check the last worker heartbeat time
+   * (probably more to do)
+   * */
   server.get("/health", async () => {
     return {
       status: "OK",
@@ -122,16 +126,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await server.ready();
-
-  // Command to Generate Swagger File
-  // Needs to be called post Fastify Server is Ready
-  server.swagger();
-
-  // To Generate Swagger YAML File
-  if (env.NODE_ENV === "local") {
-    const yaml = server.swagger({ yaml: true });
-    fs.writeFileSync("./swagger.yml", yaml);
-  }
 
   return server;
 };

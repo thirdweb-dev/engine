@@ -41,7 +41,7 @@ export const env = createEnv({
     POSTGRES_CONNECTION: z
       .string()
       .default(
-        "postgresql://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
+        "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable",
       ),
     OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
     DB_TABLES_LIST: z.string().default("wallets,transactions"),
