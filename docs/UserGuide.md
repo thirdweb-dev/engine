@@ -10,22 +10,21 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 
 | Variable Name                      | Description                                                                                                         | Default Value           | Required |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------- |
-| `HOST`                             | Host name of the API Server                                                                                         | `localhost`             | false    |
-| `PORT`                             | Port number of the API Server                                                                                       | `3005`                  | false    |
-| `THIRDWEB_API_KEY`                 | API Key to access ThirdWeb API                                                                                      |                         | true     |
-| `POSTGRES_HOST`                    | PostgreSQL Host Name                                                                                                |                         | true     |
-| `POSTGRES_DATABASE_NAME`           | PostgreSQL Database Name                                                                                            |                         | true     |
-| `POSTGRES_USER`                    | PostgreSQL Username                                                                                                 |                         | true     |
-| `POSTGRES_PASSWORD`                | PostgreSQL Password                                                                                                 |                         | true     |
-| `POSTGRES_PORT`                    | PostgreSQL Port                                                                                                     |                         | true     |
-| `POSTGRES_USE_SSL`                 | Flag to indicate whether to use SSL                                                                                 |                         | true     |
-| `TRANSACTIONS_TO_BATCH`            | Number of transactions to batch process at a time.                                                                  | `10`                    | false    |
-| `CHAIN_OVERRIDES`                  | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | false    |
-| `OPENAPI_BASE_ORIGIN`              | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | false    |
-| `THIRDWEB_SDK_SECRET_KEY`          | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | true     |
-| `MINED_TX_CRON_ENABLED`            | Flag to indicate whether to run the cron job to check mined transactions.                                           | `true`                  | false    |
-| `MINED_TX_CRON_SCHEDULE`           | Cron Schedule for the cron job to check mined transactions.                                                         | `*/30 * * * *`          | false    |
-| `MIN_TX_TO_CHECK_FOR_MINED_STATUS` | Number of transactions to check for mined status at a time.                                                         | `50`                    | false    |
+| `HOST`                             | Host name of the API Server                                                                                         | `localhost`             | ❌       |
+| `PORT`                             | Port number of the API Server                                                                                       | `3005`                  | ❌       |
+| `POSTGRES_CONNECTION`              | PostgreSQL Connection string                                                                                        |                         | ❌       |
+| `TRANSACTIONS_TO_BATCH`            | Number of transactions to batch process at a time.                                                                  | `10`                    | ❌       |
+| `CHAIN_OVERRIDES`                  | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | ❌       |
+| `OPENAPI_BASE_ORIGIN`              | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | ❌       |
+| `THIRDWEB_SDK_SECRET_KEY`          | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | ✅       |
+| `MINED_TX_CRON_ENABLED`            | Flag to indicate whether to run the cron job to check mined transactions.                                           | `true`                  | ❌       |
+| `MINED_TX_CRON_SCHEDULE`           | Cron Schedule for the cron job to check mined transactions.                                                         | `*/30 * * * *`          | ❌       |
+| `MIN_TX_TO_CHECK_FOR_MINED_STATUS` | Number of transactions to check for mined status at a time.                                                         | `50`                    | ❌       |
+
+## Setup Instructions
+
+1. Create a `.env` file based off `.env.example` with all the variables filled in.
+2. Update the `THIRDWEB_SDK_SECRET_KEY` value on the `.env` file
 
 ### Authentication
 
@@ -56,6 +55,23 @@ There are multiple ways to setup a wallet for Web3-API using the below methods:
 - `AWS_KMS_KEY_ID` : Needs to have the full ARN
 
 ### Advance Setup : PostgreSQL DB
+
+<details>
+
+<summary>Click to expand</summary>
+
+You will need a PostgreSQL DB running instance to run the API Server & Worker. You can either run PostgreSQL DB on cloud, on a local instance or on docker. Check [installation guide](./.github/installations.md) for more details.
+
+Once you have PostgreSQL DB running on cloud or a local instance, update the following PostgreSQL DB ENV Variables Value on `.env` file:
+
+- `POSTGRES_HOST` : PostgreSQL Host Name
+- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
+- `POSTGRES_USER` : PostgreSQL Username
+- `POSTGRES_PASSWORD` : PostgreSQL Password
+- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
+- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
+
+</details>
 
 ## Running in Production Mode
 
