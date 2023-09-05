@@ -10,16 +10,15 @@ import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
 import { v4 as uuid } from "uuid";
-import { connectWithDatabase, getSDK } from "../../core";
-import { insertIntoWallets } from "../../core/database/dbOperation";
+import { addWalletToDB, connectWithDatabase } from "../../core";
 import { createCustomError } from "../../core/error/customError";
 import { WalletData } from "../../core/interfaces";
-import { getWalletNonce } from "../../core/services/blockchain";
 import {
   TransactionSchema,
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../schemas/transaction";
+import { walletTableSchema } from "../schemas/wallet";
 
 const checkNetworkInWalletDB = async (
   database: Knex,
@@ -48,7 +47,9 @@ export const queueTransaction = async (
 ) => {
   // first simulate tx
   try {
-    await tx.simulate();
+    if (!deployedContractAddress) {
+      await tx.simulate();
+    }
   } catch (e) {
     const message = (e as TransactionError)?.reason || (e as any).message || e;
     throw new Error(`Transaction simulation failed with reason: ${message}`);
@@ -80,24 +81,10 @@ export const queueTransaction = async (
   );
 
   if (!checkForNetworkData) {
-    const sdk = await getSDK(chainId);
-    const walletNonce = await getWalletNonce(
-      walletAddress.toLowerCase(),
-      sdk.getProvider(),
-    );
-
-    const walletData = {
-      walletAddress: walletAddress.toLowerCase(),
-      chainId: chainId.toLowerCase(),
-      blockchainNonce: BigNumber.from(walletNonce ?? 0).toNumber(),
-      lastSyncedTimestamp: new Date(),
-      lastUsedNonce: -1,
-      walletType: chainData.slug,
-    };
-
-    await insertIntoWallets(walletData, dbInstance);
+    await addWalletToDB(chainId, walletAddress, chainData.slug, dbInstance);
   }
   // encode tx
+  const value = await tx.getValue();
   const encodedData = tx.encode();
   const txDataToInsert: TransactionSchema = {
     identifier: uuid(),
@@ -114,6 +101,7 @@ export const queueTransaction = async (
     encodedInputData: encodedData,
     deployedContractAddress,
     contractType,
+    txValue: value ? BigNumber.from(value).toHexString() : undefined,
     createdTimestamp: new Date(),
   };
 
@@ -292,6 +280,27 @@ export const getAllDeployedContractTxFromDB = async (
   } catch (error: any) {
     const customError = createCustomError(
       "Error while fetching all transaction requests from Table.",
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "INTERNAL_SERVER_ERROR",
+    );
+    throw customError;
+  }
+};
+
+export const getAllWallets = async (
+  network: string,
+): Promise<Static<typeof walletTableSchema>[]> => {
+  try {
+    const dbInstance = await connectWithDatabase();
+    const data = await dbInstance("wallets")
+      .where("chainId", network)
+      .orWhere("slug", network);
+    await dbInstance.destroy();
+
+    return data;
+  } catch (error: any) {
+    const customError = createCustomError(
+      "Error while fetching all wallets from Table.",
       StatusCodes.INTERNAL_SERVER_ERROR,
       "INTERNAL_SERVER_ERROR",
     );

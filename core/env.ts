@@ -24,11 +24,17 @@ export const env = createEnv({
       .enum(["production", "development", "testing", "local"])
       .default("development"),
     // This is more dangerous because it is possible to forget about destructing a given key below, leading to errors. Avoid if possible
-    WALLET_PRIVATE_KEY: z.string().default(""),
-    AWS_ACCESS_KEY_ID: z.string().default(""),
-    AWS_SECRET_ACCESS_KEY: z.string().default(""),
-    AWS_KMS_KEY_ID: z.string().default(""),
-    AWS_REGION: z.string().default(""),
+    WALLET_KEYS: z.union([
+      z.object({
+        WALLET_PRIVATE_KEY: z.string().min(1),
+      }),
+      z.object({
+        AWS_KMS_KEY_ID: z.string().min(1),
+      }),
+    ]),
+    AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+    AWS_REGION: z.string().min(1).optional(),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
     THIRDWEB_API_ORIGIN: z.string().default("http://api.thirdweb.com"),
     DATABASE_CLIENT: z.string().default("pg"),
@@ -49,18 +55,26 @@ export const env = createEnv({
     CHAIN_OVERRIDES: z.string().default(""),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
     MINED_TX_CRON_ENABLED: boolSchema("true"),
-    MINED_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
+    MINED_TX_CRON_SCHEDULE: z.string().default("*/5 * * * * *"),
     MIN_TX_TO_CHECK_FOR_MINED_STATUS: z.coerce.number().default(50),
+    GCP_PROJECT_ID: z.string().min(1).optional(),
+    GCP_KEY_RING_ID: z.string().min(1).optional(),
+    GCP_LOCATION_ID: z.string().min(1).optional(),
+    GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
+    GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
   isServer: true,
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
-    WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
+    WALLET_KEYS: {
+      // The sdk expects a primitive type but we can overload it here to be an object
+      WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
+      AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
+    } as any,
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
-    AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
     AWS_REGION: process.env.AWS_REGION,
     THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
     THIRDWEB_API_ORIGIN: process.env.THIRDWEB_API_ORIGIN,
@@ -79,6 +93,13 @@ export const env = createEnv({
     MIN_TX_TO_CHECK_FOR_MINED_STATUS:
       process.env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
     DATABASE_CLIENT: undefined,
+    GCP_PROJECT_ID: process.env.GCP_PROJECT_ID,
+    GCP_KEY_RING_ID: process.env.GCP_KEY_RING_ID,
+    GCP_LOCATION_ID: process.env.GCP_LOCATION_ID,
+    GOOGLE_APPLICATION_CREDENTIAL_EMAIL:
+      process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
+    GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:
+      process.env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
   },
   onValidationError: (error: ZodError) => {
     console.error(

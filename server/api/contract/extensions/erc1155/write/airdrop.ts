@@ -8,6 +8,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
+import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -26,6 +27,7 @@ const requestBodySchema = Type.Object({
       description: "Addresses and quantities to airdrop to",
     },
   ),
+  ...web3APIOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -65,8 +67,13 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { token_id, addresses } = request.body;
-      const contract = await getContractInstance(network, contract_address);
+      const { token_id, addresses, web3api_overrides } = request.body;
+
+      const contract = await getContractInstance(
+        network,
+        contract_address,
+        web3api_overrides?.from,
+      );
       const tx = await contract.erc1155.airdrop.prepare(token_id, addresses);
       const queuedId = await queueTransaction(request, tx, network, "erc1155");
       reply.status(StatusCodes.OK).send({

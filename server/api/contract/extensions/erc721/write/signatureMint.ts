@@ -1,22 +1,24 @@
+import { Static, Type } from "@sinclair/typebox";
+import { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { getContractInstance } from "../../../../../../core/index";
+import { queueTransaction } from "../../../../../helpers";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { queueTransaction } from "../../../../../helpers";
 import { signature721OutputSchema } from "../../../../../schemas/nft";
-import { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
+import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 
 // INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   payload: signature721OutputSchema,
   signature: Type.String(),
+  ...web3APIOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -64,8 +66,13 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { payload, signature } = request.body;
-      const contract = await getContractInstance(network, contract_address);
+      const { payload, signature, web3api_overrides } = request.body;
+
+      const contract = await getContractInstance(
+        network,
+        contract_address,
+        web3api_overrides?.from,
+      );
 
       const signedPayload: SignedPayload721WithQuantitySignature = {
         payload: {

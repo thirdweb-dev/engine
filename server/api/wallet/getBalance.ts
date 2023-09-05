@@ -1,6 +1,6 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Type, Static } from "@sinclair/typebox";
 import { getSDK } from "../../../core";
 import {
   currencyValueSchema,
@@ -36,11 +36,11 @@ export async function getBalance(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/wallet/:network/getBalance",
+    url: "/wallet/:network/:wallet_address/getBalance",
     schema: {
-      description: "Get Admin Wallet Balance",
-      tags: ["Admin Wallet"],
-      operationId: "adminWalletBalance",
+      description: "Get Wallet Balance",
+      tags: ["Wallet"],
+      operationId: "wallet_getBalance",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -48,9 +48,9 @@ export async function getBalance(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { network, wallet_address } = request.params;
 
-      const sdk = await getSDK(network);
+      const sdk = await getSDK(network, { walletAddress: wallet_address });
 
       let balanceData = await sdk.wallet.balance();
       let address = await sdk.wallet.getAddress();

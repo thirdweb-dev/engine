@@ -1,3 +1,4 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
@@ -5,17 +6,20 @@ import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
 import {
   ercNFTResponseType,
   signature721InputSchema,
   signature721OutputSchema,
 } from "../../../../../schemas/nft";
+import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
-const requestBodySchema = signature721InputSchema;
+const requestBodySchema = Type.Object({
+  ...signature721InputSchema.properties,
+  ...web3APIOverridesForWriteRequest.properties,
+});
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -85,8 +89,14 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
         royaltyBps,
         royaltyRecipient,
         uid,
+        web3api_overrides,
       } = request.body;
-      const contract = await getContractInstance(network, contract_address);
+
+      const contract = await getContractInstance(
+        network,
+        contract_address,
+        web3api_overrides?.from,
+      );
 
       const payload = checkAndReturnNFTSignaturePayload<
         Static<typeof signature721InputSchema>,

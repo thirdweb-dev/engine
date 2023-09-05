@@ -33,12 +33,16 @@ import { getABI } from "./contract/metadata/abi";
 import { extractEvents } from "./contract/metadata/events";
 import { extractFunctions } from "./contract/metadata/functions";
 
-// Admin Wallet
+// Wallet
+import { createEOAWallet } from "./wallet/createEOAWallet";
+import { getAll } from "./wallet/getAll";
 import { getBalance } from "./wallet/getBalance";
 
 export const apiRoutes = async (fastify: FastifyInstance) => {
-  // Admin Wallet
+  // Wallet
   await fastify.register(getBalance);
+  await fastify.register(getAll);
+  await fastify.register(createEOAWallet);
 
   // Chains
   await fastify.register(getChainData);

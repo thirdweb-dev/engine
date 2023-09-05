@@ -1,19 +1,21 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { getContractInstance } from "../../../../../../core";
+import { queueTransaction } from "../../../../../helpers";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
-import { queueTransaction } from "../../../../../helpers";
+import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   metadatas: Type.Array(nftOrInputSchema),
+  ...web3APIOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -55,8 +57,13 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { metadatas } = request.body;
-      const contract = await getContractInstance(network, contract_address);
+      const { metadatas, web3api_overrides } = request.body;
+
+      const contract = await getContractInstance(
+        network,
+        contract_address,
+        web3api_overrides?.from,
+      );
       const tx = await contract.erc1155.lazyMint.prepare(metadatas);
       const queuedId = await queueTransaction(request, tx, network, "erc1155");
       reply.status(StatusCodes.OK).send({
