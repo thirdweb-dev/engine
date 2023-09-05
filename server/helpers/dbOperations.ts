@@ -102,6 +102,7 @@ export const queueTransaction = async (
     deployedContractAddress,
     contractType,
     txValue: value ? BigNumber.from(value).toHexString() : undefined,
+    createdTimestamp: new Date(),
   };
 
   if (!txDataToInsert.identifier) {

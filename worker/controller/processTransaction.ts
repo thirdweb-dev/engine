@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber, ethers, providers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
@@ -8,7 +8,6 @@ import {
   env,
   getSDK,
 } from "../../core";
-import { getWalletNonce } from "../../core/services/blockchain";
 import {
   getTransactionsToProcess,
   getWalletDetailsWithTransaction,
@@ -20,9 +19,10 @@ const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS;
 
 export const processTransaction = async (
   server: FastifyInstance,
-): Promise<void> => {
+): Promise<string[]> => {
   let knex: Knex | null = null;
   let trx: Knex.Transaction | null = null;
+  let processedIds: string[] = [];
   try {
     // Connect to the DB
     knex = await connectWithDatabase();
@@ -49,9 +49,10 @@ export const processTransaction = async (
       await trx.commit();
       await trx.destroy();
       await knex.destroy();
-      return;
+      return [];
     }
 
+    processedIds = data.rows.map((row: any) => row.identifier);
     for (const tx of data.rows) {
       server.log.info(`Processing Transaction: ${tx.identifier}`);
       const walletData = await getWalletDetailsWithTransaction(
@@ -65,10 +66,7 @@ export const processTransaction = async (
         walletAddress: tx.walletAddress,
         awsKmsKeyId: walletData?.awsKmsKeyId,
       });
-      let blockchainNonce = await getWalletNonce(
-        tx.walletAddress,
-        sdk.getProvider(),
-      );
+      let blockchainNonce = await sdk.wallet.getNonce("pending");
 
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
       let txSubmittedNonce = BigNumber.from(0);
@@ -84,7 +82,8 @@ export const processTransaction = async (
 
       // Submit transaction to the blockchain
       // Create transaction object
-      const txObject = {
+
+      const txObject: providers.TransactionRequest = {
         to: tx.contractAddress ?? tx.toAddress,
         from: tx.walletAddress,
         data: tx.encodedInputData,
@@ -154,6 +153,6 @@ export const processTransaction = async (
     if (knex) {
       await knex.destroy();
     }
+    return processedIds;
   }
-  return;
 };

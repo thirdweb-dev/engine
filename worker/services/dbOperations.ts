@@ -154,6 +154,7 @@ export const checkTableForPrimaryKey = async (knex: Knex): Promise<boolean> => {
 
 export const getSubmittedTransactions = async (
   database: Knex,
+  trx: Knex.Transaction,
 ): Promise<TransactionSchema[]> => {
   const data = await database.raw(
     `select * from transactions
