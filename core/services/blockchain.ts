@@ -14,3 +14,13 @@ export const getWalletNonce = async (
     throw error;
   }
 };
+
+export const getFeeData = async (provider: providers.Provider) => {
+  try {
+    const feeData = await provider.getFeeData();
+
+    return feeData;
+  } catch (error) {
+    throw error;
+  }
+};

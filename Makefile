@@ -3,7 +3,6 @@
 SHELL := /bin/bash
 
 export NODE_ENV=testing
-export THIRDWEB_API_KEY=TEST
 export POSTGRES_HOST=localhost
 export POSTGRES_DATABASE_NAME=postgres
 export POSTGRES_USER=postgres
