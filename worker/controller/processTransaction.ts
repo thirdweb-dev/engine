@@ -91,7 +91,6 @@ export const processTransaction = async (
         nonce: txSubmittedNonce,
         value: tx.txValue,
       };
-      server.log.debug(`Transaction Object: ${JSON.stringify(txObject)}`);
 
       // Send transaction to the blockchain
       let txHash: ethers.providers.TransactionResponse | undefined;
