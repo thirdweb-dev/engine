@@ -6,11 +6,12 @@ services:
     env_file:
       - .env
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - psql_db:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: postgres
-    ports:
-      - 5432:5432
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    network_mode: "host"
 
   pgadmin:
     container_name: pgadmin4_container
@@ -25,5 +26,5 @@ services:
       - pgadmin:/var/lib/pgadmin
 
 volumes:
-  db_data:
+  psql_db:
   pgadmin:

@@ -16,6 +16,7 @@ export const connectToDB = async (
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection: connectionString,
+    acquireConnectionTimeout: 10000,
   };
 
   // Set the appropriate databse client package
@@ -31,23 +32,29 @@ export const connectToDB = async (
   let knex = dbClientPackage(knexConfig);
 
   // Check if Database Exists & create if it doesn't
-  let hasDatabase: any;
-  switch (dbClient) {
-    case "pg":
-      hasDatabase = await knex.raw(
-        `SELECT 1 from pg_database WHERE datname = '${DATABASE_NAME}'`,
-      );
-      server.log.info(`CHECKING for Database ${DATABASE_NAME}...`);
-      if (!hasDatabase.rows.length) {
-        await knex.raw(`CREATE DATABASE ${DATABASE_NAME}`);
-      } else {
-        server.log.info(`Database ${DATABASE_NAME} already exists`);
-      }
-      break;
-    default:
-      throw new Error(
-        `Unsupported database client: ${dbClient}. Cannot create database ${DATABASE_NAME}`,
-      );
+  try {
+    let hasDatabase: any;
+    switch (dbClient) {
+      case "pg":
+        server.log.debug("checking if pg database exists");
+        hasDatabase = await knex.raw(
+          `SELECT 1 from pg_database WHERE datname = '${DATABASE_NAME}'`,
+        );
+        server.log.info(`CHECKING for Database ${DATABASE_NAME}...`);
+        if (!hasDatabase.rows.length) {
+          await knex.raw(`CREATE DATABASE ${DATABASE_NAME}`);
+        } else {
+          server.log.info(`Database ${DATABASE_NAME} already exists`);
+        }
+        break;
+      default:
+        throw new Error(
+          `Unsupported database client: ${dbClient}. Cannot create database ${DATABASE_NAME}`,
+        );
+    }
+  } catch (err) {
+    server.log.error(err);
+    throw new Error(`Error creating database ${DATABASE_NAME}`);
   }
 
   // Updating knex Config
