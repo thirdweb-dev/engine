@@ -108,12 +108,11 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     console.log("Generating new wallet...");
     wallet = new LocalWallet({
       chain,
+      storage: new LocalFileStorage(),
     });
-    //TODO check why this doesn't load
     await wallet.loadOrCreate({
       strategy: "encryptedJson",
       password: THIRDWEB_SDK_SECRET_KEY,
-      storage: new LocalFileStorage(),
     });
     console.log("new wallet address: ", await wallet.getAddress());
   }
