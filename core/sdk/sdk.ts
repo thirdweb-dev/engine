@@ -16,6 +16,7 @@ import { env } from "../env";
 import { isValidHttpUrl } from "../helpers";
 import { networkResponseSchema } from "../schema";
 
+//TODO add constructor so you can pass in directory
 class LocalFileStorage implements AsyncStorage {
   getItem(key: string): Promise<string | null> {
     //read file from home directory/.thirdweb folder
@@ -108,6 +109,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     wallet = new LocalWallet({
       chain,
     });
+    //TODO check why this doesn't load
     await wallet.loadOrCreate({
       strategy: "encryptedJson",
       password: THIRDWEB_SDK_SECRET_KEY,
