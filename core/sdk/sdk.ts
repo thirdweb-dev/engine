@@ -105,7 +105,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     });
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
   } else {
-    console.log("Generating new wallet...");
+    console.log("Generating or loading local wallet...");
     wallet = new LocalWallet({
       chain,
       storage: new LocalFileStorage(),
