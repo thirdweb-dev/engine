@@ -61,6 +61,8 @@ export const env = createEnv({
     GCP_PROJECT_ID: z.string().min(1).optional(),
     GCP_KEY_RING_ID: z.string().min(1).optional(),
     GCP_LOCATION_ID: z.string().min(1).optional(),
+    GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
+    GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -100,6 +102,10 @@ export const env = createEnv({
     GCP_PROJECT_ID: process.env.GCP_PROJECT_ID,
     GCP_KEY_RING_ID: process.env.GCP_KEY_RING_ID,
     GCP_LOCATION_ID: process.env.GCP_LOCATION_ID,
+    GOOGLE_APPLICATION_CREDENTIAL_EMAIL:
+      process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
+    GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:
+      process.env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

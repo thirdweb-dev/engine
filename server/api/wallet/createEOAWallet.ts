@@ -99,8 +99,11 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         // const key = await createGCPKMSWallet();
         // const name = "test-web3-api";
         // // console.log("GCP", name);
-        // const publicKey = await getGCPPublicKey(name!);
-        // walletAddress = publicKey;
+        // const sdk = await getSDK("mumbai"); // Need a default chain
+        // const walletAddress = await getGCPKeyWalletAddress(
+        //   name!,
+        //   sdk.getProvider(),
+        // );
         // request.log.info(`GCP walletAddress: ${walletAddress}`);
         throw new Error("GCP KMS Wallet is not supported yet");
       }

@@ -1,6 +1,8 @@
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { KeyManagementServiceClient } from "@google-cloud/kms";
 import * as protos from "@google-cloud/kms/build/protos/protos";
+import { providers } from "ethers";
+import { GcpKmsSigner } from "ethers-gcp-kms-signer";
 import { FastifyInstance } from "fastify";
 import { env } from "../../core";
 
@@ -57,8 +59,8 @@ export const createGCPKMSWallet =
 
       const client = new KeyManagementServiceClient({
         credentials: {
-          client_email: "<email>",
-          private_key: `-----BEGIN PRIVATE KEY-----\n56b46f9e79a7915977da7ee73e78aaaa1a2e4d0f\n-----END PRIVATE KEY-----\n`,
+          client_email: env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
+          private_key: env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
         },
         projectId: env.GCP_PROJECT_ID,
       });
@@ -86,21 +88,26 @@ export const createGCPKMSWallet =
     }
   };
 
-export const getGCPPublicKey = async (name: string): Promise<string> => {
+export const getGCPKeyWalletAddress = async (
+  name: string,
+  provider: providers.Provider,
+): Promise<string> => {
   try {
-    const client = new KeyManagementServiceClient({
-      credentials: {
-        client_email: "<email>",
-        private_key: `-----BEGIN PRIVATE KEY-----\n\n-----END PRIVATE KEY-----\n`,
-      },
-      projectId: env.GCP_PROJECT_ID,
-    });
+    // ToDo Need to change the hard-coded stuff
+    const kmsCredentials = {
+      projectId: env.GCP_PROJECT_ID!,
+      locationId: env.GCP_LOCATION_ID!,
+      keyRingId: env.GCP_KEY_RING_ID!,
+      keyId: "test-web3-api", // the id of the key
+      keyVersion: "1",
+    };
 
-    const [publicKey] = await client.getPublicKey({
-      name,
-    });
-    return publicKey.pem!;
+    let signer = new GcpKmsSigner(kmsCredentials);
+    signer = signer.connect(provider);
+    const walletAddress = await signer.getAddress();
+    return walletAddress;
   } catch (error) {
+    console.log(error);
     throw error;
   }
 };
