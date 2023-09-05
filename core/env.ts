@@ -24,17 +24,11 @@ export const env = createEnv({
       .enum(["production", "development", "testing", "local"])
       .default("development"),
     // This is more dangerous because it is possible to forget about destructing a given key below, leading to errors. Avoid if possible
-    WALLET_KEYS: z.union([
-      z.object({
-        WALLET_PRIVATE_KEY: z.string().min(1),
-      }),
-      z.object({
-        AWS_ACCESS_KEY_ID: z.string().min(1),
-        AWS_SECRET_ACCESS_KEY: z.string().min(1),
-        AWS_KMS_KEY_ID: z.string().min(1),
-        AWS_REGION: z.string().min(1),
-      }),
-    ]),
+    WALLET_PRIVATE_KEY: z.string().default(""),
+    AWS_ACCESS_KEY_ID: z.string().default(""),
+    AWS_SECRET_ACCESS_KEY: z.string().default(""),
+    AWS_KMS_KEY_ID: z.string().default(""),
+    AWS_REGION: z.string().default(""),
     THIRDWEB_SDK_SECRET_KEY: z.string().min(1),
     THIRDWEB_API_ORIGIN: z.string().default("http://api.thirdweb.com"),
     DATABASE_CLIENT: z.string().default("pg"),
@@ -63,14 +57,11 @@ export const env = createEnv({
   isServer: true,
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
-    WALLET_KEYS: {
-      // The sdk expects a primitive type but we can overload it here to be an object
-      WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
-      AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-      AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
-      AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
-      AWS_REGION: process.env.AWS_REGION,
-    } as any,
+    WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
+    AWS_REGION: process.env.AWS_REGION,
     THIRDWEB_SDK_SECRET_KEY: process.env.THIRDWEB_SDK_SECRET_KEY,
     THIRDWEB_API_ORIGIN: process.env.THIRDWEB_API_ORIGIN,
     POSTGRES_CONNECTION: process.env.POSTGRES_CONNECTION,
@@ -90,16 +81,10 @@ export const env = createEnv({
     DATABASE_CLIENT: undefined,
   },
   onValidationError: (error: ZodError) => {
-    if ("WALLET_KEYS" in error.format()) {
-      console.error(
-        "❌ Please set WALLET_PRIVATE_KEY or [AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_KMS_KEY_ID] for AWS KMS Wallet as ENV Variables.",
-      );
-    } else {
-      console.error(
-        "❌ Invalid environment variables:",
-        error.flatten().fieldErrors,
-      );
-    }
+    console.error(
+      "❌ Invalid environment variables:",
+      error.flatten().fieldErrors,
+    );
     throw new Error("Invalid environment variables");
   },
 });

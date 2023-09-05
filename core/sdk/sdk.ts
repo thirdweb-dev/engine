@@ -8,13 +8,57 @@ import {
   SmartContract,
   ThirdwebSDK,
 } from "@thirdweb-dev/sdk";
-import { LocalWallet } from "@thirdweb-dev/wallets";
+import { AsyncStorage, LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { BaseContract, BigNumber } from "ethers";
 import * as fs from "fs";
 import { env } from "../env";
 import { isValidHttpUrl } from "../helpers";
 import { networkResponseSchema } from "../schema";
+
+class LocalFileStorage implements AsyncStorage {
+  getItem(key: string): Promise<string | null> {
+    //read file from home directory/.thirdweb folder
+    //file name is the key name
+    //return null if it doesn't exist
+    //return the value if it does exist
+    const dir = `${process.env.HOME}/.thirdweb`;
+    if (!fs.existsSync(dir)) {
+      return Promise.resolve(null);
+    }
+    const path = `${dir}/${key}`;
+    if (!fs.existsSync(path)) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(fs.readFileSync(path, "utf8"));
+  }
+
+  setItem(key: string, value: string): Promise<void> {
+    //save to home directory .thirdweb folder
+    //create the folder if it doesn't exist
+    const dir = `${process.env.HOME}/.thirdweb`;
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+    fs.writeFileSync(`${dir}/${key}`, value);
+    return Promise.resolve();
+  }
+
+  removeItem(key: string): Promise<void> {
+    //delete the file from home directory/.thirdweb folder
+    const dir = `${process.env.HOME}/.thirdweb`;
+    if (!fs.existsSync(dir)) {
+      return Promise.resolve();
+    }
+    const path = `${dir}/${key}`;
+    if (!fs.existsSync(path)) {
+      return Promise.resolve();
+    } else {
+      fs.unlinkSync(path);
+      return Promise.resolve();
+    }
+  }
+}
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
@@ -41,11 +85,11 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
   }
 
   // Check for KMS
-  if ("AWS_KMS_KEY_ID" in env.WALLET_KEYS) {
-    const AWS_REGION = env.WALLET_KEYS.AWS_REGION;
-    const AWS_ACCESS_KEY_ID = env.WALLET_KEYS.AWS_ACCESS_KEY_ID;
-    const AWS_SECRET_ACCESS_KEY = env.WALLET_KEYS.AWS_SECRET_ACCESS_KEY;
-    const AWS_KMS_KEY_ID = env.WALLET_KEYS.AWS_KMS_KEY_ID;
+  if ("AWS_KMS_KEY_ID" in env && env.AWS_KMS_KEY_ID !== "") {
+    const AWS_REGION = env.AWS_REGION;
+    const AWS_ACCESS_KEY_ID = env.AWS_ACCESS_KEY_ID;
+    const AWS_SECRET_ACCESS_KEY = env.AWS_SECRET_ACCESS_KEY;
+    const AWS_KMS_KEY_ID = env.AWS_KMS_KEY_ID;
 
     wallet = new AwsKmsWallet({
       region: AWS_REGION,
@@ -53,12 +97,23 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
       secretAccessKey: AWS_SECRET_ACCESS_KEY,
       keyId: AWS_KMS_KEY_ID,
     });
-  } else if ("WALLET_PRIVATE_KEY" in env.WALLET_KEYS) {
-    const WALLET_PRIVATE_KEY = env.WALLET_KEYS.WALLET_PRIVATE_KEY;
+  } else if ("WALLET_PRIVATE_KEY" in env && env.WALLET_PRIVATE_KEY !== "") {
+    const WALLET_PRIVATE_KEY = env.WALLET_PRIVATE_KEY;
     wallet = new LocalWallet({
       chain,
     });
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
+  } else {
+    console.log("Generating new wallet...");
+    wallet = new LocalWallet({
+      chain,
+    });
+    await wallet.loadOrCreate({
+      strategy: "encryptedJson",
+      password: THIRDWEB_SDK_SECRET_KEY,
+      storage: new LocalFileStorage(),
+    });
+    console.log("new wallet address: ", await wallet.getAddress());
   }
 
   if (!wallet) {
