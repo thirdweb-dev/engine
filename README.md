@@ -47,8 +47,8 @@ Set these variables in the .env file (copy .env.example to get started)
 
 | Variable Name             | Description                                                                                                   |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `THIRDWEB_SDK_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey.                                               |
-| `POSTGRES_CONNECTION`     | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...] |
+| `THIRDWEB_API_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey.                                               |
+| `POSTGRES_CONNECTION_URL` | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...] |
 
 ### Run the server
 

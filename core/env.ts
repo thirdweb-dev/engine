@@ -29,10 +29,10 @@ export const env = createEnv({
     AWS_SECRET_ACCESS_KEY: z.string().default(""),
     AWS_KMS_KEY_ID: z.string().default(""),
     AWS_REGION: z.string().default(""),
-    THIRDWEB_SDK_SECRET_KEY: z.string().min(1),
+    THIRDWEB_API_SECRET_KEY: z.string().min(1),
     THIRDWEB_API_ORIGIN: z.string().default("http://api.thirdweb.com"),
     DATABASE_CLIENT: z.string().default("pg"),
-    POSTGRES_CONNECTION: z
+    POSTGRES_CONNECTION_URL: z
       .string()
       .default(
         "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable",
@@ -62,9 +62,9 @@ export const env = createEnv({
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
     AWS_REGION: process.env.AWS_REGION,
-    THIRDWEB_SDK_SECRET_KEY: process.env.THIRDWEB_SDK_SECRET_KEY,
+    THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
     THIRDWEB_API_ORIGIN: process.env.THIRDWEB_API_ORIGIN,
-    POSTGRES_CONNECTION: process.env.POSTGRES_CONNECTION,
+    POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
     DB_TABLES_LIST: process.env.DB_TABLES_LIST,
     DB_TRIGGERS_LIST: process.env.DB_TRIGGERS_LIST,
     PORT: process.env.PORT,

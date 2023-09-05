@@ -12,11 +12,11 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------- |
 | `HOST`                             | Host name of the API Server                                                                                         | `localhost`             | ❌       |
 | `PORT`                             | Port number of the API Server                                                                                       | `3005`                  | ❌       |
-| `POSTGRES_CONNECTION`              | PostgreSQL Connection string                                                                                        |                         | ❌       |
+| `POSTGRES_CONNECTION_URL`          | PostgreSQL Connection string                                                                                        |                         | ❌       |
 | `TRANSACTIONS_TO_BATCH`            | Number of transactions to batch process at a time.                                                                  | `10`                    | ❌       |
 | `CHAIN_OVERRIDES`                  | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | ❌       |
 | `OPENAPI_BASE_ORIGIN`              | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | ❌       |
-| `THIRDWEB_SDK_SECRET_KEY`          | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | ✅       |
+| `THIRDWEB_API_SECRET_KEY`          | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | ✅       |
 | `MINED_TX_CRON_ENABLED`            | Flag to indicate whether to run the cron job to check mined transactions.                                           | `true`                  | ❌       |
 | `MINED_TX_CRON_SCHEDULE`           | Cron Schedule for the cron job to check mined transactions.                                                         | `*/30 * * * *`          | ❌       |
 | `MIN_TX_TO_CHECK_FOR_MINED_STATUS` | Number of transactions to check for mined status at a time.                                                         | `50`                    | ❌       |
@@ -24,14 +24,14 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 ## Setup Instructions
 
 1. Create a `.env` file based off `.env.example` with all the variables filled in.
-2. Update the `THIRDWEB_SDK_SECRET_KEY` value on the `.env` file
+2. Update the `THIRDWEB_API_SECRET_KEY` value on the `.env` file
 
 ### Authentication
 
 | Required |
 | -------- |
 
-All Requests need to have `Authorization` header with the value of `Bearer <YOUR_THIRDWEB_SDK_SECRET_KEY>` from the `.env` file.
+All Requests need to have `Authorization` header with the value of `Bearer <YOUR_THIRDWEB_API_SECRET_KEY>` from the `.env` file.
 
 ### Wallet Setup
 

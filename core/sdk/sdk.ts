@@ -70,7 +70,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     return sdkMap[chainName] as ThirdwebSDK;
   }
 
-  const THIRDWEB_SDK_SECRET_KEY = env.THIRDWEB_SDK_SECRET_KEY;
+  const THIRDWEB_API_SECRET_KEY = env.THIRDWEB_API_SECRET_KEY;
 
   let chain: Chain | null = null;
   let wallet: AwsKmsWallet | LocalWallet | null = null;
@@ -112,7 +112,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
     });
     await wallet.loadOrCreate({
       strategy: "encryptedJson",
-      password: THIRDWEB_SDK_SECRET_KEY,
+      password: THIRDWEB_API_SECRET_KEY,
     });
     console.log("new wallet address: ", await wallet.getAddress());
   }
@@ -141,7 +141,7 @@ export const getSDK = async (chainName: ChainOrRpc): Promise<ThirdwebSDK> => {
 
   const sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
     // thirdwebApiKey: THIRDWEB_API_KEY,
-    secretKey: THIRDWEB_SDK_SECRET_KEY,
+    secretKey: THIRDWEB_API_SECRET_KEY,
     supportedChains: RPC_OVERRIDES,
   });
 

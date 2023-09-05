@@ -14,7 +14,7 @@ describe("Network Endpoint Test", () => {
   it("should return mumbai network details", async () => {
     const response = await request(createdServerInstance.server)
       .get("/network/get?network=mumbai")
-      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+      .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)
       .send();
 
     expect(response.status).to.equal(200);
@@ -36,7 +36,7 @@ describe("Network Endpoint Test", () => {
   it("should return all 700+ network details", async () => {
     const response = await request(createdServerInstance.server)
       .get("/network/getAll")
-      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+      .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)
       .send();
 
     expect(response.status).to.equal(200);

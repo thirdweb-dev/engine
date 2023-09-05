@@ -19,11 +19,11 @@ function logError(msg: string) {
 }
 
 function getBenchmarkOpts() {
-  if (!env.THIRDWEB_SDK_SECRET_KEY) {
-    throw new Error("THIRDWEB_SDK_SECRET_KEY is not set");
+  if (!env.THIRDWEB_API_SECRET_KEY) {
+    throw new Error("THIRDWEB_API_SECRET_KEY is not set");
   }
   const opts = {
-    THIRDWEB_SDK_SECRET_KEY: env.THIRDWEB_SDK_SECRET_KEY,
+    THIRDWEB_API_SECRET_KEY: env.THIRDWEB_API_SECRET_KEY,
     BENCHMARK_HOST: env.BENCHMARK_HOST ?? "http://127.0.0.1:3005",
     BENCHMARK_URL_PATH:
       env.BENCHMARK_URL_PATH ??
@@ -49,7 +49,7 @@ async function sendTransaction(opts: ReturnType<typeof getBenchmarkOpts>) {
         {
           path: opts.BENCHMARK_URL_PATH,
           headers: {
-            authorization: `Bearer ${opts.THIRDWEB_SDK_SECRET_KEY}`,
+            authorization: `Bearer ${opts.THIRDWEB_API_SECRET_KEY}`,
             "content-type": "application/json",
           },
           method: "POST",
@@ -167,7 +167,7 @@ async function processTransaction(
   const statuses = await Promise.all(
     txnIds.map((txnId) => {
       return tryUntilCompleted({
-        apiKey: opts.THIRDWEB_SDK_SECRET_KEY,
+        apiKey: opts.THIRDWEB_API_SECRET_KEY,
         host: opts.BENCHMARK_HOST,
         txnId,
       });

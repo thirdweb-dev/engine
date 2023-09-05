@@ -4,7 +4,7 @@ import { env } from "../env";
 
 // Defaults to postgres
 const dbClient = env.DATABASE_CLIENT;
-const connectionString = env.POSTGRES_CONNECTION;
+const connectionString = env.POSTGRES_CONNECTION_URL;
 
 const DATABASE_NAME = "postgres"; //TODO get the db off connection string
 

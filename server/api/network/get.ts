@@ -1,11 +1,11 @@
+import { Static, Type } from "@sinclair/typebox";
+import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../core/index";
-import { Static, Type } from "@sinclair/typebox";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { allChains, minimizeChain } from "@thirdweb-dev/chains";
-import { networkRequestQuerystringSchema } from "../../schemas/network";
 import { networkResponseSchema } from "../../../core/schema";
+import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { networkRequestQuerystringSchema } from "../../schemas/network";
 
 // OUPUT
 const responseSchema = Type.Object({
@@ -18,7 +18,7 @@ responseSchema.examples = [
       result: {
         name: "Mumbai",
         chain: "Polygon",
-        rpc: ["https://mumbai.rpc.thirdweb.com/${THIRDWEB_SDK_SECRET_KEY}"],
+        rpc: ["https://mumbai.rpc.thirdweb.com/${THIRDWEB_API_SECRET_KEY}"],
         nativeCurrency: {
           name: "MATIC",
           symbol: "MATIC",
