@@ -13,7 +13,9 @@ export const awaitTransactionSubmission = async (
     .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
     .send();
   let txSubmitted =
-    txStatusResponse.body.result.status === TransactionStatusEnum.Submitted;
+    txStatusResponse.body.result.status === TransactionStatusEnum.Submitted ||
+    txStatusResponse.body.result.status === TransactionStatusEnum.Mined ||
+    txStatusResponse.body.result.status === TransactionStatusEnum.Errored;
 
   while (!txSubmitted) {
     server.log.info(

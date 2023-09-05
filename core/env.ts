@@ -29,12 +29,12 @@ export const env = createEnv({
         WALLET_PRIVATE_KEY: z.string().min(1),
       }),
       z.object({
-        AWS_ACCESS_KEY_ID: z.string().min(1),
-        AWS_SECRET_ACCESS_KEY: z.string().min(1),
         AWS_KMS_KEY_ID: z.string().min(1),
-        AWS_REGION: z.string().min(1),
       }),
     ]),
+    AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
+    AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+    AWS_REGION: z.string().min(1).optional(),
     THIRDWEB_SDK_SECRET_KEY: z.string().min(1),
     THIRDWEB_API_ORIGIN: z.string().default("http://api.thirdweb.com"),
     POSTGRES_HOST: z.string().default("localhost"),
@@ -56,8 +56,13 @@ export const env = createEnv({
     CHAIN_OVERRIDES: z.string().default(""),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
     MINED_TX_CRON_ENABLED: boolSchema("true"),
-    MINED_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
+    MINED_TX_CRON_SCHEDULE: z.string().default("*/5 * * * * *"),
     MIN_TX_TO_CHECK_FOR_MINED_STATUS: z.coerce.number().default(50),
+    GCP_PROJECT_ID: z.string().min(1).optional(),
+    GCP_KEY_RING_ID: z.string().min(1).optional(),
+    GCP_LOCATION_ID: z.string().min(1).optional(),
+    GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
+    GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -67,11 +72,11 @@ export const env = createEnv({
     WALLET_KEYS: {
       // The sdk expects a primitive type but we can overload it here to be an object
       WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
-      AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-      AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
       AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
-      AWS_REGION: process.env.AWS_REGION,
     } as any,
+    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
+    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
+    AWS_REGION: process.env.AWS_REGION,
     THIRDWEB_SDK_SECRET_KEY: process.env.THIRDWEB_SDK_SECRET_KEY,
     THIRDWEB_API_ORIGIN: process.env.THIRDWEB_API_ORIGIN,
     POSTGRES_HOST: process.env.POSTGRES_HOST,
@@ -94,6 +99,13 @@ export const env = createEnv({
     MINED_TX_CRON_SCHEDULE: process.env.MINED_TX_CRON_SCHEDULE,
     MIN_TX_TO_CHECK_FOR_MINED_STATUS:
       process.env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
+    GCP_PROJECT_ID: process.env.GCP_PROJECT_ID,
+    GCP_KEY_RING_ID: process.env.GCP_KEY_RING_ID,
+    GCP_LOCATION_ID: process.env.GCP_LOCATION_ID,
+    GOOGLE_APPLICATION_CREDENTIAL_EMAIL:
+      process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
+    GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:
+      process.env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     "gasPrice" VARCHAR(255),
     "gasLimit" VARCHAR(255),
     "maxPriorityFeePerGas" VARCHAR(255),
-    "maxFeePerGas" VARCHAR(255)
+    "maxFeePerGas" VARCHAR(255),
+    "txValue" VARCHAR(100)
 );
 
 ALTER TABLE transactions
@@ -41,5 +42,6 @@ ALTER COLUMN "txType" TYPE VARCHAR(255),
 ADD COLUMN IF NOT EXISTS "deployedContractAddress" VARCHAR(255),
 ADD COLUMN IF NOT EXISTS "contractType" VARCHAR(255),
 ADD COLUMN IF NOT EXISTS "errorMessage" TEXT DEFAULT NULL,
+ADD COLUMN IF NOT EXISTS "txValue" VARCHAR(100) DEFAULT NULL,
 ADD COLUMN IF NOT EXISTS "txMinedTimestamp" TIMESTAMP,
 ADD COLUMN IF NOT EXISTS "blockNumber" BIGINT;

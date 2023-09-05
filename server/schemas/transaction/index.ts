@@ -149,6 +149,7 @@ export interface TransactionSchema {
   submittedTxNonce?: number;
   deployedContractAddress?: string;
   contractType?: string;
+  txValue?: string;
   errorMessage?: string;
   txMinedTimestamp?: Date;
   blockNumber?: number;

@@ -10,7 +10,7 @@ import {
 } from "../../core";
 import {
   getTransactionsToProcess,
-  getWalletDetailsWithTrx,
+  getWalletDetailsWithTransaction,
   updateTransactionState,
   updateWalletNonceValue,
 } from "../services/dbOperations";
@@ -55,15 +55,17 @@ export const processTransaction = async (
     processedIds = data.rows.map((row: any) => row.identifier);
     for (const tx of data.rows) {
       server.log.info(`Processing Transaction: ${tx.identifier}`);
-
-      const walletData = await getWalletDetailsWithTrx(
+      const walletData = await getWalletDetailsWithTransaction(
         tx.walletAddress,
         tx.chainId,
         knex,
         trx,
       );
 
-      const sdk = await getSDK(tx.chainId);
+      const sdk = await getSDK(tx.chainId, {
+        walletAddress: tx.walletAddress,
+        awsKmsKeyId: walletData?.awsKmsKeyId,
+      });
       let blockchainNonce = await sdk.wallet.getNonce("pending");
 
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
@@ -86,6 +88,7 @@ export const processTransaction = async (
         from: tx.walletAddress,
         data: tx.encodedInputData,
         nonce: txSubmittedNonce,
+        value: tx.txValue,
       };
 
       // Send transaction to the blockchain

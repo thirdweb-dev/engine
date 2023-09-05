@@ -6,7 +6,7 @@ import { TransactionSchema } from "../../server/schemas/transaction";
 const TRANSACTIONS_TO_BATCH = env.TRANSACTIONS_TO_BATCH;
 const MIN_TX_TO_CHECK_FOR_MINED_STATUS = env.MIN_TX_TO_CHECK_FOR_MINED_STATUS;
 
-export const getWalletDetailsWithTrx = async (
+export const getWalletDetailsWithTransaction = async (
   walletAddress: string,
   chainId: string,
   database: Knex,
@@ -152,51 +152,20 @@ export const checkTableForPrimaryKey = async (knex: Knex): Promise<boolean> => {
   return result.rows[0].is_primary_key;
 };
 
-export const getWalletDetailsWithoutTrx = async (
-  walletAddress: string,
-  chainId: string,
-  database: Knex,
-): Promise<any> => {
-  try {
-    const walletDetails = await database("wallets")
-      .select("*")
-      .where({ walletAddress: walletAddress.toLowerCase(), chainId })
-      .first();
-
-    return walletDetails;
-  } catch (error) {
-    throw error;
-  }
-};
-
 export const getSubmittedTransactions = async (
   database: Knex,
   trx: Knex.Transaction,
 ): Promise<TransactionSchema[]> => {
-  const now = new Date(); // Current date and time
-  now.setSeconds(now.getSeconds() - 15);
-
-  const data = await database("transactions")
-    .where(function () {
-      this.whereNotNull("txHash")
-        .andWhere("txSubmitted", true)
-        .andWhere("txMined", false)
-        .andWhere("txErrored", false)
-        .andWhere("txProcessed", true)
-        .orWhere(function () {
-          this.whereNotNull("txHash")
-            .andWhere("txSubmitted", true)
-            .andWhere("txMined", true)
-            .andWhere("txErrored", false)
-            .andWhere("txProcessed", true)
-            .whereNull("blockNumber");
-        });
-    })
-    .andWhere("txSubmittedTimestamp", "<", now)
-    .orderBy("txSubmittedTimestamp", "asc")
-    .limit(MIN_TX_TO_CHECK_FOR_MINED_STATUS)
-    .forUpdate()
-    .skipLocked()
-    .transacting(trx);
-  return data;
+  const data = await database.raw(
+    `select * from transactions
+    where "txProcessed" = true
+    and "txSubmitted" = true
+    and "txMined" = false
+    and "txErrored" = false
+    and "txHash" is not null
+    order by "txSubmittedTimestamp" ASC
+    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}
+    for update skip locked`,
+  );
+  return data.rows;
 };
