@@ -35,7 +35,10 @@ const responseSchema = Type.Object({
 });
 
 responseSchema.example = {
-  result: {},
+  result: {
+    walletAddress: "0x....",
+    status: "success",
+  },
 };
 
 export async function createEOAWallet(fastify: FastifyInstance) {

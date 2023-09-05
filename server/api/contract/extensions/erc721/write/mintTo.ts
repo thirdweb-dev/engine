@@ -29,6 +29,9 @@ requestBodySchema.examples = [
       description: "My NFT description",
       image: "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
     },
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

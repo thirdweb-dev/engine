@@ -31,6 +31,9 @@ requestBodySchema.examples = [
     from_address: "0x....",
     to_address: "0x...",
     amount: "0.1",
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

@@ -42,6 +42,9 @@ requestBodySchema.examples = [
     },
     signature:
       "0xe6f2e29f32f7da65385effa2ed4f39b8d3caf08b025eb0004fd4695b42ee145f2c7afdf2764f0097c9ed5d88b50e97c4c638f91289408fa7d7a0834cd707c4a41b",
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

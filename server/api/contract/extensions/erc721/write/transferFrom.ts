@@ -30,6 +30,9 @@ requestBodySchema.examples = [
     from: "0xE79ee09bD47F4F5381dbbACaCff2040f2FbC5803",
     to: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     token_id: "0",
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

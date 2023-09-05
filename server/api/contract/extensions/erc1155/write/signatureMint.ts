@@ -25,6 +25,9 @@ requestBodySchema.examples = [
   {
     payload: {},
     signature: "",
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

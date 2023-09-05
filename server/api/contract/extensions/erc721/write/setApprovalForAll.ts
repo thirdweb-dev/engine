@@ -26,6 +26,9 @@ requestBodySchema.examples = [
   {
     operator: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     approved: "true",
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

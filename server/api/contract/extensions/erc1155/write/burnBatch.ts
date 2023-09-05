@@ -30,6 +30,9 @@ requestBodySchema.examples = [
   {
     token_ids: ["0", "1"],
     amounts: ["1", "1"],
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 
