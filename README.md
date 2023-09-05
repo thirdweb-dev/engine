@@ -20,7 +20,7 @@
 
 ## Web3API
 
-HTTP server that provides production grade web3 functionality:
+Production-grade HTTP server that provides scalable web3 functionality:
 
 - http interface with server and client authentication
 - create & interface with backend web3 wallets (local, aws kms, google kms, smart wallets, etc)
@@ -31,8 +31,9 @@ HTTP server that provides production grade web3 functionality:
 - create gasless relayers
 - fine grained controls over user access
 - run in your own cloud or managed service (coming soon)
+- full server-side sdks for many languages & client-side sdks for many frameworks (coming soon)
 
-The server is meant to facilitate blockchain transactions within your existing architecture. The server provides a high performance, production grade server to interact with smart contracts on any evm blockchain. The project is still early so if you're looking for specific features, have bugs or feedback feel free to reach out.
+The server is meant to facilitate blockchain transactions within your existing architecture. It provides a high performance, production grade method to interact with smart contracts on any evm blockchain. The project is still early so if you're looking for specific features, have bugs, or want to give feedback, reach out to us!
 
 ## Requirements
 
