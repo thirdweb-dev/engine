@@ -1,10 +1,10 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { createCustomError } from "../../../core/error/customError";
+import { getAllTxFromDB } from "../../helpers";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { transactionResponseSchema } from "../../schemas/transaction";
-import { getAllTxFromDB } from "../../helpers";
 
 // INPUT
 const requestQuerySchema = Type.Object({
@@ -72,6 +72,7 @@ responseBodySchema.example = {
       submittedTxNonce: 562,
       createdTimestamp: "2023-06-01T18:56:50.787Z",
       txSubmittedTimestamp: "2023-06-01T18:56:54.908Z",
+      txProcessedTimestamp: "2023-06-01T18:56:54.908Z",
     },
   ],
 };

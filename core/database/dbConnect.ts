@@ -89,7 +89,7 @@ export const connectWithDatabase = async (): Promise<Knex> => {
   };
 
   // Set the appropriate databse client package
-  let dbClientPackage: any;
+  let dbClientPackage: typeof pg;
   switch (dbClient) {
     case "pg":
       dbClientPackage = pg;

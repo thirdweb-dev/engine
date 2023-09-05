@@ -114,6 +114,7 @@ export const queueTransaction = async (
     encodedInputData: encodedData,
     deployedContractAddress,
     contractType,
+    createdTimestamp: new Date(),
   };
 
   if (!txDataToInsert.identifier) {

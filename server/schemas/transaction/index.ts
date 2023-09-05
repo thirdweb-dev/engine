@@ -77,6 +77,12 @@ export const transactionResponseSchema = Type.Object({
       description: "Transaction Request Creation Timestamp",
     }),
   ),
+  txProcessedTimestamp: Type.Optional(
+    Type.String({
+      description:
+        "Transaction Processed Timestamp (happens right before submission timestamp)",
+    }),
+  ),
   txSubmittedTimestamp: Type.Optional(
     Type.String({
       description: "Transaction Submission Timestamp",
@@ -95,6 +101,16 @@ export const transactionResponseSchema = Type.Object({
   errorMessage: Type.Optional(
     Type.String({
       description: "Error Message",
+    }),
+  ),
+  txMinedTimestamp: Type.Optional(
+    Type.String({
+      description: "Transaction Mined Status Update Timestamp",
+    }),
+  ),
+  blockNumber: Type.Optional(
+    Type.Number({
+      description: "Block Number where the transaction was mined",
     }),
   ),
 });
@@ -127,9 +143,13 @@ export interface TransactionSchema {
   maxFeePerGas?: string;
   txHash?: string;
   status?: string;
-  createdTimestamp?: string;
-  txSubmittedTimestamp?: string;
+  createdTimestamp?: Date;
+  txSubmittedTimestamp?: Date;
+  txProcessedTimestamp?: Date;
   submittedTxNonce?: number;
   deployedContractAddress?: string;
   contractType?: string;
+  errorMessage?: string;
+  txMinedTimestamp?: Date;
+  blockNumber?: number;
 }
