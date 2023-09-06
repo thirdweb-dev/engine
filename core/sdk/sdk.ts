@@ -74,8 +74,7 @@ const walletDataMap: Map<string, string> = new Map();
 const AWS_REGION = env.AWS_REGION;
 const AWS_ACCESS_KEY_ID = env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = env.AWS_SECRET_ACCESS_KEY;
-const AWS_KMS_KEY_ID =
-  "AWS_KMS_KEY_ID" in env.WALLET_KEYS ? env.WALLET_KEYS.AWS_KMS_KEY_ID : "";
+const AWS_KMS_KEY_ID = env.AWS_KMS_KEY_ID;
 
 export const getSDK = async (
   chainName: ChainOrRpc,
@@ -139,7 +138,7 @@ export const getSDK = async (
   if (
     !wallet &&
     walletType === WalletConfigType.aws_kms &&
-    (awsKmsKeyId || "AWS_KMS_KEY_ID" in env.WALLET_KEYS)
+    (awsKmsKeyId || env.AWS_KMS_KEY_ID)
   ) {
     if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
       throw new Error(
@@ -223,20 +222,16 @@ export const getSDK = async (
     // console.log(`Public key pem: ${publicKey.pem}`);
   } else if (
     !wallet &&
-    (walletType === WalletConfigType.ppk ||
-      "WALLET_PRIVATE_KEY" in env.WALLET_KEYS)
+    walletType === WalletConfigType.ppk &&
+    env.WALLET_PRIVATE_KEY !== undefined
   ) {
     // console.log(`Inside PPK`);
-    const WALLET_PRIVATE_KEY =
-      "WALLET_PRIVATE_KEY" in env.WALLET_KEYS
-        ? env.WALLET_KEYS.WALLET_PRIVATE_KEY
-        : "";
+    const WALLET_PRIVATE_KEY = env.WALLET_PRIVATE_KEY;
     wallet = new LocalWallet({
       chain,
     });
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
   } else {
-    console.log("Generating or loading local wallet...");
     wallet = new LocalWallet({
       chain,
       storage: new LocalFileStorage(),
@@ -245,7 +240,6 @@ export const getSDK = async (
       strategy: "encryptedJson",
       password: THIRDWEB_API_SECRET_KEY,
     });
-    console.log("new wallet address: ", await wallet.getAddress());
   }
 
   if (!wallet) {

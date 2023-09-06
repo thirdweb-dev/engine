@@ -23,15 +23,8 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["production", "development", "testing", "local"])
       .default("development"),
-    // This is more dangerous because it is possible to forget about destructing a given key below, leading to errors. Avoid if possible
-    WALLET_KEYS: z.union([
-      z.object({
-        WALLET_PRIVATE_KEY: z.string().min(1),
-      }),
-      z.object({
-        AWS_KMS_KEY_ID: z.string().min(1),
-      }),
-    ]),
+    WALLET_PRIVATE_KEY: z.string().min(1).optional(),
+    AWS_KMS_KEY_ID: z.string().min(1).optional(),
     AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
     AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
     AWS_REGION: z.string().min(1).optional(),
@@ -68,11 +61,8 @@ export const env = createEnv({
   isServer: true,
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
-    WALLET_KEYS: {
-      // The sdk expects a primitive type but we can overload it here to be an object
-      WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
-      AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
-    } as any,
+    WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
+    AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AWS_REGION: process.env.AWS_REGION,
