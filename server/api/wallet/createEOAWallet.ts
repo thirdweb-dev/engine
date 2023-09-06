@@ -102,8 +102,8 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         const cryptoKeyId = `ec-web3api-${new Date().getTime()}`;
         const key = await createGCPKMSWallet(cryptoKeyId);
         gcpKmsKeyId = cryptoKeyId;
-        gcpKmsKeyRingId = env.GCP_KEY_RING_ID;
-        gcpKmsLocationId = env.GCP_LOCATION_ID;
+        gcpKmsKeyRingId = env.GOOGLE_KMS_KEY_RING_ID;
+        gcpKmsLocationId = env.GOOGLE_KMS_LOCATION_ID;
         const { ["walletAddress"]: gcpCreatedWallet, keyVersionId } =
           await getGCPKeyWalletAddress(gcpKmsKeyId);
         gcpKmsKeyVersionId = keyVersionId;

@@ -134,8 +134,10 @@ export const getSDK = async (
       keyId: awsKmsKeyId || AWS_KMS_KEY_ID,
     });
   } else if (!wallet && walletType === WalletConfigType.gcp_kms) {
-    if (!env.GCP_PROJECT_ID) {
-      throw new Error("GCP_PROJECT_ID is not defined. Please check .env file");
+    if (!env.GOOGLE_APPLICATION_PROJECT_ID) {
+      throw new Error(
+        "GOOGLE_APPLICATION_PROJECT_ID is not defined. Please check .env file",
+      );
     }
 
     if (
@@ -150,7 +152,7 @@ export const getSDK = async (
     }
 
     const kmsCredentials = {
-      projectId: env.GCP_PROJECT_ID,
+      projectId: env.GOOGLE_APPLICATION_PROJECT_ID,
       locationId: gcpKmsLocationId,
       keyRingId: gcpKmsKeyRingId,
       keyId: gcpKmsKeyId,

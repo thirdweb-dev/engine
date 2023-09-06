@@ -45,16 +45,20 @@ export const createGCPKMSWallet = async (
   cryptoKeyId: string,
 ): Promise<protos.google.cloud.kms.v1.ICryptoKey> => {
   try {
-    if (!env.GCP_KEY_RING_ID || !env.GCP_LOCATION_ID || !env.GCP_PROJECT_ID) {
+    if (
+      !env.GOOGLE_KMS_KEY_RING_ID ||
+      !env.GOOGLE_KMS_LOCATION_ID ||
+      !env.GOOGLE_APPLICATION_PROJECT_ID
+    ) {
       throw new Error(
-        "GCP_KEY_RING_ID or GCP_LOCATION_ID or GCP_PROJECT_ID is not defined. Please check .env file",
+        "GOOGLE_KMS_KEY_RING_ID or GOOGLE_KMS_LOCATION_ID or GOOGLE_APPLICATION_PROJECT_ID is not defined. Please check .env file",
       );
     }
 
     const kmsCredentials = {
-      projectId: env.GCP_PROJECT_ID!, // your project id in gcp
-      locationId: env.GCP_LOCATION_ID!, // the location where your key ring was created
-      keyRingId: env.GCP_KEY_RING_ID!, // the id of the key ring
+      projectId: env.GOOGLE_APPLICATION_PROJECT_ID!, // your project id in gcp
+      locationId: env.GOOGLE_KMS_LOCATION_ID!, // the location where your key ring was created
+      keyRingId: env.GOOGLE_KMS_KEY_RING_ID!, // the id of the key ring
     };
 
     const client = new KeyManagementServiceClient({
@@ -62,7 +66,7 @@ export const createGCPKMSWallet = async (
         client_email: env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
         private_key: env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
       },
-      projectId: env.GCP_PROJECT_ID,
+      projectId: env.GOOGLE_APPLICATION_PROJECT_ID,
     });
 
     // Build the parent key ring name
@@ -96,9 +100,9 @@ export const getGCPKeyWalletAddress = async (keyId: string): Promise<any> => {
   try {
     // ToDo Need to change the hard-coded stuff
     const kmsCredentials = {
-      projectId: env.GCP_PROJECT_ID!,
-      locationId: env.GCP_LOCATION_ID!,
-      keyRingId: env.GCP_KEY_RING_ID!,
+      projectId: env.GOOGLE_APPLICATION_PROJECT_ID!,
+      locationId: env.GOOGLE_KMS_LOCATION_ID!,
+      keyRingId: env.GOOGLE_KMS_KEY_RING_ID!,
       keyId,
       keyVersion: "1",
     };
