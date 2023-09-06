@@ -82,13 +82,11 @@ There are multiple ways to setup a wallet for Web3-API using the below methods:
 
 #### AWS KMS Wallet
 
-1. Get the AWS KMS Support Variables which can be found in `.env.example` file
-2. Update the AWS KMS ENV Variables with the correct values on `.env` file
+Read More on [AWS KMS How To](./.github/aws_kms_how_to.md)
 
-- `AWS_ACCESS_KEY_ID` : AWS Access Key
-- `AWS_SECRET_ACCESS_KEY` : AWS Secret Access Key
-- `AWS_REGION` : AWS KMS Key Region
-- `AWS_KMS_KEY_ID` : Needs to have the full ARN
+#### Google KMS Wallet
+
+Read More on [Google KMS How To](./.github/google_kms_how_to.md)
 
 ### Advance Setup : PostgreSQL DB
 
