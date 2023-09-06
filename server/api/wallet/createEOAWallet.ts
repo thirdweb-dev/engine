@@ -8,7 +8,11 @@ import {
   env,
 } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { createAWSKMSWallet } from "../../helpers/wallets";
+import {
+  createAWSKMSWallet,
+  createGCPKMSWallet,
+  getGCPKeyWalletAddress,
+} from "../../helpers/wallets";
 import { WalletConfigType } from "../../schemas/wallet";
 
 // INPUTS
@@ -19,12 +23,6 @@ const requestBodySchema = Type.Object({
     examples: ["aws_kms", "gcp_kms"],
   }),
 });
-
-requestBodySchema.examples = [
-  {
-    walletType: "aws_kms",
-  },
-];
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -64,6 +62,9 @@ export async function createEOAWallet(fastify: FastifyInstance) {
       let awsKmsKeyId = undefined;
       let gcpKmsKeyId = undefined;
       let gcpKmsKeyRingId = undefined;
+      let gcpKmsLocationId = undefined;
+      let gcpKmsKeyVersionId = undefined;
+      let gcpKmsResourcePath = undefined;
       let walletAddress = "";
 
       const { walletType } = request.body;
@@ -98,17 +99,16 @@ export async function createEOAWallet(fastify: FastifyInstance) {
 
         walletAddress = await wallet.getAddress();
       } else if (walletType === WalletConfigType.gcp_kms) {
-        // ToDo
-        // const key = await createGCPKMSWallet();
-        // const name = "test-web3-api";
-        // // console.log("GCP", name);
-        // const sdk = await getSDK("mumbai"); // Need a default chain
-        // const walletAddress = await getGCPKeyWalletAddress(
-        //   name!,
-        //   sdk.getProvider(),
-        // );
-        // request.log.info(`GCP walletAddress: ${walletAddress}`);
-        throw new Error("GCP KMS Wallet is not supported yet");
+        const cryptoKeyId = `ec-web3api-${new Date().getTime()}`; //"ec-web3api-1693959302976";
+        const key = await createGCPKMSWallet(cryptoKeyId);
+        gcpKmsKeyId = cryptoKeyId;
+        gcpKmsKeyRingId = env.GCP_KEY_RING_ID;
+        gcpKmsLocationId = env.GCP_LOCATION_ID;
+        const { ["walletAddress"]: gcpCreatedWallet, keyVersionId } =
+          await getGCPKeyWalletAddress(gcpKmsKeyId);
+        gcpKmsKeyVersionId = keyVersionId;
+        gcpKmsResourcePath = key.name! + "/cryptoKeysVersion/1";
+        walletAddress = gcpCreatedWallet;
       }
 
       const dbInstance = await connectWithDatabase();
@@ -117,7 +117,16 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         dbInstance,
         false,
         walletAddress,
-        { walletType, awsKmsArn, awsKmsKeyId },
+        {
+          walletType,
+          awsKmsArn,
+          awsKmsKeyId,
+          gcpKmsKeyId,
+          gcpKmsKeyRingId,
+          gcpKmsLocationId,
+          gcpKmsKeyVersionId,
+          gcpKmsResourcePath,
+        },
       );
       await dbInstance.destroy();
       reply.status(StatusCodes.OK).send({

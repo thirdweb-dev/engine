@@ -15,6 +15,10 @@ interface WalletExtraData {
   walletType?: string;
   gcpKmsKeyId?: string;
   gcpKmsKeyRingId?: string;
+  gcpKmsLocationId?: string;
+  gcpKmsKeyVersionId?: string;
+  gcpKmsProjectId?: string;
+  gcpKmsResourcePath?: string;
 }
 
 export const insertIntoWallets = async (
@@ -89,19 +93,28 @@ export const addWalletDataWithSupportChainsNonceToDB = async (
   extraTableData?: WalletExtraData,
 ): Promise<void> => {
   try {
-    server.log.info("Setting up wallet Table");
+    server.log.info(
+      `Setting up wallet Table for walletType ${extraTableData?.walletType}, walletAddress ${walletAddress}`,
+    );
     const supportedChains = await getSupportedChains();
     const promises = supportedChains.map(async (chain) => {
       try {
         const { slug } = chain;
         let lastUsedNonce = -1;
-        let walletType = isWeb3APIInitWallet
+        let walletType = extraTableData?.walletType
+          ? extraTableData?.walletType
+          : isWeb3APIInitWallet
           ? getInstanceAdminWalletType()
           : getWalletBackUpType();
         const sdk = await getSDK(slug, {
           walletAddress,
           walletType,
           awsKmsKeyId: extraTableData?.awsKmsKeyId,
+          gcpKmsKeyId: extraTableData?.gcpKmsKeyId,
+          gcpKmsKeyRingId: extraTableData?.gcpKmsKeyRingId,
+          gcpKmsLocationId: extraTableData?.gcpKmsLocationId,
+          gcpKmsKeyVersionId: extraTableData?.gcpKmsKeyVersionId,
+          gcpKmsResourcePath: extraTableData?.gcpKmsResourcePath,
         });
         walletAddress =
           (await sdk.getSigner()?.getAddress())?.toLowerCase() ?? "";
