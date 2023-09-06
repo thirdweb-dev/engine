@@ -165,9 +165,7 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
         const stream = fs.createReadStream(
           path.join(path.dirname(__filename), "../dashboard/index.html"),
         );
-        return res.sendFile(
-          path.join(path.dirname(__filename), "../dashboard/index.html"),
-        ); //res.type("text/html").send(stream);
+        return res.type("text/html").send(stream);
       },
     });
   });
