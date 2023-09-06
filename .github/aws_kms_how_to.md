@@ -18,6 +18,10 @@ Key Usage: Sign and verify
 
 Once you create the key above, you can use `/wallet/add` and send details on the end-point to create the wallet
 
+### Set up Web3-API with AWS KMS
+
+Create a `.env` file in the root directory of the project and add the below details.
+
 ```
 # Required for AWS Auth
 AWS_ACCESS_KEY_ID=<aws_access_key_id>
