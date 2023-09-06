@@ -99,7 +99,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
 
         walletAddress = await wallet.getAddress();
       } else if (walletType === WalletConfigType.gcp_kms) {
-        const cryptoKeyId = `ec-web3api-${new Date().getTime()}`; //"ec-web3api-1693959302976";
+        const cryptoKeyId = `ec-web3api-${new Date().getTime()}`;
         const key = await createGCPKMSWallet(cryptoKeyId);
         gcpKmsKeyId = cryptoKeyId;
         gcpKmsKeyRingId = env.GCP_KEY_RING_ID;

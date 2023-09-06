@@ -72,6 +72,9 @@ export async function getAll(fastify: FastifyInstance) {
           walletType: wallet.walletType,
           awsKmsKeyId: wallet.awsKmsKeyId,
           gcpKmsKeyId: wallet.gcpKmsKeyId,
+          gcpKmsKeyRingId: wallet.gcpKmsKeyRingId,
+          gcpKmsLocationId: wallet.gcpKmsLocationId,
+          gcpKmsKeyVersionId: wallet.gcpKmsKeyVersionId,
         });
         const balance = await sdk.wallet.balance();
         return {
