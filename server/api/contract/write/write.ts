@@ -33,6 +33,10 @@ writeRequestBodySchema.examples = [
       "0x3EcDBF3B911d0e9052b64850693888b008e18373",
       "0",
     ],
+    web3api_overrides: {
+      from: "0x...",
+      value: "0.0001",
+    },
   },
 ];
 

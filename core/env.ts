@@ -31,6 +31,9 @@ export const env = createEnv({
       z.object({
         AWS_KMS_KEY_ID: z.string().min(1),
       }),
+      z.object({
+        GOOGLE_KMS_KEY_ID: z.string().min(1).optional(),
+      }),
     ]),
     AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
     AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
@@ -58,9 +61,10 @@ export const env = createEnv({
     MINED_TX_CRON_ENABLED: boolSchema("true"),
     MINED_TX_CRON_SCHEDULE: z.string().default("*/5 * * * * *"),
     MIN_TX_TO_CHECK_FOR_MINED_STATUS: z.coerce.number().default(50),
-    GCP_PROJECT_ID: z.string().min(1).optional(),
-    GCP_KEY_RING_ID: z.string().min(1).optional(),
-    GCP_LOCATION_ID: z.string().min(1).optional(),
+    GOOGLE_APPLICATION_PROJECT_ID: z.string().min(1).optional(),
+    GOOGLE_KMS_KEY_RING_ID: z.string().min(1).optional(),
+    GOOGLE_KMS_LOCATION_ID: z.string().min(1).optional(),
+    GOOGLE_KMS_KEY_VERSION_ID: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
   },
@@ -73,6 +77,7 @@ export const env = createEnv({
       // The sdk expects a primitive type but we can overload it here to be an object
       WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
       AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
+      GOOGLE_KMS_KEY_ID: process.env.GOOGLE_KMS_KEY_ID,
     } as any,
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
@@ -99,9 +104,10 @@ export const env = createEnv({
     MINED_TX_CRON_SCHEDULE: process.env.MINED_TX_CRON_SCHEDULE,
     MIN_TX_TO_CHECK_FOR_MINED_STATUS:
       process.env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
-    GCP_PROJECT_ID: process.env.GCP_PROJECT_ID,
-    GCP_KEY_RING_ID: process.env.GCP_KEY_RING_ID,
-    GCP_LOCATION_ID: process.env.GCP_LOCATION_ID,
+    GOOGLE_APPLICATION_PROJECT_ID: process.env.GOOGLE_APPLICATION_PROJECT_ID,
+    GOOGLE_KMS_KEY_RING_ID: process.env.GOOGLE_KMS_KEY_RING_ID,
+    GOOGLE_KMS_LOCATION_ID: process.env.GOOGLE_KMS_LOCATION_ID,
+    GOOGLE_KMS_KEY_VERSION_ID: process.env.GOOGLE_KMS_KEY_VERSION_ID,
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL:
       process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:

@@ -9,5 +9,7 @@ export interface WalletData {
   gcpKmsKeyId?: string;
   awsKmsKeyArn?: string;
   gcpKmsKeyRingId?: string;
-  gcpKmsKeyVersion?: string;
+  gcpKmsKeyVersionId?: string;
+  gcpKmsLocationId?: string;
+  gcpKmsProjectId?: string;
 }
