@@ -38,6 +38,10 @@ const requestBodySchema = Type.Object({
         description: "GCP KMS Key ID",
         examples: ["12345678-1234-1234-1234-123456789012"],
       }),
+      versionId: Type.String({
+        description: "GCP KMS Key Version ID",
+        examples: ["1"],
+      }),
     }),
   ),
 });
@@ -120,9 +124,9 @@ export async function addWallet(fastify: FastifyInstance) {
 
         walletAddress = await wallet.getAddress();
       } else if (walletType === WalletConfigType.gcp_kms) {
-        if (!gcpKMS?.keyId) {
+        if (!gcpKMS?.keyId || !gcpKMS?.versionId) {
           throw new Error(
-            "GCP KMS Key ID is not defined. Please check request body",
+            "GCP KMS Key ID & Key Version Id is not defined. Please check request body",
           );
         }
 
@@ -136,14 +140,14 @@ export async function addWallet(fastify: FastifyInstance) {
           );
         }
 
-        const { keyId: cryptoKeyId } = gcpKMS;
+        const { keyId: cryptoKeyId, versionId } = gcpKMS;
         gcpKmsKeyId = cryptoKeyId;
         gcpKmsKeyRingId = env.GOOGLE_KMS_KEY_RING_ID;
         gcpKmsLocationId = env.GOOGLE_KMS_LOCATION_ID;
-        const { ["walletAddress"]: gcpCreatedWallet, keyVersionId } =
+        const { ["walletAddress"]: gcpCreatedWallet } =
           await getGCPKeyWalletAddress(gcpKmsKeyId);
-        gcpKmsKeyVersionId = keyVersionId;
-        gcpKmsResourcePath = `projects/${env.GOOGLE_APPLICATION_PROJECT_ID}/locations/${env.GOOGLE_KMS_LOCATION_ID}/keyRings/${env.GOOGLE_KMS_KEY_RING_ID}/cryptoKeys/${cryptoKeyId}/cryptoKeysVersion/1`;
+        gcpKmsKeyVersionId = versionId;
+        gcpKmsResourcePath = `projects/${env.GOOGLE_APPLICATION_PROJECT_ID}/locations/${env.GOOGLE_KMS_LOCATION_ID}/keyRings/${env.GOOGLE_KMS_KEY_RING_ID}/cryptoKeys/${cryptoKeyId}/cryptoKeysVersion/${gcpKmsKeyVersionId}`;
         walletAddress = gcpCreatedWallet;
       }
 

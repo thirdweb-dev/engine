@@ -31,12 +31,23 @@ export const getInstanceAdminWalletType = (): string => {
   }
 
   // ToDo GCP KMS
-  return "";
+  return "gcp_kms";
 };
 
 export const getWalletBackUpType = (): string => {
   if (AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY && AWS_REGION) {
     return "aws_kms";
+  }
+
+  if (
+    env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL &&
+    env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY &&
+    env.GOOGLE_APPLICATION_PROJECT_ID &&
+    env.GOOGLE_KMS_KEY_RING_ID &&
+    env.GOOGLE_KMS_KEY_VERSION_ID &&
+    env.GOOGLE_KMS_LOCATION_ID
+  ) {
+    return "gcp_kms";
   }
 
   // ToDo GCP KMS

@@ -31,7 +31,15 @@ const AWS_REGION = env.AWS_REGION;
 const AWS_ACCESS_KEY_ID = env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = env.AWS_SECRET_ACCESS_KEY;
 const AWS_KMS_KEY_ID =
-  "AWS_KMS_KEY_ID" in env.WALLET_KEYS ? env.WALLET_KEYS.AWS_KMS_KEY_ID : "";
+  "AWS_KMS_KEY_ID" in env.WALLET_KEYS
+    ? env.WALLET_KEYS.AWS_KMS_KEY_ID
+    : undefined;
+
+// Google KMS Wallet
+const GOOGLE_KMS_KEY_ID =
+  "GOOGLE_KMS_KEY_ID" in env.WALLET_KEYS
+    ? env.WALLET_KEYS.GOOGLE_KMS_KEY_ID
+    : undefined;
 
 export const getSDK = async (
   chainName: ChainOrRpc,
@@ -131,32 +139,41 @@ export const getSDK = async (
       region: AWS_REGION,
       accessKeyId: AWS_ACCESS_KEY_ID,
       secretAccessKey: AWS_SECRET_ACCESS_KEY,
-      keyId: awsKmsKeyId || AWS_KMS_KEY_ID,
+      keyId: awsKmsKeyId || AWS_KMS_KEY_ID!,
     });
-  } else if (!wallet && walletType === WalletConfigType.gcp_kms) {
-    if (!env.GOOGLE_APPLICATION_PROJECT_ID) {
+  } else if (
+    !wallet &&
+    walletType === WalletConfigType.gcp_kms &&
+    (gcpKmsKeyId || "GOOGLE_KMS_KEY_ID" in env.WALLET_KEYS)
+  ) {
+    // Google Service A/C credentials Check
+    if (
+      !env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL ||
+      !env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY
+    ) {
       throw new Error(
-        "GOOGLE_APPLICATION_PROJECT_ID is not defined. Please check .env file",
+        `Please provide needed Google Service A/C credentials in order to use GCP KMS.
+        Check for GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY and GOOGLE_APPLICATION_CREDENTIAL_EMAIL in .env file`,
       );
     }
 
     if (
-      !gcpKmsKeyId ||
-      !gcpKmsKeyRingId ||
-      !gcpKmsKeyVersionId ||
-      !gcpKmsLocationId
+      !env.GOOGLE_KMS_KEY_RING_ID ||
+      !(gcpKmsKeyVersionId || env.GOOGLE_KMS_KEY_VERSION_ID) ||
+      !env.GOOGLE_KMS_LOCATION_ID ||
+      !env.GOOGLE_APPLICATION_PROJECT_ID
     ) {
       throw new Error(
-        "GCP KMS wallet not generated correctly, please generate a new GCP KMS wallet",
+        "GOOGLE_APPLICATION_PROJECT_ID, GOOGLE_KMS_KEY_RING_ID, GOOGLE_KMS_KEY_VERSION_ID, and GOOGLE_KMS_LOCATION_ID must be set in order to use GCP KMS. Please check .env file",
       );
     }
 
     const kmsCredentials = {
       projectId: env.GOOGLE_APPLICATION_PROJECT_ID,
-      locationId: gcpKmsLocationId,
-      keyRingId: gcpKmsKeyRingId,
-      keyId: gcpKmsKeyId,
-      keyVersion: gcpKmsKeyVersionId,
+      locationId: env.GOOGLE_KMS_LOCATION_ID,
+      keyRingId: env.GOOGLE_KMS_KEY_RING_ID,
+      keyId: gcpKmsKeyId || GOOGLE_KMS_KEY_ID!,
+      keyVersion: gcpKmsKeyVersionId || env.GOOGLE_KMS_KEY_VERSION_ID!,
     };
 
     signer = new GcpKmsSigner(kmsCredentials);
