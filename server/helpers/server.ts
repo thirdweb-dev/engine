@@ -1,9 +1,16 @@
+import { fastifyBasicAuth } from "@fastify/basic-auth";
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
-import fastify, { FastifyInstance } from "fastify";
+import fastify, {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+} from "fastify";
 import * as fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { env, errorHandler, getLogSettings } from "../../core";
 import { apiRoutes } from "../../server/api";
 import { performHTTPAuthentication } from "../middleware/auth";
@@ -35,7 +42,9 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       url === "/" ||
       url === "/health" ||
       url.startsWith("/static") ||
-      url.startsWith("/json")
+      url.startsWith("/json") ||
+      url.startsWith("/dashboard") ||
+      url.startsWith("/style.css")
     ) {
       return;
     }
@@ -119,6 +128,48 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     return {
       status: "OK",
     };
+  });
+  const authenticate = { realm: "Westeros" };
+  server.register(fastifyBasicAuth, {
+    validate,
+    authenticate,
+  });
+
+  function validate(
+    username: string,
+    password: string,
+    req: FastifyRequest,
+    reply: FastifyReply,
+    done: (err?: Error) => void,
+  ) {
+    // if (
+    //   username !== env.W3A_DASHBOARD_USERNAME ||
+    //   password !== env.W3A_DASHBOARD_PASSWORD
+    // ) {
+    //   reply
+    //     .code(401)
+    //     .header("WWW-Authenticate", `Basic realm="${authenticate.realm}"`)
+    //     .send("Unauthorized");
+    // }
+    done();
+  }
+
+  server.after(() => {
+    server.route({
+      url: "/dashboard",
+      method: "GET",
+      onRequest: server.basicAuth,
+      handler: (req, res) => {
+        const __filename = fileURLToPath(import.meta.url);
+
+        const stream = fs.createReadStream(
+          path.join(path.dirname(__filename), "../dashboard/index.html"),
+        );
+        return res.sendFile(
+          path.join(path.dirname(__filename), "../dashboard/index.html"),
+        ); //res.type("text/html").send(stream);
+      },
+    });
   });
 
   await server.ready();

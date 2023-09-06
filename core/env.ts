@@ -63,6 +63,8 @@ export const env = createEnv({
     GCP_LOCATION_ID: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
+    W3A_DASHBOARD_USERNAME: z.string().min(5).default("admin"),
+    W3A_DASHBOARD_PASSWORD: z.string().min(5).default("admin"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -106,6 +108,8 @@ export const env = createEnv({
       process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:
       process.env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
+    W3A_DASHBOARD_PASSWORD: process.env.W3A_DASHBOARD_PASSWORD,
+    W3A_DASHBOARD_USERNAME: process.env.W3A_DASHBOARD_USERNAME,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

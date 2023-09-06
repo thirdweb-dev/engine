@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Web3-API Server Configurator</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script src="./fetchData.js"></script>
+  </head>
+  <body>
+    <h1>Web3-API Server Configurator</h1>
+    <form id="configForm">
+      <label for="port">Port:</label>
+      <input type="text" id="port" name="port" /><br /><br />
+      <label for="hostname">Hostname:</label>
+      <input type="text" id="hostname" name="hostname" /><br /><br />
+      <input type="submit" value="Start Server" />
+    </form>
+
+    <h1>Data Table</h1>
+    <table id="dataTable">
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Value</th>
+      </tr>
+    </table>
+
+    <script src="./client.js"></script>
+  </body>
+</html>
