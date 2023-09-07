@@ -58,7 +58,7 @@ export const getTransactionReceiptWithBlockDetails = async (
         return {
           txHash: dt.receipt.transactionHash,
           blockNumber: dt.receipt.blockNumber,
-          timestamp: blockNumberDetails.timestamp * 1000,
+          timestamp: blockNumberDetails?.timestamp * 1000 || -1,
           chainId: dt.chainId!,
           queueId: dt.queueId!,
           effectiveGasPrice: dt.receipt.effectiveGasPrice,
@@ -68,7 +68,7 @@ export const getTransactionReceiptWithBlockDetails = async (
 
     return txDatawithBlockDetails;
   } catch (error) {
-    server.log.error(error, "Error in getTransactionReceiptFromChain");
+    server.log.error(error, "Error in getTransactionReceiptWithBlockDetails");
     return [];
   }
 };

@@ -36,6 +36,9 @@ requestBodySchema.examples = [
       platform_fee_basis_points: 10,
       platform_fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
     },
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

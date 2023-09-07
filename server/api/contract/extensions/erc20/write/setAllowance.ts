@@ -26,6 +26,9 @@ requestBodySchema.examples = [
   {
     spender_address: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     amount: "100",
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

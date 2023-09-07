@@ -43,6 +43,9 @@ requestBodySchema.examples = [
         quantity: "1",
       },
     ],
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 
