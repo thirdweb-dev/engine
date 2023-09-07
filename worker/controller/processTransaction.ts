@@ -1,3 +1,4 @@
+import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
@@ -65,8 +66,16 @@ export const processTransaction = async (
       const sdk = await getSDK(tx.chainId, {
         walletAddress: tx.walletAddress,
         awsKmsKeyId: walletData?.awsKmsKeyId,
+        gcpKmsKeyId: walletData?.gcpKmsKeyId,
+        gcpKmsKeyRingId: walletData?.gcpKmsKeyRingId,
+        gcpKmsLocationId: walletData?.gcpKmsLocationId,
+        gcpKmsKeyVersionId: walletData?.gcpKmsKeyVersionId,
       });
-      let blockchainNonce = await sdk.wallet.getNonce("pending");
+
+      let [blockchainNonce, gasData] = await Promise.all([
+        sdk.wallet.getNonce("pending"),
+        getDefaultGasOverrides(sdk.getProvider()),
+      ]);
 
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
       let txSubmittedNonce = BigNumber.from(0);
@@ -82,13 +91,13 @@ export const processTransaction = async (
 
       // Submit transaction to the blockchain
       // Create transaction object
-
       const txObject: providers.TransactionRequest = {
         to: tx.contractAddress ?? tx.toAddress,
         from: tx.walletAddress,
         data: tx.encodedInputData,
         nonce: txSubmittedNonce,
         value: tx.txValue,
+        ...gasData,
       };
 
       // Send transaction to the blockchain
