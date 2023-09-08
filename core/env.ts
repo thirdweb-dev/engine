@@ -68,6 +68,10 @@ export const env = createEnv({
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
     RETRY_TX_ENABLED: boolSchema("true"),
+    MAX_FEE_PER_GAS_FOR_RETRY: z.string().optional(),
+    MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY: z.string().optional(),
+    MAX_RETRIES_FOR_TX: z.coerce.number().default(3),
+    RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -114,6 +118,11 @@ export const env = createEnv({
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:
       process.env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
     RETRY_TX_ENABLED: process.env.RETRY_TX_ENABLED,
+    MAX_FEE_PER_GAS_FOR_RETRY: process.env.MAX_FEE_PER_GAS_FOR_RETRY,
+    MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY:
+      process.env.MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY,
+    MAX_RETRIES_FOR_TX: process.env.MAX_RETRIES_FOR_TX,
+    RETRY_TX_CRON_SCHEDULE: process.env.RETRY_TX_CRON_SCHEDULE,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

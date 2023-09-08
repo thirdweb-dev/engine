@@ -8,6 +8,7 @@ import { retryTransactions } from "./controller/retryTransaction";
 import { setupWalletsForWorker } from "./controller/wallet";
 
 const MINED_TX_CRON_SCHEDULE = env.MINED_TX_CRON_SCHEDULE;
+const RETRY_TX_CRON_SCHEDULE = env.RETRY_TX_CRON_SCHEDULE;
 
 const main = async () => {
   const logOptions = getLogSettings("Worker-Server");
@@ -32,7 +33,7 @@ const main = async () => {
     await checkForMinedTransactionsOnBlockchain(server);
   });
 
-  cron.schedule("*/1 * * * *", async () => {
+  cron.schedule(RETRY_TX_CRON_SCHEDULE, async () => {
     await retryTransactions(server);
   });
 };

@@ -72,9 +72,10 @@ export const processTransaction = async (
         gcpKmsKeyVersionId: walletData?.gcpKmsKeyVersionId,
       });
 
-      let [blockchainNonce, gasData] = await Promise.all([
+      let [blockchainNonce, gasData, currentBlockNumber] = await Promise.all([
         sdk.wallet.getNonce("pending"),
         getDefaultGasOverrides(sdk.getProvider()),
+        sdk.getProvider().getBlockNumber(),
       ]);
 
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
@@ -98,6 +99,10 @@ export const processTransaction = async (
         nonce: txSubmittedNonce,
         value: tx.txValue,
         ...gasData,
+        maxFeePerGas: BigNumber.from(gasData.maxFeePerGas).sub(1500000000),
+        maxPriorityFeePerGas: BigNumber.from(gasData.maxPriorityFeePerGas).sub(
+          1500000000,
+        ),
       };
 
       // Send transaction to the blockchain
@@ -130,6 +135,10 @@ export const processTransaction = async (
           "submitted",
           trx,
           txHash,
+          undefined,
+          {
+            txSubmittedAtBlockNumber: currentBlockNumber,
+          },
         );
         server.log.info(
           `Transaction submitted for ${tx.identifier} with Nonce ${txSubmittedNonce}, Tx Hash: ${txHash?.hash} `,

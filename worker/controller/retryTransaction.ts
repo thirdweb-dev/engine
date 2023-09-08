@@ -5,7 +5,7 @@ import { Knex } from "knex";
 import { connectWithDatabase, env, getSDK } from "../../core";
 import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
 import {
-  getSubmittedTransactionsToRetry,
+  getSubmittedTransactions,
   getWalletDetailsWithTransaction,
   updateTransactionState,
 } from "../services/dbOperations";
@@ -15,31 +15,25 @@ const RETRY_TX_ENABLED = env.RETRY_TX_ENABLED;
 export const retryTransactions = async (server: FastifyInstance) => {
   let knex: Knex | undefined;
   let trx: Knex.Transaction | undefined;
+  const tenMinutesInMilliseconds = 10 * 60 * 1000;
   try {
     knex = await connectWithDatabase();
     if (!RETRY_TX_ENABLED) {
       server.log.warn("Retry Tx Cron is disabled");
       return;
     }
-    server.log.info(
-      "Running Cron to check for mined transactions on blockchain",
-    );
+    server.log.info("Running Cron to Retry transactions on blockchain");
     trx = await knex.transaction();
-    const transactions = await getSubmittedTransactionsToRetry(knex, trx);
+    const transactions = await getSubmittedTransactions(knex, trx);
 
     if (transactions.length === 0) {
-      server.log.warn("No transactions to check for mined status");
+      server.log.warn("No transactions to retry");
       await trx.rollback();
       await trx.destroy();
       await knex.destroy();
       return;
     }
 
-    const blockNumbers: {
-      blockNumber: number;
-      chainId: string;
-      queueId: string;
-    }[] = [];
     const txReceiptsWithChainId = await getTransactionReceiptWithBlockDetails(
       server,
       transactions,
@@ -63,22 +57,16 @@ export const retryTransactions = async (server: FastifyInstance) => {
           "mined",
           trx,
           undefined,
-          undefined,
           {
-            gasPrice: BigNumber.from(
-              txReceiptData.effectiveGasPrice,
-            ).toString(),
+            gasPrice: txReceiptData?.effectiveGasPrice
+              ? BigNumber.from(txReceiptData.effectiveGasPrice).toString()
+              : undefined,
             txMinedTimestamp: new Date(txReceiptData.timestamp),
             blockNumber: txReceiptData.blockNumber,
           },
         );
       } else {
         //Retry Logic
-        server.log.debug(
-          `Receipt not found for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId},
-            gasLimit ${txReceiptData.txData.gasLimit}, gasPrice gasLimit ${txReceiptData.txData.gasLimit}. retrying with higher gas limit`,
-        );
-
         const walletData = await getWalletDetailsWithTransaction(
           txReceiptData.txData.walletAddress!,
           txReceiptData.txData.chainId!,
@@ -94,28 +82,36 @@ export const retryTransactions = async (server: FastifyInstance) => {
           gcpKmsLocationId: walletData?.gcpKmsLocationId,
           gcpKmsKeyVersionId: walletData?.gcpKmsKeyVersionId,
         });
+        const currentBlockNumber = await sdk.getProvider().getBlockNumber();
+
+        const currentTime = new Date().getTime();
+        const txSubmittedTime = new Date(
+          txReceiptData.txData.txSubmittedTimestamp!,
+        ).getTime();
+
+        if (
+          currentBlockNumber - txReceiptData.txData.txSubmittedAtBlockNumber! <
+            50 &&
+          currentTime - txSubmittedTime < tenMinutesInMilliseconds
+        ) {
+          server.log.debug(
+            `Will retry later for ${
+              txReceiptData.queueId
+            }. Elasped Time (min): ${
+              (currentTime - txSubmittedTime) / (60 * 1000)
+            }, Elasped Blocks: ${
+              currentBlockNumber -
+              txReceiptData.txData.txSubmittedAtBlockNumber!
+            }`,
+          );
+          continue;
+        }
+        server.log.debug(
+          `Receipt not found for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId},
+            gasLimit ${txReceiptData.txData.gasLimit}, gasPrice gasLimit ${txReceiptData.txData.gasLimit}. retrying with higher gas limit`,
+        );
 
         const gasData = await getDefaultGasOverrides(sdk.getProvider());
-
-        const oldMaxFeePerGas = BigNumber.from(
-          txReceiptData.txData.maxFeePerGas!,
-        );
-        const oldMaxPriorityFeePerGas = BigNumber.from(
-          txReceiptData.txData.maxPriorityFeePerGas!,
-        );
-
-        server.log.debug(
-          `oldMaxFeePerGas: ${oldMaxFeePerGas}, oldMaxPriorityFeePerGas: ${oldMaxPriorityFeePerGas}`,
-        );
-        const newMaxFeePerGas = oldMaxFeePerGas.add(
-          oldMaxFeePerGas.mul(10).div(100),
-        );
-        const newMaxPriorityFeePerGas = oldMaxPriorityFeePerGas.add(
-          oldMaxPriorityFeePerGas.mul(10).div(100),
-        );
-        server.log.debug(
-          `newMaxFeePerGas: ${newMaxFeePerGas}, newMaxPriorityFeePerGas: ${newMaxPriorityFeePerGas}`,
-        );
         server.log.debug(
           `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas}, MaxPriorityFeePerGas: ${gasData.maxPriorityFeePerGas}, gasPrice`,
         );
@@ -130,15 +126,6 @@ export const retryTransactions = async (server: FastifyInstance) => {
           nonce: txReceiptData.txData.submittedTxNonce,
           value: txReceiptData.txData.txValue,
           ...gasData,
-          maxFeePerGas:
-            newMaxFeePerGas < gasData.maxFeePerGas! &&
-            gasData.maxFeePerGas?.gt(2500000000)
-              ? newMaxFeePerGas
-              : gasData.maxFeePerGas,
-          maxPriorityFeePerGas:
-            newMaxPriorityFeePerGas < gasData.maxPriorityFeePerGas!
-              ? gasData.maxPriorityFeePerGas
-              : newMaxPriorityFeePerGas,
         };
 
         // Send transaction to the blockchain
@@ -150,33 +137,26 @@ export const retryTransactions = async (server: FastifyInstance) => {
           server.log.warn(
             `Request-ID: ${txReceiptData.queueId} processed but errored out: Commited to db`,
           );
-          // Will not error out tranasctions when retrying as they were legitimately submitted to the blockchain
-          // await updateTransactionState(
-          //   knex,
-          //   txReceiptData.queueId,
-          //   "errored",
-          //   trx,
-          //   undefined,
-          //   error.message,
-          // );
           await trx.commit();
           await trx.destroy();
           await knex.destroy();
           throw error;
         }
 
-        // try {
         await updateTransactionState(
           knex,
           txReceiptData.txData.identifier!,
           "submitted",
           trx,
           txHash,
+          {
+            numberOfRetries: txReceiptData.txData.numberOfRetries! + 1,
+            txSubmittedAtBlockNumber: currentBlockNumber,
+          },
         );
         server.log.info(
           `Transaction re-submitted for ${txReceiptData.queueId} with Nonce ${txReceiptData.txData.submittedTxNonce}, Tx Hash: ${txHash?.hash}`,
         );
-        // } catch (error: any) {
       }
     }
 

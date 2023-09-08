@@ -154,4 +154,7 @@ export interface TransactionSchema {
   txMinedTimestamp?: Date;
   blockNumber?: number;
   toAddress?: string;
+  txSubmittedAtBlockNumber?: number;
+  numberOfRetries?: number;
+  overrideGasValuesForTx?: boolean;
 }
