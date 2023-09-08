@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     "gasLimit" VARCHAR(255),
     "maxPriorityFeePerGas" VARCHAR(255),
     "maxFeePerGas" VARCHAR(255),
-    "txValue" VARCHAR(100)
+    "txValue" VARCHAR(100),
+    "txMinedTimestamp" TIMESTAMP,
+    "blockNumber" BIGINT
 );
 
 ALTER TABLE transactions
