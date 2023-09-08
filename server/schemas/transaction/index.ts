@@ -153,4 +153,5 @@ export interface TransactionSchema {
   errorMessage?: string;
   txMinedTimestamp?: Date;
   blockNumber?: number;
+  toAddress?: string;
 }
