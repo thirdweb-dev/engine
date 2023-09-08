@@ -8,11 +8,7 @@ import {
   env,
 } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import {
-  createAWSKMSWallet,
-  createGCPKMSWallet,
-  getGCPKeyWalletAddress,
-} from "../../helpers/wallets";
+import { getGCPKeyWalletAddress } from "../../helpers/wallets";
 import { WalletConfigType } from "../../schemas/wallet";
 
 // INPUTS
@@ -22,6 +18,32 @@ const requestBodySchema = Type.Object({
     description: "Wallet Type",
     examples: ["aws_kms", "gcp_kms"],
   }),
+  awsKMS: Type.Optional(
+    Type.Object({
+      keyId: Type.String({
+        description: "AWS KMS Key ID",
+        examples: ["12345678-1234-1234-1234-123456789012"],
+      }),
+      arn: Type.String({
+        description: "AWS KMS Key ARN",
+        examples: [
+          "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+        ],
+      }),
+    }),
+  ),
+  gcpKMS: Type.Optional(
+    Type.Object({
+      keyId: Type.String({
+        description: "GCP KMS Key ID",
+        examples: ["12345678-1234-1234-1234-123456789012"],
+      }),
+      versionId: Type.String({
+        description: "GCP KMS Key Version ID",
+        examples: ["1"],
+      }),
+    }),
+  ),
 });
 
 // OUTPUT
@@ -39,17 +61,17 @@ responseSchema.example = {
   },
 };
 
-export async function createEOAWallet(fastify: FastifyInstance) {
+export async function addWallet(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/wallet/create",
+    url: "/wallet/add",
     schema: {
-      description: "Create EOA wallet as Admin Wallet for web3api",
+      description: "Add already created EOA wallet as Admin Wallet for web3api",
       tags: ["Wallet"],
-      operationId: "wallet_create",
+      operationId: "wallet_add",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -67,7 +89,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
       let gcpKmsResourcePath = undefined;
       let walletAddress = "";
 
-      const { walletType } = request.body;
+      const { walletType, awsKMS, gcpKMS } = request.body;
 
       request.log.info(`walletType: ${walletType}`);
 
@@ -82,10 +104,13 @@ export async function createEOAWallet(fastify: FastifyInstance) {
           );
         }
 
-        const { keyId, arn } = await createAWSKMSWallet(
-          fastify,
-          "Web3 API KMS Admin Wallet",
-        );
+        if (!awsKMS?.keyId || !awsKMS?.arn) {
+          throw new Error(
+            "AWS KMS Key ID or ARN is not defined. Please check request body",
+          );
+        }
+
+        const { keyId, arn } = awsKMS;
 
         awsKmsArn = arn;
         awsKmsKeyId = keyId;
@@ -99,15 +124,30 @@ export async function createEOAWallet(fastify: FastifyInstance) {
 
         walletAddress = await wallet.getAddress();
       } else if (walletType === WalletConfigType.gcp_kms) {
-        const cryptoKeyId = `ec-web3api-${new Date().getTime()}`;
-        const key = await createGCPKMSWallet(cryptoKeyId);
+        if (!gcpKMS?.keyId || !gcpKMS?.versionId) {
+          throw new Error(
+            "GCP KMS Key ID & Key Version Id is not defined. Please check request body",
+          );
+        }
+
+        if (
+          !env.GOOGLE_KMS_KEY_RING_ID ||
+          !env.GOOGLE_KMS_LOCATION_ID ||
+          !env.GOOGLE_APPLICATION_PROJECT_ID
+        ) {
+          throw new Error(
+            "GOOGLE_KMS_KEY_RING_ID or GOOGLE_KMS_LOCATION_ID or GOOGLE_APPLICATION_PROJECT_ID is not defined. Please check .env file",
+          );
+        }
+
+        const { keyId: cryptoKeyId, versionId } = gcpKMS;
         gcpKmsKeyId = cryptoKeyId;
         gcpKmsKeyRingId = env.GOOGLE_KMS_KEY_RING_ID;
         gcpKmsLocationId = env.GOOGLE_KMS_LOCATION_ID;
-        const { ["walletAddress"]: gcpCreatedWallet, keyVersionId } =
+        const { ["walletAddress"]: gcpCreatedWallet } =
           await getGCPKeyWalletAddress(gcpKmsKeyId);
-        gcpKmsKeyVersionId = keyVersionId;
-        gcpKmsResourcePath = key.name! + "/cryptoKeysVersion/1";
+        gcpKmsKeyVersionId = versionId;
+        gcpKmsResourcePath = `projects/${env.GOOGLE_APPLICATION_PROJECT_ID}/locations/${env.GOOGLE_KMS_LOCATION_ID}/keyRings/${env.GOOGLE_KMS_KEY_RING_ID}/cryptoKeys/${cryptoKeyId}/cryptoKeysVersion/${gcpKmsKeyVersionId}`;
         walletAddress = gcpCreatedWallet;
       }
 

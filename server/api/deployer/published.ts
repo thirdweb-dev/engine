@@ -27,6 +27,9 @@ const requestBodySchema = Type.Object({
 requestBodySchema.examples = [
   {
     constructorParams: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

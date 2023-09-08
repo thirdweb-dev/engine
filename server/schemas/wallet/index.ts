@@ -65,9 +65,14 @@ export const walletTableSchema = Type.Optional(
         description: "Google Cloud KMS Key ID",
       }),
     ),
-    gcpKmsKeyVersion: Type.Optional(
+    gcpKmsKeyVersionId: Type.Optional(
       Type.String({
-        description: "Google Cloud KMS Key Version",
+        description: "Google Cloud KMS Key Version ID",
+      }),
+    ),
+    gcpKmsLocationId: Type.Optional(
+      Type.String({
+        description: "Google Cloud KMS Key Ring Location ID",
       }),
     ),
   }),

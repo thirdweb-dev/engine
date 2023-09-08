@@ -2773,22 +2773,15 @@
   resolved "https://registry.yarnpkg.com/@t3-oss/env-core/-/env-core-0.6.0.tgz#a2e6a6a2b166aad2df7ecc5e7a72400946a84fbe"
   integrity sha512-3FkPAba069WRZVVab/sB1m3eSGn/rZeypx5k+sWEu1d+k0OQdRDnvFS+7MtxYgqVrwaRk3b7yVnX2dgSPVmWPQ==
 
-"@thirdweb-dev/chains@0.1.46", "@thirdweb-dev/chains@^0.1.46":
-  version "0.1.46"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.46.tgz#d115c0b8efb02e74ee38ef8c1237bdf476e62717"
-  integrity sha512-AVDLJZ6ttFY8jPzQTKe3mRMnCAQcUzK6eX5vjs9A5CqUCdq7mBmuMM4x3fRs/80FR4vRdEaEYkdRv6HCjCHxGw==
-
 "@thirdweb-dev/chains@0.1.50":
   version "0.1.50"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.50.tgz#857ce24a30821497974e55d75e721905cb35ca33"
   integrity sha512-0rpBdFVgTE5mjgbafoBkpUnq0izx9NZz0mfFammQXWb08eQZUueuBHOVNhK2pRQT346SpQLtf65Oqag82+zZoA==
 
-"@thirdweb-dev/contracts-js@1.3.11":
-  version "1.3.11"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts-js/-/contracts-js-1.3.11.tgz#12bffe133228436487d0a1298657242e137f08d5"
-  integrity sha512-Qh7vEt7egILk7QHbl9y8Yi78MNP+JGogA/g2+Ybr8mY2vZB2I8zpyyHKC60fwMaoGanvm+mIThFCIDXCnmz2Aw==
-  dependencies:
-    "@thirdweb-dev/contracts" "3.8.3"
+"@thirdweb-dev/chains@^0.1.46":
+  version "0.1.46"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.46.tgz#d115c0b8efb02e74ee38ef8c1237bdf476e62717"
+  integrity sha512-AVDLJZ6ttFY8jPzQTKe3mRMnCAQcUzK6eX5vjs9A5CqUCdq7mBmuMM4x3fRs/80FR4vRdEaEYkdRv6HCjCHxGw==
 
 "@thirdweb-dev/contracts-js@1.3.12":
   version "1.3.12"
@@ -2796,11 +2789,6 @@
   integrity sha512-CBgxCYea7fst4bSS1dXDDOOB2rb9FsgFCAUzQPSQIlpqajOJES1fEPZc/TlFz7u444AYxA/9NoHesQ9RipQUgA==
   dependencies:
     "@thirdweb-dev/contracts" "3.8.5"
-
-"@thirdweb-dev/contracts@3.8.3":
-  version "3.8.3"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.8.3.tgz#2424e5179e4cab56fe73fb74a529ea5d559287f9"
-  integrity sha512-J1CRG8bZ/Y9x7jgd0kmu0LDgV3l+s6wBO/ohCJeOamxuXp9ubYMXr1DFmFHnNphmEHnQfLt459nu8qwGJ9ip6Q==
 
 "@thirdweb-dev/contracts@3.8.5":
   version "3.8.5"
@@ -2846,29 +2834,6 @@
     yaml "^2.3.1"
     zod "^3.20.2"
 
-"@thirdweb-dev/sdk@^3.10.54":
-  version "3.10.54"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.54.tgz#25ba3cbf6853da01e1c0d873ca1616769191ceb3"
-  integrity sha512-jgQpRcTEn81PEe81QWz3efNSCktJmLCjXd0ju78v04Z/HIxUUcHx83vCiaSp55mpJndf0tMqR7/MWbovu59i8Q==
-  dependencies:
-    "@thirdweb-dev/chains" "0.1.46"
-    "@thirdweb-dev/contracts-js" "1.3.11"
-    "@thirdweb-dev/generated-abis" "0.0.1"
-    "@thirdweb-dev/storage" "1.2.7"
-    abitype "^0.2.5"
-    bn.js "^5.2.1"
-    bs58 "^5.0.0"
-    buffer "^6.0.3"
-    cross-fetch "^3.1.8"
-    eventemitter3 "^5.0.1"
-    fast-deep-equal "^3.1.3"
-    merkletreejs "^0.2.24"
-    tiny-invariant "^1.2.0"
-    tweetnacl "^1.0.3"
-    uuid "^9.0.0"
-    yaml "^2.3.1"
-    zod "^3.20.2"
-
 "@thirdweb-dev/service-utils@^0.4.2":
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.4.2.tgz#bb22fcb38349bf4c5879cbfc105902d3cc32413a"
@@ -2881,16 +2846,6 @@
   version "1.2.10"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-1.2.10.tgz#04f25211c8a2d23b9a2171aac798211fe49c9de7"
   integrity sha512-tUqUfkCfrZfmYcNVxR7j9CLMrIx0C4w/2QkNNo27AlbKGq4x73UCKRBTPZI2ggTKGfq6pyayOfFuVLoN7W/AqA==
-  dependencies:
-    cid-tool "^3.0.0"
-    cross-fetch "^3.1.8"
-    form-data "^4.0.0"
-    uuid "^9.0.0"
-
-"@thirdweb-dev/storage@1.2.7":
-  version "1.2.7"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-1.2.7.tgz#5b986919c59b103d2016b8e5444a5c65b5769980"
-  integrity sha512-DnS6kQEJ9/dnL2zus84psk9e1F9tGNS8PXXDniUYnd4BLn5L5uA6zb5T4PjvXRgxM54g+dUOJsjOwGyrkEBzJQ==
   dependencies:
     cid-tool "^3.0.0"
     cross-fetch "^3.1.8"

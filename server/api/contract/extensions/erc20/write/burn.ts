@@ -23,6 +23,9 @@ const requestBodySchema = Type.Object({
 requestBodySchema.examples = [
   {
     amount: "0.1",
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 

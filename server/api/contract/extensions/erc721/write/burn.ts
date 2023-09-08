@@ -22,6 +22,9 @@ const requestBodySchema = Type.Object({
 requestBodySchema.examples = [
   {
     token_id: "0",
+    web3api_overrides: {
+      from: "0x...",
+    },
   },
 ];
 
