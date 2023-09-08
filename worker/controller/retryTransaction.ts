@@ -150,14 +150,15 @@ export const retryTransactions = async (server: FastifyInstance) => {
           server.log.warn(
             `Request-ID: ${txReceiptData.queueId} processed but errored out: Commited to db`,
           );
-          await updateTransactionState(
-            knex,
-            txReceiptData.queueId,
-            "errored",
-            trx,
-            undefined,
-            error.message,
-          );
+          // Will not error out tranasctions when retrying as they were legitimately submitted to the blockchain
+          // await updateTransactionState(
+          //   knex,
+          //   txReceiptData.queueId,
+          //   "errored",
+          //   trx,
+          //   undefined,
+          //   error.message,
+          // );
           await trx.commit();
           await trx.destroy();
           await knex.destroy();
