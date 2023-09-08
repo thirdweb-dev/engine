@@ -67,6 +67,7 @@ export const env = createEnv({
     GOOGLE_KMS_KEY_VERSION_ID: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
+    RETRY_TX_ENABLED: boolSchema("true"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -112,6 +113,7 @@ export const env = createEnv({
       process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:
       process.env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
+    RETRY_TX_ENABLED: process.env.RETRY_TX_ENABLED,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

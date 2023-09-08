@@ -169,3 +169,22 @@ export const getSubmittedTransactions = async (
   );
   return data.rows;
 };
+
+export const getSubmittedTransactionsToRetry = async (
+  database: Knex,
+  trx: Knex.Transaction,
+): Promise<TransactionSchema[]> => {
+  const data = await database.raw(
+    `select * from transactions
+    where "txProcessed" = true
+    and "txSubmitted" = true
+    and "txMined" = false
+    and "txErrored" = false
+    and "txHash" is not null
+    and "txSubmittedTimestamp" < now() - interval '10 minutes'
+    order by "txSubmittedTimestamp" ASC
+    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}
+    for update skip locked`,
+  );
+  return data.rows;
+};
