@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # This fetches all history for all tags and branches
 
       - name: Verify tag is on main branch
         run: |
