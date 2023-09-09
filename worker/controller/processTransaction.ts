@@ -99,10 +99,6 @@ export const processTransaction = async (
         nonce: txSubmittedNonce,
         value: tx.txValue,
         ...gasData,
-        maxFeePerGas: BigNumber.from(gasData.maxFeePerGas).sub(1500000000),
-        maxPriorityFeePerGas: BigNumber.from(gasData.maxPriorityFeePerGas).sub(
-          1500000000,
-        ),
       };
 
       // Send transaction to the blockchain
