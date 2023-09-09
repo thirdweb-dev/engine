@@ -94,8 +94,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
           env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
         ) {
           server.log.debug(
-            `Receipt not found for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId},
-            gasLimit ${txReceiptData.txData.gasLimit}, gasPrice gasLimit ${txReceiptData.txData.gasLimit}. retrying with higher gas limit`,
+            `Retrying tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId} with higher gas values`,
           );
 
           const gasData = await getDefaultGasOverrides(sdk.getProvider());
@@ -170,7 +169,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
             `Transaction re-submitted for ${txReceiptData.queueId} with Nonce ${txReceiptData.txData.submittedTxNonce}, Tx Hash: ${txHash?.hash}`,
           );
         } else {
-          server.log.debug(
+          server.log.info(
             `Will retry later Request with queueId ${
               txReceiptData.queueId
             } after ${
