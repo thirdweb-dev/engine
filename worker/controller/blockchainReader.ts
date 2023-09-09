@@ -63,7 +63,6 @@ export const checkForMinedTransactionsOnBlockchain = async (
           "mined",
           trx,
           undefined,
-          undefined,
           {
             gasPrice: BigNumber.from(
               txReceiptData.effectiveGasPrice,

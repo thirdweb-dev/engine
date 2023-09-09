@@ -29,7 +29,9 @@ CREATE TABLE IF NOT EXISTS transactions (
     "blockNumber" BIGINT,
     "numberOfRetries" INTEGER DEFAULT 0,
     "overrideGasValuesForTx" BOOLEAN DEFAULT FALSE,
-    "txSubmittedAtBlockNumber" BIGINT
+    "txSubmittedAtBlockNumber" BIGINT,
+    "overrideMaxPriorityFeePerGas" VARCHAR(255),
+    "overrideMaxFeePerGas" VARCHAR(255)
 );
 
 ALTER TABLE transactions
@@ -52,4 +54,6 @@ ADD COLUMN IF NOT EXISTS "txMinedTimestamp" TIMESTAMP,
 ADD COLUMN IF NOT EXISTS "blockNumber" BIGINT,
 ADD COLUMN IF NOT EXISTS "numberOfRetries" INTEGER DEFAULT 0,
 ADD COLUMN IF NOT EXISTS "overrideGasValuesForTx" BOOLEAN DEFAULT FALSE,
-ADD COLUMN IF NOT EXISTS "txSubmittedAtBlockNumber" BIGINT;
+ADD COLUMN IF NOT EXISTS "txSubmittedAtBlockNumber" BIGINT,
+ADD COLUMN IF NOT EXISTS "overrideMaxPriorityFeePerGas" VARCHAR(255),
+ADD COLUMN IF NOT EXISTS "overrideMaxFeePerGas" VARCHAR(255);

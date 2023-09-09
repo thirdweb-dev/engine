@@ -88,6 +88,27 @@ Read More on [AWS KMS How To](./.github/aws_kms_how_to.md)
 
 Read More on [Google KMS How To](./.github/google_kms_how_to.md)
 
+### Transaction Threshold Configuration
+
+Add the below env vars to add Max Threshold for Gas values for the Transaction:
+
+```
+MAX_FEE_PER_GAS_FOR_RETRY=<your_value_in_wei>
+MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY=<your_value_in_wei>
+MAX_RETRIES_FOR_TX=<number_of_retries_to_attempt>
+```
+
+Below are the default values:
+
+```
+# Default Values
+MAX_FEE_PER_GAS_FOR_RETRY=5500000000 (5.5 Gwei)
+MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY=5500000000 (5.5 Gwei)
+MAX_RETRIES_FOR_TX=3
+```
+
+Note: If you want to use a custom gas values for MaxFeePerGas and MaxPriorityFeePerGas, you can call the end-point `/transaction/retry/<queueId>` with the custom values.
+
 ### Advance Setup : PostgreSQL DB
 
 <details>

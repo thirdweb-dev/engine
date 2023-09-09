@@ -157,4 +157,6 @@ export interface TransactionSchema {
   txSubmittedAtBlockNumber?: number;
   numberOfRetries?: number;
   overrideGasValuesForTx?: boolean;
+  overrideMaxFeePerGas?: string;
+  overrideMaxPriorityFeePerGas?: string;
 }

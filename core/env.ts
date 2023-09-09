@@ -68,10 +68,12 @@ export const env = createEnv({
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
     RETRY_TX_ENABLED: boolSchema("true"),
-    MAX_FEE_PER_GAS_FOR_RETRY: z.string().optional(),
-    MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY: z.string().optional(),
+    MAX_FEE_PER_GAS_FOR_RETRY: z.string().default("5500000000"),
+    MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY: z.string().default("5500000000"),
     MAX_RETRIES_FOR_TX: z.coerce.number().default(3),
     RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
+    MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(20),
+    MAX_WAIT_TIME_BEFORE_RETRY: z.coerce.number().default(600),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -123,6 +125,9 @@ export const env = createEnv({
       process.env.MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY,
     MAX_RETRIES_FOR_TX: process.env.MAX_RETRIES_FOR_TX,
     RETRY_TX_CRON_SCHEDULE: process.env.RETRY_TX_CRON_SCHEDULE,
+    MAX_BLOCKS_ELAPSED_BEFORE_RETRY:
+      process.env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY,
+    MAX_WAIT_TIME_BEFORE_RETRY: process.env.MAX_WAIT_TIME_BEFORE_RETRY,
   },
   onValidationError: (error: ZodError) => {
     if ("WALLET_KEYS" in error.format()) {

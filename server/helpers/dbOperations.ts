@@ -307,3 +307,31 @@ export const getAllWallets = async (
     throw customError;
   }
 };
+
+export const updateTransactionGasValues = async (
+  request: FastifyRequest | FastifyInstance,
+  queueId: string,
+  maxFeePerGas: string,
+  maxPriorityFeePerGas: string,
+): Promise<void> => {
+  try {
+    const dbInstance = await connectWithDatabase();
+    await dbInstance("transactions")
+      .update({
+        overrideMaxPriorityFeePerGas: maxFeePerGas,
+        overrideMaxFeePerGas: maxPriorityFeePerGas,
+        overrideGasValuesForTx: true,
+      })
+      .where("identifier", queueId);
+    await dbInstance.destroy();
+    return;
+  } catch (error: any) {
+    request.log.error(error);
+    const customError = createCustomError(
+      `Error while fetching transaction details for identifier: ${queueId} from Table.`,
+      StatusCodes.NOT_FOUND,
+      "TX_QUEUE_ID_NOT_FOUND",
+    );
+    throw customError;
+  }
+};

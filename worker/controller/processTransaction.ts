@@ -135,7 +135,6 @@ export const processTransaction = async (
           "submitted",
           trx,
           txHash,
-          undefined,
           {
             txSubmittedAtBlockNumber: currentBlockNumber,
           },

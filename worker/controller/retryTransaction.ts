@@ -5,12 +5,16 @@ import { Knex } from "knex";
 import { connectWithDatabase, env, getSDK } from "../../core";
 import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
 import {
-  getSubmittedTransactions,
+  getTransactionForRetry,
   getWalletDetailsWithTransaction,
   updateTransactionState,
 } from "../services/dbOperations";
 
 const RETRY_TX_ENABLED = env.RETRY_TX_ENABLED;
+const MAX_FEE_PER_GAS_FOR_RETRY = BigNumber.from(env.MAX_FEE_PER_GAS_FOR_RETRY);
+const MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY = BigNumber.from(
+  env.MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY,
+);
 
 export const retryTransactions = async (server: FastifyInstance) => {
   let knex: Knex | undefined;
@@ -24,7 +28,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
     }
     server.log.info("Running Cron to Retry transactions on blockchain");
     trx = await knex.transaction();
-    const transactions = await getSubmittedTransactions(knex, trx);
+    const transactions = await getTransactionForRetry(knex, trx);
 
     if (transactions.length === 0) {
       server.log.warn("No transactions to retry");
@@ -40,6 +44,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
     );
 
     for (let txReceiptData of txReceiptsWithChainId) {
+      // Check if transaction got mined on chain
       if (
         txReceiptData.blockNumber != -1 &&
         txReceiptData.chainId &&
@@ -84,79 +89,99 @@ export const retryTransactions = async (server: FastifyInstance) => {
         });
         const currentBlockNumber = await sdk.getProvider().getBlockNumber();
 
-        const currentTime = new Date().getTime();
-        const txSubmittedTime = new Date(
-          txReceiptData.txData.txSubmittedTimestamp!,
-        ).getTime();
-
         if (
-          currentBlockNumber - txReceiptData.txData.txSubmittedAtBlockNumber! <
-            50 &&
-          currentTime - txSubmittedTime < tenMinutesInMilliseconds
+          currentBlockNumber - txReceiptData.txData.txSubmittedAtBlockNumber! >
+          env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
         ) {
           server.log.debug(
-            `Will retry later for ${
+            `Receipt not found for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId},
+            gasLimit ${txReceiptData.txData.gasLimit}, gasPrice gasLimit ${txReceiptData.txData.gasLimit}. retrying with higher gas limit`,
+          );
+
+          const gasData = await getDefaultGasOverrides(sdk.getProvider());
+          server.log.debug(
+            `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas}, MaxPriorityFeePerGas: ${gasData.maxPriorityFeePerGas}, gasPrice`,
+          );
+
+          // Check if GAS Values are > Max Threshold values
+          if (
+            (gasData.maxFeePerGas?.gt(MAX_FEE_PER_GAS_FOR_RETRY!) ||
+              gasData.maxPriorityFeePerGas?.gt(
+                MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY!,
+              )) &&
+            !txReceiptData.txData.overrideGasValuesForTx
+          ) {
+            server.log.warn(
+              `${walletData.slug.toUpperCase()} Chain Gas Price is higher than Max Threshold for retrying transaction ${
+                txReceiptData.queueId
+              }. Skipping retry`,
+            );
+            continue;
+          }
+          // Re-Submit transaction to the blockchain
+          // Create transaction object
+          const txObject: providers.TransactionRequest = {
+            to:
+              txReceiptData.txData.contractAddress ??
+              txReceiptData.txData.toAddress,
+            from: txReceiptData.txData.walletAddress,
+            data: txReceiptData.txData.encodedInputData,
+            nonce: txReceiptData.txData.submittedTxNonce,
+            value: txReceiptData.txData.txValue,
+            ...gasData,
+          };
+
+          // Override gas values from DB if flag is true
+          if (txReceiptData.txData.overrideGasValuesForTx) {
+            server.log.info(
+              `Setting Gas Values from DB as override flag is set to true. MaxFeePerGas: ${txReceiptData.txData.overrideMaxFeePerGas}, MaxPriorityFeePerGas: ${txReceiptData.txData.overrideMaxPriorityFeePerGas} for queueId: ${txReceiptData.queueId}`,
+            );
+            txObject.maxFeePerGas = txReceiptData.txData.overrideMaxFeePerGas;
+            txObject.maxPriorityFeePerGas =
+              txReceiptData.txData.overrideMaxPriorityFeePerGas;
+          }
+
+          // Send transaction to the blockchain
+          let txHash: ethers.providers.TransactionResponse | undefined;
+          try {
+            txHash = await sdk.getSigner()?.sendTransaction(txObject);
+          } catch (error: any) {
+            server.log.debug("Send Transaction errored");
+            server.log.warn(
+              `Request-ID: ${txReceiptData.queueId} processed but errored out: Commited to db`,
+            );
+            await trx.commit();
+            await trx.destroy();
+            await knex.destroy();
+            throw error;
+          }
+
+          await updateTransactionState(
+            knex,
+            txReceiptData.txData.identifier!,
+            "submitted",
+            trx,
+            txHash,
+            {
+              numberOfRetries: txReceiptData.txData.numberOfRetries! + 1,
+              txSubmittedAtBlockNumber: currentBlockNumber,
+            },
+          );
+          server.log.info(
+            `Transaction re-submitted for ${txReceiptData.queueId} with Nonce ${txReceiptData.txData.submittedTxNonce}, Tx Hash: ${txHash?.hash}`,
+          );
+        } else {
+          server.log.debug(
+            `Will retry later Request with queueId ${
               txReceiptData.queueId
-            }. Elasped Time (min): ${
-              (currentTime - txSubmittedTime) / (60 * 1000)
-            }, Elasped Blocks: ${
+            } after ${
+              env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
+            } blocks, Elasped Blocks: ${
               currentBlockNumber -
               txReceiptData.txData.txSubmittedAtBlockNumber!
             }`,
           );
-          continue;
         }
-        server.log.debug(
-          `Receipt not found for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId},
-            gasLimit ${txReceiptData.txData.gasLimit}, gasPrice gasLimit ${txReceiptData.txData.gasLimit}. retrying with higher gas limit`,
-        );
-
-        const gasData = await getDefaultGasOverrides(sdk.getProvider());
-        server.log.debug(
-          `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas}, MaxPriorityFeePerGas: ${gasData.maxPriorityFeePerGas}, gasPrice`,
-        );
-        // Re-Submit transaction to the blockchain
-        // Create transaction object
-        const txObject: providers.TransactionRequest = {
-          to:
-            txReceiptData.txData.contractAddress ??
-            txReceiptData.txData.toAddress,
-          from: txReceiptData.txData.walletAddress,
-          data: txReceiptData.txData.encodedInputData,
-          nonce: txReceiptData.txData.submittedTxNonce,
-          value: txReceiptData.txData.txValue,
-          ...gasData,
-        };
-
-        // Send transaction to the blockchain
-        let txHash: ethers.providers.TransactionResponse | undefined;
-        try {
-          txHash = await sdk.getSigner()?.sendTransaction(txObject);
-        } catch (error: any) {
-          server.log.debug("Send Transaction errored");
-          server.log.warn(
-            `Request-ID: ${txReceiptData.queueId} processed but errored out: Commited to db`,
-          );
-          await trx.commit();
-          await trx.destroy();
-          await knex.destroy();
-          throw error;
-        }
-
-        await updateTransactionState(
-          knex,
-          txReceiptData.txData.identifier!,
-          "submitted",
-          trx,
-          txHash,
-          {
-            numberOfRetries: txReceiptData.txData.numberOfRetries! + 1,
-            txSubmittedAtBlockNumber: currentBlockNumber,
-          },
-        );
-        server.log.info(
-          `Transaction re-submitted for ${txReceiptData.queueId} with Nonce ${txReceiptData.txData.submittedTxNonce}, Tx Hash: ${txHash?.hash}`,
-        );
       }
     }
 
