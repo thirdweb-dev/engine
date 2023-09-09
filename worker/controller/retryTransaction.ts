@@ -103,21 +103,6 @@ export const retryTransactions = async (server: FastifyInstance) => {
             `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas}, MaxPriorityFeePerGas: ${gasData.maxPriorityFeePerGas}, gasPrice`,
           );
 
-          // Check if GAS Values are > Max Threshold values
-          if (
-            (gasData.maxFeePerGas?.gt(MAX_FEE_PER_GAS_FOR_RETRY!) ||
-              gasData.maxPriorityFeePerGas?.gt(
-                MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY!,
-              )) &&
-            !txReceiptData.txData.overrideGasValuesForTx
-          ) {
-            server.log.warn(
-              `${walletData.slug.toUpperCase()} Chain Gas Price is higher than Max Threshold for retrying transaction ${
-                txReceiptData.queueId
-              }. Skipping retry`,
-            );
-            continue;
-          }
           // Re-Submit transaction to the blockchain
           // Create transaction object
           const txObject: providers.TransactionRequest = {
@@ -139,6 +124,20 @@ export const retryTransactions = async (server: FastifyInstance) => {
             txObject.maxFeePerGas = txReceiptData.txData.overrideMaxFeePerGas;
             txObject.maxPriorityFeePerGas =
               txReceiptData.txData.overrideMaxPriorityFeePerGas;
+          } else if (
+            gasData.maxFeePerGas?.gt(MAX_FEE_PER_GAS_FOR_RETRY!) ||
+            gasData.maxPriorityFeePerGas?.gt(
+              MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY!,
+            )
+          ) {
+            server.log.warn(
+              `${walletData.slug.toUpperCase()} Chain Gas Price is higher than Max Threshold for retrying transaction ${
+                txReceiptData.queueId
+              }. Will try again after ${
+                env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
+              } blocks or in 30 seconds`,
+            );
+            continue;
           }
 
           // Send transaction to the blockchain
