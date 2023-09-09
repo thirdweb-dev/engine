@@ -320,6 +320,7 @@ export const updateTransactionGasValues = async (
       .update({
         overrideMaxPriorityFeePerGas: maxFeePerGas,
         overrideMaxFeePerGas: maxPriorityFeePerGas,
+        numberOfRetries: 0,
         overrideGasValuesForTx: true,
       })
       .where("identifier", queueId);
