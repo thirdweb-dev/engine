@@ -64,7 +64,7 @@ export const addWalletToDB = async (
   dbInstance: Knex,
 ): Promise<void> => {
   try {
-    const sdk = await getSDK(chainId);
+    const sdk = await getSDK(chainId, walletAddress);
     const walletNonce = await getWalletNonce(
       walletAddress.toLowerCase(),
       sdk.getProvider(),
@@ -96,83 +96,64 @@ export const addWalletDataWithSupportChainsNonceToDB = async (
     server.log.info(
       `Setting up wallet Table for walletType ${extraTableData?.walletType}, walletAddress ${walletAddress}`,
     );
-    const supportedChains = await getSupportedChains();
-    const promises = supportedChains.map(async (chain) => {
-      try {
-        const { slug } = chain;
-        let lastUsedNonce = -1;
-        let walletType = extraTableData?.walletType
-          ? extraTableData?.walletType
-          : isWeb3APIInitWallet
-          ? getInstanceAdminWalletType()
-          : getWalletBackUpType();
-        const sdk = await getSDK(slug, {
-          walletAddress,
-          walletType,
-          awsKmsKeyId: extraTableData?.awsKmsKeyId,
-          gcpKmsKeyId: extraTableData?.gcpKmsKeyId,
-          gcpKmsKeyRingId: extraTableData?.gcpKmsKeyRingId,
-          gcpKmsLocationId: extraTableData?.gcpKmsLocationId,
-          gcpKmsKeyVersionId: extraTableData?.gcpKmsKeyVersionId,
-          gcpKmsResourcePath: extraTableData?.gcpKmsResourcePath,
-        });
-        walletAddress =
-          (await sdk.getSigner()?.getAddress())?.toLowerCase() ?? "";
-        server.log.debug(`Setting up wallet for chain ${slug}`);
-        if (walletAddress.length === 0) {
-          // server.log.warn(`Wallet address not found for chain ${slug}.`);
-          throw new Error(`Wallet address not found for chain ${slug}.`);
-        }
-        const walletBlockchainNonce = await getWalletNonce(
-          walletAddress,
-          sdk.getProvider(),
-        );
-        const walletDataInDB = await getWalletDetails(
-          walletAddress,
-          BigNumber.from(chain.chainId).toString(),
-          dbInstance,
-        );
-
-        if (walletDataInDB) {
-          lastUsedNonce = walletDataInDB.lastUsedNonce;
-        }
-
-        // lastUsedNonce should be set to -1 if blockchainNonce is 0
-        if (
-          BigNumber.from(walletBlockchainNonce).eq(BigNumber.from(0)) &&
-          BigNumber.from(lastUsedNonce).eq(BigNumber.from(0))
-        ) {
-          lastUsedNonce = -1;
-        }
-
-        if (
-          extraTableData?.walletType &&
-          extraTableData?.walletType.length > 0
-        ) {
-          walletType = extraTableData.walletType;
-          delete extraTableData.walletType;
-        }
-
-        const walletData = {
-          ...extraTableData,
-          walletAddress: walletAddress.toLowerCase(),
-          chainId: getChainBySlug(slug).chainId.toString(),
-          blockchainNonce: BigNumber.from(
-            walletBlockchainNonce ?? 0,
-          ).toNumber(),
-          lastSyncedTimestamp: new Date(),
-          lastUsedNonce,
-          slug,
-          walletType,
-        };
-        return insertIntoWallets(walletData, dbInstance);
-      } catch (error) {
-        server.log.error((error as any).message);
-        return Promise.resolve();
+    try {
+      let lastUsedNonce = -1;
+      let walletType = extraTableData?.walletType
+        ? extraTableData?.walletType
+        : isWeb3APIInitWallet
+        ? getInstanceAdminWalletType()
+        : getWalletBackUpType();
+      const sdk = await getSDK("ethereum", walletAddress);
+      walletAddress =
+        (await sdk.getSigner()?.getAddress())?.toLowerCase() ?? "";
+      server.log.debug(`Setting up wallet`);
+      if (walletAddress.length === 0) {
+        // server.log.warn(`Wallet address not found for chain ${slug}.`);
+        throw new Error(`Wallet address`);
       }
-    });
+      const walletBlockchainNonce = await getWalletNonce(
+        walletAddress,
+        sdk.getProvider(),
+      );
+      const walletDataInDB = await getWalletDetails(
+        walletAddress,
+        "1",
+        dbInstance,
+      );
 
-    await Promise.all(promises);
+      if (walletDataInDB) {
+        lastUsedNonce = walletDataInDB.lastUsedNonce;
+      }
+
+      // lastUsedNonce should be set to -1 if blockchainNonce is 0
+      if (
+        BigNumber.from(walletBlockchainNonce).eq(BigNumber.from(0)) &&
+        BigNumber.from(lastUsedNonce).eq(BigNumber.from(0))
+      ) {
+        lastUsedNonce = -1;
+      }
+
+      if (extraTableData?.walletType && extraTableData?.walletType.length > 0) {
+        walletType = extraTableData.walletType;
+        delete extraTableData.walletType;
+      }
+
+      const walletData = {
+        ...extraTableData,
+        walletAddress: walletAddress.toLowerCase(),
+        chainId: "1",
+        blockchainNonce: BigNumber.from(walletBlockchainNonce ?? 0).toNumber(),
+        lastSyncedTimestamp: new Date(),
+        lastUsedNonce,
+        slug: "ethereum",
+        walletType,
+      };
+      return insertIntoWallets(walletData, dbInstance);
+    } catch (error) {
+      server.log.error((error as any).message);
+      return Promise.resolve();
+    }
+
     server.log.info(`Wallet Table setup completed`);
   } catch (error) {
     throw error;

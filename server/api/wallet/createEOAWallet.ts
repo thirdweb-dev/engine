@@ -1,4 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
+import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
@@ -6,6 +7,7 @@ import {
   addWalletDataWithSupportChainsNonceToDB,
   connectWithDatabase,
   env,
+  LocalFileStorage,
 } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import {
@@ -20,7 +22,7 @@ import { WalletConfigType } from "../../schemas/wallet";
 const requestBodySchema = Type.Object({
   walletType: Type.String({
     description: "Wallet Type",
-    examples: ["aws_kms", "gcp_kms"],
+    examples: ["aws_kms", "gcp_kms", "local"],
   }),
 });
 
@@ -47,7 +49,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
     method: "POST",
     url: "/wallet/create",
     schema: {
-      description: "Create EOA wallet as Admin Wallet for web3api",
+      description: "Create a backend wallet",
       tags: ["Wallet"],
       operationId: "wallet_create",
       body: requestBodySchema,
@@ -57,7 +59,6 @@ export async function createEOAWallet(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      let wallet: AwsKmsWallet | undefined;
       let awsKmsArn = undefined;
       let awsKmsKeyId = undefined;
       let gcpKmsKeyId = undefined;
@@ -84,7 +85,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
 
         const { keyId, arn } = await createAWSKMSWallet(
           fastify,
-          "Web3 API KMS Admin Wallet",
+          "Web3 API AWS KMS Backend Wallet",
         );
 
         awsKmsArn = arn;
@@ -109,6 +110,10 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         gcpKmsKeyVersionId = keyVersionId;
         gcpKmsResourcePath = key.name! + "/cryptoKeysVersion/1";
         walletAddress = gcpCreatedWallet;
+      } else if (walletType === WalletConfigType.local) {
+        const wallet = new LocalWallet({ storage: new LocalFileStorage() });
+        await wallet.generate();
+        walletAddress = await wallet.getAddress();
       }
 
       const dbInstance = await connectWithDatabase();

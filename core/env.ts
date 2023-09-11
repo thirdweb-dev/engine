@@ -23,9 +23,6 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["production", "development", "testing", "local"])
       .default("development"),
-    WALLET_PRIVATE_KEY: z.string().min(1).optional(),
-    AWS_KMS_KEY_ID: z.string().min(1).optional(),
-    GOOGLE_KMS_KEY_ID: z.string().min(1).optional(),
     AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
     AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
     AWS_REGION: z.string().min(1).optional(),
@@ -54,7 +51,6 @@ export const env = createEnv({
     GOOGLE_APPLICATION_PROJECT_ID: z.string().min(1).optional(),
     GOOGLE_KMS_KEY_RING_ID: z.string().min(1).optional(),
     GOOGLE_KMS_LOCATION_ID: z.string().min(1).optional(),
-    GOOGLE_KMS_KEY_VERSION_ID: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
   },
@@ -63,9 +59,6 @@ export const env = createEnv({
   isServer: true,
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
-    WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
-    AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
-    GOOGLE_KMS_KEY_ID: process.env.GOOGLE_KMS_KEY_ID,
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AWS_REGION: process.env.AWS_REGION,
@@ -89,7 +82,6 @@ export const env = createEnv({
     GOOGLE_APPLICATION_PROJECT_ID: process.env.GOOGLE_APPLICATION_PROJECT_ID,
     GOOGLE_KMS_KEY_RING_ID: process.env.GOOGLE_KMS_KEY_RING_ID,
     GOOGLE_KMS_LOCATION_ID: process.env.GOOGLE_KMS_LOCATION_ID,
-    GOOGLE_KMS_KEY_VERSION_ID: process.env.GOOGLE_KMS_KEY_VERSION_ID,
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL:
       process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:
