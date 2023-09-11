@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import request from "supertest";
-import { env } from "../../core";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { env } from "../../../core";
+import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 
 export const awaitTransactionSubmission = async (
   server: FastifyInstance,
