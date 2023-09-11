@@ -120,10 +120,6 @@ View all end-points details (Open API Specification) : [User Guide](./docs/UserG
 
 View all end-points details (Open API Specification) : https://web3-api-akbv.chainsaw-dev.zeet.app
 
-# <<<<<<< HEAD
-
-> > > > > > > main
-
 ## Contributing
 
 We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](./.github/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.

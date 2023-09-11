@@ -14,7 +14,7 @@ export THIRDWEB_API_SECRET_KEY=klRsqmatrdlEpik_pHKgYy_q2YzGe3bTewO1VC26eY_H184Kc
 
 test-evm: FORCE
 	docker compose -f docker-compose-test.yml up -d
-	./scripts/waitForHardhatNode.sh
+	./test/e2e/hardhat/waitForHardhatNode.sh
 	yarn test:all
 	docker compose -f docker-compose-test.yml down
 

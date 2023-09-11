@@ -20,4 +20,4 @@ services:
     ports:
       - 8545:8545
     volumes:
-      - ./e2e/hardhat.config.js:/hardhat/hardhat.config.js
+      - ./test/e2e/hardhat/hardhat.config.js:/hardhat/hardhat.config.js

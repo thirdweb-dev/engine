@@ -24,7 +24,7 @@
     "lint:fix": "eslint --fix 'server/**/*.ts'",
     "test": "make test-evm",
     "test:all": "mocha --exit",
-    "benchmark": "ts-node ./scripts/benchmark/index.ts"
+    "benchmark": "ts-node ./test/benchmark/index.ts"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.398.0",
