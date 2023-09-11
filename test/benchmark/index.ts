@@ -1,9 +1,17 @@
 import { Static } from "@sinclair/typebox";
 import { TypeCompiler } from "@sinclair/typebox/compiler";
 import autocannon from "autocannon";
-import * as dotenv from "dotenv";
-import { env } from "process";
+import dotenv from "dotenv";
 import { transactionResponseSchema } from "../../server/schemas/transaction";
+
+type BenchmarkConfiguration = {
+  apiKey: string;
+  host: string;
+  path: string;
+  body: string;
+  requests: number;
+  concurrency: number;
+};
 
 dotenv.config({
   debug: true,
@@ -11,56 +19,156 @@ dotenv.config({
   path: ".env.benchmark",
 });
 
-function logInfo(msg: string) {
-  console.log(`[INFO] ${msg}`);
-}
-function logError(msg: string) {
-  console.error(`[ERROR] ${msg}`);
-}
+const logger = {
+  info(message: string) {
+    console.log(`\n[INFO] ${message}\n`);
+  },
+  error(message: string) {
+    console.log(`\n[ERROR] ${message}\n`);
+  },
+};
 
-function getBenchmarkOpts() {
-  if (!env.THIRDWEB_SDK_SECRET_KEY) {
-    throw new Error("THIRDWEB_SDK_SECRET_KEY is not set");
+function requireEnv(varName: string) {
+  const val = process.env[varName];
+  if (!val) {
+    throw new Error(`Please set the ${varName} environment variable`);
   }
-  const opts = {
-    THIRDWEB_SDK_SECRET_KEY: env.THIRDWEB_SDK_SECRET_KEY,
-    BENCHMARK_HOST: env.BENCHMARK_HOST ?? "http://127.0.0.1:3005",
-    BENCHMARK_URL_PATH:
-      env.BENCHMARK_URL_PATH ??
-      "/contract/polygon/0x01De66609582B874FA34ab288859ACC4592aec04/write",
-    BENCHMARK_POST_BODY:
-      env.BENCHMARK_POST_BODY ??
-      '{ "function_name": "mintTo", "args": ["0xCF3D06a19263976A540CFf8e7Be7b026801C52A6", "0","", "1"] }',
-    BENCHMARK_CONCURRENCY: parseInt(env.BENCHMARK_CONCURRENCY ?? "1"),
-    BENCHMARK_REQUESTS: parseInt(env.BENCHMARK_REQUESTS ?? "1"),
-  };
-  return opts;
+
+  return val;
 }
 
-async function sendTransaction(opts: ReturnType<typeof getBenchmarkOpts>) {
+async function request(
+  config: { host: string; apiKey: string },
+  path: string,
+  method: string,
+  body: string,
+) {
+  try {
+    const res = await fetch(`${config.host}${path}`, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.apiKey}`,
+      },
+      body,
+    });
+    return res.json();
+  } catch (err) {
+    console.log(err);
+    throw new Error("Fetch failed...");
+  }
+}
+
+async function getBenchmarkConfiguration(): Promise<BenchmarkConfiguration> {
+  const benchmarkConfig = {
+    apiKey: requireEnv("THIRDWEB_API_SECRET_KEY"),
+    host: process.env.BENCHMARK_HOST ?? `http://127.0.0.1:3005`,
+    requests: parseInt(requireEnv("BENCHMARK_REQUESTS") ?? 100),
+    concurrency: parseInt(requireEnv("BENCHMARK_CONCURRENCY") ?? 10),
+  };
+
+  if (process.env.BENCHMARK_PATH || process.env.BENCHMARK_BODY) {
+    requireEnv("BENCHMARK_PATH");
+    requireEnv("BENCMARK_BODY");
+
+    return {
+      ...benchmarkConfig,
+      path: process.env.BENCHMARK_PATH!,
+      body: process.env.BENCHMARK_BODY!,
+    };
+  }
+
+  const chain = requireEnv("BENCHMARK_CHAIN");
+
+  // TODO: Make this active wallet
+  const adminAddress = "0x43CAe0d7fe86C713530E679Ce02574743b2Ee9FC";
+
+  let contractAddress: string;
+  let functionName: string = "mintTo";
+  let functionArgs: string = `["0x43CAe0d7fe86C713530E679Ce02574743b2Ee9FC", "1000000000"]`;
+
+  if (
+    process.env.BENCHMARK_CONTRACT_ADDRESS ||
+    process.env.BENCHMARK_FUNCTION_NAME ||
+    process.env.BENCHMARK_FUNCTION_ARGS
+  ) {
+    requireEnv("BENCHMARK_CONTRACT_ADDRESS");
+    requireEnv("BENCHMARK_FUNCTION_NAME");
+    requireEnv("BENCHMARK_FUNCTION_ARGS");
+
+    contractAddress = requireEnv("BENCHMARK_CONTRACT_ADDRESS");
+    functionName = requireEnv("BENCHMARK_FUNCTION_NAME");
+    functionArgs = requireEnv("BENCHMARK_FUNCTION_ARGS");
+  } else {
+    logger.info(
+      `No BENCHMARK_CONTRACT_ADDRESS environment variable configured. Deploying a new contract to run benchmarks against.`,
+    );
+
+    const {
+      result: { queuedId, deployedAddress },
+    } = await request(
+      benchmarkConfig,
+      `/deployer/${chain}/prebuilts/token`,
+      "POST",
+      JSON.stringify({
+        contractMetadata: {
+          name: "Benchmark Token",
+          description:
+            "This token contract was deployed for benchmark testing.",
+          platform_fee_basis_points: 0,
+          platform_fee_recipient: adminAddress,
+          primary_sale_recipient: adminAddress,
+        },
+      }),
+    );
+
+    await awaitTx({
+      host: benchmarkConfig.host,
+      apiKey: benchmarkConfig.apiKey,
+      txnId: queuedId,
+    });
+
+    contractAddress = deployedAddress;
+
+    logger.info(
+      `Successully deployed contract ${contractAddress} for benchmark testing.`,
+    );
+  }
+
+  return {
+    ...benchmarkConfig,
+    path: `/contract/${chain}/${contractAddress}/write`,
+    body: JSON.stringify({
+      function_name: functionName,
+      args: JSON.parse(functionArgs),
+    }),
+  };
+}
+
+async function sendTransactions(config: BenchmarkConfiguration) {
   const txnIds: string[] = [];
 
   return new Promise<string[]>(async (resolve, reject) => {
-    const instance = autocannon({
-      url: `${opts.BENCHMARK_HOST}`,
-      connections: opts.BENCHMARK_CONCURRENCY,
-      amount: opts.BENCHMARK_REQUESTS,
+    const requests = autocannon({
+      url: config.host,
+      connections: config.concurrency,
+      amount: config.requests,
       requests: [
         {
-          path: opts.BENCHMARK_URL_PATH,
+          path: config.path,
           headers: {
-            authorization: `Bearer ${opts.THIRDWEB_SDK_SECRET_KEY}`,
+            authorization: `Bearer ${config.apiKey}`,
             "content-type": "application/json",
           },
           method: "POST",
-          body: opts.BENCHMARK_POST_BODY,
+          body: config.body,
           // @ts-ignore: autocannon types are 3 minor versions behind.
           // This was one of the new field that was recently added
           onResponse: (status: number, body: string) => {
             if (status === 200) {
               const parsedResult: { result?: string } = JSON.parse(body);
               if (!parsedResult.result) {
-                logError(
+                logger.error(
                   `Response body does not contain a "result" field: ${body}`,
                 );
                 return reject({
@@ -69,7 +177,7 @@ async function sendTransaction(opts: ReturnType<typeof getBenchmarkOpts>) {
               }
               txnIds.push(parsedResult.result);
             } else {
-              logError(
+              logger.error(
                 `Received status code ${status} from server. Body: ${body}`,
               );
               return reject({
@@ -81,36 +189,22 @@ async function sendTransaction(opts: ReturnType<typeof getBenchmarkOpts>) {
       ],
     });
 
-    autocannon.track(instance, {
+    autocannon.track(requests, {
       renderLatencyTable: false,
       renderResultsTable: false,
     });
 
-    const result = autocannon.printResult(await instance);
-    logInfo(result);
+    const result = autocannon.printResult(await requests);
+    logger.info(result);
     resolve(txnIds);
   });
 }
 
-async function fetchStatus({
-  txnId,
-  host,
-  apiKey,
-}: {
-  txnId: string;
-  host: string;
-  apiKey: string;
-}) {
-  const resp = await fetch(`${host}/transaction/status/${txnId}`, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
-  const raw = await resp.json();
-  return raw.result;
+function sleep(timeInSeconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, timeInSeconds * 1_000));
 }
 
-async function tryUntilCompleted({
+async function awaitTx({
   txnId,
   host,
   apiKey,
@@ -134,45 +228,40 @@ async function tryUntilCompleted({
     }
     // logInfo("Sleeping for 10 second...");
     await sleep(10);
-    return tryUntilCompleted({ txnId, host, apiKey });
+    return awaitTx({ txnId, host, apiKey });
   } catch (error) {
-    console.error("tryUntilCompleted error", error);
+    console.error("awaitTx error", error);
   }
 }
 
-function parseStatus(
-  status: unknown,
-): Static<typeof transactionResponseSchema> {
-  const C = TypeCompiler.Compile(transactionResponseSchema);
-  const isValue = C.Check(status);
-  if (!isValue) {
-    throw new Error(`Invalid response from server: ${status}`);
-  }
-  return status;
-}
-
-function sleep(timeInSeconds: number) {
-  return new Promise((resolve) => setTimeout(resolve, timeInSeconds * 1_000));
-}
-
-async function processTransaction(
-  txnIds: string[],
-  opts: ReturnType<typeof getBenchmarkOpts>,
+async function processTransactions(
+  txIds: string[],
+  config: BenchmarkConfiguration,
 ) {
-  // give queue some time to process things
-  logInfo(
+  logger.info(
     "Checking for status until all transactions are mined/errored. Can take upto 30 seconds or more...",
   );
   // await sleep(30);
   const statuses = await Promise.all(
-    txnIds.map((txnId) => {
-      return tryUntilCompleted({
-        apiKey: opts.THIRDWEB_SDK_SECRET_KEY,
-        host: opts.BENCHMARK_HOST,
+    txIds.map((txnId) => {
+      return awaitTx({
+        apiKey: config.apiKey,
+        host: config.host,
         txnId,
       });
     }),
   );
+
+  function parseStatus(
+    status: unknown,
+  ): Static<typeof transactionResponseSchema> {
+    const C = TypeCompiler.Compile(transactionResponseSchema);
+    const isValue = C.Check(status);
+    if (!isValue) {
+      throw new Error(`Invalid response from server: ${status}`);
+    }
+    return status;
+  }
 
   type txn = {
     timeTaken?: number;
@@ -342,26 +431,16 @@ async function processTransaction(
   };
 }
 
-function confirmTransaction() {}
+async function main() {
+  const config = await getBenchmarkConfiguration();
 
-function getBlockStats() {}
-
-// async/await
-async function runBenchmark() {
-  const opts = getBenchmarkOpts();
-
-  logInfo(
-    `Benchmarking ${opts.BENCHMARK_HOST}${opts.BENCHMARK_URL_PATH} with ${opts.BENCHMARK_REQUESTS} requests and a concurrency of ${opts.BENCHMARK_CONCURRENCY}`,
+  logger.info(
+    `Sending ${config.requests} requests to ${config.host}${config.path} with a concurrency of ${config.concurrency}.`,
   );
-  logInfo("Sending transactions...");
-  const txnIds = await sendTransaction(opts);
 
-  logInfo("Checking time taken for submission to mempool");
-  await processTransaction(txnIds, opts);
+  const txIds = await sendTransactions(config);
+
+  await processTransactions(txIds, config);
 }
 
-runBenchmark().catch((e) => {
-  console.error("Error while running benchmark:");
-  console.error(e);
-  process.exit(1);
-});
+main();

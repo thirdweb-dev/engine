@@ -1,6 +1,6 @@
 {
-  "require": ["./e2e/setup-init.ts", "./worker/index.ts"],
-  "spec": "e2e/**/*.test.ts",
+  "require": ["./test/e2e/setup-init.ts", "./worker/index.ts"],
+  "spec": "test/e2e/**/*.test.ts",
   "extension": ["ts"],
   "node-option": [
     "experimental-specifier-resolution=node",
