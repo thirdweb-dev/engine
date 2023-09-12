@@ -4,7 +4,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
   addWalletDataWithSupportChainsNonceToDB,
-  connectWithDatabase,
+  connectToDatabase,
   env,
 } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
@@ -151,7 +151,7 @@ export async function addWallet(fastify: FastifyInstance) {
         walletAddress = gcpCreatedWallet;
       }
 
-      const dbInstance = await connectWithDatabase();
+      const dbInstance = await connectToDatabase();
       await addWalletDataWithSupportChainsNonceToDB(
         fastify,
         dbInstance,

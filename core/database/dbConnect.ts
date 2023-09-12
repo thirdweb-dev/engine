@@ -5,7 +5,7 @@ import { env } from "../env";
 const dbClient = env.DATABASE_CLIENT;
 const connectionString = env.POSTGRES_CONNECTION_URL;
 
-export const connectWithDatabase = async (): Promise<Knex> => {
+export const connectToDatabase = async (): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection: connectionString,

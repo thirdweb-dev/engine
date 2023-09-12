@@ -3,12 +3,7 @@ import { BigNumber, ethers, providers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
-import {
-  connectWithDatabase,
-  createCustomError,
-  env,
-  getSDK,
-} from "../../core";
+import { connectToDatabase, createCustomError, env, getSDK } from "../../core";
 import {
   getTransactionsToProcess,
   getWalletDetailsWithTransaction,
@@ -26,7 +21,7 @@ export const processTransaction = async (
   let processedIds: string[] = [];
   try {
     // Connect to the DB
-    knex = await connectWithDatabase();
+    knex = await connectToDatabase();
     trx = await knex.transaction();
     let data: any;
     try {

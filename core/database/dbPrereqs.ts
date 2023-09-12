@@ -7,7 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import pg, { Knex } from "knex";
 import { env } from "../env";
 import { createCustomError } from "../error/customError";
-import { connectWithDatabase } from "./dbConnect";
+import { connectToDatabase } from "./dbConnect";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,7 +21,7 @@ export const checkTablesExistence = async (
   server: FastifyInstance,
 ): Promise<void> => {
   try {
-    const knex = await connectWithDatabase();
+    const knex = await connectToDatabase();
     // Check if the tables Exists
     const tablesList: string[] = env.DB_TABLES_LIST.split(",").map(function (
       item: any,
@@ -69,7 +69,7 @@ export const implementTriggerOnStartUp = async (
 ): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectWithDatabase();
+    const knex = await connectToDatabase();
 
     const triggersList: string[] = env.DB_TRIGGERS_LIST.split(",").map(
       function (item: any) {

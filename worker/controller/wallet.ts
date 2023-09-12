@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { Knex } from "knex";
 import {
   addWalletDataWithSupportChainsNonceToDB,
-  connectWithDatabase,
+  connectToDatabase,
 } from "../../core";
 import { checkTableForPrimaryKey } from "../services/dbOperations";
 
@@ -11,7 +11,7 @@ export const setupWalletsForWorker = async (
 ): Promise<void> => {
   let knex: Knex | undefined;
   try {
-    knex = await connectWithDatabase();
+    knex = await connectToDatabase();
     if (!knex) {
       throw new Error("DB connection not found");
     }

@@ -10,7 +10,7 @@ import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
 import { v4 as uuid } from "uuid";
-import { addWalletToDB, connectWithDatabase } from "../../core";
+import { addWalletToDB, connectToDatabase } from "../../core";
 import { createCustomError } from "../../core/error/customError";
 import { WalletData } from "../../core/interfaces";
 import {
@@ -72,7 +72,7 @@ export const queueTransaction = async (
   }
 
   const chainId = chainData.chainId.toString();
-  const dbInstance = await connectWithDatabase();
+  const dbInstance = await connectToDatabase();
   const walletAddress = await tx.getSignerAddress();
   const checkForNetworkData = await checkNetworkInWalletDB(
     dbInstance,
@@ -144,7 +144,7 @@ export const findTxDetailsWithQueueId = async (
   request: FastifyRequest | FastifyInstance,
 ): Promise<Static<typeof transactionResponseSchema>> => {
   try {
-    const dbInstance = await connectWithDatabase();
+    const dbInstance = await connectToDatabase();
     const data = await dbInstance("transactions")
       .where("identifier", queueId)
       .first();
@@ -172,7 +172,7 @@ export const getAllTxFromDB = async (
   filter?: string,
 ): Promise<Static<typeof transactionResponseSchema>[]> => {
   try {
-    const dbInstance = await connectWithDatabase();
+    const dbInstance = await connectToDatabase();
     const data = (await dbInstance("transactions")
       .where((builder) => {
         if (filter === TransactionStatusEnum.Submitted) {
@@ -247,7 +247,7 @@ export const getAllDeployedContractTxFromDB = async (
   filter?: string,
 ): Promise<Static<typeof transactionResponseSchema>[]> => {
   try {
-    const dbInstance = await connectWithDatabase();
+    const dbInstance = await connectToDatabase();
     const data = (await dbInstance("transactions")
       .where((builder) => {
         if (filter === TransactionStatusEnum.Submitted) {
@@ -291,7 +291,7 @@ export const getAllWallets = async (
   network: string,
 ): Promise<Static<typeof walletTableSchema>[]> => {
   try {
-    const dbInstance = await connectWithDatabase();
+    const dbInstance = await connectToDatabase();
     const data = await dbInstance("wallets")
       .where("chainId", network)
       .orWhere("slug", network);
@@ -315,7 +315,7 @@ export const updateTransactionGasValues = async (
   maxPriorityFeePerGas: string,
 ): Promise<void> => {
   try {
-    const dbInstance = await connectWithDatabase();
+    const dbInstance = await connectToDatabase();
     await dbInstance("transactions")
       .update({
         overrideMaxPriorityFeePerGas: maxFeePerGas,

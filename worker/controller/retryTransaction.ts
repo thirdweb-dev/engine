@@ -2,7 +2,7 @@ import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { Knex } from "knex";
-import { connectWithDatabase, env, getSDK } from "../../core";
+import { connectToDatabase, env, getSDK } from "../../core";
 import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
 import {
   getTransactionForRetry,
@@ -21,7 +21,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
   let trx: Knex.Transaction | undefined;
   const tenMinutesInMilliseconds = 10 * 60 * 1000;
   try {
-    knex = await connectWithDatabase();
+    knex = await connectToDatabase();
     if (!RETRY_TX_ENABLED) {
       server.log.warn("Retry Tx Cron is disabled");
       return;
