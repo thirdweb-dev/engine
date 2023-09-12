@@ -54,11 +54,10 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
+      //TODO add x-wallet-address to headers
       const { network } = request.params;
       const { contractMetadata, version, web3api_overrides } = request.body;
-      const sdk = await getSDK(network, {
-        walletAddress: web3api_overrides?.from,
-      });
+      const sdk = await getSDK(network, web3api_overrides?.from);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "split",
         contractMetadata,

@@ -67,15 +67,7 @@ export async function getAll(fastify: FastifyInstance) {
 
       const wallets = await getAllWallets(network);
       const promise = wallets.map(async (wallet) => {
-        const sdk = await getSDK(network, {
-          walletAddress: wallet.walletAddress,
-          walletType: wallet.walletType,
-          awsKmsKeyId: wallet.awsKmsKeyId,
-          gcpKmsKeyId: wallet.gcpKmsKeyId,
-          gcpKmsKeyRingId: wallet.gcpKmsKeyRingId,
-          gcpKmsLocationId: wallet.gcpKmsLocationId,
-          gcpKmsKeyVersionId: wallet.gcpKmsKeyVersionId,
-        });
+        const sdk = await getSDK(network, wallet.walletAddress);
         const balance = await sdk.wallet.balance();
         return {
           ...wallet,

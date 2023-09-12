@@ -62,7 +62,6 @@ export async function createEOAWallet(fastify: FastifyInstance) {
       let walletAddress = "";
 
       const { walletType } = request.body;
-
       request.log.info(`walletType: ${walletType}`);
 
       const dbInstance = await connectToDatabase();

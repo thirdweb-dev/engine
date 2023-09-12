@@ -124,12 +124,10 @@ export const addWalletDataWithSupportChainsNonceToDB = async (
         slug: Ethereum.slug,
         walletType,
       };
-      server.log.info(
-        `Wallet Table about to insert: ${JSON.stringify(walletData)}}`,
-      );
+      server.log.info(`Wallet Table about to insert: ${walletData}}`);
       const insert = await insertIntoWallets(walletData, dbInstance);
       server.log.debug(`Inserted the wallet data into DB, ${insert}`);
-      //const sdk = await getSDK(Ethereum.slug, walletAddress);
+      const sdk = await getSDK(Ethereum.slug, walletAddress);
       /*server.log.debug(`Got the sdk for wallet`);*/
       /*const walletBlockchainNonce = await getWalletNonce(*/
       /*walletAddress,*/
