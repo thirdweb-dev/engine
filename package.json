@@ -36,6 +36,7 @@
     "@fastify/type-provider-typebox": "^3.2.0",
     "@fastify/websocket": "^8.2.0",
     "@google-cloud/kms": "^4.0.0",
+    "@prisma/client": "5.2.0",
     "@sinclair/typebox": "^0.28",
     "@t3-oss/env-core": "^0.6.0",
     "@thirdweb-dev/chains": "^0.1.46",
@@ -57,6 +58,7 @@
     "p-queue": "^7.3.4",
     "pg": "^8.11.0",
     "pino-pretty": "^10.0.0",
+    "prisma": "^5.2.0",
     "uuidv4": "^6.2.13",
     "zod": "^3.21.4"
   },
@@ -91,5 +93,8 @@
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",
     "*.{js,ts,md}": "prettier --write"
+  },
+  "prisma": {
+    "schema": "./src/prisma/schema.prisma"
   }
 }
