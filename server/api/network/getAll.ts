@@ -1,9 +1,9 @@
+import { Static, Type } from "@sinclair/typebox";
+import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { networkResponseSchema } from "../../../core/schema";
+import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 
 // OUPUT
 const responseSchema = Type.Object({
@@ -16,7 +16,7 @@ responseSchema.examples = [
       {
         name: "Ethereum Mainnet",
         chain: "ETH",
-        rpc: ["https://ethereum.rpc.thirdweb.com/${THIRDWEB_API_KEY}"],
+        rpc: ["https://ethereum.rpc.thirdweb.com/${THIRDWEB_API_SECRET_KEY}"],
         nativeCurrency: {
           name: "Ether",
           symbol: "ETH",
@@ -30,7 +30,7 @@ responseSchema.examples = [
       {
         name: "Ropsten",
         chain: "ETH",
-        rpc: ["https://ropsten.rpc.thirdweb.com/${THIRDWEB_API_KEY}"],
+        rpc: ["https://ropsten.rpc.thirdweb.com/${THIRDWEB_API_SECRET_KEY}"],
         nativeCurrency: {
           name: "Ropsten Ether",
           symbol: "ETH",

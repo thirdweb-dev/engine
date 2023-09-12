@@ -18,200 +18,107 @@
 
 <p align="center"><strong>Best in class web3 SDKs for Browser, Node and Mobile apps</strong></p>
 
+## Web3API
+
+Production-grade HTTP server that provides scalable web3 functionality:
+
+- http interface with server and client authentication
+- create & interface with backend web3 wallets (local, aws kms, google kms, smart wallets, etc)
+- automatic wallet nonce management
+- built in high performance transaction queueing
+- intelligent transaction retry and gas management
+- read, write and deploy any smart contract on any evm blockchain
+- create gasless relayers
+- fine grained controls over user access
+- run in your own cloud or managed service (coming soon)
+- full server-side sdks for many languages & client-side sdks for many frameworks (coming soon)
+
+The server is meant to facilitate blockchain transactions within your existing architecture. It provides a high performance, production grade method to interact with smart contracts on any evm blockchain. The project is still early so if you're looking for specific features, have bugs, or want to give feedback, reach out to us!
+
 ## Requirements
 
 1. Docker
-2. Nodesjs (>= v18)
-3. PostgreSQL DB
-4. ENV Variables (Check `.env.example`)
-5. PG-Admin (Optional. PostgreSQL DB GUI)
+2. PostgreSQL DB
 
-Check the [How to install required packages](./.github/installations.md) guide for more details.
+## Getting Started
+
+### Set up required Environment Variables
+
+Set these variables in the .env file (copy .env.example to get started)
+
+| Variable Name             | Description                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `THIRDWEB_API_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey.                                               |
+| `POSTGRES_CONNECTION_URL` | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...] |
+
+### Run the server
+
+Docker
+
+```
+docker run -e .env -p 3005:3005 thirdweb/web3-api
+```
+
+### Using the server
+
+- In development mode, go to the server url to see an admin interface
+- Every request to the server requires an authentication token, for admin actions use the thirdweb SecretKey. Use the `Authorization` Header to set the value shown below:
+  - `Authorization: Bearer: <thirdweb SecretKey>`
+- Contract API
+
+  - Read from any contract
+    - GET /contract/[network]/[contract_address]/[func or variable name]
+  - Write to any contract function
+    - POST /contract/[network]/[contract_address]/[function name]
+    - JSON body with params
+  - Deploy published contracts
+    - POST /deploy/[network]/[publisher_address]/[published_name]
+
+- Wallet API (in development)
+
+  - Create Wallets
+    - POST /wallet
+  - Get Wallet Info
+    - Balances - GET /wallet/[wallet_address]
+
+- Auth API (In development)
+- Relayer API (In development)
+
+## Local Development
+
+### Requirements
+
+1. Nodesjs (>= v18)
+2. Docker
+3. PostgreSQL DB
+
+### Install
+
+```
+yarn
+```
+
+### Run:
+
+```
+yarn dev
+```
+
+This command runs the server, worker and sets up a postgres db, for fine grained control you can use these individually:
+
+```
+yarn dev:server
+yarn dev:worker
+yarn dev:infra
+```
+
+## User Guide
+
+View all end-points details (Open API Specification) : [User Guide](./docs/UserGuide.md)
 
 ## API Documentation
 
 View all end-points details (Open API Specification) : https://web3-api-akbv.chainsaw-dev.zeet.app
-
-### Websocket Listener
-
-For updates on your requests, you can either poll using the `get` (`/tranasction/status/<tx_queue_id>`) method or use websockets. [How to use websockets](./.github/websocket_usage.md)
-
-## Environment Variables
-
-| Variable Name                      | Description                                                                                                         | Default Value           | Required |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------- |
-| `HOST`                             | Host name of the API Server                                                                                         | `localhost`             | ❌       |
-| `PORT`                             | Port number of the API Server                                                                                       | `3005`                  | ❌       |
-| `THIRDWEB_API_KEY`                 | API Key to access ThirdWeb API                                                                                      |                         | ✅       |
-| `POSTGRES_HOST`                    | PostgreSQL Host Name                                                                                                |                         | ✅       |
-| `POSTGRES_DATABASE_NAME`           | PostgreSQL Database Name                                                                                            |                         | ✅       |
-| `POSTGRES_USER`                    | PostgreSQL Username                                                                                                 |                         | ✅       |
-| `POSTGRES_PASSWORD`                | PostgreSQL Password                                                                                                 |                         | ✅       |
-| `POSTGRES_PORT`                    | PostgreSQL Port                                                                                                     |                         | ✅       |
-| `POSTGRES_USE_SSL`                 | Flag to indicate whether to use SSL                                                                                 |                         | ✅       |
-| `TRANSACTIONS_TO_BATCH`            | Number of transactions to batch process at a time.                                                                  | `10`                    | ❌       |
-| `CHAIN_OVERRIDES`                  | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                         | ❌       |
-| `OPENAPI_BASE_ORIGIN`              | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005` | ❌       |
-| `THIRDWEB_SDK_SECRET_KEY`          | Create an API KEY on Thirdweb Dashboard and copy the SecretKey.                                                     |                         | ✅       |
-| `MINED_TX_CRON_ENABLED`            | Flag to indicate whether to run the cron job to check mined transactions.                                           | `true`                  | ❌       |
-| `MINED_TX_CRON_SCHEDULE`           | Cron Schedule for the cron job to check mined transactions.                                                         | `*/30 * * * *`          | ❌       |
-| `MIN_TX_TO_CHECK_FOR_MINED_STATUS` | Number of transactions to check for mined status at a time.                                                         | `50`                    | ❌       |
-
-## Setup Instructions
-
-1. Create a `.env` file based off `.env.example` with all the variables filled in.
-2. Update the `THIRDWEB_SDK_SECRET_KEY` value on the `.env` file
-
-### Authentication
-
-| Required |
-| -------- |
-
-All Requests need to have `Authorization` header with the value of `Bearer <YOUR_THIRDWEB_SDK_SECRET_KEY>` from the `.env` file.
-
-### Wallet Setup
-
-| Required |
-| -------- |
-
-There are multiple ways to setup a wallet for Web3-API using the below methods:
-
-#### Wallet Private Key
-
-1.Update the `WALLET_PRIVATE_KEY` value on the `.env` file
-
-#### AWS KMS Wallet
-
-Read More on [AWS KMS How To](./.github/aws_kms_how_to.md)
-
-#### Google KMS Wallet
-
-Read More on [Google KMS How To](./.github/google_kms_how_to.md)
-
-### Advance Setup : PostgreSQL DB
-
-<details>
-
-<summary>Click to expand</summary>
-
-You will need a PostgreSQL DB running instance to run the API Server & Worker. You can either run PostgreSQL DB on cloud, on a local instance or on docker. Check [installation guide](./.github/installations.md) for more details.
-
-Once you have PostgreSQL DB running on cloud or a local instance, update the following PostgreSQL DB ENV Variables Value on `.env` file:
-
-- `POSTGRES_HOST` : PostgreSQL Host Name
-- `POSTGRES_DATABASE_NAME` : PostgreSQL Database Name
-- `POSTGRES_USER` : PostgreSQL Username
-- `POSTGRES_PASSWORD` : PostgreSQL Password
-- `POSTGRES_PORT` : PostgreSQL Port (Defaults to 5432)
-- `POSTGRES_USE_SSL` : Flag to indicate whether to use SSL
-
-</details>
-
-## Running in Production Mode
-
-### Run Docker Image
-
-| Required: Docker, Postgres |
-| -------------------------- |
-
-1. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-2. Check [Advance Setup : PostgreSQL DB](#advance-setup--postgresql-db) section to update the `.env` file
-3. Run the below command
-   <br />
-   ```
-   docker run --env-file ./.env -p 3005:3005 thirdweb/web3-api:latest
-   ```
-
-<details>
- <summary>Run on a Server (EC2 Instance/Google Compute/VM) </summary>
-
-| Required: A PostgreSQL DB running instance. |
-| ------------------------------------------- |
-
-1. Clone the project on the remote server
-2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Check [Advance Setup : PostgreSQL DB](#advance-setup--postgresql-db) section to update the `.env` file
-4. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
-5. Run: `yarn install`
-6. Run: `yarn build && yarn copy-files`
-7. Run: `yarn start`
-
-</details>
-<br/>
-
-## Local Development
-
-| Required: Docker |
-| ---------------- |
-
-Note: This is the recommended way to run the API locally. It will spin up infra services, i.e., PostgreSQL DB, PG-Admin on Docker and run the API Server & Worker on local machine.
-
-1. Clone the Repo
-2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Run: `yarn install`
-4. Run: `yarn dev`
-
-The API defaults to `http://localhost:3005`
-
-We use `docker-compose-infra.yml` to spin up the supporting infra services, a postgres database and the pg-admin GUI.
-
-### Other ways to run locally
-
-<details>
-
-<summary>Click to expand</summary>
-
-<br >
-
----
-
-### 1. Use only NodeJS/Yarn
-
----
-
-| REQUIRED: PostgreSQL DB running instance |
-| ---------------------------------------- |
-
-1. Clone the Repo
-2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Check [Advance Setup : PostgreSQL DB](#advance-setup--postgresql-db) section to update the `.env` file
-4. Run: `yarn install`
-5. Run: `yarn dev:server & yarn dev:worker`
-
-The API defaults to `http://localhost:3005`
-
----
-
-### 2. Use Docker Compose
-
----
-
-| NOTE: Do not run `yarn install` |
-| ------------------------------- |
-
-In this approach we run everything, i.e., Web3-API Server & Worker, Postgres DB, PG-Admin on Docker.
-
-1. Clone the Repo
-2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Update the `HOST` value on the `.env` file to `0.0.0.0`. Example: `HOST=0.0.0.0`
-4. Update the `POSTGRES_HOST` value on the `.env` file to `host.docker.internal`. Example : `POSTGRES_HOST=host.docker.internal`
-5. Run: `yarn docker`
-
-We use `docker-compose.yml` to spin up the API Server & Worker along with supporting infra services, a postgres database and the pg-admin GUI.
-
-The API defaults to `http://localhost:3005`
-
-</details>
-
-## Local Benchmarking
-
-As a way to support quantifying the robustness of our system, we have added benchmarking. Benchmark results may vary based on the machine that is being used.
-
-To run the benchmark:
-
-1. Run local server with `yarn dev`
-2. Set-up `.env.benchmark` (For sensible defaults: `cp .env.benchmark.example .env.benchmark`) - you'll need to update the `THIRDWEB_API_SECRET_KEY` at minimum.
-3. Run benchmark in a separate terminal with `yarn benchmark`
 
 ## Contributing
 
