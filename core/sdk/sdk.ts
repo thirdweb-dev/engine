@@ -170,7 +170,6 @@ export const getSDK = async (
   );
 
   if (walletType === WalletConfigType.aws_kms) {
-
     if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
       throw new Error(
         "AWS_REGION, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY must be set in order to use AWS KMS.",
