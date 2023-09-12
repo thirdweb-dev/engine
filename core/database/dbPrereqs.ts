@@ -138,7 +138,12 @@ export const ensureDatabaseExists = async (
 
     let knexConfig: Knex.Config = {
       client: dbClient,
-      connection: modifiedConnectionString,
+      connection: {
+        connectionString: modifiedConnectionString,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
       acquireConnectionTimeout: 10000,
     };
 
@@ -178,7 +183,12 @@ export const ensureDatabaseExists = async (
     // Updating knex Config
     knexConfig = {
       client: dbClient,
-      connection: connectionString,
+      connection: {
+        connectionString,
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
     };
 
     await knex.destroy();

@@ -8,7 +8,12 @@ const connectionString = env.POSTGRES_CONNECTION_URL;
 export const connectToDatabase = async (): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
-    connection: connectionString,
+    connection: {
+      connectionString,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    },
   };
 
   // Set the appropriate databse client package
