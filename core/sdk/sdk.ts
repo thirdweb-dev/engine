@@ -227,7 +227,7 @@ export const getSDK = async (
       secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
     });
-  } else if (!wallet && walletType === WalletConfigType.ppk) {
+  } else if (walletType === WalletConfigType.ppk) {
     //TODO get private key from encrypted file
     wallet = new LocalWallet({
       chain,
