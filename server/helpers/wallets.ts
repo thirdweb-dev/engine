@@ -1,6 +1,7 @@
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { KeyManagementServiceClient } from "@google-cloud/kms";
 import * as protos from "@google-cloud/kms/build/protos/protos";
+import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { GcpKmsSigner } from "ethers-gcp-kms-signer";
 import { FastifyInstance } from "fastify";
 import { env } from "../../core";
@@ -98,7 +99,21 @@ export const createGCPKMSWallet = async (
 
 export const getGCPKeyWalletAddress = async (keyId: string): Promise<any> => {
   try {
-    // ToDo Need to change the hard-coded stuff
+    console.log(
+      `Inside getGCPKeyWalletAddress ${!env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL}`,
+    );
+    if (
+      !env.GOOGLE_KMS_KEY_RING_ID ||
+      !env.GOOGLE_KMS_LOCATION_ID ||
+      !env.GOOGLE_APPLICATION_PROJECT_ID ||
+      !env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL ||
+      !env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY
+    ) {
+      throw new Error(
+        "GOOGLE_KMS_KEY_RING_ID or GOOGLE_KMS_LOCATION_ID, GOOGLE_APPLICATION_PROJECT_ID, GOOGLE_APPLICATION_CREDENTIAL_EMAIL, GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY is not defined. Please check .env file",
+      );
+    }
+
     const kmsCredentials = {
       projectId: env.GOOGLE_APPLICATION_PROJECT_ID!,
       locationId: env.GOOGLE_KMS_LOCATION_ID!,
@@ -109,6 +124,31 @@ export const getGCPKeyWalletAddress = async (keyId: string): Promise<any> => {
     let signer = new GcpKmsSigner(kmsCredentials);
     const walletAddress = await signer.getAddress();
     return { walletAddress, keyVersionId: "1", resourcePath: keyId };
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+};
+
+export const getAWSKMSWallet = async (keyId: string): Promise<AwsKmsWallet> => {
+  try {
+    if (
+      !env.AWS_REGION ||
+      !env.AWS_ACCESS_KEY_ID ||
+      !env.AWS_SECRET_ACCESS_KEY
+    ) {
+      throw new Error(
+        "AWS_REGION or AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not defined. Please check .env file",
+      );
+    }
+
+    const wallet = new AwsKmsWallet({
+      region: env.AWS_REGION!,
+      accessKeyId: env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
+      keyId,
+    });
+    return wallet;
   } catch (error) {
     console.log(error);
     throw error;

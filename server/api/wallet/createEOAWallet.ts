@@ -47,7 +47,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
     method: "POST",
     url: "/wallet/create",
     schema: {
-      description: "Create EOA wallet as Admin Wallet for web3api",
+      description: "Create EOA wallet as backend wallet",
       tags: ["Wallet"],
       operationId: "wallet_create",
       body: requestBodySchema,

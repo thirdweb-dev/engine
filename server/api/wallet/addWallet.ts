@@ -8,7 +8,7 @@ import {
   env,
 } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { getGCPKeyWalletAddress } from "../../helpers/wallets";
+import { getAWSKMSWallet, getGCPKeyWalletAddress } from "../../helpers/wallets";
 import { WalletConfigType } from "../../schemas/wallet";
 
 // INPUTS
@@ -67,11 +67,11 @@ export async function addWallet(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/wallet/add",
+    url: "/wallet/import",
     schema: {
-      description: "Add already created EOA wallet as Admin Wallet for web3api",
+      description: "Import already created EOA wallet as backend",
       tags: ["Wallet"],
-      operationId: "wallet_add",
+      operationId: "wallet_import",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -94,16 +94,6 @@ export async function addWallet(fastify: FastifyInstance) {
       request.log.info(`walletType: ${walletType}`);
 
       if (walletType === WalletConfigType.aws_kms) {
-        if (
-          !env.AWS_REGION ||
-          !env.AWS_ACCESS_KEY_ID ||
-          !env.AWS_SECRET_ACCESS_KEY
-        ) {
-          throw new Error(
-            "AWS_REGION or AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not defined. Please check .env file",
-          );
-        }
-
         if (!awsKMS?.keyId || !awsKMS?.arn) {
           throw new Error(
             "AWS KMS Key ID or ARN is not defined. Please check request body",
@@ -111,17 +101,9 @@ export async function addWallet(fastify: FastifyInstance) {
         }
 
         const { keyId, arn } = awsKMS;
-
+        const wallet = await getAWSKMSWallet(keyId);
         awsKmsArn = arn;
         awsKmsKeyId = keyId;
-
-        const wallet = new AwsKmsWallet({
-          region: env.AWS_REGION!,
-          accessKeyId: env.AWS_ACCESS_KEY_ID!,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
-          keyId,
-        });
-
         walletAddress = await wallet.getAddress();
       } else if (walletType === WalletConfigType.gcp_kms) {
         if (!gcpKMS?.keyId || !gcpKMS?.versionId) {
@@ -130,22 +112,12 @@ export async function addWallet(fastify: FastifyInstance) {
           );
         }
 
-        if (
-          !env.GOOGLE_KMS_KEY_RING_ID ||
-          !env.GOOGLE_KMS_LOCATION_ID ||
-          !env.GOOGLE_APPLICATION_PROJECT_ID
-        ) {
-          throw new Error(
-            "GOOGLE_KMS_KEY_RING_ID or GOOGLE_KMS_LOCATION_ID or GOOGLE_APPLICATION_PROJECT_ID is not defined. Please check .env file",
-          );
-        }
-
         const { keyId: cryptoKeyId, versionId } = gcpKMS;
         gcpKmsKeyId = cryptoKeyId;
-        gcpKmsKeyRingId = env.GOOGLE_KMS_KEY_RING_ID;
-        gcpKmsLocationId = env.GOOGLE_KMS_LOCATION_ID;
         const { ["walletAddress"]: gcpCreatedWallet } =
           await getGCPKeyWalletAddress(gcpKmsKeyId);
+        gcpKmsKeyRingId = env.GOOGLE_KMS_KEY_RING_ID;
+        gcpKmsLocationId = env.GOOGLE_KMS_LOCATION_ID;
         gcpKmsKeyVersionId = versionId;
         gcpKmsResourcePath = `projects/${env.GOOGLE_APPLICATION_PROJECT_ID}/locations/${env.GOOGLE_KMS_LOCATION_ID}/keyRings/${env.GOOGLE_KMS_KEY_RING_ID}/cryptoKeys/${cryptoKeyId}/cryptoKeysVersion/${gcpKmsKeyVersionId}`;
         walletAddress = gcpCreatedWallet;
