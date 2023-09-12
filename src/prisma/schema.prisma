@@ -1,0 +1,82 @@
+datasource db {
+  url      = env("POSTGRES_CONNECTION_URL")
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Transactions {
+  id      String @id @default(uuid()) @map("id")
+  chainId Int    @map("chainId")
+
+  // Transaction Details
+  fromAddress          String  @map("fromAddress")
+  toAddress            String? @map("toAddress")
+  data                 String? @map("data") @db.Text
+  value                String? @map("value")
+  nonce                Int?    @map("nonce")
+  gasLimit             String? @map("gasLimit")
+  gasPrice             String? @map("gasPrice")
+  maxFeePerGas         String? @map("maxFeePerGas")
+  maxPriorityFeePerGas String? @map("maxPriorityFeePerGas")
+  transactionType      String? @map("transactionType")
+  transactionHash      String? @map("transactionHash")
+
+  // Enriched Data
+  functionName      String? @map("functionName")
+  functionArgs      String? @map("functionArgs")
+  contractExtension String? @map("contractExtension")
+
+  // Timestamps
+  queuedAt    DateTime  @default(now()) @map("queuedAt")
+  processedAt DateTime? @map("processedAt")
+  sentAt      DateTime? @map("sentAt")
+  minedAt     DateTime? @map("minedAt")
+
+  // Retries
+  retryCount Int @default(0) @map("retryCount")
+
+  // Error
+  errorMessage String? @map("errorMessage")
+
+  numberOfRetries              Int     @default(0) @map("numberOfRetries")
+  retryMaxPriorityFeePerGas    String? @map("overrideMaxPriorityFeePerGas")
+  retryMaxFeePerGas            String? @map("overrideMaxFeePerGas")
+
+  @@map("transactions")
+}
+
+model WalletDetails {
+  address            String        @id @map("address")
+  type               String        @map("type")
+
+  // KMS
+  awsKmsKeyId        String?       @map("awsKmsKeyId")
+  awsKmsArn          String?       @map("awsKmsArn")
+
+  // GCP
+  gcpKmsKeyRingId    String?       @map("gcpKmsKeyRingId") @db.VarChar(50)
+  gcpKmsKeyId        String?       @map("gcpKmsKeyId") @db.VarChar(50)
+  gcpKmsKeyVersionId String?       @map("gcpKmsKeyVersionId") @db.VarChar(20)
+  gcpKmsLocationId   String?       @map("gcpKmsLocationId") @db.VarChar(20)
+  gcpKmsResourcePath String?       @map("gcpKmsResourcePath") @db.Text
+  
+  // One-to-many
+  walletNonce        WalletNonce[]
+
+  @@map("wallet_details")
+}
+
+model WalletNonce {
+  address       String        @map("address")
+  chainId       Int           @map("chainId")
+  nonce         Int           @default(-1)
+  
+  // Many-to-one
+  walletDetails WalletDetails @relation(fields: [address], references: [address])
+
+  @@id([address, chainId])
+  @@map("wallet_nonce")
+}
