@@ -13,10 +13,20 @@ export const connectToDB = async (
   server: FastifyInstance | FastifyRequest,
 ): Promise<Knex> => {
   // Creating KNEX Config
+  let modifiedConnectionString = connectionString;
+  if (DATABASE_NAME !== "postgres") {
+    // This is required if the Database mentioned in the connection string is not postgres
+    // as we need to connect to the postgres database to create the user provied database
+    // and then connect to the user provided database
+    modifiedConnectionString = connectionString.replace(
+      `/${DATABASE_NAME}`,
+      "/postgres",
+    );
+  }
 
   let knexConfig: Knex.Config = {
     client: dbClient,
-    connection: connectionString,
+    connection: modifiedConnectionString,
     acquireConnectionTimeout: 10000,
   };
 

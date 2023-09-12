@@ -25,6 +25,7 @@ const main = async () => {
     await startTxUpdatesNotificationListener(server);
   } catch (err) {
     console.log(err);
+    process.exit(1);
   }
 };
 

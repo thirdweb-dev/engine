@@ -19,15 +19,19 @@ const main = async () => {
 
   await errorHandler(server);
 
-  await setupWalletsForWorker(server);
-  // Start Listening to the Table for new insertion
-  await retryWithTimeout(
-    () => startNotificationListener(server),
-    3,
-    5000,
-    server,
-  );
-
+  try {
+    await setupWalletsForWorker(server);
+    // Start Listening to the Table for new insertion
+    await retryWithTimeout(
+      () => startNotificationListener(server),
+      3,
+      5000,
+      server,
+    );
+  } catch (error) {
+    server.log.error(error);
+    process.exit(1);
+  }
   // setup a cron job to updated transaction confirmed status
   cron.schedule(MINED_TX_CRON_SCHEDULE, async () => {
     await checkForMinedTransactionsOnBlockchain(server);
