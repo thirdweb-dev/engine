@@ -5,15 +5,18 @@ import { env } from "../env";
 const dbClient = env.DATABASE_CLIENT;
 const connectionString = env.POSTGRES_CONNECTION_URL;
 
-export const connectToDatabase = async (): Promise<Knex> => {
+export const connectToDatabase = async (
+  databaseURL?: string,
+): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
     connection: {
-      connectionString,
+      connectionString: databaseURL || connectionString,
       ssl: {
         rejectUnauthorized: false,
       },
     },
+    acquireConnectionTimeout: 10000,
   };
 
   // Set the appropriate databse client package

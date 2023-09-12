@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 
 import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import pg, { Knex } from "knex";
 import { env } from "../env";
 import { createCustomError } from "../error/customError";
 import { connectToDatabase } from "./dbConnect";
@@ -136,28 +135,7 @@ export const ensureDatabaseExists = async (
       );
     }
 
-    let knexConfig: Knex.Config = {
-      client: dbClient,
-      connection: {
-        connectionString: modifiedConnectionString,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      },
-      acquireConnectionTimeout: 10000,
-    };
-
-    // Set the appropriate databse client package
-    let dbClientPackage: any;
-    switch (dbClient) {
-      case "pg":
-        dbClientPackage = pg;
-        break;
-      default:
-        throw new Error(`Unsupported database client: ${dbClient}`);
-    }
-
-    let knex = dbClientPackage(knexConfig);
+    let knex = await connectToDatabase(modifiedConnectionString);
 
     // Check if Database Exists & create if it doesn't
     let hasDatabase: any;
@@ -179,17 +157,6 @@ export const ensureDatabaseExists = async (
           `Unsupported database client: ${dbClient}. Cannot create database ${DATABASE_NAME}`,
         );
     }
-
-    // Updating knex Config
-    knexConfig = {
-      client: dbClient,
-      connection: {
-        connectionString,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      },
-    };
 
     await knex.destroy();
   } catch (error) {
