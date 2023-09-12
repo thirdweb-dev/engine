@@ -54,7 +54,6 @@ export const env = createEnv({
     GOOGLE_APPLICATION_PROJECT_ID: z.string().min(1).optional(),
     GOOGLE_KMS_KEY_RING_ID: z.string().min(1).optional(),
     GOOGLE_KMS_LOCATION_ID: z.string().min(1).optional(),
-    GOOGLE_KMS_KEY_VERSION_ID: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
     RETRY_TX_ENABLED: boolSchema("true"),
@@ -96,7 +95,6 @@ export const env = createEnv({
     GOOGLE_APPLICATION_PROJECT_ID: process.env.GOOGLE_APPLICATION_PROJECT_ID,
     GOOGLE_KMS_KEY_RING_ID: process.env.GOOGLE_KMS_KEY_RING_ID,
     GOOGLE_KMS_LOCATION_ID: process.env.GOOGLE_KMS_LOCATION_ID,
-    GOOGLE_KMS_KEY_VERSION_ID: process.env.GOOGLE_KMS_KEY_VERSION_ID,
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL:
       process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:

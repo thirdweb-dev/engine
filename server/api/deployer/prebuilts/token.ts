@@ -60,9 +60,7 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network } = request.params;
       const { contractMetadata, version, web3api_overrides } = request.body;
-      const sdk = await getSDK(network, {
-        walletAddress: web3api_overrides?.from,
-      });
+      const sdk = await getSDK(network, web3api_overrides?.from);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "token",
         contractMetadata,

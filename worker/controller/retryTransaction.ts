@@ -65,14 +65,10 @@ export const retryTransactions = async (server: FastifyInstance) => {
           trx,
         );
 
-        const sdk = await getSDK(txReceiptData.txData.chainId!, {
-          walletAddress: txReceiptData.txData.walletAddress!,
-          awsKmsKeyId: walletData?.awsKmsKeyId,
-          gcpKmsKeyId: walletData?.gcpKmsKeyId,
-          gcpKmsKeyRingId: walletData?.gcpKmsKeyRingId,
-          gcpKmsLocationId: walletData?.gcpKmsLocationId,
-          gcpKmsKeyVersionId: walletData?.gcpKmsKeyVersionId,
-        });
+        const sdk = await getSDK(
+          txReceiptData.txData.chainId!,
+          txReceiptData.txData.walletAddress!,
+        );
         const currentBlockNumber = await sdk.getProvider().getBlockNumber();
 
         if (

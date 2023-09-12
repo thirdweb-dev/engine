@@ -58,14 +58,7 @@ export const processTransaction = async (
         trx,
       );
 
-      const sdk = await getSDK(tx.chainId, {
-        walletAddress: tx.walletAddress,
-        awsKmsKeyId: walletData?.awsKmsKeyId,
-        gcpKmsKeyId: walletData?.gcpKmsKeyId,
-        gcpKmsKeyRingId: walletData?.gcpKmsKeyRingId,
-        gcpKmsLocationId: walletData?.gcpKmsLocationId,
-        gcpKmsKeyVersionId: walletData?.gcpKmsKeyVersionId,
-      });
+      const sdk = await getSDK(tx.chainId, tx.walletAddress);
 
       let [blockchainNonce, gasData, currentBlockNumber] = await Promise.all([
         sdk.wallet.getNonce("pending"),

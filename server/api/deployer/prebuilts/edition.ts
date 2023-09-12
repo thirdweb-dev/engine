@@ -62,9 +62,8 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network } = request.params;
       const { contractMetadata, version, web3api_overrides } = request.body;
-      const sdk = await getSDK(network, {
-        walletAddress: web3api_overrides?.from,
-      });
+      //TODO add wallet-address to header
+      const sdk = await getSDK(network, web3api_overrides?.from);
 
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "edition",

@@ -50,7 +50,7 @@ export async function getBalance(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, wallet_address } = request.params;
 
-      const sdk = await getSDK(network, { walletAddress: wallet_address });
+      const sdk = await getSDK(network, wallet_address);
 
       let balanceData = await sdk.wallet.balance();
       let address = await sdk.wallet.getAddress();

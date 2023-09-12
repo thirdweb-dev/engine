@@ -1,9 +1,7 @@
-import { getChainBySlug } from "@thirdweb-dev/chains";
-import { getSupportedChains } from "@thirdweb-dev/sdk";
+import { Ethereum } from "@thirdweb-dev/chains";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { Knex } from "knex";
-import { getWalletType } from "../helpers";
 import { WalletData } from "../interfaces";
 import { getSDK } from "../sdk/sdk";
 import { getWalletNonce } from "../services/blockchain";
@@ -12,7 +10,7 @@ import { connectToDatabase } from "./dbConnect";
 interface WalletExtraData {
   awsKmsKeyId?: string;
   awsKmsArn?: string;
-  walletType?: string;
+  walletType: string;
   gcpKmsKeyId?: string;
   gcpKmsKeyRingId?: string;
   gcpKmsLocationId?: string;
@@ -64,7 +62,7 @@ export const addWalletToDB = async (
   dbInstance: Knex,
 ): Promise<void> => {
   try {
-    const sdk = await getSDK(chainId);
+    const sdk = await getSDK(chainId, walletAddress);
     const walletNonce = await getWalletNonce(
       walletAddress.toLowerCase(),
       sdk.getProvider(),
@@ -88,90 +86,68 @@ export const addWalletToDB = async (
 export const addWalletDataWithSupportChainsNonceToDB = async (
   server: FastifyInstance,
   dbInstance: Knex,
-  isWeb3APIInitWallet?: boolean,
-  walletAddress?: string,
-  extraTableData?: WalletExtraData,
-): Promise<void> => {
+  extraTableData: WalletExtraData,
+  walletAddress: string,
+): Promise<boolean> => {
   try {
     server.log.info(
       `Setting up wallet Table for walletType ${extraTableData?.walletType}, walletAddress ${walletAddress}`,
     );
-    const supportedChains = await getSupportedChains();
-    const promises = supportedChains.map(async (chain) => {
-      try {
-        const { slug } = chain;
-        let lastUsedNonce = -1;
-        let walletType = extraTableData?.walletType
-          ? extraTableData?.walletType
-          : getWalletType();
-        const sdk = await getSDK(slug, {
-          walletAddress,
-          walletType,
-          awsKmsKeyId: extraTableData?.awsKmsKeyId,
-          gcpKmsKeyId: extraTableData?.gcpKmsKeyId,
-          gcpKmsKeyRingId: extraTableData?.gcpKmsKeyRingId,
-          gcpKmsLocationId: extraTableData?.gcpKmsLocationId,
-          gcpKmsKeyVersionId: extraTableData?.gcpKmsKeyVersionId,
-          gcpKmsResourcePath: extraTableData?.gcpKmsResourcePath,
-        });
-        walletAddress =
-          (await sdk.getSigner()?.getAddress())?.toLowerCase() ?? "";
-        server.log.debug(`Setting up wallet for chain ${slug}`);
-        if (walletAddress.length === 0) {
-          // server.log.warn(`Wallet address not found for chain ${slug}.`);
-          throw new Error(`Wallet address not found for chain ${slug}.`);
-        }
-        const walletBlockchainNonce = await getWalletNonce(
-          walletAddress,
-          sdk.getProvider(),
-        );
-        const walletDataInDB = await getWalletDetails(
-          walletAddress,
-          BigNumber.from(chain.chainId).toString(),
-          dbInstance,
-        );
+    if (!walletAddress) {
+      throw new Error(`Can't add wallet to DB without walletAddress`);
+    }
 
-        if (walletDataInDB) {
-          lastUsedNonce = walletDataInDB.lastUsedNonce;
-        }
+    try {
+      let lastUsedNonce = -1;
+      let walletType = extraTableData.walletType;
+      server.log.debug(`Wallet type: ${walletType} `);
+      const walletDataInDB = await getWalletDetails(
+        walletAddress,
+        Ethereum.chainId.toString(),
+        dbInstance,
+      );
+      server.log.debug(
+        `Got the wallet data from DB ${JSON.stringify(walletDataInDB)}}`,
+      );
 
-        // lastUsedNonce should be set to -1 if blockchainNonce is 0
-        if (
-          BigNumber.from(walletBlockchainNonce).eq(BigNumber.from(0)) &&
-          BigNumber.from(lastUsedNonce).eq(BigNumber.from(0))
-        ) {
-          lastUsedNonce = -1;
-        }
-
-        if (
-          extraTableData?.walletType &&
-          extraTableData?.walletType.length > 0
-        ) {
-          walletType = extraTableData.walletType;
-          delete extraTableData.walletType;
-        }
-
-        const walletData = {
-          ...extraTableData,
-          walletAddress: walletAddress.toLowerCase(),
-          chainId: getChainBySlug(slug).chainId.toString(),
-          blockchainNonce: BigNumber.from(
-            walletBlockchainNonce ?? 0,
-          ).toNumber(),
-          lastSyncedTimestamp: new Date(),
-          lastUsedNonce,
-          slug,
-          walletType,
-        };
-        return insertIntoWallets(walletData, dbInstance);
-      } catch (error) {
-        server.log.error((error as any).message);
-        return Promise.resolve();
+      if (walletDataInDB) {
+        lastUsedNonce = walletDataInDB.lastUsedNonce;
       }
-    });
 
-    await Promise.all(promises);
-    server.log.info(`Wallet Table setup completed`);
+      const walletData = {
+        ...extraTableData,
+        walletAddress: walletAddress.toLowerCase(),
+        chainId: Ethereum.chainId.toString(),
+        blockchainNonce: 0,
+        lastSyncedTimestamp: new Date(),
+        lastUsedNonce,
+        slug: Ethereum.slug,
+        walletType,
+      };
+      server.log.info(`Wallet Table about to insert: ${walletData}}`);
+      const insert = await insertIntoWallets(walletData, dbInstance);
+      server.log.debug(`Inserted the wallet data into DB, ${insert}`);
+      const sdk = await getSDK(Ethereum.slug, walletAddress);
+      /*server.log.debug(`Got the sdk for wallet`);*/
+      /*const walletBlockchainNonce = await getWalletNonce(*/
+      /*walletAddress,*/
+      /*sdk.getProvider(),*/
+      /*);*/
+      /*server.log.debug(*/
+      /*`Got the ${walletBlockchainNonce.toString()} for wallet`,*/
+      /*);*/
+      /*// lastUsedNonce should be set to -1 if blockchainNonce is 0*/
+      /*if (*/
+      /*BigNumber.from(walletBlockchainNonce).eq(BigNumber.from(0)) &&*/
+      /*BigNumber.from(lastUsedNonce).eq(BigNumber.from(0))*/
+      /*) {*/
+      /*lastUsedNonce = -1;*/
+      /*}*/
+
+      return Promise.resolve(insert ? true : false);
+    } catch (error) {
+      throw error;
+    }
   } catch (error) {
     throw error;
   }

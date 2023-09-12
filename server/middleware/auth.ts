@@ -17,6 +17,17 @@ export const performHTTPAuthentication = async (
       message: "Please provide a valid secret key",
     });
   }
+  //TODO check if Header X-Wallet-Address is present
+  // check if this auth has access to this wallet
+  // currently any valid auth has access to any valid walletAddress
+  // we check the db if wallet exists since we've already checked auth
+  /*  const walletAddress = request.headers["x-wallet-address"];*/
+  /*if (!walletAddress) {*/
+  /*return reply.status(400).send({*/
+  /*error: "Bad Request",*/
+  /*message: "Please provide a valid wallet address",*/
+  /*});*/
+  /*}*/
 };
 
 export const performWSAuthentication = async (

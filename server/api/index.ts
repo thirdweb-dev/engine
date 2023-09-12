@@ -43,10 +43,10 @@ import { getBalance } from "./wallet/getBalance";
 
 export const apiRoutes = async (fastify: FastifyInstance) => {
   // Wallet
-  await fastify.register(getBalance);
-  await fastify.register(getAll);
   await fastify.register(createEOAWallet);
   await fastify.register(addWallet);
+  await fastify.register(getBalance);
+  await fastify.register(getAll);
 
   // Chains
   await fastify.register(getChainData);
