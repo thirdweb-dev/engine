@@ -54,6 +54,12 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
+      headers: {
+        type: "object",
+        properties: {
+          "x-wallet-address": { type: "string" },
+        },
+      },
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,

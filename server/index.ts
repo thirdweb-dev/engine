@@ -23,6 +23,7 @@ const main = async () => {
     await checkTablesExistence(server);
     await implementTriggerOnStartUp(server);
     await startTxUpdatesNotificationListener(server);
+    //check walletType and make sure i got all the access i need
   } catch (err) {
     console.log(err);
   }

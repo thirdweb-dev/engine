@@ -4,7 +4,6 @@ import { ContractAddress } from "@thirdweb-dev/generated-abis";
 import { AddressOrEns, ChainOrRpc, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { AsyncStorage, LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
-import { BaseContract, BigNumber } from "ethers";
 import { GcpKmsSigner } from "ethers-gcp-kms-signer";
 import * as fs from "fs";
 import {
@@ -140,6 +139,7 @@ export const getSDK = async (
   //SDK doesn't exist in cache, so we need to instantiate or create it
   if (!walletAddress) {
     //create sdk with no wallet
+    // TODO set to read only when we can
     sdk = new ThirdwebSDK(chain, {
       secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
