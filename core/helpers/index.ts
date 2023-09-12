@@ -18,20 +18,11 @@ export const isValidHttpUrl = (urlString: string): boolean => {
   return url.protocol === "http:" || url.protocol === "https:";
 };
 
-export const getInstanceAdminWalletType = (): string => {
+export const getWalletType = (): string => {
   if (WALLET_PRIVATE_KEY) {
     return "ppk";
   }
 
-  if (AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY && AWS_REGION) {
-    return "aws_kms";
-  }
-
-  // ToDo GCP KMS
-  return "gcp_kms";
-};
-
-export const getWalletBackUpType = (): string => {
   if (AWS_ACCESS_KEY_ID && AWS_SECRET_ACCESS_KEY && AWS_REGION) {
     return "aws_kms";
   }
@@ -44,9 +35,9 @@ export const getWalletBackUpType = (): string => {
     env.GOOGLE_KMS_KEY_VERSION_ID &&
     env.GOOGLE_KMS_LOCATION_ID
   ) {
-    return "gcp_kms";
+    return "aws_kms";
   }
 
   // ToDo GCP KMS
-  return "ppk";
+  return "local";
 };

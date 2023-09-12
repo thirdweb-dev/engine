@@ -153,4 +153,10 @@ export interface TransactionSchema {
   errorMessage?: string;
   txMinedTimestamp?: Date;
   blockNumber?: number;
+  toAddress?: string;
+  txSubmittedAtBlockNumber?: number;
+  numberOfRetries?: number;
+  overrideGasValuesForTx?: boolean;
+  overrideMaxFeePerGas?: string;
+  overrideMaxPriorityFeePerGas?: string;
 }

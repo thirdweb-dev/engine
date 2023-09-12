@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { Knex } from "knex";
-import { connectWithDatabase, env } from "../../core";
+import { connectToDatabase, env } from "../../core";
 import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
 import {
   getSubmittedTransactions,
@@ -16,7 +16,7 @@ export const checkForMinedTransactionsOnBlockchain = async (
   let knex: Knex | undefined;
   let trx: Knex.Transaction | undefined;
   try {
-    knex = await connectWithDatabase();
+    knex = await connectToDatabase();
     if (!MINED_TX_CRON_ENABLED) {
       server.log.warn("Mined Tx Cron is disabled");
       return;
@@ -62,7 +62,6 @@ export const checkForMinedTransactionsOnBlockchain = async (
           txReceiptData.queueId,
           "mined",
           trx,
-          undefined,
           undefined,
           {
             gasPrice: BigNumber.from(

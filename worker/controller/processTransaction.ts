@@ -3,12 +3,7 @@ import { BigNumber, ethers, providers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
-import {
-  connectWithDatabase,
-  createCustomError,
-  env,
-  getSDK,
-} from "../../core";
+import { connectToDatabase, createCustomError, env, getSDK } from "../../core";
 import {
   getTransactionsToProcess,
   getWalletDetailsWithTransaction,
@@ -26,7 +21,7 @@ export const processTransaction = async (
   let processedIds: string[] = [];
   try {
     // Connect to the DB
-    knex = await connectWithDatabase();
+    knex = await connectToDatabase();
     trx = await knex.transaction();
     let data: any;
     try {
@@ -72,9 +67,10 @@ export const processTransaction = async (
         gcpKmsKeyVersionId: walletData?.gcpKmsKeyVersionId,
       });
 
-      let [blockchainNonce, gasData] = await Promise.all([
+      let [blockchainNonce, gasData, currentBlockNumber] = await Promise.all([
         sdk.wallet.getNonce("pending"),
         getDefaultGasOverrides(sdk.getProvider()),
+        sdk.getProvider().getBlockNumber(),
       ]);
 
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
@@ -130,6 +126,9 @@ export const processTransaction = async (
           "submitted",
           trx,
           txHash,
+          {
+            txSubmittedAtBlockNumber: currentBlockNumber,
+          },
         );
         server.log.info(
           `Transaction submitted for ${tx.identifier} with Nonce ${txSubmittedNonce}, Tx Hash: ${txHash?.hash} `,
