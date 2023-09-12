@@ -210,11 +210,12 @@ export const getSDK = async (
     });
   } else if (
     !wallet &&
-    walletType === WalletConfigType.ppk &&
-    env.WALLET_PRIVATE_KEY !== undefined
+    !signer &&
+    (walletType === WalletConfigType.ppk ||
+      env.WALLET_PRIVATE_KEY !== undefined)
   ) {
     // console.log(`Inside PPK`);
-    const WALLET_PRIVATE_KEY = env.WALLET_PRIVATE_KEY;
+    const WALLET_PRIVATE_KEY = env.WALLET_PRIVATE_KEY || "";
     wallet = new LocalWallet({
       chain,
     });
