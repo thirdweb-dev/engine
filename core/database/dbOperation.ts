@@ -5,7 +5,7 @@ import { Knex } from "knex";
 import { WalletData } from "../interfaces";
 import { getSDK } from "../sdk/sdk";
 import { getWalletNonce } from "../services/blockchain";
-import { connectWithDatabase } from "./dbConnect";
+import { connectToDatabase } from "./dbConnect";
 
 interface WalletExtraData {
   awsKmsKeyId?: string;
@@ -38,7 +38,7 @@ export const getWalletDetails = async (
     let passedAsParameter = true;
     if (!database) {
       passedAsParameter = false;
-      database = await connectWithDatabase();
+      database = await connectToDatabase();
     }
     const walletDetails = await database("wallets")
       .select("*")

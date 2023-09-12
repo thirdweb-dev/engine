@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { connectWithDatabase } from "../../core";
+import { connectToDatabase } from "../../core";
 import { findTxDetailsWithQueueId } from "../helpers";
 import {
   formatSocketMessage,
@@ -12,7 +12,7 @@ export const startTxUpdatesNotificationListener = async (
 ): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectWithDatabase();
+    const knex = await connectToDatabase();
     server.log.info(`Starting update notification listener`);
     // Acquire a connection
     const connection = await knex.client.acquireConnection();

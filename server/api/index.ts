@@ -3,8 +3,10 @@ import { getContractExtensions } from "./contract/metadata/extensions";
 import { readContract } from "./contract/read/read";
 import { writeToContract } from "./contract/write/write";
 
+// Transactions
 import { getAllTx } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
+import { retryTransaction } from "./transaction/retry";
 import { checkTxStatus } from "./transaction/status";
 
 // Extensions
@@ -77,6 +79,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkTxStatus);
   await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
+  await fastify.register(retryTransaction);
 
   // Extensions
   await fastify.register(erc20Routes);

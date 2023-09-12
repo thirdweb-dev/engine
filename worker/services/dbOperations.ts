@@ -54,7 +54,6 @@ export const updateTransactionState = async (
   state: string,
   trx: Knex.Transaction,
   txResponse?: providers.TransactionResponse | undefined,
-  errorMessage?: string | undefined,
   extraData?: TransactionSchema,
 ): Promise<any> => {
   try {
@@ -83,6 +82,7 @@ export const updateTransactionState = async (
         gasLimit: txResponse?.gasLimit?.toString(),
         maxPriorityFeePerGas: txResponse?.maxPriorityFeePerGas?.toString(),
         maxFeePerGas: txResponse?.maxFeePerGas?.toString(),
+        ...extraData,
       };
     } else if (state == TransactionState.errored) {
       updateData = {
@@ -90,7 +90,7 @@ export const updateTransactionState = async (
         txProcessed: true,
         txProcessedTimestamp: new Date(),
         updatedTimestamp: new Date(),
-        errorMessage,
+        ...extraData,
       };
     } else {
       const error = createCustomError(
@@ -163,9 +163,30 @@ export const getSubmittedTransactions = async (
     and "txMined" = false
     and "txErrored" = false
     and "txHash" is not null
+    and "numberOfRetries" < 3
     order by "txSubmittedTimestamp" ASC
-    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}
-    for update skip locked`,
+    limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}`,
   );
+  return data.rows;
+};
+
+export const getTransactionForRetry = async (
+  database: Knex,
+  trx: Knex.Transaction,
+): Promise<TransactionSchema[]> => {
+  const data = await database
+    .raw(
+      `select * from transactions
+    where "txProcessed" = true
+    and "txSubmitted" = true
+    and "txMined" = false
+    and "txErrored" = false
+    and "txHash" is not null
+    and "numberOfRetries" < 3
+    order by "txSubmittedTimestamp" ASC
+    limit 1
+    for update skip locked`,
+    )
+    .transacting(trx);
   return data.rows;
 };

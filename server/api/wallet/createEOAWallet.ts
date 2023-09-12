@@ -5,7 +5,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
   addWalletDataWithSupportChainsNonceToDB,
-  connectWithDatabase,
+  connectToDatabase,
   env,
   LocalFileStorage,
 } from "../../../core";
@@ -49,7 +49,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
     method: "POST",
     url: "/wallet/create",
     schema: {
-      description: "Create a backend wallet",
+      description: "Create backend EOA wallet",
       tags: ["Wallet"],
       operationId: "wallet_create",
       body: requestBodySchema,
@@ -65,7 +65,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
 
       request.log.info(`walletType: ${walletType}`);
 
-      const dbInstance = await connectWithDatabase();
+      const dbInstance = await connectToDatabase();
       if (walletType === WalletConfigType.aws_kms) {
         if (
           !env.AWS_REGION ||

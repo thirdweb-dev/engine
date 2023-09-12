@@ -4,9 +4,11 @@ import * as cron from "node-cron";
 import { env, errorHandler, getLogSettings } from "../core";
 import { checkForMinedTransactionsOnBlockchain } from "./controller/blockchainReader";
 import { startNotificationListener } from "./controller/listener";
+import { retryTransactions } from "./controller/retryTransaction";
 import { setupWalletsForWorker } from "./controller/wallet";
 
 const MINED_TX_CRON_SCHEDULE = env.MINED_TX_CRON_SCHEDULE;
+const RETRY_TX_CRON_SCHEDULE = env.RETRY_TX_CRON_SCHEDULE;
 
 const main = async () => {
   const logOptions = getLogSettings("Worker-Server");
@@ -17,18 +19,26 @@ const main = async () => {
 
   await errorHandler(server);
 
-  await setupWalletsForWorker(server);
-  // Start Listening to the Table for new insertion
-  await retryWithTimeout(
-    () => startNotificationListener(server),
-    3,
-    5000,
-    server,
-  );
-
+  try {
+    await setupWalletsForWorker(server);
+    // Start Listening to the Table for new insertion
+    await retryWithTimeout(
+      () => startNotificationListener(server),
+      3,
+      5000,
+      server,
+    );
+  } catch (error) {
+    server.log.error(error);
+    process.exit(1);
+  }
   // setup a cron job to updated transaction confirmed status
   cron.schedule(MINED_TX_CRON_SCHEDULE, async () => {
     await checkForMinedTransactionsOnBlockchain(server);
+  });
+
+  cron.schedule(RETRY_TX_CRON_SCHEDULE, async () => {
+    await retryTransactions(server);
   });
 };
 
