@@ -2,36 +2,22 @@ import { FastifyInstance, FastifyRequest } from "fastify";
 import pg, { Knex } from "knex";
 import { env } from "../env";
 
-const DATABASE_NAME = env.POSTGRES_DATABASE_NAME;
-
 // Defaults to postgres
 const dbClient = env.DATABASE_CLIENT;
+const connectionString = env.POSTGRES_CONNECTION_URL;
 
-// Database Connection Setup// Database Connection Setup
-let connection: Knex.PgConnectionConfig = {
-  host: env.POSTGRES_HOST,
-  user: env.POSTGRES_USER,
-  port: env.POSTGRES_PORT,
-  password: env.POSTGRES_PASSWORD,
-  database: DATABASE_NAME,
-  ssl: env.POSTGRES_USE_SSL
-    ? {
-        rejectUnauthorized: false,
-      }
-    : false,
-};
+const DATABASE_NAME =
+  new URL(connectionString).pathname.split("/")[1] || "postgres";
 
 export const connectToDB = async (
   server: FastifyInstance | FastifyRequest,
 ): Promise<Knex> => {
   // Creating KNEX Config
 
-  // Adding the below as by default PG created the below database
-  // We connect to this as a default and then create the DB passed an ENV variable
-  connection.database = "postgres";
   let knexConfig: Knex.Config = {
     client: dbClient,
-    connection,
+    connection: connectionString,
+    acquireConnectionTimeout: 10000,
   };
 
   // Set the appropriate databse client package
@@ -47,32 +33,35 @@ export const connectToDB = async (
   let knex = dbClientPackage(knexConfig);
 
   // Check if Database Exists & create if it doesn't
-  let hasDatabase: any;
-  switch (dbClient) {
-    case "pg":
-      hasDatabase = await knex.raw(
-        `SELECT 1 from pg_database WHERE datname = '${DATABASE_NAME}'`,
-      );
-      server.log.info(`CHECKING for Database ${DATABASE_NAME}...`);
-      if (!hasDatabase.rows.length) {
-        await knex.raw(`CREATE DATABASE ${DATABASE_NAME}`);
-      } else {
-        server.log.info(`Database ${DATABASE_NAME} already exists`);
-      }
-      break;
-    default:
-      throw new Error(
-        `Unsupported database client: ${dbClient}. Cannot create database ${DATABASE_NAME}`,
-      );
+  try {
+    let hasDatabase: any;
+    switch (dbClient) {
+      case "pg":
+        server.log.debug("checking if pg database exists");
+        hasDatabase = await knex.raw(
+          `SELECT 1 from pg_database WHERE datname = '${DATABASE_NAME}'`,
+        );
+        server.log.info(`CHECKING for Database ${DATABASE_NAME}...`);
+        if (!hasDatabase.rows.length) {
+          await knex.raw(`CREATE DATABASE ${DATABASE_NAME}`);
+        } else {
+          server.log.info(`Database ${DATABASE_NAME} already exists`);
+        }
+        break;
+      default:
+        throw new Error(
+          `Unsupported database client: ${dbClient}. Cannot create database ${DATABASE_NAME}`,
+        );
+    }
+  } catch (err) {
+    server.log.error(err);
+    throw new Error(`Error creating database ${DATABASE_NAME}`);
   }
-
-  // Updated the DATABASE name on connection object
-  connection.database = DATABASE_NAME;
 
   // Updating knex Config
   knexConfig = {
     client: dbClient,
-    connection,
+    connection: connectionString,
   };
 
   await knex.destroy();
@@ -85,7 +74,7 @@ export const connectToDB = async (
 export const connectWithDatabase = async (): Promise<Knex> => {
   let knexConfig: Knex.Config = {
     client: dbClient,
-    connection,
+    connection: connectionString,
   };
 
   // Set the appropriate databse client package

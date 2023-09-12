@@ -23,30 +23,20 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["production", "development", "testing", "local"])
       .default("development"),
-    // This is more dangerous because it is possible to forget about destructing a given key below, leading to errors. Avoid if possible
-    WALLET_KEYS: z.union([
-      z.object({
-        WALLET_PRIVATE_KEY: z.string().min(1),
-      }),
-      z.object({
-        AWS_KMS_KEY_ID: z.string().min(1),
-      }),
-      z.object({
-        GOOGLE_KMS_KEY_ID: z.string().min(1).optional(),
-      }),
-    ]),
+    WALLET_PRIVATE_KEY: z.string().min(1).optional(),
+    AWS_KMS_KEY_ID: z.string().min(1).optional(),
+    GOOGLE_KMS_KEY_ID: z.string().min(1).optional(),
     AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
     AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
     AWS_REGION: z.string().min(1).optional(),
-    THIRDWEB_SDK_SECRET_KEY: z.string().min(1),
+    THIRDWEB_API_SECRET_KEY: z.string().min(1),
     THIRDWEB_API_ORIGIN: z.string().default("http://api.thirdweb.com"),
-    POSTGRES_HOST: z.string().default("localhost"),
-    POSTGRES_DATABASE_NAME: z.string().default("postgres"),
     DATABASE_CLIENT: z.string().default("pg"),
-    POSTGRES_USER: z.string().default("postgres"),
-    POSTGRES_PASSWORD: z.string().default("postgres"),
-    POSTGRES_PORT: z.coerce.number().default(5432),
-    POSTGRES_USE_SSL: boolSchema("false"),
+    POSTGRES_CONNECTION_URL: z
+      .string()
+      .default(
+        "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable",
+      ),
     OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
     DB_TABLES_LIST: z.string().default("wallets,transactions"),
     DB_TRIGGERS_LIST: z
@@ -80,24 +70,16 @@ export const env = createEnv({
   isServer: true,
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
-    WALLET_KEYS: {
-      // The sdk expects a primitive type but we can overload it here to be an object
-      WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
-      AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
-      GOOGLE_KMS_KEY_ID: process.env.GOOGLE_KMS_KEY_ID,
-    } as any,
+    WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
+    AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
+    GOOGLE_KMS_KEY_ID: process.env.GOOGLE_KMS_KEY_ID,
     AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
     AWS_REGION: process.env.AWS_REGION,
-    THIRDWEB_SDK_SECRET_KEY: process.env.THIRDWEB_SDK_SECRET_KEY,
+    THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
     THIRDWEB_API_ORIGIN: process.env.THIRDWEB_API_ORIGIN,
-    POSTGRES_HOST: process.env.POSTGRES_HOST,
-    POSTGRES_DATABASE_NAME: process.env.POSTGRES_DATABASE_NAME,
     DATABASE_CLIENT: process.env.DATABASE_CLIENT,
-    POSTGRES_USER: process.env.POSTGRES_USER,
-    POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
-    POSTGRES_PORT: process.env.POSTGRES_PORT,
-    POSTGRES_USE_SSL: process.env.POSTGRES_USE_SSL,
+    POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
     DB_TABLES_LIST: process.env.DB_TABLES_LIST,
     DB_TRIGGERS_LIST: process.env.DB_TRIGGERS_LIST,
     PORT: process.env.PORT,
@@ -130,16 +112,10 @@ export const env = createEnv({
     MAX_WAIT_TIME_BEFORE_RETRY: process.env.MAX_WAIT_TIME_BEFORE_RETRY,
   },
   onValidationError: (error: ZodError) => {
-    if ("WALLET_KEYS" in error.format()) {
-      console.error(
-        "❌ Please set WALLET_PRIVATE_KEY or [AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_KMS_KEY_ID] for AWS KMS Wallet as ENV Variables.",
-      );
-    } else {
-      console.error(
-        "❌ Invalid environment variables:",
-        error.flatten().fieldErrors,
-      );
-    }
+    console.error(
+      "❌ Invalid environment variables:",
+      error.flatten().fieldErrors,
+    );
     throw new Error("Invalid environment variables");
   },
 });
