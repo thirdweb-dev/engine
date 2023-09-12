@@ -9,11 +9,9 @@ generator client {
 
 model Transactions {
   id      String @id @default(uuid()) @map("id")
-  chainId String @map("chainId")
+  chainId Int    @map("chainId")
 
   // Transaction Details
-  transactionHash      String  @map("transactionHash")
-  transactionType      String  @map("transactionType")
   fromAddress          String  @map("fromAddress")
   toAddress            String? @map("toAddress")
   data                 String? @map("data") @db.Text
@@ -23,6 +21,8 @@ model Transactions {
   gasPrice             String? @map("gasPrice")
   maxFeePerGas         String? @map("maxFeePerGas")
   maxPriorityFeePerGas String? @map("maxPriorityFeePerGas")
+  transactionType      String? @map("transactionType")
+  transactionHash      String? @map("transactionHash")
 
   // Enriched Data
   functionName      String? @map("functionName")
@@ -30,7 +30,7 @@ model Transactions {
   contractExtension String? @map("contractExtension")
 
   // Timestamps
-  createdAt   DateTime  @default(now()) @map("createdAt")
+  queuedAt    DateTime  @default(now()) @map("queuedAt")
   processedAt DateTime? @map("processedAt")
   sentAt      DateTime? @map("sentAt")
   minedAt     DateTime? @map("minedAt")
@@ -42,10 +42,8 @@ model Transactions {
   errorMessage String? @map("errorMessage")
 
   numberOfRetries              Int     @default(0) @map("numberOfRetries")
-  overrideGasValuesForTx       Boolean @default(false) @map("overrideGasValuesForTx")
-  txSubmittedAtBlockNumber     Int?    @map("txSubmittedAtBlockNumber")
-  overrideMaxPriorityFeePerGas String? @map("overrideMaxPriorityFeePerGas")
-  overrideMaxFeePerGas         String? @map("overrideMaxFeePerGas")
+  retryMaxPriorityFeePerGas    String? @map("overrideMaxPriorityFeePerGas")
+  retryMaxFeePerGas            String? @map("overrideMaxFeePerGas")
 
   @@map("transactions")
 }
@@ -73,12 +71,12 @@ model WalletDetails {
 
 model WalletNonce {
   address       String        @map("address")
-  chainId       String        @map("chainId")
+  chainId       Int           @map("chainId")
   nonce         Int           @default(-1)
   
   // Many-to-one
   walletDetails WalletDetails @relation(fields: [address], references: [address])
 
   @@id([address, chainId])
-  @@map("wallet_nonces")
+  @@map("wallet_nonce")
 }
