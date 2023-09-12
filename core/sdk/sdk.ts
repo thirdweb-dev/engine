@@ -16,14 +16,20 @@ import { networkResponseSchema } from "../schema";
 
 //TODO add constructor so you can pass in directory
 export class LocalFileStorage implements AsyncStorage {
-  key?: string;
   constructor(private readonly walletAddress?: string) {
     if (walletAddress) {
       this.walletAddress = walletAddress;
-      this.key = `localWallet-${this.walletAddress}`;
     }
   }
-  getItem(key: string): Promise<string | null> {
+
+  getKey(): string {
+    if (this.walletAddress) {
+      return `localWallet-${this.walletAddress}`;
+    }
+    throw new Error("Wallet Address not set");
+  }
+
+  getItem(_: string): Promise<string | null> {
     //read file from home directory/.thirdweb folder
     //file name is the key name
     //return null if it doesn't exist
@@ -33,31 +39,31 @@ export class LocalFileStorage implements AsyncStorage {
       return Promise.resolve(null);
     }
 
-    const path = `${dir}/${this.key || key}`;
+    const path = `${dir}/${this.getKey()}`;
     if (!fs.existsSync(path)) {
       return Promise.resolve(null);
     }
     return Promise.resolve(fs.readFileSync(path, "utf8"));
   }
 
-  setItem(key: string, value: string): Promise<void> {
+  setItem(_: string, value: string): Promise<void> {
     //save to home directory .thirdweb folder
     //create the folder if it doesn't exist
     const dir = `${process.env.HOME}/.thirdweb`;
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
     }
-    fs.writeFileSync(`${dir}/${this.key || key}`, value);
+    fs.writeFileSync(`${dir}/${this.getKey()}`, value);
     return Promise.resolve();
   }
 
-  removeItem(key: string): Promise<void> {
+  removeItem(_: string): Promise<void> {
     //delete the file from home directory/.thirdweb folder
     const dir = `${process.env.HOME}/.thirdweb`;
     if (!fs.existsSync(dir)) {
       return Promise.resolve();
     }
-    const path = `${dir}/${this.key || key}`;
+    const path = `${dir}/${this.getKey()}`;
     if (!fs.existsSync(path)) {
       return Promise.resolve();
     } else {
@@ -164,6 +170,7 @@ export const getSDK = async (
   );
 
   if (walletType === WalletConfigType.aws_kms) {
+
     if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
       throw new Error(
         "AWS_REGION, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY must be set in order to use AWS KMS.",
