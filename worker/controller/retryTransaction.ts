@@ -56,20 +56,6 @@ export const retryTransactions = async (server: FastifyInstance) => {
         server.log.debug(
           `Got receipt for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId}, effectiveGasPrice: ${txReceiptData.effectiveGasPrice}`,
         );
-        await updateTransactionState(
-          knex,
-          txReceiptData.queueId,
-          "mined",
-          trx,
-          undefined,
-          {
-            gasPrice: txReceiptData?.effectiveGasPrice
-              ? BigNumber.from(txReceiptData.effectiveGasPrice).toString()
-              : undefined,
-            txMinedTimestamp: new Date(txReceiptData.timestamp),
-            blockNumber: txReceiptData.blockNumber,
-          },
-        );
       } else {
         //Retry Logic
         const walletData = await getWalletDetailsWithTransaction(
