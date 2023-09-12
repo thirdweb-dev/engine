@@ -121,6 +121,8 @@ export async function addWallet(fastify: FastifyInstance) {
         gcpKmsKeyVersionId = versionId;
         gcpKmsResourcePath = `projects/${env.GOOGLE_APPLICATION_PROJECT_ID}/locations/${env.GOOGLE_KMS_LOCATION_ID}/keyRings/${env.GOOGLE_KMS_KEY_RING_ID}/cryptoKeys/${cryptoKeyId}/cryptoKeysVersion/${gcpKmsKeyVersionId}`;
         walletAddress = gcpCreatedWallet;
+      } else {
+        throw new Error(`Wallet Type ${walletType} is not supported`);
       }
 
       const dbInstance = await connectToDatabase();
