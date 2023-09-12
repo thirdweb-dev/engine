@@ -233,13 +233,15 @@ export const getSDK = async (
       secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
     });
+    cacheSdk(chain.name, sdk, walletAddress);
+    return sdk;
   } else if (walletType === WalletConfigType.ppk) {
     //TODO get private key from encrypted file
     wallet = new LocalWallet({
       chain,
       storage: new LocalFileStorage(walletAddress),
     });
-    await wallet.loadOrCreate({
+    await wallet.load({
       strategy: "encryptedJson",
       password: THIRDWEB_API_SECRET_KEY,
     });
