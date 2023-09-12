@@ -6,7 +6,8 @@ import { env } from "../env";
 const dbClient = env.DATABASE_CLIENT;
 const connectionString = env.POSTGRES_CONNECTION_URL;
 
-const DATABASE_NAME = new URL(connectionString).pathname.split("/")[1];
+const DATABASE_NAME =
+  new URL(connectionString).pathname.split("/")[1] || "postgres";
 
 export const connectToDB = async (
   server: FastifyInstance | FastifyRequest,
