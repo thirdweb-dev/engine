@@ -4,6 +4,17 @@ Web3-API supports AWS KMS for signing & sending transactions over any EVM chain.
 
 1. Create IAM user with programmatic access, see [here](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html#id_users_create_console) for more details.
 2. Add create, get, read permission to KMS, see [here](https://docs.aws.amazon.com/kms/latest/developerguide/control-access.html) for more details.
+
+```
+Minimum Permissions Required:
+---------------------------
+kms:CreateKey
+kms:GetPublicKey
+kms:Sign
+kms:CreateAlias
+kms:Verify
+```
+
 3. Create a AWS KMS key, see [here](https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html) for more details. or, you can use the `/wallet/create` to create a key.
 
 NOTE:
@@ -27,7 +38,4 @@ Create a `.env` file in the root directory of the project and add the below deta
 AWS_ACCESS_KEY_ID=<aws_access_key_id>
 AWS_SECRET_ACCESS_KEY=<aws_secret_access_key>
 AWS_REGION=<aws_region>
-
-# Required for AWS KMS Admin Wallet
-AWS_KMS_KEY_ID=<kms_key_id>
 ```
