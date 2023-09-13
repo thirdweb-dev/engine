@@ -2,30 +2,24 @@ import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Knex } from "knex";
-import { connectToDatabase, createCustomError, env, getSDK } from "../../core";
-import {
-  getTransactionsToProcess,
-  getWalletDetailsWithTransaction,
-  updateTransactionState,
-  updateWalletNonceValue,
-} from "../services/dbOperations";
+import { createCustomError, env, getSDK } from "../../core";
+import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { getQueuedTxs } from "../../src/db/transactions/getQueuedTxs";
+import { updateTx } from "../../src/db/transactions/updateTx";
+import { getWalletDetails } from "../../src/db/wallets/getWalletDetails";
+import { updateWalletNonce } from "../../src/db/wallets/updateWalletNonce";
 
 const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS;
 
 export const processTransaction = async (
   server: FastifyInstance,
 ): Promise<string[]> => {
-  let knex: Knex | null = null;
-  let trx: Knex.Transaction | null = null;
   let processedIds: string[] = [];
   try {
     // Connect to the DB
-    knex = await connectToDatabase();
-    trx = await knex.transaction();
-    let data: any;
+    let data;
     try {
-      data = await getTransactionsToProcess(knex, trx);
+      data = await getQueuedTxs();
     } catch (error) {
       const customError = createCustomError(
         "Error in getting transactions from table",
@@ -35,30 +29,24 @@ export const processTransaction = async (
       throw customError;
     }
 
-    if (data.rows.length < MIN_TRANSACTION_TO_PROCESS) {
+    if (data.length < MIN_TRANSACTION_TO_PROCESS) {
       server.log.warn(
         `Number of transactions to process less than Minimum Transactions to Process: ${MIN_TRANSACTION_TO_PROCESS}`,
       );
       server.log.warn(
         `Waiting for more transactions requests to start processing`,
       );
-      await trx.commit();
-      await trx.destroy();
-      await knex.destroy();
       return [];
     }
 
-    processedIds = data.rows.map((row: any) => row.identifier);
-    for (const tx of data.rows) {
-      server.log.info(`Processing Transaction: ${tx.identifier}`);
-      const walletData = await getWalletDetailsWithTransaction(
-        tx.walletAddress,
-        tx.chainId,
-        knex,
-        trx,
-      );
-
-      const sdk = await getSDK(tx.chainId, tx.walletAddress);
+    processedIds = data.map((row: any) => row.identifier);
+    for (const tx of data) {
+      server.log.info(`Processing Transaction: ${tx.queueId}`);
+      const walletDetails = await getWalletDetails({
+        address: tx.fromAddress!,
+        chainId: tx.chainId!,
+      });
+      const sdk = await getSDK(tx.chainId!.toString(), tx.fromAddress!);
 
       let [blockchainNonce, gasData, currentBlockNumber] = await Promise.all([
         sdk.wallet.getNonce("pending"),
@@ -66,94 +54,84 @@ export const processTransaction = async (
         sdk.getProvider().getBlockNumber(),
       ]);
 
-      let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
+      // TODO: IMPORTANT: Proper nonce management logic! Add comments!
+      let currentNonce = BigNumber.from(walletDetails?.nonce ?? 0);
       let txSubmittedNonce = BigNumber.from(0);
 
-      if (BigNumber.from(blockchainNonce).gt(lastUsedNonce)) {
+      if (BigNumber.from(blockchainNonce).gt(currentNonce)) {
         txSubmittedNonce = BigNumber.from(blockchainNonce);
       } else {
-        txSubmittedNonce = BigNumber.from(1).add(lastUsedNonce);
+        txSubmittedNonce = BigNumber.from(currentNonce);
       }
 
-      await updateTransactionState(knex, tx.identifier, "processed", trx);
+      server.log.info("Updating tx to processed...");
+      await updateTx({
+        queueId: tx.queueId!,
+        status: TransactionStatusEnum.Processed,
+      });
+      server.log.info("Finished updating tx...");
+
       // Get the nonce for the blockchain transaction
 
       // Submit transaction to the blockchain
       // Create transaction object
       const txObject: providers.TransactionRequest = {
-        to: tx.contractAddress ?? tx.toAddress,
-        from: tx.walletAddress,
-        data: tx.encodedInputData,
+        to: tx.toAddress!,
+        from: tx.fromAddress!,
+        data: tx.data!,
         nonce: txSubmittedNonce,
-        value: tx.txValue,
+        value: tx.value!,
         ...gasData,
       };
 
       // Send transaction to the blockchain
-      let txHash: ethers.providers.TransactionResponse | undefined;
+      let txRes: ethers.providers.TransactionResponse | undefined;
       try {
-        txHash = await sdk.getSigner()?.sendTransaction(txObject);
+        txRes = await sdk.getSigner()?.sendTransaction(txObject);
       } catch (error: any) {
         server.log.debug("Send Transaction errored");
         server.log.warn(
-          `Request-ID: ${tx.identifier} processed but errored out: Commited to db`,
+          `Request-ID: ${tx.queueId} processed but errored out: Commited to db`,
         );
-        await updateTransactionState(
-          knex,
-          tx.identifier,
-          "errored",
-          trx,
-          undefined,
-          error.message,
-        );
-        await trx.commit();
-        await trx.destroy();
-        await knex.destroy();
+
+        await updateTx({
+          queueId: tx.queueId!,
+          status: TransactionStatusEnum.Errored,
+          txData: {
+            errorMessage: error.message,
+          },
+        });
         throw error;
       }
 
       try {
-        await updateTransactionState(
-          knex,
-          tx.identifier,
-          "submitted",
-          trx,
-          txHash,
-          {
-            txSubmittedAtBlockNumber: currentBlockNumber,
-          },
-        );
+        await updateTx({
+          queueId: tx.queueId!,
+          status: TransactionStatusEnum.Submitted,
+          res: txRes,
+        });
         server.log.info(
-          `Transaction submitted for ${tx.identifier} with Nonce ${txSubmittedNonce}, Tx Hash: ${txHash?.hash} `,
+          `Transaction submitted for ${tx.queueId!} with Nonce ${txSubmittedNonce}, Tx Hash: ${
+            txRes?.hash
+          } `,
         );
-        await updateWalletNonceValue(
-          txSubmittedNonce,
-          BigNumber.from(blockchainNonce),
-          tx.walletAddress,
-          tx.chainId,
-          knex,
-          trx,
-        );
+
+        await updateWalletNonce({
+          address: tx.fromAddress!,
+          chainId: tx.chainId!,
+          // TODO: IMPORTANT: This will cause errors!
+          // TODO: Should this be txSubmittedNonce or blockchainNonce?
+          nonce: txSubmittedNonce.toNumber(),
+        });
       } catch (error) {
         server.log.warn("Transaction failed with error:");
         server.log.error(error);
         throw error;
       }
     }
-    await trx.commit();
-    await trx.destroy();
-    await knex.destroy();
   } catch (error) {
     server.log.error(error);
-    if (trx && trx.isCompleted() === false) {
-      server.log.warn("Rolling back transaction");
-      await trx.rollback();
-      await trx.destroy();
-    }
   } finally {
-    if (knex) {
-      await knex.destroy();
-    }
     return processedIds;
   }
 };

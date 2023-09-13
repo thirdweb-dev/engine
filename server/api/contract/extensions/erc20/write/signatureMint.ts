@@ -4,7 +4,7 @@ import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
-import { queueTransaction } from "../../../../../helpers";
+import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -12,6 +12,7 @@ import {
 } from "../../../../../helpers/sharedApiSchemas";
 import { signature20OutputSchema } from "../../../../../schemas/erc20";
 import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -59,6 +60,7 @@ export async function erc20SignatureMint(fastify: FastifyInstance) {
         contract_address,
         web3api_overrides?.from,
       );
+      const chainId = getChainIdFromChain(network);
 
       const signedPayload: SignedPayload20 = {
         payload: {
@@ -70,7 +72,7 @@ export async function erc20SignatureMint(fastify: FastifyInstance) {
         signature,
       };
       const tx = await contract.erc20.signature.mint.prepare(signedPayload);
-      const queuedId = await queueTransaction(request, tx, network, "erc721");
+      const queuedId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

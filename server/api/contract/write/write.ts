@@ -3,13 +3,14 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../core";
 
-import { queueTransaction } from "../../../helpers";
+import { queueTx } from "../../../../src/db/transactions/queueTx";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
 import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../utilities/chain";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
@@ -69,6 +70,7 @@ export async function writeToContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { function_name, args, web3api_overrides } = request.body;
+      const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
         network,
@@ -80,12 +82,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         from: web3api_overrides?.from,
       });
 
-      const queuedId = await queueTransaction(
-        request,
-        tx,
-        network,
-        "non-extension",
-      );
+      const queuedId = await queueTx({ tx, chainId, extension: "none" });
 
       reply.status(StatusCodes.OK).send({
         result: queuedId,

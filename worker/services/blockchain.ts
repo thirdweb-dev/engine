@@ -1,38 +1,40 @@
+import { Static } from "@sinclair/typebox";
 import { getBlock } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { getSDK } from "../../core";
-import { TransactionSchema } from "../../server/schemas/transaction";
+import { transactionResponseSchema } from "../../server/schemas/transaction";
 
 type TransactionReceiptWithBlockDetails = {
   txHash: string;
   blockNumber: number;
-  chainId: string;
+  chainId: number;
   queueId: string;
   timestamp: number;
   effectiveGasPrice: BigNumber;
-  txData: TransactionSchema;
+  // TODO: Get rid of this ugly typebox type and use zod
+  txData: Static<typeof transactionResponseSchema>;
 };
 
 export const getTransactionReceiptWithBlockDetails = async (
   server: FastifyInstance,
-  transactions: TransactionSchema[],
+  transactions: Static<typeof transactionResponseSchema>[],
 ): Promise<TransactionReceiptWithBlockDetails[]> => {
   try {
     const txReceiptData = await Promise.all(
-      transactions.map(async (txData) => {
+      transactions.map(async (tx) => {
         server.log.debug(
-          `Getting receipt for tx: ${txData.txHash} on chain: ${txData.chainId} for queueId: ${txData.identifier}`,
+          `Getting receipt for tx: ${tx.transactionHash} on chain: ${tx.chainId} for queueId: ${tx.queueId}`,
         );
-        const sdk = await getSDK(txData.chainId!);
+        const sdk = await getSDK(tx.chainId!.toString());
         const receipt = await sdk
           .getProvider()
-          .getTransactionReceipt(txData.txHash!);
+          .getTransactionReceipt(tx.transactionHash!);
         return {
           receipt,
-          chainId: txData.chainId!,
-          queueId: txData.identifier!,
-          txData,
+          chainId: tx.chainId!,
+          queueId: tx.queueId!,
+          txData: tx,
         };
       }),
     );
@@ -45,7 +47,7 @@ export const getTransactionReceiptWithBlockDetails = async (
           );
           return {
             txData: dt.txData,
-            txHash: dt.txData.txHash!,
+            txHash: dt.txData.transactionHash!,
             blockNumber: -1,
             timestamp: -1,
             chainId: dt.chainId!,
@@ -53,7 +55,7 @@ export const getTransactionReceiptWithBlockDetails = async (
             effectiveGasPrice: BigNumber.from(0),
           };
         }
-        const sdk = await getSDK(dt.chainId!);
+        const sdk = await getSDK(dt.chainId!.toString());
         const blockNumberDetails = await getBlock({
           block: dt.receipt.blockNumber,
           network: sdk.getProvider(),

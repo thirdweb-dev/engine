@@ -1,13 +1,14 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../core";
+import { queueTx } from "../../../../../src/db/transactions/queueTx";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
-import { queueTransaction } from "../../../../helpers";
+import { getChainIdFromChain } from "../../../../utilities/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -45,10 +46,12 @@ export async function revokeRole(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { role, address } = request.body;
+      const chainId = getChainIdFromChain(network);
+
       const contract = await getContractInstance(network, contract_address);
 
       const tx = await contract.roles.revoke.prepare(role, address);
-      const queuedId = await queueTransaction(request, tx, network, "roles");
+      const queuedId = await queueTx({ tx, chainId, extension: "roles" });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

@@ -1,13 +1,14 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../../core";
-import { Static, Type } from "@sinclair/typebox";
+import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import { queueTransaction } from "../../../../../../helpers";
+import { getChainIdFromChain } from "../../../../../../utilities/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -53,6 +54,7 @@ export async function directListingsApproveBuyerForReservedListing(
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { listing_id, buyer } = request.body;
+      const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(network, contract_address);
       const tx =
@@ -61,12 +63,11 @@ export async function directListingsApproveBuyerForReservedListing(
           buyer,
         );
 
-      const queuedId = await queueTransaction(
-        request,
+      const queuedId = await queueTx({
         tx,
-        network,
-        "V3-directListings",
-      );
+        chainId,
+        extension: "marketplace-v3-direct-listings",
+      });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

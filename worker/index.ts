@@ -5,7 +5,6 @@ import { env, errorHandler, getLogSettings } from "../core";
 import { checkForMinedTransactionsOnBlockchain } from "./controller/blockchainReader";
 import { startNotificationListener } from "./controller/listener";
 import { retryTransactions } from "./controller/retryTransaction";
-import { setupWalletsForWorker } from "./controller/wallet";
 
 const MINED_TX_CRON_SCHEDULE = env.MINED_TX_CRON_SCHEDULE;
 const RETRY_TX_CRON_SCHEDULE = env.RETRY_TX_CRON_SCHEDULE;
@@ -20,7 +19,6 @@ const main = async () => {
   await errorHandler(server);
 
   try {
-    await setupWalletsForWorker(server);
     // Start Listening to the Table for new insertion
     await retryWithTimeout(
       () => startNotificationListener(server),

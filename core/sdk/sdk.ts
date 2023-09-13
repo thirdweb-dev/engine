@@ -10,7 +10,7 @@ import {
   WalletConfigType,
   walletTableSchema,
 } from "../../server/schemas/wallet";
-import { getWalletDetails } from "../database/dbOperation";
+import { getWalletDetails } from "../../src/db/wallets/getWalletDetails";
 import { env } from "../env";
 import { networkResponseSchema } from "../schema";
 
@@ -95,14 +95,17 @@ const cacheSdk = (
 };
 
 const walletDataMap: Map<string, string> = new Map();
-const getCachedWallet = async (walletAddress: string, chain: string) => {
+const getCachedWallet = async (walletAddress: string, chainId: number) => {
   walletAddress = walletAddress.toLowerCase();
   let walletData;
   const cachedWallet = walletDataMap.get(walletAddress);
   if (cachedWallet) {
     walletData = JSON.parse(cachedWallet);
   } else {
-    walletData = await getWalletDetails(walletAddress, chain);
+    console.log("Checking details for address", walletAddress);
+    // TODO: This needs to be changed...
+    walletData = await getWalletDetails({ address: walletAddress, chainId });
+    console.log("Received wallet data:", walletData);
     if (walletData) {
       walletDataMap.set(walletAddress, JSON.stringify(walletData));
     }
@@ -144,6 +147,7 @@ export const getSDK = async (
 
   //SDK doesn't exist in cache, so we need to instantiate or create it
   if (!walletAddress) {
+    console.log("Creating sdk...");
     //create sdk with no wallet
     // TODO set to read only when we can
     sdk = new ThirdwebSDK(chain, {
@@ -154,13 +158,13 @@ export const getSDK = async (
     return sdk;
   }
 
-  walletData = await getCachedWallet(walletAddress, chain.name);
+  walletData = await getCachedWallet(walletAddress, chain.chainId);
 
   if (!walletData) {
     throw new Error(`Wallet not found for address: ${walletAddress}`);
   }
 
-  const walletType = walletData.walletType;
+  const walletType = walletData.type;
   const awsKmsKeyId = walletData.awsKmsKeyId;
   const gcpKmsKeyId = walletData.gcpKmsKeyId;
   const gcpKmsKeyVersionId = walletData.gcpKmsKeyVersionId;
@@ -235,7 +239,10 @@ export const getSDK = async (
     });
     cacheSdk(chain.name, sdk, walletAddress);
     return sdk;
-  } else if (walletType === WalletConfigType.ppk) {
+  } else if (
+    walletType === WalletConfigType.ppk ||
+    walletType === WalletConfigType.local
+  ) {
     //TODO get private key from encrypted file
     wallet = new LocalWallet({
       chain,

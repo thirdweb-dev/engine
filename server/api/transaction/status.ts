@@ -3,7 +3,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../core/error/customError";
-import { findTxDetailsWithQueueId } from "../../helpers";
+import { getTxById } from "../../../src/db/transactions/getTxById";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import {
   findOrAddWSConnectionInSharedState,
@@ -76,7 +76,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { tx_queue_id } = request.params;
-      const returnData = await findTxDetailsWithQueueId(tx_queue_id, request);
+      const returnData = await getTxById({ queueId: tx_queue_id });
 
       if (!returnData) {
         const error = createCustomError(
@@ -98,7 +98,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       request.log.info(`Websocket Connection Established for ${tx_queue_id}`);
       findOrAddWSConnectionInSharedState(connection, tx_queue_id, request);
 
-      const returnData = await findTxDetailsWithQueueId(tx_queue_id, request);
+      const returnData = await getTxById({ queueId: tx_queue_id });
 
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);

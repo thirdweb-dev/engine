@@ -1,13 +1,14 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../core";
+import { queueTx } from "../../../../../src/db/transactions/queueTx";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
-import { queueTransaction } from "../../../../helpers";
+import { getChainIdFromChain } from "../../../../utilities/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -46,9 +47,10 @@ export async function grantRole(fastify: FastifyInstance) {
       const { network, contract_address } = request.params;
       const { role, address } = request.body;
       const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
 
       const tx = await contract.roles.grant.prepare(role, address);
-      const queuedId = await queueTransaction(request, tx, network, "roles");
+      const queuedId = await queueTx({ tx, chainId, extension: "roles" });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });
