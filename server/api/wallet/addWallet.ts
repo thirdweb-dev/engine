@@ -16,7 +16,7 @@ import { WalletConfigType } from "../../schemas/wallet";
 const requestBodySchema = Type.Object({
   walletType: Type.String({
     description: "Wallet Type",
-    examples: ["aws_kms", "gcp_kms"],
+    examples: ["aws_kms", "gcp_kms", "local"],
   }),
   awsKMS: Type.Optional(
     Type.Object({
@@ -45,6 +45,23 @@ const requestBodySchema = Type.Object({
     }),
   ),
 });
+
+requestBodySchema.examples = [
+  {
+    walletTye: "aws_kms",
+    awsKMS: {
+      keyId: "12345678-1234-1234-1234-123456789012",
+      arn: "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+    },
+  },
+  {
+    walletTye: "gcp_kms",
+    gcpKMS: {
+      keyId: "12345678-1234-1234-1234-123456789012",
+      versionId: "1",
+    },
+  },
+];
 
 // OUTPUT
 const responseSchema = Type.Object({

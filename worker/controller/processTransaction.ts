@@ -111,7 +111,7 @@ export const processTransaction = async (
           "errored",
           trx,
           undefined,
-          error.message,
+          { errorMessage: error.message },
         );
         await trx.commit();
         await trx.destroy();
