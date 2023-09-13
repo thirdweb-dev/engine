@@ -16,7 +16,7 @@ import {
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
-import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
 
 // INPUTS
@@ -36,7 +36,7 @@ const requestBodySchema = Type.Object({
       description: "Version of the contract to deploy. Defaults to latest.",
     }),
   ),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 // Example for the Request Body

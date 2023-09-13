@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../core";
+import { walletAuthSchema } from "../../../../core/schema";
 import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
@@ -13,7 +14,7 @@ import {
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
-import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
 
 // INPUTS
@@ -31,7 +32,7 @@ const requestBodySchema = Type.Object({
       description: "Version of the contract to deploy. Defaults to latest.",
     }),
   ),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 // Example for the Request Body
@@ -53,6 +54,7 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
       operationId: "deployPrebuiltPack",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -60,10 +62,11 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network } = request.params;
-      const { contractMetadata, version, web3api_overrides } = request.body;
+      const { contractMetadata, version, tx_overrides } = request.body;
       const chainId = getChainIdFromChain(network);
+      const walletAddress = request.headers["x-wallet-address"] as string;
 
-      const sdk = await getSDK(network, web3api_overrides?.from);
+      const sdk = await getSDK(network, walletAddress);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "pack",
         contractMetadata,
