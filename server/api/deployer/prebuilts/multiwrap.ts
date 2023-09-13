@@ -2,10 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../core";
-<<<<<<< HEAD
 import { walletAuthSchema } from "../../../../core/schema";
-=======
->>>>>>> am/v2
 import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
@@ -16,11 +13,7 @@ import {
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
-<<<<<<< HEAD
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
-=======
-import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
->>>>>>> am/v2
 import { getChainIdFromChain } from "../../../utilities/chain";
 
 // INPUTS
@@ -67,18 +60,11 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network } = request.params;
-<<<<<<< HEAD
       const { contractMetadata, version, tx_overrides } = request.body;
       const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSDK(network, walletAddress);
-=======
-      const { contractMetadata, version, web3api_overrides } = request.body;
-      const chainId = getChainIdFromChain(network);
-
-      const sdk = await getSDK(network, web3api_overrides?.from);
->>>>>>> am/v2
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "multiwrap",
         contractMetadata,
