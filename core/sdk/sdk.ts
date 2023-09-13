@@ -24,7 +24,7 @@ export class LocalFileStorage implements AsyncStorage {
 
   getKey(): string {
     if (this.walletAddress) {
-      return `localWallet-${this.walletAddress}`;
+      return `localWallet-${this.walletAddress.toLowerCase()}`;
     }
     throw new Error("Wallet Address not set");
   }
