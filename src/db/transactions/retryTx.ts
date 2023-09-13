@@ -12,6 +12,7 @@ export const retryTx = async ({
   maxFeePerGas,
   maxPriorityFeePerGas,
 }: RetryTxParams) => {
+  console.log("Retrying tx...");
   await prisma.transactions.update({
     where: {
       id: queueId,

@@ -64,10 +64,12 @@ export const processTransaction = async (
         txSubmittedNonce = BigNumber.from(currentNonce);
       }
 
+      server.log.info("Updating tx to processed...");
       await updateTx({
         queueId: tx.queueId!,
         status: TransactionStatusEnum.Processed,
       });
+      server.log.info("Finished updating tx...");
 
       // Get the nonce for the blockchain transaction
 
