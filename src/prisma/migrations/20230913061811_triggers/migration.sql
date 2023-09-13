@@ -1,4 +1,3 @@
--- 
 CREATE OR REPLACE FUNCTION notify_transactions_insert()
   RETURNS TRIGGER
   LANGUAGE plpgsql
