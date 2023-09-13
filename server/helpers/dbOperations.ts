@@ -10,32 +10,14 @@ import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
 import { v4 as uuid } from "uuid";
-import { addWalletToDB, connectToDatabase } from "../../core";
+import { connectToDatabase, getWalletDetails } from "../../core";
 import { createCustomError } from "../../core/error/customError";
-import { WalletData } from "../../core/interfaces";
 import {
   TransactionSchema,
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../schemas/transaction";
 import { walletTableSchema } from "../schemas/wallet";
-
-const checkNetworkInWalletDB = async (
-  database: Knex,
-  chainId: string,
-  walletAddress: string,
-): Promise<WalletData> => {
-  try {
-    const walletData = await database("wallets")
-      .where("chainId", chainId)
-      .where("walletAddress", walletAddress.toLowerCase())
-      .first();
-
-    return walletData;
-  } catch (error) {
-    throw error;
-  }
-};
 
 export const queueTransaction = async (
   request: FastifyRequest,
@@ -74,14 +56,23 @@ export const queueTransaction = async (
   const chainId = chainData.chainId.toString();
   const dbInstance = await connectToDatabase();
   const walletAddress = await tx.getSignerAddress();
-  const checkForNetworkData = await checkNetworkInWalletDB(
-    dbInstance,
-    chainId,
+  const walletDetails = await getWalletDetails(
     walletAddress.toLowerCase(),
+    chainId,
+    dbInstance,
   );
 
-  if (!checkForNetworkData) {
-    await addWalletToDB(chainId, walletAddress, chainData.slug, dbInstance);
+  if (!walletDetails) {
+    // await addWalletToDB(
+    //   chainId,
+    //   dbInstance,
+    //   walletAddress,
+    //   chainData.slug,
+    //   getWalletType(),
+    // );
+    throw new Error(
+      `Import Wallet Address ${walletAddress} to DB using /wallet/import end-point`,
+    );
   }
   // encode tx
   const value = await tx.getValue();
