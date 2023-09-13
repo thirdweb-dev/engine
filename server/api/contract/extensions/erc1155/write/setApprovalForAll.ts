@@ -1,5 +1,4 @@
 import { Static, Type } from "@sinclair/typebox";
-import { walletIds } from "@thirdweb-dev/wallets";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
