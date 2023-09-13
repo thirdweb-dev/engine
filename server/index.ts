@@ -1,4 +1,9 @@
-import { checkTablesExistence, env, implementTriggerOnStartUp } from "../core";
+import {
+  checkTablesExistence,
+  ensureDatabaseExists,
+  env,
+  implementTriggerOnStartUp,
+} from "../core";
 import { startTxUpdatesNotificationListener } from "./controller/tx-update-listener";
 import createServer from "./helpers/server";
 
@@ -20,11 +25,13 @@ const main = async () => {
 
   try {
     // Check for the Tables Existence post startup
+    await ensureDatabaseExists(server);
     await checkTablesExistence(server);
     await implementTriggerOnStartUp(server);
     await startTxUpdatesNotificationListener(server);
   } catch (err) {
     console.log(err);
+    process.exit(1);
   }
 };
 

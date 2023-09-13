@@ -3,11 +3,11 @@ import { getSupportedChains } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { Knex } from "knex";
-import { getInstanceAdminWalletType, getWalletBackUpType } from "../helpers";
+import { getWalletType } from "../helpers";
 import { WalletData } from "../interfaces";
 import { getSDK } from "../sdk/sdk";
 import { getWalletNonce } from "../services/blockchain";
-import { connectWithDatabase } from "./dbConnect";
+import { connectToDatabase } from "./dbConnect";
 
 interface WalletExtraData {
   awsKmsKeyId?: string;
@@ -40,7 +40,7 @@ export const getWalletDetails = async (
     let passedAsParameter = true;
     if (!database) {
       passedAsParameter = false;
-      database = await connectWithDatabase();
+      database = await connectToDatabase();
     }
     const walletDetails = await database("wallets")
       .select("*")
@@ -103,9 +103,7 @@ export const addWalletDataWithSupportChainsNonceToDB = async (
         let lastUsedNonce = -1;
         let walletType = extraTableData?.walletType
           ? extraTableData?.walletType
-          : isWeb3APIInitWallet
-          ? getInstanceAdminWalletType()
-          : getWalletBackUpType();
+          : getWalletType();
         const sdk = await getSDK(slug, {
           walletAddress,
           walletType,

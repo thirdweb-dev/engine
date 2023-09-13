@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 import request from "supertest";
-import { env } from "../../core";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { env } from "../../../core";
+import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 
 export const awaitTransactionSubmission = async (
   server: FastifyInstance,
@@ -10,7 +10,7 @@ export const awaitTransactionSubmission = async (
   server.log.info(`Awaiting transaction to be Submitted: ${queueId}`);
   let txStatusResponse = await request(server.server)
     .get(`/transaction/status/${queueId}`)
-    .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+    .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)
     .send();
   let txSubmitted =
     txStatusResponse.body.result.status === TransactionStatusEnum.Submitted ||
@@ -24,7 +24,7 @@ export const awaitTransactionSubmission = async (
     await new Promise((resolve) => setTimeout(resolve, 3000));
     txStatusResponse = await request(server.server)
       .get(`/transaction/status/${queueId}`)
-      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+      .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)
       .send();
     if (
       txStatusResponse.body.result.status === TransactionStatusEnum.Submitted

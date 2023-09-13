@@ -42,8 +42,6 @@ export const openapi = async (server: FastifyInstance) => {
     },
   });
 
-  // Not all options are required below
-  // We can change/remove them too.
   await server.register(fastifySwaggerUI, {
     routePrefix: "/",
     initOAuth: {},

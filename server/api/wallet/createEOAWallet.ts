@@ -4,7 +4,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
   addWalletDataWithSupportChainsNonceToDB,
-  connectWithDatabase,
+  connectToDatabase,
   env,
 } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
@@ -23,6 +23,15 @@ const requestBodySchema = Type.Object({
     examples: ["aws_kms", "gcp_kms"],
   }),
 });
+
+requestBodySchema.examples = [
+  {
+    walletType: "aws_kms",
+  },
+  {
+    walletType: "gcp_kms",
+  },
+];
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -47,7 +56,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
     method: "POST",
     url: "/wallet/create",
     schema: {
-      description: "Create EOA wallet as Admin Wallet for web3api",
+      description: "Create EOA wallet as backend wallet",
       tags: ["Wallet"],
       operationId: "wallet_create",
       body: requestBodySchema,
@@ -111,7 +120,7 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         walletAddress = gcpCreatedWallet;
       }
 
-      const dbInstance = await connectWithDatabase();
+      const dbInstance = await connectToDatabase();
       await addWalletDataWithSupportChainsNonceToDB(
         fastify,
         dbInstance,

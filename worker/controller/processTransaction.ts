@@ -1,13 +1,9 @@
+import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
-import {
-  connectWithDatabase,
-  createCustomError,
-  env,
-  getSDK,
-} from "../../core";
+import { connectToDatabase, createCustomError, env, getSDK } from "../../core";
 import {
   getTransactionsToProcess,
   getWalletDetailsWithTransaction,
@@ -25,7 +21,7 @@ export const processTransaction = async (
   let processedIds: string[] = [];
   try {
     // Connect to the DB
-    knex = await connectWithDatabase();
+    knex = await connectToDatabase();
     trx = await knex.transaction();
     let data: any;
     try {
@@ -65,8 +61,17 @@ export const processTransaction = async (
       const sdk = await getSDK(tx.chainId, {
         walletAddress: tx.walletAddress,
         awsKmsKeyId: walletData?.awsKmsKeyId,
+        gcpKmsKeyId: walletData?.gcpKmsKeyId,
+        gcpKmsKeyRingId: walletData?.gcpKmsKeyRingId,
+        gcpKmsLocationId: walletData?.gcpKmsLocationId,
+        gcpKmsKeyVersionId: walletData?.gcpKmsKeyVersionId,
       });
-      let blockchainNonce = await sdk.wallet.getNonce("pending");
+
+      let [blockchainNonce, gasData, currentBlockNumber] = await Promise.all([
+        sdk.wallet.getNonce("pending"),
+        getDefaultGasOverrides(sdk.getProvider()),
+        sdk.getProvider().getBlockNumber(),
+      ]);
 
       let lastUsedNonce = BigNumber.from(walletData?.lastUsedNonce ?? -1);
       let txSubmittedNonce = BigNumber.from(0);
@@ -82,13 +87,13 @@ export const processTransaction = async (
 
       // Submit transaction to the blockchain
       // Create transaction object
-
       const txObject: providers.TransactionRequest = {
         to: tx.contractAddress ?? tx.toAddress,
         from: tx.walletAddress,
         data: tx.encodedInputData,
         nonce: txSubmittedNonce,
         value: tx.txValue,
+        ...gasData,
       };
 
       // Send transaction to the blockchain
@@ -106,7 +111,7 @@ export const processTransaction = async (
           "errored",
           trx,
           undefined,
-          error.message,
+          { errorMessage: error.message },
         );
         await trx.commit();
         await trx.destroy();
@@ -121,6 +126,9 @@ export const processTransaction = async (
           "submitted",
           trx,
           txHash,
+          {
+            txSubmittedAtBlockNumber: currentBlockNumber,
+          },
         );
         server.log.info(
           `Transaction submitted for ${tx.identifier} with Nonce ${txSubmittedNonce}, Tx Hash: ${txHash?.hash} `,

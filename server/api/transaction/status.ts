@@ -57,8 +57,6 @@ responseBodySchema.example = {
   },
 };
 
-// OUTPUT
-
 export async function checkTxStatus(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;

@@ -11,6 +11,7 @@ type TransactionReceiptWithBlockDetails = {
   queueId: string;
   timestamp: number;
   effectiveGasPrice: BigNumber;
+  txData: TransactionSchema;
 };
 
 export const getTransactionReceiptWithBlockDetails = async (
@@ -31,6 +32,7 @@ export const getTransactionReceiptWithBlockDetails = async (
           receipt,
           chainId: txData.chainId!,
           queueId: txData.identifier!,
+          txData,
         };
       }),
     );
@@ -42,7 +44,8 @@ export const getTransactionReceiptWithBlockDetails = async (
             `Receipt not found for tx: ${dt.queueId} on chain: ${dt.chainId}`,
           );
           return {
-            txHash: "",
+            txData: dt.txData,
+            txHash: dt.txData.txHash!,
             blockNumber: -1,
             timestamp: -1,
             chainId: dt.chainId!,
@@ -56,6 +59,7 @@ export const getTransactionReceiptWithBlockDetails = async (
           network: sdk.getProvider(),
         });
         return {
+          txData: dt.txData,
           txHash: dt.receipt.transactionHash,
           blockNumber: dt.receipt.blockNumber,
           timestamp: blockNumberDetails?.timestamp * 1000 || -1,

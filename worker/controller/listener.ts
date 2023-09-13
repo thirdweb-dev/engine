@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { connectWithDatabase } from "../../core";
+import { connectToDatabase } from "../../core";
 import { queue } from "../services/pQueue";
 import { processTransaction } from "./processTransaction";
 
@@ -17,7 +17,7 @@ export const startNotificationListener = async (
   try {
     server.log.info(`Starting notification listener`);
     // Acquire a connection
-    const knex = await connectWithDatabase();
+    const knex = await connectToDatabase();
     const connection = await knex.client.acquireConnection();
     connection.query("LISTEN new_transaction_data");
 

@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { FastifyInstance } from "fastify";
 import request from "supertest";
-import { env } from "../../core";
-import createServer from "../../server/helpers/server";
+import { env } from "../../../core";
+import createServer from "../../../server/helpers/server";
 
 describe("Transaction End-point Test", () => {
   let createdServerInstance: FastifyInstance;
@@ -14,7 +14,7 @@ describe("Transaction End-point Test", () => {
   it("should return a specific transaction request data when tx_queue_id is provided", async () => {
     const response = await request(createdServerInstance.server)
       .get("/transaction/status/8fe7d546-2b8b-465e-b0d2-f1cb5d3d0db3")
-      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+      .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)
       .send();
 
     expect(response.status).to.equal(200);
@@ -25,7 +25,7 @@ describe("Transaction End-point Test", () => {
       .get(
         "/transaction/getAll?page=1&limit=10&sort=createdTimestamp&sort_order=asc&filter=all",
       )
-      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+      .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)
       .send();
 
     expect(response.status).to.equal(200);
@@ -36,7 +36,7 @@ describe("Transaction End-point Test", () => {
       .get(
         "/transaction/getAllDeployedContracts?page=1&limit=10&sort=createdTimestamp&sort_order=asc&filter=all",
       )
-      .set("Authorization", `Bearer ${env.THIRDWEB_SDK_SECRET_KEY}`)
+      .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)
       .send();
 
     expect(response.status).to.equal(200);

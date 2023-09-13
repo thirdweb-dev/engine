@@ -34,6 +34,16 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       );
     }
 
+    if (process.env.NODE_ENV === "production") {
+      if (request.routerPath?.includes("static")) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: "Not Found",
+          message: "Not Found",
+        });
+      }
+    }
+
     const { url } = request;
     // Skip Authentication for Health Check and Static Files and JSON Files for Swagger
     // Doing Auth check onRequest helps prevent unauthenticated requests from consuming server resources.
@@ -119,11 +129,16 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   await server.register(fastifyExpress);
   await server.register(WebSocketPlugin);
 
-  openapi(server);
+  await openapi(server);
 
   await server.register(apiRoutes);
 
-  // Add Health Check
+  /* TODO Add a real health check
+   * check if postgres connection is valid
+   * have worker write a heartbeat to db
+   * check the last worker heartbeat time
+   * (probably more to do)
+   * */
   server.get("/health", async () => {
     return {
       status: "OK",
@@ -171,16 +186,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await server.ready();
-
-  // Command to Generate Swagger File
-  // Needs to be called post Fastify Server is Ready
-  server.swagger();
-
-  // To Generate Swagger YAML File
-  if (env.NODE_ENV === "local") {
-    const yaml = server.swagger({ yaml: true });
-    fs.writeFileSync("./swagger.yml", yaml);
-  }
 
   return server;
 };

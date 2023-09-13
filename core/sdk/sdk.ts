@@ -8,7 +8,7 @@ import {
   SmartContract,
   ThirdwebSDK,
 } from "@thirdweb-dev/sdk";
-import { LocalWallet } from "@thirdweb-dev/wallets";
+import { AsyncStorage, LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { BaseContract, BigNumber } from "ethers";
 import { GcpKmsSigner } from "ethers-gcp-kms-signer";
@@ -19,8 +19,52 @@ import {
 } from "../../server/schemas/wallet";
 import { getWalletDetails } from "../database/dbOperation";
 import { env } from "../env";
-import { isValidHttpUrl } from "../helpers";
 import { networkResponseSchema } from "../schema";
+
+//TODO add constructor so you can pass in directory
+class LocalFileStorage implements AsyncStorage {
+  getItem(key: string): Promise<string | null> {
+    //read file from home directory/.thirdweb folder
+    //file name is the key name
+    //return null if it doesn't exist
+    //return the value if it does exist
+    const dir = `${process.env.HOME}/.thirdweb`;
+    if (!fs.existsSync(dir)) {
+      return Promise.resolve(null);
+    }
+    const path = `${dir}/${key}`;
+    if (!fs.existsSync(path)) {
+      return Promise.resolve(null);
+    }
+    return Promise.resolve(fs.readFileSync(path, "utf8"));
+  }
+
+  setItem(key: string, value: string): Promise<void> {
+    //save to home directory .thirdweb folder
+    //create the folder if it doesn't exist
+    const dir = `${process.env.HOME}/.thirdweb`;
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
+    fs.writeFileSync(`${dir}/${key}`, value);
+    return Promise.resolve();
+  }
+
+  removeItem(key: string): Promise<void> {
+    //delete the file from home directory/.thirdweb folder
+    const dir = `${process.env.HOME}/.thirdweb`;
+    if (!fs.existsSync(dir)) {
+      return Promise.resolve();
+    }
+    const path = `${dir}/${key}`;
+    if (!fs.existsSync(path)) {
+      return Promise.resolve();
+    } else {
+      fs.unlinkSync(path);
+      return Promise.resolve();
+    }
+  }
+}
 
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
@@ -30,16 +74,10 @@ const walletDataMap: Map<string, string> = new Map();
 const AWS_REGION = env.AWS_REGION;
 const AWS_ACCESS_KEY_ID = env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = env.AWS_SECRET_ACCESS_KEY;
-const AWS_KMS_KEY_ID =
-  "AWS_KMS_KEY_ID" in env.WALLET_KEYS
-    ? env.WALLET_KEYS.AWS_KMS_KEY_ID
-    : undefined;
+const AWS_KMS_KEY_ID = env.AWS_KMS_KEY_ID;
 
 // Google KMS Wallet
-const GOOGLE_KMS_KEY_ID =
-  "GOOGLE_KMS_KEY_ID" in env.WALLET_KEYS
-    ? env.WALLET_KEYS.GOOGLE_KMS_KEY_ID
-    : undefined;
+const GOOGLE_KMS_KEY_ID = env.GOOGLE_KMS_KEY_ID;
 
 export const getSDK = async (
   chainName: ChainOrRpc,
@@ -72,8 +110,7 @@ export const getSDK = async (
   let wallet: AwsKmsWallet | LocalWallet | null = null;
   let signer: GcpKmsSigner | null = null;
   let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
-  const THIRDWEB_SDK_SECRET_KEY = env.THIRDWEB_SDK_SECRET_KEY;
-  const CHAIN_OVERRIDES = env.CHAIN_OVERRIDES;
+  const THIRDWEB_API_SECRET_KEY = env.THIRDWEB_API_SECRET_KEY;
 
   walletAddress = walletAddress?.toLowerCase();
 
@@ -102,16 +139,6 @@ export const getSDK = async (
     return sdkMap.get(sdkMapKey) as ThirdwebSDK;
   }
 
-  if (CHAIN_OVERRIDES) {
-    if (isValidHttpUrl(CHAIN_OVERRIDES)) {
-      const result = await fetch(CHAIN_OVERRIDES);
-      RPC_OVERRIDES = await result.json();
-    } else {
-      const text = fs.readFileSync(CHAIN_OVERRIDES, "utf8");
-      RPC_OVERRIDES = JSON.parse(text);
-    }
-  }
-
   try {
     chain = getChainBySlug(chainName.toLowerCase());
   } catch (e) {
@@ -127,7 +154,7 @@ export const getSDK = async (
   if (
     !wallet &&
     walletType === WalletConfigType.aws_kms &&
-    (awsKmsKeyId || "AWS_KMS_KEY_ID" in env.WALLET_KEYS)
+    (awsKmsKeyId || env.AWS_KMS_KEY_ID)
   ) {
     if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
       throw new Error(
@@ -144,7 +171,7 @@ export const getSDK = async (
   } else if (
     !wallet &&
     walletType === WalletConfigType.gcp_kms &&
-    (gcpKmsKeyId || "GOOGLE_KMS_KEY_ID" in env.WALLET_KEYS)
+    (gcpKmsKeyId || env.GOOGLE_KMS_KEY_ID)
   ) {
     // Google Service A/C credentials Check
     if (
@@ -178,23 +205,30 @@ export const getSDK = async (
 
     signer = new GcpKmsSigner(kmsCredentials);
     sdk = ThirdwebSDK.fromSigner(signer, chainName, {
-      secretKey: THIRDWEB_SDK_SECRET_KEY,
+      secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
     });
   } else if (
     !wallet &&
     !signer &&
     (walletType === WalletConfigType.ppk ||
-      "WALLET_PRIVATE_KEY" in env.WALLET_KEYS)
+      env.WALLET_PRIVATE_KEY !== undefined)
   ) {
-    const WALLET_PRIVATE_KEY =
-      "WALLET_PRIVATE_KEY" in env.WALLET_KEYS
-        ? env.WALLET_KEYS.WALLET_PRIVATE_KEY
-        : "";
+    // console.log(`Inside PPK`);
+    const WALLET_PRIVATE_KEY = env.WALLET_PRIVATE_KEY || "";
     wallet = new LocalWallet({
       chain,
     });
     wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
+  } else {
+    wallet = new LocalWallet({
+      chain,
+      storage: new LocalFileStorage(),
+    });
+    await wallet.loadOrCreate({
+      strategy: "encryptedJson",
+      password: THIRDWEB_API_SECRET_KEY,
+    });
   }
 
   // console.log("wallet: ", await wallet.getAddress());
@@ -210,7 +244,7 @@ export const getSDK = async (
     }
 
     sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
-      secretKey: THIRDWEB_SDK_SECRET_KEY,
+      secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
     });
   }
