@@ -246,7 +246,6 @@ export const getSDK = async (
     //TODO get private key from encrypted file
     wallet = new LocalWallet({
       chain,
-      storage: new LocalFileStorage(walletAddress),
     });
     await wallet.load({
       strategy: "encryptedJson",
