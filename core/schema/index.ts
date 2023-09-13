@@ -38,7 +38,7 @@ export const networkResponseSchema = Type.Object({
 });
 
 export const walletAuthSchema = Type.Object({
-  address: Type.String({
+  "x-wallet-address": Type.String({
     description: "Wallet address",
   }),
 });

@@ -251,6 +251,7 @@ export const getSDK = async (
     await wallet.load({
       strategy: "encryptedJson",
       password: THIRDWEB_API_SECRET_KEY,
+      storage: new LocalFileStorage(walletAddress),
     });
     sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: THIRDWEB_API_SECRET_KEY,

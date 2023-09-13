@@ -75,7 +75,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       );
       const tx = await contract.prepare(function_name, args, {
         value: web3api_overrides?.value,
-        from: web3api_overrides?.from,
+        from: request.headers["x-wallet-address"],
       });
 
       const queuedId = await queueTx({ tx, chainId, extension: "none" });
