@@ -19,7 +19,6 @@ export const updateTx = async ({
 }: UpdateTxParams) => {
   switch (status) {
     case TransactionStatusEnum.Submitted:
-      console.log("Updating to submitted...");
       await prisma.transactions.update({
         where: {
           id: queueId,
@@ -38,7 +37,6 @@ export const updateTx = async ({
       });
       break;
     case TransactionStatusEnum.Processed:
-      console.log("Updating to processed...");
       await prisma.transactions.update({
         where: {
           id: queueId,
@@ -50,7 +48,6 @@ export const updateTx = async ({
       });
       break;
     case TransactionStatusEnum.Errored:
-      console.log("Updating to errored...");
       await prisma.transactions.update({
         where: {
           id: queueId,
@@ -62,7 +59,6 @@ export const updateTx = async ({
       });
       break;
     case TransactionStatusEnum.Mined:
-      console.log("Updating to mined...");
       await prisma.transactions.update({
         where: {
           id: queueId,
