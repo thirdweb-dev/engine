@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../core";
+import { walletAuthSchema } from "../../../../core/schema";
 
 import { queueTx } from "../../../../src/db/transactions/queueTx";
 import {
@@ -55,12 +56,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
-      headers: {
-        type: "object",
-        properties: {
-          "x-wallet-address": { type: "string" },
-        },
-      },
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,

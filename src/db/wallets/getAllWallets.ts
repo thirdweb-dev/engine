@@ -6,7 +6,14 @@ export interface GetAllWalletsParams {
 }
 
 // TODO: Add error logging handler from req.log to all queries
-export const getAllWallets = async ({ chainId }: GetAllWalletsParams) => {
+export const getAllWallets = async () => {
+  const wallets = await prisma.walletDetails.findMany();
+  return wallets;
+};
+
+export const getAllWalletsByChain = async ({
+  chainId,
+}: GetAllWalletsParams) => {
   const wallets = await prisma.walletNonce.findMany({
     where: {
       chainId,
