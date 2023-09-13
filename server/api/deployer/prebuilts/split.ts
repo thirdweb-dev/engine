@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../core";
-import { queueTransaction } from "../../../helpers";
+import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
@@ -12,6 +12,7 @@ import {
   splitRecipientInputSchema,
 } from "../../../schemas/prebuilts";
 import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../utilities/chain";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
@@ -57,6 +58,8 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
       //TODO add x-wallet-address to headers
       const { network } = request.params;
       const { contractMetadata, version, web3api_overrides } = request.body;
+      const chainId = getChainIdFromChain(network);
+
       const sdk = await getSDK(network, web3api_overrides?.from);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "split",
@@ -64,14 +67,14 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTransaction(
-        request,
+
+      const queuedId = await queueTx({
         tx,
-        network,
-        "deployer_prebuilt",
-        deployedAddress,
-        "split",
-      );
+        chainId,
+        extension: "deploy-prebuilt",
+        deployedContractAddress: deployedAddress,
+        deployedContractType: "split",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,

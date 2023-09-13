@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
-import { queueTransaction } from "../../../../../helpers";
+import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -10,6 +10,7 @@ import {
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftAndSupplySchema } from "../../../../../schemas/nft";
 import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -62,6 +63,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { receiver, metadataWithSupply, web3api_overrides } = request.body;
+      const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
         network,
@@ -72,7 +74,8 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
         receiver,
         metadataWithSupply,
       );
-      const queuedId = await queueTransaction(request, tx, network, "erc1155");
+
+      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

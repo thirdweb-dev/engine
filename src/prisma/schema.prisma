@@ -21,13 +21,17 @@ model Transactions {
   gasPrice             String? @map("gasPrice")
   maxFeePerGas         String? @map("maxFeePerGas")
   maxPriorityFeePerGas String? @map("maxPriorityFeePerGas")
-  transactionType      String? @map("transactionType")
+  transactionType      Int?    @map("transactionType")
   transactionHash      String? @map("transactionHash")
 
   // Enriched Data
-  functionName      String? @map("functionName")
-  functionArgs      String? @map("functionArgs")
-  contractExtension String? @map("contractExtension")
+  functionName            String? @map("functionName")
+  functionArgs            String? @map("functionArgs")
+  extension               String? @map("extension")
+
+  // TODO: These shouldnt be in here...
+  deployedContractAddress String? @map("deployedContractAddress")
+  deployedContractType    String? @map("deployedContractType")
 
   // Timestamps
   queuedAt    DateTime  @default(now()) @map("queuedAt")
@@ -36,14 +40,15 @@ model Transactions {
   minedAt     DateTime? @map("minedAt")
 
   // Retries
-  retryCount Int @default(0) @map("retryCount")
+  retryCount                   Int     @default(0) @map("retryCount")
+  retryMaxPriorityFeePerGas    String? @map("overrideMaxPriorityFeePerGas")
+  retryMaxFeePerGas            String? @map("overrideMaxFeePerGas")
 
   // Error
   errorMessage String? @map("errorMessage")
 
-  numberOfRetries              Int     @default(0) @map("numberOfRetries")
-  retryMaxPriorityFeePerGas    String? @map("overrideMaxPriorityFeePerGas")
-  retryMaxFeePerGas            String? @map("overrideMaxFeePerGas")
+  // Mined
+  blockNumber  Int?    @map("blockNumber")
 
   @@map("transactions")
 }

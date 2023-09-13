@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../core";
-import { queueTransaction } from "../../../helpers";
+import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
@@ -12,6 +12,7 @@ import {
   voteSettingsInputSchema,
 } from "../../../schemas/prebuilts";
 import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../utilities/chain";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
@@ -56,6 +57,8 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network } = request.params;
       const { contractMetadata, version, web3api_overrides } = request.body;
+      const chainId = getChainIdFromChain(network);
+
       const sdk = await getSDK(network, web3api_overrides?.from);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "vote",
@@ -63,14 +66,13 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTransaction(
-        request,
+      const queuedId = await queueTx({
         tx,
-        network,
-        "deployer_prebuilt",
-        deployedAddress,
-        "vote",
-      );
+        chainId,
+        extension: "deploy-prebuilt",
+        deployedContractAddress: deployedAddress,
+        deployedContractType: "vote",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,

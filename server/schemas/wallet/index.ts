@@ -27,54 +27,54 @@ export const walletParamSchema = Type.Object({
 //   PRIMARY KEY ("walletAddress", "chainId")
 export const walletTableSchema = Type.Optional(
   Type.Object({
-    walletAddress: Type.String({
+    address: Type.String({
       description: "Wallet Address",
     }),
-    chainId: Type.String({
+    chainId: Type.Number({
       description: "Chain ID",
     }),
-    walletType: Type.String({
+    type: Type.String({
       description: "Wallet Type",
     }),
-    blockchainNonce: Type.Number({
+    nonce: Type.Number({
       description: "Blockchain Nonce",
     }),
-    lastSyncedTimestamp: Type.String({
-      description: "Last Synced Timestamp",
-    }),
-    lastUsedNonce: Type.Number({
-      description: "Last Used Nonce",
-    }),
-    awsKmsKeyId: Type.Optional(
+    awsKmsKeyId: Type.Union([
       Type.String({
         description: "AWS KMS Key ID",
       }),
-    ),
-    awsKmsArn: Type.Optional(
+      Type.Null(),
+    ]),
+    awsKmsArn: Type.Union([
       Type.String({
         description: "AWS KMS ARN",
       }),
-    ),
-    gcpKmsKeyRingId: Type.Optional(
+      Type.Null(),
+    ]),
+    gcpKmsKeyRingId: Type.Union([
       Type.String({
         description: "Google Cloud KMS Key Ring ID",
       }),
-    ),
-    gcpKmsKeyId: Type.Optional(
+      Type.Null(),
+    ]),
+    gcpKmsKeyId: Type.Union([
       Type.String({
         description: "Google Cloud KMS Key ID",
       }),
-    ),
-    gcpKmsKeyVersionId: Type.Optional(
+      Type.Null(),
+    ]),
+    gcpKmsKeyVersionId: Type.Union([
       Type.String({
         description: "Google Cloud KMS Key Version ID",
       }),
-    ),
-    gcpKmsLocationId: Type.Optional(
+      Type.Null(),
+    ]),
+    gcpKmsLocationId: Type.Union([
       Type.String({
         description: "Google Cloud KMS Key Ring Location ID",
       }),
-    ),
+      Type.Null(),
+    ]),
   }),
 );
 

@@ -2,12 +2,13 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../core";
-import { queueTransaction } from "../../helpers";
+import { queueTx } from "../../../src/db/transactions/queueTx";
 import {
   prebuiltDeployParamSchema,
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
 import { web3APIOverridesForWriteRequest } from "../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../utilities/chain";
 
 // INPUTS
 const requestSchema = prebuiltDeployParamSchema;
@@ -71,19 +72,22 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_type } = request.params;
       const { contractMetadata, version, web3api_overrides } = request.body;
+      const chainId = getChainIdFromChain(network);
+
       const sdk = await getSDK(network, web3api_overrides?.from);
+
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         contract_type,
         contractMetadata,
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTransaction(
-        request,
+
+      const queuedId = await queueTx({
         tx,
-        network,
-        "deployer_prebuilt",
-      );
+        chainId,
+        extension: "deploy-prebuilt",
+      });
       reply.status(StatusCodes.OK).send({
         deployedAddress,
         queuedId,

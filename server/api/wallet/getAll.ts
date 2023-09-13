@@ -2,12 +2,13 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../core";
-import { getAllWallets } from "../../helpers";
+import { getAllWallets } from "../../../src/db/wallets/getAllWallets";
 import {
   currencyValueSchema,
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
 import { walletParamSchema, walletTableSchema } from "../../schemas/wallet";
+import { getChainIdFromChain } from "../../utilities/chain";
 
 // INPUTS
 const requestQuerySchema = Type.Omit(walletParamSchema, ["wallet_address"]);
@@ -63,14 +64,17 @@ export async function getAll(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       let { network } = request.query;
+      const chainId = getChainIdFromChain(network);
       network = network.toLowerCase();
 
-      const wallets = await getAllWallets(network);
+      const wallets = await getAllWallets({ chainId });
       const promise = wallets.map(async (wallet) => {
-        const sdk = await getSDK(network, wallet.walletAddress);
+        const sdk = await getSDK(network, wallet.address);
         const balance = await sdk.wallet.balance();
         return {
-          ...wallet,
+          chainId: wallet.chainId,
+          nonce: wallet.nonce,
+          ...wallet.walletDetails,
           balance: {
             ...balance,
             value: balance.value.toString(),
