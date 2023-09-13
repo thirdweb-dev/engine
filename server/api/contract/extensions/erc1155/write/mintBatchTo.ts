@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
+import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
@@ -9,7 +10,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftAndSupplySchema } from "../../../../../schemas/nft";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
@@ -19,7 +20,7 @@ const requestBodySchema = Type.Object({
     description: "Address of the wallet to mint the NFT to",
   }),
   metadataWithSupply: Type.Array(nftAndSupplySchema),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -45,9 +46,6 @@ requestBodySchema.examples = [
         supply: "5",
       },
     ],
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -67,6 +65,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
       operationId: "erc1155_mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -74,13 +73,14 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { receiver, metadataWithSupply, web3api_overrides } = request.body;
+      const { receiver, metadataWithSupply, tx_overrides } = request.body;
+      const walletAddress = request.headers["wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.erc1155.mintBatchTo.prepare(
         receiver,
