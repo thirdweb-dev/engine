@@ -5,25 +5,25 @@ import { prisma } from "../client";
 
 interface CreateWalletNonceParams {
   chainId: number;
-  walletAddress: string;
+  address: string;
 }
 
 export const createWalletNonce = async ({
   chainId,
-  walletAddress,
+  address,
 }: CreateWalletNonceParams) => {
   // TODO: chainId instead of chainName being passed around everywhere
   // or just pass SDK around
-  const sdk = await getSDK(chainId.toString(), walletAddress);
+  const sdk = await getSDK(chainId.toString());
   // TODO: Replace BigNumber
   const nonce = BigNumber.from(
-    (await getWalletNonce(walletAddress.toLowerCase(), sdk.getProvider())) ?? 0,
+    (await getWalletNonce(address.toLowerCase(), sdk.getProvider())) ?? 0,
   ).toNumber();
 
   return prisma.walletNonce.create({
     data: {
+      address: address.toLowerCase(),
       chainId,
-      address: walletAddress,
       nonce,
     },
   });

@@ -1,14 +1,20 @@
 import { prisma } from "../client";
 
-export const updateWalletNonce = async (
-  chainId: number,
-  walletAddress: string,
-  nonce: number,
-) => {
+interface UpdateWalletNonceParams {
+  chainId: number;
+  address: string;
+  nonce: number;
+}
+
+export const updateWalletNonce = async ({
+  chainId,
+  address,
+  nonce,
+}: UpdateWalletNonceParams) => {
   await prisma.walletNonce.update({
     where: {
       address_chainId: {
-        address: walletAddress,
+        address: address.toLowerCase(),
         chainId,
       },
     },

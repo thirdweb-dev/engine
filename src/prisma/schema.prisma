@@ -40,15 +40,17 @@ model Transactions {
   minedAt     DateTime? @map("minedAt")
 
   // Retries
-  retryCount                   Int     @default(0) @map("retryCount")
-  retryMaxPriorityFeePerGas    String? @map("overrideMaxPriorityFeePerGas")
-  retryMaxFeePerGas            String? @map("overrideMaxFeePerGas")
+  retryCount                   Int      @default(0) @map("retryCount")
+  retryGasValues               Boolean? @default(false)
+  retryMaxPriorityFeePerGas    String?  @map("retryMaxPriorityFeePerGas")
+  retryMaxFeePerGas            String?  @map("retryMaxFeePerGas")
 
   // Error
   errorMessage String? @map("errorMessage")
 
-  // Mined
-  blockNumber  Int?    @map("blockNumber")
+  // Block Numbers
+  sentAtBlockNumber Int? @map("sentAtBlockNumber")
+  blockNumber       Int? @map("blockNumber")
 
   @@map("transactions")
 }
@@ -77,7 +79,7 @@ model WalletDetails {
 model WalletNonce {
   address       String        @map("address")
   chainId       Int           @map("chainId")
-  nonce         Int           @default(-1)
+  nonce         Int           @default(0)
   
   // Many-to-one
   walletDetails WalletDetails @relation(fields: [address], references: [address])

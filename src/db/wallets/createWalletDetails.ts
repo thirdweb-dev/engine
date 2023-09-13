@@ -1,14 +1,26 @@
-import { WalletDetails } from "@prisma/client";
+import type { WalletType } from "../../schema/wallet";
 import { prisma } from "../client";
 
+// TODO: Case on types by wallet type
 interface CreateWalletDetailsParams {
-  walletDetails: WalletDetails;
+  address: string;
+  type: WalletType;
+  awsKmsKeyId?: string;
+  awsKmsArn?: string;
+  gcpKmsKeyRingId?: string;
+  gcpKmsKeyId?: string;
+  gcpKmsKeyVersionId?: string;
+  gcpKmsLocationId?: string;
+  gcpKmsResourcePath?: string;
 }
 
-export const createWalletDetails = async ({
-  walletDetails,
-}: CreateWalletDetailsParams) => {
+export const createWalletDetails = async (
+  walletDetails: CreateWalletDetailsParams,
+) => {
   return prisma.walletDetails.create({
-    data: walletDetails,
+    data: {
+      ...walletDetails,
+      address: walletDetails.address.toLowerCase(),
+    },
   });
 };

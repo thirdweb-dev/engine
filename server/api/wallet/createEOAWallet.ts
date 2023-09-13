@@ -3,12 +3,8 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  addWalletDataWithSupportChainsNonceToDB,
-  connectToDatabase,
-  env,
-  LocalFileStorage,
-} from "../../../core";
+import { LocalFileStorage, connectToDatabase, env } from "../../../core";
+import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import {
   createAWSKMSWallet,
@@ -92,16 +88,12 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         });
 
         walletAddress = await wallet.getAddress();
-        await addWalletDataWithSupportChainsNonceToDB(
-          fastify,
-          dbInstance,
-          {
-            walletType: "aws_kms",
-            awsKmsArn,
-            awsKmsKeyId,
-          },
-          walletAddress,
-        );
+        await createWalletDetails({
+          address: walletAddress,
+          type: "aws-kms",
+          awsKmsArn,
+          awsKmsKeyId,
+        });
       } else if (walletType === WalletConfigType.gcp_kms) {
         const cryptoKeyId = `ec-web3api-${new Date().getTime()}`;
         const key = await createGCPKMSWallet(cryptoKeyId);
@@ -113,19 +105,15 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         const gcpKmsKeyVersionId = keyVersionId;
         const gcpKmsResourcePath = key.name! + "/cryptoKeysVersion/1";
         walletAddress = gcpCreatedWallet;
-        await addWalletDataWithSupportChainsNonceToDB(
-          fastify,
-          dbInstance,
-          {
-            walletType: "gcp_kms",
-            gcpKmsKeyId,
-            gcpKmsKeyRingId,
-            gcpKmsLocationId,
-            gcpKmsKeyVersionId,
-            gcpKmsResourcePath,
-          },
-          walletAddress,
-        );
+        await createWalletDetails({
+          address: walletAddress,
+          type: "gcp-kms",
+          gcpKmsKeyId,
+          gcpKmsKeyRingId,
+          gcpKmsLocationId,
+          gcpKmsKeyVersionId,
+          gcpKmsResourcePath,
+        });
       } else if (walletType === WalletConfigType.local) {
         const wallet = new LocalWallet();
         walletAddress = await wallet.generate();
@@ -134,14 +122,10 @@ export async function createEOAWallet(fastify: FastifyInstance) {
           password: env.THIRDWEB_API_SECRET_KEY,
           storage: new LocalFileStorage(walletAddress),
         });
-        await addWalletDataWithSupportChainsNonceToDB(
-          fastify,
-          dbInstance,
-          {
-            walletType: "local",
-          },
-          walletAddress,
-        );
+        await createWalletDetails({
+          address: walletAddress,
+          type: "local",
+        });
       }
 
       await dbInstance.destroy();

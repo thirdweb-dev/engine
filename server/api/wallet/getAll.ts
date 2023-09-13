@@ -72,9 +72,7 @@ export async function getAll(fastify: FastifyInstance) {
         const sdk = await getSDK(network, wallet.address);
         const balance = await sdk.wallet.balance();
         return {
-          chainId: wallet.chainId,
-          nonce: wallet.nonce,
-          ...wallet.walletDetails,
+          ...wallet,
           balance: {
             ...balance,
             value: balance.value.toString(),

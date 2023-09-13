@@ -18,6 +18,7 @@ export const retryTx = async ({
     },
     // TODO: Do these need to all be separate fields?
     data: {
+      retryGasValues: true,
       retryMaxFeePerGas: maxFeePerGas,
       retryMaxPriorityFeePerGas: maxPriorityFeePerGas,
     },

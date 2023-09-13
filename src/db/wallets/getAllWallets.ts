@@ -1,4 +1,5 @@
 import { prisma } from "../client";
+import { cleanWallet } from "../wallets/cleanWallet";
 
 export interface GetAllWalletsParams {
   chainId: number;
@@ -6,7 +7,7 @@ export interface GetAllWalletsParams {
 
 // TODO: Add error logging handler from req.log to all queries
 export const getAllWallets = async ({ chainId }: GetAllWalletsParams) => {
-  return prisma.walletNonce.findMany({
+  const wallets = await prisma.walletNonce.findMany({
     where: {
       chainId,
     },
@@ -14,4 +15,6 @@ export const getAllWallets = async ({ chainId }: GetAllWalletsParams) => {
       walletDetails: true,
     },
   });
+
+  return wallets.map((wallet) => cleanWallet(wallet));
 };

@@ -2,11 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  addWalletDataWithSupportChainsNonceToDB,
-  connectToDatabase,
-  env,
-} from "../../../core";
+import { connectToDatabase, env } from "../../../core";
+import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { getAWSKMSWallet, getGCPKeyWalletAddress } from "../../helpers/wallets";
 import { WalletConfigType } from "../../schemas/wallet";
@@ -80,13 +77,6 @@ export async function addWallet(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       let wallet: AwsKmsWallet | undefined;
-      let awsKmsArn = undefined;
-      let awsKmsKeyId = undefined;
-      let gcpKmsKeyId = undefined;
-      let gcpKmsKeyRingId = undefined;
-      let gcpKmsLocationId = undefined;
-      let gcpKmsKeyVersionId = undefined;
-      let gcpKmsResourcePath = undefined;
       let walletAddress = "";
 
       const { walletType, awsKMS, gcpKMS } = request.body;
@@ -102,9 +92,16 @@ export async function addWallet(fastify: FastifyInstance) {
 
         const { keyId, arn } = awsKMS;
         const wallet = await getAWSKMSWallet(keyId);
-        awsKmsArn = arn;
-        awsKmsKeyId = keyId;
+        const awsKmsArn = arn;
+        const awsKmsKeyId = keyId;
         walletAddress = await wallet.getAddress();
+
+        await createWalletDetails({
+          address: walletAddress,
+          type: walletType,
+          awsKmsArn,
+          awsKmsKeyId,
+        });
       } else if (walletType === WalletConfigType.gcp_kms) {
         if (!gcpKMS?.keyId || !gcpKMS?.versionId) {
           throw new Error(
@@ -113,35 +110,30 @@ export async function addWallet(fastify: FastifyInstance) {
         }
 
         const { keyId: cryptoKeyId, versionId } = gcpKMS;
-        gcpKmsKeyId = cryptoKeyId;
+        const gcpKmsKeyId = cryptoKeyId;
         const { ["walletAddress"]: gcpCreatedWallet } =
           await getGCPKeyWalletAddress(gcpKmsKeyId);
-        gcpKmsKeyRingId = env.GOOGLE_KMS_KEY_RING_ID;
-        gcpKmsLocationId = env.GOOGLE_KMS_LOCATION_ID;
-        gcpKmsKeyVersionId = versionId;
-        gcpKmsResourcePath = `projects/${env.GOOGLE_APPLICATION_PROJECT_ID}/locations/${env.GOOGLE_KMS_LOCATION_ID}/keyRings/${env.GOOGLE_KMS_KEY_RING_ID}/cryptoKeys/${cryptoKeyId}/cryptoKeysVersion/${gcpKmsKeyVersionId}`;
+        const gcpKmsKeyRingId = env.GOOGLE_KMS_KEY_RING_ID;
+        const gcpKmsLocationId = env.GOOGLE_KMS_LOCATION_ID;
+        const gcpKmsKeyVersionId = versionId;
+        const gcpKmsResourcePath = `projects/${env.GOOGLE_APPLICATION_PROJECT_ID}/locations/${env.GOOGLE_KMS_LOCATION_ID}/keyRings/${env.GOOGLE_KMS_KEY_RING_ID}/cryptoKeys/${cryptoKeyId}/cryptoKeysVersion/${gcpKmsKeyVersionId}`;
         walletAddress = gcpCreatedWallet;
-      } else {
-        throw new Error(`Wallet Type ${walletType} is not supported`);
-      }
 
-      const dbInstance = await connectToDatabase();
-      await addWalletDataWithSupportChainsNonceToDB(
-        fastify,
-        dbInstance,
-        false,
-        walletAddress,
-        {
-          walletType,
-          awsKmsArn,
-          awsKmsKeyId,
+        await createWalletDetails({
+          address: walletAddress,
+          type: walletType,
           gcpKmsKeyId,
           gcpKmsKeyRingId,
           gcpKmsLocationId,
           gcpKmsKeyVersionId,
           gcpKmsResourcePath,
-        },
-      );
+        });
+      } else {
+        throw new Error(`Wallet Type ${walletType} is not supported`);
+      }
+
+      const dbInstance = await connectToDatabase();
+
       await dbInstance.destroy();
       reply.status(StatusCodes.OK).send({
         result: {

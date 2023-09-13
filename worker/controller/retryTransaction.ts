@@ -1,14 +1,11 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
 import { FastifyInstance } from "fastify";
-import { Knex } from "knex";
-import { connectToDatabase, env, getSDK } from "../../core";
+import { env, getSDK } from "../../core";
+import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { getTxToRetry } from "../../src/db/transactions/getTxToRetry";
+import { updateTx } from "../../src/db/transactions/updateTx";
 import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
-import {
-  getTransactionForRetry,
-  getWalletDetailsWithTransaction,
-  updateTransactionState,
-} from "../services/dbOperations";
 
 const RETRY_TX_ENABLED = env.RETRY_TX_ENABLED;
 const MAX_FEE_PER_GAS_FOR_RETRY = BigNumber.from(env.MAX_FEE_PER_GAS_FOR_RETRY);
@@ -17,24 +14,16 @@ const MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY = BigNumber.from(
 );
 
 export const retryTransactions = async (server: FastifyInstance) => {
-  let knex: Knex | undefined;
-  let trx: Knex.Transaction | undefined;
-  const tenMinutesInMilliseconds = 10 * 60 * 1000;
   try {
-    knex = await connectToDatabase();
     if (!RETRY_TX_ENABLED) {
       server.log.warn("Retry Tx Cron is disabled");
       return;
     }
     server.log.info("Running Cron to Retry transactions on blockchain");
-    trx = await knex.transaction();
-    const transactions = await getTransactionForRetry(knex, trx);
+    const transactions = await getTxToRetry();
 
     if (transactions.length === 0) {
       server.log.warn("No transactions to retry");
-      await trx.rollback();
-      await trx.destroy();
-      await knex.destroy();
       return;
     }
 
@@ -57,22 +46,14 @@ export const retryTransactions = async (server: FastifyInstance) => {
           `Got receipt for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId}, effectiveGasPrice: ${txReceiptData.effectiveGasPrice}`,
         );
       } else {
-        //Retry Logic
-        const walletData = await getWalletDetailsWithTransaction(
-          txReceiptData.txData.walletAddress!,
-          txReceiptData.txData.chainId!,
-          knex,
-          trx,
-        );
-
         const sdk = await getSDK(
-          txReceiptData.txData.chainId!,
-          txReceiptData.txData.walletAddress!,
+          txReceiptData.txData.chainId!.toString(),
+          txReceiptData.txData.fromAddress!,
         );
         const currentBlockNumber = await sdk.getProvider().getBlockNumber();
 
         if (
-          currentBlockNumber - txReceiptData.txData.txSubmittedAtBlockNumber! >
+          currentBlockNumber - txReceiptData.txData.sentAtBlockNumber! >
           env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
         ) {
           server.log.debug(
@@ -87,24 +68,22 @@ export const retryTransactions = async (server: FastifyInstance) => {
           // Re-Submit transaction to the blockchain
           // Create transaction object
           const txObject: providers.TransactionRequest = {
-            to:
-              txReceiptData.txData.contractAddress ??
-              txReceiptData.txData.toAddress,
-            from: txReceiptData.txData.walletAddress,
-            data: txReceiptData.txData.encodedInputData,
-            nonce: txReceiptData.txData.submittedTxNonce,
-            value: txReceiptData.txData.txValue,
+            to: txReceiptData.txData.toAddress!,
+            from: txReceiptData.txData.fromAddress!,
+            data: txReceiptData.txData.data!,
+            nonce: txReceiptData.txData.nonce!,
+            value: txReceiptData.txData.value!,
             ...gasData,
           };
 
           // Override gas values from DB if flag is true
-          if (txReceiptData.txData.overrideGasValuesForTx) {
+          if (txReceiptData.txData.retryGasValues) {
             server.log.info(
-              `Setting Gas Values from DB as override flag is set to true. MaxFeePerGas: ${txReceiptData.txData.overrideMaxFeePerGas}, MaxPriorityFeePerGas: ${txReceiptData.txData.overrideMaxPriorityFeePerGas} for queueId: ${txReceiptData.queueId}`,
+              `Setting Gas Values from DB as override flag is set to true. MaxFeePerGas: ${txReceiptData.txData.retryMaxFeePerGas}, MaxPriorityFeePerGas: ${txReceiptData.txData.retryMaxPriorityFeePerGas} for queueId: ${txReceiptData.queueId}`,
             );
-            txObject.maxFeePerGas = txReceiptData.txData.overrideMaxFeePerGas;
+            txObject.maxFeePerGas = txReceiptData.txData.retryMaxFeePerGas!;
             txObject.maxPriorityFeePerGas =
-              txReceiptData.txData.overrideMaxPriorityFeePerGas;
+              txReceiptData.txData.retryMaxPriorityFeePerGas!;
           } else if (
             gasData.maxFeePerGas?.gt(MAX_FEE_PER_GAS_FOR_RETRY!) ||
             gasData.maxPriorityFeePerGas?.gt(
@@ -112,7 +91,8 @@ export const retryTransactions = async (server: FastifyInstance) => {
             )
           ) {
             server.log.warn(
-              `${walletData.slug.toUpperCase()} Chain Gas Price is higher than Max Threshold for retrying transaction ${
+              `${txReceiptData.txData
+                .chainId!} Chain Gas Price is higher than Max Threshold for retrying transaction ${
                 txReceiptData.queueId
               }. Will try again after ${
                 env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
@@ -122,33 +102,27 @@ export const retryTransactions = async (server: FastifyInstance) => {
           }
 
           // Send transaction to the blockchain
-          let txHash: ethers.providers.TransactionResponse | undefined;
+          let txRes: ethers.providers.TransactionResponse | undefined;
           try {
-            txHash = await sdk.getSigner()?.sendTransaction(txObject);
+            txRes = await sdk.getSigner()?.sendTransaction(txObject);
           } catch (error: any) {
             server.log.debug("Send Transaction errored");
             server.log.warn(
               `Request-ID: ${txReceiptData.queueId} processed but errored out: Commited to db`,
             );
-            await trx.commit();
-            await trx.destroy();
-            await knex.destroy();
             throw error;
           }
 
-          await updateTransactionState(
-            knex,
-            txReceiptData.txData.identifier!,
-            "submitted",
-            trx,
-            txHash,
-            {
-              numberOfRetries: txReceiptData.txData.numberOfRetries! + 1,
-              txSubmittedAtBlockNumber: currentBlockNumber,
+          await updateTx({
+            queueId: txReceiptData.txData.queueId!,
+            status: TransactionStatusEnum.Submitted,
+            res: txRes,
+            txData: {
+              retryCount: txReceiptData.txData.retryCount + 1,
             },
-          );
+          });
           server.log.info(
-            `Transaction re-submitted for ${txReceiptData.queueId} with Nonce ${txReceiptData.txData.submittedTxNonce}, Tx Hash: ${txHash?.hash}`,
+            `Transaction re-submitted for ${txReceiptData.queueId} with Nonce ${txReceiptData.txData.nonce}, Tx Hash: ${txRes?.hash}`,
           );
         } else {
           server.log.info(
@@ -157,26 +131,15 @@ export const retryTransactions = async (server: FastifyInstance) => {
             } after ${
               env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
             } blocks, Elasped Blocks: ${
-              currentBlockNumber -
-              txReceiptData.txData.txSubmittedAtBlockNumber!
+              currentBlockNumber - txReceiptData.txData.sentAtBlockNumber!
             }`,
           );
         }
       }
     }
 
-    await trx.commit();
-    await trx.destroy();
-    await knex.destroy();
     return;
   } catch (error) {
-    if (trx) {
-      await trx.rollback();
-      await trx.destroy();
-    }
-    if (knex) {
-      await knex.destroy();
-    }
     server.log.error(error);
     return;
   }

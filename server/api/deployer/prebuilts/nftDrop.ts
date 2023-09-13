@@ -65,19 +65,9 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network } = request.params;
       const { contractMetadata, version, web3api_overrides } = request.body;
-<<<<<<< Updated upstream
-      const sdk = await getSDK(network, web3api_overrides?.from);
-=======
-<<<<<<< Updated upstream
-      const sdk = await getSDK(network, {
-        walletAddress: web3api_overrides?.from,
-      });
-=======
       const chainId = getChainIdFromChain(network);
 
       const sdk = await getSDK(network, web3api_overrides?.from);
->>>>>>> Stashed changes
->>>>>>> Stashed changes
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "nft-drop",
         contractMetadata,

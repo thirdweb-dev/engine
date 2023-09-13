@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 
-import { FastifyInstance, FastifyRequest } from "fastify";
+import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../env";
 import { createCustomError } from "../error/customError";
@@ -15,53 +15,6 @@ const connectionString = env.POSTGRES_CONNECTION_URL;
 
 const DATABASE_NAME =
   new URL(connectionString).pathname.split("/")[1] || "postgres";
-
-export const checkTablesExistence = async (
-  server: FastifyInstance,
-): Promise<void> => {
-  try {
-    const knex = await connectToDatabase();
-    // Check if the tables Exists
-    const tablesList: string[] = env.DB_TABLES_LIST.split(",").map(function (
-      item: any,
-    ) {
-      return item.trim();
-    });
-
-    if (!tablesList) {
-      const error = createCustomError(
-        "DB_TABLES_LIST ENV variable is empty",
-        StatusCodes.NOT_FOUND,
-        "DB_TABLES_LIST_NOT_FOUND",
-      );
-      throw error;
-    }
-
-    for (const tableName of tablesList) {
-      const schemaSQL = await fs.readFile(
-        `${__dirname}/sql-schemas/${tableName}.sql`,
-        "utf-8",
-      );
-      // Create Table using schema
-      await knex.schema.raw(schemaSQL);
-
-      server.log.info(
-        `SQL for  ${tableName} processed successfully on start-up`,
-      );
-    }
-
-    // Disconnect from DB
-    await knex.destroy();
-  } catch (error: any) {
-    server.log.error(error);
-    const customError = createCustomError(
-      "Error while executing Table SQLs on startup",
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "SERVER_STARTUP_TABLES_CREATION_ERROR",
-    );
-    throw customError;
-  }
-};
 
 export const implementTriggerOnStartUp = async (
   server: FastifyInstance,
@@ -116,51 +69,5 @@ export const implementTriggerOnStartUp = async (
       "SERVER_STARTUP_TRIGGER_CREATION_ERROR",
     );
     throw customError;
-  }
-};
-
-export const ensureDatabaseExists = async (
-  server: FastifyInstance | FastifyRequest,
-): Promise<void> => {
-  try {
-    // Creating KNEX Config
-    let modifiedConnectionString = connectionString;
-    if (DATABASE_NAME !== "postgres") {
-      // This is required if the Database mentioned in the connection string is not postgres
-      // as we need to connect to the postgres database to create the user provied database
-      // and then connect to the user provided database
-      modifiedConnectionString = connectionString.replace(
-        `/${DATABASE_NAME}`,
-        "/postgres",
-      );
-    }
-
-    let knex = await connectToDatabase(modifiedConnectionString);
-
-    // Check if Database Exists & create if it doesn't
-    let hasDatabase: any;
-    switch (dbClient) {
-      case "pg":
-        server.log.debug("checking if pg database exists");
-        hasDatabase = await knex.raw(
-          `SELECT 1 from pg_database WHERE datname = '${DATABASE_NAME}'`,
-        );
-        server.log.info(`CHECKING for Database ${DATABASE_NAME}...`);
-        if (!hasDatabase.rows.length) {
-          await knex.raw(`CREATE DATABASE ${DATABASE_NAME}`);
-        } else {
-          server.log.info(`Database ${DATABASE_NAME} already exists`);
-        }
-        break;
-      default:
-        throw new Error(
-          `Unsupported database client: ${dbClient}. Cannot create database ${DATABASE_NAME}`,
-        );
-    }
-
-    await knex.destroy();
-  } catch (error) {
-    server.log.error(error);
-    throw new Error(`Error creating database ${DATABASE_NAME}`);
   }
 };

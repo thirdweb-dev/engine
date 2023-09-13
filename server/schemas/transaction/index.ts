@@ -128,6 +128,12 @@ export const transactionResponseSchema = Type.Object({
     }),
     Type.Null(),
   ]),
+  sentAtBlockNumber: Type.Union([
+    Type.Number({
+      description: "The block Number where the transaction was sent",
+    }),
+    Type.Null(),
+  ]),
   blockNumber: Type.Union([
     Type.Number({
       description: "Block Number where the transaction was mined",
@@ -138,6 +144,27 @@ export const transactionResponseSchema = Type.Object({
     Type.String({
       description: "Status of the transaction",
       examples: ["processed", "queued", "sent", "errored", "mined"],
+    }),
+    Type.Null(),
+  ]),
+  retryCount: Type.Number({
+    description: "Number of times the transaction was retried.",
+  }),
+  retryGasValues: Type.Union([
+    Type.Boolean({
+      description: "Whether the transaction should be retried.",
+    }),
+    Type.Null(),
+  ]),
+  retryMaxFeePerGas: Type.Union([
+    Type.String({
+      description: "Retry max fee per gas used for the transaction",
+    }),
+    Type.Null(),
+  ]),
+  retryMaxPriorityFeePerGas: Type.Union([
+    Type.String({
+      description: "Retry max priority fee per gas used for the transaction",
     }),
     Type.Null(),
   ]),
