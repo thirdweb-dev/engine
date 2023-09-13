@@ -93,8 +93,8 @@ export const retryTransactions = async (server: FastifyInstance) => {
               BigNumber.from(txReceiptData.txData.maxFeePerGas),
             )
           ) {
-            server.log.debug(
-              `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas} is less than or equal to ${txReceiptData.txData.maxFeePerGas} for queueId: ${txReceiptData.queueId}. Will Retry Later`,
+            server.log.warn(
+              `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas} is less than or equal to Previously Submitted Transaction: ${txReceiptData.txData.maxFeePerGas} for queueId: ${txReceiptData.queueId}. Will Retry Later`,
             );
             continue;
           }
