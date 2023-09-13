@@ -21,6 +21,7 @@
 
 1. Create a `.env` file based off `.env.example` with all the variables filled in.
 2. Update the `THIRDWEB_API_SECRET_KEY` value on the `.env` file
+3. Update the `POSTGRES_CONNECTION_URL` value on the `.env` file
 
 ### PostgreSQL DB
 
@@ -79,8 +80,17 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 3. Run the below command
    <br />
    ```
-   docker run -e .env -p 3005:3005 thirdweb/web3-api:latest
+   docker run -e .env -p 3005:3005 thirdweb/web3-api:nightly
+   # check other images at https://hub.docker.com/r/thirdweb/web3-api/tags
    ```
+
+### Note:
+
+To access the Swagger UI locally on `http://localhost:3005/` when using the docker image, you need to update add the following to the `.env` file:
+
+```
+NODE_ENV=development
+```
 
 <details>
  <summary>Run on a Server (EC2 Instance/Google Compute/VM) </summary>
@@ -134,9 +144,8 @@ We use `docker-compose-infra.yml` to spin up the supporting infra services, a po
 
 1. Clone the Repo
 2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Check [Advance Setup : PostgreSQL DB](#advance-setup--postgresql-db) section to update the `.env` file
-4. Run: `yarn install`
-5. Run: `yarn dev:server & yarn dev:worker`
+3. Run: `yarn install`
+4. Run: `yarn dev:server & yarn dev:worker`
 
 The API defaults to `http://localhost:3005`
 
@@ -160,5 +169,15 @@ In this approach we run everything, i.e., Web3-API Server & Worker, Postgres DB,
 We use `docker-compose.yml` to spin up the API Server & Worker along with supporting infra services, a postgres database and the pg-admin GUI.
 
 The API defaults to `http://localhost:3005`
+
+To access the Swagger UI locally on `http://localhost:3005/` when using the docker image, you need to update add the following to the `.env` file:
+
+### Note:
+
+To access the Swagger UI locally on `http://localhost:3005/` when using the docker image, you need to update add the following to the `.env` file:
+
+```
+NODE_ENV=development
+```
 
 </details>
