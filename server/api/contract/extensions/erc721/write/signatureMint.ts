@@ -4,6 +4,7 @@ import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
+import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   contractParamSchema,
@@ -11,7 +12,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { signature721OutputSchema } from "../../../../../schemas/nft";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
@@ -19,7 +20,7 @@ const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   payload: signature721OutputSchema,
   signature: Type.String(),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -43,9 +44,6 @@ requestBodySchema.examples = [
     },
     signature:
       "0xe6f2e29f32f7da65385effa2ed4f39b8d3caf08b025eb0004fd4695b42ee145f2c7afdf2764f0097c9ed5d88b50e97c4c638f91289408fa7d7a0834cd707c4a41b",
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -63,6 +61,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
       operationId: "erc721_signature_mint",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -70,13 +69,14 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { payload, signature, web3api_overrides } = request.body;
+      const { payload, signature, tx_overrides } = request.body;
       const chainId = getChainIdFromChain(network);
+      const walletAddress = request.headers["x-wallet-address"] as string;
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
 
       const signedPayload: SignedPayload721WithQuantitySignature = {

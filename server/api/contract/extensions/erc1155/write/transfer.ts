@@ -8,7 +8,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
@@ -23,7 +23,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "the amount of tokens to transfer",
   }),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -31,9 +31,6 @@ requestBodySchema.examples = [
     to: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     token_id: "0",
     amount: "1",
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -59,13 +56,14 @@ export async function erc1155transfer(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { to, token_id, amount, web3api_overrides } = request.body;
+      const { to, token_id, amount, tx_overrides } = request.body;
       const chainId = getChainIdFromChain(network);
+      const walletAddress = request.headers["x-wallet-address"] as string;
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.erc1155.transfer.prepare(to, token_id, amount);
       const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
