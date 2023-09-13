@@ -54,7 +54,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { receiver, quantity, tx_overrides } = request.body;
-      const walletAddress = request.headers["wallet-address"] as string;
+      const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
