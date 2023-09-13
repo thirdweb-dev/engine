@@ -247,6 +247,9 @@ export const getSDK = async (
     wallet = new LocalWallet({
       chain,
     });
+    console.log(
+      `Loading local wallet for address ${walletAddress} with key ${THIRDWEB_API_SECRET_KEY}`,
+    );
     await wallet.load({
       strategy: "encryptedJson",
       password: THIRDWEB_API_SECRET_KEY,

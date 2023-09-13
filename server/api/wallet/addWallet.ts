@@ -1,8 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
+import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { connectToDatabase, env } from "../../../core";
+import { LocalFileStorage, connectToDatabase, env } from "../../../core";
 import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { getAWSKMSWallet, getGCPKeyWalletAddress } from "../../helpers/wallets";
@@ -13,8 +14,13 @@ import { WalletConfigType } from "../../schemas/wallet";
 const requestBodySchema = Type.Object({
   walletType: Type.String({
     description: "Wallet Type",
-    examples: ["aws_kms", "gcp_kms"],
+    examples: ["aws_kms", "gcp_kms", "ppk"],
   }),
+  privateKey: Type.Optional(
+    Type.String({
+      description: "Private key to import",
+    }),
+  ),
   awsKMS: Type.Optional(
     Type.Object({
       keyId: Type.String({
@@ -79,7 +85,7 @@ export async function addWallet(fastify: FastifyInstance) {
       let wallet: AwsKmsWallet | undefined;
       let walletAddress = "";
 
-      const { walletType, awsKMS, gcpKMS } = request.body;
+      const { walletType, privateKey, awsKMS, gcpKMS } = request.body;
 
       request.log.info(`walletType: ${walletType}`);
 
@@ -127,6 +133,27 @@ export async function addWallet(fastify: FastifyInstance) {
           gcpKmsLocationId,
           gcpKmsKeyVersionId,
           gcpKmsResourcePath,
+        });
+      } else if (WalletConfigType.ppk) {
+        if (!privateKey) {
+          throw new Error("privateKey is not defined!");
+        }
+
+        const wallet = new LocalWallet();
+        walletAddress = await wallet.import({
+          privateKey,
+          encryption: false,
+        });
+
+        wallet.save({
+          strategy: "encryptedJson",
+          password: env.THIRDWEB_API_SECRET_KEY,
+          storage: new LocalFileStorage(walletAddress),
+        });
+
+        await createWalletDetails({
+          address: walletAddress,
+          type: "local",
         });
       } else {
         throw new Error(`Wallet Type ${walletType} is not supported`);

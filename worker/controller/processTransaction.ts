@@ -64,8 +64,6 @@ export const processTransaction = async (
         txSubmittedNonce = BigNumber.from(currentNonce);
       }
 
-      server.log.error(`>>> [NONCE] - ${txSubmittedNonce}`);
-
       await updateTx({
         queueId: tx.queueId!,
         status: TransactionStatusEnum.Processed,
