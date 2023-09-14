@@ -10,7 +10,12 @@ import { FastifyInstance, FastifyRequest } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Knex } from "knex";
 import { v4 as uuid } from "uuid";
-import { connectToDatabase, getWalletDetails } from "../../core";
+import {
+  addWalletToDB,
+  connectToDatabase,
+  getWalletDetails,
+  getWalletDetailsWithoutChain,
+} from "../../core";
 import { createCustomError } from "../../core/error/customError";
 import {
   TransactionSchema,
@@ -63,15 +68,22 @@ export const queueTransaction = async (
   );
 
   if (!walletDetails) {
-    // await addWalletToDB(
-    //   chainId,
-    //   dbInstance,
-    //   walletAddress,
-    //   chainData.slug,
-    //   getWalletType(),
-    // );
-    throw new Error(
-      `Import Wallet Address ${walletAddress} to DB using /wallet/import end-point`,
+    const walletData = await getWalletDetailsWithoutChain(
+      walletAddress.toLowerCase(),
+      dbInstance,
+    );
+
+    if (!walletData) {
+      throw new Error(
+        `Import Wallet Address ${walletAddress} to DB using /wallet/import end-point.`,
+      );
+    }
+    await addWalletToDB(
+      chainId,
+      dbInstance,
+      walletAddress,
+      chainData.slug,
+      walletData.walletType,
     );
   }
   // encode tx
