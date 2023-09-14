@@ -169,7 +169,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
         return;
       },
       {
-        timeout: 30000,
+        timeout: 5 * 60000,
       },
     );
 
