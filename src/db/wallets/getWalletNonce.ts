@@ -31,7 +31,7 @@ export const getWalletNonce = async ({
   if (!walletNonce) {
     const walletDetails = await prisma.walletDetails.findUnique({
       where: {
-        address,
+        address: address.toLowerCase(),
       },
     });
 
