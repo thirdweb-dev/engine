@@ -70,7 +70,7 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_type } = request.params;
-      const { contractMetadata, version, tx_overrides } = request.body;
+      const { contractMetadata, version } = request.body;
       const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
 

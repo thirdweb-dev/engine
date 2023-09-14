@@ -56,7 +56,7 @@ export async function erc20Transfer(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { to_address, amount, tx_overrides } = request.body;
+      const { to_address, amount } = request.body;
       const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
 

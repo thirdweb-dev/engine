@@ -57,7 +57,7 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { from, to, token_id, tx_overrides } = request.body;
+      const { from, to, token_id } = request.body;
       const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
