@@ -1,11 +1,18 @@
 import { Static } from "@sinclair/typebox";
 import { transactionResponseSchema } from "../../../server/schemas/transaction";
-import { prisma } from "../client";
+import type { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
-export const getTxToRetry = async (): Promise<
+interface GetTxToRetryParams {
+  pgtx?: PrismaTransaction;
+}
+
+export const getTxToRetry = async ({ pgtx }: GetTxToRetryParams = {}): Promise<
   Static<typeof transactionResponseSchema>[]
 > => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   // TODO: Why is this checking that transaction hash is not null
   const txs = await prisma.$queryRaw`
 SELECT

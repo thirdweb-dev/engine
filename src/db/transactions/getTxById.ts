@@ -1,11 +1,15 @@
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
 interface GetTxByIdParams {
+  pgtx?: PrismaTransaction;
   queueId: string;
 }
 
-export const getTxById = async ({ queueId }: GetTxByIdParams) => {
+export const getTxById = async ({ pgtx, queueId }: GetTxByIdParams) => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   const tx = await prisma.transactions.findUnique({
     where: {
       id: queueId,

@@ -17,10 +17,10 @@ export const processTransaction = async (
 ): Promise<string[]> => {
   let processedIds: string[] = [];
   try {
-    await prisma.$transaction(async () => {
+    await prisma.$transaction(async (pgtx) => {
       let data;
       try {
-        data = await getQueuedTxs();
+        data = await getQueuedTxs({ pgtx });
       } catch (error) {
         const customError = createCustomError(
           "Error in getting transactions from table",
@@ -44,6 +44,7 @@ export const processTransaction = async (
       for (const tx of data) {
         server.log.info(`Processing Transaction: ${tx.queueId}`);
         const walletDetails = await getWalletDetails({
+          pgtx,
           address: tx.fromAddress!,
           chainId: tx.chainId!,
         });
@@ -66,6 +67,7 @@ export const processTransaction = async (
         }
 
         await updateTx({
+          pgtx,
           queueId: tx.queueId!,
           status: TransactionStatusEnum.Processed,
         });
@@ -94,6 +96,7 @@ export const processTransaction = async (
           );
 
           await updateTx({
+            pgtx,
             queueId: tx.queueId!,
             status: TransactionStatusEnum.Errored,
             txData: {
@@ -105,6 +108,7 @@ export const processTransaction = async (
 
         try {
           await updateTx({
+            pgtx,
             queueId: tx.queueId!,
             status: TransactionStatusEnum.Submitted,
             res: txRes,
@@ -116,6 +120,7 @@ export const processTransaction = async (
           );
 
           await updateWalletNonce({
+            pgtx,
             address: tx.fromAddress!,
             chainId: tx.chainId!,
             // TODO: IMPORTANT: This will cause errors!

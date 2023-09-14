@@ -1,17 +1,22 @@
 import { BigNumber } from "ethers";
 import { getSDK } from "../../../core/sdk/sdk";
 import { getWalletNonce } from "../../../core/services/blockchain";
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 
 interface CreateWalletNonceParams {
+  pgtx?: PrismaTransaction;
   chainId: number;
   address: string;
 }
 
 export const createWalletNonce = async ({
+  pgtx,
   chainId,
   address,
 }: CreateWalletNonceParams) => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   // TODO: chainId instead of chainName being passed around everywhere
   // or just pass SDK around
   const sdk = await getSDK(chainId.toString());

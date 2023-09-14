@@ -21,9 +21,9 @@ export const retryTransactions = async (server: FastifyInstance) => {
       return;
     }
 
-    await prisma.$transaction(async () => {
+    await prisma.$transaction(async (pgtx) => {
       server.log.info("Running Cron to Retry transactions on blockchain");
-      const transactions = await getTxToRetry();
+      const transactions = await getTxToRetry({ pgtx });
 
       if (transactions.length === 0) {
         server.log.warn("No transactions to retry");
@@ -128,6 +128,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
             }
 
             await updateTx({
+              pgtx,
               queueId: txReceiptData.txData.queueId!,
               status: TransactionStatusEnum.Submitted,
               res: txRes,

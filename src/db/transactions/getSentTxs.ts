@@ -1,12 +1,19 @@
 import { Static } from "@sinclair/typebox";
 import { env } from "../../../core/env";
 import { transactionResponseSchema } from "../../../server/schemas/transaction";
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
-export const getSentTxs = async (): Promise<
+interface GetSentTxsParams {
+  pgtx?: PrismaTransaction;
+}
+
+export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
   Static<typeof transactionResponseSchema>[]
 > => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   const txs = await prisma.transactions.findMany({
     where: {
       processedAt: {

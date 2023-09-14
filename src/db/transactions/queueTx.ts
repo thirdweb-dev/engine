@@ -1,9 +1,11 @@
 import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 
 interface QueueTxParams {
+  pgtx?: PrismaTransaction;
   tx: Transaction<any> | DeployTransaction;
   chainId: number;
   extension: ContractExtension;
@@ -14,12 +16,15 @@ interface QueueTxParams {
 
 // TODO: Simulation should be done before this function...
 export const queueTx = async ({
+  pgtx,
   tx,
   chainId,
   extension,
   deployedContractAddress,
   deployedContractType,
 }: QueueTxParams) => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   // TODO: SDK should have a JSON.stringify() method.
   const fromAddress = (await tx.getSignerAddress()).toLowerCase();
   const toAddress = tx.getTarget().toLowerCase();

@@ -1,18 +1,21 @@
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 
 interface RetryTxParams {
+  pgtx?: PrismaTransaction;
   queueId: string;
   maxFeePerGas: string;
   maxPriorityFeePerGas: string;
 }
 
-// TODO: Switch all functions to object params
 export const retryTx = async ({
+  pgtx,
   queueId,
   maxFeePerGas,
   maxPriorityFeePerGas,
 }: RetryTxParams) => {
-  console.log("Retrying tx...");
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   await prisma.transactions.update({
     where: {
       id: queueId,
