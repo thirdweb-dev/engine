@@ -9,7 +9,6 @@ interface GetWalletNonceParams {
   chainId: number;
 }
 
-// TODO: Consolidate or evaluate if getWalletDetails is necessary
 export const getWalletNonce = async ({
   pgtx,
   address,

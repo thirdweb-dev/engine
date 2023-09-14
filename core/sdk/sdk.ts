@@ -112,7 +112,6 @@ const getCachedWallet = async (
     walletData = await getWalletDetails({
       pgtx,
       address: walletAddress,
-      chainId,
     });
     console.log("Received wallet data:", walletData);
     if (walletData) {
