@@ -22,6 +22,15 @@ const requestBodySchema = Type.Object({
   }),
 });
 
+requestBodySchema.examples = [
+  {
+    walletType: "aws_kms",
+  },
+  {
+    walletType: "gcp_kms",
+  },
+];
+
 // OUTPUT
 const responseSchema = Type.Object({
   result: Type.Object({

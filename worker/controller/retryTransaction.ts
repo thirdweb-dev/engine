@@ -65,6 +65,17 @@ export const retryTransactions = async (server: FastifyInstance) => {
             `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas}, MaxPriorityFeePerGas: ${gasData.maxPriorityFeePerGas}, gasPrice`,
           );
 
+          if (
+            gasData.maxFeePerGas?.lte(
+              BigNumber.from(txReceiptData.txData.maxFeePerGas),
+            )
+          ) {
+            server.log.warn(
+              `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas} is less than or equal to Previously Submitted Transaction: ${txReceiptData.txData.maxFeePerGas} for queueId: ${txReceiptData.queueId}. Will Retry Later`,
+            );
+            continue;
+          }
+
           // Re-Submit transaction to the blockchain
           // Create transaction object
           const txObject: providers.TransactionRequest = {
