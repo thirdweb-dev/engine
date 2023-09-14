@@ -40,7 +40,7 @@ export const checkForMinedTransactionsOnBlockchain = async (
         txReceiptData.effectiveGasPrice != BigNumber.from(-1) &&
         txReceiptData.timestamp != -1
       ) {
-        server.log.debug(
+        server.log.info(
           `Got receipt for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId}, effectiveGasPrice: ${txReceiptData.effectiveGasPrice}`,
         );
 
