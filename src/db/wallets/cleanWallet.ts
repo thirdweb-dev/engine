@@ -1,6 +1,6 @@
 import { WalletDetails, WalletNonce } from "@prisma/client";
 
-type WalletNonceWithDetails = WalletNonce & {
+export type WalletNonceWithDetails = WalletNonce & {
   walletDetails: WalletDetails;
 };
 

@@ -42,11 +42,12 @@ export const getWalletDetails = async ({
       // If we have wallet details, but not a wallet nonce for the chain, create one
       if (walletDetails) {
         await createWalletNonce({
+          pgtx,
           address,
           chainId,
         });
 
-        return getWalletDetails({ address, chainId, isRecursive: true });
+        return getWalletDetails({ pgtx, address, chainId, isRecursive: true });
       }
     }
 

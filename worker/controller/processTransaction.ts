@@ -7,7 +7,7 @@ import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { prisma } from "../../src/db/client";
 import { getQueuedTxs } from "../../src/db/transactions/getQueuedTxs";
 import { updateTx } from "../../src/db/transactions/updateTx";
-import { getWalletDetails } from "../../src/db/wallets/getWalletDetails";
+import { getWalletNonce } from "../../src/db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../src/db/wallets/updateWalletNonce";
 
 const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS;
@@ -46,11 +46,12 @@ export const processTransaction = async (
         processedIds = data.map((row: any) => row.identifier);
         for (const tx of data) {
           server.log.info(`Processing Transaction: ${tx.queueId}`);
-          const walletDetails = await getWalletDetails({
+          const walletNonce = await getWalletNonce({
             pgtx,
             address: tx.fromAddress!,
             chainId: tx.chainId!,
           });
+          server.log.error(`>>> [Nonce] ${walletNonce?.nonce}`);
 
           const sdk = await getSDK(
             tx.chainId!.toString(),
@@ -64,7 +65,7 @@ export const processTransaction = async (
           ]);
 
           // TODO: IMPORTANT: Proper nonce management logic! Add comments!
-          let currentNonce = BigNumber.from(walletDetails?.nonce ?? 0);
+          let currentNonce = BigNumber.from(walletNonce?.nonce ?? 0);
           let txSubmittedNonce = BigNumber.from(0);
 
           if (BigNumber.from(blockchainNonce).gt(currentNonce)) {
