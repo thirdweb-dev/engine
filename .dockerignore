@@ -5,9 +5,8 @@ Dockerfile
 .env
 yarn-error.log
 .husky
-scripts
 docker-compose*.yml
 Dockerfile
 .DS_Store
 swagger.yml
-e2e
+test
