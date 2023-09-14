@@ -51,7 +51,6 @@ export const processTransaction = async (
             address: tx.fromAddress!,
             chainId: tx.chainId!,
           });
-          server.log.error(`>>> [Nonce] ${walletNonce?.nonce}`);
 
           const sdk = await getSDK(
             tx.chainId!.toString(),
@@ -146,7 +145,7 @@ export const processTransaction = async (
         }
       },
       {
-        timeout: 30000,
+        timeout: 5 * 60000,
       },
     );
 

@@ -28,7 +28,7 @@ export const createWalletDetails = async ({
     },
   });
 
-  if (!wallet) {
+  if (wallet) {
     throw new Error(
       `Wallet with address ${walletDetails.address} has already been added!`,
     );

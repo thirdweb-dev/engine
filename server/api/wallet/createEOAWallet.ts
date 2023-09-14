@@ -18,16 +18,16 @@ import { WalletConfigType } from "../../schemas/wallet";
 const requestBodySchema = Type.Object({
   walletType: Type.String({
     description: "Wallet Type",
-    examples: ["aws_kms", "gcp_kms", "local"],
+    examples: ["aws-kms", "gcp-kms", "local"],
   }),
 });
 
 requestBodySchema.examples = [
   {
-    walletType: "aws_kms",
+    walletType: "aws-kms",
   },
   {
-    walletType: "gcp_kms",
+    walletType: "gcp-kms",
   },
 ];
 

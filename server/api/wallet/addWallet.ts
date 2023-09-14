@@ -15,7 +15,7 @@ const requestBodySchema = Type.Object({
   walletType: Type.String({
     description: "Wallet Type",
     // TODO: Support local wallet
-    examples: ["aws_kms", "gcp_kms", "ppk"],
+    examples: ["aws-kms", "gcp-kms", "ppk"],
   }),
   privateKey: Type.Optional(
     Type.String({
@@ -52,14 +52,14 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    walletType: "aws_kms",
+    walletType: "aws-kms",
     awsKMS: {
       keyId: "12345678-1234-1234-1234-123456789012",
       arn: "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
     },
   },
   {
-    walletType: "gcp_kms",
+    walletType: "gcp-kms",
     gcpKMS: {
       keyId: "12345678-1234-1234-1234-123456789012",
       versionId: "1",
