@@ -5,6 +5,7 @@ import { TransactionSchema } from "../../server/schemas/transaction";
 
 const TRANSACTIONS_TO_BATCH = env.TRANSACTIONS_TO_BATCH;
 const MIN_TX_TO_CHECK_FOR_MINED_STATUS = env.MIN_TX_TO_CHECK_FOR_MINED_STATUS;
+const MAX_RETRIES_FOR_TX = env.MAX_RETRIES_FOR_TX;
 
 export const getWalletDetailsWithTransaction = async (
   walletAddress: string,
@@ -163,7 +164,7 @@ export const getSubmittedTransactions = async (
     and "txMined" = false
     and "txErrored" = false
     and "txHash" is not null
-    and "numberOfRetries" < 3
+    and "numberOfRetries" < ${MAX_RETRIES_FOR_TX}
     order by "txSubmittedTimestamp" ASC
     limit ${MIN_TX_TO_CHECK_FOR_MINED_STATUS}`,
   );
@@ -182,7 +183,7 @@ export const getTransactionForRetry = async (
     and "txMined" = false
     and "txErrored" = false
     and "txHash" is not null
-    and "numberOfRetries" < 3
+    and "numberOfRetries" < ${MAX_RETRIES_FOR_TX}
     order by "txSubmittedTimestamp" ASC
     limit 1
     for update skip locked`,
