@@ -61,7 +61,7 @@ export const env = createEnv({
     MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY: z.string().default("55000000000"),
     MAX_RETRIES_FOR_TX: z.coerce.number().default(3),
     RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
-    MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(50),
+    MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(10),
     MAX_WAIT_TIME_BEFORE_RETRY: z.coerce.number().default(600),
   },
   clientPrefix: "NEVER_USED",

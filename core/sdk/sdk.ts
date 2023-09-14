@@ -11,6 +11,7 @@ import {
   walletTableSchema,
 } from "../../server/schemas/wallet";
 import { getWalletDetails } from "../../src/db/wallets/getWalletDetails";
+import { PrismaTransaction } from "../../src/schema/prisma";
 import { env } from "../env";
 import { networkResponseSchema } from "../schema";
 
@@ -95,7 +96,11 @@ const cacheSdk = (
 };
 
 const walletDataMap: Map<string, string> = new Map();
-const getCachedWallet = async (walletAddress: string, chainId: number) => {
+const getCachedWallet = async (
+  walletAddress: string,
+  chainId: number,
+  pgtx?: PrismaTransaction,
+) => {
   walletAddress = walletAddress.toLowerCase();
   let walletData;
   const cachedWallet = walletDataMap.get(walletAddress);
@@ -104,7 +109,11 @@ const getCachedWallet = async (walletAddress: string, chainId: number) => {
   } else {
     console.log("Checking details for address", walletAddress);
     // TODO: This needs to be changed...
-    walletData = await getWalletDetails({ address: walletAddress, chainId });
+    walletData = await getWalletDetails({
+      pgtx,
+      address: walletAddress,
+      chainId,
+    });
     console.log("Received wallet data:", walletData);
     if (walletData) {
       walletDataMap.set(walletAddress, JSON.stringify(walletData));
@@ -121,6 +130,7 @@ const THIRDWEB_API_SECRET_KEY = env.THIRDWEB_API_SECRET_KEY;
 export const getSDK = async (
   chainName: ChainOrRpc,
   walletAddress?: string,
+  pgtx?: PrismaTransaction,
 ): Promise<ThirdwebSDK> => {
   let walletData: Static<typeof walletTableSchema> | undefined;
 
@@ -158,7 +168,7 @@ export const getSDK = async (
     return sdk;
   }
 
-  walletData = await getCachedWallet(walletAddress, chain.chainId);
+  walletData = await getCachedWallet(walletAddress, chain.chainId, pgtx);
 
   if (!walletData) {
     throw new Error(`Wallet not found for address: ${walletAddress}`);

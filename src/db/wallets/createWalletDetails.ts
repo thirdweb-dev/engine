@@ -1,8 +1,10 @@
+import { PrismaTransaction } from "../../schema/prisma";
 import type { WalletType } from "../../schema/wallet";
-import { prisma } from "../client";
+import { getPrismaWithPostgresTx } from "../client";
 
 // TODO: Case on types by wallet type
 interface CreateWalletDetailsParams {
+  pgtx?: PrismaTransaction;
   address: string;
   type: WalletType;
   awsKmsKeyId?: string;
@@ -14,9 +16,12 @@ interface CreateWalletDetailsParams {
   gcpKmsResourcePath?: string;
 }
 
-export const createWalletDetails = async (
-  walletDetails: CreateWalletDetailsParams,
-) => {
+export const createWalletDetails = async ({
+  pgtx,
+  ...walletDetails
+}: CreateWalletDetailsParams) => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   return prisma.walletDetails.create({
     data: {
       ...walletDetails,

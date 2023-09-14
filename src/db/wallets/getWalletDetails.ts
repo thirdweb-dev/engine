@@ -1,18 +1,23 @@
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 import { WalletWithNonceAndDetails, cleanWallet } from "./cleanWallet";
 import { createWalletNonce } from "./createWalletNonce";
 
 interface GetWalletDetailsParams {
+  pgtx?: PrismaTransaction;
   address: string;
   chainId: number;
   isRecursive?: boolean;
 }
 
 export const getWalletDetails = async ({
+  pgtx,
   address,
   chainId,
   isRecursive,
 }: GetWalletDetailsParams): Promise<WalletWithNonceAndDetails | null> => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   const wallet = await prisma.walletNonce.findUnique({
     where: {
       address_chainId: {
@@ -37,11 +42,12 @@ export const getWalletDetails = async ({
       // If we have wallet details, but not a wallet nonce for the chain, create one
       if (walletDetails) {
         await createWalletNonce({
+          pgtx,
           address,
           chainId,
         });
 
-        return getWalletDetails({ address, chainId, isRecursive: true });
+        return getWalletDetails({ pgtx, address, chainId, isRecursive: true });
       }
     }
 

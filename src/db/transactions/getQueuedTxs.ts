@@ -1,12 +1,19 @@
 import { Static } from "@sinclair/typebox";
 import { env } from "../../../core/env";
 import { transactionResponseSchema } from "../../../server/schemas/transaction";
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
-export const getQueuedTxs = async (): Promise<
+interface GetQueuedTxsParams {
+  pgtx?: PrismaTransaction;
+}
+
+export const getQueuedTxs = async ({ pgtx }: GetQueuedTxsParams = {}): Promise<
   Static<typeof transactionResponseSchema>[]
 > => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   // TODO: Don't use env var for transactions to batch
   const txs = await prisma.$queryRaw`
 SELECT

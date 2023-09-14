@@ -1,9 +1,11 @@
 import { Transactions } from "@prisma/client";
 import { providers } from "ethers";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 
 interface UpdateTxParams {
+  pgtx?: PrismaTransaction;
   queueId: string;
   status: TransactionStatusEnum;
   // TODO: Receipt never actually gets used here... should get passed through.
@@ -12,11 +14,14 @@ interface UpdateTxParams {
 }
 
 export const updateTx = async ({
+  pgtx,
   queueId,
   status,
   res,
   txData,
 }: UpdateTxParams) => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
   switch (status) {
     case TransactionStatusEnum.Submitted:
       await prisma.transactions.update({

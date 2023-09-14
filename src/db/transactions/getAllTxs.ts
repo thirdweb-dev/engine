@@ -4,10 +4,12 @@ import {
   transactionResponseSchema,
 } from "../../../server/schemas/transaction";
 import { ContractExtension } from "../../schema/extension";
-import { prisma } from "../client";
+import { PrismaTransaction } from "../../schema/prisma";
+import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
 interface GetAllTxsParams {
+  pgtx?: PrismaTransaction;
   page: number;
   limit: number;
   filter?: TransactionStatusEnum;
@@ -15,6 +17,7 @@ interface GetAllTxsParams {
 }
 
 export const getAllTxs = async ({
+  pgtx,
   page,
   limit,
   filter,
@@ -39,6 +42,8 @@ export const getAllTxs = async ({
   } else if (filter === TransactionStatusEnum.Errored) {
     filterBy = "errorMessage";
   }
+
+  const prisma = getPrismaWithPostgresTx(pgtx);
 
   // TODO: Cleaning should be handled by zod
   const txs = await prisma.transactions.findMany({
