@@ -52,14 +52,14 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    walletTye: "aws_kms",
+    walletType: "aws_kms",
     awsKMS: {
       keyId: "12345678-1234-1234-1234-123456789012",
       arn: "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
     },
   },
   {
-    walletTye: "gcp_kms",
+    walletType: "gcp_kms",
     gcpKMS: {
       keyId: "12345678-1234-1234-1234-123456789012",
       versionId: "1",
@@ -152,7 +152,7 @@ export async function addWallet(fastify: FastifyInstance) {
           gcpKmsKeyVersionId,
           gcpKmsResourcePath,
         });
-      } else if (WalletConfigType.ppk) {
+      } else if (walletType === WalletConfigType.ppk) {
         if (!privateKey) {
           throw new Error("privateKey is not defined!");
         }
