@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
+import { walletAuthSchema } from "../../../../../../core/schema";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
@@ -11,14 +12,14 @@ import {
   signature721InputSchema,
   signature721OutputSchema,
 } from "../../../../../schemas/nft";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
 const requestBodySchema = Type.Object({
   ...signature721InputSchema.properties,
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 // OUTPUT
@@ -70,6 +71,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       operationId: "erc721_signature_generate",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -77,6 +79,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
+      const walletAddress = request.headers["x-wallet-address"] as string;
       const {
         to,
         currencyAddress,
@@ -89,13 +92,12 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
         royaltyBps,
         royaltyRecipient,
         uid,
-        web3api_overrides,
       } = request.body;
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
 
       const payload = checkAndReturnNFTSignaturePayload<

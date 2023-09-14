@@ -2,13 +2,14 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
+import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
@@ -26,7 +27,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "the amount of tokens to transfer",
   }),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -35,9 +36,6 @@ requestBodySchema.examples = [
     to: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     token_id: "0",
     amount: "1",
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -57,6 +55,7 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
       operationId: "erc1155_transferFrom",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -64,13 +63,14 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { from, to, token_id, amount, web3api_overrides } = request.body;
+      const { from, to, token_id, amount, tx_overrides } = request.body;
       const chainId = getChainIdFromChain(network);
+      const walletAddress = request.headers["x-wallet-address"] as string;
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.erc1155.transferFrom.prepare(
         from,

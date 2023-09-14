@@ -49,7 +49,7 @@ export const checkForMinedTransactionsOnBlockchain = async (
           status: TransactionStatusEnum.Mined,
           txData: {
             gasPrice: BigNumber.from(
-              txReceiptData.effectiveGasPrice,
+              txReceiptData.effectiveGasPrice || 0,
             ).toString(),
             blockNumber: txReceiptData.blockNumber,
             minedAt: new Date(txReceiptData.timestamp),

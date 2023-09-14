@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../core";
+import { walletAuthSchema } from "../../../../core/schema";
 
 import { queueTx } from "../../../../src/db/transactions/queueTx";
 import {
@@ -9,7 +10,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../helpers/sharedApiSchemas";
-import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
 
 // INPUT
@@ -22,7 +23,7 @@ const writeRequestBodySchema = Type.Object({
       description: "Arguments for the function. Comma Separated",
     }),
   ),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 // Adding example for Swagger File
@@ -34,8 +35,7 @@ writeRequestBodySchema.examples = [
       "0x3EcDBF3B911d0e9052b64850693888b008e18373",
       "0",
     ],
-    web3api_overrides: {
-      from: "0x...",
+    tx_overrides: {
       value: "0.0001",
     },
   },
@@ -55,12 +55,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
-      headers: {
-        type: "object",
-        properties: {
-          "x-wallet-address": { type: "string" },
-        },
-      },
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -69,17 +64,18 @@ export async function writeToContract(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { function_name, args, web3api_overrides } = request.body;
+      const { function_name, args, tx_overrides } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.prepare(function_name, args, {
-        value: web3api_overrides?.value,
-        from: web3api_overrides?.from,
+        value: tx_overrides?.value,
+        from: walletAddress,
       });
 
       const queuedId = await queueTx({ tx, chainId, extension: "none" });

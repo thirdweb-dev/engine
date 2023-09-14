@@ -2,13 +2,14 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core";
+import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
@@ -23,7 +24,7 @@ const requestBodySchema = Type.Object({
   quantity: Type.String({
     description: "Quantity of NFTs to mint",
   }),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -31,9 +32,6 @@ requestBodySchema.examples = [
     receiver: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     token_id: "0",
     quantity: "1",
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -51,6 +49,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
       operationId: "erc1155_claimTo",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -58,13 +57,14 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { receiver, token_id, quantity, web3api_overrides } = request.body;
+      const { receiver, token_id, quantity, tx_overrides } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.erc1155.claimTo.prepare(
         receiver,

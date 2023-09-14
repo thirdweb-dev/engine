@@ -24,7 +24,7 @@ export class LocalFileStorage implements AsyncStorage {
 
   getKey(): string {
     if (this.walletAddress) {
-      return `localWallet-${this.walletAddress}`;
+      return `localWallet-${this.walletAddress.toLowerCase()}`;
     }
     throw new Error("Wallet Address not set");
   }
@@ -246,11 +246,14 @@ export const getSDK = async (
     //TODO get private key from encrypted file
     wallet = new LocalWallet({
       chain,
-      storage: new LocalFileStorage(walletAddress),
     });
+    console.log(
+      `Loading local wallet for address ${walletAddress} with key ${THIRDWEB_API_SECRET_KEY}`,
+    );
     await wallet.load({
       strategy: "encryptedJson",
       password: THIRDWEB_API_SECRET_KEY,
+      storage: new LocalFileStorage(walletAddress),
     });
     sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: THIRDWEB_API_SECRET_KEY,

@@ -64,12 +64,10 @@ export const processTransaction = async (
         txSubmittedNonce = BigNumber.from(currentNonce);
       }
 
-      server.log.info("Updating tx to processed...");
       await updateTx({
         queueId: tx.queueId!,
         status: TransactionStatusEnum.Processed,
       });
-      server.log.info("Finished updating tx...");
 
       // Get the nonce for the blockchain transaction
 
@@ -121,7 +119,7 @@ export const processTransaction = async (
           chainId: tx.chainId!,
           // TODO: IMPORTANT: This will cause errors!
           // TODO: Should this be txSubmittedNonce or blockchainNonce?
-          nonce: txSubmittedNonce.toNumber(),
+          nonce: txSubmittedNonce.toNumber() + 1,
         });
       } catch (error) {
         server.log.warn("Transaction failed with error:");

@@ -11,7 +11,7 @@ type TransactionReceiptWithBlockDetails = {
   chainId: number;
   queueId: string;
   timestamp: number;
-  effectiveGasPrice: BigNumber;
+  effectiveGasPrice?: BigNumber;
   // TODO: Get rid of this ugly typebox type and use zod
   txData: Static<typeof transactionResponseSchema>;
 };

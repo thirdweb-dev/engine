@@ -40,33 +40,31 @@ async function main() {
         break;
       }
       default: {
-        if (tx.txProcessedTimestamp && tx.createdTimestamp) {
+        if (tx.processedAt && tx.queuedAt) {
           processedTxs.push({
             status: tx.status!,
             timeTaken:
-              new Date(tx.txProcessedTimestamp).getTime() -
-              new Date(tx.createdTimestamp).getTime(),
-            hash: tx.txHash,
+              new Date(tx.processedAt).getTime() -
+              new Date(tx.queuedAt).getTime(),
+            hash: tx.transactionHash,
           });
         }
 
-        if (tx.txSubmittedTimestamp && tx.createdTimestamp) {
+        if (tx.sentAt && tx.queuedAt) {
           submittedTxs.push({
             status: tx.status!,
             timeTaken:
-              new Date(tx.txSubmittedTimestamp).getTime() -
-              new Date(tx.createdTimestamp).getTime(),
-            hash: tx.txHash,
+              new Date(tx.sentAt).getTime() - new Date(tx.queuedAt).getTime(),
+            hash: tx.transactionHash,
           });
         }
 
-        if (tx.txMinedTimestamp && tx.createdTimestamp) {
+        if (tx.minedAt && tx.queuedAt) {
           minedTxs.push({
             status: tx.status!,
             timeTaken:
-              new Date(tx.txMinedTimestamp).getTime() -
-              new Date(tx.createdTimestamp).getTime(),
-            hash: tx.txHash,
+              new Date(tx.minedAt).getTime() - new Date(tx.queuedAt).getTime(),
+            hash: tx.transactionHash,
           });
         }
         break;
