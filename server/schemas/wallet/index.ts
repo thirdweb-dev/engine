@@ -11,20 +11,6 @@ export const walletParamSchema = Type.Object({
   }),
 });
 
-// CREATE TABLE IF NOT EXISTS wallets (
-//   "walletAddress" VARCHAR(255) NOT NULL,
-//   "chainId" VARCHAR(255) NOT NULL,
-//   "walletType" VARCHAR(255) NOT NULL,
-//   "blockchainNonce" BIGINT NOT NULL,
-//   "lastSyncedTimestamp" TIMESTAMP,
-//   "lastUsedNonce" BIGINT NOT NULL,
-//   -- AWS
-//   "aws_kms_keyId" VARCHAR(255),
-//   "aws_kms_arn" VARCHAR(255),
-//   --  KEYID
-//   --  ARN
-//   -- GCP
-//   PRIMARY KEY ("walletAddress", "chainId")
 export const walletTableSchema = Type.Optional(
   Type.Object({
     address: Type.String({

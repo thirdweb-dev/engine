@@ -57,7 +57,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { receiver, token_id, quantity, tx_overrides } = request.body;
+      const { receiver, token_id, quantity } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 

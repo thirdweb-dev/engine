@@ -56,7 +56,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { receiver, metadata, tx_overrides } = request.body;
+      const { receiver, metadata } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 

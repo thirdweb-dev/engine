@@ -53,7 +53,7 @@ export async function erc1155burn(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { token_id, amount, tx_overrides } = request.body;
+      const { token_id, amount } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 

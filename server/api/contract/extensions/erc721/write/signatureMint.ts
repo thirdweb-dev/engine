@@ -69,7 +69,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { payload, signature, tx_overrides } = request.body;
+      const { payload, signature } = request.body;
       const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
 

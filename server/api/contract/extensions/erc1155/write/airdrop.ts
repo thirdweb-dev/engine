@@ -70,7 +70,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { token_id, addresses, tx_overrides } = request.body;
+      const { token_id, addresses } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 

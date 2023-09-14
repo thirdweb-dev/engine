@@ -50,7 +50,7 @@ export async function erc20burn(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { amount, tx_overrides } = request.body;
+      const { amount } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
 
