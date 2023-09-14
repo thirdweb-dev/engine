@@ -59,9 +59,10 @@ export const getWalletDetails = async (
 
 export const addWalletToDB = async (
   chainId: string,
+  dbInstance: Knex,
   walletAddress: string,
   slug: string,
-  dbInstance: Knex,
+  walletType: string,
 ): Promise<void> => {
   try {
     const sdk = await getSDK(chainId);
@@ -76,7 +77,8 @@ export const addWalletToDB = async (
       blockchainNonce: BigNumber.from(walletNonce ?? 0).toNumber(),
       lastSyncedTimestamp: new Date(),
       lastUsedNonce: -1,
-      walletType: slug,
+      walletType,
+      slug,
     };
 
     await insertIntoWallets(walletData, dbInstance);
@@ -172,6 +174,22 @@ export const addWalletDataWithSupportChainsNonceToDB = async (
 
     await Promise.all(promises);
     server.log.info(`Wallet Table setup completed`);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getWalletDetailsWithoutChain = async (
+  walletAddress: string,
+  database: Knex,
+): Promise<any> => {
+  try {
+    const walletDetails = await database("wallets")
+      .select("*")
+      .where({ walletAddress: walletAddress.toLowerCase() })
+      .first();
+
+    return walletDetails;
   } catch (error) {
     throw error;
   }
