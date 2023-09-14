@@ -1,13 +1,14 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../../core";
-import { Static, Type } from "@sinclair/typebox";
+import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import { queueTransaction } from "../../../../../../helpers";
+import { getChainIdFromChain } from "../../../../../../utilities/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -57,18 +58,18 @@ export async function englishAuctionsCloseAuctionForBidder(
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { listing_id } = request.body;
+      const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(network, contract_address);
       const tx = await contract.englishAuctions.closeAuctionForBidder.prepare(
         listing_id,
       );
 
-      const queuedId = await queueTransaction(
-        request,
+      const queuedId = await queueTx({
         tx,
-        network,
-        "V3-englishAuctions",
-      );
+        chainId,
+        extension: "marketplace-v3-english-auctions",
+      });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

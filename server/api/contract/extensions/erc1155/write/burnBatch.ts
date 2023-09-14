@@ -2,13 +2,15 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core";
-import { queueTransaction } from "../../../../../helpers";
+import { walletAuthSchema } from "../../../../../../core/schema";
+import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -23,16 +25,13 @@ const requestBodySchema = Type.Object({
       description: "The amounts of tokens to burn",
     }),
   ),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
   {
     token_ids: ["0", "1"],
     amounts: ["1", "1"],
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -52,6 +51,7 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
       operationId: "erc1155_burnBatch",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -59,15 +59,17 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { token_ids, amounts, web3api_overrides } = request.body;
+      const { token_ids, amounts } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
+      const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.erc1155.burnBatch.prepare(token_ids, amounts);
-      const queuedId = await queueTransaction(request, tx, network, "erc1155");
+      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

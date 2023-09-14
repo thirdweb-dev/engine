@@ -1,124 +1,180 @@
 import { Type } from "@sinclair/typebox";
 
 export const transactionResponseSchema = Type.Object({
-  queueId: Type.Optional(
+  queueId: Type.Union([
     Type.String({
       description: "Request Identifier",
     }),
-  ),
-  walletAddress: Type.Optional(
+    Type.Null(),
+  ]),
+  chainId: Type.Union([
+    Type.Number({
+      description: "Chain ID where the transaction was submitted",
+    }),
+    Type.Null(),
+  ]),
+  fromAddress: Type.Union([
     Type.String({
       description: "Wallet Address used for the transaction",
     }),
-  ),
-  contractAddress: Type.Optional(
+    Type.Null(),
+  ]),
+  toAddress: Type.Union([
     Type.String({
       description: "Contract Address used for the transaction",
     }),
-  ),
-  chainId: Type.Optional(
-    Type.String({
-      description: "Chain ID where the transaction was submitted",
-    }),
-  ),
-  extension: Type.Optional(
-    Type.String({
-      description: "ThirdWeb Extension type",
-    }),
-  ),
-  status: Type.Optional(
-    Type.String({
-      description: "Status of the transaction",
-      examples: ["processed", "queued", "submitted", "errored", "mined"],
-    }),
-  ),
-  encodedInputData: Type.Optional(
+    Type.Null(),
+  ]),
+  data: Type.Union([
     Type.String({
       description: "Encoded Input Data",
     }),
-  ),
-  txType: Type.Optional(
-    Type.Number({
-      description: "Transaction Type",
-    }),
-  ),
-  gasPrice: Type.Optional(
+    Type.Null(),
+  ]),
+  extension: Type.Union([
     Type.String({
-      description: "Gas Price used for the transaction",
+      description: "ThirdWeb Extension type",
     }),
-  ),
-  gasLimit: Type.Optional(
+    Type.Null(),
+  ]),
+  value: Type.Union([
+    Type.String({
+      description: "Value for the transaction",
+    }),
+    Type.Null(),
+  ]),
+  nonce: Type.Union([
+    Type.Number({
+      description: "The nonce of the transaction",
+    }),
+    Type.Null(),
+  ]),
+  gasLimit: Type.Union([
     Type.String({
       description: "Gas Limit used for the transaction",
     }),
-  ),
-  maxPriorityFeePerGas: Type.Optional(
+    Type.Null(),
+  ]),
+  gasPrice: Type.Union([
     Type.String({
-      description: "Max Priority Fee Per Gas used for the transaction",
+      description: "Gas Price used for the transaction",
     }),
-  ),
-  maxFeePerGas: Type.Optional(
+    Type.Null(),
+  ]),
+  maxFeePerGas: Type.Union([
     Type.String({
       description: "Max Fee Per Gas used for the transaction",
     }),
-  ),
-  txHash: Type.Optional(
+    Type.Null(),
+  ]),
+  maxPriorityFeePerGas: Type.Union([
+    Type.String({
+      description: "Max Priority Fee Per Gas used for the transaction",
+    }),
+    Type.Null(),
+  ]),
+  transactionType: Type.Union([
+    Type.Number({
+      description: "Transaction Type",
+    }),
+    Type.Null(),
+  ]),
+  transactionHash: Type.Union([
     Type.String({
       description: "Submitted Transaction Hash",
     }),
-  ),
-  submittedTxNonce: Type.Optional(
-    Type.Number({
-      description: "Submitted Transaction Nonce",
-    }),
-  ),
-  createdTimestamp: Type.Optional(
+    Type.Null(),
+  ]),
+  queuedAt: Type.Union([
     Type.String({
-      description: "Transaction Request Creation Timestamp",
+      description: "Transaction Queue Request Timestamp",
     }),
-  ),
-  txProcessedTimestamp: Type.Optional(
+    Type.Null(),
+  ]),
+  processedAt: Type.Union([
     Type.String({
       description:
         "Transaction Processed Timestamp (happens right before submission timestamp)",
     }),
-  ),
-  txSubmittedTimestamp: Type.Optional(
+    Type.Null(),
+  ]),
+  sentAt: Type.Union([
     Type.String({
       description: "Transaction Submission Timestamp",
     }),
-  ),
-  deployedContractAddress: Type.Optional(
-    Type.String({
-      description: "Deployed Contract Address",
-    }),
-  ),
-  contractType: Type.Optional(
-    Type.String({
-      description: "Deployed Contract Type",
-    }),
-  ),
-  errorMessage: Type.Optional(
-    Type.String({
-      description: "Error Message",
-    }),
-  ),
-  txMinedTimestamp: Type.Optional(
+    Type.Null(),
+  ]),
+  minedAt: Type.Union([
     Type.String({
       description: "Transaction Mined Status Update Timestamp",
     }),
-  ),
-  blockNumber: Type.Optional(
+    Type.Null(),
+  ]),
+  deployedContractAddress: Type.Union([
+    Type.String({
+      description: "Deployed Contract Address",
+    }),
+    Type.Null(),
+  ]),
+  deployedContractType: Type.Union([
+    Type.String({
+      description: "Deployed Contract Type",
+    }),
+    Type.Null(),
+  ]),
+  errorMessage: Type.Union([
+    Type.String({
+      description: "Error Message",
+    }),
+    Type.Null(),
+  ]),
+  sentAtBlockNumber: Type.Union([
+    Type.Number({
+      description: "The block Number where the transaction was sent",
+    }),
+    Type.Null(),
+  ]),
+  blockNumber: Type.Union([
     Type.Number({
       description: "Block Number where the transaction was mined",
     }),
-  ),
+    Type.Null(),
+  ]),
+  status: Type.Union([
+    Type.String({
+      description: "Status of the transaction",
+      examples: ["processed", "queued", "sent", "errored", "mined"],
+    }),
+    Type.Null(),
+  ]),
+  retryCount: Type.Number({
+    description: "Number of times the transaction was retried.",
+  }),
+  retryGasValues: Type.Union([
+    Type.Boolean({
+      description: "Whether the transaction should be retried.",
+    }),
+    Type.Null(),
+  ]),
+  retryMaxFeePerGas: Type.Union([
+    Type.String({
+      description: "Retry max fee per gas used for the transaction",
+    }),
+    Type.Null(),
+  ]),
+  retryMaxPriorityFeePerGas: Type.Union([
+    Type.String({
+      description: "Retry max priority fee per gas used for the transaction",
+    }),
+    Type.Null(),
+  ]),
 });
 
 export enum TransactionStatusEnum {
   Processed = "processed",
   Queued = "queued",
-  Submitted = "submitted",
+  // TODO: Switch to sent
+  Submitted = "sent",
   Errored = "errored",
   Mined = "mined",
 }

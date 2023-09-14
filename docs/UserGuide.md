@@ -51,7 +51,7 @@ Backend wallets are used by the web3-api to execute transactions, you should thi
 
 1.POST /create/wallet
 `{
-"walletType": "aws_kms | gcp_kms | local"
+"walletType": "aws-kms | gcp-kms | local"
 }`
 
 #### AWS KMS Wallet
