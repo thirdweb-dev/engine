@@ -18,6 +18,14 @@
 ## Table of contents
 
 - [Introduction](#introduction)
+- [Getting started](#getting-started)
+  - [Setup environment variables](#setup-environment-variables)
+  - [Run the server](#run-the-server)
+  - [Using the server](#using-the-server)
+- [Local development](#local-development)
+- [User guide](#user-guide)
+- [Documentation](#api-documentation)
+- [Contributing](#contributing)
 
 ## Introduction
 
@@ -43,9 +51,9 @@ This project is in `alpha` - if you're looking for specific features & or want t
 1. Docker
 2. PostgreSQL DB
 
-## Getting Started
+## Getting started
 
-### Set up required Environment Variables
+### Setup environment variables
 
 Set these variables in the .env file (copy .env.example to get started)
 
