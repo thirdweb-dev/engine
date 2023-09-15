@@ -153,7 +153,7 @@ export const importWallet = async (fastify: FastifyInstance) => {
           break;
         case WalletType.gcpKms:
           const { gcpKmsKeyId, gcpKmsKeyVersionId } = req.body as any;
-          if (!(awsKmsArn && awsKmsKeyId)) {
+          if (!(gcpKmsKeyId && gcpKmsKeyVersionId)) {
             throw new Error(
               `Please provide 'gcpKmsKeyId' and 'gcpKmsKeyVersionId' to import a wallet.`,
             );
