@@ -2,9 +2,12 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../core/error/customError";
-import { getAllTxFromDB } from "../../helpers";
+import { getAllTxs } from "../../../src/db/transactions/getAllTxs";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import {
+  TransactionStatusEnum,
+  transactionResponseSchema,
+} from "../../schemas/transaction";
 
 // INPUT
 const requestQuerySchema = Type.Object({
@@ -20,27 +23,11 @@ const requestQuerySchema = Type.Object({
     examples: ["10"],
     default: "10",
   }),
-  sort: Type.Optional(
-    Type.String({
-      description:
-        "This parameter specifies the sorting order of the results based on a particular field or attribute",
-      examples: ["createdTimestamp"],
-      default: "createdTimestamp",
-    }),
-  ),
-  sort_order: Type.Optional(
-    Type.String({
-      description:
-        "This parameter specifies the sorting order of the results based on a particular field or attribute",
-      examples: ["desc", "asc"],
-      default: "asc",
-    }),
-  ),
   filter: Type.Optional(
-    Type.String({
+    Type.Union([Type.Enum(TransactionStatusEnum), Type.Literal("all")], {
       description:
         "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
-      examples: ["all", "submitted", "processed", "errored", "queued"],
+      examples: ["all", "submitted", "processed", "errored", "mined", "queued"],
       default: "all",
     }),
   ),
@@ -95,7 +82,7 @@ export async function getAllTx(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { page, limit, sort, sort_order, filter } = request.query;
+      const { page, limit, filter } = request.query;
 
       if (isNaN(parseInt(page, 10))) {
         const customError = createCustomError(
@@ -113,16 +100,14 @@ export async function getAllTx(fastify: FastifyInstance) {
         throw customError;
       }
 
-      const returnData = await getAllTxFromDB(
-        request,
-        parseInt(page, 10),
-        parseInt(limit, 10),
-        sort,
-        sort_order,
-        filter,
-      );
+      const txs = await getAllTxs({
+        page: parseInt(page, 10),
+        limit: parseInt(limit, 10),
+        filter: filter && filter !== "all" ? filter : undefined,
+      });
+
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        result: txs,
       });
     },
   });

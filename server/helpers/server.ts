@@ -34,15 +34,15 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       );
     }
 
-    if (process.env.NODE_ENV === "production") {
-      if (request.routerPath?.includes("static")) {
-        return reply.status(404).send({
-          statusCode: 404,
-          error: "Not Found",
-          message: "Not Found",
-        });
-      }
-    }
+    // if (process.env.NODE_ENV === "production") {
+    //   if (request.routerPath?.includes("static")) {
+    //     return reply.status(404).send({
+    //       statusCode: 404,
+    //       error: "Not Found",
+    //       message: "Not Found",
+    //     });
+    //   }
+    // }
 
     const { url } = request;
     // Skip Authentication for Health Check and Static Files and JSON Files for Swagger

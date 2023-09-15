@@ -1,5 +1,4 @@
 export * from "./database/dbConnect";
-export * from "./database/dbOperation";
 export * from "./database/dbPrereqs";
 export * from "./env";
 export * from "./error/customError";

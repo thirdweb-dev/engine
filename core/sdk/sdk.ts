@@ -1,29 +1,36 @@
 import { Static } from "@sinclair/typebox";
 import { Chain, getChainByChainId, getChainBySlug } from "@thirdweb-dev/chains";
 import { ContractAddress } from "@thirdweb-dev/generated-abis";
-import {
-  AddressOrEns,
-  BaseContractForAddress,
-  ChainOrRpc,
-  SmartContract,
-  ThirdwebSDK,
-} from "@thirdweb-dev/sdk";
+import { AddressOrEns, ChainOrRpc, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { AsyncStorage, LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
-import { BaseContract, BigNumber } from "ethers";
 import { GcpKmsSigner } from "ethers-gcp-kms-signer";
 import * as fs from "fs";
 import {
   WalletConfigType,
   walletTableSchema,
 } from "../../server/schemas/wallet";
-import { getWalletDetails } from "../database/dbOperation";
+import { getWalletDetails } from "../../src/db/wallets/getWalletDetails";
+import { PrismaTransaction } from "../../src/schema/prisma";
 import { env } from "../env";
 import { networkResponseSchema } from "../schema";
 
 //TODO add constructor so you can pass in directory
-class LocalFileStorage implements AsyncStorage {
-  getItem(key: string): Promise<string | null> {
+export class LocalFileStorage implements AsyncStorage {
+  constructor(private readonly walletAddress?: string) {
+    if (walletAddress) {
+      this.walletAddress = walletAddress;
+    }
+  }
+
+  getKey(): string {
+    if (this.walletAddress) {
+      return `localWallet-${this.walletAddress.toLowerCase()}`;
+    }
+    throw new Error("Wallet Address not set");
+  }
+
+  getItem(_: string): Promise<string | null> {
     //read file from home directory/.thirdweb folder
     //file name is the key name
     //return null if it doesn't exist
@@ -32,31 +39,32 @@ class LocalFileStorage implements AsyncStorage {
     if (!fs.existsSync(dir)) {
       return Promise.resolve(null);
     }
-    const path = `${dir}/${key}`;
+
+    const path = `${dir}/${this.getKey()}`;
     if (!fs.existsSync(path)) {
       return Promise.resolve(null);
     }
     return Promise.resolve(fs.readFileSync(path, "utf8"));
   }
 
-  setItem(key: string, value: string): Promise<void> {
+  setItem(_: string, value: string): Promise<void> {
     //save to home directory .thirdweb folder
     //create the folder if it doesn't exist
     const dir = `${process.env.HOME}/.thirdweb`;
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir);
     }
-    fs.writeFileSync(`${dir}/${key}`, value);
+    fs.writeFileSync(`${dir}/${this.getKey()}`, value);
     return Promise.resolve();
   }
 
-  removeItem(key: string): Promise<void> {
+  removeItem(_: string): Promise<void> {
     //delete the file from home directory/.thirdweb folder
     const dir = `${process.env.HOME}/.thirdweb`;
     if (!fs.existsSync(dir)) {
       return Promise.resolve();
     }
-    const path = `${dir}/${key}`;
+    const path = `${dir}/${this.getKey()}`;
     if (!fs.existsSync(path)) {
       return Promise.resolve();
     } else {
@@ -69,40 +77,60 @@ class LocalFileStorage implements AsyncStorage {
 // Cache the SDK in memory so it doesn't get reinstantiated unless the server crashes
 // This saves us from making a request to get the private key for reinstantiation on every request
 const sdkMap: Map<string, ThirdwebSDK> = new Map();
+const getCachedSdk = async (chainName: string, walletAddress?: string) => {
+  const key = walletAddress ? chainName + "_" + walletAddress : chainName;
+  const sdk = sdkMap.get(key);
+  if (sdk) {
+    return sdk;
+  }
+  return null;
+};
+
+const cacheSdk = (
+  chainName: string,
+  sdk: ThirdwebSDK,
+  walletAddress?: string,
+) => {
+  const key = walletAddress ? chainName + "_" + walletAddress : chainName;
+  sdkMap.set(key, sdk);
+};
+
 const walletDataMap: Map<string, string> = new Map();
+const getCachedWallet = async (
+  walletAddress: string,
+  chainId: number,
+  pgtx?: PrismaTransaction,
+) => {
+  walletAddress = walletAddress.toLowerCase();
+  let walletData;
+  const cachedWallet = walletDataMap.get(walletAddress);
+  if (cachedWallet) {
+    walletData = JSON.parse(cachedWallet);
+  } else {
+    console.log("Checking details for address", walletAddress);
+    // TODO: This needs to be changed...
+    walletData = await getWalletDetails({
+      pgtx,
+      address: walletAddress,
+    });
+    console.log("Received wallet data:", walletData);
+    if (walletData) {
+      walletDataMap.set(walletAddress, JSON.stringify(walletData));
+    }
+  }
+  return walletData;
+};
 
 const AWS_REGION = env.AWS_REGION;
 const AWS_ACCESS_KEY_ID = env.AWS_ACCESS_KEY_ID;
 const AWS_SECRET_ACCESS_KEY = env.AWS_SECRET_ACCESS_KEY;
-const AWS_KMS_KEY_ID = env.AWS_KMS_KEY_ID;
-
-// Google KMS Wallet
-const GOOGLE_KMS_KEY_ID = env.GOOGLE_KMS_KEY_ID;
+const THIRDWEB_API_SECRET_KEY = env.THIRDWEB_API_SECRET_KEY;
 
 export const getSDK = async (
   chainName: ChainOrRpc,
-  walletOptions?: {
-    walletAddress?: string;
-    walletType?: string;
-    awsKmsKeyId?: string;
-    gcpKmsKeyId?: string;
-    gcpKmsKeyRingId?: string;
-    gcpKmsLocationId?: string;
-    gcpKmsKeyVersionId?: string;
-    gcpKmsResourcePath?: string;
-  },
+  walletAddress?: string,
+  pgtx?: PrismaTransaction,
 ): Promise<ThirdwebSDK> => {
-  chainName = chainName.toLowerCase();
-  let {
-    walletAddress,
-    walletType,
-    awsKmsKeyId,
-    gcpKmsKeyId,
-    gcpKmsKeyRingId,
-    gcpKmsKeyVersionId,
-    gcpKmsLocationId,
-    gcpKmsResourcePath,
-  } = walletOptions || {};
   let walletData: Static<typeof walletTableSchema> | undefined;
 
   let chain: Chain | null = null;
@@ -110,69 +138,74 @@ export const getSDK = async (
   let wallet: AwsKmsWallet | LocalWallet | null = null;
   let signer: GcpKmsSigner | null = null;
   let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
-  const THIRDWEB_API_SECRET_KEY = env.THIRDWEB_API_SECRET_KEY;
-
-  walletAddress = walletAddress?.toLowerCase();
-
-  if (walletAddress && !walletType && (!awsKmsKeyId || !gcpKmsKeyId)) {
-    const rawData = walletDataMap.get(walletAddress);
-    if (!rawData) {
-      walletData = await getWalletDetails(walletAddress, chainName);
-      walletDataMap.set(walletAddress, JSON.stringify(walletData));
-    } else {
-      walletData = JSON.parse(rawData);
-    }
-
-    walletType = walletData?.walletType;
-    awsKmsKeyId = walletData?.awsKmsKeyId;
-    gcpKmsKeyId = walletData?.gcpKmsKeyId;
-    gcpKmsKeyRingId = walletData?.gcpKmsKeyRingId;
-    gcpKmsLocationId = walletData?.gcpKmsLocationId;
-    gcpKmsKeyVersionId = walletData?.gcpKmsKeyVersionId;
-  }
-
-  // console.log(
-  //   `walletAddress: ${walletAddress}, walletType: ${walletType}, awsKmsKeyId: ${awsKmsKeyId}, gcpKmsKeyId: ${gcpKmsKeyId}, chainName: ${chainName}`,
-  // );
-  let sdkMapKey = chainName + "_" + walletAddress;
-  if (sdkMap.get(sdkMapKey)) {
-    return sdkMap.get(sdkMapKey) as ThirdwebSDK;
-  }
 
   try {
     chain = getChainBySlug(chainName.toLowerCase());
   } catch (e) {
     try {
-      chain = getChainByChainId(
-        BigNumber.from(chainName.toLowerCase()).toNumber(),
-      );
+      chain = getChainByChainId(parseInt(chainName.toLowerCase()));
     } catch (er) {
-      throw er;
+      throw new Error(`Chain not found for chainName: ${chainName}`);
     }
   }
 
-  if (
-    !wallet &&
-    walletType === WalletConfigType.aws_kms &&
-    (awsKmsKeyId || env.AWS_KMS_KEY_ID)
-  ) {
+  sdk = await getCachedSdk(chain.name, walletAddress);
+  if (sdk) {
+    return sdk;
+  }
+
+  //SDK doesn't exist in cache, so we need to instantiate or create it
+  if (!walletAddress) {
+    console.log("Creating sdk...");
+    //create sdk with no wallet
+    // TODO set to read only when we can
+    sdk = new ThirdwebSDK(chain, {
+      secretKey: THIRDWEB_API_SECRET_KEY,
+      supportedChains: RPC_OVERRIDES,
+    });
+    cacheSdk(chain.name, sdk);
+    return sdk;
+  }
+
+  walletData = await getCachedWallet(walletAddress, chain.chainId, pgtx);
+
+  if (!walletData) {
+    throw new Error(`Wallet not found for address: ${walletAddress}`);
+  }
+
+  const walletType = walletData.type;
+  const awsKmsKeyId = walletData.awsKmsKeyId;
+  const gcpKmsKeyId = walletData.gcpKmsKeyId;
+  const gcpKmsKeyVersionId = walletData.gcpKmsKeyVersionId;
+
+  console.log(
+    `getSDK walletAddress: ${walletAddress}, walletType: ${walletType}, awsKmsKeyId: ${awsKmsKeyId}, gcpKmsKeyId: ${gcpKmsKeyId}, chainName: ${chainName}`,
+  );
+
+  if (walletType === WalletConfigType.aws_kms) {
     if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
       throw new Error(
         "AWS_REGION, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY must be set in order to use AWS KMS.",
       );
+    }
+    if (!awsKmsKeyId) {
+      throw new Error("AWS KMS Key ID must be set in order to use AWS KMS.");
     }
 
     wallet = new AwsKmsWallet({
       region: AWS_REGION,
       accessKeyId: AWS_ACCESS_KEY_ID,
       secretAccessKey: AWS_SECRET_ACCESS_KEY,
-      keyId: awsKmsKeyId || AWS_KMS_KEY_ID!,
+      keyId: awsKmsKeyId,
     });
-  } else if (
-    !wallet &&
-    walletType === WalletConfigType.gcp_kms &&
-    (gcpKmsKeyId || env.GOOGLE_KMS_KEY_ID)
-  ) {
+    sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
+      secretKey: THIRDWEB_API_SECRET_KEY,
+      supportedChains: RPC_OVERRIDES,
+    });
+    walletAddress = await sdk.wallet.getAddress();
+    cacheSdk(chain.name, sdk, walletAddress);
+    return sdk;
+  } else if (walletType === WalletConfigType.gcp_kms) {
     // Google Service A/C credentials Check
     if (
       !env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL ||
@@ -186,12 +219,17 @@ export const getSDK = async (
 
     if (
       !env.GOOGLE_KMS_KEY_RING_ID ||
-      !(gcpKmsKeyVersionId || env.GOOGLE_KMS_KEY_VERSION_ID) ||
       !env.GOOGLE_KMS_LOCATION_ID ||
       !env.GOOGLE_APPLICATION_PROJECT_ID
     ) {
       throw new Error(
-        "GOOGLE_APPLICATION_PROJECT_ID, GOOGLE_KMS_KEY_RING_ID, GOOGLE_KMS_KEY_VERSION_ID, and GOOGLE_KMS_LOCATION_ID must be set in order to use GCP KMS. Please check .env file",
+        "GOOGLE_APPLICATION_PROJECT_ID, GOOGLE_KMS_KEY_RING_ID, and GOOGLE_KMS_LOCATION_ID must be set in order to use GCP KMS.",
+      );
+    }
+
+    if (!gcpKmsKeyVersionId || !gcpKmsKeyId) {
+      throw new Error(
+        "GOOGLE_KMS_KEY_VERSION_ID and GOOGLE_KMS_KEY_ID must be set in order to use GCP KMS. Please check .env file",
       );
     }
 
@@ -199,67 +237,42 @@ export const getSDK = async (
       projectId: env.GOOGLE_APPLICATION_PROJECT_ID,
       locationId: env.GOOGLE_KMS_LOCATION_ID,
       keyRingId: env.GOOGLE_KMS_KEY_RING_ID,
-      keyId: gcpKmsKeyId || GOOGLE_KMS_KEY_ID!,
-      keyVersion: gcpKmsKeyVersionId || env.GOOGLE_KMS_KEY_VERSION_ID!,
+      keyId: gcpKmsKeyId!,
+      keyVersion: gcpKmsKeyVersionId,
     };
 
     signer = new GcpKmsSigner(kmsCredentials);
-    sdk = ThirdwebSDK.fromSigner(signer, chainName, {
+    sdk = ThirdwebSDK.fromSigner(signer, chain, {
       secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
     });
+    cacheSdk(chain.name, sdk, walletAddress);
+    return sdk;
   } else if (
-    !wallet &&
-    !signer &&
-    (walletType === WalletConfigType.ppk ||
-      env.WALLET_PRIVATE_KEY !== undefined)
+    walletType === WalletConfigType.ppk ||
+    walletType === WalletConfigType.local
   ) {
-    // console.log(`Inside PPK`);
-    const WALLET_PRIVATE_KEY = env.WALLET_PRIVATE_KEY || "";
+    //TODO get private key from encrypted file
     wallet = new LocalWallet({
       chain,
     });
-    wallet.import({ privateKey: WALLET_PRIVATE_KEY, encryption: false });
-  } else {
-    wallet = new LocalWallet({
-      chain,
-      storage: new LocalFileStorage(),
-    });
-    await wallet.loadOrCreate({
+    console.log(
+      `Loading local wallet for address ${walletAddress} with key ${THIRDWEB_API_SECRET_KEY}`,
+    );
+    await wallet.load({
       strategy: "encryptedJson",
       password: THIRDWEB_API_SECRET_KEY,
+      storage: new LocalFileStorage(walletAddress),
     });
-  }
-
-  // console.log("wallet: ", await wallet.getAddress());
-  // TODO: PLAT-982
-  // Currently we require WALLET_PRIVATE_KEY to be set in order to instantiate the SDK
-  // But we need to implement wallet.generate() and wallet.save() to save the private key to file system
-
-  if (!sdk && !signer && wallet) {
-    if (!wallet) {
-      throw new Error(
-        "No wallet found. Please check the Wallet Environment Variables.",
-      );
-    }
-
-    sdk = await ThirdwebSDK.fromWallet(wallet, chainName, {
+    sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
     });
+    cacheSdk(chain.name, sdk, walletAddress);
+    return sdk;
   }
 
-  if (!sdk) {
-    throw new Error(
-      "SDK not instantiated. Please check the Wallet Environment Variables.",
-    );
-  }
-
-  walletAddress = await sdk.wallet.getAddress();
-  sdkMapKey = chainName + "_" + walletAddress;
-  sdkMap.set(sdkMapKey, sdk);
-
-  return sdk;
+  throw new Error("SDK / wallet doesn't exist");
 };
 
 export const getContractInstance = async <
@@ -267,33 +280,9 @@ export const getContractInstance = async <
 >(
   network: ChainOrRpc,
   contract_address: TContractAddress,
-  from?: string,
-): Promise<
-  TContractAddress extends ContractAddress
-    ? SmartContract<BaseContractForAddress<TContractAddress>>
-    : SmartContract<BaseContract>
-> => {
-  let walletData: Static<typeof walletTableSchema> | undefined;
-  if (from) {
-    from = from.toLowerCase();
-    const rawData = walletDataMap.get(from);
-    if (!rawData) {
-      walletData = await getWalletDetails(from, network);
-      walletDataMap.set(from, JSON.stringify(walletData));
-    } else {
-      walletData = JSON.parse(rawData);
-    }
-  }
-  const sdk = await getSDK(network, {
-    walletAddress: walletData?.walletAddress.toLowerCase(),
-    walletType: walletData?.walletType,
-    awsKmsKeyId: walletData?.awsKmsKeyId,
-    gcpKmsKeyId: walletData?.gcpKmsKeyId,
-    gcpKmsKeyRingId: walletData?.gcpKmsKeyRingId,
-    gcpKmsLocationId: walletData?.gcpKmsLocationId,
-    gcpKmsKeyVersionId: walletData?.gcpKmsKeyVersionId,
-    // gcpKmsResourcePath: walletData?.gcpKmsResourcePath,
-  });
+  walletAddress?: string,
+) => {
+  const sdk = await getSDK(network, walletAddress);
   const contract = await sdk.getContract(contract_address);
   return contract;
 };

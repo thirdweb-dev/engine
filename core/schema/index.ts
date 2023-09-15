@@ -36,3 +36,9 @@ export const networkResponseSchema = Type.Object({
     description: "Chain slug",
   }),
 });
+
+export const walletAuthSchema = Type.Object({
+  "x-wallet-address": Type.String({
+    description: "Wallet address",
+  }),
+});

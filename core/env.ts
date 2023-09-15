@@ -54,7 +54,6 @@ export const env = createEnv({
     GOOGLE_APPLICATION_PROJECT_ID: z.string().min(1).optional(),
     GOOGLE_KMS_KEY_RING_ID: z.string().min(1).optional(),
     GOOGLE_KMS_LOCATION_ID: z.string().min(1).optional(),
-    GOOGLE_KMS_KEY_VERSION_ID: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL: z.string().min(1).optional(),
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY: z.string().min(1).optional(),
     W3A_DASHBOARD_USERNAME: z.string().min(5).default("admin"),
@@ -64,7 +63,7 @@ export const env = createEnv({
     MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY: z.string().default("55000000000"),
     MAX_RETRIES_FOR_TX: z.coerce.number().default(3),
     RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
-    MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(50),
+    MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(10),
     MAX_WAIT_TIME_BEFORE_RETRY: z.coerce.number().default(600),
   },
   clientPrefix: "NEVER_USED",
@@ -98,7 +97,6 @@ export const env = createEnv({
     GOOGLE_APPLICATION_PROJECT_ID: process.env.GOOGLE_APPLICATION_PROJECT_ID,
     GOOGLE_KMS_KEY_RING_ID: process.env.GOOGLE_KMS_KEY_RING_ID,
     GOOGLE_KMS_LOCATION_ID: process.env.GOOGLE_KMS_LOCATION_ID,
-    GOOGLE_KMS_KEY_VERSION_ID: process.env.GOOGLE_KMS_KEY_VERSION_ID,
     GOOGLE_APPLICATION_CREDENTIAL_EMAIL:
       process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
     GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY:

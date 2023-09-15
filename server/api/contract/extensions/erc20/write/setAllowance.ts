@@ -2,13 +2,15 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core/index";
-import { queueTransaction } from "../../../../../helpers";
+import { walletAuthSchema } from "../../../../../../core/schema";
+import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
@@ -19,16 +21,13 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The number of tokens to give as allowance",
   }),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
   {
     spender_address: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     amount: "100",
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -47,6 +46,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       operationId: "erc20_setAllowance",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -54,18 +54,20 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { spender_address, amount, web3api_overrides } = request.body;
+      const { spender_address, amount } = request.body;
+      const chainId = getChainIdFromChain(network);
+      const walletAddress = request.headers["x-wallet-address"] as string;
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.erc20.setAllowance.prepare(
         spender_address,
         amount,
       );
-      const queuedId = await queueTransaction(request, tx, network, "erc20");
+      const queuedId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

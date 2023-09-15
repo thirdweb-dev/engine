@@ -2,7 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../../core";
-import { queueTransaction } from "../../../helpers";
+import { walletAuthSchema } from "../../../../core/schema";
+import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
@@ -12,7 +13,8 @@ import {
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
-import { web3APIOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../utilities/chain";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
@@ -28,7 +30,7 @@ const requestBodySchema = Type.Object({
       description: "Version of the contract to deploy. Defaults to latest.",
     }),
   ),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 // Example for the Request Body
@@ -50,6 +52,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
       operationId: "deployPrebuiltMultiwrap",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -57,24 +60,24 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network } = request.params;
-      const { contractMetadata, version, web3api_overrides } = request.body;
-      const sdk = await getSDK(network, {
-        walletAddress: web3api_overrides?.from,
-      });
+      const { contractMetadata, version } = request.body;
+      const chainId = getChainIdFromChain(network);
+      const walletAddress = request.headers["x-wallet-address"] as string;
+
+      const sdk = await getSDK(network, walletAddress);
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "multiwrap",
         contractMetadata,
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTransaction(
-        request,
+      const queuedId = await queueTx({
         tx,
-        network,
-        "deployer_prebuilt",
-        deployedAddress,
-        "multiwrap",
-      );
+        chainId,
+        extension: "deploy-prebuilt",
+        deployedContractAddress: deployedAddress,
+        deployedContractType: "multiwrap",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,

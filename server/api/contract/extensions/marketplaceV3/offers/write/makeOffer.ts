@@ -1,14 +1,15 @@
+import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../../core";
-import { Static, Type } from "@sinclair/typebox";
+import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
-import { queueTransaction } from "../../../../../../helpers";
 import { OfferV3InputSchema } from "../../../../../../schemas/marketplaceV3/offer";
+import { getChainIdFromChain } from "../../../../../../utilities/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -56,6 +57,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         endTimestamp,
         quantity,
       } = request.body;
+      const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(network, contract_address);
       const tx = await contract.offers.makeOffer.prepare({
@@ -67,12 +69,11 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         quantity,
       });
 
-      const queuedId = await queueTransaction(
-        request,
+      const queuedId = await queueTx({
         tx,
-        network,
-        "V3-offers",
-      );
+        chainId,
+        extension: "marketplace-v3-offers",
+      });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

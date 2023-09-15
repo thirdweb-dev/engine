@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { connectToDatabase } from "../../core";
-import { findTxDetailsWithQueueId } from "../helpers";
+import { getTxById } from "../../src/db/transactions/getTxById";
 import {
   formatSocketMessage,
   getStatusMessageAndConnectionStatus,
@@ -34,10 +34,9 @@ export const startTxUpdatesNotificationListener = async (
         }
 
         const userSubscription = subscriptionsData[index];
-        const returnData = await findTxDetailsWithQueueId(
-          parsedPayload.identifier,
-          server,
-        );
+        const returnData = await getTxById({
+          queueId: parsedPayload.identifier,
+        });
         const { message, closeConnection } =
           await getStatusMessageAndConnectionStatus(returnData);
         userSubscription.socket.send(

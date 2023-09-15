@@ -2,20 +2,22 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core";
-import { queueTransaction } from "../../../../../helpers";
+import { walletAuthSchema } from "../../../../../../core/schema";
+import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   metadatas: Type.Array(nftOrInputSchema),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -32,9 +34,6 @@ requestBodySchema.examples = [
         image: "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
       },
     ],
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -53,6 +52,7 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
       operationId: "erc1155_lazyMint",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -60,15 +60,18 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { metadatas, web3api_overrides } = request.body;
+      const { metadatas } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
+      const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.erc1155.lazyMint.prepare(metadatas);
-      const queuedId = await queueTransaction(request, tx, network, "erc1155");
+      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

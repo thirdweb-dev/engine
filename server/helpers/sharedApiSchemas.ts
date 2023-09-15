@@ -247,3 +247,54 @@ export const marketplaceFilterSchema = Type.Object({
     }),
   ),
 });
+
+export const walletDetailsSchema = Type.Object({
+  address: Type.String({
+    description: "Wallet Address",
+  }),
+  type: Type.String({
+    description: "Wallet Type",
+  }),
+  awsKmsKeyId: Type.Union([
+    Type.String({
+      description: "AWS KMS Key ID",
+    }),
+    Type.Null(),
+  ]),
+  awsKmsArn: Type.Union([
+    Type.String({
+      description: "AWS KMS Key ARN",
+    }),
+    Type.Null(),
+  ]),
+  gcpKmsKeyId: Type.Union([
+    Type.String({
+      description: "GCP KMS Key ID",
+    }),
+    Type.Null(),
+  ]),
+  gcpKmsKeyRingId: Type.Union([
+    Type.String({
+      description: "GCP KMS Key Ring ID",
+    }),
+    Type.Null(),
+  ]),
+  gcpKmsLocationId: Type.Union([
+    Type.String({
+      description: "GCP KMS Location ID",
+    }),
+    Type.Null(),
+  ]),
+  gcpKmsKeyVersionId: Type.Union([
+    Type.String({
+      description: "GCP KMS Key Version ID",
+    }),
+    Type.Null(),
+  ]),
+  gcpKmsResourcePath: Type.Union([
+    Type.String({
+      description: "GCP KMS Resource Path",
+    }),
+    Type.Null(),
+  ]),
+});

@@ -2,12 +2,14 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSDK } from "../../../core";
-import { queueTransaction } from "../../helpers";
+import { walletAuthSchema } from "../../../core/schema";
+import { queueTx } from "../../../src/db/transactions/queueTx";
 import {
   publishedDeployParamSchema,
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
-import { web3APIOverridesForWriteRequest } from "../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../utilities/chain";
 
 // INPUTS
 const requestSchema = publishedDeployParamSchema;
@@ -20,16 +22,13 @@ const requestBodySchema = Type.Object({
       description: "Version of the contract to deploy. Defaults to latest.",
     }),
   ),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 // Example for the Request Body
 requestBodySchema.examples = [
   {
     constructorParams: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -53,6 +52,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       operationId: "deployPublished",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -60,10 +60,11 @@ export async function deployPublished(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, publisher, contract_name } = request.params;
-      const { constructorParams, version, web3api_overrides } = request.body;
-      const sdk = await getSDK(network, {
-        walletAddress: web3api_overrides?.from,
-      });
+      const { constructorParams, version } = request.body;
+      const chainId = getChainIdFromChain(network);
+      const walletAddress = request.headers["x-wallet-address"] as string;
+
+      const sdk = await getSDK(network, walletAddress);
       const tx = await sdk.deployer.deployReleasedContract.prepare(
         publisher,
         contract_name,
@@ -71,14 +72,14 @@ export async function deployPublished(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTransaction(
-        request,
+
+      const queuedId = await queueTx({
         tx,
-        network,
-        "deployer_published",
-        deployedAddress,
-        contract_name,
-      );
+        chainId,
+        extension: "deploy-published",
+        deployedContractAddress: deployedAddress,
+        deployedContractType: contract_name,
+      });
       reply.status(StatusCodes.OK).send({
         deployedAddress,
         queuedId,

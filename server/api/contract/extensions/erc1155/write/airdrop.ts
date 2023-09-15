@@ -2,13 +2,15 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractInstance } from "../../../../../../core";
-import { queueTransaction } from "../../../../../helpers";
+import { walletAuthSchema } from "../../../../../../core/schema";
+import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { web3APIOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -27,7 +29,7 @@ const requestBodySchema = Type.Object({
       description: "Addresses and quantities to airdrop to",
     },
   ),
-  ...web3APIOverridesForWriteRequest.properties,
+  ...txOverridesForWriteRequest.properties,
 });
 
 requestBodySchema.examples = [
@@ -43,9 +45,6 @@ requestBodySchema.examples = [
         quantity: "1",
       },
     ],
-    web3api_overrides: {
-      from: "0x...",
-    },
   },
 ];
 
@@ -63,6 +62,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
       operationId: "erc1155_airdrop",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -70,15 +70,17 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const { token_id, addresses, web3api_overrides } = request.body;
+      const { token_id, addresses } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
+      const chainId = getChainIdFromChain(network);
 
       const contract = await getContractInstance(
         network,
         contract_address,
-        web3api_overrides?.from,
+        walletAddress,
       );
       const tx = await contract.erc1155.airdrop.prepare(token_id, addresses);
-      const queuedId = await queueTransaction(request, tx, network, "erc1155");
+      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
         result: queuedId,
       });

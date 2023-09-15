@@ -1,22 +1,17 @@
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
-import { Knex } from "knex";
-import { connectToDatabase, env } from "../../core";
+import { env } from "../../core";
+import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { getSentTxs } from "../../src/db/transactions/getSentTxs";
+import { updateTx } from "../../src/db/transactions/updateTx";
 import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
-import {
-  getSubmittedTransactions,
-  updateTransactionState,
-} from "../services/dbOperations";
 
 const MINED_TX_CRON_ENABLED = env.MINED_TX_CRON_ENABLED;
 
 export const checkForMinedTransactionsOnBlockchain = async (
   server: FastifyInstance,
 ) => {
-  let knex: Knex | undefined;
-  let trx: Knex.Transaction | undefined;
   try {
-    knex = await connectToDatabase();
     if (!MINED_TX_CRON_ENABLED) {
       server.log.warn("Mined Tx Cron is disabled");
       return;
@@ -24,22 +19,13 @@ export const checkForMinedTransactionsOnBlockchain = async (
     server.log.info(
       "Running Cron to check for mined transactions on blockchain",
     );
-    trx = await knex.transaction();
-    const transactions = await getSubmittedTransactions(knex, trx);
+    const transactions = await getSentTxs();
 
     if (transactions.length === 0) {
       server.log.warn("No transactions to check for mined status");
-      await trx.rollback();
-      await trx.destroy();
-      await knex.destroy();
       return;
     }
 
-    const blockNumbers: {
-      blockNumber: number;
-      chainId: string;
-      queueId: string;
-    }[] = [];
     const txReceiptsWithChainId = await getTransactionReceiptWithBlockDetails(
       server,
       transactions,
@@ -54,38 +40,26 @@ export const checkForMinedTransactionsOnBlockchain = async (
         txReceiptData.effectiveGasPrice != BigNumber.from(-1) &&
         txReceiptData.timestamp != -1
       ) {
-        server.log.debug(
+        server.log.info(
           `Got receipt for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId}, effectiveGasPrice: ${txReceiptData.effectiveGasPrice}`,
         );
-        await updateTransactionState(
-          knex,
-          txReceiptData.queueId,
-          "mined",
-          trx,
-          undefined,
-          {
+
+        await updateTx({
+          queueId: txReceiptData.queueId,
+          status: TransactionStatusEnum.Mined,
+          txData: {
             gasPrice: BigNumber.from(
-              txReceiptData.effectiveGasPrice,
+              txReceiptData.effectiveGasPrice || 0,
             ).toString(),
-            txMinedTimestamp: new Date(txReceiptData.timestamp),
             blockNumber: txReceiptData.blockNumber,
+            minedAt: new Date(txReceiptData.timestamp),
           },
-        );
+        });
       }
     }
 
-    await trx.commit();
-    await trx.destroy();
-    await knex.destroy();
     return;
   } catch (error) {
-    if (trx) {
-      await trx.rollback();
-      await trx.destroy();
-    }
-    if (knex) {
-      await knex.destroy();
-    }
     server.log.error(error);
     return;
   }

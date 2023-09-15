@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateTransactionGasValues } from "../../helpers";
+import { retryTx } from "../../../src/db/transactions/retryTx";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 
 // INPUT
@@ -55,12 +55,12 @@ export async function retryTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { tx_queue_id } = request.params;
       const { maxFeePerGas, maxPriorityFeePerGas } = request.body;
-      await updateTransactionGasValues(
-        request,
-        tx_queue_id,
+
+      await retryTx({
+        queueId: tx_queue_id,
         maxFeePerGas,
         maxPriorityFeePerGas,
-      );
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

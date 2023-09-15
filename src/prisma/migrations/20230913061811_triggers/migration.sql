@@ -15,8 +15,18 @@ CREATE OR REPLACE FUNCTION notify_transactions_update()
 AS $function$
 BEGIN
   PERFORM pg_notify('updated_transaction_data', json_build_object(
-      'identifier', NEW.identifier
+      'id', NEW.id
   )::text);
   RETURN NEW;
 END;
 $function$;
+
+CREATE OR REPLACE TRIGGER transactions_insert_trigger
+  AFTER INSERT ON transactions
+  FOR EACH ROW
+  EXECUTE FUNCTION notify_transactions_insert();
+
+CREATE OR REPLACE TRIGGER transactions_update_trigger
+  AFTER UPDATE ON transactions
+  FOR EACH ROW
+  EXECUTE FUNCTION notify_transactions_update();
