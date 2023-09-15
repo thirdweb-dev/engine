@@ -5,7 +5,7 @@
     <br />
 </p>
 
-<h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> engine</h1>
+<h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> Engine</h1>
 
 <p align="center">
     <a href="https://discord.gg/thirdweb">
@@ -27,8 +27,8 @@ It abstracts away all the complexities of building blockchain applications behin
 
 Some of the best features of thirdweb engine:
 
-- Create & transact with **managed backend wallets** (local, [erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets, AWS KMS, Google KMS, etc.)
-- High throughput & reliability transaction queuing with **wallet nonce management** and **automatic transaction retrying**
+- Create & transact with **managed backend wallets** ([erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets, AWS KMS, Google KMS, etc.)
+- High reliability transaction queuing with **wallet nonce management** and **automatic transaction retrying**
 - Deploy and send transactions to smart contracts on any EVM blockchain
 - Caching and indexing for high performance onchain data access
 - Find-grained user access controls & wallet based client-side authentication
@@ -36,7 +36,7 @@ Some of the best features of thirdweb engine:
 - Run in your own cloud or run as a managed service [Coming Soon]
 - Full server & client-side SDKs for popular languages [Coming Soon]
 
-The project is still early so if you're looking for specific features, have bugs, or want to give feedback, reach out to us!
+This project is in `alpha` - if you're looking for specific features, have bugs, or want to give feedback, reach out to us!
 
 ## Requirements
 
