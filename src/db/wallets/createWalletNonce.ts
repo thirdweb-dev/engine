@@ -24,7 +24,6 @@ export const createWalletNonce = async ({
   const nonce = BigNumber.from(
     (await getWalletNonce(address.toLowerCase(), sdk.getProvider())) ?? 0,
   ).toNumber();
-  console.log(nonce);
 
   return prisma.walletNonce.create({
     data: {

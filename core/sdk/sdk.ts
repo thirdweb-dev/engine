@@ -107,13 +107,11 @@ const getCachedWallet = async (
   if (cachedWallet) {
     walletData = JSON.parse(cachedWallet);
   } else {
-    console.log("Checking details for address", walletAddress);
     // TODO: This needs to be changed...
     walletData = await getWalletDetails({
       pgtx,
       address: walletAddress,
     });
-    console.log("Received wallet data:", walletData);
     if (walletData) {
       walletDataMap.set(walletAddress, JSON.stringify(walletData));
     }
@@ -156,7 +154,6 @@ export const getSDK = async (
 
   //SDK doesn't exist in cache, so we need to instantiate or create it
   if (!walletAddress) {
-    console.log("Creating sdk...");
     //create sdk with no wallet
     // TODO set to read only when we can
     sdk = new ThirdwebSDK(chain, {
@@ -177,10 +174,6 @@ export const getSDK = async (
   const awsKmsKeyId = walletData.awsKmsKeyId;
   const gcpKmsKeyId = walletData.gcpKmsKeyId;
   const gcpKmsKeyVersionId = walletData.gcpKmsKeyVersionId;
-
-  console.log(
-    `getSDK walletAddress: ${walletAddress}, walletType: ${walletType}, awsKmsKeyId: ${awsKmsKeyId}, gcpKmsKeyId: ${gcpKmsKeyId}, chainName: ${chainName}`,
-  );
 
   if (walletType === WalletConfigType.aws_kms) {
     if (!AWS_REGION || !AWS_ACCESS_KEY_ID || !AWS_SECRET_ACCESS_KEY) {
@@ -256,9 +249,6 @@ export const getSDK = async (
     wallet = new LocalWallet({
       chain,
     });
-    console.log(
-      `Loading local wallet for address ${walletAddress} with key ${THIRDWEB_API_SECRET_KEY}`,
-    );
     await wallet.load({
       strategy: "encryptedJson",
       password: THIRDWEB_API_SECRET_KEY,

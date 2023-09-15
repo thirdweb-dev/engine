@@ -99,9 +99,6 @@ export const createGCPKMSWallet = async (
 
 export const getGCPKeyWalletAddress = async (keyId: string): Promise<any> => {
   try {
-    console.log(
-      `Inside getGCPKeyWalletAddress ${!env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL}`,
-    );
     if (
       !env.GOOGLE_KMS_KEY_RING_ID ||
       !env.GOOGLE_KMS_LOCATION_ID ||
