@@ -14,11 +14,11 @@ For listening for updates on your requests, you can either poll using the `get` 
    - `<host>`: Hostname of the server
    - `<port>`: Port of the server
    - `<queueId>`: Queue ID of the request
-   - `<w3a_thirdweb_secret_key>`: Web3-API Thirdweb secret key
+   - `<thirdweb_api_secret_key>`: Thirdweb api secret key
 
 ```js
 const socket = new WebSocket(
-  "ws://<host>:<port>/transaction/status/<queueId>?token=<w3a_thirdweb_secret_key>",
+  "ws://<host>:<port>/transaction/status/<queueId>?token=<thirdweb_api_secret_key>",
 );
 
 socket.onopen = (event) => {

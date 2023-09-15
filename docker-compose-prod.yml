@@ -1,7 +1,7 @@
-version: '3.8'
+version: "3.8"
 services:
-  web3-api:
+  engine:
     build:
       context: .
       target: prod
-    image: thirdweb/web3-api:0.1.0
+    image: thirdweb/engine:0.1.0
