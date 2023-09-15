@@ -36,7 +36,7 @@ Some of the best features of thirdweb engine:
 - Run in your own cloud or run as a managed service [Coming Soon]
 - Full server & client-side SDKs for popular languages [Coming Soon]
 
-This project is in `alpha` - if you're looking for specific features, have bugs, or want to give feedback, reach out to us!
+This project is in `alpha` - if you're looking for specific features & or want to give feedback, reach out to us!
 
 ## Requirements
 
