@@ -8,23 +8,6 @@ import { createAwsKmsWallet } from "../../utils/wallets/createAwsKmsWallet";
 import { createGcpKmsWallet } from "../../utils/wallets/createGcpKmsWallet";
 import { createLocalWallet } from "../../utils/wallets/createLocalWallet";
 
-// INPUTS
-const requestBodySchema = Type.Object({
-  walletType: Type.String({
-    description: "Wallet Type",
-    examples: ["aws-kms", "gcp-kms", "local"],
-  }),
-});
-
-requestBodySchema.examples = [
-  {
-    walletType: "aws-kms",
-  },
-  {
-    walletType: "gcp-kms",
-  },
-];
-
 // OUTPUT
 const responseSchema = Type.Object({
   result: Type.Object({
@@ -43,7 +26,6 @@ responseSchema.example = {
 export const createWallet = async (fastify: FastifyInstance) => {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
-    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/wallet/create",
@@ -51,7 +33,6 @@ export const createWallet = async (fastify: FastifyInstance) => {
       description: "Create a new backend wallet",
       tags: ["Wallet"],
       operationId: "wallet_create",
-      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
