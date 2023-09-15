@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { prisma } from "../../db/client";
+import { prisma } from "../client";
 
 const main = async () => {
   const [{ exists: hasWalletsTable }]: [{ exists: boolean }] =
@@ -11,8 +11,6 @@ const main = async () => {
       AND    tablename = 'wallets'
     );
   `;
-
-  console.log(hasWalletsTable);
 
   if (hasWalletsTable) {
     execSync("yarn prisma migrate reset --force", { stdio: "inherit" });

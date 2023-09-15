@@ -17,6 +17,7 @@ RUN yarn install --frozen-lockfile --network-timeout 1000000
 
 # Build the project
 RUN yarn build
+RUN yarn copy-files
 
 # Clean up build dependencies
 RUN apk del build-dependencies
