@@ -3,7 +3,7 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { LocalFileStorage, connectToDatabase, env } from "../../../core";
+import { LocalFileStorage, env } from "../../../core";
 import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { getAWSKMSWallet, getGCPKeyWalletAddress } from "../../helpers/wallets";
@@ -177,9 +177,6 @@ export async function addWallet(fastify: FastifyInstance) {
         throw new Error(`Wallet Type ${walletType} is not supported`);
       }
 
-      const dbInstance = await connectToDatabase();
-
-      await dbInstance.destroy();
       reply.status(StatusCodes.OK).send({
         result: {
           walletAddress,
