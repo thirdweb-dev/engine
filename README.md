@@ -5,35 +5,38 @@
     <br />
 </p>
 
-<h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> Web3-API Repo</h1>
+<h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> engine</h1>
 
 <p align="center">
-    <a href="https://github.com/thirdweb-dev/web3-api/actions/workflows/e2eTest.yml">
-        <img alt="Build Status" src="https://github.com/thirdweb-dev/web3-api/actions/workflows/e2eTest.yml/badge.svg"/>
-    </a>
     <a href="https://discord.gg/thirdweb">
         <img alt="Join our Discord!" src="https://img.shields.io/discord/834227967404146718.svg?color=7289da&label=discord&logo=discord&style=flat"/>
     </a>
 </p>
 
-<p align="center"><strong>Best in class web3 SDKs for Browser, Node and Mobile apps</strong></p>
+<p align="center"><strong>The most powerful backend engine for web3 apps.</strong></p>
 
-## Web3API
+## Table of contents
 
-Production-grade HTTP server that provides scalable web3 functionality:
+- [Introduction](#introduction)
 
-- http interface with server and client authentication
-- create & interface with backend web3 wallets (local, aws kms, google kms, smart wallets, etc)
-- automatic wallet nonce management
-- built in high performance transaction queueing
-- intelligent transaction retry and gas management
-- read, write and deploy any smart contract on any evm blockchain
-- create gasless relayers
-- fine grained controls over user access
-- run in your own cloud or managed service (coming soon)
-- full server-side sdks for many languages & client-side sdks for many frameworks (coming soon)
+## Introduction
 
-The server is meant to facilitate blockchain transactions within your existing architecture. It provides a high performance, production grade method to interact with smart contracts on any evm blockchain. The project is still early so if you're looking for specific features, have bugs, or want to give feedback, reach out to us!
+thirdweb engine is a powerful backend service that offers all the tools needed to build apps & games on the blockchain.
+
+It abstracts away all the complexities of building blockchain applications behind a familiar HTTP API interface and handles high throughput & scale out-of-the box.
+
+Some of the best features of thirdweb engine:
+
+- Create & transact with **managed backend wallets** (local, [erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets, AWS KMS, Google KMS, etc.)
+- High throughput & reliability transaction queuing with **wallet nonce management** and **automatic transaction retrying**
+- Deploy and send transactions to smart contracts on any EVM blockchain
+- Caching and indexing for high performance onchain data access
+- Find-grained user access controls & wallet based client-side authentication
+- Full gasless relayer, bundler, and paymaster for gasless transactions [Coming Soon]
+- Run in your own cloud or run as a managed service [Coming Soon]
+- Full server & client-side SDKs for popular languages [Coming Soon]
+
+The project is still early so if you're looking for specific features, have bugs, or want to give feedback, reach out to us!
 
 ## Requirements
 
@@ -62,8 +65,12 @@ docker run -e .env -p 3005:3005 thirdweb/web3-api
 ### Using the server
 
 - In development mode, go to the server url to see an admin interface
-- Every request to the server requires an authentication token, for admin actions use the thirdweb SecretKey. Use the `Authorization` Header to set the value shown below:
+- Every request to the server requires an authentication token for admin actions use the thirdweb SecretKey. Use the `Authorization` Header to set the value shown below:
   - `Authorization: Bearer: <thirdweb SecretKey>`
+- Every write request to the server also requires the `X-Wallet-Address` header to specify which admin wallet to send a transaction with. Use the following format to set this header:
+
+  - `X-Wallet-Address: 0x3ecdbf3b911d0e9052b64850693888b008e18373`
+
 - Contract API
 
   - Read from any contract
