@@ -20,7 +20,7 @@ services:
     volumes:
       - pgadmin:/var/lib/pgadmin
 
-  web3-api:
+  engine-api:
     build:
       dockerfile: Dockerfile
       context: .
@@ -31,7 +31,7 @@ services:
       - ./:/app
       - node_modules:/app/node_modules
 
-  web3-worker:
+  engine-worker:
     build:
       dockerfile: Dockerfile
       context: .

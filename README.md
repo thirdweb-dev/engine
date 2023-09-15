@@ -67,7 +67,7 @@ Set these variables in the .env file (copy .env.example to get started)
 Docker
 
 ```
-docker run -e .env -p 3005:3005 thirdweb/web3-api
+docker run -e .env -p 3005:3005 thirdweb/engine:latest
 ```
 
 ### Using the server

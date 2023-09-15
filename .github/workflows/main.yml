@@ -32,4 +32,4 @@ jobs:
           target: prod
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: thirdweb/web3-api:nightly
+          tags: thirdweb/engine:nightly
