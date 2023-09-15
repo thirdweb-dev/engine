@@ -68,10 +68,3 @@ export interface createKMSEOAResponse {
   arn: string;
   keyId: string;
 }
-
-export enum WalletConfigType {
-  aws_kms = "aws-kms",
-  local = "local",
-  gcp_kms = "gcp-kms",
-  ppk = "ppk",
-}
