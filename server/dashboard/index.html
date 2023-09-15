@@ -19,14 +19,10 @@
         <button class="button">Create Wallet</button>
       </div>
       <div>
-        <table class="table">
+        <table class="table" id="walletTable">
           <tr>
             <th>Address</th>
-            <th>Alias</th>
             <th>Wallet Type</th>
-            <th>Balance</th>
-            <th>Nonce</th>
-            <th>CreatedAt</th>
           </tr>
         </table>
       </div>
@@ -37,7 +33,7 @@
         <h3>Transactions</h3>
       </div>
       <div>
-        <table class="table">
+        <table class="table" id="transactionTable">
           <tr>
             <th>queueId</th>
             <th>wallet Address</th>
@@ -54,6 +50,15 @@
     </div>
 
     <form id="configForm">
+      <label>
+        <input type="radio" name="option" value="option1" />
+        AWS KMS
+      </label>
+      <br />
+      <label>
+        <input type="radio" name="option" value="option2" />
+        Google Cloud KMS
+      </label>
       <label for="awsAccessKey">awsAccessKey:</label>
       <input type="text" id="awsAccessKey" name="awsAccessKey" /><br /><br />
       <label for="awsAccessSecretKey">awsAccessSecretKey:</label>
