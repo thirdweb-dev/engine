@@ -3,7 +3,7 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { LocalFileStorage, connectToDatabase, env } from "../../../core";
+import { LocalFileStorage, env } from "../../../core";
 import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import {
@@ -69,7 +69,6 @@ export async function createEOAWallet(fastify: FastifyInstance) {
       const { walletType } = request.body;
       request.log.info(`walletType: ${walletType}`);
 
-      const dbInstance = await connectToDatabase();
       if (walletType === WalletConfigType.aws_kms) {
         if (
           !env.AWS_REGION ||
@@ -137,7 +136,6 @@ export async function createEOAWallet(fastify: FastifyInstance) {
         });
       }
 
-      await dbInstance.destroy();
       if (!walletAddress) {
         throw new Error("Could not create wallet");
       }
