@@ -5,7 +5,54 @@
     <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
-    <h1>Web3-API Server Configurator</h1>
+    <div class="header">
+      <h6 class="gradientText0">ADMIN DASHBOARD</h6>
+      <h1 class="subtitle">Web3-API</h1>
+      <span class="subtitle"
+        >Configure and manage your wallets and transaction settings</span
+      >
+    </div>
+
+    <div>
+      <div class="heading">
+        <h3>Your Wallets</h3>
+        <button class="button">Create Wallet</button>
+      </div>
+      <div>
+        <table class="table">
+          <tr>
+            <th>Address</th>
+            <th>Alias</th>
+            <th>Wallet Type</th>
+            <th>Balance</th>
+            <th>Nonce</th>
+            <th>CreatedAt</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div class="heading">
+        <h3>Transactions</h3>
+      </div>
+      <div>
+        <table class="table">
+          <tr>
+            <th>queueId</th>
+            <th>wallet Address</th>
+            <th>contract Address</th>
+            <th>status</th>
+            <th>Tx Hash</th>
+            <th>Processed Timestamp</th>
+            <th>Submitted Timestamp</th>
+            <th>Mined Timestamp</th>
+            <th>BlockNumber</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+
     <form id="configForm">
       <label for="awsAccessKey">awsAccessKey:</label>
       <input type="text" id="awsAccessKey" name="awsAccessKey" /><br /><br />
@@ -23,31 +70,6 @@
     </form>
 
     <button id="refetchButton">Refetch Data</button>
-
-    <h1>Wallets</h1>
-    <table id="walletTable">
-      <tr>
-        <th>Wallet Address</th>
-        <th>Wakket Type</th>
-        <th>ChainID</th>
-        <th>Balance</th>
-      </tr>
-    </table>
-
-    <h1>Transactions</h1>
-    <table id="transactionTable">
-      <tr>
-        <th>queueId</th>
-        <th>wallet Address</th>
-        <th>contract Address</th>
-        <th>status</th>
-        <th>Tx Hash</th>
-        <th>Processed Timestamp</th>
-        <th>Submitted Timestamp</th>
-        <th>Mined Timestamp</th>
-        <th>BlockNumber</th>
-      </tr>
-    </table>
 
     <script src="/static/client.js"></script>
     <script src="/static/fetchData.js"></script>

@@ -2,14 +2,12 @@ import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import fastify, { FastifyInstance } from "fastify";
 import * as cron from "node-cron";
 import { env, errorHandler, getLogSettings } from "../core";
-import { checkForMinedTransactionsOnBlockchain } from "./controller/blockchainReader";
-import { startNotificationListener } from "./controller/listener";
-import { retryTransactions } from "./controller/retryTransaction";
+import { checkForMinedTransactionsOnBlockchain } from "../worker/controller/blockchainReader";
+import { startNotificationListener } from "../worker/controller/listener";
 
 const MINED_TX_CRON_SCHEDULE = env.MINED_TX_CRON_SCHEDULE;
-const RETRY_TX_CRON_SCHEDULE = env.RETRY_TX_CRON_SCHEDULE;
 
-const main = async () => {
+export const startWorker = async () => {
   const logOptions = getLogSettings("Worker-Server");
   const server: FastifyInstance = fastify({
     logger: logOptions ?? true,
@@ -17,6 +15,8 @@ const main = async () => {
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   await errorHandler(server);
+
+  // await setupWalletsForWorker(server);
   // Start Listening to the Table for new insertion
   await retryWithTimeout(
     () => startNotificationListener(server),
@@ -28,10 +28,6 @@ const main = async () => {
   // setup a cron job to updated transaction confirmed status
   cron.schedule(MINED_TX_CRON_SCHEDULE, async () => {
     await checkForMinedTransactionsOnBlockchain(server);
-  });
-
-  cron.schedule(RETRY_TX_CRON_SCHEDULE, async () => {
-    await retryTransactions(server);
   });
 };
 
@@ -59,5 +55,3 @@ const retryWithTimeout = async (
     }
   }
 };
-
-main();
