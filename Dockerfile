@@ -49,6 +49,9 @@ RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip
 # Copy package.json and yarn.lock files
 COPY package*.json yarn*.lock ./
 
+# Replace the schema path in the package.json file
+RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/src/prisma/schema.prisma"_g' package.json
+
 # Copy the built dist folder from the base stage to the production stage
 COPY --from=base /app/dist ./dist
 
