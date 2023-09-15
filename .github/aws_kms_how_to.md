@@ -1,4 +1,4 @@
-Web3-API supports AWS KMS for signing & sending transactions over any EVM chain. This is a guide on how to set up AWS KMS for Web3-API.
+Thirdweb Engine supports AWS KMS for signing & sending transactions over any EVM chain. This is a guide on how to set up AWS KMS.
 
 ### Steps to set up AWS KMS
 
