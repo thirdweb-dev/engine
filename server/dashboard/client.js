@@ -3,8 +3,10 @@ form.addEventListener("submit", function (e) {
   e.preventDefault();
 
   const formData = new FormData(form);
-  const port = formData.get("port");
-  const hostname = formData.get("hostname");
+  const awsKmsKeyId = formData.get("awsKmsKeyId");
+  const awsRegion = formData.get("awsRegion");
+  const awsAccessSecretKey = formData.get("awsAccessSecretKey");
+  const awsAccessKey = formData.get("awsAccessKey");
 
   fetch("/startServer", {
     method: "POST",
@@ -12,8 +14,10 @@ form.addEventListener("submit", function (e) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      port,
-      hostname,
+      awsAccessKey,
+      awsAccessSecretKey,
+      awsKmsKeyId,
+      awsRegion,
     }),
   })
     .then((response) => response.json())

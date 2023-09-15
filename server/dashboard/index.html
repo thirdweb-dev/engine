@@ -2,37 +2,54 @@
 <html>
   <head>
     <title>Web3-API Server Configurator</title>
-    <link rel="stylesheet" href="./style.css" />
-    <script src="./fetchData.js"></script>
+    <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
     <h1>Web3-API Server Configurator</h1>
     <form id="configForm">
-      <label for="port">Port:</label>
-      <input type="text" id="port" name="port" /><br /><br />
-      <label for="hostname">Hostname:</label>
-      <input type="text" id="hostname" name="hostname" /><br /><br />
+      <label for="awsAccessKey">awsAccessKey:</label>
+      <input type="text" id="awsAccessKey" name="awsAccessKey" /><br /><br />
+      <label for="awsAccessSecretKey">awsAccessSecretKey:</label>
+      <input
+        type="text"
+        id="awsAccessSecretKey"
+        name="awsAccessSecretKey"
+      /><br /><br />
+      <label for="awsRegion">awsRegion:</label>
+      <input type="text" id="awsRegion" name="awsRegion" /><br /><br />
+      <label for="awsKmsKeyId">awsKmsKeyId:</label>
+      <input type="text" id="awsKmsKeyId" name="awsKmsKeyId" /><br /><br />
       <input type="submit" value="Start Server" />
     </form>
+
+    <button id="refetchButton">Refetch Data</button>
 
     <h1>Wallets</h1>
     <table id="walletTable">
       <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Value</th>
+        <th>Wallet Address</th>
+        <th>Wakket Type</th>
+        <th>ChainID</th>
+        <th>Balance</th>
       </tr>
     </table>
 
     <h1>Transactions</h1>
     <table id="transactionTable">
       <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Value</th>
+        <th>queueId</th>
+        <th>wallet Address</th>
+        <th>contract Address</th>
+        <th>status</th>
+        <th>Tx Hash</th>
+        <th>Processed Timestamp</th>
+        <th>Submitted Timestamp</th>
+        <th>Mined Timestamp</th>
+        <th>BlockNumber</th>
       </tr>
     </table>
 
-    <script src="./client.js"></script>
+    <script src="/static/client.js"></script>
+    <script src="/static/fetchData.js"></script>
   </body>
 </html>

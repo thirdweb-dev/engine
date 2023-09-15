@@ -1,6 +1,7 @@
 import { fastifyBasicAuth } from "@fastify/basic-auth";
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
+import fastifyStatic from "@fastify/static";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
 import fastify, {
@@ -16,13 +17,38 @@ import { apiRoutes } from "../../server/api";
 import { performHTTPAuthentication } from "../middleware/auth";
 import { openapi } from "./openapi";
 
-const createServer = async (serverName: string): Promise<FastifyInstance> => {
+export const createServer = async (
+  serverName: string,
+): Promise<FastifyInstance> => {
   const logOptions = getLogSettings(serverName);
 
   const server: FastifyInstance = fastify({
     logger: logOptions ?? true,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
+
+  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
+  server.log.info(`Allowed Origins: ${originArray}`);
+  await server.register(fastifyCors, {
+    origin: originArray.map((data) => {
+      if (data.startsWith("/") && data.endsWith("/")) {
+        server.log.info(`Regex Origin: ${data.slice(1, -1)}`);
+        return new RegExp(data.slice(1, -1));
+      }
+
+      if (data.startsWith("*.")) {
+        const regex = data.replace("*.", ".*.");
+        server.log.info(`Regex Origin 2: ${regex}`);
+        return new RegExp(regex);
+      }
+      server.log.info(`Origin: ${data}`);
+      return data;
+    }),
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+    allowedHeaders:
+      "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin, Cache-Control, Access-Control-Allow-Header, Access-Control-Allow-Credentials, Access-Control-Allow-Methods, Authorization",
+  });
 
   server.addHook("onRequest", async (request, reply) => {
     if (
@@ -53,7 +79,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       url === "/health" ||
       url.startsWith("/static") ||
       url.startsWith("/json") ||
-      url.startsWith("/dashboard") ||
       url.startsWith("/style.css")
     ) {
       return;
@@ -108,23 +133,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
   });
 
   await errorHandler(server);
-  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
-  await server.register(fastifyCors, {
-    origin: originArray.map((data) => {
-      if (data.startsWith("/") && data.endsWith("/")) {
-        return new RegExp(data.slice(1, -1));
-      }
-
-      if (data.startsWith("*.")) {
-        const regex = data.replace("*.", ".*.");
-        return new RegExp(regex);
-      }
-      return data;
-    }),
-    allowedHeaders: [
-      "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin, Cache-Control",
-    ],
-  });
 
   await server.register(fastifyExpress);
   await server.register(WebSocketPlugin);
@@ -144,6 +152,41 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       status: "OK",
     };
   });
+
+  await server.ready();
+
+  // Command to Generate Swagger File
+  // Needs to be called post Fastify Server is Ready
+  server.swagger();
+
+  // To Generate Swagger YAML File
+  if (env.NODE_ENV === "local") {
+    const yaml = server.swagger({ yaml: true });
+    fs.writeFileSync("./swagger.yml", yaml);
+  }
+
+  return server;
+};
+
+export const createHTMLServer = async (
+  serverName: string,
+): Promise<FastifyInstance> => {
+  const logOptions = getLogSettings(serverName);
+
+  const server: FastifyInstance = fastify({
+    logger: logOptions ?? true,
+    disableRequestLogging: true,
+  }).withTypeProvider<TypeBoxTypeProvider>();
+
+  await errorHandler(server);
+
+  // Add Health Check
+  server.get("/health", async () => {
+    return {
+      status: "OK",
+    };
+  });
+
   const authenticate = { realm: "Westeros" };
   server.register(fastifyBasicAuth, {
     validate,
@@ -168,10 +211,15 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
     // }
     done();
   }
+  const __filename = fileURLToPath(import.meta.url);
+  server.register(fastifyStatic, {
+    root: path.join(path.dirname(__filename), "../dashboard"),
+    prefix: "/static/",
+  });
 
   server.after(() => {
     server.route({
-      url: "/dashboard",
+      url: "/",
       method: "GET",
       onRequest: server.basicAuth,
       handler: (req, res) => {
@@ -184,8 +232,6 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       },
     });
   });
-
-  await server.ready();
 
   return server;
 };

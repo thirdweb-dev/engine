@@ -1394,6 +1394,19 @@
     p-limit "^3.1.0"
     readable-stream "^4.0.0"
 
+"@fastify/static@^6.11.0":
+  version "6.11.0"
+  resolved "https://registry.yarnpkg.com/@fastify/static/-/static-6.11.0.tgz#154c7c09730122882e63ec0f4973a8100ab7af1b"
+  integrity sha512-jgnqpRojDqOLHnnKlZgvvUFzR8rrxqkqzbtmuHp1amIArxGVJDXyBMPbxb3yteklBA7tPilXbx5xzDRiGXR0RA==
+  dependencies:
+    "@fastify/accept-negotiator" "^1.0.0"
+    "@fastify/send" "^2.0.0"
+    content-disposition "^0.5.3"
+    fastify-plugin "^4.0.0"
+    glob "^8.0.1"
+    p-limit "^3.1.0"
+    readable-stream "^4.0.0"
+
 "@fastify/swagger-ui@^1.9.3":
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/@fastify/swagger-ui/-/swagger-ui-1.9.3.tgz#1ec03ea2595cb2e7d6de6ae7c949bebcff8370a5"
