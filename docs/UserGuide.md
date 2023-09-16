@@ -80,8 +80,8 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 3. Run the below command
    <br />
    ```
-   docker run -e .env -p 3005:3005 thirdweb/web3-api:nightly
-   # check other images at https://hub.docker.com/r/thirdweb/web3-api/tags
+   docker run -e .env -p 3005:3005 thirdweb/engine:nightly
+   # check other images at https://hub.docker.com/r/thirdweb/engine/tags
    ```
 
 ### Note:

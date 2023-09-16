@@ -2,6 +2,7 @@ import { createEnv } from "@t3-oss/env-core";
 import * as dotenv from "dotenv";
 import type { ZodError } from "zod";
 import { z } from "zod";
+import { WalletType } from "../src/schema/wallet";
 
 dotenv.config({
   debug: true,
@@ -23,25 +24,37 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["production", "development", "testing", "local"])
       .default("development"),
-    WALLET_PRIVATE_KEY: z.string().min(1).optional(),
-    AWS_KMS_KEY_ID: z.string().min(1).optional(),
-    GOOGLE_KMS_KEY_ID: z.string().min(1).optional(),
-    AWS_ACCESS_KEY_ID: z.string().min(1).optional(),
-    AWS_SECRET_ACCESS_KEY: z.string().min(1).optional(),
-    AWS_REGION: z.string().min(1).optional(),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
-    THIRDWEB_API_ORIGIN: z.string().default("http://api.thirdweb.com"),
-    DATABASE_CLIENT: z.string().default("pg"),
     POSTGRES_CONNECTION_URL: z
       .string()
       .default(
         "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable",
       ),
+    WALLET_CONFIGURATION: z.string().transform((config) =>
+      z
+        .union([
+          z.object({
+            type: z.literal(WalletType.local),
+          }),
+          z.object({
+            type: z.literal(WalletType.awsKms),
+            awsAccessKeyId: z.string().min(1),
+            awsSecretAccessKey: z.string().min(1),
+            awsRegion: z.string().min(1),
+          }),
+          z.object({
+            type: z.literal(WalletType.gcpKms),
+            gcpApplicationProjectId: z.string().min(1),
+            gcpKmsLocationId: z.string().min(1),
+            gcpKmsKeyRingId: z.string().min(1),
+            // TODO: Are these optional?
+            gcpApplicationCredentialEmail: z.string().min(1),
+            gcpApplicationCredentialPrivateKey: z.string().min(1),
+          }),
+        ])
+        .parse(JSON.parse(config)),
+    ),
     OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
-    DB_TABLES_LIST: z.string().default("wallets,transactions"),
-    DB_TRIGGERS_LIST: z
-      .string()
-      .default("trigger_notification,trigger_tx_table"),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
     MIN_TRANSACTION_TO_PROCESS: z.coerce.number().default(1),
@@ -71,18 +84,36 @@ export const env = createEnv({
   isServer: true,
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
-    WALLET_PRIVATE_KEY: process.env.WALLET_PRIVATE_KEY,
-    AWS_KMS_KEY_ID: process.env.AWS_KMS_KEY_ID,
-    GOOGLE_KMS_KEY_ID: process.env.GOOGLE_KMS_KEY_ID,
-    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
-    AWS_REGION: process.env.AWS_REGION,
     THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
-    THIRDWEB_API_ORIGIN: process.env.THIRDWEB_API_ORIGIN,
-    DATABASE_CLIENT: process.env.DATABASE_CLIENT,
     POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
-    DB_TABLES_LIST: process.env.DB_TABLES_LIST,
-    DB_TRIGGERS_LIST: process.env.DB_TRIGGERS_LIST,
+    WALLET_CONFIGURATION:
+      process.env.AWS_ACCESS_KEY_ID ||
+      process.env.AWS_SECRET_ACCESS_KEY ||
+      process.env.AWS_REGION
+        ? JSON.stringify({
+            type: WalletType.awsKms,
+            awsAccessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            awsRegion: process.env.AWS_REGION,
+          })
+        : process.env.GOOGLE_APPLICATION_PROJECT_ID ||
+          process.env.GOOGLE_KMS_LOCATION_ID ||
+          process.env.GOOGLE_KMS_KEY_RING_ID ||
+          process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL ||
+          process.env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY
+        ? JSON.stringify({
+            type: WalletType.gcpKms,
+            gcpApplicationProjectId: process.env.GOOGLE_APPLICATION_PROJECT_ID,
+            gcpKmsLocationId: process.env.GOOGLE_KMS_LOCATION_ID,
+            gcpKmsKeyRingId: process.env.GOOGLE_KMS_KEY_RING_ID,
+            gcpApplicationCredentialEmail:
+              process.env.GOOGLE_APPLICATION_CREDENTIAL_EMAIL,
+            gcpApplicationCredentialPrivateKey:
+              process.env.GOOGLE_APPLICATION_CREDENTIAL_PRIVATE_KEY,
+          })
+        : JSON.stringify({
+            type: WalletType.local,
+          }),
     PORT: process.env.PORT,
     HOST: process.env.HOST,
     OPENAPI_BASE_ORIGIN: process.env.OPENAPI_BASE_ORIGIN,

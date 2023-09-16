@@ -1,4 +1,4 @@
-Web3-API supports Google KMS for signing & sending transactions over any EVM chain. This is a guide on how to set up Google KMS for Web3-API.
+Thirdweb Engine supports Google KMS for signing & sending transactions over any EVM chain. This is a guide on how to set up Google KMS for.
 
 ### Steps to set up Google KMS
 
@@ -19,7 +19,7 @@ Cloud KMS CryptoKey Signer/Verifier
 
 Optional: Create a key in the keyring, see [here](https://cloud.google.com/kms/docs/create-key) for more details. or, you can use the `/wallet/create` to create a key in the keyring.
 
-### Set up Web3-API with Google KMS
+### Set up with Google KMS
 
 Create a `.env` file in the root directory of the project and add the below details.
 

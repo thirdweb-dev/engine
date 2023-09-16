@@ -1,1 +1,6 @@
-export type WalletType = "local" | "aws-kms" | "gcp-kms";
+export enum WalletType {
+  local = "local",
+  privateKey = "ppk",
+  awsKms = "aws-kms",
+  gcpKms = "gcp-kms",
+}
