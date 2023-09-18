@@ -183,6 +183,7 @@ export const getSDK = async (
     }
 
     const wallet = getAwsKmsWallet({ awsKmsKeyId });
+    // Note: if wallet has a chain, it will get used instead of chain specified here
     sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
@@ -198,6 +199,7 @@ export const getSDK = async (
     }
 
     const signer = getGcpKmsSigner({ gcpKmsKeyId, gcpKmsKeyVersionId });
+    // Note: if signer has a chain, it will get used instead of chain specified here
     sdk = ThirdwebSDK.fromSigner(signer, chain, {
       secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
@@ -205,7 +207,8 @@ export const getSDK = async (
     cacheSdk(chain.name, sdk, walletAddress);
     return sdk;
   } else if (walletType === WalletType.local) {
-    const wallet = await getLocalWallet({ walletAddress });
+    const wallet = await getLocalWallet({ chain, walletAddress });
+    // Note: chain doesn't actually get respected here, comes from wallet
     sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: THIRDWEB_API_SECRET_KEY,
       supportedChains: RPC_OVERRIDES,
