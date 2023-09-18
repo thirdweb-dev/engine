@@ -3,16 +3,15 @@ import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
 import fastify, { FastifyInstance } from "fastify";
-import { env, errorHandler, getLogSettings } from "../../core";
+import { env, errorHandler } from "../../core";
 import { apiRoutes } from "../../server/api";
+import { logger } from "../../src/utils/logger";
 import { performHTTPAuthentication } from "../middleware/auth";
 import { openapi } from "./openapi";
 
-const createServer = async (serverName: string): Promise<FastifyInstance> => {
-  const logOptions = getLogSettings(serverName);
-
+const createServer = async (): Promise<FastifyInstance> => {
   const server: FastifyInstance = fastify({
-    logger: logOptions ?? true,
+    logger: logger.server,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
@@ -53,11 +52,11 @@ const createServer = async (serverName: string): Promise<FastifyInstance> => {
       request.headers.upgrade &&
       request.headers.upgrade.toLowerCase() === "websocket"
     ) {
-      server.log.debug("WebSocket connection attempt");
+      logger.server.debug("WebSocket connection attempt");
       // ToDo: Uncomment WebSocket Authentication post Auth SDK is implemented
       // await performWSAuthentication(request, reply);
     } else {
-      server.log.debug("Regular HTTP request");
+      logger.server.debug("Regular HTTP request");
       await performHTTPAuthentication(request, reply);
     }
   });

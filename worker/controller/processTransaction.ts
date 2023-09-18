@@ -1,6 +1,5 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
-import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError, env, getSDK } from "../../core";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
@@ -9,12 +8,11 @@ import { getQueuedTxs } from "../../src/db/transactions/getQueuedTxs";
 import { updateTx } from "../../src/db/transactions/updateTx";
 import { getWalletNonce } from "../../src/db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../src/db/wallets/updateWalletNonce";
+import { logger } from "../../src/utils/logger";
 
 const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS;
 
-export const processTransaction = async (
-  server: FastifyInstance,
-): Promise<string[]> => {
+export const processTransaction = async (): Promise<string[]> => {
   let processedIds: string[] = [];
   try {
     let error;
@@ -34,10 +32,10 @@ export const processTransaction = async (
         }
 
         if (data.length < MIN_TRANSACTION_TO_PROCESS) {
-          server.log.warn(
+          logger.worker.warn(
             `Number of transactions to process less than Minimum Transactions to Process: ${MIN_TRANSACTION_TO_PROCESS}`,
           );
-          server.log.warn(
+          logger.worker.warn(
             `Waiting for more transactions requests to start processing`,
           );
           return [];
@@ -45,7 +43,7 @@ export const processTransaction = async (
 
         processedIds = data.map((row: any) => row.identifier);
         for (const tx of data) {
-          server.log.info(`Processing Transaction: ${tx.queueId}`);
+          logger.worker.info(`Processing Transaction: ${tx.queueId}`);
           const walletNonce = await getWalletNonce({
             pgtx,
             address: tx.fromAddress!,
@@ -97,8 +95,8 @@ export const processTransaction = async (
           try {
             txRes = await sdk.getSigner()?.sendTransaction(txObject);
           } catch (err: any) {
-            server.log.debug("Send Transaction errored");
-            server.log.warn(
+            logger.worker.debug("Send Transaction errored");
+            logger.worker.warn(
               `Request-ID: ${tx.queueId} processed but errored out: Commited to db`,
             );
 
@@ -123,7 +121,7 @@ export const processTransaction = async (
               status: TransactionStatusEnum.Submitted,
               res: txRes,
             });
-            server.log.info(
+            logger.worker.info(
               `Transaction submitted for ${tx.queueId!} with Nonce ${txSubmittedNonce}, Tx Hash: ${
                 txRes?.hash
               } `,
@@ -138,8 +136,8 @@ export const processTransaction = async (
               nonce: txSubmittedNonce.toNumber() + 1,
             });
           } catch (error) {
-            server.log.warn("Transaction failed with error:");
-            server.log.error(error);
+            logger.worker.warn("Transaction failed with error:");
+            logger.worker.error(error);
             throw error;
           }
         }
@@ -153,7 +151,7 @@ export const processTransaction = async (
       throw error;
     }
   } catch (error) {
-    server.log.error(error);
+    logger.worker.error(error);
   } finally {
     return processedIds;
   }
