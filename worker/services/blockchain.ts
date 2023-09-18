@@ -1,9 +1,9 @@
 import { Static } from "@sinclair/typebox";
 import { getBlock } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
-import { FastifyInstance } from "fastify";
 import { getSDK } from "../../core";
 import { transactionResponseSchema } from "../../server/schemas/transaction";
+import { logger } from "../../src/utils/logger";
 
 type TransactionReceiptWithBlockDetails = {
   txHash: string;
@@ -17,13 +17,12 @@ type TransactionReceiptWithBlockDetails = {
 };
 
 export const getTransactionReceiptWithBlockDetails = async (
-  server: FastifyInstance,
   transactions: Static<typeof transactionResponseSchema>[],
 ): Promise<TransactionReceiptWithBlockDetails[]> => {
   try {
     const txReceiptData = await Promise.all(
       transactions.map(async (tx) => {
-        server.log.debug(
+        logger.worker.debug(
           `Getting receipt for tx: ${tx.transactionHash} on chain: ${tx.chainId} for queueId: ${tx.queueId}`,
         );
         const sdk = await getSDK(tx.chainId!.toString());
@@ -42,7 +41,7 @@ export const getTransactionReceiptWithBlockDetails = async (
     const txDatawithBlockDetails = await Promise.all(
       txReceiptData.map(async (dt) => {
         if (!dt.receipt) {
-          server.log.debug(
+          logger.worker.debug(
             `Receipt not found for tx: ${dt.queueId} on chain: ${dt.chainId}`,
           );
           return {
@@ -74,7 +73,10 @@ export const getTransactionReceiptWithBlockDetails = async (
 
     return txDatawithBlockDetails;
   } catch (error) {
-    server.log.error(error, "Error in getTransactionReceiptWithBlockDetails");
+    logger.worker.error(
+      error,
+      "Error in getTransactionReceiptWithBlockDetails",
+    );
     return [];
   }
 };
