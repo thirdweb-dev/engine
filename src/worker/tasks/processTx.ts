@@ -1,19 +1,19 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
-import { BigNumber, ethers, providers } from "ethers";
+import { ethers } from "ethers";
+import { BigNumber, providers } from "ethers/lib/ethers";
 import { StatusCodes } from "http-status-codes";
-import { createCustomError, env, getSDK } from "../../core";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
-import { prisma } from "../../src/db/client";
-import { getQueuedTxs } from "../../src/db/transactions/getQueuedTxs";
-import { updateTx } from "../../src/db/transactions/updateTx";
-import { getWalletNonce } from "../../src/db/wallets/getWalletNonce";
-import { updateWalletNonce } from "../../src/db/wallets/updateWalletNonce";
-import { logger } from "../../src/utils/logger";
+import { env } from "../../../core/env";
+import { createCustomError } from "../../../core/error/customError";
+import { getSDK } from "../../../core/sdk/sdk";
+import { TransactionStatusEnum } from "../../../server/schemas/transaction";
+import { prisma } from "../../db/client";
+import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
+import { updateTx } from "../../db/transactions/updateTx";
+import { getWalletNonce } from "../../db/wallets/getWalletNonce";
+import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
+import { logger } from "../../utils/logger";
 
-const MIN_TRANSACTION_TO_PROCESS = env.MIN_TRANSACTION_TO_PROCESS;
-
-export const processTransaction = async (): Promise<string[]> => {
-  let processedIds: string[] = [];
+export const processTx = async () => {
   try {
     let error;
 
@@ -31,9 +31,9 @@ export const processTransaction = async (): Promise<string[]> => {
           throw customError;
         }
 
-        if (data.length < MIN_TRANSACTION_TO_PROCESS) {
+        if (data.length < env.MIN_TRANSACTION_TO_PROCESS) {
           logger.worker.warn(
-            `Number of transactions to process less than Minimum Transactions to Process: ${MIN_TRANSACTION_TO_PROCESS}`,
+            `Number of transactions to process less than Minimum Transactions to Process: ${env.MIN_TRANSACTION_TO_PROCESS}`,
           );
           logger.worker.warn(
             `Waiting for more transactions requests to start processing`,
@@ -41,7 +41,6 @@ export const processTransaction = async (): Promise<string[]> => {
           return [];
         }
 
-        processedIds = data.map((row: any) => row.identifier);
         for (const tx of data) {
           logger.worker.info(`Processing Transaction: ${tx.queueId}`);
           const walletNonce = await getWalletNonce({
@@ -152,7 +151,5 @@ export const processTransaction = async (): Promise<string[]> => {
     }
   } catch (error) {
     logger.worker.error(error);
-  } finally {
-    return processedIds;
   }
 };

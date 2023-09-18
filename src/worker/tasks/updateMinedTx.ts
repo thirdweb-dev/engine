@@ -1,22 +1,12 @@
-import { BigNumber } from "ethers";
-import { env } from "../../core";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
-import { getSentTxs } from "../../src/db/transactions/getSentTxs";
-import { updateTx } from "../../src/db/transactions/updateTx";
-import { logger } from "../../src/utils/logger";
-import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
+import { BigNumber } from "ethers/lib/ethers";
+import { TransactionStatusEnum } from "../../../server/schemas/transaction";
+import { getSentTxs } from "../../db/transactions/getSentTxs";
+import { updateTx } from "../../db/transactions/updateTx";
+import { logger } from "../../utils/logger";
+import { getTransactionReceiptWithBlockDetails } from "./getTxReceipt";
 
-const MINED_TX_CRON_ENABLED = env.MINED_TX_CRON_ENABLED;
-
-export const checkForMinedTransactionsOnBlockchain = async () => {
+export const updateMinedTx = async () => {
   try {
-    if (!MINED_TX_CRON_ENABLED) {
-      logger.worker.warn("Mined Tx Cron is disabled");
-      return;
-    }
-    logger.worker.info(
-      "Running Cron to check for mined transactions on blockchain",
-    );
     const transactions = await getSentTxs();
 
     if (transactions.length === 0) {

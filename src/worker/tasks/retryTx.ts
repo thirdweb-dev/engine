@@ -1,28 +1,19 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
-import { BigNumber, ethers, providers } from "ethers";
-import { env, getSDK } from "../../core";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
-import { prisma } from "../../src/db/client";
-import { getTxToRetry } from "../../src/db/transactions/getTxToRetry";
-import { updateTx } from "../../src/db/transactions/updateTx";
-import { logger } from "../../src/utils/logger";
-import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
+import { ethers } from "ethers";
+import { BigNumber, providers } from "ethers/lib/ethers";
+import { env } from "../../../core/env";
+import { getSDK } from "../../../core/sdk/sdk";
+import { TransactionStatusEnum } from "../../../server/schemas/transaction";
+import { prisma } from "../../db/client";
+import { getTxToRetry } from "../../db/transactions/getTxToRetry";
+import { updateTx } from "../../db/transactions/updateTx";
+import { logger } from "../../utils/logger";
+import { getTransactionReceiptWithBlockDetails } from "./getTxReceipt";
 
-const RETRY_TX_ENABLED = env.RETRY_TX_ENABLED;
-const MAX_FEE_PER_GAS_FOR_RETRY = BigNumber.from(env.MAX_FEE_PER_GAS_FOR_RETRY);
-const MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY = BigNumber.from(
-  env.MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY,
-);
+export const retryTx = async () => {
+  let error;
 
-export const retryTransactions = async () => {
   try {
-    if (!RETRY_TX_ENABLED) {
-      logger.worker.warn("Retry Tx Cron is disabled");
-      return;
-    }
-
-    let error;
-
     await prisma.$transaction(
       async (pgtx) => {
         logger.worker.info("Running Cron to Retry transactions on blockchain");
@@ -100,9 +91,9 @@ export const retryTransactions = async () => {
                 txObject.maxPriorityFeePerGas =
                   txReceiptData.txData.retryMaxPriorityFeePerGas!;
               } else if (
-                gasData.maxFeePerGas?.gt(MAX_FEE_PER_GAS_FOR_RETRY!) ||
+                gasData.maxFeePerGas?.gt(env.MAX_FEE_PER_GAS_FOR_RETRY!) ||
                 gasData.maxPriorityFeePerGas?.gt(
-                  MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY!,
+                  env.MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY!,
                 )
               ) {
                 logger.worker.warn(
@@ -172,12 +163,8 @@ export const retryTransactions = async () => {
         timeout: 5 * 60000,
       },
     );
-
-    if (error) {
-      throw error;
-    }
-  } catch (error) {
-    logger.worker.error(error);
+  } catch {
+    logger.worker.error(`Failed to retry transaction:\n${error}`);
     return;
   }
 };

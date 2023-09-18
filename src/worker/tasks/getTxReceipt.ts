@@ -1,9 +1,9 @@
 import { Static } from "@sinclair/typebox";
 import { getBlock } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
-import { getSDK } from "../../core";
-import { transactionResponseSchema } from "../../server/schemas/transaction";
-import { logger } from "../../src/utils/logger";
+import { BigNumber } from "ethers/lib/ethers";
+import { getSDK } from "../../../core/sdk/sdk";
+import { transactionResponseSchema } from "../../../server/schemas/transaction";
+import { logger } from "../../utils/logger";
 
 type TransactionReceiptWithBlockDetails = {
   txHash: string;
