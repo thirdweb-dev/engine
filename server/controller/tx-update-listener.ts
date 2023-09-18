@@ -1,19 +1,17 @@
-import { FastifyInstance } from "fastify";
 import { connectToDatabase } from "../../core";
 import { getTxById } from "../../src/db/transactions/getTxById";
+import { logger } from "../../src/utils/logger";
 import {
   formatSocketMessage,
   getStatusMessageAndConnectionStatus,
 } from "../helpers/websocket";
 import { subscriptionsData } from "../schemas/websocket";
 
-export const startTxUpdatesNotificationListener = async (
-  server: FastifyInstance,
-): Promise<void> => {
+export const startTxUpdatesNotificationListener = async (): Promise<void> => {
   try {
     // Connect to the DB
     const knex = await connectToDatabase();
-    server.log.info(`Starting update notification listener`);
+    logger.server.info(`Starting update notification listener`);
     // Acquire a connection
     const connection = await knex.client.acquireConnection();
     connection.query("LISTEN updated_transaction_data");
@@ -21,7 +19,7 @@ export const startTxUpdatesNotificationListener = async (
     connection.on(
       "notification",
       async (msg: { channel: string; payload: string }) => {
-        server.log.debug(
+        logger.server.debug(
           `Received notification: ${msg.channel}, ${msg.payload}`,
         );
         const parsedPayload = JSON.parse(msg.payload);
@@ -47,20 +45,20 @@ export const startTxUpdatesNotificationListener = async (
     );
 
     connection.on("end", async () => {
-      server.log.info(`Connection database ended`);
+      logger.server.info(`Connection database ended`);
       knex.client.releaseConnection(connection);
       await knex.destroy();
-      server.log.info(`Released sql connection : on end`);
+      logger.server.info(`Released sql connection : on end`);
     });
 
     connection.on("error", async (err: any) => {
-      server.log.error(err);
+      logger.server.error(err);
       knex.client.releaseConnection(connection);
       await knex.destroy();
-      server.log.info(`Released sql connection: on error`);
+      logger.server.info(`Released sql connection: on error`);
     });
   } catch (error) {
-    server.log.error(`Error in notification listener: ${error}`);
+    logger.server.error(`Error in notification listener: ${error}`);
     throw error;
   }
 };

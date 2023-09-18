@@ -1,11 +1,11 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
-import { FastifyInstance } from "fastify";
 import { env, getSDK } from "../../core";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { prisma } from "../../src/db/client";
 import { getTxToRetry } from "../../src/db/transactions/getTxToRetry";
 import { updateTx } from "../../src/db/transactions/updateTx";
+import { logger } from "../../src/utils/logger";
 import { getTransactionReceiptWithBlockDetails } from "../services/blockchain";
 
 const RETRY_TX_ENABLED = env.RETRY_TX_ENABLED;
@@ -14,10 +14,10 @@ const MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY = BigNumber.from(
   env.MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY,
 );
 
-export const retryTransactions = async (server: FastifyInstance) => {
+export const retryTransactions = async () => {
   try {
     if (!RETRY_TX_ENABLED) {
-      server.log.warn("Retry Tx Cron is disabled");
+      logger.worker.warn("Retry Tx Cron is disabled");
       return;
     }
 
@@ -25,16 +25,16 @@ export const retryTransactions = async (server: FastifyInstance) => {
 
     await prisma.$transaction(
       async (pgtx) => {
-        server.log.info("Running Cron to Retry transactions on blockchain");
+        logger.worker.info("Running Cron to Retry transactions on blockchain");
         const transactions = await getTxToRetry({ pgtx });
 
         if (transactions.length === 0) {
-          server.log.warn("No transactions to retry");
+          logger.worker.warn("No transactions to retry");
           return;
         }
 
         const txReceiptsWithChainId =
-          await getTransactionReceiptWithBlockDetails(server, transactions);
+          await getTransactionReceiptWithBlockDetails(transactions);
 
         for (let txReceiptData of txReceiptsWithChainId) {
           // Check if transaction got mined on chain
@@ -46,7 +46,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
             txReceiptData.effectiveGasPrice != BigNumber.from(-1) &&
             txReceiptData.timestamp != -1
           ) {
-            server.log.debug(
+            logger.worker.debug(
               `Got receipt for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId}, effectiveGasPrice: ${txReceiptData.effectiveGasPrice}`,
             );
           } else {
@@ -60,12 +60,12 @@ export const retryTransactions = async (server: FastifyInstance) => {
               currentBlockNumber - txReceiptData.txData.sentAtBlockNumber! >
               env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
             ) {
-              server.log.debug(
+              logger.worker.debug(
                 `Retrying tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId} with higher gas values`,
               );
 
               const gasData = await getDefaultGasOverrides(sdk.getProvider());
-              server.log.debug(
+              logger.worker.debug(
                 `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas}, MaxPriorityFeePerGas: ${gasData.maxPriorityFeePerGas}, gasPrice`,
               );
 
@@ -74,7 +74,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
                   BigNumber.from(txReceiptData.txData.maxFeePerGas),
                 )
               ) {
-                server.log.warn(
+                logger.worker.warn(
                   `Gas Data MaxFeePerGas: ${gasData.maxFeePerGas} is less than or equal to Previously Submitted Transaction: ${txReceiptData.txData.maxFeePerGas} for queueId: ${txReceiptData.queueId}. Will Retry Later`,
                 );
                 continue;
@@ -93,7 +93,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
 
               // Override gas values from DB if flag is true
               if (txReceiptData.txData.retryGasValues) {
-                server.log.info(
+                logger.worker.info(
                   `Setting Gas Values from DB as override flag is set to true. MaxFeePerGas: ${txReceiptData.txData.retryMaxFeePerGas}, MaxPriorityFeePerGas: ${txReceiptData.txData.retryMaxPriorityFeePerGas} for queueId: ${txReceiptData.queueId}`,
                 );
                 txObject.maxFeePerGas = txReceiptData.txData.retryMaxFeePerGas!;
@@ -105,7 +105,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
                   MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY!,
                 )
               ) {
-                server.log.warn(
+                logger.worker.warn(
                   `${txReceiptData.txData
                     .chainId!} Chain Gas Price is higher than Max Threshold for retrying transaction ${
                     txReceiptData.queueId
@@ -121,8 +121,8 @@ export const retryTransactions = async (server: FastifyInstance) => {
               try {
                 txRes = await sdk.getSigner()?.sendTransaction(txObject);
               } catch (err: any) {
-                server.log.debug("Send Transaction errored");
-                server.log.warn(
+                logger.worker.debug("Send Transaction errored");
+                logger.worker.warn(
                   `Request-ID: ${txReceiptData.queueId} processed but errored out: Commited to db`,
                 );
 
@@ -149,11 +149,11 @@ export const retryTransactions = async (server: FastifyInstance) => {
                   retryCount: txReceiptData.txData.retryCount + 1,
                 },
               });
-              server.log.info(
+              logger.worker.info(
                 `Transaction re-submitted for ${txReceiptData.queueId} with Nonce ${txReceiptData.txData.nonce}, Tx Hash: ${txRes?.hash}`,
               );
             } else {
-              server.log.info(
+              logger.worker.info(
                 `Will retry later Request with queueId ${
                   txReceiptData.queueId
                 } after ${
@@ -177,7 +177,7 @@ export const retryTransactions = async (server: FastifyInstance) => {
       throw error;
     }
   } catch (error) {
-    server.log.error(error);
+    logger.worker.error(error);
     return;
   }
 };
