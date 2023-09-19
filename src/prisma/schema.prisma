@@ -58,6 +58,7 @@ model Transactions {
 model WalletDetails {
   address            String        @id @map("address")
   type               String        @map("type")
+  alias              String?       @map("alias")
 
   // KMS
   awsKmsKeyId        String?       @map("awsKmsKeyId")
@@ -86,4 +87,21 @@ model WalletNonce {
 
   @@id([address, chainId])
   @@map("wallet_nonce")
+}
+
+model EngineConfiguration { 
+  id       String @id @default(uuid()) @map("id")
+
+  // Environment Data
+  awsAccessKey                 String?           @map("awsAccessKey")
+  awsSecretAccessKey           String?           @map("awsSecretAccessKey")
+  awsRegion                    String?           @map("awsRegion")
+  gcpProjectId                 String?           @map("gcpProjectId")
+  gcpKMSRingId                 String?           @map("gcpKMSRingId")
+  gcpLocationId                String?           @map("gcpLocationId")
+  gcpAppCredentialEmail        String?           @map("gcpAppCredentialEmail")
+  gcpAppCredentialPrivateKey   String?           @map("gcpAppCredentialPrivateKey")
+
+
+  @@map("engine_configuration")
 }

@@ -22,9 +22,15 @@ const main = async () => {
       stdio: "inherit",
     });
   } else {
-    execSync(`yarn prisma migrate deploy --schema ${schema}`, {
-      stdio: "inherit",
-    });
+    if (process.env.NODE_ENV === "production") {
+      execSync(`yarn prisma migrate deploy --schema ${schema}`, {
+        stdio: "inherit",
+      });
+    } else {
+      execSync(`yarn prisma migrate dev --schema ${schema}`, {
+        stdio: "inherit",
+      });
+    }
   }
 
   execSync(`yarn prisma generate --schema ${schema}`, { stdio: "inherit" });

@@ -19,6 +19,7 @@ type ImportLocalWalletParams =
 
 export const importLocalWallet = async (
   options: ImportLocalWalletParams,
+  alias?: string,
 ): Promise<string> => {
   const wallet = new LocalWallet();
 
@@ -48,6 +49,7 @@ export const importLocalWallet = async (
   await createWalletDetails({
     address: walletAddress,
     type: WalletType.local,
+    alias,
   });
 
   return walletAddress;

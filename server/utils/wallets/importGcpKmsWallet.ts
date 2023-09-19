@@ -6,11 +6,13 @@ import { getGcpKmsSigner } from "./getGcpKmsSigner";
 interface ImportGcpKmsWalletParams {
   gcpKmsKeyId: string;
   gcpKmsKeyVersionId: string;
+  alias?: string;
 }
 
 export const importGcpKmsWallet = async ({
   gcpKmsKeyId,
   gcpKmsKeyVersionId,
+  alias,
 }: ImportGcpKmsWalletParams) => {
   if (env.WALLET_CONFIGURATION.type !== WalletType.gcpKms) {
     throw new Error(`Server was not configured for GCP KMS wallet creation`);
@@ -28,6 +30,7 @@ export const importGcpKmsWallet = async ({
     gcpKmsLocationId: env.WALLET_CONFIGURATION.gcpKmsLocationId,
     gcpKmsKeyVersionId: gcpKmsKeyVersionId,
     gcpKmsResourcePath,
+    alias,
   });
 
   return walletAddress;

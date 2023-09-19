@@ -3,34 +3,37 @@ import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
 import fastify, { FastifyInstance } from "fastify";
-import * as fs from "fs";
 import { env, errorHandler } from "../../core";
-import { apiRoutes } from "../../server/api";
+import { getAllWallets } from "../../src/db/wallets/getAllWallets";
 import { logger } from "../../src/utils/logger";
+import { apiRoutes } from "../api";
 import { performHTTPAuthentication } from "../middleware/auth";
 import { openapi } from "./openapi";
 
-const createServer = async (): Promise<FastifyInstance> => {
+export const createServer = async (): Promise<FastifyInstance> => {
   const server: FastifyInstance = fastify({
     logger: logger.server,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
+  const walletsDetails = await getAllWallets();
+  if (walletsDetails.length <= 0) {
+    logger.server.error(
+      `--------------------------No Wallets configured in the DB--------------------------`,
+    );
+  }
+
   const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
-  server.log.info(`Allowed Origins: ${originArray}`);
   await server.register(fastifyCors, {
     origin: originArray.map((data) => {
       if (data.startsWith("/") && data.endsWith("/")) {
-        server.log.info(`Regex Origin: ${data.slice(1, -1)}`);
         return new RegExp(data.slice(1, -1));
       }
 
       if (data.startsWith("*.")) {
         const regex = data.replace("*.", ".*.");
-        server.log.info(`Regex Origin 2: ${regex}`);
         return new RegExp(regex);
       }
-      server.log.info(`Origin: ${data}`);
       return data;
     }),
     credentials: true,
@@ -66,11 +69,22 @@ const createServer = async (): Promise<FastifyInstance> => {
       url === "/favicon.ico" ||
       url === "/" ||
       url === "/health" ||
-      url.startsWith("/static") ||
+      url.startsWith("/swagger-docs") ||
       url.startsWith("/json") ||
-      url.startsWith("/style.css")
+      url.startsWith("/static")
     ) {
       return;
+    }
+
+    const walletsDetails = await getAllWallets();
+    if (walletsDetails.length <= 0) {
+      logger.server.error("No Wallets configured in the DB");
+      return reply.status(401).send({
+        statusCode: 401,
+        error:
+          "No Wallets configured in the DB. Please Create or Import a Wallet",
+        message: "No Wallets Found",
+      });
     }
 
     if (
@@ -126,10 +140,6 @@ const createServer = async (): Promise<FastifyInstance> => {
   await server.register(fastifyExpress);
   await server.register(WebSocketPlugin);
 
-  await openapi(server);
-
-  await server.register(apiRoutes);
-
   /* TODO Add a real health check
    * check if postgres connection is valid
    * have worker write a heartbeat to db
@@ -142,19 +152,11 @@ const createServer = async (): Promise<FastifyInstance> => {
     };
   });
 
+  await openapi(server);
+
+  await server.register(apiRoutes);
+
   await server.ready();
-
-  // Command to Generate Swagger File
-  // Needs to be called post Fastify Server is Ready
-  server.swagger();
-
-  // To Generate Swagger YAML File
-  if (env.NODE_ENV === "local") {
-    const yaml = server.swagger({ yaml: true });
-    fs.writeFileSync("./swagger.yml", yaml);
-  }
 
   return server;
 };
-
-export default createServer;

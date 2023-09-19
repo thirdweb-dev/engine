@@ -6,11 +6,13 @@ import { getAwsKmsWallet } from "./getAwsKmsWallet";
 interface ImportAwsKmsWalletParams {
   awsKmsKeyId: string;
   awsKmsArn: string;
+  alias?: string;
 }
 
 export const importAwsKmsWallet = async ({
   awsKmsKeyId,
   awsKmsArn,
+  alias,
 }: ImportAwsKmsWalletParams) => {
   if (env.WALLET_CONFIGURATION.type !== WalletType.awsKms) {
     throw new Error(`Server was not configured for AWS KMS wallet creation`);
@@ -24,6 +26,7 @@ export const importAwsKmsWallet = async ({
     address: walletAddress,
     awsKmsArn,
     awsKmsKeyId,
+    alias,
   });
 
   return walletAddress;

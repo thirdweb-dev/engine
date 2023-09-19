@@ -8,6 +8,14 @@ import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
 import { importLocalWallet } from "../../utils/wallets/importLocalWallet";
 
+const AliasSchema = Type.Object({
+  alias: Type.Optional(
+    Type.String({
+      description: "The alias of the wallet to import",
+    }),
+  ),
+});
+
 const RequestBodySchema = Type.Union([
   Type.Object({
     awsKmsKeyId: Type.String({
@@ -20,6 +28,7 @@ const RequestBodySchema = Type.Union([
         "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
       ],
     }),
+    ...AliasSchema.properties,
   }),
   Type.Object({
     gcpKmsKeyId: Type.String({
@@ -30,17 +39,20 @@ const RequestBodySchema = Type.Union([
       description: "GCP KMS Key Version ID",
       examples: ["1"],
     }),
+    ...AliasSchema.properties,
   }),
   Type.Union([
     Type.Object({
       privateKey: Type.String({
         description: "The private key of the wallet to import",
       }),
+      ...AliasSchema.properties,
     }),
     Type.Object({
       mnemonic: Type.String({
         description: "The mnemonic phrase of the wallet to import",
       }),
+      ...AliasSchema.properties,
     }),
     Type.Object({
       encryptedJson: Type.String({
@@ -49,6 +61,7 @@ const RequestBodySchema = Type.Union([
       password: Type.String({
         description: "The password used to encrypt the encrypted JSON",
       }),
+      ...AliasSchema.properties,
     }),
   ]),
 ]);
@@ -57,23 +70,28 @@ RequestBodySchema.examples = [
   {
     privateKey:
       "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    alias: "my-wallet",
   },
   {
     mnemonic:
       "crouch cabbage puppy sunset fever adjust giggle blanket maze loyal wreck dream",
+    alias: "my-wallet",
   },
   {
     encryptedJson: "",
     password: "password123",
+    alias: "my-wallet",
   },
   {
     awsKmsKeyId: "12345678-1234-1234-1234-123456789012",
     awsKmsArn:
       "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+    alias: "my-wallet",
   },
   {
     gcpKmsKeyId: "12345678-1234-1234-1234-123456789012",
     gcpKmsKeyVersionId: "1",
+    alias: "my-wallet",
   },
 ];
 
@@ -113,25 +131,34 @@ export const importWallet = async (fastify: FastifyInstance) => {
       switch (env.WALLET_CONFIGURATION.type) {
         case WalletType.local:
           // TODO: This is why where zod would be great
-          const { privateKey, mnemonic, encryptedJson, password } =
+          const { privateKey, mnemonic, encryptedJson, password, alias } =
             req.body as any;
 
           if (privateKey) {
-            walletAddress = await importLocalWallet({
-              method: "privateKey",
-              privateKey,
-            });
+            walletAddress = await importLocalWallet(
+              {
+                method: "privateKey",
+                privateKey,
+              },
+              alias,
+            );
           } else if (mnemonic) {
-            walletAddress = await importLocalWallet({
-              method: "mnemonic",
-              mnemonic,
-            });
+            walletAddress = await importLocalWallet(
+              {
+                method: "mnemonic",
+                mnemonic,
+              },
+              alias,
+            );
           } else if (encryptedJson && password) {
-            walletAddress = await importLocalWallet({
-              method: "encryptedJson",
-              encryptedJson,
-              password,
-            });
+            walletAddress = await importLocalWallet(
+              {
+                method: "encryptedJson",
+                encryptedJson,
+                password,
+              },
+              alias,
+            );
           } else {
             throw new Error(
               `Please provide either 'privateKey', 'mnemonic', or 'encryptedJson' & 'password' to import a wallet.`,
@@ -149,6 +176,7 @@ export const importWallet = async (fastify: FastifyInstance) => {
           walletAddress = await importAwsKmsWallet({
             awsKmsArn,
             awsKmsKeyId,
+            alias,
           });
           break;
         case WalletType.gcpKms:
@@ -162,6 +190,7 @@ export const importWallet = async (fastify: FastifyInstance) => {
           walletAddress = await importGcpKmsWallet({
             gcpKmsKeyId,
             gcpKmsKeyVersionId,
+            alias,
           });
           break;
       }

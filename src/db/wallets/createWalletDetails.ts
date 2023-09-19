@@ -14,6 +14,7 @@ interface CreateWalletDetailsParams {
   gcpKmsKeyVersionId?: string;
   gcpKmsLocationId?: string;
   gcpKmsResourcePath?: string;
+  alias?: string;
 }
 
 export const createWalletDetails = async ({

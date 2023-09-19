@@ -8,7 +8,13 @@ export const createAwsKmsWallet = async (): Promise<string> => {
     throw new Error(`Server was not configured for AWS KMS wallet creation`);
   }
 
+  /// Read from cache or DB
+
   const client = new KMSClient({
+    credentials: {
+      accessKeyId: env.WALLET_CONFIGURATION.awsAccessKeyId,
+      secretAccessKey: env.WALLET_CONFIGURATION.awsSecretAccessKey,
+    },
     region: env.WALLET_CONFIGURATION.awsRegion,
   });
 
