@@ -1,20 +1,18 @@
-import { Static } from "@sinclair/typebox";
+import { Transactions } from "@prisma/client";
 import { env } from "../../../core/env";
-import { transactionResponseSchema } from "../../../server/schemas/transaction";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
-import { cleanTxs } from "./cleanTxs";
 
 interface GetSentTxsParams {
   pgtx?: PrismaTransaction;
 }
 
 export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
-  Static<typeof transactionResponseSchema>[]
+  Transactions[]
 > => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  const txs = await prisma.transactions.findMany({
+  return prisma.transactions.findMany({
     where: {
       processedAt: {
         not: null,
@@ -40,6 +38,4 @@ export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
     // TODO: Should this be coming from env?
     take: env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
   });
-
-  return cleanTxs(txs);
 };
