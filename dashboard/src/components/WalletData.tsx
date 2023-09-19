@@ -1,8 +1,21 @@
 // src/components/WalletData.js
-import PropTypes from "prop-types";
-import React from "react";
 
-function TableBody({ walletData, errorMessage }) {
+interface WalletData {
+  address: string;
+  type: string;
+}
+
+interface WalletDataComponentProps {
+  walletData: WalletData[];
+  errorMessage: string | null;
+}
+
+interface TableBodyProps {
+  walletData: WalletData[];
+  errorMessage: string | null;
+}
+
+function TableBody({ walletData, errorMessage }: TableBodyProps) {
   if (errorMessage) {
     return (
       <tbody>
@@ -25,7 +38,10 @@ function TableBody({ walletData, errorMessage }) {
   );
 }
 
-function WalletData({ walletData, errorMessage }) {
+function WalletDataComponent({
+  walletData,
+  errorMessage,
+}: WalletDataComponentProps) {
   return (
     <div>
       <div className="heading">
@@ -45,14 +61,4 @@ function WalletData({ walletData, errorMessage }) {
   );
 }
 
-WalletData.propTypes = {
-  walletData: PropTypes.arrayOf(
-    PropTypes.shape({
-      address: PropTypes.string.isRequired,
-      type: PropTypes.string.isRequired,
-    }),
-  ).isRequired,
-  errorMessage: PropTypes.string,
-};
-
-export default WalletData;
+export default WalletDataComponent;
