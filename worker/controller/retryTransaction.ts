@@ -147,6 +147,7 @@ export const retryTransactions = async () => {
                 res: txRes,
                 txData: {
                   retryCount: txReceiptData.txData.retryCount + 1,
+                  sentAtBlockNumber: currentBlockNumber,
                 },
               });
               logger.worker.info(

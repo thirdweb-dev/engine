@@ -56,10 +56,12 @@ export const processTransaction = async (): Promise<string[]> => {
             pgtx,
           );
 
-          let [blockchainNonce, gasData] = await Promise.all([
-            sdk.wallet.getNonce("pending"),
-            getDefaultGasOverrides(sdk.getProvider()),
-          ]);
+          let [blockchainNonce, gasData, currentBlockNumber] =
+            await Promise.all([
+              sdk.wallet.getNonce("pending"),
+              getDefaultGasOverrides(sdk.getProvider()),
+              sdk.getProvider().getBlockNumber(),
+            ]);
 
           // TODO: IMPORTANT: Proper nonce management logic! Add comments!
           let currentNonce = BigNumber.from(walletNonce?.nonce ?? 0);
@@ -120,6 +122,9 @@ export const processTransaction = async (): Promise<string[]> => {
               queueId: tx.queueId!,
               status: TransactionStatusEnum.Submitted,
               res: txRes,
+              txData: {
+                sentAtBlockNumber: currentBlockNumber,
+              },
             });
             logger.worker.info(
               `Transaction submitted for ${tx.queueId!} with Nonce ${txSubmittedNonce}, Tx Hash: ${
