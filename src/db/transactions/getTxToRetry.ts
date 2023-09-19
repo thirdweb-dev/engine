@@ -1,20 +1,18 @@
-import { Static } from "@sinclair/typebox";
-import { transactionResponseSchema } from "../../../server/schemas/transaction";
+import { Transactions } from "@prisma/client";
 import type { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
-import { cleanTxs } from "./cleanTxs";
 
 interface GetTxToRetryParams {
   pgtx?: PrismaTransaction;
 }
 
 export const getTxToRetry = async ({ pgtx }: GetTxToRetryParams = {}): Promise<
-  Static<typeof transactionResponseSchema>[]
+  Transactions | undefined
 > => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  // TODO: Why is this checking that transaction hash is not null
-  const txs = await prisma.$queryRaw`
+  // TODO: Remove transactionHash
+  const [tx] = (await prisma.$queryRaw`
 SELECT
   *
 FROM
@@ -32,8 +30,7 @@ ASC
 LIMIT
   1
 FOR UPDATE SKIP LOCKED
-  `;
+  `) as Transactions[];
 
-  // TODO: This might not work!
-  return cleanTxs(txs as any);
+  return tx;
 };

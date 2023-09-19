@@ -21,11 +21,10 @@
     "server/**/*.d.ts",
     "server/**/*.js",
     "core/**/*.ts",
-    "worker/**/*.ts",
-    "worker/**/*.d.ts",
-    "worker/**/*.js",
     "core/env.ts",
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.js",
+    "src/**/*.d.ts"
   ],
   "exclude": ["node_modules"]
 }
