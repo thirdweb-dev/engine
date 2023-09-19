@@ -173,10 +173,6 @@ export const getSDK = async (
   const gcpKmsKeyId = walletData.gcpKmsKeyId;
   const gcpKmsKeyVersionId = walletData.gcpKmsKeyVersionId;
 
-  console.log(
-    `getSDK walletAddress: ${walletAddress}, walletType: ${walletType}, awsKmsKeyId: ${awsKmsKeyId}, gcpKmsKeyId: ${gcpKmsKeyId}, chainName: ${chainName}`,
-  );
-
   if (walletType === WalletType.awsKms) {
     if (!awsKmsKeyId) {
       throw new Error("Wallet does not specify awsKmsKeyId");
