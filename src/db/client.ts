@@ -12,7 +12,7 @@ export const getPrismaWithPostgresTx = (pgtx?: PrismaTransaction) => {
 export const knex = pg({
   client: "pg",
   connection: {
-    connectString: env.POSTGRES_CONNECTION_URL,
+    connectionString: env.POSTGRES_CONNECTION_URL,
     ssl: {
       rejectUnauthorized: false,
     },

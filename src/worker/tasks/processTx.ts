@@ -1,9 +1,7 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
-import { BigNumber, providers } from "ethers/lib/ethers";
-import { StatusCodes } from "http-status-codes";
+import { BigNumber } from "ethers/lib/ethers";
 import { env } from "../../../core/env";
-import { createCustomError } from "../../../core/error/customError";
 import { getSDK } from "../../../core/sdk/sdk";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { prisma } from "../../db/client";
@@ -15,141 +13,133 @@ import { logger } from "../../utils/logger";
 
 export const processTx = async () => {
   try {
-    let error;
-
+    // Everything happens in a transaction to lock for the duration of processing
     await prisma.$transaction(
       async (pgtx) => {
-        let data;
-        try {
-          data = await getQueuedTxs({ pgtx });
-        } catch (error) {
-          const customError = createCustomError(
-            "Error in getting transactions from table",
-            StatusCodes.INTERNAL_SERVER_ERROR,
-            "TRANSACTION_PROCESSING_ERROR",
-          );
-          throw customError;
+        // Select a batch of transactions and lock the rows
+        const txs = await getQueuedTxs({ pgtx });
+
+        if (txs.length < env.MIN_TRANSACTION_TO_PROCESS) {
+          return;
         }
 
-        if (data.length < env.MIN_TRANSACTION_TO_PROCESS) {
-          logger.worker.warn(
-            `Number of transactions to process less than Minimum Transactions to Process: ${env.MIN_TRANSACTION_TO_PROCESS}`,
-          );
-          logger.worker.warn(
-            `Waiting for more transactions requests to start processing`,
-          );
-          return [];
-        }
-
-        for (const tx of data) {
-          logger.worker.info(`Processing Transaction: ${tx.queueId}`);
-          const walletNonce = await getWalletNonce({
-            pgtx,
-            address: tx.fromAddress!,
-            chainId: tx.chainId!,
-          });
-
-          const sdk = await getSDK(
-            tx.chainId!.toString(),
-            tx.fromAddress!,
-            pgtx,
-          );
-
-          let [blockchainNonce, gasData] = await Promise.all([
-            sdk.wallet.getNonce("pending"),
-            getDefaultGasOverrides(sdk.getProvider()),
-          ]);
-
-          // TODO: IMPORTANT: Proper nonce management logic! Add comments!
-          let currentNonce = BigNumber.from(walletNonce?.nonce ?? 0);
-          let txSubmittedNonce = BigNumber.from(0);
-
-          if (BigNumber.from(blockchainNonce).gt(currentNonce)) {
-            txSubmittedNonce = BigNumber.from(blockchainNonce);
-          } else {
-            txSubmittedNonce = BigNumber.from(currentNonce);
-          }
-
-          await updateTx({
-            pgtx,
-            queueId: tx.queueId!,
-            status: TransactionStatusEnum.Processed,
-          });
-
-          // Get the nonce for the blockchain transaction
-
-          // Submit transaction to the blockchain
-          // Create transaction object
-          const txObject: providers.TransactionRequest = {
-            to: tx.toAddress!,
-            from: tx.fromAddress!,
-            data: tx.data!,
-            nonce: txSubmittedNonce,
-            value: tx.value!,
-            ...gasData,
-          };
-
-          // Send transaction to the blockchain
-          let txRes: ethers.providers.TransactionResponse | undefined;
+        // Transaction processing needs to happen sequentially for nonce management
+        for (const tx of txs) {
           try {
-            txRes = await sdk.getSigner()?.sendTransaction(txObject);
-          } catch (err: any) {
-            logger.worker.debug("Send Transaction errored");
-            logger.worker.warn(
-              `Request-ID: ${tx.queueId} processed but errored out: Commited to db`,
+            logger.worker.info(
+              `[Transaction] [${tx.queueId}] Picked up by worker`,
             );
 
+            // Update database that transaction has been picked up by worker
+            await updateTx({
+              pgtx,
+              queueId: tx.queueId!,
+              status: TransactionStatusEnum.Processed,
+            });
+
+            const sdk = await getSDK(
+              tx.chainId!.toString(),
+              tx.fromAddress!,
+              pgtx,
+            );
+
+            // Run data gathering async calls in parallel
+            const [mempoolNonce, dbNonce, gasOverrides] = await Promise.all([
+              sdk.wallet.getNonce("pending"),
+              getWalletNonce({
+                pgtx,
+                address: tx.fromAddress!,
+                chainId: tx.chainId!,
+              }),
+              getDefaultGasOverrides(sdk.getProvider()),
+            ]);
+
+            // As a backstop, take the greater value between the mempool nonce and db nonce (in case we get out of sync)
+            const nonce = BigNumber.from(mempoolNonce).gt(
+              BigNumber.from(dbNonce?.nonce || 0),
+            )
+              ? BigNumber.from(mempoolNonce)
+              : BigNumber.from(dbNonce?.nonce || 0);
+
+            let res: ethers.providers.TransactionResponse;
+            try {
+              res = await sdk.getSigner()!.sendTransaction({
+                to: tx.toAddress!,
+                from: tx.fromAddress!,
+                data: tx.data!,
+                value: tx.value!,
+                nonce,
+                ...gasOverrides,
+              });
+            } catch (err: any) {
+              logger.worker.warn(
+                `[Transaction] [${tx.queueId}] Failed to send with error - ${err}`,
+              );
+
+              await updateTx({
+                pgtx,
+                queueId: tx.queueId!,
+                status: TransactionStatusEnum.Errored,
+                txData: {
+                  errorMessage:
+                    err?.message ||
+                    err?.toString() ||
+                    `Failed to handle transaction`,
+                },
+              });
+
+              // TODO: If the transaction errors, we should move onto the next one
+              continue;
+            }
+
+            await updateTx({
+              pgtx,
+              queueId: tx.queueId!,
+              status: TransactionStatusEnum.Submitted,
+              res,
+              txData: {
+                sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
+              },
+            });
+
+            logger.worker.info(
+              `[Transaction] [${tx.queueId}] Submitted with nonce '${nonce}' & hash '${res.hash}'`,
+            );
+
+            // Increment the nonce used for the transaction and update the database
+            await updateWalletNonce({
+              pgtx,
+              address: tx.fromAddress!,
+              chainId: tx.chainId!,
+              nonce: nonce.toNumber() + 1,
+            });
+          } catch (err) {
+            logger.worker.warn(
+              `[Transaction] [${tx.queueId}] Failed to process with error - ${err}`,
+            );
+
+            // TODO: Since this is an unknown error, it should be updated to unprocessed and retried if tx hasn't been sent.
             await updateTx({
               pgtx,
               queueId: tx.queueId!,
               status: TransactionStatusEnum.Errored,
               txData: {
-                errorMessage: err.message,
+                // TODO: Do we want more visibility on this error message? This case should rarely get hit.
+                errorMessage: `Failed to process transaction.`,
               },
             });
-
-            // Preserve error to throw outside of transaction
-            error = err;
-            return;
-          }
-
-          try {
-            await updateTx({
-              pgtx,
-              queueId: tx.queueId!,
-              status: TransactionStatusEnum.Submitted,
-              res: txRes,
-            });
-            logger.worker.info(
-              `Transaction submitted for ${tx.queueId!} with Nonce ${txSubmittedNonce}, Tx Hash: ${
-                txRes?.hash
-              } `,
-            );
-
-            await updateWalletNonce({
-              pgtx,
-              address: tx.fromAddress!,
-              chainId: tx.chainId!,
-              // TODO: IMPORTANT: This will cause errors!
-              // TODO: Should this be txSubmittedNonce or blockchainNonce?
-              nonce: txSubmittedNonce.toNumber() + 1,
-            });
-          } catch (error) {
-            logger.worker.warn("Transaction failed with error:");
-            logger.worker.error(error);
-            throw error;
           }
         }
       },
       {
+        // Maximum 3 minutes to send the batch of transactions.
+        // TODO: Should be dynamic with the batch size.
         timeout: 5 * 60000,
       },
     );
-
-    if (error) {
-      throw error;
-    }
-  } catch (error) {
-    logger.worker.error(error);
+  } catch (err: any) {
+    logger.worker.error(
+      `Failed to process batch of transactions with error - ${err}`,
+    );
   }
 };

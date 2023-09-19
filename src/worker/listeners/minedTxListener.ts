@@ -8,6 +8,6 @@ export const minedTxListener = () => {
       return;
     }
 
-    updateMinedTx();
+    await updateMinedTx();
   });
 };

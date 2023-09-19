@@ -1,53 +1,78 @@
-import { BigNumber } from "ethers/lib/ethers";
+import { Transactions } from "@prisma/client";
+import { getBlock } from "@thirdweb-dev/sdk";
+import { ethers } from "ethers";
+import { getSDK } from "../../../core";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { logger } from "../../utils/logger";
-import { getTransactionReceiptWithBlockDetails } from "./getTxReceipt";
 
 export const updateMinedTx = async () => {
   try {
-    const transactions = await getSentTxs();
+    const txs = await getSentTxs();
 
-    if (transactions.length === 0) {
-      logger.worker.warn("No transactions to check for mined status");
+    if (txs.length === 0) {
       return;
     }
 
-    const txReceiptsWithChainId = await getTransactionReceiptWithBlockDetails(
-      transactions,
-    );
+    const txsWithReceipts = (
+      await Promise.all(
+        txs.map(async (tx) => {
+          const sdk = await getSDK(tx.chainId!.toString());
+          const receipt: ethers.providers.TransactionReceipt | undefined =
+            await sdk.getProvider().getTransactionReceipt(tx.transactionHash!);
 
-    for (let txReceiptData of txReceiptsWithChainId) {
-      if (
-        txReceiptData.blockNumber != -1 &&
-        txReceiptData.chainId &&
-        txReceiptData.queueId &&
-        txReceiptData.txHash != "" &&
-        txReceiptData.effectiveGasPrice != BigNumber.from(-1) &&
-        txReceiptData.timestamp != -1
-      ) {
-        logger.worker.info(
-          `Got receipt for tx: ${txReceiptData.txHash}, queueId: ${txReceiptData.queueId}, effectiveGasPrice: ${txReceiptData.effectiveGasPrice}`,
-        );
+          if (!receipt) {
+            // If no receipt was received, return undefined to filter out tx
+            return undefined;
+          }
 
+          // Get the timestamp when the transaction was mined
+          const minedAt = new Date(
+            (
+              await getBlock({
+                block: receipt.blockNumber,
+                network: sdk.getProvider(),
+              })
+            ).timestamp * 1000,
+          );
+
+          return {
+            tx,
+            receipt,
+            minedAt,
+          };
+        }),
+      )
+    ).filter((txWithReceipt) => {
+      // Filter out transactions with no receipt to be picked up by a future worker
+      return !!txWithReceipt;
+    }) as {
+      tx: Transactions;
+      receipt: ethers.providers.TransactionReceipt;
+      minedAt: Date;
+    }[];
+
+    // Update all transactions with a receipt in parallel
+    await Promise.all(
+      txsWithReceipts.map(async (txWithReceipt) => {
         await updateTx({
-          queueId: txReceiptData.queueId,
+          queueId: txWithReceipt.tx.id,
           status: TransactionStatusEnum.Mined,
           txData: {
-            gasPrice: BigNumber.from(
-              txReceiptData.effectiveGasPrice || 0,
-            ).toString(),
-            blockNumber: txReceiptData.blockNumber,
-            minedAt: new Date(txReceiptData.timestamp),
+            gasPrice: txWithReceipt.receipt.effectiveGasPrice.toString(),
+            blockNumber: txWithReceipt.receipt.blockNumber,
+            minedAt: txWithReceipt.minedAt,
           },
         });
-      }
-    }
 
-    return;
-  } catch (error) {
-    logger.worker.error(error);
+        logger.worker.info(
+          `[Transaction] [${txWithReceipt.tx.id}] Updated with receipt`,
+        );
+      }),
+    );
+  } catch (err) {
+    logger.worker.error(`Failed to update receipts with error - ${err}`);
     return;
   }
 };
