@@ -1,38 +1,16 @@
-import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { Static } from "@sinclair/typebox";
-import { env } from "../../../core/env";
 import { WalletType } from "../../../src/schema/wallet";
+import { env } from "../../../src/utils/env";
 import { EngineConfigSchema } from "../../schemas/config";
-import { importAwsKmsWallet } from "../wallets/importAwsKmsWallet";
 
 export const addLocalConfig = async (
   data: Static<(typeof EngineConfigSchema)["local"]>,
 ): Promise<string> => {
-  if (env.WALLET_CONFIGURATION.type !== WalletType.awsKms) {
+  if (env.WALLET_CONFIGURATION.type !== WalletType.local) {
     throw new Error(`Server was not configured for AWS KMS wallet creation`);
   }
 
-  /// Read from cache or DB
+  /// ToDo
 
-  const client = new KMSClient({
-    credentials: {
-      accessKeyId: env.WALLET_CONFIGURATION.awsAccessKeyId,
-      secretAccessKey: env.WALLET_CONFIGURATION.awsSecretAccessKey,
-    },
-    region: env.WALLET_CONFIGURATION.awsRegion,
-  });
-
-  const res = await client.send(
-    new CreateKeyCommand({
-      Description: "thirdweb Engine AWS KMS Backend Wallet",
-      KeyUsage: "SIGN_VERIFY",
-      KeySpec: "ECC_SECG_P256K1",
-      MultiRegion: false,
-    }),
-  );
-
-  const awsKmsArn = res.KeyMetadata!.Arn!;
-  const awsKmsKeyId = res.KeyMetadata!.KeyId!;
-
-  return importAwsKmsWallet({ awsKmsArn, awsKmsKeyId });
+  return "";
 };
