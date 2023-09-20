@@ -1,12 +1,12 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
-import { env } from "../../../core/env";
 import { getSDK } from "../../../core/sdk/sdk";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { prisma } from "../../db/client";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
 import { updateTx } from "../../db/transactions/updateTx";
+import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
 export const retryTx = async () => {

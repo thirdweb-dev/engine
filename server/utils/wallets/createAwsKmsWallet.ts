@@ -1,6 +1,6 @@
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
-import { env } from "../../../core/env";
 import { WalletType } from "../../../src/schema/wallet";
+import { env } from "../../../src/utils/env";
 import { importAwsKmsWallet } from "./importAwsKmsWallet";
 
 export const createAwsKmsWallet = async (): Promise<string> => {

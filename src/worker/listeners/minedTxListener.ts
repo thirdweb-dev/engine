@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { env } from "../../../core/env";
+import { env } from "../../utils/env";
 import { updateMinedTx } from "../tasks/updateMinedTx";
 
 export const minedTxListener = () => {

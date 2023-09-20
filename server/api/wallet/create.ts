@@ -1,8 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../../../core/env";
 import { WalletType } from "../../../src/schema/wallet";
+import { env } from "../../../src/utils/env";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { createAwsKmsWallet } from "../../utils/wallets/createAwsKmsWallet";
 import { createGcpKmsWallet } from "../../utils/wallets/createGcpKmsWallet";

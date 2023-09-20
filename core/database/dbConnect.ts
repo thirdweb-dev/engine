@@ -1,5 +1,5 @@
 import pg, { Knex } from "knex";
-import { env } from "../env";
+import { env } from "../../src/utils/env";
 
 // Defaults to postgres
 const connectionString = env.POSTGRES_CONNECTION_URL;

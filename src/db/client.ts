@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import pg, { Knex } from "knex";
-import { env } from "../../core/env";
 import { PrismaTransaction } from "../schema/prisma";
+import { env } from "../utils/env";
 
 export const prisma = new PrismaClient();
 
