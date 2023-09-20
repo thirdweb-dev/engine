@@ -1,7 +1,7 @@
 import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../../core";
+import { walletAuthSchema } from "../../../../../../../core/schema";
 import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
 import {
   marketplaceV3ContractParamSchema,
@@ -10,6 +10,7 @@ import {
 } from "../../../../../../helpers/sharedApiSchemas";
 import { OfferV3InputSchema } from "../../../../../../schemas/marketplaceV3/offer";
 import { getChainIdFromChain } from "../../../../../../utilities/chain";
+import { getContract } from "../../../../../../utils/cache/getContract";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -40,6 +41,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         "Make a new offer on an NFT. Offers can be made on any NFT, regardless of whether it is listed for sale or not.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offer_makeOffer",
+      headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -57,9 +59,14 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         endTimestamp,
         quantity,
       } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+        walletAddress,
+      });
 
-      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.offers.makeOffer.prepare({
         assetContractAddress,
         tokenId,

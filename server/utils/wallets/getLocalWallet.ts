@@ -1,17 +1,18 @@
-import { Chain } from "@thirdweb-dev/chains";
+import { getChainByChainId } from "@thirdweb-dev/chains";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { LocalFileStorage } from "../../../core";
 import { env } from "../../../src/utils/env";
 
 interface GetLocalWalletParams {
-  chain: Chain;
+  chainId: number;
   walletAddress: string;
 }
 
 export const getLocalWallet = async ({
-  chain,
+  chainId,
   walletAddress,
 }: GetLocalWalletParams) => {
+  const chain = getChainByChainId(chainId);
   const wallet = new LocalWallet({ chain });
   await wallet.load({
     strategy: "encryptedJson",

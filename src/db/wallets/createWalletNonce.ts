@@ -1,6 +1,6 @@
 import { BigNumber } from "ethers";
-import { getSDK } from "../../../core/sdk/sdk";
 import { getWalletNonce } from "../../../core/services/blockchain";
+import { getSdk } from "../../../server/utils/cache/getSdk";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
@@ -16,11 +16,8 @@ export const createWalletNonce = async ({
   address,
 }: CreateWalletNonceParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
+  const sdk = await getSdk({ chainId });
 
-  // TODO: chainId instead of chainName being passed around everywhere
-  // or just pass SDK around
-  const sdk = await getSDK(chainId.toString());
-  // TODO: Replace BigNumber
   const nonce = BigNumber.from(
     (await getWalletNonce(address.toLowerCase(), sdk.getProvider())) ?? 0,
   ).toNumber();

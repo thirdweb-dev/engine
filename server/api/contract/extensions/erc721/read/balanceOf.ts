@@ -1,12 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getContractInstance } from "../../../../../../core/index";
+import { Static, Type } from "@sinclair/typebox";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
@@ -49,7 +50,11 @@ export async function erc721BalanceOf(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
       const returnData = await contract.erc721.balanceOf(wallet_address);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

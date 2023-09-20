@@ -3,7 +3,6 @@ import { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core/index";
 import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
@@ -14,6 +13,7 @@ import {
 import { signature721OutputSchema } from "../../../../../schemas/nft";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -70,14 +70,13 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { payload, signature } = request.body;
-      const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
-
-      const contract = await getContractInstance(
-        network,
-        contract_address,
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
         walletAddress,
-      );
+      });
 
       const signedPayload: SignedPayload721WithQuantitySignature = {
         payload: {
