@@ -1,12 +1,13 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core";
-import { Static, Type } from "@sinclair/typebox";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
 import { nftSchema } from "../../../../../schemas/nft";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUT
 const requestSchema = erc1155ContractParamSchema;
@@ -73,7 +74,11 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
       const result = await contract.erc1155.getOwned(wallet_address);
       reply.status(StatusCodes.OK).send({
         result,

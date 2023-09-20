@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core/index";
 import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
@@ -11,6 +10,7 @@ import {
 } from "../../../../../helpers/sharedApiSchemas";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
@@ -53,12 +53,12 @@ export async function erc20burn(fastify: FastifyInstance) {
       const { amount } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
-
-      const contract = await getContractInstance(
-        network,
-        contract_address,
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
         walletAddress,
-      );
+      });
+
       const tx = await contract.erc20.burn.prepare(amount);
       const queuedId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({

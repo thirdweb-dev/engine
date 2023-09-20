@@ -1,8 +1,8 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
-import { getSDK } from "../../../core/sdk/sdk";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
+import { getSdk } from "../../../server/utils/cache/getSdk";
 import { prisma } from "../../db/client";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
 import { updateTx } from "../../db/transactions/updateTx";
@@ -20,7 +20,10 @@ export const retryTx = async () => {
           return;
         }
 
-        const sdk = await getSDK(tx.chainId!.toString(), tx.fromAddress!);
+        const sdk = await getSdk({
+          chainId: tx.chainId!,
+          walletAddress: tx.fromAddress!,
+        });
         const blockNumber = await sdk.getProvider().getBlockNumber();
 
         // Only retry if more than the ellapsed blocks before retry has passed

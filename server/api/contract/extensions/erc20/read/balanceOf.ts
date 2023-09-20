@@ -1,13 +1,14 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getContractInstance } from "../../../../../../core/index";
+import { Static, Type } from "@sinclair/typebox";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
@@ -58,7 +59,11 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { wallet_address } = request.query;
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
       const returnData = await contract.erc20.balanceOf(wallet_address);
       reply.status(StatusCodes.OK).send({
         result: {

@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../../core";
+import { walletAuthSchema } from "../../../../../../../core/schema";
 import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
 import {
   marketplaceV3ContractParamSchema,
@@ -10,6 +10,7 @@ import {
 } from "../../../../../../helpers/sharedApiSchemas";
 import { directListingV3InputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import { getChainIdFromChain } from "../../../../../../utilities/chain";
+import { getContract } from "../../../../../../utils/cache/getContract";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -48,6 +49,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       description: "Create a new direct listing on the marketplace.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_updateListing",
+      headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -68,9 +70,14 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
         startTimestamp,
         endTimestamp,
       } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+        walletAddress,
+      });
 
-      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.directListings.updateListing.prepare(
         listing_id,
         {

@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../../core";
 import { walletAuthSchema } from "../../../../core/schema";
 import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
@@ -16,6 +15,7 @@ import {
 } from "../../../schemas/prebuilts";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
+import { getSdk } from "../../../utils/cache/getSdk";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
@@ -66,7 +66,7 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
-      const sdk = await getSDK(network, walletAddress);
+      const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         "token",
         contractMetadata,

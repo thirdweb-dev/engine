@@ -1,12 +1,13 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getContractInstance } from "../../../../../../core";
-import {
-  standardResponseSchema,
-  erc1155ContractParamSchema,
-} from "../../../../../helpers/sharedApiSchemas";
 import { Static, Type } from "@sinclair/typebox";
+import {
+  erc1155ContractParamSchema,
+  standardResponseSchema,
+} from "../../../../../helpers/sharedApiSchemas";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -56,7 +57,11 @@ export async function erc1155IsApproved(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { owner_wallet, operator } = request.query;
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
       const returnData: any = await contract.erc1155.isApproved(
         owner_wallet,
         operator,

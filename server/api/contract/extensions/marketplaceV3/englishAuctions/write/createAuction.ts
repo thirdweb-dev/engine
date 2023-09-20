@@ -1,7 +1,6 @@
 import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../../core";
 import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
 import {
   marketplaceV3ContractParamSchema,
@@ -10,6 +9,7 @@ import {
 } from "../../../../../../helpers/sharedApiSchemas";
 import { englishAuctionInputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
 import { getChainIdFromChain } from "../../../../../../utilities/chain";
+import { getContract } from "../../../../../../utils/cache/getContract";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -64,9 +64,14 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
         bidBufferBps,
         timeBufferInSeconds,
       } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+        walletAddress,
+      });
 
-      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.englishAuctions.createAuction.prepare({
         assetContractAddress,
         tokenId,
