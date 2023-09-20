@@ -3,4 +3,5 @@ export enum WalletType {
   privateKey = "ppk",
   awsKms = "aws-kms",
   gcpKms = "gcp-kms",
+  smartWallet = "smart-wallet",
 }

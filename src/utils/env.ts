@@ -71,6 +71,7 @@ export const env = createEnv({
     RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
     MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(10),
     MAX_WAIT_TIME_BEFORE_RETRY: z.coerce.number().default(600),
+    SMART_WALLET_FACTORY_ADDRESS: z.string().startsWith("0x").optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -127,6 +128,7 @@ export const env = createEnv({
     MAX_BLOCKS_ELAPSED_BEFORE_RETRY:
       process.env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY,
     MAX_WAIT_TIME_BEFORE_RETRY: process.env.MAX_WAIT_TIME_BEFORE_RETRY,
+    SMART_WALLET_FACTORY_ADDRESS: process.env.SMART_WALLET_FACTORY_ADDRESS,
   },
   onValidationError: (error: ZodError) => {
     console.error(
