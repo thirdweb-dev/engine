@@ -101,7 +101,9 @@ model EngineConfiguration {
   gcpLocationId                String?           @map("gcpLocationId")
   gcpAppCredentialEmail        String?           @map("gcpAppCredentialEmail")
   gcpAppCredentialPrivateKey   String?           @map("gcpAppCredentialPrivateKey")
-
-
+  // localWalletPrivateKey        String?           @map("localWalletPrivateKey")
+  // localWalletMnemonic          String?           @map("localWalletMnemonic")
+  // localWalletEncryptedJson String?               @map("localWalletEncryptedJson")
+  // localWalletPassword          String?           @map("localWalletPassword")
   @@map("engine_configuration")
 }

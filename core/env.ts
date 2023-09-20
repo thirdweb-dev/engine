@@ -6,7 +6,7 @@ import { WalletType } from "../src/schema/wallet";
 
 dotenv.config({
   debug: true,
-  override: false,
+  override: true,
 });
 
 const boolSchema = (defaultBool: "true" | "false") =>

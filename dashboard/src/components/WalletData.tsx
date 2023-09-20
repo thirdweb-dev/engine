@@ -1,4 +1,27 @@
-// src/components/WalletData.js
+import {
+  Button,
+  Modal,
+  ModalBody,
+  ModalCloseButton,
+  ModalContent,
+  ModalHeader,
+  ModalOverlay,
+  Tab,
+  TabList,
+  TabPanels,
+  Table,
+  Tabs,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+  useDisclosure,
+} from "@chakra-ui/react";
+import { useEffect, useState } from "react";
+import { createConfig } from "../services/createConfigService";
+import { TabInput } from "../types";
+import TabContent from "./TabContent";
 
 interface WalletData {
   address: string;
@@ -18,23 +41,23 @@ interface TableBodyProps {
 function TableBody({ walletData, errorMessage }: TableBodyProps) {
   if (errorMessage) {
     return (
-      <tbody>
-        <tr>
-          <td>{errorMessage}</td>
-        </tr>
-      </tbody>
+      <Tbody>
+        <Tr>
+          <Td>{errorMessage}</Td>
+        </Tr>
+      </Tbody>
     );
   }
 
   return (
-    <tbody>
+    <Tbody>
       {walletData.map((item, index) => (
-        <tr key={index}>
-          <td>{item.address}</td>
-          <td>{item.type}</td>
-        </tr>
+        <Tr key={index}>
+          <Td>{item.address}</Td>
+          <Td>{item.type}</Td>
+        </Tr>
       ))}
-    </tbody>
+    </Tbody>
   );
 }
 
@@ -42,21 +65,80 @@ function WalletDataComponent({
   walletData,
   errorMessage,
 }: WalletDataComponentProps) {
+  const tabNames = ["aws-kms", "gcp-kms", "local"];
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [tabIndex, setTabIndex] = useState(0);
+  const [tabName, setTabName] = useState(tabNames[0]);
+
+  const handleTabsChange = (index: number) => {
+    setTabIndex(index);
+    setTabName(tabNames[index]);
+  };
+
+  useEffect(() => {
+    setTabIndex(0);
+  }, [isOpen]);
+
+  const handleSubmit = async (
+    tabNumber: number,
+    tabName: string,
+    data: TabInput["aws"] | TabInput["gcp"] | TabInput["local"],
+  ) => {
+    await createConfig(tabName, data);
+  };
+
   return (
     <div>
       <div className="heading">
         <h3>Your Wallets</h3>
-        <button className="button">Create Wallet</button>
+        <Button className="button" onClick={onOpen}>
+          Create Wallet
+        </Button>
       </div>
-      <table className="table" id="walletTable">
-        <thead>
-          <tr>
-            <th>Address</th>
-            <th>Wallet Type</th>
-          </tr>
-        </thead>
+      <Table className="table" id="walletTable">
+        <Thead>
+          <Tr>
+            <Th>Address</Th>
+            <Th>Wallet Type</Th>
+          </Tr>
+        </Thead>
         <TableBody walletData={walletData} errorMessage={errorMessage} />
-      </table>
+      </Table>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Create Wallet</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Tabs index={tabIndex} onChange={handleTabsChange}>
+              <TabList>
+                <Tab>AWS KMS</Tab>
+                <Tab>Google KMS</Tab>
+                <Tab>Local</Tab>
+              </TabList>
+
+              <TabPanels>
+                <TabContent
+                  tabNumber={0}
+                  tabName={tabName}
+                  onSubmit={handleSubmit}
+                />
+                <TabContent
+                  tabNumber={1}
+                  tabName={tabName}
+                  onSubmit={handleSubmit}
+                />
+                <TabContent
+                  tabNumber={2}
+                  tabName={tabName}
+                  onSubmit={handleSubmit}
+                />
+              </TabPanels>
+            </Tabs>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

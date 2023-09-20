@@ -1,3 +1,13 @@
+import {
+  Button,
+  Table,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr,
+  useClipboard,
+} from "@chakra-ui/react";
 import { FC } from "react";
 
 export interface TransactionData {
@@ -30,30 +40,30 @@ interface TableBodyProps {
 function TableBody({ transactionData, errorMessage }: TableBodyProps) {
   if (errorMessage) {
     return (
-      <tbody>
-        <tr>
-          <td>{errorMessage}</td>
-        </tr>
-      </tbody>
+      <Tbody>
+        <Tr>
+          <Td>{errorMessage}</Td>
+        </Tr>
+      </Tbody>
     );
   }
 
   return (
-    <tbody>
+    <Tbody>
       {transactionData.map((item: TransactionData, index: number) => (
-        <tr key={index}>
-          <td>{item.queueId}</td>
-          <td>{item.fromAddress}</td>
-          <td>{item.toAddress}</td>
-          <td>{item.status}</td>
-          <td>{item.transactionHash}</td>
-          <td>{item.processedAt}</td>
-          <td>{item.sentAt}</td>
-          <td>{item.minedAt}</td>
-          <td>{item.blockNumber}</td>
-        </tr>
+        <Tr key={index}>
+          <Td>{item.queueId}</Td>
+          <Td>{item.fromAddress}</Td>
+          <Td>{item.toAddress}</Td>
+          <Td>{item.status}</Td>
+          <Td>{item.transactionHash}</Td>
+          <Td>{item.processedAt}</Td>
+          <Td>{item.sentAt}</Td>
+          <Td>{item.minedAt}</Td>
+          <Td>{item.blockNumber}</Td>
+        </Tr>
       ))}
-    </tbody>
+    </Tbody>
   );
 }
 
@@ -66,6 +76,8 @@ const TransactionDataComponent: FC<TransactionDataComponentProps> = ({
   setPrevPage,
   errorMessage,
 }) => {
+  const { onCopy, value, setValue, hasCopied } = useClipboard("");
+
   const handleNextPage = () => {
     if (currentPage < totalPages) {
       setPrevPage(currentPage);
@@ -85,33 +97,35 @@ const TransactionDataComponent: FC<TransactionDataComponentProps> = ({
       <div className="heading">
         <h3>Transactions</h3>
       </div>
-      <table className="table" id="walletTable">
-        <thead>
-          <tr>
-            <th>queueId</th>
-            <th>wallet Address</th>
-            <th>contract Address</th>
-            <th>status</th>
-            <th>Tx Hash</th>
-            <th>Processed Timestamp</th>
-            <th>Submitted Timestamp</th>
-            <th>Mined Timestamp</th>
-            <th>BlockNumber</th>
-          </tr>
-        </thead>
+      <Table className="table" id="walletTable">
+        <Thead>
+          <Tr>
+            <Th>queueId</Th>
+            <Th>wallet Address</Th>
+            <Th>contract Address</Th>
+            <Th>status</Th>
+            <Th>Tx Hash</Th>
+            <Th>Processed Timestamp</Th>
+            <Th>Submitted Timestamp</Th>
+            <Th>Mined Timestamp</Th>
+            <Th>BlockNumber</Th>
+          </Tr>
+        </Thead>
         <TableBody
           transactionData={transactionData}
           errorMessage={errorMessage}
         />
-      </table>
+      </Table>
       <div>
-        <button onClick={handlePrevPage} disabled={!prevPage}>
+        <Button onClick={handlePrevPage} disabled={!prevPage}>
           Previous
-        </button>
-        {currentPage} of {totalPages}
-        <button onClick={handleNextPage} disabled={currentPage >= totalPages}>
+        </Button>
+        <span>
+          {currentPage} of {totalPages}
+        </span>
+        <Button onClick={handleNextPage} disabled={currentPage >= totalPages}>
           Next
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ export const deleteConfig = async (fastify: FastifyInstance) => {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
-    url: "/config/add",
+    url: "/config/delete",
     schema: {
       description: "Delete Engine Config from DB",
       tags: ["Config"],

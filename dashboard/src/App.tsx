@@ -24,9 +24,8 @@ function App() {
 
         const _transactionData = await fetchTransactionData();
         setTransactionData(_transactionData);
-        setCurrentPage(1);
-        console.log(Math.ceil(_transactionData?.length / 10) + 1);
-        setTotalPages(Math.ceil(_transactionData?.length / 10) + 1);
+        console.log(Math.ceil(_transactionData?.length / 10));
+        setTotalPages(Math.ceil(_transactionData?.length / 10));
       } catch (err: any) {
         setError(err.message);
       }
@@ -44,34 +43,6 @@ function App() {
           Configure and manage your wallets and transaction settings
         </span>
       </div>
-      <form id="configForm">
-        <label>
-          <input type="radio" name="option" value="option1" />
-          AWS KMS
-        </label>
-        <br />
-        <label>
-          <input type="radio" name="option" value="option2" />
-          Google Cloud KMS
-        </label>
-        <label>awsAccessKey:</label>
-        <input type="text" id="awsAccessKey" name="awsAccessKey" />
-        <br />
-        <br />
-        <label>awsAccessSecretKey:</label>
-        <input type="text" id="awsAccessSecretKey" name="awsAccessSecretKey" />
-        <br />
-        <br />
-        <label>awsRegion:</label>
-        <input type="text" id="awsRegion" name="awsRegion" />
-        <br />
-        <br />
-        <label>awsKmsKeyId:</label>
-        <input type="text" id="awsKmsKeyId" name="awsKmsKeyId" />
-        <br />
-        <br />
-        <input type="submit" value="Start Server" />
-      </form>
       <WalletDataComponent walletData={walletData} errorMessage={error} />
       <TransactionDataComponent
         transactionData={transactionData}
