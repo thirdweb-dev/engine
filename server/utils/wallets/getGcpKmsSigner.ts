@@ -1,6 +1,6 @@
 import { GcpKmsSigner } from "ethers-gcp-kms-signer";
-import { env } from "../../../core/env";
 import { WalletType } from "../../../src/schema/wallet";
+import { env } from "../../../src/utils/env";
 
 interface GetGcpKmsSignerParams {
   gcpKmsKeyId: string;

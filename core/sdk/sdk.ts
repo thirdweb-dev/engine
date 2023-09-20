@@ -13,7 +13,7 @@ import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
 import { getWalletDetails } from "../../src/db/wallets/getWalletDetails";
 import { PrismaTransaction } from "../../src/schema/prisma";
 import { WalletType } from "../../src/schema/wallet";
-import { env } from "../env";
+import { env } from "../../src/utils/env";
 import { networkResponseSchema } from "../schema";
 
 //TODO add constructor so you can pass in directory

@@ -1,6 +1,6 @@
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
-import { env } from "../../../core/env";
 import { WalletType } from "../../../src/schema/wallet";
+import { env } from "../../../src/utils/env";
 
 interface GetAwsKmsWalletParams {
   awsKmsKeyId: string;

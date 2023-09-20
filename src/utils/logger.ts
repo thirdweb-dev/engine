@@ -1,6 +1,6 @@
 import { FastifyBaseLogger } from "fastify";
 import Pino, { LoggerOptions } from "pino";
-import { env } from "../../core/env";
+import { env } from "./env";
 
 const defaultOptions: LoggerOptions = {
   redact: ["headers.authorization"],

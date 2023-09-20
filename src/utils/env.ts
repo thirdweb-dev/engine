@@ -2,7 +2,7 @@ import { createEnv } from "@t3-oss/env-core";
 import * as dotenv from "dotenv";
 import type { ZodError } from "zod";
 import { z } from "zod";
-import { WalletType } from "../src/schema/wallet";
+import { WalletType } from "../schema/wallet";
 
 dotenv.config({
   debug: true,

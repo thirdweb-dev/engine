@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { env } from "../env";
+import { env } from "../../src/utils/env";
 import { CustomError } from "./customError";
 import { getCodeFromStatusCode } from "./errorCodes";
 

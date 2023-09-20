@@ -1,7 +1,6 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
-import { env } from "../../../core/env";
 import { getSDK } from "../../../core/sdk/sdk";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { prisma } from "../../db/client";
@@ -9,6 +8,7 @@ import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
+import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
 export const processTx = async () => {

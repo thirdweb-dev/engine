@@ -1,7 +1,7 @@
 import { Static } from "@sinclair/typebox";
-import { env } from "../../../core/env";
 import { transactionResponseSchema } from "../../../server/schemas/transaction";
 import { PrismaTransaction } from "../../schema/prisma";
+import { env } from "../../utils/env";
 import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
