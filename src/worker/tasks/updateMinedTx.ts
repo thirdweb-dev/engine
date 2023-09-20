@@ -1,8 +1,8 @@
 import { Transactions } from "@prisma/client";
 import { getBlock } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
-import { getSDK } from "../../../core";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
+import { getSdk } from "../../../server/utils/cache/getSdk";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { logger } from "../../utils/logger";
@@ -18,7 +18,7 @@ export const updateMinedTx = async () => {
     const txsWithReceipts = (
       await Promise.all(
         txs.map(async (tx) => {
-          const sdk = await getSDK(tx.chainId!.toString());
+          const sdk = await getSdk({ chainId: tx.chainId! });
           const receipt: ethers.providers.TransactionReceipt | undefined =
             await sdk.getProvider().getTransactionReceipt(tx.transactionHash!);
 

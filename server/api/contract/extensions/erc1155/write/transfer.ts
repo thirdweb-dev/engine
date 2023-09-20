@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core/index";
+import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
@@ -10,6 +10,7 @@ import {
 } from "../../../../../helpers/sharedApiSchemas";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -48,6 +49,7 @@ export async function erc1155transfer(fastify: FastifyInstance) {
       tags: ["ERC1155"],
       operationId: "erc1155_transfer",
       params: requestSchema,
+      headers: walletAuthSchema,
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -57,14 +59,14 @@ export async function erc1155transfer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { to, token_id, amount } = request.body;
-      const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
-
-      const contract = await getContractInstance(
-        network,
-        contract_address,
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
         walletAddress,
-      );
+      });
+
       const tx = await contract.erc1155.transfer.prepare(to, token_id, amount);
       const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({

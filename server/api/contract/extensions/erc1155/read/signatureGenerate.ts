@@ -1,17 +1,18 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core/index";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
 import {
   ercNFTResponseType,
   signature1155InputSchema,
   signature1155OutputSchema,
 } from "../../../../../schemas/nft";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
@@ -66,7 +67,11 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
         royaltyRecipient,
         uid,
       } = request.body;
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
 
       const payload = checkAndReturnNFTSignaturePayload<
         Static<typeof signature1155InputSchema>,

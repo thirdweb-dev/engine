@@ -1,13 +1,14 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-import { getContractInstance } from "../../../../../../core";
+import { Static, Type } from "@sinclair/typebox";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
@@ -60,7 +61,11 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { spender_wallet, owner_wallet } = request.query;
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
       const returnData: any = await contract.erc20.allowanceOf(
         owner_wallet ? owner_wallet : "",
         spender_wallet ? spender_wallet : "",

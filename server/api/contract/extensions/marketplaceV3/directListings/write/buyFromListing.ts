@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../../core";
+import { walletAuthSchema } from "../../../../../../../core/schema";
 import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
 import {
   marketplaceV3ContractParamSchema,
@@ -9,6 +9,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../../utilities/chain";
+import { getContract } from "../../../../../../utils/cache/getContract";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -45,6 +46,7 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
       description: "Buy an NFT from a listing.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_buyFromListing",
+      headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -55,9 +57,14 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { listing_id, quantity, buyer } = request.body;
+      const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+        walletAddress,
+      });
 
-      const contract = await getContractInstance(network, contract_address);
       const tx = await contract.directListings.buyFromListing.prepare(
         listing_id,
         quantity,

@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core";
 import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
@@ -12,6 +11,7 @@ import {
 import { nftOrInputSchema } from "../../../../../schemas/nft";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -63,12 +63,12 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
       const { metadatas } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
-
-      const contract = await getContractInstance(
-        network,
-        contract_address,
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
         walletAddress,
-      );
+      });
+
       const tx = await contract.erc1155.lazyMint.prepare(metadatas);
       const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
 

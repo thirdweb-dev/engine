@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core";
 import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
@@ -11,6 +10,7 @@ import {
 } from "../../../../../helpers/sharedApiSchemas";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -60,12 +60,12 @@ export async function erc1155mintAdditionalSupplyTo(fastify: FastifyInstance) {
       const { receiver, additional_supply, token_id } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
-
-      const contract = await getContractInstance(
-        network,
-        contract_address,
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
         walletAddress,
-      );
+      });
+
       const tx = await contract.erc1155.mintAdditionalSupplyTo.prepare(
         receiver,
         token_id,

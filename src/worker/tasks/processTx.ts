@@ -1,8 +1,8 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
-import { getSDK } from "../../../core/sdk/sdk";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
+import { getSdk } from "../../../server/utils/cache/getSdk";
 import { prisma } from "../../db/client";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
@@ -37,11 +37,11 @@ export const processTx = async () => {
               status: TransactionStatusEnum.Processed,
             });
 
-            const sdk = await getSDK(
-              tx.chainId!.toString(),
-              tx.fromAddress!,
+            const sdk = await getSdk({
               pgtx,
-            );
+              chainId: tx.chainId!,
+              walletAddress: tx.fromAddress!,
+            });
 
             // Run data gathering async calls in parallel
             const [mempoolNonce, dbNonce, gasOverrides] = await Promise.all([

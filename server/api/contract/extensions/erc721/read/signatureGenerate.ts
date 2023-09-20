@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core/index";
 import { walletAuthSchema } from "../../../../../../core/schema";
 import {
   erc721ContractParamSchema,
@@ -13,7 +12,9 @@ import {
   signature721OutputSchema,
 } from "../../../../../schemas/nft";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
@@ -79,7 +80,6 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
-      const walletAddress = request.headers["x-wallet-address"] as string;
       const {
         to,
         currencyAddress,
@@ -93,12 +93,13 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
         royaltyRecipient,
         uid,
       } = request.body;
-
-      const contract = await getContractInstance(
-        network,
-        contract_address,
+      const walletAddress = request.headers["x-wallet-address"] as string;
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
         walletAddress,
-      );
+      });
 
       const payload = checkAndReturnNFTSignaturePayload<
         Static<typeof signature721InputSchema>,
