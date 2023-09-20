@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { env } from "../../../core/env";
+import { env } from "../../utils/env";
 import { retryTx } from "../tasks/retryTx";
 
 export const retryTxListener = () => {

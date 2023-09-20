@@ -1,6 +1,6 @@
 import { Transactions } from "@prisma/client";
-import { env } from "../../../core/env";
 import { PrismaTransaction } from "../../schema/prisma";
+import { env } from "../../utils/env";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface GetSentTxsParams {

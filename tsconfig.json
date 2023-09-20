@@ -21,7 +21,7 @@
     "server/**/*.d.ts",
     "server/**/*.js",
     "core/**/*.ts",
-    "core/env.ts",
+    "src/utils/env.ts",
     "src/**/*.ts",
     "src/**/*.js",
     "src/**/*.d.ts"
