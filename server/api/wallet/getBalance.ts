@@ -1,12 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSDK } from "../../../core";
 import {
   currencyValueSchema,
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
 import { walletParamSchema } from "../../schemas/wallet";
+import { getChainIdFromChain } from "../../utilities/chain";
+import { getSdk } from "../../utils/cache/getSdk";
 
 // INPUTS
 const requestSchema = walletParamSchema;
@@ -49,8 +50,8 @@ export async function getBalance(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { network, wallet_address } = request.params;
-
-      const sdk = await getSDK(network);
+      const chainId = getChainIdFromChain(network);
+      const sdk = await getSdk({ chainId });
 
       let balanceData = await sdk.getBalance(wallet_address);
 

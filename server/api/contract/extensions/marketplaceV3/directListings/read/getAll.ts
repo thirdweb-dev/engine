@@ -1,14 +1,15 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../../core";
-import { Static, Type } from "@sinclair/typebox";
+import { formatDirectListingV3Result } from "../../../../../../helpers/marketplaceV3";
 import {
+  marketplaceFilterSchema,
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-  marketplaceFilterSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 import { directListingV3OutputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
-import { formatDirectListingV3Result } from "../../../../../../helpers/marketplaceV3";
+import { getChainIdFromChain } from "../../../../../../utilities/chain";
+import { getContract } from "../../../../../../utils/cache/getContract";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -81,7 +82,11 @@ export async function directListingsGetAll(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { start, count, seller, tokenContract, tokenId } = request.query;
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
       const result = await contract.directListings.getAll({
         start,
         count,

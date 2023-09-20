@@ -1,11 +1,12 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../core";
 import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../../helpers/sharedApiSchemas";
-import { Static, Type } from "@sinclair/typebox";
+import { getChainIdFromChain } from "../../../../utilities/chain";
+import { getContract } from "../../../../utils/cache/getContract";
 
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
@@ -48,7 +49,11 @@ export async function getRoles(fastify: FastifyInstance) {
       const { network, contract_address } = request.params;
       const { role } = request.query;
 
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
 
       let returnData = await contract.roles.get(role);
 

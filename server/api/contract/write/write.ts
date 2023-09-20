@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../core";
 import { walletAuthSchema } from "../../../../core/schema";
 
 import { queueTx } from "../../../../src/db/transactions/queueTx";
@@ -12,6 +11,7 @@ import {
 } from "../../../helpers/sharedApiSchemas";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
+import { getContract } from "../../../utils/cache/getContract";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
@@ -67,12 +67,12 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { function_name, args, tx_overrides } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(network);
-
-      const contract = await getContractInstance(
-        network,
-        contract_address,
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
         walletAddress,
-      );
+      });
+
       const tx = await contract.prepare(function_name, args, tx_overrides);
 
       const queuedId = await queueTx({ tx, chainId, extension: "none" });

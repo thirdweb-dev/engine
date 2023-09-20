@@ -1,13 +1,14 @@
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../../core";
-import { Static, Type } from "@sinclair/typebox";
+import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
-import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
+import { getChainIdFromChain } from "../../../../../../utilities/chain";
+import { getContract } from "../../../../../../utils/cache/getContract";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -67,7 +68,11 @@ export async function offersGetOffer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { offer_id } = request.query;
-      const contract = await getContractInstance(network, contract_address);
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
+      });
       const result = await contract.offers.getOffer(offer_id);
 
       reply.status(StatusCodes.OK).send({

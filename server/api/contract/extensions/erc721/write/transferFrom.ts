@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractInstance } from "../../../../../../core/index";
 import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
@@ -11,6 +10,7 @@ import {
 } from "../../../../../helpers/sharedApiSchemas";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
+import { getContract } from "../../../../../utils/cache/getContract";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -58,14 +58,14 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { network, contract_address } = request.params;
       const { from, to, token_id } = request.body;
-      const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
-
-      const contract = await getContractInstance(
-        network,
-        contract_address,
+      const chainId = getChainIdFromChain(network);
+      const contract = await getContract({
+        chainId,
+        contractAddress: contract_address,
         walletAddress,
-      );
+      });
+
       const tx = await contract.erc721.transferFrom.prepare(from, to, token_id);
       const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
