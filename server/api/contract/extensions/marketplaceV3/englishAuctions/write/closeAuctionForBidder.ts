@@ -40,7 +40,7 @@ export async function englishAuctionsCloseAuctionForBidder(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/closeAuctionForBidder",
+    url: "/marketplace/:network/:contract_address/english-auctions/close-auction-for-bidder",
     schema: {
       description: `After an auction has concluded (and a buyout did not occur),
         execute the sale for the buyer, meaning the buyer receives the NFT(s). 

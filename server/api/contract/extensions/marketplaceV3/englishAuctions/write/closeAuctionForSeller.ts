@@ -40,7 +40,7 @@ export async function englishAuctionsCloseAuctionForSeller(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/closeAuctionForSeller",
+    url: "/marketplace/:network/:contract_address/english-auctions/close-auction-for-seller",
     schema: {
       description: `After an auction has concluded (and a buyout did not occur),
         execute the sale for the seller, meaning the seller receives the payment from the highest bid.

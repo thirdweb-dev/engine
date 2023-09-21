@@ -66,7 +66,7 @@ export async function offersGetAllValid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/offers/getAllValid",
+    url: "/marketplace/:network/:contract_address/offers/get-all-valid",
     schema: {
       description:
         "Get all the valid offers on the smart contract. Valid offers are offers that have not expired, been canceled, or been accepted.",

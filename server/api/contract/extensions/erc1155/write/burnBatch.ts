@@ -44,7 +44,7 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc1155/burnBatch",
+    url: "/contract/:network/:contract_address/erc1155/burn-batch",
     schema: {
       description: "Burn multiple NFTs.",
       tags: ["ERC1155"],

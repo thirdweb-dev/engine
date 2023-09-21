@@ -35,7 +35,7 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/directListings/cancelListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/cancel-listing",
     schema: {
       description:
         "Cancel a listing that you created. Only the creator of the listing can cancel it.",

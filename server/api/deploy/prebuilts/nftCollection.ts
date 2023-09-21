@@ -49,7 +49,7 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/nftCollection",
+    url: "/deploy/:network/prebuilts/nft-collection",
     schema: {
       description: "Deploy prebuilt NFT-Collection contract",
       tags: ["Deploy"],

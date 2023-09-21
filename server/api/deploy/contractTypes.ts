@@ -14,7 +14,7 @@ export async function contractTypes(fastify: FastifyInstance) {
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
-    url: "/deploy/contractTypes",
+    url: "/deploy/contract-types",
     schema: {
       description: "Get all prebuilt contract types",
       tags: ["Deploy"],

@@ -41,7 +41,7 @@ export async function getAllRoles(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/roles/getAll",
+    url: "/contract/:network/:contract_address/roles/get-all",
     schema: {
       description: "Get all members of all roles",
       tags: ["Contract-Roles"],

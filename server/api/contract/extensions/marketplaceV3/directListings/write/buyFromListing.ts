@@ -41,7 +41,7 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/directListings/buyFromListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/buy-from-listing",
     schema: {
       description: "Buy an NFT from a listing.",
       tags: ["Marketplace-DirectListings"],

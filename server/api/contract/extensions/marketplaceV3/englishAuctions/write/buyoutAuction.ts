@@ -38,7 +38,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/buyoutAuction",
+    url: "/marketplace/:network/:contract_address/english-auctions/buyout-auction",
     schema: {
       description:
         "Pay the full price per token to buy an NFT from an auction listing.",

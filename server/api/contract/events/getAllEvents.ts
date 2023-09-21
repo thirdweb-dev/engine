@@ -64,7 +64,7 @@ export async function getAllEvents(fastify: FastifyInstance) {
     Querystring: Static<typeof querySringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/events/getAllEvents",
+    url: "/contract/:network/:contract_address/events/get-all",
     schema: {
       description:
         "Get a list of all the events emitted from this contract during the specified time period",

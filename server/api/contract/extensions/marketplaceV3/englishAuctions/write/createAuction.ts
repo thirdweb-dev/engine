@@ -38,7 +38,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/createAuction",
+    url: "/marketplace/:network/:contract_address/english-auctions/create-auction",
     schema: {
       description: "Create a new auction listing on the marketplace.",
       tags: ["Marketplace-EnglishAuctions"],

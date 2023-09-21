@@ -41,7 +41,7 @@ export async function directListingsIsBuyerApprovedForListing(
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/directListings/isBuyerApprovedForListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/is-buyer-approved-for-listing",
     schema: {
       description:
         "Check if a buyer is approved to purchase a reserved listing.",

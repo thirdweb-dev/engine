@@ -38,7 +38,7 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/isWinningBid",
+    url: "/marketplace/:network/:contract_address/english-auctions/is-winning-bid",
     schema: {
       description:
         "Check if a value is/would be the current winning bid of an auction.",

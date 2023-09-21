@@ -35,7 +35,7 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/getWinner",
+    url: "/marketplace/:network/:contract_address/english-auctions/get-winner",
     schema: {
       description:
         "Get the wallet address that won an auction. Can only be called after the auction has ended.",

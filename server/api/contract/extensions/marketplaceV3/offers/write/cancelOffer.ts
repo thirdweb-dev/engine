@@ -34,7 +34,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/offers/cancelOffer",
+    url: "/marketplace/:network/:contract_address/offers/cancel-offer",
     schema: {
       description: "Cancel an offer you made on an NFT.",
       tags: ["Marketplace-Offers"],

@@ -39,7 +39,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc20/claimTo",
+    url: "/contract/:network/:contract_address/erc20/claim-to",
     schema: {
       description: "Allow a specific wallet to claim tokens.",
       tags: ["ERC20"],

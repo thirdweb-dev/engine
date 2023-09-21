@@ -42,7 +42,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc1155/claimTo",
+    url: "/contract/:network/:contract_address/erc1155/claim-to",
     schema: {
       description: "Claim an NFT to a specific wallet.",
       tags: ["ERC1155"],

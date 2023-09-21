@@ -36,7 +36,7 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc20/totalSupply",
+    url: "/contract/:network/:contract_address/erc20/total-supply",
     schema: {
       description: "Get the number of tokens in circulation for the contract.",
       tags: ["ERC20"],

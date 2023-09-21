@@ -51,7 +51,7 @@ export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/signatureDrop",
+    url: "/deploy/:network/prebuilts/signature-drop",
     schema: {
       description: "Deploy prebuilt Signature-Drop contract",
       tags: ["Deploy"],

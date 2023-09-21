@@ -39,7 +39,7 @@ export async function directListingsRevokeCurrencyApprovalForListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/directListings/revokeCurrencyApprovalForListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/revoke-currency-approval-for-listing",
     schema: {
       description:
         "Revoke approval for a buyer to purchase a reserved listing.",

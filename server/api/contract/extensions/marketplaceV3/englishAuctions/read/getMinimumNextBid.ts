@@ -38,7 +38,7 @@ export async function englishAuctionsGetMinimumNextBid(
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/getMinimumNextBid",
+    url: "/marketplace/:network/:contract_address/english-auctions/get-minimum-next-bid",
     schema: {
       description: `Helper function to calculate the value that the next bid must be in order to be accepted. 
         If there is no current bid, the bid must be at least the minimum bid amount.

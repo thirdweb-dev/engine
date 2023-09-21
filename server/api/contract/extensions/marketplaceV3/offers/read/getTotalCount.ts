@@ -29,7 +29,7 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/offers/getTotalCount",
+    url: "/marketplace/:network/:contract_address/offers/get-total-count",
     schema: {
       description: "Get the total number of offers on the smart contract",
       tags: ["Marketplace-Offers"],

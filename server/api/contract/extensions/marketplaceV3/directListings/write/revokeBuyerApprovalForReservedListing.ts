@@ -39,7 +39,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/directListings/revokeBuyerApprovalForReservedListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/revoke-buyer-approval-for-reserved-listing",
     schema: {
       description:
         "Revoke approval for a buyer to purchase a reserved listing.",

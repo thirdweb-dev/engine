@@ -40,7 +40,7 @@ export async function erc1155SetApprovalForAll(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc1155/setApprovalForAll",
+    url: "/contract/:network/:contract_address/erc1155/set-approval-for-all",
     schema: {
       description:
         "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token in the specified contract owned by the caller.",

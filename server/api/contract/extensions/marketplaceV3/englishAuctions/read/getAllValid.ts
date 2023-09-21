@@ -69,7 +69,7 @@ export async function englishAuctionsGetAllValid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/getAllValid",
+    url: "/marketplace/:network/:contract_address/english-auctions/get-all-valid",
     schema: {
       description: "Get all the valid auction listings on the marketplace.",
       tags: ["Marketplace-EnglishAuctions"],

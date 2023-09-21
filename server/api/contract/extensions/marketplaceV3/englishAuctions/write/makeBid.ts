@@ -42,7 +42,7 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/makeBid",
+    url: "/marketplace/:network/:contract_address/english-auctions/make-bid",
     schema: {
       description: "Place a new bid on an auction listing.",
       tags: ["Marketplace-EnglishAuctions"],
