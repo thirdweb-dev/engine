@@ -17,8 +17,8 @@ import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
 import { prebuiltsRoutes } from "./deploy";
 
 // Chain
-import { getChainData } from "./network/get";
-import { getAllChainData } from "./network/getAll";
+import { getChainData } from "./chain/get";
+import { getAllChainData } from "./chain/getAll";
 
 // Contract Events
 import { getAllEvents } from "./contract/events/getAllEvents";

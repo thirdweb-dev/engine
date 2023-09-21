@@ -40,11 +40,11 @@ export async function getChainData(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/network/get",
+    url: "/chain/get",
     schema: {
-      description: "Get a particular network/chain information",
-      tags: ["Network"],
-      operationId: "getNetworkData",
+      description: "Get a particular chain information",
+      tags: ["Chain"],
+      operationId: "chain",
       querystring: networkRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,
