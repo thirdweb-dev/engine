@@ -39,7 +39,7 @@ export async function directListingsApproveBuyerForReservedListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/direct-listings/approve-buyer-for-reserved-listing",
+    url: "/marketplace/:chain/:contract_address/direct-listings/approve-buyer-for-reserved-listing",
     schema: {
       description:
         "Approve a wallet address to be able to buy a reserved listing.",
@@ -54,10 +54,10 @@ export async function directListingsApproveBuyerForReservedListing(
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { listing_id, buyer } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

@@ -82,12 +82,12 @@ docker run -e .env -p 3005:3005 thirdweb/engine:latest
 - Contract API
 
   - Read from any contract
-    - GET /contract/[network]/[contract_address]/[func or variable name]
+    - GET /contract/[chain]/[contract_address]/[func or variable name]
   - Write to any contract function
-    - POST /contract/[network]/[contract_address]/[function name]
+    - POST /contract/[chain]/[contract_address]/[function name]
     - JSON body with params
   - Deploy published contracts
-    - POST /deploy/[network]/[publisher_address]/[published_name]
+    - POST /deploy/[chain]/[publisher_address]/[published_name]
 
 - Wallet API (in development)
 

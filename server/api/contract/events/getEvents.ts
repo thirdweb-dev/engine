@@ -68,7 +68,7 @@ export async function getEvents(fastify: FastifyInstance) {
     Body: Static<typeof requestBodyParams>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/events/get",
+    url: "/contract/:chain/:contract_address/events/get",
     schema: {
       description:
         "Get a list of the events of a specific type emitted from this contract during the specified time period",
@@ -82,10 +82,10 @@ export async function getEvents(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { from_block, to_block, order, event_name, filters } = request.body;
 
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

@@ -32,7 +32,7 @@ export async function grantRole(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/roles/grant",
+    url: "/contract/:chain/:contract_address/roles/grant",
     schema: {
       description: "Grant a role to a specific address",
       tags: ["Contract-Roles"],
@@ -46,10 +46,10 @@ export async function grantRole(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { role, address } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
