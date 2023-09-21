@@ -8,6 +8,7 @@ import {
   commonContractSchema,
   commonPlatformFeeSchema,
   commonPrimarySaleSchema,
+  commonRoyaltySchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
   merkleSchema,
@@ -23,6 +24,7 @@ const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
+    ...commonRoyaltySchema.properties,
     ...merkleSchema.properties,
     ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
@@ -42,18 +44,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
+export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/tokenDrop",
+    url: "/deploy/:network/prebuilts/editionDrop",
     schema: {
-      description: "Deploy prebuilt Token Drop contract",
+      description: "Deploy prebuilt Edition Drop contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltTokenDrop",
+      operationId: "deployPrebuiltEditionDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -70,7 +72,7 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "token-drop",
+        "edition-drop",
         contractMetadata,
         version,
       );
@@ -80,8 +82,9 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "token-drop",
+        deployedContractType: "edition-drop",
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,

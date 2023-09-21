@@ -6,10 +6,13 @@ import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
+  commonPlatformFeeSchema,
+  commonPrimarySaleSchema,
+  commonSymbolSchema,
   commonTrustedForwarderSchema,
+  merkleSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
-  voteSettingsInputSchema,
 } from "../../../schemas/prebuilts";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
@@ -20,7 +23,10 @@ const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
-    ...voteSettingsInputSchema.properties,
+    ...merkleSchema.properties,
+    ...commonSymbolSchema.properties,
+    ...commonPlatformFeeSchema.properties,
+    ...commonPrimarySaleSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
@@ -36,18 +42,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltVote(fastify: FastifyInstance) {
+export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/vote",
+    url: "/deploy/:network/prebuilts/tokenDrop",
     schema: {
-      description: "Deploy prebuilt Vote contract",
+      description: "Deploy prebuilt Token Drop contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltVote",
+      operationId: "deployPrebuiltTokenDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -64,7 +70,7 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "vote",
+        "token-drop",
         contractMetadata,
         version,
       );
@@ -74,7 +80,7 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "vote",
+        deployedContractType: "token-drop",
       });
       reply.status(StatusCodes.OK).send({
         result: {

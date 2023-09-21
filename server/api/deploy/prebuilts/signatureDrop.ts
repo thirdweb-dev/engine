@@ -7,9 +7,11 @@ import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
+  commonPrimarySaleSchema,
   commonRoyaltySchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
+  merkleSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
@@ -23,8 +25,10 @@ const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
     ...commonRoyaltySchema.properties,
+    ...merkleSchema.properties,
     ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
+    ...commonPrimarySaleSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
@@ -40,18 +44,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltPack(fastify: FastifyInstance) {
+export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/pack",
+    url: "/deploy/:network/prebuilts/signatureDrop",
     schema: {
-      description: "Deploy prebuiltPack contract",
+      description: "Deploy prebuilt Signature-Drop contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltPack",
+      operationId: "deployPrebuiltSignatureDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -68,17 +72,18 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "pack",
+        "signature-drop",
         contractMetadata,
         version,
       );
       const deployedAddress = await tx.simulate();
+
       const queuedId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "pack",
+        deployedContractType: "signature-drop",
       });
       reply.status(StatusCodes.OK).send({
         result: {

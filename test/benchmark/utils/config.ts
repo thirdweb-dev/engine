@@ -80,7 +80,7 @@ export const getBenchmarkConfiguration =
       } = await fetchApi({
         host: benchmarkConfig.host,
         apiKey: benchmarkConfig.apiKey,
-        path: `/deployer/${chain}/prebuilts/token`,
+        path: `/deploy/${chain}/prebuilts/token`,
         method: `POST`,
         walletAddress: benchmarkConfig.walletAddress,
         body: JSON.stringify({
