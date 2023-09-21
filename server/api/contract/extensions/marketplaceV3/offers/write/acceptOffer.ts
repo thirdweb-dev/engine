@@ -34,7 +34,7 @@ export async function offersAcceptOffer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/offers/acceptOffer",
+    url: "/marketplace/:network/:contract_address/offers/accept-offer",
     schema: {
       description: "Accept an offer placed on your NFT.",
       tags: ["Marketplace-Offers"],

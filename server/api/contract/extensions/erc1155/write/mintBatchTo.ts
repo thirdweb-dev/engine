@@ -58,7 +58,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc1155/mintBatchTo",
+    url: "/contract/:network/:contract_address/erc1155/mint-batch-to",
     schema: {
       description: "Mint multiple NFTs to a specific wallet.",
       tags: ["ERC1155"],

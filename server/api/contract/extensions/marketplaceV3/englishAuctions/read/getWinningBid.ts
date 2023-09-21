@@ -36,7 +36,7 @@ export async function englishAuctionsGetWinningBid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/getWinningBid",
+    url: "/marketplace/:network/:contract_address/english-auctions/get-winning-bid",
     schema: {
       description: "Get the current highest bid of an active auction.",
       tags: ["Marketplace-EnglishAuctions"],

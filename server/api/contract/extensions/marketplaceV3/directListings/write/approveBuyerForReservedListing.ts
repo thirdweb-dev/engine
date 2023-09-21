@@ -39,7 +39,7 @@ export async function directListingsApproveBuyerForReservedListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/directListings/approveBuyerForReservedListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/approve-buyer-for-reserved-listing",
     schema: {
       description:
         "Approve a wallet address to be able to buy a reserved listing.",

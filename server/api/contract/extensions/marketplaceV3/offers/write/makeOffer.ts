@@ -35,7 +35,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/offers/makeOffer",
+    url: "/marketplace/:network/:contract_address/offers/make-offer",
     schema: {
       description:
         "Make a new offer on an NFT. Offers can be made on any NFT, regardless of whether it is listed for sale or not.",

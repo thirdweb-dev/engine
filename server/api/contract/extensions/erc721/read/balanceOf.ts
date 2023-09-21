@@ -35,7 +35,7 @@ export async function erc721BalanceOf(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc721/balanceOf",
+    url: "/contract/:network/:contract_address/erc721/balance-of",
     schema: {
       description: "Check the balance Of the wallet address",
       tags: ["ERC721"],

@@ -23,7 +23,7 @@ export async function erc721TotalClaimedSupply(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc721/totalClaimedSupply",
+    url: "/contract/:network/:contract_address/erc721/total-claimed-supply",
     schema: {
       description: "Get the claimed NFT supply for the contract.",
       tags: ["ERC721"],

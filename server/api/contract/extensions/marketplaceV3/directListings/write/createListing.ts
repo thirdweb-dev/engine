@@ -36,7 +36,7 @@ export async function directListingsCreateListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/directListings/createListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/create-listing",
     schema: {
       description: "Create a new direct listing on the marketplace.",
       tags: ["Marketplace-DirectListings"],

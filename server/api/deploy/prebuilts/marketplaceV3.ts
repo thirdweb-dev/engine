@@ -43,7 +43,7 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/marketplaceV3",
+    url: "/deploy/:network/prebuilts/marketplace-v3",
     schema: {
       description: "Deploy prebuilt Marketplace-V3 contract",
       tags: ["Deploy"],

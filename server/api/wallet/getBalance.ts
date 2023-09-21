@@ -37,7 +37,7 @@ export async function getBalance(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/wallet/:network/:wallet_address/getBalance",
+    url: "/wallet/:network/:wallet_address/get-balance",
     schema: {
       description: "Get Wallet Balance",
       tags: ["Wallet"],

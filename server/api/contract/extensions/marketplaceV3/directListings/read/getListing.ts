@@ -52,7 +52,7 @@ export async function directListingsGetListing(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/directListings/getListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/get-listing",
     schema: {
       description:
         "Retrieve data for a specific direct listing on the marketplace using the listing ID.",

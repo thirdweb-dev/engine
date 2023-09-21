@@ -68,7 +68,7 @@ export async function getEvents(fastify: FastifyInstance) {
     Body: Static<typeof requestBodyParams>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/events/getEvents",
+    url: "/contract/:network/:contract_address/events/get",
     schema: {
       description:
         "Get a list of the events of a specific type emitted from this contract during the specified time period",

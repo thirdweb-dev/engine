@@ -38,7 +38,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc20/setAllowance",
+    url: "/contract/:network/:contract_address/erc20/set-allowance",
     schema: {
       description:
         "Grant allowance to another wallet address to spend the connected (Admin) wallet's funds (of this token).",

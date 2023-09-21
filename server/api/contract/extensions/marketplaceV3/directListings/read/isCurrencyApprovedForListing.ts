@@ -40,7 +40,7 @@ export async function directListingsIsCurrencyApprovedForListing(
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/directListings/isCurrencyApprovedForListing",
+    url: "/marketplace/:network/:contract_address/direct-listings/is-currency-approved-for-listing",
     schema: {
       description:
         "Check whether you can use a specific currency to purchase a listing.",

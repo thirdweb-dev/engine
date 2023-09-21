@@ -41,7 +41,7 @@ export async function erc1155IsApproved(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc1155/isApproved",
+    url: "/contract/:network/:contract_address/erc1155/is-approved",
     schema: {
       description:
         "Get whether this wallet has approved transfers from the given operator.",

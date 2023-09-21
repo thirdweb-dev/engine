@@ -38,7 +38,7 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/cancelAuction",
+    url: "/marketplace/:network/:contract_address/english-auctions/cancel-auction",
     schema: {
       description:
         "Cancel an auction listing you previously created. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.",

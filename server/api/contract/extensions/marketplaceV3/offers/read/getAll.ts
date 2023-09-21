@@ -66,7 +66,7 @@ export async function offersGetAll(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/offers/getAll",
+    url: "/marketplace/:network/:contract_address/offers/get-all",
     schema: {
       description:
         "Get all offers on the smart contract. Optionally, provide a filter to filter the offers returned.",

@@ -42,7 +42,7 @@ export async function erc1155mintAdditionalSupplyTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc1155/mintAdditionalSupplyTo",
+    url: "/contract/:network/:contract_address/erc1155/mint-additional-supply-to",
     schema: {
       description: "Mint additional supply of an NFT to a specific wallet.",
       tags: ["ERC1155"],

@@ -38,7 +38,7 @@ export async function englishAuctionsExecuteSale(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/executeSale",
+    url: "/marketplace/:network/:contract_address/english-auctions/execute-sale",
     schema: {
       description: `Close the auction for both buyer and seller.
       This means the NFT(s) will be transferred to the buyer and the seller will receive the funds.

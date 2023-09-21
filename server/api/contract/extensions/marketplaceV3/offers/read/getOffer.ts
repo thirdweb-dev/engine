@@ -52,7 +52,7 @@ export async function offersGetOffer(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/offers/getOffer",
+    url: "/marketplace/:network/:contract_address/offers/get-offer",
     schema: {
       description:
         "Get information about a specific offer using the offer’s ID.",

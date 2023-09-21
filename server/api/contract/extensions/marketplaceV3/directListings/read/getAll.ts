@@ -67,7 +67,7 @@ export async function directListingsGetAll(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/directListings/getAll",
+    url: "/marketplace/:network/:contract_address/direct-listings/get-all",
     schema: {
       description: "Retrieve data for all direct listings on the marketplace.",
       tags: ["Marketplace-DirectListings"],

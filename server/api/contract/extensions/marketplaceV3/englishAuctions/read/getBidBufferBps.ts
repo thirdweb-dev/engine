@@ -38,7 +38,7 @@ export async function englishAuctionsGetBidBufferBps(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/getBidBufferBps",
+    url: "/marketplace/:network/:contract_address/english-auctions/get-bid-buffer-bps",
     schema: {
       description: `Get the basis points of the bid buffer. 
         This is the percentage higher that a new bid must be than the current highest bid in order to be placed. 

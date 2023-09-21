@@ -39,7 +39,7 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc20/burnFrom",
+    url: "/contract/:network/:contract_address/erc20/burn-from",
     schema: {
       description:
         "Burn tokens held by a specified wallet (requires allowance).",

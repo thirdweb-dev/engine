@@ -42,7 +42,7 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc721/transferFrom",
+    url: "/contract/:network/:contract_address/erc721/transfer-from",
     schema: {
       description: "Transfer an NFT from a specific wallet to another wallet.",
       tags: ["ERC721"],

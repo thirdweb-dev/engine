@@ -52,7 +52,7 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/getAuction",
+    url: "/marketplace/:network/:contract_address/english-auctions/get-auction",
     schema: {
       description:
         "Retrieve data for a specific auction listing on the marketplace using the listing ID.",

@@ -72,7 +72,7 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
-    url: "/transaction/getAllDeployedContracts",
+    url: "/transaction/get-all-deployed-contracts",
     schema: {
       description: "Get All Deploy Contract Transaction Requests",
       tags: ["Transaction"],

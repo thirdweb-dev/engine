@@ -49,7 +49,7 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/tokenDrop",
+    url: "/deploy/:network/prebuilts/token-drop",
     schema: {
       description: "Deploy prebuilt Token Drop contract",
       tags: ["Deploy"],

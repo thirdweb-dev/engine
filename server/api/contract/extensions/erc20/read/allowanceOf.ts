@@ -46,7 +46,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc20/allowanceOf",
+    url: "/contract/:network/:contract_address/erc20/allowance-of",
     schema: {
       description: "Get the allowance of the specified wallet address funds.",
       tags: ["ERC20"],

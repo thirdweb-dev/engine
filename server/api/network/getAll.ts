@@ -51,7 +51,7 @@ export async function getAllChainData(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/network/getAll",
+    url: "/network/get-all",
     schema: {
       description: "Get all networks/chains information",
       tags: ["Network"],

@@ -29,7 +29,7 @@ export async function englishAuctionsGetTotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/getTotalCount",
+    url: "/marketplace/:network/:contract_address/english-auctions/get-total-count",
     schema: {
       description:
         "Get the total number of direct listings on the marketplace.",

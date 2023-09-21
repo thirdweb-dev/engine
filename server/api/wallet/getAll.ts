@@ -32,7 +32,7 @@ export async function getAll(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/wallet/getAll",
+    url: "/wallet/get-all",
     schema: {
       description: "Get all created EOA wallet",
       tags: ["Wallet"],

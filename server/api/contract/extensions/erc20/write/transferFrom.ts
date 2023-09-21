@@ -45,7 +45,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc20/transferFrom",
+    url: "/contract/:network/:contract_address/erc20/transfer-from",
     schema: {
       description:
         "Transfer tokens from the connected wallet to another wallet.",
