@@ -16,7 +16,7 @@ const ReplySchema = Type.Object({
   }),
 });
 
-export const createSmartWalletHandler = async (fastify: FastifyInstance) => {
+export const smartWalletCreate = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
     Reply: Static<typeof ReplySchema>;
@@ -41,7 +41,7 @@ export const createSmartWalletHandler = async (fastify: FastifyInstance) => {
 
       const smartWalletAddress = await createSmartWallet({
         chainId,
-        walletAddress,
+        signerAddress: walletAddress,
       });
 
       res.status(StatusCodes.OK).send({
