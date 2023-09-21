@@ -11,10 +11,9 @@ import {
   commonRoyaltySchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
-  merkleSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
-} from "../../../schemas/prebuilts";
+} from "../../../schemas/prebuilts/index";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
 import { getSdk } from "../../../utils/cache/getSdk";
@@ -25,7 +24,6 @@ const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
     ...commonRoyaltySchema.properties,
-    ...merkleSchema.properties,
     ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
     ...commonPrimarySaleSchema.properties,
@@ -44,18 +42,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
+export async function deployPrebuiltEdition(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/nftDrop",
+    url: "/deploy/:network/prebuilts/edition",
     schema: {
-      description: "Deploy prebuilt NFT-Drop contract",
+      description: "Deploy prebuilt Edition contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltNFTDrop",
+      operationId: "deployPrebuiltEdition",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -71,8 +69,9 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
+
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "nft-drop",
+        "edition",
         contractMetadata,
         version,
       );
@@ -82,7 +81,7 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "nft-drop",
+        deployedContractType: "edition",
       });
       reply.status(StatusCodes.OK).send({
         result: {

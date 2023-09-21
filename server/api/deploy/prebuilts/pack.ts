@@ -7,6 +7,8 @@ import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
+  commonRoyaltySchema,
+  commonSymbolSchema,
   commonTrustedForwarderSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
@@ -20,6 +22,8 @@ const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
+    ...commonRoyaltySchema.properties,
+    ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
@@ -36,18 +40,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
+export async function deployPrebuiltPack(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/marketplaceV3",
+    url: "/deploy/:network/prebuilts/pack",
     schema: {
-      description: "Deploy prebuilt Marketplace-V3 contract",
+      description: "Deploy prebuiltPack contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltMarketplaceV3",
+      operationId: "deployPrebuiltPack",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -64,18 +68,17 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "marketplace-v3",
+        "pack",
         contractMetadata,
         version,
       );
       const deployedAddress = await tx.simulate();
-
       const queuedId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "marketplace-v3",
+        deployedContractType: "pack",
       });
       reply.status(StatusCodes.OK).send({
         result: {

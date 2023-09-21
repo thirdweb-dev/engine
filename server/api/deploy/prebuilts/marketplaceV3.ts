@@ -7,9 +7,6 @@ import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
-  commonPrimarySaleSchema,
-  commonRoyaltySchema,
-  commonSymbolSchema,
   commonTrustedForwarderSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
@@ -23,10 +20,7 @@ const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
-    ...commonRoyaltySchema.properties,
-    ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
-    ...commonPrimarySaleSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
@@ -42,18 +36,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
+export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/nftCollection",
+    url: "/deploy/:network/prebuilts/marketplaceV3",
     schema: {
-      description: "Deploy prebuilt NFT-Collection contract",
+      description: "Deploy prebuilt Marketplace-V3 contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltNFTCollection",
+      operationId: "deployPrebuiltMarketplaceV3",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -70,17 +64,18 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "nft-collection",
+        "marketplace-v3",
         contractMetadata,
         version,
       );
       const deployedAddress = await tx.simulate();
+
       const queuedId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "nft-collection",
+        deployedContractType: "marketplace-v3",
       });
       reply.status(StatusCodes.OK).send({
         result: {

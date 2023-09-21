@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { walletAuthSchema } from "../../../core/schema";
 import { queueTx } from "../../../src/db/transactions/queueTx";
 import {
-  prebuiltDeployParamSchema,
+  publishedDeployParamSchema,
   standardResponseSchema,
 } from "../../helpers/sharedApiSchemas";
 import { txOverridesForWriteRequest } from "../../schemas/web3api-overrides";
@@ -12,11 +12,10 @@ import { getChainIdFromChain } from "../../utilities/chain";
 import { getSdk } from "../../utils/cache/getSdk";
 
 // INPUTS
-const requestSchema = prebuiltDeployParamSchema;
+const requestSchema = publishedDeployParamSchema;
 const requestBodySchema = Type.Object({
-  // TODO need to type this
-  contractMetadata: Type.Any({
-    description: "Arguments for the deployment.",
+  constructorParams: Type.Array(Type.Any(), {
+    description: "Constructor arguments for the deployment.",
   }),
   version: Type.Optional(
     Type.String({
@@ -29,15 +28,7 @@ const requestBodySchema = Type.Object({
 // Example for the Request Body
 requestBodySchema.examples = [
   {
-    contractMetadata: {
-      name: `My Contract`,
-      description: "Contract deployed from web3 api",
-      primary_sale_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      seller_fee_basis_points: 500,
-      fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      platform_fee_basis_points: 10,
-      platform_fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-    },
+    constructorParams: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   },
 ];
 
@@ -47,38 +38,37 @@ const responseSchema = Type.Object({
   deployedAddress: Type.Optional(Type.String()),
 });
 
-export async function deployPrebuilt(fastify: FastifyInstance) {
+export async function deployPublished(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/:contract_type",
+    url: "/deploy/:network/:publisher/:contract_name",
     schema: {
-      description: "Deploy prebuilt contract",
+      description: "Deploy published contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuilt",
+      operationId: "deployPublished",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
-      hide: true,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_type } = request.params;
-      const { contractMetadata, version } = request.body;
+      const { network, publisher, contract_name } = request.params;
+      const { constructorParams, version } = request.body;
       const chainId = getChainIdFromChain(network);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
-
-      const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        contract_type,
-        contractMetadata,
+      const tx = await sdk.deployer.deployReleasedContract.prepare(
+        publisher,
+        contract_name,
+        constructorParams,
         version,
       );
       const deployedAddress = await tx.simulate();
@@ -86,7 +76,9 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
       const queuedId = await queueTx({
         tx,
         chainId,
-        extension: "deploy-prebuilt",
+        extension: "deploy-published",
+        deployedContractAddress: deployedAddress,
+        deployedContractType: contract_name,
       });
       reply.status(StatusCodes.OK).send({
         deployedAddress,

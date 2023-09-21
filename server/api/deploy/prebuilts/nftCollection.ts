@@ -6,6 +6,8 @@ import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
+  commonPlatformFeeSchema,
+  commonPrimarySaleSchema,
   commonRoyaltySchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
@@ -23,6 +25,8 @@ const requestBodySchema = Type.Object({
     ...commonContractSchema.properties,
     ...commonRoyaltySchema.properties,
     ...commonSymbolSchema.properties,
+    ...commonPlatformFeeSchema.properties,
+    ...commonPrimarySaleSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
@@ -38,18 +42,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
+export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/multiwrap",
+    url: "/deploy/:network/prebuilts/nftCollection",
     schema: {
-      description: "Deploy prebuilt Multiwrap contract",
+      description: "Deploy prebuilt NFT-Collection contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltMultiwrap",
+      operationId: "deployPrebuiltNFTCollection",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -66,7 +70,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "multiwrap",
+        "nft-collection",
         contractMetadata,
         version,
       );
@@ -76,7 +80,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "multiwrap",
+        deployedContractType: "nft-collection",
       });
       reply.status(StatusCodes.OK).send({
         result: {

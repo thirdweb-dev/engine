@@ -47,7 +47,7 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/token",
+    url: "/deploy/:network/prebuilts/token",
     schema: {
       description: "Deploy prebuilt Token contract",
       tags: ["Deploy"],
