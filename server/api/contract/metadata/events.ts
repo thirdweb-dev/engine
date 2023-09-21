@@ -63,7 +63,7 @@ export async function extractEvents(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/metadata/events",
+    url: "/contract/:chain/:contract_address/metadata/events",
     schema: {
       description:
         "Get details all events implemented by the contract, and the data types of their parameters",
@@ -76,9 +76,9 @@ export async function extractEvents(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
 
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

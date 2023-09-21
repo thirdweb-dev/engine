@@ -45,7 +45,7 @@ export async function deployPublished(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/:publisher/:contract_name",
+    url: "/deploy/:chain/:publisher/:contract_name",
     schema: {
       description: "Deploy published contract",
       tags: ["Deploy"],
@@ -59,9 +59,9 @@ export async function deployPublished(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, publisher, contract_name } = request.params;
+      const { chain, publisher, contract_name } = request.params;
       const { constructorParams, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });

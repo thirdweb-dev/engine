@@ -43,7 +43,7 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/vote",
+    url: "/deploy/:chain/prebuilts/vote",
     schema: {
       description: "Deploy prebuilt Vote contract",
       tags: ["Deploy"],
@@ -57,9 +57,9 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });

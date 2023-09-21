@@ -44,7 +44,7 @@ export async function erc721lazyMint(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc721/lazy-mint",
+    url: "/contract/:chain/:contract_address/erc721/lazy-mint",
     schema: {
       description:
         "Lazy mint multiple NFTs on this contract to be claimed later.",
@@ -59,10 +59,10 @@ export async function erc721lazyMint(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { metadatas } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

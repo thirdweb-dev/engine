@@ -9,7 +9,7 @@ import { getContract } from "../../../utils/cache/getContract";
 export async function readContract(fastify: FastifyInstance) {
   fastify.route<readSchema>({
     method: "GET",
-    url: "/contract/:network/:contract_address/read",
+    url: "/contract/:chain/:contract_address/read",
     schema: {
       description: "Read From Contract",
       tags: ["Contract"],
@@ -18,10 +18,10 @@ export async function readContract(fastify: FastifyInstance) {
       querystring: readRequestQuerySchema,
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { function_name, args } = request.query;
 
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

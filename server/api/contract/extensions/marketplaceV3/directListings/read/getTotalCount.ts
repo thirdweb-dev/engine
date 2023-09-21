@@ -29,7 +29,7 @@ export async function directListingsGetTotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/direct-listings/get-total-count",
+    url: "/marketplace/:chain/:contract_address/direct-listings/get-total-count",
     schema: {
       description:
         "Get the total number of direct listings on the marketplace.",
@@ -42,8 +42,8 @@ export async function directListingsGetTotalCount(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
-      const chainId = getChainIdFromChain(network);
+      const { chain, contract_address } = request.params;
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

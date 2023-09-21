@@ -35,7 +35,7 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc20/get",
+    url: "/contract/:chain/:contract_address/erc20/get",
     schema: {
       description:
         "Get the metadata of the token smart contract, such as the name, symbol, and decimals.",
@@ -48,8 +48,8 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
-      const chainId = getChainIdFromChain(network);
+      const { chain, contract_address } = request.params;
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

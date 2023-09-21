@@ -51,7 +51,7 @@ export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/edition-drop",
+    url: "/deploy/:chain/prebuilts/edition-drop",
     schema: {
       description: "Deploy prebuilt Edition Drop contract",
       tags: ["Deploy"],
@@ -65,9 +65,9 @@ export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });

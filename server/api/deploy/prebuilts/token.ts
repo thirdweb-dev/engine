@@ -47,7 +47,7 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/token",
+    url: "/deploy/:chain/prebuilts/token",
     schema: {
       description: "Deploy prebuilt Token contract",
       tags: ["Deploy"],
@@ -61,9 +61,9 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });

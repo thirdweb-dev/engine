@@ -51,7 +51,7 @@ export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/signature-drop",
+    url: "/deploy/:chain/prebuilts/signature-drop",
     schema: {
       description: "Deploy prebuilt Signature-Drop contract",
       tags: ["Deploy"],
@@ -65,9 +65,9 @@ export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });

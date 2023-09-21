@@ -43,7 +43,7 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/marketplace-v3",
+    url: "/deploy/:chain/prebuilts/marketplace-v3",
     schema: {
       description: "Deploy prebuilt Marketplace-V3 contract",
       tags: ["Deploy"],
@@ -57,9 +57,9 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });

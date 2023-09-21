@@ -40,7 +40,7 @@ export async function directListingsIsCurrencyApprovedForListing(
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/direct-listings/is-currency-approved-for-listing",
+    url: "/marketplace/:chain/:contract_address/direct-listings/is-currency-approved-for-listing",
     schema: {
       description:
         "Check whether you can use a specific currency to purchase a listing.",
@@ -54,9 +54,9 @@ export async function directListingsIsCurrencyApprovedForListing(
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { listing_id, currency_contract_address } = request.query;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

@@ -41,7 +41,7 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc1155/balance-of",
+    url: "/contract/:chain/:contract_address/erc1155/balance-of",
     schema: {
       description: "Check the balance Of the wallet address",
       tags: ["ERC1155"],
@@ -54,9 +54,9 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { wallet_address, token_id } = request.query;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

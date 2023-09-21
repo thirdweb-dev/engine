@@ -37,7 +37,7 @@ export async function getBalance(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/wallet/:network/:wallet_address/get-balance",
+    url: "/wallet/:chain/:wallet_address/get-balance",
     schema: {
       description: "Get Wallet Balance",
       tags: ["Wallet"],
@@ -49,8 +49,8 @@ export async function getBalance(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, wallet_address } = request.params;
-      const chainId = getChainIdFromChain(network);
+      const { chain, wallet_address } = request.params;
+      const chainId = getChainIdFromChain(chain);
       const sdk = await getSdk({ chainId });
 
       let balanceData = await sdk.getBalance(wallet_address);

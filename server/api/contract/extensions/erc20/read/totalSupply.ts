@@ -36,7 +36,7 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc20/total-supply",
+    url: "/contract/:chain/:contract_address/erc20/total-supply",
     schema: {
       description: "Get the number of tokens in circulation for the contract.",
       tags: ["ERC20"],
@@ -48,8 +48,8 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
-      const chainId = getChainIdFromChain(network);
+      const { chain, contract_address } = request.params;
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

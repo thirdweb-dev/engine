@@ -60,7 +60,7 @@ export async function extractFunctions(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/metadata/functions",
+    url: "/contract/:chain/:contract_address/metadata/functions",
     schema: {
       description:
         "Get details of all functions implemented by the contract, and the data types of their parameters",
@@ -73,9 +73,9 @@ export async function extractFunctions(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
 
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

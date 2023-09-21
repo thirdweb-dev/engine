@@ -45,7 +45,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:network/prebuilts/multiwrap",
+    url: "/deploy/:chain/prebuilts/multiwrap",
     schema: {
       description: "Deploy prebuilt Multiwrap contract",
       tags: ["Deploy"],
@@ -59,9 +59,9 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
