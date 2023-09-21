@@ -14,11 +14,11 @@ import { erc1155Routes } from "./contract/extensions/erc1155";
 import { erc20Routes } from "./contract/extensions/erc20/index";
 import { erc721Routes } from "./contract/extensions/erc721";
 import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
-import { prebuiltsRoutes } from "./deployer";
+import { prebuiltsRoutes } from "./deploy";
 
 // Chain
-import { getChainData } from "./network/get";
-import { getAllChainData } from "./network/getAll";
+import { getChainData } from "./chain/get";
+import { getAllChainData } from "./chain/getAll";
 
 // Contract Events
 import { getAllEvents } from "./contract/events/getAllEvents";
@@ -72,7 +72,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(grantRole);
   await fastify.register(revokeRole);
 
-  // deployer
+  // deploy
   await fastify.register(prebuiltsRoutes);
 
   // transaction status

@@ -2,12 +2,12 @@ import { Static, Type } from "@sinclair/typebox";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { networkResponseSchema } from "../../../core/schema";
+import { chainResponseSchema } from "../../../core/schema";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(networkResponseSchema),
+  result: Type.Array(chainResponseSchema),
 });
 
 responseSchema.examples = [
@@ -51,11 +51,11 @@ export async function getAllChainData(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/network/getAll",
+    url: "/chain/get-all",
     schema: {
-      description: "Get all networks/chains information",
-      tags: ["Network"],
-      operationId: "getAllNetworkData",
+      description: "Get all chains information",
+      tags: ["Chain"],
+      operationId: "getAllChainData",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

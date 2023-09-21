@@ -35,7 +35,7 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/englishAuctions/getWinner",
+    url: "/marketplace/:chain/:contract_address/english-auctions/get-winner",
     schema: {
       description:
         "Get the wallet address that won an auction. Can only be called after the auction has ended.",
@@ -49,9 +49,9 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { listing_id } = request.query;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

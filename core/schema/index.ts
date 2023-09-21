@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 
-export const networkResponseSchema = Type.Object({
+export const chainResponseSchema = Type.Object({
   name: Type.String({
     description: "Chain name",
   }),

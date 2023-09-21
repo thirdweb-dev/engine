@@ -8,12 +8,11 @@ import {
   commonContractSchema,
   commonPlatformFeeSchema,
   commonPrimarySaleSchema,
-  commonRoyaltySchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
-} from "../../../schemas/prebuilts/index";
+} from "../../../schemas/prebuilts";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
 import { getSdk } from "../../../utils/cache/getSdk";
@@ -23,7 +22,6 @@ const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
-    ...commonRoyaltySchema.properties,
     ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
     ...commonPrimarySaleSchema.properties,
@@ -42,18 +40,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltEdition(fastify: FastifyInstance) {
+export async function deployPrebuiltToken(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/edition",
+    url: "/deploy/:chain/prebuilts/token",
     schema: {
-      description: "Deploy prebuilt Edition contract",
+      description: "Deploy prebuilt Token contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltEdition",
+      operationId: "deployPrebuiltToken",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -63,25 +61,25 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
-
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "edition",
+        "token",
         contractMetadata,
         version,
       );
+
       const deployedAddress = await tx.simulate();
       const queuedId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "edition",
+        deployedContractType: "token",
       });
       reply.status(StatusCodes.OK).send({
         result: {

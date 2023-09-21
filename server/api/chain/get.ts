@@ -3,13 +3,13 @@ import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../core/index";
-import { networkResponseSchema } from "../../../core/schema";
+import { chainResponseSchema } from "../../../core/schema";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { networkRequestQuerystringSchema } from "../../schemas/network";
+import { chainRequestQuerystringSchema } from "../../schemas/chain";
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: networkResponseSchema,
+  result: chainResponseSchema,
 });
 
 responseSchema.examples = [
@@ -36,35 +36,35 @@ responseSchema.examples = [
 // LOGIC
 export async function getChainData(fastify: FastifyInstance) {
   fastify.route<{
-    Querystring: Static<typeof networkRequestQuerystringSchema>;
+    Querystring: Static<typeof chainRequestQuerystringSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/network/get",
+    url: "/chain/get",
     schema: {
-      description: "Get a particular network/chain information",
-      tags: ["Network"],
-      operationId: "getNetworkData",
-      querystring: networkRequestQuerystringSchema,
+      description: "Get a particular chain information",
+      tags: ["Chain"],
+      operationId: "chain",
+      querystring: chainRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.query;
+      const { chain } = request.query;
 
-      const chain = allChains.find((chain) => {
+      const chainData = allChains.find((chainData) => {
         if (
-          chain.name === network ||
-          chain.chainId === Number(network) ||
-          chain.slug === network
+          chainData.name === chain ||
+          chainData.chainId === Number(chain) ||
+          chainData.slug === chain
         ) {
           return chain;
         }
       });
 
-      if (!chain) {
+      if (!chainData) {
         const error = createCustomError(
           "Chain not found",
           StatusCodes.NOT_FOUND,
@@ -73,12 +73,12 @@ export async function getChainData(fastify: FastifyInstance) {
         throw error;
       }
 
-      const minimizeChainData = minimizeChain(chain);
+      const minimizeChainData = minimizeChain(chainData);
 
       reply.status(StatusCodes.OK).send({
         result: {
           ...minimizeChainData,
-          rpc: [chain.rpc.length === 0 ? "" : minimizeChainData.rpc[0]],
+          rpc: [chainData.rpc.length === 0 ? "" : minimizeChainData.rpc[0]],
         },
       });
     },

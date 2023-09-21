@@ -6,10 +6,14 @@ import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
+  commonPlatformFeeSchema,
+  commonPrimarySaleSchema,
+  commonRoyaltySchema,
+  commonSymbolSchema,
   commonTrustedForwarderSchema,
+  merkleSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
-  voteSettingsInputSchema,
 } from "../../../schemas/prebuilts";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
@@ -20,7 +24,11 @@ const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
-    ...voteSettingsInputSchema.properties,
+    ...commonRoyaltySchema.properties,
+    ...merkleSchema.properties,
+    ...commonSymbolSchema.properties,
+    ...commonPlatformFeeSchema.properties,
+    ...commonPrimarySaleSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
@@ -36,18 +44,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltVote(fastify: FastifyInstance) {
+export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/vote",
+    url: "/deploy/:chain/prebuilts/nft-drop",
     schema: {
-      description: "Deploy prebuilt Vote contract",
+      description: "Deploy prebuilt NFT-Drop contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltVote",
+      operationId: "deployPrebuiltNFTDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -57,14 +65,14 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "vote",
+        "nft-drop",
         contractMetadata,
         version,
       );
@@ -74,7 +82,7 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "vote",
+        deployedContractType: "nft-drop",
       });
       reply.status(StatusCodes.OK).send({
         result: {

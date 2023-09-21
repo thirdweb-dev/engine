@@ -42,7 +42,7 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/makeBid",
+    url: "/marketplace/:chain/:contract_address/english-auctions/make-bid",
     schema: {
       description: "Place a new bid on an auction listing.",
       tags: ["Marketplace-EnglishAuctions"],
@@ -55,10 +55,10 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { listing_id, bid_amount } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

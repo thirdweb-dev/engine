@@ -34,7 +34,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/offers/cancelOffer",
+    url: "/marketplace/:chain/:contract_address/offers/cancel-offer",
     schema: {
       description: "Cancel an offer you made on an NFT.",
       tags: ["Marketplace-Offers"],
@@ -48,10 +48,10 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { offer_id } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

@@ -38,7 +38,7 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/cancelAuction",
+    url: "/marketplace/:chain/:contract_address/english-auctions/cancel-auction",
     schema: {
       description:
         "Cancel an auction listing you previously created. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.",
@@ -52,10 +52,10 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { listing_id } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

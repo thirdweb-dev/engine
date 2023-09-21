@@ -6,6 +6,7 @@ import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
+  commonPlatformFeeSchema,
   commonRoyaltySchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
@@ -23,6 +24,7 @@ const requestBodySchema = Type.Object({
     ...commonContractSchema.properties,
     ...commonRoyaltySchema.properties,
     ...commonSymbolSchema.properties,
+    ...commonPlatformFeeSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
@@ -38,18 +40,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
+export async function deployPrebuiltPack(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/multiwrap",
+    url: "/deploy/:chain/prebuilts/pack",
     schema: {
-      description: "Deploy prebuilt Multiwrap contract",
+      description: "Deploy prebuiltPack contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltMultiwrap",
+      operationId: "deployPrebuiltPack",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -59,14 +61,14 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "multiwrap",
+        "pack",
         contractMetadata,
         version,
       );
@@ -76,7 +78,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "multiwrap",
+        deployedContractType: "pack",
       });
       reply.status(StatusCodes.OK).send({
         result: {

@@ -6,13 +6,10 @@ import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
-  commonPlatformFeeSchema,
-  commonPrimarySaleSchema,
-  commonRoyaltySchema,
-  commonSymbolSchema,
   commonTrustedForwarderSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
+  splitRecipientInputSchema,
 } from "../../../schemas/prebuilts";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
@@ -23,10 +20,7 @@ const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
-    ...commonRoyaltySchema.properties,
-    ...commonSymbolSchema.properties,
-    ...commonPlatformFeeSchema.properties,
-    ...commonPrimarySaleSchema.properties,
+    recipients: Type.Array(splitRecipientInputSchema),
     ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
@@ -42,18 +36,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
+export async function deployPrebuiltSplit(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/nftCollection",
+    url: "/deploy/:chain/prebuilts/split",
     schema: {
-      description: "Deploy prebuilt NFT-Collection contract",
+      description: "Deploy prebuilt Split contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltNFTCollection",
+      operationId: "deployPrebuiltSplit",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -63,24 +57,26 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      //TODO add x-wallet-address to headers
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "nft-collection",
+        "split",
         contractMetadata,
         version,
       );
       const deployedAddress = await tx.simulate();
+
       const queuedId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "nft-collection",
+        deployedContractType: "split",
       });
       reply.status(StatusCodes.OK).send({
         result: {

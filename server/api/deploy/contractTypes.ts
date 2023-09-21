@@ -1,8 +1,8 @@
+import { Static, Type } from "@sinclair/typebox";
+import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Static, Type } from "@sinclair/typebox";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
 
 // OUTPUT
 export const responseBodySchema = Type.Object({
@@ -14,7 +14,7 @@ export async function contractTypes(fastify: FastifyInstance) {
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
-    url: "/deployer/contractTypes",
+    url: "/deploy/contract-types",
     schema: {
       description: "Get all prebuilt contract types",
       tags: ["Deploy"],

@@ -40,7 +40,7 @@ export async function englishAuctionsCloseAuctionForSeller(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/closeAuctionForSeller",
+    url: "/marketplace/:chain/:contract_address/english-auctions/close-auction-for-seller",
     schema: {
       description: `After an auction has concluded (and a buyout did not occur),
         execute the sale for the seller, meaning the seller receives the payment from the highest bid.
@@ -55,10 +55,10 @@ export async function englishAuctionsCloseAuctionForSeller(
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { listing_id } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

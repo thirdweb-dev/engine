@@ -8,6 +8,7 @@ import {
   commonContractSchema,
   commonPlatformFeeSchema,
   commonPrimarySaleSchema,
+  commonRoyaltySchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
   merkleSchema,
@@ -23,6 +24,7 @@ const requestSchema = prebuiltDeployContractParamSchema;
 const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
+    ...commonRoyaltySchema.properties,
     ...merkleSchema.properties,
     ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
@@ -42,18 +44,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
+export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/tokenDrop",
+    url: "/deploy/:chain/prebuilts/signature-drop",
     schema: {
-      description: "Deploy prebuilt Token Drop contract",
+      description: "Deploy prebuilt Signature-Drop contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltTokenDrop",
+      operationId: "deployPrebuiltSignatureDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -63,24 +65,25 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "token-drop",
+        "signature-drop",
         contractMetadata,
         version,
       );
       const deployedAddress = await tx.simulate();
+
       const queuedId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "token-drop",
+        deployedContractType: "signature-drop",
       });
       reply.status(StatusCodes.OK).send({
         result: {

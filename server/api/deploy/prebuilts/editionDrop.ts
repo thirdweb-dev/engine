@@ -7,9 +7,11 @@ import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
+  commonPrimarySaleSchema,
   commonRoyaltySchema,
   commonSymbolSchema,
   commonTrustedForwarderSchema,
+  merkleSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
@@ -23,8 +25,10 @@ const requestBodySchema = Type.Object({
   contractMetadata: Type.Object({
     ...commonContractSchema.properties,
     ...commonRoyaltySchema.properties,
+    ...merkleSchema.properties,
     ...commonSymbolSchema.properties,
     ...commonPlatformFeeSchema.properties,
+    ...commonPrimarySaleSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
   version: Type.Optional(
@@ -40,18 +44,18 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 
-export async function deployPrebuiltPack(fastify: FastifyInstance) {
+export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deployer/:network/prebuilts/pack",
+    url: "/deploy/:chain/prebuilts/edition-drop",
     schema: {
-      description: "Deploy prebuiltPack contract",
+      description: "Deploy prebuilt Edition Drop contract",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltPack",
+      operationId: "deployPrebuiltEditionDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -61,14 +65,14 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network } = request.params;
+      const { chain } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
-        "pack",
+        "edition-drop",
         contractMetadata,
         version,
       );
@@ -78,8 +82,9 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
         chainId,
         extension: "deploy-prebuilt",
         deployedContractAddress: deployedAddress,
-        deployedContractType: "pack",
+        deployedContractType: "edition-drop",
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
