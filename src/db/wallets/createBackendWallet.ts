@@ -3,7 +3,7 @@ import type { WalletType } from "../../schema/wallet";
 import { getPrismaWithPostgresTx } from "../client";
 
 // TODO: Case on types by wallet type
-interface CreateWalletDetailsParams {
+interface CreateBackendWalletParams {
   pgtx?: PrismaTransaction;
   address: string;
   type: WalletType;
@@ -16,28 +16,28 @@ interface CreateWalletDetailsParams {
   gcpKmsResourcePath?: string;
 }
 
-export const createWalletDetails = async ({
+export const createBackendWallet = async ({
   pgtx,
-  ...walletDetails
-}: CreateWalletDetailsParams) => {
+  ...config
+}: CreateBackendWalletParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  const wallet = await prisma.walletDetails.findUnique({
+  const wallet = await prisma.backendWallet.findUnique({
     where: {
-      address: walletDetails.address.toLowerCase(),
+      address: config.address.toLowerCase(),
     },
   });
 
   if (wallet) {
     throw new Error(
-      `Wallet with address ${walletDetails.address} has already been added!`,
+      `Wallet with address ${config.address} has already been added!`,
     );
   }
 
-  return prisma.walletDetails.create({
+  return prisma.backendWallet.create({
     data: {
-      ...walletDetails,
-      address: walletDetails.address.toLowerCase(),
+      ...config,
+      address: config.address.toLowerCase(),
     },
   });
 };

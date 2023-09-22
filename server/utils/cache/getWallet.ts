@@ -2,7 +2,7 @@ import { EVMWallet, EthersWallet } from "@thirdweb-dev/wallets";
 import { getAwsKmsWallet } from "../../../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsSigner } from "../../../server/utils/wallets/getGcpKmsSigner";
 import { getLocalWallet } from "../../../server/utils/wallets/getLocalWallet";
-import { getWalletDetails } from "../../../src/db/wallets/getWalletDetails";
+import { getBackendWallet } from "../../../src/db/wallets/getBackendWallet";
 import { PrismaTransaction } from "../../../src/schema/prisma";
 import { WalletType } from "../../../src/schema/wallet";
 import { getSmartWallet } from "../wallets/getSmartWallet";
@@ -29,26 +29,26 @@ export const getWallet = async <TWallet extends EVMWallet>({
     return walletsCache.get(cacheKey)! as TWallet;
   }
 
-  const walletDetails = await getWalletDetails({
+  const backendWallet = await getBackendWallet({
     pgtx,
     address: walletAddress,
   });
 
-  if (!walletDetails) {
+  if (!backendWallet) {
     throw new Error(`No configured wallet found with address ${walletAddress}`);
   }
 
   let wallet: EVMWallet;
-  switch (walletDetails.type) {
+  switch (backendWallet.type) {
     case WalletType.awsKms:
       wallet = getAwsKmsWallet({
-        awsKmsKeyId: walletDetails.awsKmsKeyId!,
+        awsKmsKeyId: backendWallet.awsKmsKeyId!,
       });
       break;
     case WalletType.gcpKms:
       const signer = getGcpKmsSigner({
-        gcpKmsKeyId: walletDetails.gcpKmsKeyId!,
-        gcpKmsKeyVersionId: walletDetails.gcpKmsKeyVersionId!,
+        gcpKmsKeyId: backendWallet.gcpKmsKeyId!,
+        gcpKmsKeyVersionId: backendWallet.gcpKmsKeyVersionId!,
       });
       wallet = new EthersWallet(signer);
       break;
@@ -57,7 +57,7 @@ export const getWallet = async <TWallet extends EVMWallet>({
       break;
     default:
       throw new Error(
-        `Wallet with address ${walletAddress} was configured with unknown wallet type ${walletDetails.type}`,
+        `Wallet with address ${walletAddress} was configured with unknown wallet type ${backendWallet.type}`,
       );
   }
 

@@ -28,14 +28,14 @@ export const getWalletNonce = async ({
   `;
 
   if (!walletNonce) {
-    const walletDetails = await prisma.walletDetails.findUnique({
+    const backendWallet = await prisma.backendWallet.findUnique({
       where: {
         address: address.toLowerCase(),
       },
     });
 
-    // If we have wallet details, but not a wallet nonce for the chain, create one
-    if (walletDetails) {
+    // If we have backend wallet, but not a wallet nonce for the chain, create one
+    if (backendWallet) {
       return createWalletNonce({
         pgtx,
         address,

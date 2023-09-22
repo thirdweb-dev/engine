@@ -4,7 +4,7 @@ import { BigNumber } from "ethers/lib/ethers";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { getSdk } from "../../../server/utils/cache/getSdk";
 import { prisma } from "../../db/client";
-import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
+import { getQueuedTxs } from "../../db/transactions/getQueuedActions";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";

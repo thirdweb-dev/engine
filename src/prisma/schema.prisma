@@ -7,6 +7,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator typebox {
+  provider = "prisma-typebox-generator"
+}
+
 model BackendWallet {
   address            String  @id @map("address")
   type               String  @map("type")
@@ -32,90 +36,90 @@ model WalletNonce {
   @@map("wallet_nonces")
 }
 
-enum ActionType {
+enum TransactionType {
   TRANSACTION
   USER_OPERATION
 }
 
-model Action {
-  id                      String         @id @default(uuid()) @map("id")
-  chainId                 Int            @map("chainId")
-  type                    ActionType     @map("type")
-  // Timestamps
-  queuedAt                DateTime       @default(now()) @map("queuedAt")
-  processedAt             DateTime?      @map("processedAt")
-  sentAt                  DateTime?      @map("sentAt")
-  minedAt                 DateTime?      @map("minedAt")
-  // Retries
-  retryCount              Int            @default(0) @map("retryCount")
-  // Error
-  errorMessage            String?        @map("errorMessage")
-  // Data
-  functionName            String?        @map("functionName")
-  functionArgs            String?        @map("functionArgs")
-  extension               String?        @map("extension")
-  deployedContractAddress String?        @map("deployedContractAddress") // Should be generalized
-  deployedContractType    String?        @map("deployedContractType") // Should be generalized
-  // Relations
-  transaction             Transaction?
-  userOperation           UserOperation?
-
-  @@map("actions")
-}
-
 model Transaction {
-  id                        String   @id @map("id")
-  action                    Action   @relation(fields: [id], references: [id])
-  // Set when transaction is queued
-  fromAddress               String   @map("fromAddress")
-  toAddress                 String?  @map("toAddress")
-  data                      String?  @map("data") @db.Text
-  value                     String?  @map("value")
-  gasLimit                  String?  @map("gasLimit")
-  // Set when transaction is sent
-  nonce                     Int?     @map("nonce")
-  gasPrice                  String?  @map("gasPrice")
-  maxFeePerGas              String?  @map("maxFeePerGas")
-  maxPriorityFeePerGas      String?  @map("maxPriorityFeePerGas")
-  transactionType           Int?     @map("transactionType")
-  transactionHash           String?  @map("transactionHash")
-  sentAtBlockNumber         Int?     @map("sentAtBlockNumber")
-  // Set when transaction is retried - TODO: Should use default values
-  retryGasValues            Boolean? @default(false) @map("retryGasValues")
-  retryMaxPriorityFeePerGas String?  @map("retryMaxPriorityFeePerGas")
-  retryMaxFeePerGas         String?  @map("retryMaxFeePerGas")
-  // Set when transaction is mined
-  minedAtBlockNumber        Int?     @map("minedAtBlockNumber")
+  id                      String              @id @default(uuid()) @map("id")
+  chainId                 Int                 @map("chainId")
+  type                    TransactionType     @map("type")
+  // Timestamps
+  queuedAt                DateTime            @default(now()) @map("queuedAt")
+  processedAt             DateTime?           @map("processedAt")
+  sentAt                  DateTime?           @map("sentAt")
+  minedAt                 DateTime?           @map("minedAt")
+  // Retries
+  retryCount              Int                 @default(0) @map("retryCount")
+  // Error
+  errorMessage            String?             @map("errorMessage")
+  // Data
+  functionName            String?             @map("functionName")
+  functionArgs            String?             @map("functionArgs")
+  extension               String?             @map("extension")
+  deployedContractAddress String?             @map("deployedContractAddress") // Should be generalized
+  deployedContractType    String?             @map("deployedContractType") // Should be generalized
+  // Relations
+  transactionDetails      TransactionDetails?
+  userOperation           UserOperation?
 
   @@map("transactions")
 }
 
-model UserOperation {
-  id                   String  @id @map("id")
-  action               Action  @relation(fields: [id], references: [id])
-  // Set when user op is queued
-  signerAddress        String  @map("signerAddress")
-  accountAddress       String  @map("accountAddress")
-  target               String? @map("target")
-  data                 String? @map("data")
-  value                String? @map("value")
-  gasLimit             String? @map("gasLimit")
-  // Set when user op is sent
-  sender               String? @map("sender")
-  nonce                Int?    @map("nonce")
-  initCode             String? @map("initCode")
-  callData             String? @map("callData")
-  callGasLimit         Int?    @map("callGasLimit")
-  verificationGasLimit Int?    @map("verificationGasLimit")
-  preVerificationGas   Int?    @map("preVerificationGas")
-  maxFeePerGas         Int?    @map("maxFeePerGas")
-  maxPriorityFeePerGas Int?    @map("maxPriorityFeePerGas")
-  paymasterAndData     String? @map("paymasterAndData")
-  userOpHash           String? @map("userOpHash")
-  sentAtBlockNumber    Int?    @map("sentAtBlockNumber")
+model TransactionDetails {
+  id                        String      @id @map("id")
+  transaction               Transaction @relation(fields: [id], references: [id])
+  // Set when transaction is queued
+  fromAddress               String      @map("fromAddress")
+  toAddress                 String?     @map("toAddress")
+  data                      String?     @map("data") @db.Text
+  value                     String?     @map("value")
+  gasLimit                  String?     @map("gasLimit")
+  // Set when transaction is sent
+  nonce                     Int?        @map("nonce")
+  gasPrice                  String?     @map("gasPrice")
+  maxFeePerGas              String?     @map("maxFeePerGas")
+  maxPriorityFeePerGas      String?     @map("maxPriorityFeePerGas")
+  transactionType           Int?        @map("transactionType")
+  transactionHash           String?     @map("transactionHash")
+  sentAtBlockNumber         Int?        @map("sentAtBlockNumber")
+  // Set when transaction is retried - TODO: Should use default values
+  retryGasValues            Boolean?    @default(false) @map("retryGasValues")
+  retryMaxPriorityFeePerGas String?     @map("retryMaxPriorityFeePerGas")
+  retryMaxFeePerGas         String?     @map("retryMaxFeePerGas")
   // Set when transaction is mined
-  minedAtBlockNumber   Int?    @map("minedAtBlockNumber")
-  transactionHash      String  @map("transactionHash")
+  minedAtBlockNumber        Int?        @map("minedAtBlockNumber")
+
+  @@map("transaction_details")
+}
+
+model UserOperation {
+  id                   String      @id @map("id")
+  transaction          Transaction @relation(fields: [id], references: [id])
+  // Set when user op is queued
+  signerAddress        String      @map("signerAddress")
+  accountAddress       String      @map("accountAddress")
+  target               String?     @map("target")
+  data                 String?     @map("data")
+  value                String?     @map("value")
+  gasLimit             String?     @map("gasLimit")
+  // Set when user op is sent
+  sender               String?     @map("sender")
+  nonce                Int?        @map("nonce")
+  initCode             String?     @map("initCode")
+  callData             String?     @map("callData")
+  callGasLimit         Int?        @map("callGasLimit")
+  verificationGasLimit Int?        @map("verificationGasLimit")
+  preVerificationGas   Int?        @map("preVerificationGas")
+  maxFeePerGas         Int?        @map("maxFeePerGas")
+  maxPriorityFeePerGas Int?        @map("maxPriorityFeePerGas")
+  paymasterAndData     String?     @map("paymasterAndData")
+  userOpHash           String?     @map("userOpHash")
+  sentAtBlockNumber    Int?        @map("sentAtBlockNumber")
+  // Set when transaction is mined
+  minedAtBlockNumber   Int?        @map("minedAtBlockNumber")
+  transactionHash      String      @map("transactionHash")
 
   @@map("user_operations")
 }

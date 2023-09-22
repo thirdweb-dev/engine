@@ -1,10 +1,10 @@
-import { WalletDetails, WalletNonce } from "@prisma/client";
+import { BackendWallet, WalletNonce } from "@prisma/client";
 
 export type WalletNonceWithDetails = WalletNonce & {
-  walletDetails: WalletDetails;
+  config: BackendWallet;
 };
 
-export type WalletWithNonceAndDetails = WalletNonce & WalletDetails;
+export type WalletWithNonceAndDetails = WalletNonce & BackendWallet;
 
 export const cleanWallet = (
   wallet: WalletNonceWithDetails,
@@ -12,6 +12,6 @@ export const cleanWallet = (
   return {
     chainId: wallet.chainId,
     nonce: wallet.nonce,
-    ...wallet.walletDetails,
+    ...wallet.config,
   };
 };

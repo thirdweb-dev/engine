@@ -1,18 +1,18 @@
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
-interface GetWalletDetailsParams {
+interface GetBackendWalletParams {
   pgtx?: PrismaTransaction;
   address: string;
 }
 
-export const getWalletDetails = async ({
+export const getBackendWallet = async ({
   pgtx,
   address,
-}: GetWalletDetailsParams) => {
+}: GetBackendWalletParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  return prisma.walletDetails.findUnique({
+  return prisma.backendWallet.findUnique({
     where: {
       address: address.toLowerCase(),
     },

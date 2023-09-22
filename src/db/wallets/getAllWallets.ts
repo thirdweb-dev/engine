@@ -9,6 +9,6 @@ interface GetAllWalletsParams {
 export const getAllWallets = async ({ pgtx }: GetAllWalletsParams = {}) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  const wallets = await prisma.walletDetails.findMany();
+  const wallets = await prisma.backendWallet.findMany();
   return wallets;
 };

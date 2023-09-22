@@ -1,5 +1,5 @@
 import { env } from "../../../core";
-import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
+import { createBackendWallet } from "../../../src/db/wallets/createBackendWallet";
 import { WalletType } from "../../../src/schema/wallet";
 import { getAwsKmsWallet } from "./getAwsKmsWallet";
 
@@ -19,7 +19,7 @@ export const importAwsKmsWallet = async ({
   const wallet = getAwsKmsWallet({ awsKmsKeyId });
 
   const walletAddress = await wallet.getAddress();
-  await createWalletDetails({
+  await createBackendWallet({
     type: WalletType.awsKms,
     address: walletAddress,
     awsKmsArn,

@@ -1,6 +1,6 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { LocalFileStorage, env } from "../../../core";
-import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
+import { createBackendWallet } from "../../../src/db/wallets/createBackendWallet";
 import { WalletType } from "../../../src/schema/wallet";
 
 type ImportLocalWalletParams =
@@ -52,7 +52,7 @@ export const importLocalWallet = async (
     storage: new LocalFileStorage(walletAddress),
   });
 
-  await createWalletDetails({
+  await createBackendWallet({
     address: walletAddress,
     type: WalletType.local,
   });

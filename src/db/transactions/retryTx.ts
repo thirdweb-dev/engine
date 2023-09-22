@@ -16,15 +16,20 @@ export const retryTx = async ({
 }: RetryTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  await prisma.transactions.update({
+  await prisma.transaction.update({
     where: {
       id: queueId,
+      transactionDetails: {
+        NOT: undefined,
+      },
     },
     // TODO: Do these need to all be separate fields?
     data: {
-      retryGasValues: true,
-      retryMaxFeePerGas: maxFeePerGas,
-      retryMaxPriorityFeePerGas: maxPriorityFeePerGas,
+      transactionDetails: {
+        retryGasValues: true,
+        retryMaxFeePerGas: maxFeePerGas,
+        retryMaxPriorityFeePerGas: maxPriorityFeePerGas,
+      },
     },
   });
 };

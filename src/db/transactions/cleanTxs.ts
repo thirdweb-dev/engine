@@ -1,11 +1,9 @@
-import { Transactions } from "@prisma/client";
+import { Action } from "@prisma/client";
 import { Static } from "@sinclair/typebox";
-import { transactionResponseSchema } from "../../../server/schemas/transaction";
+import { Action as TypeboxAction } from "../../prisma/typebox";
 
 // TODO: This shouldn't need to exist with zod
-export const cleanTxs = (
-  txs: Transactions[],
-): Static<typeof transactionResponseSchema>[] => {
+export const cleanTxs = (txs: Action[]): Static<typeof TypeboxAction>[] => {
   return txs.map((tx) => {
     return {
       ...tx,

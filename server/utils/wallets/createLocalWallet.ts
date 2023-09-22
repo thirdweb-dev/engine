@@ -1,6 +1,6 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { LocalFileStorage } from "../../../core";
-import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
+import { createBackendWallet } from "../../../src/db/wallets/createBackendWallet";
 import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
 
@@ -19,7 +19,7 @@ export const createLocalWallet = async (): Promise<string> => {
     storage: new LocalFileStorage(walletAddress),
   });
 
-  await createWalletDetails({
+  await createBackendWallet({
     type: WalletType.local,
     address: walletAddress,
   });

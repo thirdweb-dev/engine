@@ -3,13 +3,13 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllWallets } from "../../../src/db/wallets/getAllWallets";
 import {
+  backendWalletSchema,
   standardResponseSchema,
-  walletDetailsSchema,
 } from "../../helpers/sharedApiSchemas";
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Array(walletDetailsSchema),
+  result: Type.Array(backendWalletSchema),
 });
 
 responseSchema.example = {

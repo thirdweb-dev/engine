@@ -1,0 +1,42 @@
+import { Type, Static } from "@sinclair/typebox";
+
+export const UserOperationInput = Type.Object({
+  id: Type.String(),
+  transaction: Type.Object({
+    id: Type.String(),
+    chainId: Type.Number(),
+    queuedAt: Type.Optional(Type.String()),
+    processedAt: Type.Optional(Type.String()),
+    sentAt: Type.Optional(Type.String()),
+    minedAt: Type.Optional(Type.String()),
+    retryCount: Type.Optional(Type.Number()),
+    errorMessage: Type.Optional(Type.String()),
+    functionName: Type.Optional(Type.String()),
+    functionArgs: Type.Optional(Type.String()),
+    extension: Type.Optional(Type.String()),
+    deployedContractAddress: Type.Optional(Type.String()),
+    deployedContractType: Type.Optional(Type.String()),
+  }),
+  signerAddress: Type.String(),
+  accountAddress: Type.String(),
+  target: Type.Optional(Type.String()),
+  data: Type.Optional(Type.String()),
+  value: Type.Optional(Type.String()),
+  gasLimit: Type.Optional(Type.String()),
+  sender: Type.Optional(Type.String()),
+  nonce: Type.Optional(Type.Number()),
+  initCode: Type.Optional(Type.String()),
+  callData: Type.Optional(Type.String()),
+  callGasLimit: Type.Optional(Type.Number()),
+  verificationGasLimit: Type.Optional(Type.Number()),
+  preVerificationGas: Type.Optional(Type.Number()),
+  maxFeePerGas: Type.Optional(Type.Number()),
+  maxPriorityFeePerGas: Type.Optional(Type.Number()),
+  paymasterAndData: Type.Optional(Type.String()),
+  userOpHash: Type.Optional(Type.String()),
+  sentAtBlockNumber: Type.Optional(Type.Number()),
+  minedAtBlockNumber: Type.Optional(Type.Number()),
+  transactionHash: Type.String(),
+});
+
+export type UserOperationInputType = Static<typeof UserOperationInput>;

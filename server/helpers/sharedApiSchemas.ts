@@ -248,7 +248,7 @@ export const marketplaceFilterSchema = Type.Object({
   ),
 });
 
-export const walletDetailsSchema = Type.Object({
+export const backendWalletSchema = Type.Object({
   address: Type.String({
     description: "Wallet Address",
   }),

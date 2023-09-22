@@ -46,7 +46,7 @@ export const getAllTxs = async ({
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   // TODO: Cleaning should be handled by zod
-  const txs = await prisma.transactions.findMany({
+  const txs = await prisma.action.findMany({
     where: {
       ...(filterBy
         ? {
@@ -62,6 +62,10 @@ export const getAllTxs = async ({
             },
           }
         : {}),
+    },
+    include: {
+      transaction: true,
+      userOperation: true,
     },
     orderBy: [
       {

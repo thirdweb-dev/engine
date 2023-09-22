@@ -34,7 +34,7 @@ export const queueTx = async ({
   const value = BigNumber.from(await tx.getValue()).toHexString();
 
   // TODO: Should we call this txId so it's easier to spell?
-  const { id: queueId } = await prisma.transactions.create({
+  const { id: queueId } = await prisma.transaction.create({
     data: {
       chainId,
       fromAddress,

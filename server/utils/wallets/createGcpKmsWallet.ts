@@ -1,5 +1,5 @@
 import { KeyManagementServiceClient } from "@google-cloud/kms";
-import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
+import { createBackendWallet } from "../../../src/db/wallets/createBackendWallet";
 import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
 import { getGcpKmsSigner } from "./getGcpKmsSigner";
@@ -43,7 +43,7 @@ export const createGcpKmsWallet = async (): Promise<string> => {
   });
 
   const walletAddress = await signer.getAddress();
-  await createWalletDetails({
+  await createBackendWallet({
     type: WalletType.gcpKms,
     address: walletAddress,
     gcpKmsKeyId: cryptoKeyId,

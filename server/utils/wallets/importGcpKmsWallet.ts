@@ -1,4 +1,4 @@
-import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
+import { createBackendWallet } from "../../../src/db/wallets/createBackendWallet";
 import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
 import { getGcpKmsSigner } from "./getGcpKmsSigner";
@@ -20,7 +20,7 @@ export const importGcpKmsWallet = async ({
   const signer = getGcpKmsSigner({ gcpKmsKeyId, gcpKmsKeyVersionId });
 
   const walletAddress = await signer.getAddress();
-  await createWalletDetails({
+  await createBackendWallet({
     type: WalletType.gcpKms,
     address: walletAddress,
     gcpKmsKeyId: gcpKmsKeyId,
