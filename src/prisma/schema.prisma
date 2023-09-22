@@ -8,49 +8,42 @@ generator client {
 }
 
 model Transactions {
-  id      String @id @default(uuid()) @map("id")
-  chainId Int    @map("chainId")
-
+  id                        String    @id @default(uuid()) @map("id")
+  chainId                   Int       @map("chainId")
   // Transaction Details
-  fromAddress          String  @map("fromAddress")
-  toAddress            String? @map("toAddress")
-  data                 String? @map("data") @db.Text
-  value                String? @map("value")
-  nonce                Int?    @map("nonce")
-  gasLimit             String? @map("gasLimit")
-  gasPrice             String? @map("gasPrice")
-  maxFeePerGas         String? @map("maxFeePerGas")
-  maxPriorityFeePerGas String? @map("maxPriorityFeePerGas")
-  transactionType      Int?    @map("transactionType")
-  transactionHash      String? @map("transactionHash")
-
+  fromAddress               String    @map("fromAddress")
+  toAddress                 String?   @map("toAddress")
+  data                      String?   @map("data") @db.Text
+  value                     String?   @map("value")
+  nonce                     Int?      @map("nonce")
+  gasLimit                  String?   @map("gasLimit")
+  gasPrice                  String?   @map("gasPrice")
+  maxFeePerGas              String?   @map("maxFeePerGas")
+  maxPriorityFeePerGas      String?   @map("maxPriorityFeePerGas")
+  transactionType           Int?      @map("transactionType")
+  transactionHash           String?   @map("transactionHash")
   // Enriched Data
-  functionName            String? @map("functionName")
-  functionArgs            String? @map("functionArgs")
-  extension               String? @map("extension")
-
+  functionName              String?   @map("functionName")
+  functionArgs              String?   @map("functionArgs")
+  extension                 String?   @map("extension")
   // TODO: These shouldnt be in here...
-  deployedContractAddress String? @map("deployedContractAddress")
-  deployedContractType    String? @map("deployedContractType")
-
+  deployedContractAddress   String?   @map("deployedContractAddress")
+  deployedContractType      String?   @map("deployedContractType")
   // Timestamps
-  queuedAt    DateTime  @default(now()) @map("queuedAt")
-  processedAt DateTime? @map("processedAt")
-  sentAt      DateTime? @map("sentAt")
-  minedAt     DateTime? @map("minedAt")
-
+  queuedAt                  DateTime  @default(now()) @map("queuedAt")
+  processedAt               DateTime? @map("processedAt")
+  sentAt                    DateTime? @map("sentAt")
+  minedAt                   DateTime? @map("minedAt")
   // Retries
-  retryCount                   Int      @default(0) @map("retryCount")
-  retryGasValues               Boolean? @default(false)
-  retryMaxPriorityFeePerGas    String?  @map("retryMaxPriorityFeePerGas")
-  retryMaxFeePerGas            String?  @map("retryMaxFeePerGas")
-
+  retryCount                Int       @default(0) @map("retryCount")
+  retryGasValues            Boolean?  @default(false) @map("retryGasValues")
+  retryMaxPriorityFeePerGas String?   @map("retryMaxPriorityFeePerGas")
+  retryMaxFeePerGas         String?   @map("retryMaxFeePerGas")
   // Error
-  errorMessage String? @map("errorMessage")
-
+  errorMessage              String?   @map("errorMessage")
   // Block Numbers
-  sentAtBlockNumber Int? @map("sentAtBlockNumber")
-  blockNumber       Int? @map("blockNumber")
+  sentAtBlockNumber         Int?      @map("sentAtBlockNumber")
+  blockNumber               Int?      @map("blockNumber")
 
   @@map("transactions")
 }
@@ -58,18 +51,15 @@ model Transactions {
 model WalletDetails {
   address            String        @id @map("address")
   type               String        @map("type")
-
   // KMS
   awsKmsKeyId        String?       @map("awsKmsKeyId")
   awsKmsArn          String?       @map("awsKmsArn")
-
   // GCP
   gcpKmsKeyRingId    String?       @map("gcpKmsKeyRingId") @db.VarChar(50)
   gcpKmsKeyId        String?       @map("gcpKmsKeyId") @db.VarChar(50)
   gcpKmsKeyVersionId String?       @map("gcpKmsKeyVersionId") @db.VarChar(20)
   gcpKmsLocationId   String?       @map("gcpKmsLocationId") @db.VarChar(20)
   gcpKmsResourcePath String?       @map("gcpKmsResourcePath") @db.Text
-  
   // One-to-many
   walletNonce        WalletNonce[]
 
@@ -79,8 +69,7 @@ model WalletDetails {
 model WalletNonce {
   address       String        @map("address")
   chainId       Int           @map("chainId")
-  nonce         Int           @default(0)
-  
+  nonce         Int           @default(0) @map("nonce")
   // Many-to-one
   walletDetails WalletDetails @relation(fields: [address], references: [address])
 
