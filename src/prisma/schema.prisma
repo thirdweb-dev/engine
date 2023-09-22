@@ -89,21 +89,48 @@ model WalletNonce {
   @@map("wallet_nonce")
 }
 
-model EngineConfiguration { 
+// ToDo: Maybe Normalize it more?
+// PK-FK, but then we need to store each config as a separate row
+model Configuration { 
   id       String @id @default(uuid()) @map("id")
+  configType String @map("configType")
+  
+  // Config Data
+  awsAccessKey                          String?           @map("awsAccessKey")
+  awsAccessKeyIV                        String?           @map("awsAccessKeyIV")
+  awsAccessKeyAuthTag                   String?           @map("awsAccessKeyAuthTag")
 
-  // Environment Data
-  awsAccessKey                 String?           @map("awsAccessKey")
-  awsSecretAccessKey           String?           @map("awsSecretAccessKey")
-  awsRegion                    String?           @map("awsRegion")
-  gcpProjectId                 String?           @map("gcpProjectId")
-  gcpKMSRingId                 String?           @map("gcpKMSRingId")
-  gcpLocationId                String?           @map("gcpLocationId")
-  gcpAppCredentialEmail        String?           @map("gcpAppCredentialEmail")
-  gcpAppCredentialPrivateKey   String?           @map("gcpAppCredentialPrivateKey")
+  awsSecretAccessKey                    String?           @map("awsSecretAccessKey")
+  awsSecretAccessKeyIV                  String?           @map("awsSecretAccessKeyIV")
+  awsSecretAccessKeyAuthTag             String?           @map("awsSecretAccessKeyAuthTag")
+
+  awsRegion                             String?           @map("awsRegion")
+  awsRegionIV                           String?           @map("awsRegionIV")
+  awsRegionAuthTag                      String?           @map("awsRegionAuthTag")
+
+  gcpProjectId                          String?           @map("gcpProjectId")
+  gcpProjectIdIV                        String?           @map("gcpProjectIdIV")
+  gcpProjectIdAuthTag                   String?           @map("gcpProjectIdAuthTag")
+
+  gcpKmsRingId                          String?           @map("gcpKmsRingId")
+  gcpKmsRingIdIV                        String?           @map("gcpKmsRingIdIV")
+  gcpKmsRingIdAuthTag                   String?           @map("gcpKmsRingIdAuthTag")
+
+  gcpLocationId                         String?           @map("gcpLocationId")
+  gcpLocationIdIV                       String?           @map("gcpLocationIdIV")
+  gcpLocationIdAuthTag                  String?           @map("gcpLocationIdAuthTag")
+
+  gcpAppCredentialEmail                 String?           @map("gcpAppCredentialEmail")
+  gcpAppCredentialEmailIV               String?           @map("gcpAppCredentialEmailIV")
+  gcpAppCredentialEmailAuthTag          String?           @map("gcpAppCredentialEmailAuthTag")
+
+  gcpAppCredentialPrivateKey            String?           @map("gcpAppCredentialPrivateKey")
+  gcpAppCredentialPrivateKeyIV          String?           @map("gcpAppCredentialPrivateKeyIV")
+  gcpAppCredentialPrivateKeyAuthTag     String?           @map("gcpAppCredentialPrivateKeyAuthTag")
+  
   // localWalletPrivateKey        String?           @map("localWalletPrivateKey")
   // localWalletMnemonic          String?           @map("localWalletMnemonic")
   // localWalletEncryptedJson String?               @map("localWalletEncryptedJson")
   // localWalletPassword          String?           @map("localWalletPassword")
-  @@map("engine_configuration")
+  @@map("configuration")
 }

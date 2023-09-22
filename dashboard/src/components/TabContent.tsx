@@ -1,12 +1,7 @@
 import { Button, Input, VStack } from "@chakra-ui/react";
-import { FC, useState } from "react";
-import { TabInput } from "../types";
-
-enum TabNameEnum {
-  aws = "aws-kms",
-  google = "gcp-kms",
-  local = "local",
-}
+import { FC, useEffect, useState } from "react";
+import { getConfigData } from "../services/getConfigDataService";
+import { TabInput, TabNameEnum } from "../types";
 
 interface TabContentProps {
   tabNumber: number;
@@ -14,17 +9,17 @@ interface TabContentProps {
   onSubmit: (
     tabNumber: number,
     tabName: string,
-    data: TabInput["aws"] | TabInput["gcp"] | TabInput["local"],
+    data: TabInput["awsKms"] | TabInput["gcpKms"] | TabInput["local"],
   ) => void;
 }
 
 const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
-  const [aws, setAws] = useState<TabInput["aws"]>({
+  const [aws, setAws] = useState<TabInput["awsKms"]>({
     awsAccessKey: "",
     awsSecretAccessKey: "",
     awsRegion: "",
   });
-  const [google, setGoogle] = useState<TabInput["gcp"]>({
+  const [google, setGoogle] = useState<TabInput["gcpKms"]>({
     gcpAppCredentialEmail: "",
     gcpAppCredentialPrivateKey: "",
     gcpKMSRingId: "",
@@ -37,6 +32,21 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
     encryptedJson: "",
     password: "",
   });
+
+  useEffect(() => {
+    async function fetchData() {
+      const _configData = await getConfigData();
+
+      if (_configData?.configType === TabNameEnum.aws) {
+        setAws({
+          awsAccessKey: _configData?.awsAccessKey,
+          awsSecretAccessKey: _configData?.awsSecretAccessKey,
+          awsRegion: _configData?.awsRegion,
+        });
+      }
+    }
+    fetchData();
+  }, []);
 
   const handleInputSubmit = () => {
     if (tabNumber === 0) {

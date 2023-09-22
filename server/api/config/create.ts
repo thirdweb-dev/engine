@@ -23,13 +23,13 @@ responseSchema.example = {
   },
 };
 
-export const addConfig = async (fastify: FastifyInstance) => {
+export const createConfig = async (fastify: FastifyInstance) => {
   fastify.route<{
     Body: Static<typeof RequestBodySchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
-    url: "/config/add",
+    url: "/config/create",
     schema: {
       description: "Create Engine Config",
       tags: ["Config"],

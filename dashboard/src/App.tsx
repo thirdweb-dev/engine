@@ -12,7 +12,7 @@ function App() {
   const [transactionData, setTransactionData] = useState<TransactionData[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [currentPage, setCurrentPage] = useState<number>(0);
   const [prevPage, setPrevPage] = useState<number>(0);
   const [totalPages, setTotalPages] = useState<number>(0);
 
@@ -24,7 +24,6 @@ function App() {
 
         const _transactionData = await fetchTransactionData();
         setTransactionData(_transactionData);
-        console.log(Math.ceil(_transactionData?.length / 10));
         setTotalPages(Math.ceil(_transactionData?.length / 10));
       } catch (err: any) {
         setError(err.message);

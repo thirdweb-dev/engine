@@ -1,20 +1,56 @@
 import { Static } from "@sinclair/typebox";
-import { EngineConfigSchema } from "../../schemas/config";
+import { createConfig } from "../../../src/db/config/createConfig";
+import { WalletType } from "../../../src/schema/wallet";
+import { EngineConfigSchema, GCPConfig } from "../../schemas/config";
+import { encryptText } from "../../utilities/cryptography";
 
 export const addGoogleConfig = async (
   data: Static<typeof EngineConfigSchema>["gcp"],
-): Promise<string> => {
+) => {
   if (
-    !data?.google_application_credential_email ||
-    !data?.google_application_credential_private_key ||
-    !data?.google_application_project_id ||
-    !data?.google_kms_key_ring_id ||
-    !data?.google_kms_location_id
+    !data?.gcpAppCredentialEmail ||
+    !data?.gcpAppCredentialPrivateKey ||
+    !data?.gcpKmsRingId ||
+    !data?.gcpProjectId ||
+    !data?.gcpLocationId
   ) {
     throw new Error(`Missing Values for Google Config Storage`);
   }
 
-  // ToDo
+  const {
+    gcpAppCredentialEmail,
+    gcpAppCredentialPrivateKey,
+    gcpKmsRingId,
+    gcpLocationId,
+    gcpProjectId,
+  } = data;
 
-  return "";
+  const encryptedProjectId = encryptText(gcpProjectId);
+  const encryptedEmail = encryptText(gcpAppCredentialEmail);
+  const encryptedPrivateKey = encryptText(gcpAppCredentialPrivateKey);
+  const encryptedGcpKmsRingId = encryptText(gcpKmsRingId);
+  const encryptedLocationId = encryptText(gcpLocationId);
+
+  const configData: GCPConfig = {
+    gcpAppCredentialEmail: encryptedEmail.encryptedData,
+    gcpAppCredentialEmailIV: encryptedEmail.iv,
+    gcpAppCredentialEmailAuthTag: encryptedEmail.authTag,
+    gcpAppCredentialPrivateKey: encryptedPrivateKey.encryptedData,
+    gcpAppCredentialPrivateKeyIV: encryptedPrivateKey.iv,
+    gcpAppCredentialPrivateKeyAuthTag: encryptedPrivateKey.authTag,
+    gcpProjectId: encryptedProjectId.encryptedData,
+    gcpProjectIdIV: encryptedProjectId.iv,
+    gcpProjectIdAuthTag: encryptedProjectId.authTag,
+    gcpKmsRingId: encryptedGcpKmsRingId.encryptedData,
+    gcpKmsRingIdIV: encryptedGcpKmsRingId.iv,
+    gcpKmsRingIdAuthTag: encryptedGcpKmsRingId.authTag,
+    gcpLocationId: encryptedLocationId.encryptedData,
+    gcpLocationIdIV: encryptedLocationId.iv,
+    gcpLocationIdAuthTag: encryptedLocationId.authTag,
+  };
+
+  return await createConfig({
+    gcpKms: configData,
+    configType: WalletType.gcpKms,
+  });
 };

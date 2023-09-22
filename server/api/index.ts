@@ -42,14 +42,16 @@ import { getBalance } from "./wallet/getBalance";
 import { importWallet } from "./wallet/import";
 
 // Config
-import { addConfig } from "./config/add";
+import { createConfig } from "./config/create";
 import { deleteConfig } from "./config/delete";
+import { getAllConfig } from "./config/getAll";
 import { updateConfig } from "./config/update";
 
 export const apiRoutes = async (fastify: FastifyInstance) => {
-  await fastify.register(addConfig);
+  await fastify.register(createConfig);
   await fastify.register(deleteConfig);
   await fastify.register(updateConfig);
+  await fastify.register(getAllConfig);
 
   // Wallet
   await fastify.register(createWallet);

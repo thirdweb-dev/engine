@@ -3,32 +3,32 @@ import { Type } from "@sinclair/typebox";
 export const EngineConfigSchema = Type.Object({
   aws: Type.Optional(
     Type.Object({
-      aws_access_key: Type.String({
+      awsAccessKey: Type.String({
         description: "AWS Access Key",
       }),
-      aws_secret_access_key: Type.String({
+      awsSecretAccessKey: Type.String({
         description: "AWS Secret Access Key",
       }),
-      aws_region: Type.String({
+      awsRegion: Type.String({
         description: "AWS Region",
       }),
     }),
   ),
   gcp: Type.Optional(
     Type.Object({
-      google_application_credential_private_key: Type.String({
+      gcpAppCredentialPrivateKey: Type.String({
         description: "Google Application Credential Private Key",
       }),
-      google_application_project_id: Type.String({
+      gcpProjectId: Type.String({
         description: "Google Application Project ID",
       }),
-      google_kms_key_ring_id: Type.String({
+      gcpKmsRingId: Type.String({
         description: "Google KMS Key Ring ID",
       }),
-      google_kms_location_id: Type.String({
+      gcpLocationId: Type.String({
         description: "Google KMS Location ID",
       }),
-      google_application_credential_email: Type.String({
+      gcpAppCredentialEmail: Type.String({
         description: "Google Application Credential Email",
       }),
     }),
@@ -58,3 +58,52 @@ export const EngineConfigSchema = Type.Object({
     }),
   ),
 });
+
+export interface AWSConfig {
+  awsAccessKey: string;
+  awsAccessKeyIV: string;
+  awsAccessKeyAuthTag: string;
+
+  awsSecretAccessKey: string;
+  awsSecretAccessKeyIV: string;
+  awsSecretAccessKeyAuthTag: string;
+
+  awsRegion: string;
+  awsRegionIV: string;
+  awsRegionAuthTag: string;
+}
+
+export interface GCPConfig {
+  gcpAppCredentialPrivateKey: string;
+  gcpAppCredentialPrivateKeyIV: string;
+  gcpAppCredentialPrivateKeyAuthTag: string;
+
+  gcpProjectId: string;
+  gcpProjectIdIV: string;
+  gcpProjectIdAuthTag: string;
+
+  gcpKmsRingId: string;
+  gcpKmsRingIdIV: string;
+  gcpKmsRingIdAuthTag: string;
+
+  gcpLocationId: string;
+  gcpLocationIdIV: string;
+  gcpLocationIdAuthTag: string;
+
+  gcpAppCredentialEmail: string;
+  gcpAppCredentialEmailIV: string;
+  gcpAppCredentialEmailAuthTag: string;
+}
+
+export interface LocalConfig {
+  privateKey?: string;
+  mnemonic?: string;
+  encryptedJson?: string;
+  password?: string;
+}
+
+export interface EncryptionConfig {
+  iv: string;
+  authTag: string;
+  encryptedData: string;
+}

@@ -82,9 +82,14 @@ function WalletDataComponent({
   const handleSubmit = async (
     tabNumber: number,
     tabName: string,
-    data: TabInput["aws"] | TabInput["gcp"] | TabInput["local"],
+    data: TabInput["awsKms"] | TabInput["gcpKms"] | TabInput["local"],
   ) => {
-    await createConfig(tabName, data);
+    try {
+      await createConfig(tabName, data);
+      onClose();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (

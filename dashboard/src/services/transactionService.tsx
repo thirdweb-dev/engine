@@ -1,6 +1,5 @@
-const BASE_URL = "http://localhost:3005"; //process.env.OPENAPI_BASE_ORIGIN;
-const THIRDWEB_API_SECRET_KEY =
-  "klRsqmatrdlEpik_pHKgYy_q2YzGe3bTewO1VC26eY_H184Kc7xOVqKVj0mHwOOW2AOx2N-a3GqLCQ7Z9s9-sw"; //process.env.THIRDWEB_API_SECRET_KEY;
+const BASE_URL = process.env.OPENAPI_BASE_ORIGIN || "http://localhost:3005";
+const THIRDWEB_API_SECRET_KEY = process.env.REACT_APP_THIRDWEB_API_SECRET_KEY;
 
 export async function fetchTransactionData(page = 1, limit = 5) {
   try {
