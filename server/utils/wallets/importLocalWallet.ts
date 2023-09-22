@@ -1,7 +1,8 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { LocalFileStorage, env } from "../../../core";
+import { LocalFileStorage } from "../../../core";
 import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { WalletType } from "../../../src/schema/wallet";
+import { env } from "../../../src/utils/env";
 
 type ImportLocalWalletParams =
   | {

@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { createCustomError } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 
 // OUTPUT
@@ -33,11 +34,11 @@ export const updateConfig = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, res) => {
-      res.status(StatusCodes.OK).send({
-        result: {
-          status: "success",
-        },
-      });
+      throw createCustomError(
+        "Not implemented",
+        StatusCodes.NOT_IMPLEMENTED,
+        "NOT_IMPLEMENTED",
+      );
     },
   });
 };

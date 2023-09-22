@@ -1,6 +1,6 @@
-import { env } from "../../../core";
 import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { WalletType } from "../../../src/schema/wallet";
+import { env } from "../../../src/utils/env";
 import { getAwsKmsWallet } from "./getAwsKmsWallet";
 
 interface ImportAwsKmsWalletParams {

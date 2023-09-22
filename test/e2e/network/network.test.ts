@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { FastifyInstance } from "fastify";
 import request from "supertest";
-import { env } from "../../../core";
-import createServer from "../../../server/helpers/server";
+import createServer from "../../../server/helpers/index";
+import { env } from "../../../src/utils/env";
 
 describe("Network Endpoint Test", () => {
   let createdServerInstance: FastifyInstance;

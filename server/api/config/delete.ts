@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { createCustomError } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 
 // OUTPUT
@@ -26,18 +27,19 @@ export const deleteConfig = async (fastify: FastifyInstance) => {
       description: "Delete Engine Config from DB",
       tags: ["Config"],
       operationId: "config_delete",
-      // hide: true,
+      hide: true,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (req, res) => {
-      res.status(StatusCodes.OK).send({
-        result: {
-          status: "success",
-        },
-      });
+      // ToDo: Implement
+      throw createCustomError(
+        "Not implemented",
+        StatusCodes.NOT_IMPLEMENTED,
+        "NOT_IMPLEMENTED",
+      );
     },
   });
 };
