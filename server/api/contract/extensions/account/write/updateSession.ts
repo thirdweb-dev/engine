@@ -47,19 +47,20 @@ export const updateSession = async (fastify: FastifyInstance) => {
         contractAddress: contract_address,
       });
 
-      // TODO: Bruh we need prepare....
-      const tx = await contract.account.updatePermissions(signerAddress, {
-        startDate: permissions.startDate
-          ? new Date(permissions.startDate)
-          : undefined,
-        expirationDate: permissions.expirationDate
-          ? new Date(permissions.expirationDate)
-          : undefined,
-        approvedCallTargets: permissions.approvedCallTargets,
-        nativeTokenLimitPerTransaction:
-          permissions.nativeTokenLimitPerTransaction,
-      });
-      // @ts-expect-error
+      const tx = await contract.account.updatePermissions.prepare(
+        signerAddress,
+        {
+          startDate: permissions.startDate
+            ? new Date(permissions.startDate)
+            : undefined,
+          expirationDate: permissions.expirationDate
+            ? new Date(permissions.expirationDate)
+            : undefined,
+          approvedCallTargets: permissions.approvedCallTargets,
+          nativeTokenLimitPerTransaction:
+            permissions.nativeTokenLimitPerTransaction,
+        },
+      );
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({

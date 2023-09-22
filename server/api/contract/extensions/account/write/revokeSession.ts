@@ -44,10 +44,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
         chainId,
         contractAddress: contract_address,
       });
-
-      // TODO: Bruh we need prepare....
-      const tx = await contract.account.revokeAccess(wallet_address);
-      // @ts-expect-error
+      const tx = await contract.account.revokeAccess.prepare(wallet_address);
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({

@@ -45,9 +45,9 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
         contractAddress: contract_address,
       });
 
-      // TODO: Bruh we need prepare....
-      const tx = await contract.account.grantAdminPermissions(signer_address);
-      // @ts-expect-error
+      const tx = await contract.account.grantAdminPermissions.prepare(
+        signer_address,
+      );
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({

@@ -45,9 +45,9 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
         contractAddress: contract_address,
       });
 
-      // TODO: Bruh we need prepare....
-      const tx = await contract.account.revokeAdminPermissions(wallet_address);
-      // @ts-expect-error
+      const tx = await contract.account.revokeAdminPermissions.prepare(
+        wallet_address,
+      );
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({

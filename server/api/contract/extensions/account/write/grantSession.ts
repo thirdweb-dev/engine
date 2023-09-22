@@ -42,15 +42,16 @@ export const grantSession = async (fastify: FastifyInstance) => {
         contractAddress: contract_address,
       });
 
-      // TODO: Bruh we need prepare....
-      const tx = await contract.account.grantPermissions(signerAddress, {
-        startDate: new Date(permissions.startDate),
-        expirationDate: new Date(permissions.expirationDate),
-        approvedCallTargets: permissions.approvedCallTargets,
-        nativeTokenLimitPerTransaction:
-          permissions.nativeTokenLimitPerTransaction,
-      });
-      // @ts-expect-error
+      const tx = await contract.account.grantPermissions.prepare(
+        signerAddress,
+        {
+          startDate: new Date(permissions.startDate),
+          expirationDate: new Date(permissions.expirationDate),
+          approvedCallTargets: permissions.approvedCallTargets,
+          nativeTokenLimitPerTransaction:
+            permissions.nativeTokenLimitPerTransaction,
+        },
+      );
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({

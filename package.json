@@ -42,7 +42,7 @@
     "@sinclair/typebox": "^0.28",
     "@t3-oss/env-core": "^0.6.0",
     "@thirdweb-dev/chains": "^0.1.46",
-    "@thirdweb-dev/sdk": "^3.10.60",
+    "@thirdweb-dev/sdk": "0.0.0-dev-b1d4b3b-20230922050105",
     "@thirdweb-dev/service-utils": "^0.4.2",
     "@thirdweb-dev/wallets": "^1.1.23",
     "body-parser": "^1.20.2",
