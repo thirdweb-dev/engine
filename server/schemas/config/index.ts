@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox";
 
-export const EngineConfigSchema = Type.Object({
-  aws: Type.Optional(
+export const AWSConfigSchema = Type.Object({
+  "aws-kms": Type.Optional(
     Type.Object({
       awsAccessKey: Type.String({
         description: "AWS Access Key",
@@ -14,7 +14,10 @@ export const EngineConfigSchema = Type.Object({
       }),
     }),
   ),
-  gcp: Type.Optional(
+});
+
+export const GCPConfigSchema = Type.Object({
+  "gcp-kms": Type.Optional(
     Type.Object({
       gcpAppCredentialPrivateKey: Type.String({
         description: "Google Application Credential Private Key",
@@ -33,6 +36,9 @@ export const EngineConfigSchema = Type.Object({
       }),
     }),
   ),
+});
+
+export const LocalWalletConfigSchema = Type.Object({
   local: Type.Optional(
     Type.Object({
       privateKey: Type.Optional(
@@ -58,6 +64,12 @@ export const EngineConfigSchema = Type.Object({
     }),
   ),
 });
+
+export const WalletConfigSchema = Type.Union([
+  AWSConfigSchema,
+  GCPConfigSchema,
+  LocalWalletConfigSchema,
+]);
 
 export interface AWSConfig {
   awsAccessKey: string;

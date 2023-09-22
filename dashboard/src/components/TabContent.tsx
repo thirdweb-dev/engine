@@ -22,7 +22,7 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
   const [google, setGoogle] = useState<TabInput["gcpKms"]>({
     gcpAppCredentialEmail: "",
     gcpAppCredentialPrivateKey: "",
-    gcpKMSRingId: "",
+    gcpKmsRingId: "",
     gcpLocationId: "",
     gcpProjectId: "",
   });
@@ -43,6 +43,14 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
           awsSecretAccessKey: _configData?.awsSecretAccessKey,
           awsRegion: _configData?.awsRegion,
         });
+      } else if (_configData?.configType === WalletType.gcpKms) {
+        setGoogle({
+          gcpAppCredentialEmail: _configData?.gcpAppCredentialEmail,
+          gcpAppCredentialPrivateKey: _configData?.gcpAppCredentialPrivateKey,
+          gcpKmsRingId: _configData?.gcpKmsRingId,
+          gcpLocationId: _configData?.gcpLocationId,
+          gcpProjectId: _configData?.gcpProjectId,
+        });
       }
     }
     fetchData();
@@ -51,9 +59,9 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
   const handleInputSubmit = () => {
     if (tabNumber === 0) {
       onSubmit(tabNumber, tabName, aws);
-    } else if (tabNumber === 2) {
+    } else if (tabNumber === 1) {
       onSubmit(tabNumber, tabName, google);
-    } else if (tabNumber === 3) {
+    } else if (tabNumber === 2) {
       onSubmit(tabNumber, tabName, local);
     }
   };
@@ -130,11 +138,11 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
           <Input
             className="input"
             placeholder="Google KMS Key Ring Id"
-            value={google.gcpKMSRingId}
+            value={google.gcpKmsRingId}
             onChange={(e) =>
               setGoogle((prev) => ({
                 ...prev,
-                gcpKMSRingId: e.target.value,
+                gcpKmsRingId: e.target.value,
               }))
             }
           />

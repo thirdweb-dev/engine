@@ -7,7 +7,7 @@ export interface TabInput {
   gcpKms: {
     gcpAppCredentialPrivateKey: string;
     gcpProjectId: string;
-    gcpKMSRingId: string;
+    gcpKmsRingId: string;
     gcpLocationId: string;
     gcpAppCredentialEmail: string;
   };
@@ -32,7 +32,7 @@ export interface ConfigData {
   awsRegion?: string;
   gcpAppCredentialEmail?: string;
   gcpAppCredentialPrivateKey?: string;
-  gcpKMSRingId?: string;
+  gcpKmsRingId?: string;
   gcpLocationId?: string;
   gcpProjectId?: string;
   privateKey?: string;

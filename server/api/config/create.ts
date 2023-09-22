@@ -1,14 +1,14 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { createCustomError } from "../../../core";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { EngineConfigSchema } from "../../schemas/config";
+import { WalletConfigSchema } from "../../schemas/config";
 import { addAwsConfig } from "../../utils/config/addAwsConfig";
 import { addGoogleConfig } from "../../utils/config/addGoogleConfig";
-import { addLocalConfig } from "../../utils/config/addLocalConfig";
 
 // INPUT
-const RequestBodySchema = EngineConfigSchema;
+const RequestBodySchema = WalletConfigSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -42,15 +42,21 @@ export const createConfig = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, res) => {
-      const { aws, gcp, local } = req.body;
+      const { aws, gcp, local } = req.body as any;
       req.log.info({ aws, gcp, local }, "create config");
+      req.log.info({ aws, gcp, local }, "create config");
+      // Cannot use WALLET_CONFIGURATION as now it can be on DB
 
-      if (aws) {
+      if (aws && Object.keys(aws).length > 0) {
         await addAwsConfig(aws);
-      } else if (gcp) {
+      } else if (gcp && Object.keys(gcp).length > 0) {
         await addGoogleConfig(gcp);
-      } else if (local) {
-        await addLocalConfig(local);
+      } else {
+        throw createCustomError(
+          "No data provided for AWS or GCP Config Storage",
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
       }
       res.status(StatusCodes.OK).send({
         result: {

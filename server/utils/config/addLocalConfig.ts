@@ -1,9 +1,9 @@
 import { Static } from "@sinclair/typebox";
 import { WalletType } from "../../../src/schema/wallet";
-import { EngineConfigSchema } from "../../schemas/config";
+import { LocalWalletConfigSchema } from "../../schemas/config";
 
 export const addLocalConfig = async (
-  data: Static<typeof EngineConfigSchema>[WalletType.local],
+  data: Static<typeof LocalWalletConfigSchema>[WalletType.local],
 ) => {
   // if (
   //   !data?.privateKey ||

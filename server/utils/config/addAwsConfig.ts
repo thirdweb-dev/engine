@@ -1,11 +1,11 @@
 import { Static } from "@sinclair/typebox";
 import { createConfig } from "../../../src/db/config/createConfig";
 import { WalletType } from "../../../src/schema/wallet";
-import { AWSConfig, EngineConfigSchema } from "../../schemas/config";
+import { AWSConfig, AWSConfigSchema } from "../../schemas/config";
 import { encryptText } from "../../utilities/cryptography";
 
 export const addAwsConfig = async (
-  data: Static<typeof EngineConfigSchema>["aws"],
+  data: Static<typeof AWSConfigSchema>[WalletType.awsKms],
 ) => {
   if (!data?.awsAccessKey || !data?.awsRegion || !data?.awsSecretAccessKey) {
     throw new Error("No data provided for AWS Config Storage");

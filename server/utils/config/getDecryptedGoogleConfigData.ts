@@ -25,7 +25,7 @@ export const getDecryptedGoogleConfigData = (configData: GCPConfig) => {
       iv: configData.gcpProjectIdIV!,
       authTag: configData.gcpProjectIdAuthTag!,
     }),
-    gcpKMSRingId: decryptText({
+    gcpKmsRingId: decryptText({
       encryptedData: configData.gcpKmsRingId!,
       iv: configData.gcpKmsRingIdIV!,
       authTag: configData.gcpKmsRingIdAuthTag!,

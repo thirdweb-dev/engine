@@ -1,12 +1,13 @@
 import { Static } from "@sinclair/typebox";
 import { createConfig } from "../../../src/db/config/createConfig";
 import { WalletType } from "../../../src/schema/wallet";
-import { EngineConfigSchema, GCPConfig } from "../../schemas/config";
+import { GCPConfig, GCPConfigSchema } from "../../schemas/config";
 import { encryptText } from "../../utilities/cryptography";
 
 export const addGoogleConfig = async (
-  data: Static<typeof EngineConfigSchema>["gcp"],
+  data: Static<typeof GCPConfigSchema>[WalletType.gcpKms],
 ) => {
+  console.log(`${JSON.stringify(data)}`);
   if (
     !data?.gcpAppCredentialEmail ||
     !data?.gcpAppCredentialPrivateKey ||
@@ -17,6 +18,7 @@ export const addGoogleConfig = async (
     throw new Error(`Missing Values for Google Config Storage`);
   }
 
+  console.log("Inside GCP ADD");
   const {
     gcpAppCredentialEmail,
     gcpAppCredentialPrivateKey,

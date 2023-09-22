@@ -39,7 +39,7 @@ const responseSchema = Type.Object({
           description: "Google Application Project ID",
         }),
       ),
-      gcpKMSRingId: Type.Optional(
+      gcpKmsRingId: Type.Optional(
         Type.String({
           description: "Google KMS Key Ring ID",
         }),
