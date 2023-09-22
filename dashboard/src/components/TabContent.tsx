@@ -1,7 +1,7 @@
 import { Button, Input, VStack } from "@chakra-ui/react";
 import { FC, useEffect, useState } from "react";
 import { getConfigData } from "../services/getConfigDataService";
-import { TabInput, TabNameEnum } from "../types";
+import { TabInput, WalletType } from "../types";
 
 interface TabContentProps {
   tabNumber: number;
@@ -37,7 +37,7 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
     async function fetchData() {
       const _configData = await getConfigData();
 
-      if (_configData?.configType === TabNameEnum.aws) {
+      if (_configData?.configType === WalletType.awsKms) {
         setAws({
           awsAccessKey: _configData?.awsAccessKey,
           awsSecretAccessKey: _configData?.awsSecretAccessKey,
@@ -60,7 +60,7 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
 
   return (
     <VStack spacing={4}>
-      {tabName === TabNameEnum.aws && tabNumber === 0 && (
+      {tabName === WalletType.awsKms && tabNumber === 0 && (
         <>
           <Input
             className="input"
@@ -92,7 +92,7 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
           <Button onClick={handleInputSubmit}>Submit</Button>
         </>
       )}
-      {tabName === TabNameEnum.google && tabNumber === 1 && (
+      {tabName === WalletType.gcpKms && tabNumber === 1 && (
         <>
           <Input
             className="input"
@@ -152,7 +152,7 @@ const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
           <Button onClick={handleInputSubmit}>Submit</Button>
         </>
       )}
-      {tabName === TabNameEnum.local && tabNumber === 2 && (
+      {tabName === WalletType.local && tabNumber === 2 && (
         <>
           <Input
             className="input"

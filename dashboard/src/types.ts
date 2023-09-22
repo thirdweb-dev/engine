@@ -40,9 +40,3 @@ export interface ConfigData {
   encryptedJson?: string;
   password?: string;
 }
-
-export enum TabNameEnum {
-  aws = "aws-kms",
-  google = "gcp-kms",
-  local = "local",
-}
