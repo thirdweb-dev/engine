@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../../../core/schema";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -15,7 +14,7 @@ const ReplySchema = Type.Object({
   }),
 });
 
-export const getAllAccounts = (fastify: FastifyInstance) => {
+export const getAllAccounts = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof ReplySchema>;
@@ -24,10 +23,9 @@ export const getAllAccounts = (fastify: FastifyInstance) => {
     url: "/contract/:chain/:contract_address/account-factory/get-all-accounts",
     schema: {
       description: "Get all the accounts on an account factory",
-      tags: ["Smart Wallet"],
+      tags: ["Account Factory"],
       operationId: "account-factory:get-all-accounts",
       params: contractParamSchema,
-      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

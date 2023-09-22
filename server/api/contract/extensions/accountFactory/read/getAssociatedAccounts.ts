@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../../../core/schema";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -16,28 +15,27 @@ const ReplySchema = Type.Object({
   }),
 });
 
-const BodySchema = Type.Object({
+const QuerySchema = Type.Object({
   signer_address: Type.String({
     description: "The address of the signer to get associated accounts from",
   }),
 });
 
-export const getAssociatedAccounts = (fastify: FastifyInstance) => {
+export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof ReplySchema>;
-    Body: Static<typeof BodySchema>;
+    Querystring: Static<typeof QuerySchema>;
   }>({
     method: "GET",
     url: "/contract/:chain/:contract_address/account-factory/get-associated-accounts",
     schema: {
       description:
         "Get all the accounts on an account factory with a specified wallet as a signer",
-      tags: ["Smart Wallet"],
+      tags: ["Account Factory"],
       operationId: "account-factory:get-associated-accounts",
       params: contractParamSchema,
-      headers: walletAuthSchema,
-      body: BodySchema,
+      querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
@@ -45,7 +43,7 @@ export const getAssociatedAccounts = (fastify: FastifyInstance) => {
     },
     handler: async (req, rep) => {
       const { chain, contract_address } = req.params;
-      const { signer_address } = req.body;
+      const { signer_address } = req.query;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({

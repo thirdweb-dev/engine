@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../../../core/schema";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -15,7 +14,7 @@ const ReplySchema = Type.Object({
   }),
 });
 
-const BodySchema = Type.Object({
+const QuerySchema = Type.Object({
   admin_address: Type.String({
     description: "The address of the admin to predict the account address for",
   }),
@@ -26,21 +25,20 @@ const BodySchema = Type.Object({
   ),
 });
 
-export const predictAccountAddress = (fastify: FastifyInstance) => {
+export const predictAccountAddress = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof ReplySchema>;
-    Body: Static<typeof BodySchema>;
+    Querystring: Static<typeof QuerySchema>;
   }>({
     method: "GET",
     url: "/contract/:chain/:contract_address/account-factory/predict-account-address",
     schema: {
-      description: "Get the counter-factual address of a new smart wallet",
-      tags: ["Smart Wallet"],
+      description: "Get the counter-factual address of a new account",
+      tags: ["Account Factory"],
       operationId: "account-factory:predict-account-address",
       params: contractParamSchema,
-      headers: walletAuthSchema,
-      body: BodySchema,
+      querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
@@ -48,7 +46,7 @@ export const predictAccountAddress = (fastify: FastifyInstance) => {
     },
     handler: async (req, rep) => {
       const { chain, contract_address } = req.params;
-      const { admin_address, extra_data } = req.body;
+      const { admin_address, extra_data } = req.query;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({

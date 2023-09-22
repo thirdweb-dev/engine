@@ -27,7 +27,7 @@ const BodySchema = Type.Object({
   ),
 });
 
-export const create = (fastify: FastifyInstance) => {
+export const createAccount = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof ReplySchema>;
@@ -37,7 +37,7 @@ export const create = (fastify: FastifyInstance) => {
     url: "/contract/:chain/:contract_address/account-factory/create-account",
     schema: {
       description: "Create a new account on the account factory",
-      tags: ["Smart Wallet"],
+      tags: ["Account Factory"],
       operationId: "account-factory:create-account",
       params: contractParamSchema,
       headers: walletAuthSchema,
