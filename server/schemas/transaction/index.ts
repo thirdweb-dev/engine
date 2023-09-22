@@ -168,6 +168,17 @@ export const transactionResponseSchema = Type.Object({
     }),
     Type.Null(),
   ]),
+  signerAddress: Type.Union([Type.String(), Type.Null()]),
+  accountAddress: Type.Union([Type.String(), Type.Null()]),
+  target: Type.Union([Type.String(), Type.Null()]),
+  sender: Type.Union([Type.String(), Type.Null()]),
+  initCode: Type.Union([Type.String(), Type.Null()]),
+  callData: Type.Union([Type.String(), Type.Null()]),
+  callGasLimit: Type.Union([Type.String(), Type.Null()]),
+  verificationGasLimit: Type.Union([Type.String(), Type.Null()]),
+  preVerificationGas: Type.Union([Type.String(), Type.Null()]),
+  paymasterAndData: Type.Union([Type.String(), Type.Null()]),
+  userOpHash: Type.Union([Type.String(), Type.Null()]),
 });
 
 export enum TransactionStatusEnum {
@@ -175,6 +186,7 @@ export enum TransactionStatusEnum {
   Queued = "queued",
   // TODO: Switch to sent
   Submitted = "sent",
+  UserOpSent = "user-op-sent",
   Errored = "errored",
   Mined = "mined",
 }

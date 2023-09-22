@@ -56,11 +56,13 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       const { chain, contract_address } = request.params;
       const { spender_address, amount } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.erc20.setAllowance.prepare(

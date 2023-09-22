@@ -46,12 +46,14 @@ export const createAccount = async (fastify: FastifyInstance) => {
       const { chain, contract_address } = req.params;
       const { admin_address, extra_data } = req.body;
       const walletAddress = req.headers["x-wallet-address"] as string;
+      const accountAddress = req.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
         walletAddress,
         contractAddress: contract_address,
+        accountAddress,
       });
       const tx = await contract.accountFactory.createAccount.prepare(
         admin_address,

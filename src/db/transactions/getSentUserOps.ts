@@ -3,13 +3,13 @@ import { PrismaTransaction } from "../../schema/prisma";
 import { env } from "../../utils/env";
 import { getPrismaWithPostgresTx } from "../client";
 
-interface GetSentTxsParams {
+interface GetSentUserOpsParams {
   pgtx?: PrismaTransaction;
 }
 
-export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
-  Transactions[]
-> => {
+export const getSentUserOps = async ({
+  pgtx,
+}: GetSentUserOpsParams = {}): Promise<Transactions[]> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   return prisma.transactions.findMany({
@@ -20,10 +20,12 @@ export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
       sentAt: {
         not: null,
       },
-      transactionHash: {
+      accountAddress: {
         not: null,
       },
-      accountAddress: null,
+      userOpHash: {
+        not: null,
+      },
       minedAt: null,
       errorMessage: null,
       retryCount: {

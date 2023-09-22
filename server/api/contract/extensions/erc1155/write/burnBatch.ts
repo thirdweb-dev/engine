@@ -61,11 +61,13 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
       const { chain, contract_address } = request.params;
       const { token_ids, amounts } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.erc1155.burnBatch.prepare(token_ids, amounts);

@@ -58,11 +58,13 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       const { chain, contract_address } = request.params;
       const { listing_id, bid_amount } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.englishAuctions.makeBid.prepare(

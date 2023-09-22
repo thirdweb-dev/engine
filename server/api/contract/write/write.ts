@@ -66,11 +66,13 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { chain, contract_address } = request.params;
       const { function_name, args, tx_overrides } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.prepare(function_name, args, tx_overrides);
