@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   contractParamSchema,
@@ -28,6 +29,7 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
       description: "Grant a wallet admin permissions",
       tags: ["Account"],
       operationId: "account:grant-admin",
+      headers: walletAuthSchema,
       params: contractParamSchema,
       body: BodySchema,
       response: {
@@ -38,11 +40,13 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
     handler: async (req, rep) => {
       const { chain, contract_address } = req.params;
       const { signer_address } = req.body;
+      const walletAddress = req.headers["x-wallet-address"] as string;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
+        walletAddress,
       });
 
       const tx = await contract.account.grantAdminPermissions.prepare(
