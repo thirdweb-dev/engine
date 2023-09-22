@@ -14,8 +14,8 @@ export const accountRoutes = async (fastify: FastifyInstance) => {
 
   // POST
   await fastify.register(grantAdmin);
-  await fastify.register(grantSession);
   await fastify.register(revokeAdmin);
+  await fastify.register(grantSession);
   await fastify.register(revokeSession);
   await fastify.register(updateSession);
 };
