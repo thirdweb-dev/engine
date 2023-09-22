@@ -1,16 +1,15 @@
-import { SmartWallet } from "@thirdweb-dev/wallets";
+import { EVMWallet, SmartWallet } from "@thirdweb-dev/wallets";
 import { env } from "../../../src/utils/env";
-import { getWallet } from "../cache/getWallet";
 
 interface GetSmartWalletParams {
   chainId: number;
-  signerAddress: string;
+  backendWallet: EVMWallet;
   accountAddress?: string;
 }
 
 export const getSmartWallet = async ({
   chainId,
-  signerAddress,
+  backendWallet,
   accountAddress,
 }: GetSmartWalletParams) => {
   if (!env.SMART_WALLET_FACTORY_ADDRESS) {
@@ -24,12 +23,8 @@ export const getSmartWallet = async ({
     gasless: true,
   });
 
-  const personalWallet = await getWallet({
-    chainId,
-    walletAddress: signerAddress,
-  });
   await smartWallet.connect({
-    personalWallet,
+    personalWallet: backendWallet,
     accountAddress,
   });
 
