@@ -53,13 +53,10 @@ function TableBody({ transactionData, errorMessage }: TableBodyProps) {
       {transactionData.map((item: TransactionData, index: number) => (
         <Tr key={index}>
           <Td>{item.queueId}</Td>
+          <Td>{item.status}</Td>
           <Td>{item.fromAddress}</Td>
           <Td>{item.toAddress}</Td>
-          <Td>{item.status}</Td>
           <Td>{item.transactionHash}</Td>
-          <Td>{item.processedAt}</Td>
-          <Td>{item.sentAt}</Td>
-          <Td>{item.minedAt}</Td>
           <Td>{item.blockNumber}</Td>
         </Tr>
       ))}
@@ -101,14 +98,11 @@ const TransactionDataComponent: FC<TransactionDataComponentProps> = ({
         <Thead>
           <Tr>
             <Th>queueId</Th>
+            <Th>status</Th>
             <Th>wallet Address</Th>
             <Th>contract Address</Th>
-            <Th>status</Th>
             <Th>Tx Hash</Th>
-            <Th>Processed Timestamp</Th>
-            <Th>Submitted Timestamp</Th>
-            <Th>Mined Timestamp</Th>
-            <Th>BlockNumber</Th>
+            <Th>Block Number</Th>
           </Tr>
         </Thead>
         <TableBody
