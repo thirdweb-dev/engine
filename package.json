@@ -9,9 +9,10 @@
   "scripts": {
     "docker": "docker compose --env-file ./.env up --remove-orphans",
     "docker:build": "docker compose build --no-cache",
-    "dev": "yarn dev:infra && yarn prisma:setup:dev && yarn dev:server & sleep 10 && yarn dev:worker",
-    "dev:server": "yarn prisma:setup:dev && nodemon --watch 'server/**/*.ts' --watch 'core/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./server/index.ts' --files server/index.ts",
-    "dev:worker": "yarn prisma:setup:dev && nodemon --watch 'src/worker/**/*.ts' --watch 'core/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./src/worker/index.ts' --files src/worker/index.ts",
+    "dev": "yarn dev:infra && yarn prisma:setup:dev && yarn dev:server & sleep 10 && yarn dev:dashboard & yarn dev:worker",
+    "dev:server": "nodemon --watch 'server/**/*.ts' --watch 'core/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./server/index.ts' --files server/index.ts",
+    "dev:worker": "nodemon --watch 'src/worker/**/*.ts' --watch 'core/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./src/worker/index.ts' --files src/worker/index.ts",
+    "dev:dashboard": "cd dashboard && yarn start",
     "dev:infra": "docker compose -f ./docker-compose-infra.yml up -d",
     "build": "yarn && rm -rf dist && tsc -p ./tsconfig.json --outDir dist",
     "prisma:setup:dev": "npx tsx ./src/db/scripts/setup.ts",
@@ -26,8 +27,7 @@
     "lint:fix": "eslint --fix 'server/**/*.ts'",
     "test": "make test-evm",
     "test:all": "mocha --exit",
-    "benchmark": "ts-node ./test/benchmark/index.ts",
-    "dev:dashboard": "cd dashboard && yarn dev"
+    "benchmark": "ts-node ./test/benchmark/index.ts"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.398.0",
