@@ -41,12 +41,14 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       const { chain, contract_address } = req.params;
       const { wallet_address } = req.body;
       const walletAddress = req.headers["x-wallet-address"] as string;
+      const accountAddress = req.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.account.revokeAdminPermissions.prepare(
