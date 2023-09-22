@@ -22,7 +22,7 @@ export const contractParamSchema = Type.Object({
   }),
   contract_address: Type.String({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
-    description: "Contract Addres on the Chain",
+    description: "Contract Address on the Chain",
   }),
 });
 
@@ -153,7 +153,7 @@ export const erc20ContractParamSchema = Type.Object({
   }),
   contract_address: Type.String({
     examples: ["0x365b83D67D5539C6583b9c0266A548926Bf216F4"],
-    description: "ERC20 Contract Addres on the Chain",
+    description: "ERC20 Contract Address on the Chain",
   }),
 });
 
@@ -167,7 +167,7 @@ export const erc1155ContractParamSchema = Type.Object({
   }),
   contract_address: Type.String({
     examples: ["0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"],
-    description: "ERC1155 Contract Addres on the Chain",
+    description: "ERC1155 Contract Address on the Chain",
   }),
 });
 
@@ -181,7 +181,7 @@ export const erc721ContractParamSchema = Type.Object({
   }),
   contract_address: Type.String({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
-    description: "ERC721 Contract Addres on the Chain",
+    description: "ERC721 Contract Address on the Chain",
   }),
 });
 export const currencyValueSchema = Type.Object({
@@ -211,7 +211,7 @@ export const marketplaceV3ContractParamSchema = Type.Object({
   }),
   contract_address: Type.String({
     examples: ["0xE8Bf1a01106F3acD7F84acaf5D668D7C9eA11535"],
-    description: "Contract Addres on the Chain",
+    description: "Contract Address on the Chain",
   }),
 });
 
