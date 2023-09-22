@@ -22,10 +22,11 @@ export const createWalletNonce = async ({
 
   // TODO: Remove init nonce and do this properly
   const nonce =
-    initNonce ||
-    BigNumber.from(
-      (await getWalletNonce(address.toLowerCase(), sdk.getProvider())) ?? 0,
-    ).toNumber();
+    initNonce !== undefined
+      ? initNonce
+      : BigNumber.from(
+          (await getWalletNonce(address.toLowerCase(), sdk.getProvider())) ?? 0,
+        ).toNumber();
 
   return prisma.walletNonce.create({
     data: {

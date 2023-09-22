@@ -48,6 +48,7 @@ export const processTx = async () => {
               });
               const signer = sdk.getSigner() as ERC4337EthersSigner;
 
+              // Should not be using initNonce
               const accountNonce = await signer.smartAccountAPI.getNonce();
               const dbNonce = await getWalletNonce({
                 pgtx,
@@ -77,31 +78,12 @@ export const processTx = async () => {
                 );
                 await signer.httpRpcClient.sendUserOpToBundler(userOp);
 
+                // TODO: Need to update with other user op data
                 await updateTx({
                   pgtx,
                   queueId: tx.queueId!,
                   status: TransactionStatusEnum.UserOpSent,
                   txData: {
-                    nonce: BigNumber.from(userOp.nonce).toNumber(),
-                    sender: await userOp.sender,
-                    initCode: userOp.initCode.toString(),
-                    callData: userOp.callData.toString(),
-                    callGasLimit: BigNumber.from(
-                      userOp.callGasLimit,
-                    ).toNumber(),
-                    verificationGasLimit: BigNumber.from(
-                      userOp.verificationGasLimit,
-                    ).toNumber(),
-                    preVerificationGas: BigNumber.from(
-                      userOp.preVerificationGas,
-                    ).toNumber(),
-                    maxFeePerGas: BigNumber.from(
-                      userOp.maxFeePerGas,
-                    ).toString(),
-                    maxPriorityFeePerGas: BigNumber.from(
-                      userOp.maxPriorityFeePerGas,
-                    ).toString(),
-                    paymasterAndData: userOp.paymasterAndData.toString(),
                     userOpHash,
                   },
                 });
