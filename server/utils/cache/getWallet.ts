@@ -74,5 +74,6 @@ export const getWallet = async <TWallet extends EVMWallet>({
     accountAddress: accountAddress,
   });
 
+  walletsCache.set(cacheKey, smartWallet);
   return smartWallet as TWallet;
 };

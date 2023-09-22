@@ -1,10 +1,11 @@
 import { EVMWallet, SmartWallet } from "@thirdweb-dev/wallets";
 import { env } from "../../../src/utils/env";
+import { getContract } from "../cache/getContract";
 
 interface GetSmartWalletParams {
   chainId: number;
   backendWallet: EVMWallet;
-  accountAddress?: string;
+  accountAddress: string;
 }
 
 export const getSmartWallet = async ({
@@ -12,13 +13,22 @@ export const getSmartWallet = async ({
   backendWallet,
   accountAddress,
 }: GetSmartWalletParams) => {
-  if (!env.SMART_WALLET_FACTORY_ADDRESS) {
-    throw new Error(`Server was not configured for smart wallet creation.`);
+  let factoryAddress: string;
+  try {
+    const contract = await getContract({
+      chainId,
+      contractAddress: accountAddress,
+    });
+    factoryAddress = await contract.call("factory");
+  } catch {
+    throw new Error(
+      `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
+    );
   }
 
   const smartWallet = new SmartWallet({
     chain: chainId,
-    factoryAddress: env.SMART_WALLET_FACTORY_ADDRESS,
+    factoryAddress,
     secretKey: env.THIRDWEB_API_SECRET_KEY,
     gasless: true,
   });
