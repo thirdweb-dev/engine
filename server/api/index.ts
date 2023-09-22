@@ -36,6 +36,7 @@ import { extractEvents } from "./contract/metadata/events";
 import { extractFunctions } from "./contract/metadata/functions";
 
 // Wallet
+import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
 import { createWallet } from "./wallet/create";
 import { getAll } from "./wallet/getAll";
@@ -84,6 +85,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
 
   // Extensions
   await fastify.register(accountFactoryRoutes);
+  await fastify.register(accountRoutes);
   await fastify.register(erc20Routes);
   await fastify.register(erc721Routes);
   await fastify.register(erc1155Routes);

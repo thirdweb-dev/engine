@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   contractParamSchema,
@@ -12,30 +11,24 @@ import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
 
 const BodySchema = Type.Object({
-  admin_address: Type.String({
-    description: "The admin address to create an account for",
+  wallet_address: Type.String({
+    description: "Address to revoke session from",
   }),
-  extra_data: Type.Optional(
-    Type.String({
-      description: "Extra data to add to use in creating the account address",
-    }),
-  ),
 });
 
-export const createAccount = async (fastify: FastifyInstance) => {
+export const revokeSession = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/account-factory/create-account",
+    url: "/contract/:chain/:contract_address/account/sessions/revoke",
     schema: {
-      description: "Create a new account on the account factory",
-      tags: ["Account Factory"],
-      operationId: "account-factory:create-account",
+      description: "Revoke a session",
+      tags: ["Account"],
+      operationId: "account:revoke-session",
       params: contractParamSchema,
-      headers: walletAuthSchema,
       body: BodySchema,
       response: {
         ...standardResponseSchema,
@@ -44,24 +37,18 @@ export const createAccount = async (fastify: FastifyInstance) => {
     },
     handler: async (req, rep) => {
       const { chain, contract_address } = req.params;
-      const { admin_address, extra_data } = req.body;
-      const walletAddress = req.headers["x-wallet-address"] as string;
+      const { wallet_address } = req.body;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
-        walletAddress,
         contractAddress: contract_address,
       });
-      const tx = await contract.accountFactory.createAccount.prepare(
-        admin_address,
-        extra_data,
-      );
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        extension: "account-factory",
-      });
+
+      // TODO: Bruh we need prepare....
+      const tx = await contract.account.revokeAccess(wallet_address);
+      // @ts-expect-error
+      const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({
         result: queueId,
