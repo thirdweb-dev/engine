@@ -1,7 +1,6 @@
 const BASE_URL = process.env.OPENAPI_BASE_ORIGIN || "http://localhost:3005";
-const THIRDWEB_API_SECRET_KEY = process.env.REACT_APP_THIRDWEB_API_SECRET_KEY;
 
-export async function fetchWalletData() {
+export async function fetchWalletData(secretKey: string) {
   try {
     const url = `${BASE_URL}/wallet/getAll`;
     const response = await fetch(url, {
@@ -9,7 +8,7 @@ export async function fetchWalletData() {
       mode: "cors",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${THIRDWEB_API_SECRET_KEY}`,
+        Authorization: `Bearer ${secretKey}`,
       },
     });
 

@@ -263,3 +263,17 @@ body {
   justify-content: space-around;
   margin-bottom: 20px;
 }
+
+.no-auth {
+  margin: 20px 0;
+  border: #555 1px solid;
+  border-radius: 2px;
+  padding: 20px;
+}
+
+.auth-added {
+  margin: 20px 0;
+  border-radius: 2px;
+  padding: 20px;
+  border: greenyellow 1px solid;
+}

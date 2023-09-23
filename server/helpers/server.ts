@@ -57,16 +57,6 @@ export const createServer = async (): Promise<FastifyInstance> => {
       );
     }
 
-    // if (process.env.NODE_ENV === "production") {
-    //   if (request.routerPath?.includes("static")) {
-    //     return reply.status(404).send({
-    //       statusCode: 404,
-    //       error: "Not Found",
-    //       message: "Not Found",
-    //     });
-    //   }
-    // }
-
     const { url } = request;
     // Skip Authentication for Health Check and Static Files and JSON Files for Swagger
     // Doing Auth check onRequest helps prevent unauthenticated requests from consuming server resources.
@@ -76,28 +66,9 @@ export const createServer = async (): Promise<FastifyInstance> => {
       url === "/health" ||
       url.startsWith("/swagger-docs") ||
       url.startsWith("/json") ||
-      url.startsWith("/static") ||
-      url === "/wallet/import" ||
-      url === "/wallet/create"
-      // ||
-      // url.startsWith("/config")
+      url.startsWith("/static")
     ) {
       return;
-    }
-
-    if (!walletImported) {
-      logger.server.debug("Wallets not imported");
-      const walletsDetails = await getAllWallets();
-      if (walletsDetails.length <= 0) {
-        logger.server.error("No Wallets configured in the DB");
-        return reply.status(401).send({
-          statusCode: 401,
-          error:
-            "No Wallets configured in the DB. Please Create or Import a Wallet",
-          message: "No Wallets Found",
-        });
-      }
-      walletImported = true;
     }
 
     if (
@@ -109,29 +80,52 @@ export const createServer = async (): Promise<FastifyInstance> => {
       // await performWSAuthentication(request, reply);
     } else {
       logger.server.debug("Regular HTTP request");
+
       await performHTTPAuthentication(request, reply);
+
+      if (
+        request.url === "/wallet/import" ||
+        request.url === "/wallet/create"
+      ) {
+        return;
+      }
+
+      if (!walletImported) {
+        logger.server.debug("Wallets not imported");
+        const walletsDetails = await getAllWallets();
+        if (walletsDetails.length <= 0) {
+          logger.server.error("No Wallets configured in the DB");
+          return reply.status(401).send({
+            statusCode: 401,
+            error:
+              "No Wallets configured in the DB. Please Create or Import a Wallet",
+            message: "No Wallets Found",
+          });
+        }
+        walletImported = true;
+      }
     }
   });
 
-  // server.addHook("preHandler", async (request, reply) => {
-  //   if (
-  //     !request.routerPath?.includes("static") &&
-  //     !request.routerPath?.includes("json") &&
-  //     !request.routerPath?.includes("import")
-  //   ) {
-  //     if (request.body && Object.keys(request.body).length > 0) {
-  //       request.log.info({ ...request.body }, "Request Body : ");
-  //     }
+  server.addHook("preHandler", async (request, reply) => {
+    if (
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json") &&
+      !request.routerPath?.includes("import")
+    ) {
+      if (request.body && Object.keys(request.body).length > 0) {
+        request.log.info({ ...request.body }, "Request Body : ");
+      }
 
-  //     if (request.params && Object.keys(request.params).length > 0) {
-  //       request.log.info({ ...request.params }, "Request Params : ");
-  //     }
+      if (request.params && Object.keys(request.params).length > 0) {
+        request.log.info({ ...request.params }, "Request Params : ");
+      }
 
-  //     if (request.query && Object.keys(request.query).length > 0) {
-  //       request.log.info({ ...request.query }, "Request Querystring : ");
-  //     }
-  //   }
-  // });
+      if (request.query && Object.keys(request.query).length > 0) {
+        request.log.info({ ...request.query }, "Request Querystring : ");
+      }
+    }
+  });
 
   server.addHook("onResponse", (request, reply, done) => {
     if (

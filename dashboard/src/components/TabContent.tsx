@@ -1,6 +1,5 @@
 import { Button, Input, VStack } from "@chakra-ui/react";
-import { FC, useEffect, useState } from "react";
-import { getConfigData } from "../services/getConfigDataService";
+import { FC, useState } from "react";
 import { TabInput, WalletType } from "../types";
 
 interface TabContentProps {
@@ -11,50 +10,22 @@ interface TabContentProps {
     tabName: string,
     data: TabInput["awsKms"] | TabInput["gcpKms"] | TabInput["local"],
   ) => void;
+  awsData?: TabInput["awsKms"];
+  googleData?: TabInput["gcpKms"];
+  localData?: TabInput["local"];
 }
 
-const TabContent: FC<TabContentProps> = ({ tabNumber, tabName, onSubmit }) => {
-  const [aws, setAws] = useState<TabInput["awsKms"]>({
-    awsAccessKey: "",
-    awsSecretAccessKey: "",
-    awsRegion: "",
-  });
-  const [google, setGoogle] = useState<TabInput["gcpKms"]>({
-    gcpAppCredentialEmail: "",
-    gcpAppCredentialPrivateKey: "",
-    gcpKmsRingId: "",
-    gcpLocationId: "",
-    gcpProjectId: "",
-  });
-  const [local, setLocal] = useState<TabInput["local"]>({
-    privateKey: "",
-    mnemonic: "",
-    encryptedJson: "",
-    password: "",
-  });
-
-  useEffect(() => {
-    async function fetchData() {
-      const _configData = await getConfigData();
-
-      if (_configData?.configType === WalletType.awsKms) {
-        setAws({
-          awsAccessKey: _configData?.awsAccessKey,
-          awsSecretAccessKey: _configData?.awsSecretAccessKey,
-          awsRegion: _configData?.awsRegion,
-        });
-      } else if (_configData?.configType === WalletType.gcpKms) {
-        setGoogle({
-          gcpAppCredentialEmail: _configData?.gcpAppCredentialEmail,
-          gcpAppCredentialPrivateKey: _configData?.gcpAppCredentialPrivateKey,
-          gcpKmsRingId: _configData?.gcpKmsRingId,
-          gcpLocationId: _configData?.gcpLocationId,
-          gcpProjectId: _configData?.gcpProjectId,
-        });
-      }
-    }
-    fetchData();
-  }, []);
+const TabContent: FC<TabContentProps> = ({
+  tabNumber,
+  tabName,
+  onSubmit,
+  awsData,
+  googleData,
+  localData,
+}) => {
+  const [aws, setAws] = useState<TabInput["awsKms"]>(awsData!);
+  const [google, setGoogle] = useState<TabInput["gcpKms"]>(googleData!);
+  const [local, setLocal] = useState<TabInput["local"]>(localData!);
 
   const handleInputSubmit = () => {
     if (tabNumber === 0) {

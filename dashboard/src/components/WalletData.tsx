@@ -21,6 +21,7 @@ import {
 import { useEffect, useState } from "react";
 import { createConfig } from "../services/createConfigService";
 import { TabInput } from "../types";
+import { useSecretKey } from "../utils/SecretKeyContext";
 import TabContent from "./TabContent";
 
 interface WalletData {
@@ -31,6 +32,9 @@ interface WalletData {
 interface WalletDataComponentProps {
   walletData: WalletData[];
   errorMessage: string | null;
+  awsData: TabInput["awsKms"];
+  googleData: TabInput["gcpKms"];
+  localData: TabInput["local"];
 }
 
 interface TableBodyProps {
@@ -64,11 +68,16 @@ function TableBody({ walletData, errorMessage }: TableBodyProps) {
 function WalletDataComponent({
   walletData,
   errorMessage,
+  awsData,
+  googleData,
+  localData,
 }: WalletDataComponentProps) {
   const tabNames = ["aws-kms", "gcp-kms", "local"];
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [tabIndex, setTabIndex] = useState(0);
   const [tabName, setTabName] = useState(tabNames[0]);
+  const secretKeyContext = useSecretKey();
+  const secretKey = secretKeyContext?.secretKey;
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
@@ -85,7 +94,10 @@ function WalletDataComponent({
     data: TabInput["awsKms"] | TabInput["gcpKms"] | TabInput["local"],
   ) => {
     try {
-      await createConfig(tabName, data);
+      if (!secretKey) {
+        return null;
+      }
+      await createConfig(tabName, data, secretKey!);
       onClose();
     } catch (error) {
       console.error(error);
@@ -128,16 +140,25 @@ function WalletDataComponent({
                   tabNumber={0}
                   tabName={tabName}
                   onSubmit={handleSubmit}
+                  awsData={awsData}
+                  googleData={googleData}
+                  localData={localData}
                 />
                 <TabContent
                   tabNumber={1}
                   tabName={tabName}
                   onSubmit={handleSubmit}
+                  awsData={awsData}
+                  googleData={googleData}
+                  localData={localData}
                 />
                 <TabContent
                   tabNumber={2}
                   tabName={tabName}
                   onSubmit={handleSubmit}
+                  awsData={awsData}
+                  googleData={googleData}
+                  localData={localData}
                 />
               </TabPanels>
             </Tabs>
