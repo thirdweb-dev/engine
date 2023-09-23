@@ -7,14 +7,14 @@ interface GetWalletNonceParams {
   pgtx?: PrismaTransaction;
   address: string;
   chainId: number;
-  initNonce?: number;
+  signerAddress?: string;
 }
 
 export const getWalletNonce = async ({
   pgtx,
   address,
   chainId,
-  initNonce,
+  signerAddress,
 }: GetWalletNonceParams): Promise<WalletNonce | null> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
@@ -36,13 +36,13 @@ export const getWalletNonce = async ({
       },
     });
 
-    // If we have wallet details, but not a wallet nonce for the chain, create one
-    if (walletDetails || initNonce !== undefined) {
+    // If we have wallet details or a signer address, create a new nonce
+    if (walletDetails || signerAddress) {
       return createWalletNonce({
         pgtx,
         address,
         chainId,
-        initNonce,
+        signerAddress,
       });
     } else {
       return null;
