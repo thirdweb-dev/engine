@@ -10,12 +10,12 @@ interface QueueTxParams {
   tx: Transaction<any> | DeployTransaction;
   chainId: number;
   extension: ContractExtension;
-  // TODO: These shouldn't be in here...
+  // TODO: These shouldn't be in here
   deployedContractAddress?: string;
   deployedContractType?: string;
 }
 
-// TODO: Simulation should be done before this function...
+// TODO: Simulation should be done before this function
 export const queueTx = async ({
   pgtx,
   tx,
@@ -26,27 +26,28 @@ export const queueTx = async ({
 }: QueueTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  // TODO: SDK should have a JSON.stringify() method.
-  const fromAddress = (await tx.getSignerAddress()).toLowerCase();
-  const toAddress = tx.getTarget().toLowerCase();
-  const data = tx.encode();
-  const functionName = tx.getMethod();
-  const functionArgs = tx.getArgs().toString();
-  const value = BigNumber.from(await tx.getValue()).toHexString();
-
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
-  if ((tx.getSigner as ERC4337EthersSigner).erc4337provider) {
-    const signerAddress = await (
-      tx.getSigner as ERC4337EthersSigner
-    ).originalSigner.getAddress();
+  const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
+
+  if (isUserOp) {
     const { id: queueId } = await prisma.transactions.create({
       data: {
         chainId,
-        signerAddress,
-        accountAddress: fromAddress,
-        target: toAddress,
-        data,
-        value,
+        // Fields needed to get smart wallet signer in worker
+        signerAddress: await (
+          tx.getSigner as ERC4337EthersSigner
+        ).originalSigner.getAddress(),
+        accountAddress: (await tx.getSignerAddress()).toLowerCase(),
+        // Fields needed to send user operation
+        target: tx.getTarget().toLowerCase(),
+        data: tx.encode(),
+        value: BigNumber.from(await tx.getValue()).toHexString(),
+        // Fields for enhanced data
+        functionName: tx.getMethod(),
+        functionArgs: tx.getArgs().toString(),
+        extension,
+        deployedContractAddress,
+        deployedContractType,
       },
     });
 
@@ -55,12 +56,14 @@ export const queueTx = async ({
     const { id: queueId } = await prisma.transactions.create({
       data: {
         chainId,
-        fromAddress,
-        toAddress,
-        data,
-        value,
-        functionName,
-        functionArgs,
+        // Fields needed to send transaction
+        fromAddress: (await tx.getSignerAddress()).toLowerCase(),
+        toAddress: tx.getTarget().toLowerCase(),
+        data: tx.encode(),
+        value: BigNumber.from(await tx.getValue()).toHexString(),
+        // Fields for enhanced data
+        functionName: tx.getMethod(),
+        functionArgs: tx.getArgs().toString(),
         extension,
         deployedContractAddress,
         deployedContractType,
