@@ -1,4 +1,3 @@
-import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { BigNumber } from "ethers";
 import { getWalletNonce } from "../../../core/services/blockchain";
 import { getSdk } from "../../../server/utils/cache/getSdk";
@@ -9,40 +8,25 @@ interface CreateWalletNonceParams {
   pgtx?: PrismaTransaction;
   chainId: number;
   address: string;
-  signerAddress?: string;
+  initNonce?: number;
 }
 
 export const createWalletNonce = async ({
   pgtx,
   chainId,
   address,
-  signerAddress,
+  initNonce,
 }: CreateWalletNonceParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
   const sdk = await getSdk({ chainId });
 
-  let nonce: number = 0;
-  try {
-    if (signerAddress) {
-      // If the wallet is an account, get the nonce from the contract
-      const signer = (
-        await getSdk({
-          pgtx,
-          chainId: chainId!,
-          walletAddress: signerAddress,
-          accountAddress: address,
-        })
-      ).getSigner() as ERC4337EthersSigner;
-      nonce = (await signer.smartAccountAPI.getNonce()).toNumber();
-    } else {
-      // If the wallet is a regular EOA, get the nonce
-      nonce = BigNumber.from(
-        (await getWalletNonce(address.toLowerCase(), sdk.getProvider())) ?? 0,
-      ).toNumber();
-    }
-  } catch {
-    // If we error, just default to 0
-  }
+  // TODO: Remove init nonce and do this properly
+  const nonce =
+    initNonce !== undefined
+      ? initNonce
+      : BigNumber.from(
+          (await getWalletNonce(address.toLowerCase(), sdk.getProvider())) ?? 0,
+        ).toNumber();
 
   return prisma.walletNonce.create({
     data: {

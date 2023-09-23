@@ -40,21 +40,21 @@ export const processTx = async () => {
 
             if (tx.accountAddress && tx.signerAddress) {
               // User operation processing
-              const signer = (
-                await getSdk({
-                  pgtx,
-                  chainId: tx.chainId!,
-                  walletAddress: tx.signerAddress,
-                  accountAddress: tx.accountAddress!,
-                })
-              ).getSigner() as ERC4337EthersSigner;
+              const sdk = await getSdk({
+                pgtx,
+                chainId: tx.chainId!,
+                walletAddress: tx.signerAddress,
+                accountAddress: tx.accountAddress!,
+              });
+              const signer = sdk.getSigner() as ERC4337EthersSigner;
 
+              // Should not be using initNonce
               const accountNonce = await signer.smartAccountAPI.getNonce();
               const dbNonce = await getWalletNonce({
                 pgtx,
                 address: tx.accountAddress!,
                 chainId: tx.chainId!,
-                signerAddress: tx.signerAddress,
+                initNonce: accountNonce.toNumber(),
               });
 
               const nonce = BigNumber.from(accountNonce).gt(
