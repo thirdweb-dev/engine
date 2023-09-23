@@ -18,6 +18,7 @@ queue.on("error", (err) => {
 export const queuedTxListener = async (): Promise<void> => {
   logger.worker.info(`Listening for queued transactions`);
 
+  // TODO: This doesn't even need to be a listener
   const connection = await knex.client.acquireConnection();
   connection.query(`LISTEN new_transaction_data`);
 
