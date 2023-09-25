@@ -64,10 +64,20 @@ Set these variables in the .env file (copy .env.example to get started)
 
 ### Run the server
 
-Docker
+Run the server using Docker with the following command.
 
 ```
-docker run -e .env -p 3005:3005 thirdweb/engine:latest
+docker run --env-file .env -p 3005:3005 thirdweb/engine:latest
+```
+
+Note that Docker treats quotes as part of an environment variables value, so you can't use them in the file around your values.
+
+```
+# valid
+POSTGRES_CONNECTION_URL=postgresql://postgres:postgres@host.docker.internal:5432/postgres?sslmode=disable
+
+# invalid
+POSTGRES_CONNECTION_URL="postgresql://postgres:postgres@host.docker.internal:5432/postgres?sslmode=disable"
 ```
 
 ### Using the server
