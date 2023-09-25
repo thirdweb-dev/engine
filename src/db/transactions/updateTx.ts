@@ -41,6 +41,17 @@ export const updateTx = async ({
         },
       });
       break;
+    case TransactionStatusEnum.UserOpSent:
+      await prisma.transactions.update({
+        where: {
+          id: queueId,
+        },
+        data: {
+          sentAt: new Date(),
+          ...txData,
+        },
+      });
+      break;
     case TransactionStatusEnum.Processed:
       await prisma.transactions.update({
         where: {

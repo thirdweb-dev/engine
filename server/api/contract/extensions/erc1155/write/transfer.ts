@@ -60,11 +60,13 @@ export async function erc1155transfer(fastify: FastifyInstance) {
       const { chain, contract_address } = request.params;
       const { to, token_id, amount } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.erc1155.transfer.prepare(to, token_id, amount);

@@ -5,6 +5,7 @@ interface FetchApiParams {
   method: string;
   body: string;
   walletAddress: string;
+  accountAddress?: string;
 }
 
 export const fetchApi = async ({
@@ -14,13 +15,15 @@ export const fetchApi = async ({
   method,
   body,
   walletAddress,
+  accountAddress,
 }: FetchApiParams) => {
   const res = await fetch(`${host}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
-      "X-Wallet-Address": walletAddress,
+      "x-wallet-address": walletAddress,
       Authorization: `Bearer ${apiKey}`,
+      ...(accountAddress ? { "x-account-address": accountAddress } : {}),
     },
     body,
   });

@@ -21,6 +21,9 @@ export const sendTxs = async (config: BenchmarkConfiguration) => {
             authorization: `Bearer ${config.apiKey}`,
             "x-wallet-address": config.walletAddress,
             "content-type": "application/json",
+            ...(config.accountAddress
+              ? { "x-account-address": config.accountAddress }
+              : {}),
           },
           method: "POST",
           body: config.body,

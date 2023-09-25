@@ -63,8 +63,9 @@ export async function deployPublished(fastify: FastifyInstance) {
       const { constructorParams, version } = request.body;
       const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers["x-wallet-address"] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
 
-      const sdk = await getSdk({ chainId, walletAddress });
+      const sdk = await getSdk({ chainId, walletAddress, accountAddress });
       const tx = await sdk.deployer.deployReleasedContract.prepare(
         publisher,
         contract_name,

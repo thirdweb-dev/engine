@@ -62,11 +62,13 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
       const { chain, contract_address } = request.params;
       const { metadatas } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.erc1155.lazyMint.prepare(metadatas);
