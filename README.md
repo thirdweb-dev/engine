@@ -35,11 +35,12 @@ It abstracts away all the complexities of building blockchain applications behin
 
 Some of the best features of thirdweb engine:
 
-- Create & transact with **managed backend wallets** ([erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets, AWS KMS, Google KMS, etc.)
+- Create & transact with **managed backend wallets** (Local, AWS KMS, Google KMS, etc.)
 - High reliability transaction queuing with **wallet nonce management** and **automatic transaction retrying**
+- Deploy [erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets for your users and handle session management & sending user operations
 - Deploy and send transactions to smart contracts on any EVM blockchain
 - Caching and indexing for high performance onchain data access
-- Find-grained user access controls & wallet based client-side authentication
+- Fine-grained user access controls & wallet based client-side authentication
 - Full gasless relayer, bundler, and paymaster for gasless transactions [Coming Soon]
 - Run in your own cloud or run as a managed service [Coming Soon]
 - Full server & client-side SDKs for popular languages [Coming Soon]
