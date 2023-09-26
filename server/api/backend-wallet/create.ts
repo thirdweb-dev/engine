@@ -31,8 +31,8 @@ export const createWallet = async (fastify: FastifyInstance) => {
     url: "/backend-wallet/create",
     schema: {
       description: "Create a new backend wallet",
-      tags: ["Wallet"],
-      operationId: "wallet_create",
+      tags: ["Backend Wallet"],
+      operationId: "backendWallet_create",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

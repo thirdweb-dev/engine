@@ -35,8 +35,8 @@ export async function getAll(fastify: FastifyInstance) {
     url: "/backend-wallet/get-all",
     schema: {
       description: "Get all created EOA wallet",
-      tags: ["Wallet"],
-      operationId: "wallet_getAll",
+      tags: ["Backend Wallet"],
+      operationId: "backendWallet_getAll",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
