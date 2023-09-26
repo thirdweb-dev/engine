@@ -19,7 +19,7 @@ const requestBodySchema = Type.Object({
     description: "Address of the operator to give approval to",
   }),
   approved: Type.Boolean({
-    description: "wheter to approve or revoke approval",
+    description: "whether to approve or revoke approval",
   }),
   ...txOverridesForWriteRequest.properties,
 });
