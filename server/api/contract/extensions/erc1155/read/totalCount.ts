@@ -27,7 +27,7 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc1155/totalCount",
+    url: "/contract/:chain/:contract_address/erc1155/total-count",
     schema: {
       description: "Get the total number of NFTs minted.",
       tags: ["ERC1155"],
@@ -39,8 +39,8 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
-      const chainId = getChainIdFromChain(network);
+      const { chain, contract_address } = request.params;
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

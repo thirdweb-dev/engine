@@ -38,7 +38,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:network/:contract_address/englishAuctions/buyoutAuction",
+    url: "/marketplace/:chain/:contract_address/english-auctions/buyout-auction",
     schema: {
       description:
         "Pay the full price per token to buy an NFT from an auction listing.",
@@ -52,14 +52,16 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { listing_id } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const accountAddress = request.headers["x-account-address"] as string;
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.englishAuctions.buyoutAuction.prepare(

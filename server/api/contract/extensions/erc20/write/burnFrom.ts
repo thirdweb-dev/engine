@@ -39,7 +39,7 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc20/burnFrom",
+    url: "/contract/:chain/:contract_address/erc20/burn-from",
     schema: {
       description:
         "Burn tokens held by a specified wallet (requires allowance).",
@@ -54,14 +54,16 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { holder_address, amount } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const accountAddress = request.headers["x-account-address"] as string;
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.erc20.burnFrom.prepare(holder_address, amount);

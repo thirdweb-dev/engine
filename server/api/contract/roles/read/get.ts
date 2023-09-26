@@ -33,7 +33,7 @@ export async function getRoles(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/roles/get",
+    url: "/contract/:chain/:contract_address/roles/get",
     schema: {
       description: "Get all members of a specific role",
       tags: ["Contract-Roles"],
@@ -46,10 +46,10 @@ export async function getRoles(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { role } = request.query;
 
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

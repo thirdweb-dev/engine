@@ -35,11 +35,12 @@ It abstracts away all the complexities of building blockchain applications behin
 
 Some of the best features of thirdweb engine:
 
-- Create & transact with **managed backend wallets** ([erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets, AWS KMS, Google KMS, etc.)
+- Create & transact with **managed backend wallets** (Local, AWS KMS, Google KMS, etc.)
 - High reliability transaction queuing with **wallet nonce management** and **automatic transaction retrying**
+- Deploy [erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets for your users and handle session management & sending user operations
 - Deploy and send transactions to smart contracts on any EVM blockchain
 - Caching and indexing for high performance onchain data access
-- Find-grained user access controls & wallet based client-side authentication
+- Fine-grained user access controls & wallet based client-side authentication
 - Full gasless relayer, bundler, and paymaster for gasless transactions [Coming Soon]
 - Run in your own cloud or run as a managed service [Coming Soon]
 - Full server & client-side SDKs for popular languages [Coming Soon]
@@ -64,10 +65,20 @@ Set these variables in the .env file (copy .env.example to get started)
 
 ### Run the server
 
-Docker
+Run the server using Docker with the following command.
 
 ```
-docker run -e .env -p 3005:3005 thirdweb/engine:latest
+docker run --env-file .env -p 3005:3005 thirdweb/engine:latest
+```
+
+Note that Docker treats quotes as part of an environment variables value, so you can't use them in the file around your values.
+
+```
+# valid
+POSTGRES_CONNECTION_URL=postgresql://postgres:postgres@host.docker.internal:5432/postgres?sslmode=disable
+
+# invalid
+POSTGRES_CONNECTION_URL="postgresql://postgres:postgres@host.docker.internal:5432/postgres?sslmode=disable"
 ```
 
 ### Using the server
@@ -82,12 +93,12 @@ docker run -e .env -p 3005:3005 thirdweb/engine:latest
 - Contract API
 
   - Read from any contract
-    - GET /contract/[network]/[contract_address]/[func or variable name]
+    - GET /contract/[chain]/[contract_address]/[func or variable name]
   - Write to any contract function
-    - POST /contract/[network]/[contract_address]/[function name]
+    - POST /contract/[chain]/[contract_address]/[function name]
     - JSON body with params
   - Deploy published contracts
-    - POST /deploy/[network]/[publisher_address]/[published_name]
+    - POST /deploy/[chain]/[publisher_address]/[published_name]
 
 - Wallet API (in development)
 

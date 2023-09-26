@@ -17,6 +17,7 @@ export type BenchmarkConfiguration = {
   requests: number;
   concurrency: number;
   walletAddress: string;
+  accountAddress?: string;
 };
 
 const requireEnv = (varName: string) => {
@@ -36,11 +37,12 @@ export const getBenchmarkConfiguration =
       requests: parseInt(requireEnv("BENCHMARK_REQUESTS") ?? 100),
       concurrency: parseInt(requireEnv("BENCHMARK_CONCURRENCY") ?? 10),
       walletAddress: requireEnv("BENCHMARK_WALLET_ADDRESS"),
+      accountAddress: process.env.BENCHMARK_ACCOUNT_ADDRESS,
     };
 
     if (process.env.BENCHMARK_PATH || process.env.BENCHMARK_BODY) {
       requireEnv("BENCHMARK_PATH");
-      requireEnv("BENCMARK_BODY");
+      requireEnv("BENCHMARK_BODY");
 
       return {
         ...benchmarkConfig,
@@ -80,7 +82,7 @@ export const getBenchmarkConfiguration =
       } = await fetchApi({
         host: benchmarkConfig.host,
         apiKey: benchmarkConfig.apiKey,
-        path: `/deployer/${chain}/prebuilts/token`,
+        path: `/deploy/${chain}/prebuilts/token`,
         method: `POST`,
         walletAddress: benchmarkConfig.walletAddress,
         body: JSON.stringify({

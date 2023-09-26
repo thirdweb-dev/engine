@@ -41,7 +41,7 @@ export async function getAllRoles(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/roles/getAll",
+    url: "/contract/:chain/:contract_address/roles/get-all",
     schema: {
       description: "Get all members of all roles",
       tags: ["Contract-Roles"],
@@ -53,9 +53,9 @@ export async function getAllRoles(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
 
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

@@ -70,7 +70,7 @@ export async function getAllTx(fastify: FastifyInstance) {
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
-    url: "/transaction/getAll",
+    url: "/transaction/get-all",
     schema: {
       description: "Get All Transaction Requests",
       tags: ["Transaction"],

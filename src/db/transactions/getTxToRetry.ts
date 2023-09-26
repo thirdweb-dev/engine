@@ -12,6 +12,7 @@ export const getTxToRetry = async ({ pgtx }: GetTxToRetryParams = {}): Promise<
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   // TODO: Remove transactionHash
+  // TODO: For now, we're not retrying user ops
   const [tx] = (await prisma.$queryRaw`
 SELECT
   *
@@ -20,6 +21,7 @@ FROM
 WHERE
   "processedAt" IS NOT NULL
   AND "sentAt" IS NOT NULL
+  AND "accountAddress" IS NULL
   AND "minedAt" IS NULL
   AND "errorMessage" IS NULL
   AND "transactionHash" IS NOT NULL

@@ -1,43 +1,32 @@
-import {
-  AbstractWallet,
-  EthersWallet,
-  LocalWallet,
-} from "@thirdweb-dev/wallets";
-import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
+import { EVMWallet, EthersWallet } from "@thirdweb-dev/wallets";
 import { getAwsKmsWallet } from "../../../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsSigner } from "../../../server/utils/wallets/getGcpKmsSigner";
 import { getLocalWallet } from "../../../server/utils/wallets/getLocalWallet";
 import { getWalletDetails } from "../../../src/db/wallets/getWalletDetails";
 import { PrismaTransaction } from "../../../src/schema/prisma";
 import { WalletType } from "../../../src/schema/wallet";
+import { getSmartWallet } from "../wallets/getSmartWallet";
 
-const walletsCache = new Map<string, AbstractWallet>();
+const walletsCache = new Map<string, EVMWallet>();
 
-interface GetWalletParams<TWallet extends WalletType> {
+interface GetWalletParams {
   pgtx?: PrismaTransaction;
   chainId: number;
   walletAddress: string;
-  walletType?: TWallet;
+  accountAddress?: string;
 }
 
-type EnforceWalletType<TWallet extends WalletType> =
-  TWallet extends WalletType.awsKms
-    ? AwsKmsWallet
-    : TWallet extends WalletType.gcpKms
-    ? EthersWallet
-    : TWallet extends WalletType.local
-    ? LocalWallet
-    : AbstractWallet;
-
-export const getWallet = async <TWallet extends WalletType>({
+export const getWallet = async <TWallet extends EVMWallet>({
   pgtx,
   chainId,
   walletAddress,
-  walletType,
-}: GetWalletParams<TWallet>): Promise<EnforceWalletType<TWallet>> => {
-  const cacheKey = `${chainId}-${walletAddress}`;
+  accountAddress,
+}: GetWalletParams): Promise<TWallet> => {
+  const cacheKey = accountAddress
+    ? `${chainId}-${walletAddress}-${accountAddress}`
+    : `${chainId}-${walletAddress}`;
   if (walletsCache.has(cacheKey)) {
-    return walletsCache.get(cacheKey)! as EnforceWalletType<TWallet>;
+    return walletsCache.get(cacheKey)! as TWallet;
   }
 
   const walletDetails = await getWalletDetails({
@@ -49,13 +38,7 @@ export const getWallet = async <TWallet extends WalletType>({
     throw new Error(`No configured wallet found with address ${walletAddress}`);
   }
 
-  if (!!walletType && walletType !== walletDetails.type) {
-    throw new Error(
-      `Tried to access wallet ${walletAddress} as type ${walletType} but wallet was configured as type ${walletDetails.type}`,
-    );
-  }
-
-  let wallet: AbstractWallet;
+  let wallet: EVMWallet;
   switch (walletDetails.type) {
     case WalletType.awsKms:
       wallet = await getAwsKmsWallet({
@@ -78,7 +61,19 @@ export const getWallet = async <TWallet extends WalletType>({
       );
   }
 
-  walletsCache.set(cacheKey, wallet);
+  if (!accountAddress) {
+    // If no account is specified, use the backend wallet itself
+    walletsCache.set(cacheKey, wallet);
+    return wallet as TWallet;
+  }
 
-  return wallet as EnforceWalletType<TWallet>;
+  // Otherwise, return the account with the backend wallet as the personal wallet
+  const smartWallet: EVMWallet = await getSmartWallet({
+    chainId,
+    backendWallet: wallet,
+    accountAddress: accountAddress,
+  });
+
+  walletsCache.set(cacheKey, smartWallet);
+  return smartWallet as TWallet;
 };

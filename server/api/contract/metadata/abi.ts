@@ -63,7 +63,7 @@ export async function getABI(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/metadata/abi",
+    url: "/contract/:chain/:contract_address/metadata/abi",
     schema: {
       description: "Get the ABI of the contract",
       tags: ["Contract-Metadata"],
@@ -75,9 +75,9 @@ export async function getABI(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
 
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

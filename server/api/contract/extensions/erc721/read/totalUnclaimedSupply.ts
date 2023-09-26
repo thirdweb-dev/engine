@@ -23,7 +23,7 @@ export async function erc721TotalUnclaimedSupply(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:network/:contract_address/erc721/totalUnclaimedSupply",
+    url: "/contract/:chain/:contract_address/erc721/total-unclaimed-supply",
     schema: {
       description: "Get the Unclaimed NFT supply for the contract.",
       tags: ["ERC721"],
@@ -35,8 +35,8 @@ export async function erc721TotalUnclaimedSupply(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
-      const chainId = getChainIdFromChain(network);
+      const { chain, contract_address } = request.params;
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

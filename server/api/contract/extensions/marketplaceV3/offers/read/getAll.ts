@@ -66,7 +66,7 @@ export async function offersGetAll(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/offers/getAll",
+    url: "/marketplace/:chain/:contract_address/offers/get-all",
     schema: {
       description:
         "Get all offers on the smart contract. Optionally, provide a filter to filter the offers returned.",
@@ -80,9 +80,9 @@ export async function offersGetAll(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { start, count, offeror, tokenContract, tokenId } = request.query;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

@@ -52,7 +52,7 @@ export async function offersGetOffer(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/offers/getOffer",
+    url: "/marketplace/:chain/:contract_address/offers/get-offer",
     schema: {
       description:
         "Get information about a specific offer using the offer’s ID.",
@@ -66,9 +66,9 @@ export async function offersGetOffer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { offer_id } = request.query;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

@@ -41,7 +41,7 @@ export async function directListingsIsBuyerApprovedForListing(
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:network/:contract_address/directListings/isBuyerApprovedForListing",
+    url: "/marketplace/:chain/:contract_address/direct-listings/is-buyer-approved-for-listing",
     schema: {
       description:
         "Check if a buyer is approved to purchase a reserved listing.",
@@ -56,9 +56,9 @@ export async function directListingsIsBuyerApprovedForListing(
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { listing_id, wallet_address } = request.query;
-      const chainId = getChainIdFromChain(network);
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,

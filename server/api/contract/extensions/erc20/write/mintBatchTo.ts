@@ -50,7 +50,7 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:network/:contract_address/erc20/mintBatchTo",
+    url: "/contract/:chain/:contract_address/erc20/mint-batch-to",
     schema: {
       description: "Mint tokens to many wallets in one transaction.",
       tags: ["ERC20"],
@@ -64,14 +64,16 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { network, contract_address } = request.params;
+      const { chain, contract_address } = request.params;
       const { data } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
-      const chainId = getChainIdFromChain(network);
+      const accountAddress = request.headers["x-account-address"] as string;
+      const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.erc20.mintBatchTo.prepare(data);
