@@ -16,7 +16,10 @@ describe("Transaction End-point Test", () => {
     const response = await request(createdServerInstance.server)
       .get("/transaction/status/8fe7d546-2b8b-465e-b0d2-f1cb5d3d0db3")
       .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)
-      .set("x-wallet-address", "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266")
+      .set(
+        "x-backend-wallet-address",
+        "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+      )
       .send();
 
     console.log(response.body);

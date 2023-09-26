@@ -21,7 +21,7 @@ export const fetchApi = async ({
     method,
     headers: {
       "Content-Type": "application/json",
-      "x-wallet-address": walletAddress,
+      "x-backend-wallet-address": walletAddress,
       Authorization: `Bearer ${apiKey}`,
       ...(accountAddress ? { "x-account-address": accountAddress } : {}),
     },
