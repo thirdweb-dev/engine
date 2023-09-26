@@ -36,7 +36,7 @@ export const getBenchmarkConfiguration =
       host: process.env.BENCHMARK_HOST ?? `http://127.0.0.1:3005`,
       requests: parseInt(requireEnv("BENCHMARK_REQUESTS") ?? 100),
       concurrency: parseInt(requireEnv("BENCHMARK_CONCURRENCY") ?? 10),
-      walletAddress: requireEnv("BENCHMARK_WALLET_ADDRESS"),
+      walletAddress: requireEnv("BENCHMARK_BACKEND_WALLET_ADDRESS"),
       accountAddress: process.env.BENCHMARK_ACCOUNT_ADDRESS,
     };
 

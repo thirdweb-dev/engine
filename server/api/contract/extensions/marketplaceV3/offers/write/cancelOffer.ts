@@ -50,7 +50,9 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contract_address } = request.params;
       const { offer_id } = request.body;
-      const walletAddress = request.headers["x-wallet-address"] as string;
+      const walletAddress = request.headers[
+        "x-backend-wallet-address"
+      ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({

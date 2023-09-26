@@ -93,7 +93,9 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
         royaltyRecipient,
         uid,
       } = request.body;
-      const walletAddress = request.headers["x-wallet-address"] as string;
+      const walletAddress = request.headers[
+        "x-backend-wallet-address"
+      ] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
