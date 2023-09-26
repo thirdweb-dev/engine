@@ -36,12 +36,12 @@ import { extractEvents } from "./contract/metadata/events";
 import { extractFunctions } from "./contract/metadata/functions";
 
 // Wallet
+import { createWallet } from "./backend-wallet/create";
+import { getAll } from "./backend-wallet/getAll";
+import { getBalance } from "./backend-wallet/getBalance";
+import { importWallet } from "./backend-wallet/import";
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
-import { createWallet } from "./wallet/create";
-import { getAll } from "./wallet/getAll";
-import { getBalance } from "./wallet/getBalance";
-import { importWallet } from "./wallet/import";
 
 export const apiRoutes = async (fastify: FastifyInstance) => {
   // Wallet

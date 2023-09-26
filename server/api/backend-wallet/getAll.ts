@@ -32,11 +32,11 @@ export async function getAll(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/wallet/get-all",
+    url: "/backend-wallet/get-all",
     schema: {
       description: "Get all created EOA wallet",
-      tags: ["Wallet"],
-      operationId: "wallet_getAll",
+      tags: ["Backend Wallet"],
+      operationId: "backendWallet_getAll",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
