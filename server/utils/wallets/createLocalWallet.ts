@@ -4,7 +4,7 @@ import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails
 import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
 
-export const createLocalWallet = async (): Promise<string> => {
+export const createLocalWallet = async (alias?: string): Promise<string> => {
   if (env.WALLET_CONFIGURATION.type !== WalletType.local) {
     throw new Error(`Server was not configured for local wallet creation.`);
   }
@@ -22,6 +22,7 @@ export const createLocalWallet = async (): Promise<string> => {
   await createWalletDetails({
     type: WalletType.local,
     address: walletAddress,
+    alias,
   });
 
   return walletAddress;

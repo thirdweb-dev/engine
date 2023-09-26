@@ -4,7 +4,7 @@ import { WalletType } from "../../../src/schema/wallet";
 import { getDecryptedGoogleConfigData } from "../config/getDecryptedGoogleConfigData";
 import { getGcpKmsSigner } from "./getGcpKmsSigner";
 
-export const createGcpKmsWallet = async (): Promise<string> => {
+export const createGcpKmsWallet = async (alias?: string): Promise<string> => {
   // if (env.WALLET_CONFIGURATION.type !== WalletType.gcpKms) {
   //   throw new Error(`Server was not configured for GCP KMS wallet creation`);
   // }
@@ -55,6 +55,7 @@ export const createGcpKmsWallet = async (): Promise<string> => {
     gcpKmsLocationId: gcpCreds.gcpLocationId,
     gcpKmsKeyVersionId: "1",
     gcpKmsResourcePath: `${key.name!}/cryptoKeysVersion/1`,
+    alias,
   });
 
   return walletAddress;

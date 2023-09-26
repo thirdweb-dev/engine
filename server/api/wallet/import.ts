@@ -4,17 +4,10 @@ import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { AliasSchema } from "../../schemas/wallet";
 import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
 import { importLocalWallet } from "../../utils/wallets/importLocalWallet";
-
-const AliasSchema = Type.Object({
-  alias: Type.Optional(
-    Type.String({
-      description: "The alias of the wallet to import",
-    }),
-  ),
-});
 
 const RequestBodySchema = Type.Union([
   Type.Object({

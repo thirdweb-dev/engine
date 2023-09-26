@@ -2,7 +2,7 @@ import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import { getDecryptedAWSConfigData } from "../config/getDecryptedAWSConfig";
 import { importAwsKmsWallet } from "./importAwsKmsWallet";
 
-export const createAwsKmsWallet = async (): Promise<string> => {
+export const createAwsKmsWallet = async (alias?: string): Promise<string> => {
   // if (env.WALLET_CONFIGURATION.type !== WalletType.awsKms) {
   //   throw new Error(`Server was not configured for AWS KMS wallet creation`);
   // }
@@ -31,5 +31,5 @@ export const createAwsKmsWallet = async (): Promise<string> => {
   const awsKmsArn = res.KeyMetadata!.Arn!;
   const awsKmsKeyId = res.KeyMetadata!.KeyId!;
 
-  return importAwsKmsWallet({ awsKmsArn, awsKmsKeyId });
+  return importAwsKmsWallet({ awsKmsArn, awsKmsKeyId, alias });
 };

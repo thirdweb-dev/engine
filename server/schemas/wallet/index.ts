@@ -68,3 +68,11 @@ export interface createKMSEOAResponse {
   arn: string;
   keyId: string;
 }
+
+export const AliasSchema = Type.Object({
+  alias: Type.Optional(
+    Type.String({
+      description: "The alias of the wallet to import",
+    }),
+  ),
+});
