@@ -75,7 +75,7 @@ export const getAllConfig = async (fastify: FastifyInstance) => {
       description: "Get All Engine Config Data",
       tags: ["Config"],
       operationId: "config_get_all",
-      // hide: true,
+      hide: true,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

@@ -27,7 +27,7 @@ export const updateConfig = async (fastify: FastifyInstance) => {
       description: "Update Engine Config from DB",
       tags: ["Config"],
       operationId: "config_update",
-      // hide: true,
+      hide: true,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

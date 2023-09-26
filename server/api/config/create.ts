@@ -35,7 +35,7 @@ export const createConfig = async (fastify: FastifyInstance) => {
       tags: ["Config"],
       operationId: "config_create",
       body: RequestBodySchema,
-      // hide: true,
+      hide: true,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
