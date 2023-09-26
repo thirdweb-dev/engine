@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { WalletType } from "../../../src/schema/wallet";
 
 export const walletParamSchema = Type.Object({
   chain: Type.String({
@@ -69,10 +70,11 @@ export interface createKMSEOAResponse {
   keyId: string;
 }
 
-export const AliasSchema = Type.Object({
+export const WalletConfigSchema = Type.Object({
   alias: Type.Optional(
     Type.String({
       description: "The alias of the wallet to import",
     }),
   ),
+  walletType: Type.Enum(WalletType),
 });

@@ -37,6 +37,10 @@ interface TableBodyProps {
   errorMessage: string | null;
 }
 
+function minimizeText(text: string, firstNChars = 6, lastNChars = 6) {
+  return text.slice(0, firstNChars) + "..." + text.slice(-lastNChars);
+}
+
 function TableBody({ transactionData, errorMessage }: TableBodyProps) {
   if (errorMessage) {
     return (
@@ -49,14 +53,15 @@ function TableBody({ transactionData, errorMessage }: TableBodyProps) {
   }
 
   return (
+    // ToDo: Add Copy to Clipboard functionality
     <Tbody>
       {transactionData.map((item: TransactionData, index: number) => (
         <Tr key={index}>
-          <Td>{item.queueId}</Td>
+          <Td>{minimizeText(item.queueId)}</Td>
           <Td>{item.status}</Td>
-          <Td>{item.fromAddress}</Td>
-          <Td>{item.toAddress}</Td>
-          <Td>{item.transactionHash}</Td>
+          <Td>{minimizeText(item.fromAddress)}</Td>
+          <Td>{minimizeText(item.toAddress)}</Td>
+          <Td>{minimizeText(item.transactionHash)}</Td>
           <Td>{item.blockNumber}</Td>
         </Tr>
       ))}

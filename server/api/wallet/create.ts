@@ -2,18 +2,31 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../src/schema/wallet";
-import { env } from "../../../src/utils/env";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { AliasSchema } from "../../schemas/wallet";
+import { WalletConfigSchema } from "../../schemas/wallet";
 import { createAwsKmsWallet } from "../../utils/wallets/createAwsKmsWallet";
 import { createGcpKmsWallet } from "../../utils/wallets/createGcpKmsWallet";
 import { createLocalWallet } from "../../utils/wallets/createLocalWallet";
 
 // INPUT
 const requestSchema = Type.Object({
-  ...AliasSchema.properties,
+  ...WalletConfigSchema.properties,
 });
 
+requestSchema.examples = [
+  {
+    alias: "my-aws-kms-wallet",
+    walletType: WalletType.awsKms,
+  },
+  {
+    alias: "my-gcp-kms-wallet",
+    walletType: WalletType.gcpKms,
+  },
+  {
+    alias: "my-local-wallet",
+    walletType: WalletType.local,
+  },
+];
 // OUTPUT
 const responseSchema = Type.Object({
   result: Type.Object({
@@ -47,9 +60,9 @@ export const createWallet = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, res) => {
-      const { alias } = req.body;
+      const { alias, walletType } = req.body;
       let walletAddress: string;
-      switch (env.WALLET_CONFIGURATION.type) {
+      switch (walletType) {
         case WalletType.local:
           walletAddress = await createLocalWallet(alias);
           break;
@@ -59,6 +72,12 @@ export const createWallet = async (fastify: FastifyInstance) => {
         case WalletType.gcpKms:
           walletAddress = await createGcpKmsWallet(alias);
           break;
+      }
+
+      if (!walletAddress) {
+        throw new Error(
+          "Unable to create wallet. Please check the wallet-type.",
+        );
       }
 
       res.status(StatusCodes.OK).send({

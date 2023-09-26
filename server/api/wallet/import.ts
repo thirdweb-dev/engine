@@ -2,9 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../src/schema/wallet";
-import { env } from "../../../src/utils/env";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { AliasSchema } from "../../schemas/wallet";
+import { WalletConfigSchema } from "../../schemas/wallet";
 import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
 import { importLocalWallet } from "../../utils/wallets/importLocalWallet";
@@ -21,7 +20,7 @@ const RequestBodySchema = Type.Union([
         "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
       ],
     }),
-    ...AliasSchema.properties,
+    ...WalletConfigSchema.properties,
   }),
   Type.Object({
     gcpKmsKeyId: Type.String({
@@ -32,20 +31,20 @@ const RequestBodySchema = Type.Union([
       description: "GCP KMS Key Version ID",
       examples: ["1"],
     }),
-    ...AliasSchema.properties,
+    ...WalletConfigSchema.properties,
   }),
   Type.Union([
     Type.Object({
       privateKey: Type.String({
         description: "The private key of the wallet to import",
       }),
-      ...AliasSchema.properties,
+      ...WalletConfigSchema.properties,
     }),
     Type.Object({
       mnemonic: Type.String({
         description: "The mnemonic phrase of the wallet to import",
       }),
-      ...AliasSchema.properties,
+      ...WalletConfigSchema.properties,
     }),
     Type.Object({
       encryptedJson: Type.String({
@@ -54,7 +53,7 @@ const RequestBodySchema = Type.Union([
       password: Type.String({
         description: "The password used to encrypt the encrypted JSON",
       }),
-      ...AliasSchema.properties,
+      ...WalletConfigSchema.properties,
     }),
   ]),
 ]);
@@ -64,27 +63,32 @@ RequestBodySchema.examples = [
     privateKey:
       "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
     alias: "my-wallet",
+    walletType: WalletType.local,
   },
   {
     mnemonic:
       "crouch cabbage puppy sunset fever adjust giggle blanket maze loyal wreck dream",
     alias: "my-wallet",
+    walletType: WalletType.local,
   },
   {
     encryptedJson: "",
     password: "password123",
     alias: "my-wallet",
+    walletType: WalletType.local,
   },
   {
     awsKmsKeyId: "12345678-1234-1234-1234-123456789012",
     awsKmsArn:
       "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
     alias: "my-wallet",
+    walletType: WalletType.awsKms,
   },
   {
     gcpKmsKeyId: "12345678-1234-1234-1234-123456789012",
     gcpKmsKeyVersionId: "1",
     alias: "my-wallet",
+    walletType: WalletType.gcpKms,
   },
 ];
 
@@ -120,11 +124,12 @@ export const importWallet = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, res) => {
+      const { alias, walletType } = req.body;
       let walletAddress: string;
-      switch (env.WALLET_CONFIGURATION.type) {
+      switch (walletType) {
         case WalletType.local:
           // TODO: This is why where zod would be great
-          const { privateKey, mnemonic, encryptedJson, password, alias } =
+          const { privateKey, mnemonic, encryptedJson, password } =
             req.body as any;
 
           if (privateKey) {
@@ -186,6 +191,10 @@ export const importWallet = async (fastify: FastifyInstance) => {
             alias,
           });
           break;
+      }
+
+      if (!walletAddress) {
+        throw new Error("Failed to create wallet. Please check wallet Type");
       }
 
       res.status(StatusCodes.OK).send({

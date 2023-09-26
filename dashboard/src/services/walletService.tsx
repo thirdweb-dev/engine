@@ -2,7 +2,7 @@ const BASE_URL = process.env.OPENAPI_BASE_ORIGIN || "http://localhost:3005";
 
 export async function fetchWalletData(secretKey: string) {
   try {
-    const url = `${BASE_URL}/wallet/getAll`;
+    const url = `${BASE_URL}/wallet/get-all`;
     const response = await fetch(url, {
       method: "GET",
       mode: "cors",

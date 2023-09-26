@@ -44,7 +44,7 @@ const TabContent: FC<TabContentProps> = ({
           <Input
             className="input"
             placeholder="aws access key"
-            value={aws.awsAccessKey}
+            value={aws.awsAccessKey || ""}
             onChange={(e) =>
               setAws((prev) => ({ ...prev, awsAccessKey: e.target.value }))
             }
@@ -52,7 +52,7 @@ const TabContent: FC<TabContentProps> = ({
           <Input
             className="input"
             placeholder="aws secret access key"
-            value={aws.awsSecretAccessKey}
+            value={aws.awsSecretAccessKey || ""}
             onChange={(e) =>
               setAws((prev) => ({
                 ...prev,
@@ -63,7 +63,7 @@ const TabContent: FC<TabContentProps> = ({
           <Input
             className="input"
             placeholder="aws region"
-            value={aws.awsRegion}
+            value={aws.awsRegion || ""}
             onChange={(e) =>
               setAws((prev) => ({ ...prev, awsRegion: e.target.value }))
             }
@@ -76,7 +76,7 @@ const TabContent: FC<TabContentProps> = ({
           <Input
             className="input"
             placeholder="Google Application Project Id"
-            value={google.gcpProjectId}
+            value={google.gcpProjectId || ""}
             onChange={(e) =>
               setGoogle((prev) => ({
                 ...prev,
@@ -87,7 +87,7 @@ const TabContent: FC<TabContentProps> = ({
           <Input
             className="input"
             placeholder="Google Application Credential Private Key"
-            value={google.gcpAppCredentialPrivateKey}
+            value={google.gcpAppCredentialPrivateKey || ""}
             onChange={(e) =>
               setGoogle((prev) => ({
                 ...prev,
@@ -98,7 +98,7 @@ const TabContent: FC<TabContentProps> = ({
           <Input
             className="input"
             placeholder="Google Application Credential Email"
-            value={google.gcpAppCredentialEmail}
+            value={google.gcpAppCredentialEmail || ""}
             onChange={(e) =>
               setGoogle((prev) => ({
                 ...prev,
@@ -109,7 +109,7 @@ const TabContent: FC<TabContentProps> = ({
           <Input
             className="input"
             placeholder="Google KMS Key Ring Id"
-            value={google.gcpKmsRingId}
+            value={google.gcpKmsRingId || ""}
             onChange={(e) =>
               setGoogle((prev) => ({
                 ...prev,
@@ -120,7 +120,7 @@ const TabContent: FC<TabContentProps> = ({
           <Input
             className="input"
             placeholder="Google KMS Location Id"
-            value={google.gcpLocationId}
+            value={google.gcpLocationId || ""}
             onChange={(e) =>
               setGoogle((prev) => ({
                 ...prev,

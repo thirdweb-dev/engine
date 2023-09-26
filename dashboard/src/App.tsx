@@ -76,6 +76,7 @@ function App() {
         );
         setTransactionData(_transactionData);
         setTotalPages(Math.ceil(_transactionData?.length / 10));
+        localStorage.setItem("secretKey", inputSecretKey);
       } catch (err: any) {
         setError(err.message);
       }

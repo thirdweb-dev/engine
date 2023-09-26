@@ -43,10 +43,7 @@ export const createConfig = async (fastify: FastifyInstance) => {
     },
     handler: async (req, res) => {
       const { aws, gcp, local } = req.body as any;
-      req.log.info({ aws, gcp, local }, "create config");
-      req.log.info({ aws, gcp, local }, "create config");
       // Cannot use WALLET_CONFIGURATION as now it can be on DB
-
       if (aws && Object.keys(aws).length > 0) {
         await addAwsConfig(aws);
       } else if (gcp && Object.keys(gcp).length > 0) {

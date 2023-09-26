@@ -7,7 +7,7 @@ export async function fetchTransactionData(
 ) {
   try {
     // Fetch data from API
-    const url = `${BASE_URL}/transaction/getAll?page=${page}&limit=${limit}&sort=createdTimestamp&sort_order=asc&filter=all`;
+    const url = `${BASE_URL}/transaction/get-all?page=${page}&limit=${limit}&sort=createdTimestamp&sort_order=asc&filter=all`;
     const response = await fetch(url, {
       method: "GET",
       mode: "cors",

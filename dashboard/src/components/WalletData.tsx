@@ -21,7 +21,6 @@ import {
 import { useEffect, useState } from "react";
 import { createConfig } from "../services/createConfigService";
 import { TabInput } from "../types";
-import { useSecretKey } from "../utils/SecretKeyContext";
 import TabContent from "./TabContent";
 
 interface WalletData {
@@ -76,8 +75,6 @@ function WalletDataComponent({
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [tabIndex, setTabIndex] = useState(0);
   const [tabName, setTabName] = useState(tabNames[0]);
-  const secretKeyContext = useSecretKey();
-  const secretKey = secretKeyContext?.secretKey;
 
   const handleTabsChange = (index: number) => {
     setTabIndex(index);
@@ -94,6 +91,7 @@ function WalletDataComponent({
     data: TabInput["awsKms"] | TabInput["gcpKms"] | TabInput["local"],
   ) => {
     try {
+      const secretKey = localStorage.getItem("secretKey");
       if (!secretKey) {
         return null;
       }
