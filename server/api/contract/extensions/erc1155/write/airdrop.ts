@@ -72,11 +72,13 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
       const { chain, contract_address } = request.params;
       const { token_id, addresses } = request.body;
       const walletAddress = request.headers["x-wallet-address"] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
         walletAddress,
+        accountAddress,
       });
 
       const tx = await contract.erc1155.airdrop.prepare(token_id, addresses);

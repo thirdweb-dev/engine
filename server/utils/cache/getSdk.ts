@@ -10,14 +10,20 @@ interface GetSdkParams {
   pgtx?: PrismaTransaction;
   chainId: number;
   walletAddress?: string;
+  accountAddress?: string;
 }
 
 export const getSdk = async ({
   pgtx,
   chainId,
   walletAddress,
+  accountAddress,
 }: GetSdkParams): Promise<ThirdwebSDK> => {
-  const cacheKey = walletAddress ? `${chainId}-${walletAddress}` : `${chainId}`;
+  const cacheKey = walletAddress
+    ? accountAddress
+      ? `${chainId}-${walletAddress}-${accountAddress}`
+      : `${chainId}-${walletAddress}`
+    : `${chainId}`;
   if (sdkCache.has(cacheKey)) {
     return sdkCache.get(cacheKey)!;
   }
@@ -30,7 +36,12 @@ export const getSdk = async ({
       secretKey: env.THIRDWEB_API_SECRET_KEY,
     });
   } else {
-    const wallet = await getWallet({ pgtx, chainId, walletAddress });
+    const wallet = await getWallet({
+      pgtx,
+      chainId,
+      walletAddress,
+      accountAddress,
+    });
     sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
     });

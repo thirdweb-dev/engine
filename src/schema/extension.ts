@@ -8,4 +8,6 @@ export type ContractExtension =
   | "roles"
   | "none"
   | "deploy-prebuilt"
-  | "deploy-published";
+  | "deploy-published"
+  | "account-factory"
+  | "account";

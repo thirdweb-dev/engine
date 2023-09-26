@@ -7,83 +7,81 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Transactions {
-  id      String @id @default(uuid()) @map("id")
-  chainId Int    @map("chainId")
-
-  // Transaction Details
-  fromAddress          String  @map("fromAddress")
-  toAddress            String? @map("toAddress")
-  data                 String? @map("data") @db.Text
-  value                String? @map("value")
-  nonce                Int?    @map("nonce")
-  gasLimit             String? @map("gasLimit")
-  gasPrice             String? @map("gasPrice")
-  maxFeePerGas         String? @map("maxFeePerGas")
-  maxPriorityFeePerGas String? @map("maxPriorityFeePerGas")
-  transactionType      Int?    @map("transactionType")
-  transactionHash      String? @map("transactionHash")
-
-  // Enriched Data
-  functionName            String? @map("functionName")
-  functionArgs            String? @map("functionArgs")
-  extension               String? @map("extension")
-
-  // TODO: These shouldnt be in here...
-  deployedContractAddress String? @map("deployedContractAddress")
-  deployedContractType    String? @map("deployedContractType")
-
-  // Timestamps
-  queuedAt    DateTime  @default(now()) @map("queuedAt")
-  processedAt DateTime? @map("processedAt")
-  sentAt      DateTime? @map("sentAt")
-  minedAt     DateTime? @map("minedAt")
-
-  // Retries
-  retryCount                   Int      @default(0) @map("retryCount")
-  retryGasValues               Boolean? @default(false)
-  retryMaxPriorityFeePerGas    String?  @map("retryMaxPriorityFeePerGas")
-  retryMaxFeePerGas            String?  @map("retryMaxFeePerGas")
-
-  // Error
-  errorMessage String? @map("errorMessage")
-
-  // Block Numbers
-  sentAtBlockNumber Int? @map("sentAtBlockNumber")
-  blockNumber       Int? @map("blockNumber")
-
-  @@map("transactions")
-}
-
 model WalletDetails {
-  address            String        @id @map("address")
-  type               String        @map("type")
-
+  address            String  @id @map("address")
+  type               String  @map("type")
   // KMS
-  awsKmsKeyId        String?       @map("awsKmsKeyId")
-  awsKmsArn          String?       @map("awsKmsArn")
-
+  awsKmsKeyId        String? @map("awsKmsKeyId")
+  awsKmsArn          String? @map("awsKmsArn")
   // GCP
-  gcpKmsKeyRingId    String?       @map("gcpKmsKeyRingId") @db.VarChar(50)
-  gcpKmsKeyId        String?       @map("gcpKmsKeyId") @db.VarChar(50)
-  gcpKmsKeyVersionId String?       @map("gcpKmsKeyVersionId") @db.VarChar(20)
-  gcpKmsLocationId   String?       @map("gcpKmsLocationId") @db.VarChar(20)
-  gcpKmsResourcePath String?       @map("gcpKmsResourcePath") @db.Text
-  
-  // One-to-many
-  walletNonce        WalletNonce[]
+  gcpKmsKeyRingId    String? @map("gcpKmsKeyRingId") @db.VarChar(50)
+  gcpKmsKeyId        String? @map("gcpKmsKeyId") @db.VarChar(50)
+  gcpKmsKeyVersionId String? @map("gcpKmsKeyVersionId") @db.VarChar(20)
+  gcpKmsLocationId   String? @map("gcpKmsLocationId") @db.VarChar(20)
+  gcpKmsResourcePath String? @map("gcpKmsResourcePath") @db.Text
 
   @@map("wallet_details")
 }
 
 model WalletNonce {
-  address       String        @map("address")
-  chainId       Int           @map("chainId")
-  nonce         Int           @default(0)
-  
-  // Many-to-one
-  walletDetails WalletDetails @relation(fields: [address], references: [address])
+  address String @map("address")
+  chainId Int    @map("chainId")
+  nonce   Int    @default(0) @map("nonce")
 
   @@id([address, chainId])
   @@map("wallet_nonce")
+}
+
+model Transactions {
+  id                        String    @id @default(uuid()) @map("id")
+  chainId                   Int       @map("chainId")
+  // Shared
+  data                      String?   @map("data")
+  value                     String?   @map("value")
+  gasLimit                  String?   @map("gasLimit")
+  nonce                     Int?      @map("nonce")
+  maxFeePerGas              String?   @map("maxFeePerGas")
+  maxPriorityFeePerGas      String?   @map("maxPriorityFeePerGas")
+  // Transaction Details
+  fromAddress               String?   @map("fromAddress")
+  toAddress                 String?   @map("toAddress")
+  gasPrice                  String?   @map("gasPrice")
+  transactionType           Int?      @map("transactionType")
+  transactionHash           String?   @map("transactionHash")
+  // User Operation
+  signerAddress             String?   @map("signerAddress")
+  accountAddress            String?   @map("accountAddress")
+  target                    String?   @map("target")
+  sender                    String?   @map("sender")
+  initCode                  String?   @map("initCode")
+  callData                  String?   @map("callData")
+  callGasLimit              String?   @map("callGasLimit")
+  verificationGasLimit      String?   @map("verificationGasLimit")
+  preVerificationGas        String?   @map("preVerificationGas")
+  paymasterAndData          String?   @map("paymasterAndData")
+  userOpHash                String?   @map("userOpHash")
+  // Enriched Data
+  functionName              String?   @map("functionName")
+  functionArgs              String?   @map("functionArgs")
+  extension                 String?   @map("extension")
+  // TODO: These shouldnt be in here...
+  deployedContractAddress   String?   @map("deployedContractAddress")
+  deployedContractType      String?   @map("deployedContractType")
+  // Timestamps
+  queuedAt                  DateTime  @default(now()) @map("queuedAt")
+  processedAt               DateTime? @map("processedAt")
+  sentAt                    DateTime? @map("sentAt")
+  minedAt                   DateTime? @map("minedAt")
+  // Retries
+  retryCount                Int       @default(0) @map("retryCount")
+  retryGasValues            Boolean?  @default(false) @map("retryGasValues")
+  retryMaxPriorityFeePerGas String?   @map("retryMaxPriorityFeePerGas")
+  retryMaxFeePerGas         String?   @map("retryMaxFeePerGas")
+  // Error
+  errorMessage              String?   @map("errorMessage")
+  // Block Numbers
+  sentAtBlockNumber         Int?      @map("sentAtBlockNumber")
+  blockNumber               Int?      @map("blockNumber")
+
+  @@map("transactions")
 }

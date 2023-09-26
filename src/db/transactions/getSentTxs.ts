@@ -23,6 +23,7 @@ export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
       transactionHash: {
         not: null,
       },
+      accountAddress: null,
       minedAt: null,
       errorMessage: null,
       retryCount: {

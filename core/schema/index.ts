@@ -41,4 +41,9 @@ export const walletAuthSchema = Type.Object({
   "x-wallet-address": Type.String({
     description: "Wallet address",
   }),
+  "x-account-address": Type.Optional(
+    Type.String({
+      description: "Smart account address",
+    }),
+  ),
 });
