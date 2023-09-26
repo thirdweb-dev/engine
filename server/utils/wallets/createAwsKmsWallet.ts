@@ -1,21 +1,22 @@
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
-import { WalletType } from "../../../src/schema/wallet";
-import { env } from "../../../src/utils/env";
+import { getDecryptedAWSConfigData } from "../config/getDecryptedAWSConfig";
 import { importAwsKmsWallet } from "./importAwsKmsWallet";
 
 export const createAwsKmsWallet = async (): Promise<string> => {
-  if (env.WALLET_CONFIGURATION.type !== WalletType.awsKms) {
-    throw new Error(`Server was not configured for AWS KMS wallet creation`);
-  }
+  // if (env.WALLET_CONFIGURATION.type !== WalletType.awsKms) {
+  //   throw new Error(`Server was not configured for AWS KMS wallet creation`);
+  // }
 
-  /// Read from cache or DB
+  /// Read from DB
+  // ToDo: cache this
+  const awsCreds = await getDecryptedAWSConfigData();
 
   const client = new KMSClient({
     credentials: {
-      accessKeyId: env.WALLET_CONFIGURATION.awsAccessKeyId,
-      secretAccessKey: env.WALLET_CONFIGURATION.awsSecretAccessKey,
+      accessKeyId: awsCreds.awsAccessKey,
+      secretAccessKey: awsCreds.awsSecretAccessKey,
     },
-    region: env.WALLET_CONFIGURATION.awsRegion,
+    region: awsCreds.awsRegion,
   });
 
   const res = await client.send(

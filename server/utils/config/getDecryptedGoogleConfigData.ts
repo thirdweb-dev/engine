@@ -1,39 +1,65 @@
+import { getConfigData } from "../../../src/db/config/getConfigData";
+import { WalletType } from "../../../src/schema/wallet";
 import { GCPConfig } from "../../schemas/config";
 import { decryptText } from "../../utilities/cryptography";
 
-export const getDecryptedGoogleConfigData = (configData: GCPConfig) => {
+export const getDecryptedGoogleConfigData = async (configData?: GCPConfig) => {
+  let encryptedCreds;
+
+  if (!configData) {
+    encryptedCreds = await getConfigData({
+      configType: WalletType.gcpKms,
+    });
+  } else {
+    encryptedCreds = configData;
+  }
+
   if (
-    !configData.gcpAppCredentialEmail ||
-    !configData.gcpAppCredentialEmailIV ||
-    !configData.gcpAppCredentialEmailAuthTag
+    !encryptedCreds ||
+    !encryptedCreds.gcpAppCredentialEmail! ||
+    !encryptedCreds.gcpAppCredentialEmailIV ||
+    !encryptedCreds.gcpAppCredentialEmailAuthTag ||
+    !encryptedCreds.gcpAppCredentialPrivateKey ||
+    !encryptedCreds.gcpAppCredentialPrivateKeyIV ||
+    !encryptedCreds.gcpAppCredentialPrivateKeyAuthTag ||
+    !encryptedCreds.gcpProjectId ||
+    !encryptedCreds.gcpProjectIdIV ||
+    !encryptedCreds.gcpProjectIdAuthTag ||
+    !encryptedCreds.gcpKmsRingId ||
+    !encryptedCreds.gcpKmsRingIdIV ||
+    !encryptedCreds.gcpKmsRingIdAuthTag ||
+    !encryptedCreds.gcpLocationId ||
+    !encryptedCreds.gcpLocationIdIV ||
+    !encryptedCreds.gcpLocationIdAuthTag
   ) {
     throw new Error("Missing Google Keys");
   }
+
   const result = {
     gcpAppCredentialEmail: decryptText({
-      encryptedData: configData.gcpAppCredentialEmail!,
-      iv: configData.gcpAppCredentialEmailIV!,
-      authTag: configData.gcpAppCredentialEmailAuthTag!,
+      encryptedData: encryptedCreds.gcpAppCredentialEmail!,
+      iv: encryptedCreds.gcpAppCredentialEmailIV!,
+      authTag: encryptedCreds.gcpAppCredentialEmailAuthTag!,
     }),
     gcpAppCredentialPrivateKey: decryptText({
-      encryptedData: configData.gcpAppCredentialPrivateKey!,
-      iv: configData.gcpAppCredentialPrivateKeyIV!,
-      authTag: configData.gcpAppCredentialPrivateKeyAuthTag!,
+      encryptedData: encryptedCreds.gcpAppCredentialPrivateKey!,
+      iv: encryptedCreds.gcpAppCredentialPrivateKeyIV!,
+      authTag: encryptedCreds.gcpAppCredentialPrivateKeyAuthTag!,
     }),
     gcpProjectId: decryptText({
-      encryptedData: configData.gcpProjectId!,
-      iv: configData.gcpProjectIdIV!,
-      authTag: configData.gcpProjectIdAuthTag!,
+      encryptedData: encryptedCreds.gcpProjectId!,
+      iv: encryptedCreds.gcpProjectIdIV!,
+      authTag: encryptedCreds.gcpProjectIdAuthTag!,
     }),
     gcpKmsRingId: decryptText({
-      encryptedData: configData.gcpKmsRingId!,
-      iv: configData.gcpKmsRingIdIV!,
-      authTag: configData.gcpKmsRingIdAuthTag!,
+      encryptedData: encryptedCreds.gcpKmsRingId!,
+      iv: encryptedCreds.gcpKmsRingIdIV!,
+      authTag: encryptedCreds.gcpKmsRingIdAuthTag!,
     }),
     gcpLocationId: decryptText({
-      encryptedData: configData.gcpLocationId!,
-      iv: configData.gcpLocationIdIV!,
-      authTag: configData.gcpLocationIdAuthTag!,
+      encryptedData: encryptedCreds.gcpLocationId!,
+      iv: encryptedCreds.gcpLocationIdIV!,
+      authTag: encryptedCreds.gcpLocationIdAuthTag!,
     }),
   };
 

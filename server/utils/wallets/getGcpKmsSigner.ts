@@ -1,24 +1,27 @@
 import { GcpKmsSigner } from "ethers-gcp-kms-signer";
-import { WalletType } from "../../../src/schema/wallet";
-import { env } from "../../../src/utils/env";
+import { getDecryptedGoogleConfigData } from "../config/getDecryptedGoogleConfigData";
 
 interface GetGcpKmsSignerParams {
   gcpKmsKeyId: string;
   gcpKmsKeyVersionId: string;
 }
 
-export const getGcpKmsSigner = ({
+export const getGcpKmsSigner = async ({
   gcpKmsKeyId,
   gcpKmsKeyVersionId,
 }: GetGcpKmsSignerParams) => {
-  if (env.WALLET_CONFIGURATION.type !== WalletType.gcpKms) {
-    throw new Error(`Server was not configured for GCP KMS.`);
-  }
+  // if (env.WALLET_CONFIGURATION.type !== WalletType.gcpKms) {
+  //   throw new Error(`Server was not configured for GCP KMS.`);
+  // }
+
+  /// Read from DB
+  // ToDo: cache this
+  const gcpCreds = await getDecryptedGoogleConfigData();
 
   return new GcpKmsSigner({
-    projectId: env.WALLET_CONFIGURATION.gcpApplicationProjectId,
-    locationId: env.WALLET_CONFIGURATION.gcpKmsLocationId,
-    keyRingId: env.WALLET_CONFIGURATION.gcpKmsKeyRingId,
+    projectId: gcpCreds.gcpProjectId,
+    locationId: gcpCreds.gcpLocationId,
+    keyRingId: gcpCreds.gcpKmsRingId,
     keyId: gcpKmsKeyId,
     keyVersion: gcpKmsKeyVersionId,
   });

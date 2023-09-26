@@ -58,12 +58,12 @@ export const getWallet = async <TWallet extends WalletType>({
   let wallet: AbstractWallet;
   switch (walletDetails.type) {
     case WalletType.awsKms:
-      wallet = getAwsKmsWallet({
+      wallet = await getAwsKmsWallet({
         awsKmsKeyId: walletDetails.awsKmsKeyId!,
       });
       break;
     case WalletType.gcpKms:
-      const signer = getGcpKmsSigner({
+      const signer = await getGcpKmsSigner({
         gcpKmsKeyId: walletDetails.gcpKmsKeyId!,
         gcpKmsKeyVersionId: walletDetails.gcpKmsKeyVersionId!,
       });

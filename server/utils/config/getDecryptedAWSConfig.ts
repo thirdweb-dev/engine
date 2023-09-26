@@ -1,29 +1,49 @@
+import { getConfigData } from "../../../src/db/config/getConfigData";
+import { WalletType } from "../../../src/schema/wallet";
 import { AWSConfig } from "../../schemas/config";
 import { decryptText } from "../../utilities/cryptography";
 
-export const getDecryptedAWSConfigData = (configData: AWSConfig) => {
-  if (
-    !configData.awsAccessKey ||
-    !configData.awsAccessKeyIV ||
-    !configData.awsAccessKeyAuthTag
-  ) {
-    throw new Error("Missing AWS Keys");
+export const getDecryptedAWSConfigData = async (configData?: AWSConfig) => {
+  let encryptedCreds;
+
+  if (!configData) {
+    encryptedCreds = await getConfigData({
+      configType: WalletType.awsKms,
+    });
+  } else {
+    encryptedCreds = configData;
   }
+
+  if (
+    !encryptedCreds ||
+    !encryptedCreds.awsAccessKey ||
+    !encryptedCreds.awsSecretAccessKey ||
+    !encryptedCreds.awsRegion ||
+    !encryptedCreds.awsAccessKeyIV ||
+    !encryptedCreds.awsSecretAccessKeyIV ||
+    !encryptedCreds.awsRegionIV ||
+    !encryptedCreds.awsAccessKeyAuthTag ||
+    !encryptedCreds.awsSecretAccessKeyAuthTag ||
+    !encryptedCreds.awsRegionAuthTag
+  ) {
+    throw new Error(`No AWS KMS configuration found`);
+  }
+
   const result = {
     awsAccessKey: decryptText({
-      encryptedData: configData.awsAccessKey!,
-      iv: configData.awsAccessKeyIV!,
-      authTag: configData.awsAccessKeyAuthTag!,
+      encryptedData: encryptedCreds.awsAccessKey!,
+      iv: encryptedCreds.awsAccessKeyIV!,
+      authTag: encryptedCreds.awsAccessKeyAuthTag!,
     }),
     awsSecretAccessKey: decryptText({
-      encryptedData: configData.awsSecretAccessKey!,
-      iv: configData.awsSecretAccessKeyIV!,
-      authTag: configData.awsSecretAccessKeyAuthTag!,
+      encryptedData: encryptedCreds.awsSecretAccessKey!,
+      iv: encryptedCreds.awsSecretAccessKeyIV!,
+      authTag: encryptedCreds.awsSecretAccessKeyAuthTag!,
     }),
     awsRegion: decryptText({
-      encryptedData: configData.awsRegion!,
-      iv: configData.awsRegionIV!,
-      authTag: configData.awsRegionAuthTag!,
+      encryptedData: encryptedCreds.awsRegion!,
+      iv: encryptedCreds.awsRegionIV!,
+      authTag: encryptedCreds.awsRegionAuthTag!,
     }),
   };
 

@@ -104,10 +104,7 @@ function App() {
             Configure and manage your wallets and transaction settings
           </span>
         </div>
-        <Flex
-          align="center"
-          className={!inputSecretKey ? "no-auth" : "auth-added"}
-        >
+        <Flex align="center" className="no-auth">
           <Text as="label" mr={2} whiteSpace="nowrap">
             Auth Token:
           </Text>
