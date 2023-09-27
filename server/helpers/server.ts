@@ -85,7 +85,8 @@ export const createServer = async (): Promise<FastifyInstance> => {
 
       if (
         request.url === "/wallet/import" ||
-        request.url === "/wallet/create"
+        request.url === "/wallet/create" ||
+        request.url === "/config/create"
       ) {
         return;
       }

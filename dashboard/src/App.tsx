@@ -20,6 +20,8 @@ import { TabInput, WalletType } from "./types";
 import { SecretKeyProvider, useSecretKey } from "./utils/SecretKeyContext";
 
 function App() {
+  localStorage.clear();
+
   const [walletData, setWalletData] = useState([]);
   const [transactionData, setTransactionData] = useState<TransactionData[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -60,6 +62,7 @@ function App() {
 
       try {
         const _configData = await getConfigData(secretKeyContext?.secretKey);
+        console.log(_configData);
         if (_configData.configType === WalletType.awsKms) {
           setAwsData({ ..._configData });
         } else if (_configData.configType === WalletType.gcpKms) {
@@ -113,7 +116,6 @@ function App() {
             className="input"
             value={inputSecretKey}
             type="password"
-            disabled={secretKey !== null}
             onChange={(e) => setInputSecretKey(e.target.value)}
             mr={2}
           />

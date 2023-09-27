@@ -98,7 +98,7 @@ export const getAllConfig = async (fastify: FastifyInstance) => {
         {};
 
       if (allConfigData[0].configType === WalletType.awsKms) {
-        const awsConfigData = getDecryptedAWSConfigData(
+        const awsConfigData = await getDecryptedAWSConfigData(
           allConfigData[0] as AWSConfig,
         );
         returnData = {
@@ -106,7 +106,7 @@ export const getAllConfig = async (fastify: FastifyInstance) => {
           ...awsConfigData,
         };
       } else if (allConfigData[0].configType === WalletType.gcpKms) {
-        const googleConfigData = getDecryptedGoogleConfigData(
+        const googleConfigData = await getDecryptedGoogleConfigData(
           allConfigData[0] as GCPConfig,
         );
         returnData = {
