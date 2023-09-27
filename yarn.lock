@@ -1958,10 +1958,10 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.3.3.tgz#ff6ee919fc2a1abaf72b22814bfb72ed129ec137"
   integrity sha512-tDBopO1c98Yk7Cv/PZlHqrvtVjlgK5R4J6jxLwoO7qxK4xqOiZG+zSkIvGFpPZ0ikc3QOED3plgdqjgNTnBc7g==
 
-"@paperxyz/embedded-wallet-service-sdk@^1.1.3":
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/@paperxyz/embedded-wallet-service-sdk/-/embedded-wallet-service-sdk-1.1.3.tgz#f2a65f27843a04dd6ada21f15924b502d296401b"
-  integrity sha512-3lPiUjFYTikj/amsBo+TlTDd+jFIUZ0+4BVFmROwM6qL4zecB2LQojcUq3I0Td8ho9yevdI+EQ57p6XWaq18yg==
+"@paperxyz/embedded-wallet-service-sdk@^1.2.4":
+  version "1.2.4"
+  resolved "https://registry.yarnpkg.com/@paperxyz/embedded-wallet-service-sdk/-/embedded-wallet-service-sdk-1.2.4.tgz#2f7f33f7b237ca36b0ac762563bd110c08712c4b"
+  integrity sha512-yCOvGB6aEQB06UWowBgu0+thXOwxcHLF3j+e0YgiWtvEpZ8EgbfqbuL9NHN0zJJsTNjF05T39haDQMOBgrMpYA==
   dependencies:
     "@ethersproject/abstract-signer" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"
@@ -1969,7 +1969,7 @@
     "@ethersproject/providers" "^5.7.2"
     "@paperxyz/sdk-common-utilities" "*"
 
-"@paperxyz/sdk-common-utilities@*":
+"@paperxyz/sdk-common-utilities@*", "@paperxyz/sdk-common-utilities@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@paperxyz/sdk-common-utilities/-/sdk-common-utilities-0.1.0.tgz#a948ef20d080b63e8bc0caa3ef337177a782f370"
   integrity sha512-+zE2wp9gI5kjI6yHdrigeqLRDueAFz70v6hUKOT98Nyy4yL8YUR3OvXFAnAyZLXrr0v1uLlDYQdBz0fI2StmGg==
@@ -2795,22 +2795,15 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.0.0-dev-b1d4b3b-20230922050105.tgz#dc628c6189af628a9cb05af07201b0f79794fbd2"
   integrity sha512-lvZfKqjcl3puCAe/WFLOcxCGq+X/U+6NbJPr2fZHihIunvegHv/43evP7FIWuFBJzN8QLmgsaG9ufHy6ePoqyw==
 
-"@thirdweb-dev/chains@0.1.50":
-  version "0.1.50"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.50.tgz#857ce24a30821497974e55d75e721905cb35ca33"
-  integrity sha512-0rpBdFVgTE5mjgbafoBkpUnq0izx9NZz0mfFammQXWb08eQZUueuBHOVNhK2pRQT346SpQLtf65Oqag82+zZoA==
+"@thirdweb-dev/chains@0.0.0-dev-d86829b-20230927000710":
+  version "0.0.0-dev-d86829b-20230927000710"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.0.0-dev-d86829b-20230927000710.tgz#2035236423bf0ff2a47683185e0f1a1bc5104255"
+  integrity sha512-V6AGRv4XqHoHJuBwSj4rhautLoZnM6LkRBnFSQsqXxfmZwsK0IU79+Rxf/EWtSI+XEM/mTekme//q0HVp4YJUg==
 
 "@thirdweb-dev/chains@^0.1.46":
   version "0.1.46"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.46.tgz#d115c0b8efb02e74ee38ef8c1237bdf476e62717"
   integrity sha512-AVDLJZ6ttFY8jPzQTKe3mRMnCAQcUzK6eX5vjs9A5CqUCdq7mBmuMM4x3fRs/80FR4vRdEaEYkdRv6HCjCHxGw==
-
-"@thirdweb-dev/contracts-js@1.3.12":
-  version "1.3.12"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts-js/-/contracts-js-1.3.12.tgz#57aa2ad364ad78a2816cd045f5a555514fee4891"
-  integrity sha512-CBgxCYea7fst4bSS1dXDDOOB2rb9FsgFCAUzQPSQIlpqajOJES1fEPZc/TlFz7u444AYxA/9NoHesQ9RipQUgA==
-  dependencies:
-    "@thirdweb-dev/contracts" "3.8.5"
 
 "@thirdweb-dev/contracts-js@1.3.13":
   version "1.3.13"
@@ -2823,17 +2816,6 @@
   version "3.10.0"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.10.0.tgz#162d3b090ee576a18f530a3997f820600aab5f73"
   integrity sha512-IGnFev/ooS4y/oh+wURuv0E32ztYDeZk7RdWO0si1YY5vDMSbVu/TBhlhmLPcfIZWs0IjCAoA6H/Zy5QV5mkhw==
-  dependencies:
-    "@chainlink/contracts" "^0.6.1"
-    "@openzeppelin/contracts" "4.7.3"
-    "@openzeppelin/contracts-upgradeable" "4.7.3"
-    "@thirdweb-dev/dynamic-contracts" "^1.1.2"
-    erc721a-upgradeable "^3.3.0"
-
-"@thirdweb-dev/contracts@3.8.5":
-  version "3.8.5"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts/-/contracts-3.8.5.tgz#7c9e95808c74a43830408cb1c8a2f477c45cc371"
-  integrity sha512-JUAeJJlNLw+Lb/8StER8k74VEi5kXDaQx6Ko3cyJnKTWHpZ28xvGIPphkgOFaLw6cG/q4xB423crcZnQZw9YLQ==
   dependencies:
     "@chainlink/contracts" "^0.6.1"
     "@openzeppelin/contracts" "4.7.3"
@@ -2874,13 +2856,13 @@
     yaml "^2.3.1"
     zod "^3.20.2"
 
-"@thirdweb-dev/sdk@3.10.59":
-  version "3.10.59"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.59.tgz#9f820ee511a5bf20d865958961a125be05b7acb6"
-  integrity sha512-uDGc2yavYRiXP1+etUaDNLJdzaTSFRPQNoKNqzbR1HMHMHb/KHHPXHKO50AuKpc5pMw8/f+OmCphF0qTMTZu1Q==
+"@thirdweb-dev/sdk@0.0.0-dev-d86829b-20230927000710":
+  version "0.0.0-dev-d86829b-20230927000710"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-0.0.0-dev-d86829b-20230927000710.tgz#5bfbae7eee26bc67684434740925ab5c99e31d0d"
+  integrity sha512-629sIYKBKN78N5Sv2bHfjUqJU5XUYYC8WEPW4gLe7IT72aK/F+VzpUtuM36JNsRf7uGbtb2tgpDUh6vdl7JGCw==
   dependencies:
-    "@thirdweb-dev/chains" "0.1.50"
-    "@thirdweb-dev/contracts-js" "1.3.12"
+    "@thirdweb-dev/chains" "0.0.0-dev-d86829b-20230927000710"
+    "@thirdweb-dev/contracts-js" "1.3.13"
     "@thirdweb-dev/generated-abis" "0.0.1"
     "@thirdweb-dev/storage" "1.2.10"
     abitype "^0.2.5"
@@ -2915,10 +2897,10 @@
     form-data "^4.0.0"
     uuid "^9.0.0"
 
-"@thirdweb-dev/wallets@^1.1.23":
-  version "1.1.23"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-1.1.23.tgz#c6d30dea71a477a7a18f91c8745b5afab84443a3"
-  integrity sha512-xwFdUK3izhFdfJFq1NZnjrG03rHjxteSfxi8VV1TNL7izl36WLFbW/IkLMYnxQ8Yb90l8E7ET29mXS6VQHChjQ==
+"@thirdweb-dev/wallets@0.0.0-dev-d86829b-20230927000710":
+  version "0.0.0-dev-d86829b-20230927000710"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-0.0.0-dev-d86829b-20230927000710.tgz#aec384d6f3bbe3c4bb206a3c8bf58a0040d0fdb7"
+  integrity sha512-j2/381RERxTjDgX4eHp/yeAxbq0KTCcbwlE9uMPEO+YBd5+fa4zWF0RDTZCB+WjkLk9q0iFEEPPHPtkZGe173Q==
   dependencies:
     "@account-abstraction/contracts" "^0.5.0"
     "@account-abstraction/sdk" "^0.5.0"
@@ -2928,13 +2910,14 @@
     "@magic-ext/connect" "^6.7.2"
     "@magic-ext/oauth" "^7.6.2"
     "@magic-sdk/provider" "^13.6.2"
-    "@paperxyz/embedded-wallet-service-sdk" "^1.1.3"
+    "@paperxyz/embedded-wallet-service-sdk" "^1.2.4"
+    "@paperxyz/sdk-common-utilities" "^0.1.0"
     "@safe-global/safe-core-sdk" "^3.3.4"
     "@safe-global/safe-ethers-adapters" "0.1.0-alpha.17"
     "@safe-global/safe-ethers-lib" "^1.9.4"
-    "@thirdweb-dev/chains" "0.1.50"
-    "@thirdweb-dev/contracts-js" "1.3.12"
-    "@thirdweb-dev/sdk" "3.10.59"
+    "@thirdweb-dev/chains" "0.0.0-dev-d86829b-20230927000710"
+    "@thirdweb-dev/contracts-js" "1.3.13"
+    "@thirdweb-dev/sdk" "0.0.0-dev-d86829b-20230927000710"
     "@walletconnect/core" "^2.9.1"
     "@walletconnect/ethereum-provider" "^2.9.1"
     "@walletconnect/jsonrpc-utils" "^1.0.8"
