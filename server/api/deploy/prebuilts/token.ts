@@ -64,7 +64,9 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
       const { chain } = request.params;
       const { contractMetadata, version } = request.body;
       const chainId = getChainIdFromChain(chain);
-      const walletAddress = request.headers["x-wallet-address"] as string;
+      const walletAddress = request.headers[
+        "x-backend-wallet-address"
+      ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });

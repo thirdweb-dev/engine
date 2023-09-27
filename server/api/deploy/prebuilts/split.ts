@@ -57,11 +57,12 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      //TODO add x-wallet-address to headers
       const { chain } = request.params;
       const { contractMetadata, version } = request.body;
       const chainId = getChainIdFromChain(chain);
-      const walletAddress = request.headers["x-wallet-address"] as string;
+      const walletAddress = request.headers[
+        "x-backend-wallet-address"
+      ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });

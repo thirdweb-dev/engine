@@ -86,9 +86,9 @@ POSTGRES_CONNECTION_URL="postgresql://postgres:postgres@host.docker.internal:543
 - In development mode, go to the server url to see an admin interface
 - Every request to the server requires an authentication token for admin actions use the thirdweb SecretKey. Use the `Authorization` Header to set the value shown below:
   - `Authorization: Bearer: <thirdweb SecretKey>`
-- Every write request to the server also requires the `x-wallet-address` header to specify which admin wallet to send a transaction with. Use the following format to set this header:
+- Every write request to the server also requires the `x-backend-wallet-address` header to specify which admin wallet to send a transaction with. Use the following format to set this header:
 
-  - `X-Wallet-Address: 0x3ecdbf3b911d0e9052b64850693888b008e18373`
+  - `x-backend-wallet-address: 0x3ecdbf3b911d0e9052b64850693888b008e18373`
 
 - Contract API
 

@@ -45,7 +45,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
     handler: async (req, rep) => {
       const { chain, contract_address } = req.params;
       const { admin_address, extra_data } = req.body;
-      const walletAddress = req.headers["x-wallet-address"] as string;
+      const walletAddress = req.headers["x-backend-wallet-address"] as string;
       const accountAddress = req.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
 
