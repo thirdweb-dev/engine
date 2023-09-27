@@ -1,10 +1,10 @@
-import { EVMWallet, EthersWallet } from "@thirdweb-dev/wallets";
+import { EVMWallet } from "@thirdweb-dev/wallets";
 import { getAwsKmsWallet } from "../../../server/utils/wallets/getAwsKmsWallet";
-import { getGcpKmsSigner } from "../../../server/utils/wallets/getGcpKmsSigner";
 import { getLocalWallet } from "../../../server/utils/wallets/getLocalWallet";
 import { getWalletDetails } from "../../../src/db/wallets/getWalletDetails";
 import { PrismaTransaction } from "../../../src/schema/prisma";
 import { WalletType } from "../../../src/schema/wallet";
+import { getGcpKmsWallet } from "../wallets/getGcpKmsWallet";
 import { getSmartWallet } from "../wallets/getSmartWallet";
 
 const walletsCache = new Map<string, EVMWallet>();
@@ -46,11 +46,10 @@ export const getWallet = async <TWallet extends EVMWallet>({
       });
       break;
     case WalletType.gcpKms:
-      const signer = getGcpKmsSigner({
+      wallet = getGcpKmsWallet({
         gcpKmsKeyId: walletDetails.gcpKmsKeyId!,
         gcpKmsKeyVersionId: walletDetails.gcpKmsKeyVersionId!,
       });
-      wallet = new EthersWallet(signer);
       break;
     case WalletType.local:
       wallet = await getLocalWallet({ chainId, walletAddress });

@@ -1,21 +1,21 @@
-import { GcpKmsSigner } from "ethers-gcp-kms-signer";
+import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
 import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
 
-interface GetGcpKmsSignerParams {
+interface GetGcpKmsWalletParams {
   gcpKmsKeyId: string;
   gcpKmsKeyVersionId: string;
 }
 
-export const getGcpKmsSigner = ({
+export const getGcpKmsWallet = ({
   gcpKmsKeyId,
   gcpKmsKeyVersionId,
-}: GetGcpKmsSignerParams) => {
+}: GetGcpKmsWalletParams) => {
   if (env.WALLET_CONFIGURATION.type !== WalletType.gcpKms) {
     throw new Error(`Server was not configured for GCP KMS.`);
   }
 
-  return new GcpKmsSigner({
+  return new GcpKmsWallet({
     projectId: env.WALLET_CONFIGURATION.gcpApplicationProjectId,
     locationId: env.WALLET_CONFIGURATION.gcpKmsLocationId,
     keyRingId: env.WALLET_CONFIGURATION.gcpKmsKeyRingId,
