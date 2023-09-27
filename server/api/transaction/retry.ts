@@ -6,7 +6,7 @@ import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 
 // INPUT
 const requestSchema = Type.Object({
-  tx_queue_id: Type.String({
+  queueId: Type.String({
     description: "Transaction Queue ID",
     examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
   }),
@@ -40,7 +40,7 @@ export async function retryTransaction(fastify: FastifyInstance) {
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
-    url: "/transaction/retry/:tx_queue_id",
+    url: "/transaction/retry/:queueId",
     schema: {
       description: "Retry Transaction with custom gas values",
       tags: ["Transaction"],
@@ -53,18 +53,18 @@ export async function retryTransaction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { tx_queue_id } = request.params;
+      const { queueId } = request.params;
       const { maxFeePerGas, maxPriorityFeePerGas } = request.body;
 
       await retryTx({
-        queueId: tx_queue_id,
+        queueId: queueId,
         maxFeePerGas,
         maxPriorityFeePerGas,
       });
 
       reply.status(StatusCodes.OK).send({
         result: {
-          message: `Transaction gas values updated for queueId: ${tx_queue_id}`,
+          message: `Transaction gas values updated for queueId: ${queueId}`,
           status: "success",
         },
       });

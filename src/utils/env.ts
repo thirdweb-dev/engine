@@ -71,6 +71,16 @@ export const env = createEnv({
     RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
     MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(10),
     MAX_WAIT_TIME_BEFORE_RETRY: z.coerce.number().default(600),
+    WEBHOOKS_ENABLED: boolSchema("true"),
+    WEBHOOK_URL: z
+      .string()
+      .default("")
+      .transform((url) => {
+        if (url.length > 0) {
+          return url;
+        }
+        return "";
+      }),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -127,6 +137,8 @@ export const env = createEnv({
     MAX_BLOCKS_ELAPSED_BEFORE_RETRY:
       process.env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY,
     MAX_WAIT_TIME_BEFORE_RETRY: process.env.MAX_WAIT_TIME_BEFORE_RETRY,
+    WEBHOOKS_ENABLED: process.env.WEBHOOKS_ENABLED,
+    WEBHOOK_URL: process.env.WEBHOOK_URL,
   },
   onValidationError: (error: ZodError) => {
     console.error(

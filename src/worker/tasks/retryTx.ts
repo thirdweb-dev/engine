@@ -13,9 +13,10 @@ export const retryTx = async () => {
   try {
     await prisma.$transaction(
       async (pgtx) => {
+        logger.worker.info(`[Transaction] Retrying`);
         // Get one transaction to retry at a time
         const tx = await getTxToRetry({ pgtx });
-
+        console.log("tx", tx);
         if (!tx) {
           return;
         }
@@ -25,7 +26,9 @@ export const retryTx = async () => {
           walletAddress: tx.fromAddress!,
         });
         const blockNumber = await sdk.getProvider().getBlockNumber();
-
+        logger.worker.debug(
+          `[Transaction] [${tx.id}] Block number ${blockNumber} - Sent at block number ${tx.sentAtBlockNumber}`,
+        );
         // Only retry if more than the ellapsed blocks before retry has passed
         if (
           blockNumber - tx.sentAtBlockNumber! <=
@@ -34,10 +37,11 @@ export const retryTx = async () => {
           return;
         }
 
-        const receipt = sdk
+        const receipt = await sdk
           .getProvider()
           .getTransactionReceipt(tx.transactionHash!);
 
+        logger.worker.debug(`[Transaction] [${tx.id}] Receipt - ${receipt}`);
         // If the transaction has been mined but just not updated yet in database, don't retry
         if (!!receipt) {
           return;
@@ -45,6 +49,11 @@ export const retryTx = async () => {
 
         // TODO: We should still retry anyway
         const gasOverrides = await getDefaultGasOverrides(sdk.getProvider());
+        logger.worker.debug(
+          `[Transaction] [${tx.id}] Gas overrides - ${JSON.stringify(
+            gasOverrides,
+          )}`,
+        );
         if (gasOverrides.maxFeePerGas?.lte(BigNumber.from(tx.maxFeePerGas))) {
           // If the current blockchain gas fees are lower than the transaction, wait
           return;

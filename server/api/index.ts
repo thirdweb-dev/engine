@@ -4,6 +4,7 @@ import { readContract } from "./contract/read/read";
 import { writeToContract } from "./contract/write/write";
 
 // Transactions
+import { cancelTransaction } from "./transaction/cancel";
 import { getAllTx } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
 import { retryTransaction } from "./transaction/retry";
@@ -82,6 +83,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
   await fastify.register(retryTransaction);
+  await fastify.register(cancelTransaction);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);

@@ -72,6 +72,7 @@ model Transactions {
   processedAt               DateTime? @map("processedAt")
   sentAt                    DateTime? @map("sentAt")
   minedAt                   DateTime? @map("minedAt")
+  cancelledAt               DateTime? @map("cancelledAt")
   // Retries
   retryCount                Int       @default(0) @map("retryCount")
   retryGasValues            Boolean?  @default(false) @map("retryGasValues")

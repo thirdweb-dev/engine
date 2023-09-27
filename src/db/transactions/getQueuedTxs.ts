@@ -24,6 +24,7 @@ WHERE
   "processedAt" IS NULL
   AND "sentAt" IS NULL
   AND "minedAt" IS NULL
+  AND "cancelledAt" IS NULL
 ORDER BY
   "queuedAt"
 ASC

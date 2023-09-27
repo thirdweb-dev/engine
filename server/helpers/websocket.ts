@@ -93,7 +93,7 @@ export const onClose = async (
 
 export const wsTimeout = async (
   connection: SocketStream,
-  tx_queue_id: string,
+  queueId: string,
   request: FastifyRequest,
 ): Promise<NodeJS.Timeout> => {
   return setTimeout(() => {
@@ -101,14 +101,14 @@ export const wsTimeout = async (
     removeWSFromSharedState(connection, request);
     connection.socket.close(1000, "Session timeout"); // 1000 is a normal closure status code
     request.log.info(
-      `Websocket connection for ${tx_queue_id} closed due to timeout.`,
+      `Websocket connection for ${queueId} closed due to timeout.`,
     );
   }, timeoutDuration);
 };
 
 export const findOrAddWSConnectionInSharedState = async (
   connection: SocketStream,
-  tx_queue_id: string,
+  queueId: string,
   request: FastifyRequest,
 ) => {
   let userSubscription: UserSubscription | undefined = undefined;
@@ -118,7 +118,7 @@ export const findOrAddWSConnectionInSharedState = async (
   } else {
     userSubscription = {
       socket: connection.socket,
-      requestId: tx_queue_id,
+      requestId: queueId,
     };
 
     subscriptionsData.push(userSubscription);
