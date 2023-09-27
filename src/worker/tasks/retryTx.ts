@@ -34,7 +34,7 @@ export const retryTx = async () => {
           return;
         }
 
-        const receipt = sdk
+        const receipt = await sdk
           .getProvider()
           .getTransactionReceipt(tx.transactionHash!);
 
