@@ -1,5 +1,6 @@
 import { Transactions } from "@prisma/client";
 import type { PrismaTransaction } from "../../schema/prisma";
+import { env } from "../../utils/env";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface GetTxToRetryParams {
@@ -25,7 +26,7 @@ WHERE
   AND "minedAt" IS NULL
   AND "errorMessage" IS NULL
   AND "transactionHash" IS NOT NULL
-  AND "retryCount" < 3
+  AND "retryCount" < ${env.MAX_RETRIES_FOR_TX}
 ORDER BY
   "sentAt"
 ASC
