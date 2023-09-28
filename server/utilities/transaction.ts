@@ -89,8 +89,8 @@ export const cancelTransactionAndUpdate = async ({
         status: TransactionStatusEnum.Cancelled,
         txData: {
           cancelledAt,
-          data: "0x",
-          value: "0x00",
+          data: transferTransactionResult.data,
+          value: transferTransactionResult.value.toString(),
           toAddress: walletAddress,
           functionName: null,
           functionArgs: null,
