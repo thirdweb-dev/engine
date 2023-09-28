@@ -77,9 +77,11 @@ export async function erc721mintBatchTo(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc721.mintBatchTo.prepare(receiver, metadatas);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

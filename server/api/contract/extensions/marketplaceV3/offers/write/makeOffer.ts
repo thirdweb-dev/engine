@@ -80,13 +80,15 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         quantity,
       });
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-offers",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });
