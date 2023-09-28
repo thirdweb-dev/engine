@@ -71,9 +71,11 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
         spender_address,
         amount,
       );
-      const queuedId = await queueTx({ tx, chainId, extension: "erc20" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

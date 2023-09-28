@@ -90,10 +90,12 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
         receiver,
         metadataWithSupply,
       );
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

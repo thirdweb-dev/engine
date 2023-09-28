@@ -70,7 +70,9 @@ export const updateSession = async (fastify: FastifyInstance) => {
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({
-        result: queueId,
+        result: {
+          queueId,
+        },
       });
     },
   });

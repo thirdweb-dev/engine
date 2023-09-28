@@ -63,9 +63,11 @@ export async function erc721burn(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc721.burn.prepare(token_id);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

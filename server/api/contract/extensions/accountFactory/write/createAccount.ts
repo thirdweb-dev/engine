@@ -64,7 +64,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
           admin_address,
           extra_data,
         );
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "account-factory",
@@ -74,7 +74,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
 
       rep.status(StatusCodes.OK).send({
         result: {
-          queuedId,
+          queueId,
           deployedAddress,
         },
       });
