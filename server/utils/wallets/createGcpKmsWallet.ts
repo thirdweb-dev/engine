@@ -12,7 +12,9 @@ export const createGcpKmsWallet = async (): Promise<string> => {
   const client = new KeyManagementServiceClient({
     credentials: {
       client_email: env.WALLET_CONFIGURATION.gcpApplicationCredentialEmail,
-      private_key: env.WALLET_CONFIGURATION.gcpApplicationCredentialPrivateKey,
+      private_key: env.WALLET_CONFIGURATION.gcpApplicationCredentialPrivateKey
+        .split(String.raw`\n`)
+        .join("\n"),
     },
     projectId: env.WALLET_CONFIGURATION.gcpApplicationProjectId,
   });

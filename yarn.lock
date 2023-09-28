@@ -2828,10 +2828,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/generated-abis/-/generated-abis-0.0.1.tgz#0d788d6aff0ac08f11e9eeb9ae4c8321845272a8"
   integrity sha512-vO9/3lSLO8smyyH1QVeYravSTzFwV1nf1C/Im1NBDPdH8//YvcbhtETGGiNfHWpyCvSi0vRYwvf+/7FKdwpDGQ==
 
-"@thirdweb-dev/sdk@3.10.63-nightly-c2bfc771-20230927232705", "@thirdweb-dev/sdk@^3.10.63-nightly-c2bfc771-20230927232705":
-  version "3.10.63-nightly-c2bfc771-20230927232705"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.63-nightly-c2bfc771-20230927232705.tgz#6ce3587561f755404e966007e6f9cc7b37f1c338"
-  integrity sha512-G3EdUKc/taffu1A1xUqOTsv74Y1eAb7IikgOR0DpcoUn0D7ArtfaHFoRrDrEP7rc1Ji2EoODnbZlMKtTeSnFzg==
+"@thirdweb-dev/sdk@3.10.63-nightly-eb9e9f0c-20230928174429", "@thirdweb-dev/sdk@^3.10.63-nightly-eb9e9f0c-20230928174429":
+  version "3.10.63-nightly-eb9e9f0c-20230928174429"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.63-nightly-eb9e9f0c-20230928174429.tgz#08b5f180fe05712efbe600b0bb85137c5b860214"
+  integrity sha512-7gFPdxs4Li1Sk90TH/yUVuxVl0e6XrzXuKxLCnkFvKTRTc0ErGDYzuVT75O2104H/IfGZTKBzRfoiEEhPYpHwQ==
   dependencies:
     "@thirdweb-dev/chains" "0.1.53"
     "@thirdweb-dev/contracts-js" "1.3.13"
@@ -2869,10 +2869,10 @@
     form-data "^4.0.0"
     uuid "^9.0.0"
 
-"@thirdweb-dev/wallets@^1.3.1-nightly-c2bfc771-20230927232705":
-  version "1.3.1-nightly-c2bfc771-20230927232705"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-1.3.1-nightly-c2bfc771-20230927232705.tgz#312e8f41fd11709092ce3ed1cac16d9aab361e1f"
-  integrity sha512-FY03B5TC3YQH/GDSr+5mqvNcfYZS6MpociGuXYHTZvYT0vdCtN8nv4zmoMLi2rYH+i8Qj3gBUCba6PWd46WOrw==
+"@thirdweb-dev/wallets@^1.3.1-nightly-eb9e9f0c-20230928174429":
+  version "1.3.1-nightly-eb9e9f0c-20230928174429"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-1.3.1-nightly-eb9e9f0c-20230928174429.tgz#a0e93b2c283740cb498a93fff70845aabde9a1e9"
+  integrity sha512-LM4HJ/vkDfJamUfg9t6smqh1Bojelx8WzK3PtlcEp0H9krOReeymQs7Ltq/f2xDNbBjnDH2so9TwataiZKb8cw==
   dependencies:
     "@account-abstraction/contracts" "^0.5.0"
     "@account-abstraction/sdk" "^0.5.0"
@@ -2889,7 +2889,7 @@
     "@safe-global/safe-ethers-lib" "^1.9.4"
     "@thirdweb-dev/chains" "0.1.53"
     "@thirdweb-dev/contracts-js" "1.3.13"
-    "@thirdweb-dev/sdk" "3.10.63-nightly-c2bfc771-20230927232705"
+    "@thirdweb-dev/sdk" "3.10.63-nightly-eb9e9f0c-20230928174429"
     "@walletconnect/core" "^2.9.1"
     "@walletconnect/ethereum-provider" "^2.9.1"
     "@walletconnect/jsonrpc-utils" "^1.0.8"
