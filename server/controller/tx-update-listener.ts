@@ -1,4 +1,5 @@
 import { connectToDatabase } from "../../core";
+import { getTxById } from "../../src/db/transactions/getTxById";
 import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
 
@@ -19,13 +20,15 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
         );
         const parsedPayload = JSON.parse(msg.payload);
         if (env.WEBHOOKS_ENABLED && env.WEBHOOK_URL.length > 0) {
+          const txData = await getTxById({ queueId: parsedPayload.id });
           const response = await fetch(env.WEBHOOK_URL!, {
             method: "POST",
             headers: {
+              Accept: "application/json",
               "Content-Type": "application/json",
               Authorization: `Bearer ${env.THIRDWEB_API_SECRET_KEY}`,
             },
-            body: JSON.stringify(parsedPayload),
+            body: JSON.stringify(txData),
           });
 
           logger.server.debug(

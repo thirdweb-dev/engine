@@ -13,10 +13,9 @@ export const retryTx = async () => {
   try {
     await prisma.$transaction(
       async (pgtx) => {
-        logger.worker.info(`[Transaction] Retrying`);
+        logger.worker.debug(`[Transaction] Retrying`);
         // Get one transaction to retry at a time
         const tx = await getTxToRetry({ pgtx });
-        console.log("tx", tx);
         if (!tx) {
           return;
         }
