@@ -6,6 +6,9 @@ RUN apk add --no-cache tini
 # Set the working directory
 WORKDIR /app
 
+# Use tini as entrypoint to handle killing processes
+ENTRYPOINT ["/sbin/tini", "--"]
+
 # Install build dependencies
 RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip
 
