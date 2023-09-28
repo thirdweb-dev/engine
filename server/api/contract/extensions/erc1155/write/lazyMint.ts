@@ -74,10 +74,12 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc1155.lazyMint.prepare(metadatas);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

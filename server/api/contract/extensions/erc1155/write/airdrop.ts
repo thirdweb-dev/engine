@@ -84,9 +84,11 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc1155.airdrop.prepare(token_id, addresses);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

@@ -82,9 +82,11 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
         token_id,
         amount,
       );
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

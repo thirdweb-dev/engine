@@ -95,13 +95,15 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
           endTimestamp,
         },
       );
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-direct-listings",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

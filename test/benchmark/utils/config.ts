@@ -78,7 +78,7 @@ export const getBenchmarkConfiguration =
       );
 
       const {
-        result: { queuedId, deployedAddress },
+        result: { queueId, deployedAddress },
       } = await fetchApi({
         host: benchmarkConfig.host,
         apiKey: benchmarkConfig.apiKey,
@@ -100,7 +100,7 @@ export const getBenchmarkConfiguration =
       await awaitTx({
         host: benchmarkConfig.host,
         apiKey: benchmarkConfig.apiKey,
-        txnId: queuedId,
+        txnId: queueId,
       });
 
       contractAddress = deployedAddress;

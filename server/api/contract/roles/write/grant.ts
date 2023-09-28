@@ -61,9 +61,11 @@ export async function grantRole(fastify: FastifyInstance) {
       });
 
       const tx = await contract.roles.grant.prepare(role, address);
-      const queuedId = await queueTx({ tx, chainId, extension: "roles" });
+      const queueId = await queueTx({ tx, chainId, extension: "roles" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });
