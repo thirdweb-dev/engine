@@ -1,7 +1,13 @@
 FROM node:18.15.0-alpine AS base
 
+# Install tini
+RUN apk add --no-cache tini
+
 # Set the working directory
 WORKDIR /app
+
+# Use tini as entrypoint to handle killing processes
+ENTRYPOINT ["/sbin/tini", "--"]
 
 # Install build dependencies
 RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip
@@ -38,6 +44,9 @@ CMD [ "yarn", "dev:worker" ]
 # Production stage
 FROM node:18.15.0-alpine AS prod
 
+# Install tini
+RUN apk add --no-cache tini
+
 # Set the working directory
 WORKDIR /app
 
@@ -61,4 +70,6 @@ RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000
 # Clean up build dependencies
 RUN apk del build-dependencies
 
+# Use tini as entrypoint to handle killing processes
+ENTRYPOINT ["/sbin/tini", "--"]
 CMD [ "yarn", "start"]

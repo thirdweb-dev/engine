@@ -64,7 +64,8 @@ const createServer = async (): Promise<FastifyInstance> => {
   server.addHook("preHandler", async (request, reply) => {
     if (
       !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json")
+      !request.routerPath?.includes("json") &&
+      !request.routerPath?.includes("/backend-wallet/import")
     ) {
       if (request.body && Object.keys(request.body).length > 0) {
         request.log.info({ ...request.body }, "Request Body : ");
