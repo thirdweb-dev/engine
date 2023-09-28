@@ -23,6 +23,16 @@ export const responseBodySchema = Type.Object({
       description: "Response Status",
       examples: ["success, error"],
     }),
+    message: Type.String({
+      description: "Response Message",
+      examples: ["Transaction cancelled on-chain successfully"],
+    }),
+    transactionHash: Type.Optional(
+      Type.String({
+        description: "Transaction Queue ID",
+        examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
+      }),
+    ),
   }),
 });
 
@@ -55,14 +65,20 @@ export async function cancelTransaction(fastify: FastifyInstance) {
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
-      request.log.info(`Canceling transaction with queueId ${queueId}`);
+      const accountAddress = request.headers["x-account-address"] as string;
 
-      await cancelTransactionAndUpdate(queueId, walletAddress);
+      const { message, transactionHash } = await cancelTransactionAndUpdate({
+        queueId,
+        walletAddress,
+        accountAddress,
+      });
 
       return reply.status(StatusCodes.OK).send({
         result: {
           queueId,
           status: "success",
+          message,
+          transactionHash,
         },
       });
     },

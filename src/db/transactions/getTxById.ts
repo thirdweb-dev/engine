@@ -18,7 +18,7 @@ export const getTxById = async ({ pgtx, queueId }: GetTxByIdParams) => {
 
   if (!tx) {
     // TODO: Defined error types
-    throw new Error(`Transaction with ID ${queueId} not found!`);
+    throw new Error(`Transaction with queueId ${queueId} not found!`);
   }
 
   const [cleanedTx] = cleanTxs([tx]);
