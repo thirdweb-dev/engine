@@ -15,12 +15,12 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
     connection.on(
       "notification",
       async (msg: { channel: string; payload: string }) => {
-        logger.server.debug(
-          `Received notification: ${msg.channel}, ${msg.payload}`,
-        );
         const parsedPayload = JSON.parse(msg.payload);
-        if (env.WEBHOOKS_ENABLED && env.WEBHOOK_URL.length > 0) {
+        if (env.WEBHOOK_URL.length > 0) {
           const txData = await getTxById({ queueId: parsedPayload.id });
+          logger.server.debug(
+            `Received notification: ${msg.channel}, ${JSON.stringify(txData)}`,
+          );
           const response = await fetch(env.WEBHOOK_URL!, {
             method: "POST",
             headers: {

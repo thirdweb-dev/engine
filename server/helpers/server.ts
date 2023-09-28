@@ -52,11 +52,9 @@ const createServer = async (): Promise<FastifyInstance> => {
       request.headers.upgrade &&
       request.headers.upgrade.toLowerCase() === "websocket"
     ) {
-      logger.server.debug("WebSocket connection attempt");
       // ToDo: Uncomment WebSocket Authentication post Auth SDK is implemented
       // await performWSAuthentication(request, reply);
     } else {
-      logger.server.debug("Regular HTTP request");
       await performHTTPAuthentication(request, reply);
     }
   });

@@ -10,8 +10,6 @@ export const cancelTransactionAndUpdate = async (
 ) => {
   const txData = await getTxById({ queueId });
 
-  console.log("txData", txData);
-
   if (!txData) {
     const error = createCustomError(
       `Transaction not found with queueId ${queueId}`,
@@ -32,7 +30,6 @@ export const cancelTransactionAndUpdate = async (
       );
       break;
     case TransactionStatusEnum.Queued:
-      console.log("inside Mined/Queued");
       await updateTx({
         queueId,
         status: TransactionStatusEnum.Cancelled,
@@ -42,7 +39,6 @@ export const cancelTransactionAndUpdate = async (
       });
       break;
     case TransactionStatusEnum.Mined:
-      console.log("inside Mined");
       error = createCustomError(
         `Transaction already mined with queueId ${queueId}`,
         StatusCodes.BAD_REQUEST,

@@ -2,7 +2,6 @@ import { Transactions } from "@prisma/client";
 import { providers } from "ethers";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { PrismaTransaction } from "../../schema/prisma";
-import { logger } from "../../utils/logger";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface UpdateTxParams {
@@ -22,9 +21,6 @@ export const updateTx = async ({
   txData,
 }: UpdateTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
-  logger.server.debug(
-    `Updating transaction with queueId ${queueId}, status ${status}}`,
-  );
   switch (status) {
     case TransactionStatusEnum.Submitted:
       await prisma.transactions.update({
@@ -91,7 +87,6 @@ export const updateTx = async ({
       });
       break;
     case TransactionStatusEnum.Cancelled:
-      logger.server.debug(`Cancelling transaction with queueId ${queueId}`);
       await prisma.transactions.update({
         where: {
           id: queueId,

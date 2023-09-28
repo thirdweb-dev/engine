@@ -67,11 +67,10 @@ export const env = createEnv({
     RETRY_TX_ENABLED: boolSchema("true"),
     MAX_FEE_PER_GAS_FOR_RETRY: z.string().default("55000000000"),
     MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY: z.string().default("55000000000"),
-    MAX_RETRIES_FOR_TX: z.coerce.number().default(3),
+    MAX_RETRIES_FOR_TX: z.coerce.number().default(15),
     RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
     MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(10),
     MAX_WAIT_TIME_BEFORE_RETRY: z.coerce.number().default(600),
-    WEBHOOKS_ENABLED: boolSchema("true"),
     WEBHOOK_URL: z
       .string()
       .default("")
@@ -137,7 +136,6 @@ export const env = createEnv({
     MAX_BLOCKS_ELAPSED_BEFORE_RETRY:
       process.env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY,
     MAX_WAIT_TIME_BEFORE_RETRY: process.env.MAX_WAIT_TIME_BEFORE_RETRY,
-    WEBHOOKS_ENABLED: process.env.WEBHOOKS_ENABLED,
     WEBHOOK_URL: process.env.WEBHOOK_URL,
   },
   onValidationError: (error: ZodError) => {

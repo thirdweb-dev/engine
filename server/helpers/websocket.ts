@@ -17,7 +17,6 @@ export const findWSConnectionInSharedState = async (
   const index = subscriptionsData.findIndex(
     (sub) => sub.socket === connection.socket,
   );
-  request.log.debug(index, "Websocket Already Exists");
   return index;
 };
 
@@ -26,7 +25,6 @@ export const removeWSFromSharedState = async (
   request: FastifyRequest,
 ): Promise<number> => {
   const index = await findWSConnectionInSharedState(connection, request);
-  request.log.debug(index, "Websocket Already Exists");
   if (index == -1) {
     return -1;
   }
@@ -81,14 +79,11 @@ export const onClose = async (
   connection: SocketStream,
   request: FastifyRequest,
 ): Promise<void> => {
-  request.log.debug("Removing wsConnection from subscriptionsData");
   const index = await findWSConnectionInSharedState(connection, request);
-  request.log.debug(index, "Websocket Already Exists");
   if (index == -1) {
     return;
   }
   subscriptionsData.splice(index, 1);
-  request.log.debug(`Removed Subscription from localMem`);
 };
 
 export const wsTimeout = async (
@@ -122,7 +117,6 @@ export const findOrAddWSConnectionInSharedState = async (
     };
 
     subscriptionsData.push(userSubscription);
-    request.log.debug("Pushed to Subscriptions Data", subscriptionsData);
   }
 };
 
