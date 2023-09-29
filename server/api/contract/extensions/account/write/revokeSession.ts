@@ -26,7 +26,8 @@ export const revokeSession = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/contract/:chain/:contract_address/account/sessions/revoke",
     schema: {
-      description: "Revoke a session",
+      summary: "Revoke session key",
+      description: "Revoke a session key for a smart account.",
       tags: ["Account"],
       operationId: "account:revoke-session",
       params: contractParamSchema,

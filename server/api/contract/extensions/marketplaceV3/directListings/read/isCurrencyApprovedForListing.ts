@@ -42,8 +42,9 @@ export async function directListingsIsCurrencyApprovedForListing(
     method: "GET",
     url: "/marketplace/:chain/:contract_address/direct-listings/is-currency-approved-for-listing",
     schema: {
+      summary: "Check approved currency",
       description:
-        "Check whether you can use a specific currency to purchase a listing.",
+        "Check if a currency is approved for a specific direct listing.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_isCurrencyApprovedForListing",
       params: requestSchema,

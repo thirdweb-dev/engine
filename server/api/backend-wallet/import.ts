@@ -99,7 +99,8 @@ export const importWallet = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/backend-wallet/import",
     schema: {
-      description: "Import a wallet that has already been created",
+      summary: "Import backend wallet",
+      description: "Import an existing wallet as a backend wallet.",
       tags: ["Backend Wallet"],
       operationId: "backendWallet_import",
       body: RequestBodySchema,

@@ -40,8 +40,9 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/set-approval-for-token",
     schema: {
+      summary: "Set approval for token",
       description:
-        "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token in the specified contract owned by the caller.",
+        "Approve an operator for the NFT owner. Operators can call transferFrom or safeTransferFrom for the specific token.",
       tags: ["ERC721"],
       operationId: "erc721_setApprovalForToken",
       params: requestSchema,

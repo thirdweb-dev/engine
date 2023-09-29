@@ -71,7 +71,9 @@ export async function englishAuctionsGetAllValid(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/english-auctions/get-all-valid",
     schema: {
-      description: "Get all the valid auction listings on the marketplace.",
+      summary: "Get all valid English auctions",
+      description:
+        "Get all valid English auction listings on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_getAllValid",
       params: requestSchema,

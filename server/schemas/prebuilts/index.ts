@@ -87,7 +87,7 @@ export const commonTrustedForwarderSchema = Type.Object({
 export const prebuiltDeployContractParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID or name",
   }),
 });
 

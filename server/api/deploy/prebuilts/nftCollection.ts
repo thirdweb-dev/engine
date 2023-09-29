@@ -51,7 +51,8 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/nft-collection",
     schema: {
-      description: "Deploy prebuilt NFT-Collection contract",
+      summary: "Deploy NFT Collection",
+      description: "Deploy an NFT Collection contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltNFTCollection",
       params: requestSchema,

@@ -14,7 +14,7 @@ For OSS contributions, we use a [Forking Workflow](https://www.atlassian.com/git
 
 To begin:
 
-1. [Create a fork](https://github.com/thirdweb-dev/web3-api/fork) of this repository to your own GitHub account.
+1. [Create a fork](https://github.com/thirdweb-dev/engine/fork) of this repository to your own GitHub account.
 
 2. [Clone your fork](https://help.github.com/articles/cloning-a-repository/) to your local device.
 

@@ -54,8 +54,8 @@ export async function offersGetOffer(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/offers/get-offer",
     schema: {
-      description:
-        "Get information about a specific offer using the offer’s ID.",
+      summary: "Get offer",
+      description: "Get details about an offer.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offers_getOffer",
       params: requestSchema,

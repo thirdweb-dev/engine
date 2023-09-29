@@ -40,8 +40,9 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/set-allowance",
     schema: {
+      summary: "Set allowance",
       description:
-        "Grant allowance to another wallet address to spend the connected (Admin) wallet's funds (of this token).",
+        "Grant a specific wallet address to transfer ERC-20 tokens from the caller wallet.",
       tags: ["ERC20"],
       operationId: "erc20_setAllowance",
       params: requestSchema,

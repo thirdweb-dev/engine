@@ -41,6 +41,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
     method: "POST",
     url: "/marketplace/:chain/:contract_address/direct-listings/revoke-buyer-approval-for-reserved-listing",
     schema: {
+      summary: "Revoke approval for reserved listings",
       description:
         "Revoke approval for a buyer to purchase a reserved listing.",
       tags: ["Marketplace-DirectListings"],

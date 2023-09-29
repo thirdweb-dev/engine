@@ -41,8 +41,9 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/burn-from",
     schema: {
+      summary: "Burn token from wallet",
       description:
-        "Burn tokens held by a specified wallet (requires allowance).",
+        "Burn ERC-20 tokens in a specific wallet. Requires allowance.",
       tags: ["ERC20"],
       operationId: "erc20_burnFrom",
       params: requestSchema,

@@ -42,9 +42,10 @@ export async function englishAuctionsCloseAuctionForSeller(
     method: "POST",
     url: "/marketplace/:chain/:contract_address/english-auctions/close-auction-for-seller",
     schema: {
+      summary: "Close English auction for seller",
       description: `After an auction has concluded (and a buyout did not occur),
-        execute the sale for the seller, meaning the seller receives the payment from the highest bid.
-        You must also call closeAuctionForBidder to execute the sale for the buyer, meaning the buyer receives the NFT(s).`,
+execute the sale for the seller, meaning the seller receives the payment from the highest bid.
+You must also call closeAuctionForBidder to execute the sale for the buyer, meaning the buyer receives the NFT(s).`,
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_closeAuctionForSeller",
       params: requestSchema,

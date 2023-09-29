@@ -48,7 +48,8 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/mint-to",
     schema: {
-      description: "Mint an NFT to a specific wallet.",
+      summary: "Mint tokens",
+      description: "Mint ERC-1155 tokens to a specific wallet.",
       tags: ["ERC1155"],
       operationId: "erc1155_mintTo",
       params: requestSchema,

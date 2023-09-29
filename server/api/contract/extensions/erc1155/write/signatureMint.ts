@@ -39,7 +39,8 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/signature/mint",
     schema: {
-      description: "Mint tokens from a previously generated signature.",
+      summary: "Signature mint",
+      description: "Mint ERC-1155 tokens from a generated signature.",
       tags: ["ERC1155"],
       operationId: "erc1155_signature_mint",
       params: requestSchema,

@@ -39,7 +39,7 @@ export const chainResponseSchema = Type.Object({
 
 export const walletAuthSchema = Type.Object({
   "x-backend-wallet-address": Type.String({
-    description: "Wallet address",
+    description: "Backend wallet address",
   }),
   "x-account-address": Type.Optional(
     Type.String({

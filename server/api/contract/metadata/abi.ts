@@ -65,7 +65,8 @@ export async function getABI(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/metadata/abi",
     schema: {
-      description: "Get the ABI of the contract",
+      summary: "Get ABI",
+      description: "Get the ABI of a contract.",
       tags: ["Contract-Metadata"],
       operationId: "abi",
       params: requestSchema,

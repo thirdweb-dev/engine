@@ -28,7 +28,8 @@ export const updateSession = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/contract/:chain/:contract_address/account/sessions/update",
     schema: {
-      description: "Update a session",
+      summary: "Update session key",
+      description: "Update a session key for a smart account.",
       tags: ["Account"],
       operationId: "account:update-session",
       params: contractParamSchema,

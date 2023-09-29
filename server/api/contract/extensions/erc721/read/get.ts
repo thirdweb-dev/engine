@@ -50,7 +50,8 @@ export async function erc721Get(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc721/get",
     schema: {
-      description: "Get the metadata of a single NFT.",
+      summary: "Get details",
+      description: "Get the details for a token in an ERC-721 contract.",
       tags: ["ERC721"],
       operationId: "erc721_get",
       params: requestSchema,

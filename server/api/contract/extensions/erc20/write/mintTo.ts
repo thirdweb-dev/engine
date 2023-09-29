@@ -16,7 +16,7 @@ import { getContract } from "../../../../../utils/cache/getContract";
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
   to_address: Type.String({
-    description: "Address of the wallet to mint the NFT to",
+    description: "Address of the wallet to mint tokens to",
   }),
   amount: Type.String({
     description: "The amount of tokens you want to send",
@@ -41,7 +41,8 @@ export async function erc20mintTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/mint-to",
     schema: {
-      description: "Mint tokens to the connected wallet.",
+      summary: "Mint tokens",
+      description: "Mint ERC-20 tokens to a specific wallet.",
       tags: ["ERC20"],
       operationId: "erc20_mintTo",
       params: requestSchema,

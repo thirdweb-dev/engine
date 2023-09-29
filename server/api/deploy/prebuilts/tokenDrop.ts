@@ -51,7 +51,8 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/token-drop",
     schema: {
-      description: "Deploy prebuilt Token Drop contract",
+      summary: "Deploy Token Drop",
+      description: "Deploy a Token Drop contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltTokenDrop",
       params: requestSchema,

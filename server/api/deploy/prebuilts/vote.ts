@@ -45,7 +45,8 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/vote",
     schema: {
-      description: "Deploy prebuilt Vote contract",
+      summary: "Deploy Vote",
+      description: "Deploy a Vote contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltVote",
       params: requestSchema,

@@ -34,7 +34,8 @@ export async function revokeRole(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/roles/revoke",
     schema: {
-      description: "Revoke a role from a specific address",
+      summary: "Revoke role",
+      description: "Revoke a role from a specific wallet.",
       tags: ["Contract-Roles"],
       operationId: "roles_revoke",
       headers: walletAuthSchema,

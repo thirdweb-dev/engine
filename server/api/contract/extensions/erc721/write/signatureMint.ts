@@ -56,7 +56,8 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/signature/mint",
     schema: {
-      description: "Mint tokens from a previously generated signature.",
+      summary: "Signature mint",
+      description: "Mint ERC-721 tokens from a generated signature.",
       tags: ["ERC721"],
       operationId: "erc721_signature_mint",
       params: requestSchema,

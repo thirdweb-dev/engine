@@ -15,10 +15,10 @@ import { getContract } from "../../../../utils/cache/getContract";
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   role: Type.String({
-    description: "The role to grant to the address",
+    description: "The role to grant",
   }),
   address: Type.String({
-    description: "The address to grant the role to.",
+    description: "The address to grant the role to",
   }),
 });
 
@@ -34,7 +34,8 @@ export async function grantRole(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/roles/grant",
     schema: {
-      description: "Grant a role to a specific address",
+      summary: "Grant role",
+      description: "Grant a role to a specific wallet.",
       tags: ["Contract-Roles"],
       operationId: "roles_grant",
       headers: walletAuthSchema,

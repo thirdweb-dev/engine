@@ -36,7 +36,8 @@ export async function offersAcceptOffer(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/offers/accept-offer",
     schema: {
-      description: "Accept an offer placed on your NFT.",
+      summary: "Accept offer",
+      description: "Accept a valid offer.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offer_acceptOffer",
       headers: walletAuthSchema,

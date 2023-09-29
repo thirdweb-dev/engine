@@ -34,7 +34,8 @@ export const predictAccountAddress = async (fastify: FastifyInstance) => {
     method: "GET",
     url: "/contract/:chain/:contract_address/account-factory/predict-account-address",
     schema: {
-      description: "Get the counter-factual address of a new account",
+      summary: "Predict smart account address",
+      description: "Get the counterfactual address of a smart account.",
       tags: ["Account Factory"],
       operationId: "account-factory:predict-account-address",
       params: contractParamSchema,

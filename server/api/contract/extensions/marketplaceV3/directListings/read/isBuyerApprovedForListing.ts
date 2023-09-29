@@ -43,8 +43,9 @@ export async function directListingsIsBuyerApprovedForListing(
     method: "GET",
     url: "/marketplace/:chain/:contract_address/direct-listings/is-buyer-approved-for-listing",
     schema: {
+      summary: "Check approved buyer",
       description:
-        "Check if a buyer is approved to purchase a reserved listing.",
+        "Check if a buyer is approved to purchase a specific direct listing.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_isBuyerApprovedForListing",
       headers: walletAuthSchema,

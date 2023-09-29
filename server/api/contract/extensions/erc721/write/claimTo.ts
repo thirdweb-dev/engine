@@ -40,7 +40,8 @@ export async function erc721claimTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/claim-to",
     schema: {
-      description: "Claim an NFT to a specific wallet.",
+      summary: "Claim tokens to wallet",
+      description: "Claim ERC-721 tokens to a specific wallet.",
       tags: ["ERC721"],
       operationId: "erc721_claimTo",
       params: requestSchema,
