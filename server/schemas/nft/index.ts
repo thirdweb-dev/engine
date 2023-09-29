@@ -12,17 +12,24 @@ export const nftMetadataInputSchema = Type.Object({
   background_color: Type.Optional(Type.Union([Type.Any(), Type.Null()])),
 });
 
-export const nftMetadataSchema = Type.Object({
-  id: Type.String(),
-  uri: Type.String(),
-  name: Type.Optional(Type.Union([Type.String(), Type.Number(), Type.Null()])),
-  description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  image: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  external_url: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  animation_url: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  properties: Type.Optional(Type.Union([Type.Any(), Type.Null()])),
-  attributes: Type.Optional(Type.Union([Type.Any(), Type.Null()])),
-});
+export const nftMetadataSchema = Type.Object(
+  {
+    id: Type.String(),
+    uri: Type.String(),
+    name: Type.Optional(
+      Type.Union([Type.String(), Type.Number(), Type.Null()]),
+    ),
+    description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    image: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    external_url: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    animation_url: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+    properties: Type.Optional(Type.Union([Type.Any(), Type.Null()])),
+    attributes: Type.Optional(Type.Union([Type.Any(), Type.Null()])),
+  },
+  {
+    additionalProperties: true,
+  },
+);
 
 export const nftOrInputSchema = Type.Union([
   nftMetadataInputSchema,
