@@ -10,6 +10,7 @@ export const cleanTxs = (
     return {
       ...tx,
       queueId: tx.id,
+      id: undefined,
       queuedAt: tx.queuedAt.toISOString(),
       sentAt: tx.sentAt?.toISOString() || null,
       processedAt: tx.processedAt?.toISOString() || null,
