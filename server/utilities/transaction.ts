@@ -1,4 +1,6 @@
 import { TransactionResponse } from "@ethersproject/abstract-provider";
+import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
+import { BigNumber } from "ethers";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../core";
 import { getTxById } from "../../src/db/transactions/getTxById";
@@ -73,13 +75,17 @@ export const cancelTransactionAndUpdate = async ({
           "Transaction already mined. Cannot cancel transaction on-chain.";
         break;
       }
-
+      const gasOverrides = await getDefaultGasOverrides(sdk.getProvider());
       transferTransactionResult = await sdk.wallet.sendRawTransaction({
         to: txData.fromAddress!,
         from: txData.fromAddress!,
         data: "0x",
         value: "0x00",
         nonce: txData.nonce!,
+        maxFeePerGas: BigNumber.from(gasOverrides.maxFeePerGas).mul(2),
+        maxPriorityFeePerGas: BigNumber.from(
+          gasOverrides.maxPriorityFeePerGas,
+        ).mul(2),
       });
 
       const cancelledAt = new Date();
