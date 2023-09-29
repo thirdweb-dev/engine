@@ -53,8 +53,9 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc721/get-owned",
     schema: {
+      summary: "Get owned tokens",
       description:
-        "Get all NFTs owned by a specific wallet from a given contract.",
+        "Get all tokens in an ERC-721 contract owned by a specific wallet.",
       tags: ["ERC721"],
       operationId: "erc721_getOwned",
       params: requestSchema,

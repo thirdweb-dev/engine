@@ -70,8 +70,9 @@ export async function getEvents(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/events/get",
     schema: {
+      summary: "Get events",
       description:
-        "Get a list of the events of a specific type emitted from this contract during the specified time period",
+        "Get a list of specific blockchain events emitted from this contract.",
       tags: ["Contract-Events"],
       operationId: "getEvents",
       params: requestSchema,

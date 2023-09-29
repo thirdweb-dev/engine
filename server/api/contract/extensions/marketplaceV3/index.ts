@@ -2,38 +2,39 @@ import { FastifyInstance } from "fastify";
 import { directListingsGetAll } from "./directListings/read/getAll";
 import { directListingsGetAllValid } from "./directListings/read/getAllValid";
 import { directListingsGetListing } from "./directListings/read/getListing";
+import { directListingsGetTotalCount } from "./directListings/read/getTotalCount";
 import { directListingsIsBuyerApprovedForListing } from "./directListings/read/isBuyerApprovedForListing";
 import { directListingsIsCurrencyApprovedForListing } from "./directListings/read/isCurrencyApprovedForListing";
-import { directListingsCreateListing } from "./directListings/write/createListing";
-import { directListingsGetTotalCount } from "./directListings/read/getTotalCount";
-import { directListingsUpdateListing } from "./directListings/write/updateListing";
+import { directListingsApproveBuyerForReservedListing } from "./directListings/write/approveBuyerForReservedListing";
 import { directListingsBuyFromListing } from "./directListings/write/buyFromListing";
+import { directListingsCreateListing } from "./directListings/write/createListing";
 import { directListingsRevokeBuyerApprovalForReservedListing } from "./directListings/write/revokeBuyerApprovalForReservedListing";
 import { directListingsRevokeCurrencyApprovalForListing } from "./directListings/write/revokeCurrencyApprovalForListing";
-import { directListingsApproveBuyerForReservedListing } from "./directListings/write/approveBuyerForReservedListing";
+import { directListingsUpdateListing } from "./directListings/write/updateListing";
 
 import { englishAuctionsGetAll } from "./englishAuctions/read/getAll";
 import { englishAuctionsGetAllValid } from "./englishAuctions/read/getAllValid";
 import { englishAuctionsGetAuction } from "./englishAuctions/read/getAuction";
 import { englishAuctionsGetBidBufferBps } from "./englishAuctions/read/getBidBufferBps";
 import { englishAuctionsGetMinimumNextBid } from "./englishAuctions/read/getMinimumNextBid";
+import { englishAuctionsGetTotalCount } from "./englishAuctions/read/getTotalCount";
 import { englishAuctionsGetWinningBid } from "./englishAuctions/read/getWinningBid";
 import { englishAuctionsIsWinningBid } from "./englishAuctions/read/isWinningBid";
-import { englishAuctionsGetTotalCount } from "./englishAuctions/read/getTotalCount";
 import { englishAuctionsBuyoutAuction } from "./englishAuctions/write/buyoutAuction";
 import { englishAuctionsCancelAuction } from "./englishAuctions/write/cancelAuction";
-import { englishAuctionsCreateAuction } from "./englishAuctions/write/createAuction";
 import { englishAuctionsCloseAuctionForBidder } from "./englishAuctions/write/closeAuctionForBidder";
 import { englishAuctionsCloseAuctionForSeller } from "./englishAuctions/write/closeAuctionForSeller";
+import { englishAuctionsCreateAuction } from "./englishAuctions/write/createAuction";
 import { englishAuctionsExecuteSale } from "./englishAuctions/write/executeSale";
 import { englishAuctionsMakeBid } from "./englishAuctions/write/makeBid";
 
+import { englishAuctionsGetWinner } from "./englishAuctions/read/getWinner";
 import { offersGetAll } from "./offers/read/getAll";
 import { offersGetAllValid } from "./offers/read/getAllValid";
 import { offersGetOffer } from "./offers/read/getOffer";
 import { offersGetTotalCount } from "./offers/read/getTotalCount";
-import { offersCancelOffer } from "./offers/write/cancelOffer";
 import { offersAcceptOffer } from "./offers/write/acceptOffer";
+import { offersCancelOffer } from "./offers/write/cancelOffer";
 import { offersMakeOffer } from "./offers/write/makeOffer";
 
 export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
@@ -56,6 +57,7 @@ export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
   await fastify.register(englishAuctionsGetWinningBid);
   await fastify.register(englishAuctionsGetTotalCount);
   await fastify.register(englishAuctionsIsWinningBid);
+  await fastify.register(englishAuctionsGetWinner);
 
   // Offers
   await fastify.register(offersGetAll);

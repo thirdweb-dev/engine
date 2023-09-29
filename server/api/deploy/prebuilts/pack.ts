@@ -49,7 +49,8 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/pack",
     schema: {
-      description: "Deploy prebuiltPack contract",
+      summary: "Deploy Pack",
+      description: "Deploy a Pack contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltPack",
       params: requestSchema,

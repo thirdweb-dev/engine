@@ -31,8 +31,9 @@ export async function directListingsGetTotalCount(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/direct-listings/get-total-count",
     schema: {
+      summary: "Transfer token from wallet",
       description:
-        "Get the total number of direct listings on the marketplace.",
+        "Get the total number of direct listings on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_getTotalCount",
       params: requestSchema,

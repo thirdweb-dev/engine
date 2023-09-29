@@ -42,8 +42,9 @@ export async function erc20Transfer(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/transfer",
     schema: {
+      summary: "Transfer tokens",
       description:
-        "Transfer tokens from the connected (Admin) wallet to another wallet.",
+        "Transfer ERC-20 tokens from the caller wallet to a specific wallet.",
       tags: ["ERC20"],
       operationId: "erc20_transfer",
       body: requestBodySchema,

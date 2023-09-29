@@ -68,8 +68,9 @@ export async function offersGetAllValid(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/offers/get-all-valid",
     schema: {
+      summary: "Get all valid offers",
       description:
-        "Get all the valid offers on the smart contract. Valid offers are offers that have not expired, been canceled, or been accepted.",
+        "Get all valid offers on this marketplace contract. Valid offers are offers that have not expired, been canceled, or been accepted.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offers_getAllValid",
       params: requestSchema,

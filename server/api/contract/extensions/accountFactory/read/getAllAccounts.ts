@@ -22,7 +22,8 @@ export const getAllAccounts = async (fastify: FastifyInstance) => {
     method: "GET",
     url: "/contract/:chain/:contract_address/account-factory/get-all-accounts",
     schema: {
-      description: "Get all the accounts on an account factory",
+      summary: "Get all smart accounts",
+      description: "Get all the smart accounts for this account factory.",
       tags: ["Account Factory"],
       operationId: "account-factory:get-all-accounts",
       params: contractParamSchema,

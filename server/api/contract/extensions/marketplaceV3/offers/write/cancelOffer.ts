@@ -36,7 +36,8 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/offers/cancel-offer",
     schema: {
-      description: "Cancel an offer you made on an NFT.",
+      summary: "Cancel offer",
+      description: "Cancel a valid offer made by the caller wallet.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offer_cancelOffer",
       headers: walletAuthSchema,

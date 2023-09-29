@@ -58,7 +58,8 @@ export async function erc721GetAll(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc721/get-all",
     schema: {
-      description: "Get all NFTs from a given contract.",
+      summary: "Get all details",
+      description: "Get details for all tokens in an ERC-721 contract.",
       tags: ["ERC721"],
       operationId: "erc721_getAll",
       params: requestSchema,

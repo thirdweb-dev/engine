@@ -65,8 +65,8 @@ export async function extractEvents(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/metadata/events",
     schema: {
-      description:
-        "Get details all events implemented by the contract, and the data types of their parameters",
+      summary: "Get events",
+      description: "Get details of all events implemented by a contract.",
       tags: ["Contract-Metadata"],
       operationId: "extractEvents",
       params: requestSchema,

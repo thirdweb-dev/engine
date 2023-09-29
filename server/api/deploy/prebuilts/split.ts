@@ -45,7 +45,8 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/split",
     schema: {
-      description: "Deploy prebuilt Split contract",
+      summary: "Deploy Split",
+      description: "Deploy a Split contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltSplit",
       params: requestSchema,

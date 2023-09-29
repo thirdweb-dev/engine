@@ -47,7 +47,8 @@ export async function deployPublished(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/:publisher/:contract_name",
     schema: {
-      description: "Deploy published contract",
+      summary: "Deploy published contract",
+      description: "Deploy a published contract to the blockchain.",
       tags: ["Deploy"],
       operationId: "deployPublished",
       params: requestSchema,

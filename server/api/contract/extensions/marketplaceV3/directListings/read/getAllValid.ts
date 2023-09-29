@@ -69,7 +69,9 @@ export async function directListingsGetAllValid(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/direct-listings/get-all-valid",
     schema: {
-      description: "Get all the valid direct listings on the marketplace.",
+      summary: "Get all valid listings",
+      description:
+        "Get all the valid direct listings for this marketplace contract. A valid listing is where the listing is active, and the creator still owns & has approved Marketplace to transfer the listed NFTs.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_getAllValid",
       params: requestSchema,

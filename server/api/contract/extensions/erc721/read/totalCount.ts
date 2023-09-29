@@ -31,7 +31,9 @@ export async function erc721TotalCount(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc721/total-count",
     schema: {
-      description: "Get the total number of NFTs minted.",
+      summary: "Get total supply",
+      description:
+        "Get the total supply in circulation for this ERC-721 contract.",
       tags: ["ERC721"],
       operationId: "erc721_totalCount",
       params: requestSchema,

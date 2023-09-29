@@ -44,7 +44,8 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/english-auctions/make-bid",
     schema: {
-      description: "Place a new bid on an auction listing.",
+      summary: "Make bid",
+      description: "Place a bid on an English auction listing.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_makeBid",
       params: requestSchema,

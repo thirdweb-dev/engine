@@ -46,8 +46,8 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/lazy-mint",
     schema: {
-      description:
-        "Lazy mint multiple NFTs on this contract to be claimed later.",
+      summary: "Lazy mint",
+      description: "Lazy mint ERC-1155 tokens to be claimed in the future.",
       tags: ["ERC1155"],
       operationId: "erc1155_lazyMint",
       params: requestSchema,

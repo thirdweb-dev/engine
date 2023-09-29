@@ -43,7 +43,9 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/direct-listings/buy-from-listing",
     schema: {
-      description: "Buy an NFT from a listing.",
+      summary: "Buy from direct listing",
+      description:
+        "Buy from a specific direct listing from this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_buyFromListing",
       headers: walletAuthSchema,

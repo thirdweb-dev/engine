@@ -21,7 +21,8 @@ export const getAllSessions = async (fastify: FastifyInstance) => {
     method: "GET",
     url: "/contract/:chain/:contract_address/account/sessions/get-all",
     schema: {
-      description: "Get all sessions on an account",
+      summary: "Get all session keys",
+      description: "Get all session keys for a smart account.",
       tags: ["Account"],
       operationId: "account:get-all-sessions",
       params: contractParamSchema,

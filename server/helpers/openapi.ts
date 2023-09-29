@@ -11,8 +11,8 @@ export const openapi = async (server: FastifyInstance) => {
     mode: "dynamic",
     openapi: {
       info: {
-        title: "thirdweb web3-API",
-        description: "thirdweb web3-API",
+        title: "thirdweb Engine",
+        description: "thirdweb Engine",
         version: "1.0.0",
         license: {
           name: "Apache 2.0",

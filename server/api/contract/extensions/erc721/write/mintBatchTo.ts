@@ -50,7 +50,9 @@ export async function erc721mintBatchTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/mint-batch-to",
     schema: {
-      description: "Mint multiple NFTs to a specific wallet.",
+      summary: "Mint tokens (batch)",
+      description:
+        "Mint ERC-721 tokens to multiple wallets in one transaction.",
       tags: ["ERC721"],
       operationId: "erc721_mintBatchTo",
       params: requestSchema,

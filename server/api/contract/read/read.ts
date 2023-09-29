@@ -11,7 +11,8 @@ export async function readContract(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/read",
     schema: {
-      description: "Read From Contract",
+      summary: "Read from contract",
+      description: "Call a read function on a contract.",
       tags: ["Contract"],
       operationId: "read",
       ...partialRouteSchema,

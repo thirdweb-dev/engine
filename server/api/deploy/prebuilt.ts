@@ -31,7 +31,7 @@ requestBodySchema.examples = [
   {
     contractMetadata: {
       name: `My Contract`,
-      description: "Contract deployed from web3 api",
+      description: "Contract deployed from thirdweb Engine",
       primary_sale_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
       seller_fee_basis_points: 500,
       fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",

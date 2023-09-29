@@ -51,7 +51,8 @@ export async function writeToContract(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/write",
     schema: {
-      description: "Write to Contract",
+      summary: "Write to contract",
+      description: "Call a write function on a contract.",
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,

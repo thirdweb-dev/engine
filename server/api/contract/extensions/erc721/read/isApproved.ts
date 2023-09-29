@@ -41,8 +41,9 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc721/is-approved",
     schema: {
+      summary: "Check if approved transfers",
       description:
-        "Get whether this wallet has approved transfers from the given operator.",
+        "Check if the specific wallet has approved transfers from a specific operator wallet.",
       tags: ["ERC721"],
       operationId: "erc721_isApproved",
       params: requestSchema,

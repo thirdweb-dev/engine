@@ -36,7 +36,8 @@ export async function erc721burn(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/burn",
     schema: {
-      description: "Burn an NFT.",
+      summary: "Burn token",
+      description: "Burn ERC-721 tokens in the caller wallet.",
       tags: ["ERC721"],
       operationId: "erc721_burn",
       params: requestSchema,
