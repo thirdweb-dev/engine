@@ -140,7 +140,7 @@ yarn dev:infra
 
 ## User Guide
 
-View all end-points details (Open API Specification) : [User Guide](./docs/UserGuide.md)
+View all end-points details (Open API Specification) : [User Guide](./docs/1-user-guide.md)
 
 ## API Documentation
 
