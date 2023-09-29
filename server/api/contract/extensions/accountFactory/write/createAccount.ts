@@ -6,8 +6,8 @@ import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   contractParamSchema,
   standardResponseSchema,
-  transactionWritesResponseSchema,
 } from "../../../../../helpers";
+import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
 
@@ -25,7 +25,7 @@ const BodySchema = Type.Object({
 export const createAccount = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
-    Reply: Static<typeof transactionWritesResponseSchema>;
+    Reply: Static<typeof prebuiltDeployResponseSchema>;
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
@@ -40,7 +40,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
       body: BodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: transactionWritesResponseSchema,
+        [StatusCodes.OK]: prebuiltDeployResponseSchema,
       },
     },
     handler: async (req, rep) => {
@@ -60,14 +60,24 @@ export const createAccount = async (fastify: FastifyInstance) => {
         admin_address,
         extra_data,
       );
+      const deployedAddress =
+        await contract.accountFactory.predictAccountAddress(
+          admin_address,
+          extra_data,
+        );
       const queueId = await queueTx({
         tx,
         chainId,
         extension: "account-factory",
+        deployedContractAddress: deployedAddress,
+        deployedContractType: "account",
       });
 
       rep.status(StatusCodes.OK).send({
-        result: queueId,
+        result: {
+          queueId,
+          deployedAddress,
+        },
       });
     },
   });

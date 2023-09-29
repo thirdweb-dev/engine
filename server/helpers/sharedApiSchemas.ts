@@ -134,13 +134,17 @@ export interface publishedDeploySchemaTypes extends RouteGenericInterface {
 }
 
 export const transactionWritesResponseSchema = Type.Object({
-  result: Type.String({
-    description: "Queue ID",
+  result: Type.Object({
+    queueId: Type.String({
+      description: "Queue ID",
+    }),
   }),
 });
 
 transactionWritesResponseSchema.example = {
-  result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+  result: {
+    queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+  },
 };
 
 /**

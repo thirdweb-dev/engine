@@ -78,9 +78,11 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
         signature,
       };
       const tx = await contract.erc1155.signature.mint.prepare(signedPayload);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

@@ -80,9 +80,11 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
         metadataWithSupply,
       );
 
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

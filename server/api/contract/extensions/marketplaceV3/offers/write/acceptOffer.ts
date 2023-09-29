@@ -65,13 +65,15 @@ export async function offersAcceptOffer(fastify: FastifyInstance) {
 
       const tx = await contract.offers.acceptOffer.prepare(offer_id);
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-offers",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

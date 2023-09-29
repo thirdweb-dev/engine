@@ -91,13 +91,15 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
         timeBufferInSeconds,
       });
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

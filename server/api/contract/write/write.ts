@@ -80,10 +80,12 @@ export async function writeToContract(fastify: FastifyInstance) {
 
       const tx = await contract.prepare(function_name, args, tx_overrides);
 
-      const queuedId = await queueTx({ tx, chainId, extension: "none" });
+      const queueId = await queueTx({ tx, chainId, extension: "none" });
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

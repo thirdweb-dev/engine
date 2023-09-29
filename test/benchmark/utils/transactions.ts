@@ -31,7 +31,8 @@ export const sendTxs = async (config: BenchmarkConfiguration) => {
           // This was one of the new field that was recently added
           onResponse: (status: number, body: string) => {
             if (status === 200) {
-              const parsedResult: { result?: string } = JSON.parse(body);
+              const parsedResult: { result?: { queueId: string } } =
+                JSON.parse(body);
               if (!parsedResult.result) {
                 logger.error(
                   `Response body does not contain a "result" field: ${body}`,
@@ -40,7 +41,7 @@ export const sendTxs = async (config: BenchmarkConfiguration) => {
                   error: "Response body does not contain a 'result' field",
                 });
               }
-              txnIds.push(parsedResult.result);
+              txnIds.push(parsedResult.result.queueId);
             } else {
               logger.error(
                 `Received status code ${status} from server. Body: ${body}`,

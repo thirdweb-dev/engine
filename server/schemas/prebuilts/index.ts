@@ -93,7 +93,7 @@ export const prebuiltDeployContractParamSchema = Type.Object({
 
 export const prebuiltDeployResponseSchema = Type.Object({
   result: Type.Object({
-    queuedId: Type.Optional(Type.String()),
+    queueId: Type.Optional(Type.String()),
     deployedAddress: Type.Optional(Type.String()),
   }),
 });

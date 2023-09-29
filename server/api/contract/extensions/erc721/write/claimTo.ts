@@ -68,9 +68,11 @@ export async function erc721claimTo(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc721.claimTo.prepare(receiver, quantity);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });
