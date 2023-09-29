@@ -34,6 +34,9 @@ export const getSdk = async ({
   if (!walletAddress) {
     sdk = new ThirdwebSDK(chain, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
+      supportedChains: env.CHAIN_OVERRIDES
+        ? JSON.parse(env.CHAIN_OVERRIDES)
+        : undefined,
     });
   } else {
     const wallet = await getWallet({
@@ -44,6 +47,9 @@ export const getSdk = async ({
     });
     sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
+      supportedChains: env.CHAIN_OVERRIDES
+        ? JSON.parse(env.CHAIN_OVERRIDES)
+        : undefined,
     });
   }
 
