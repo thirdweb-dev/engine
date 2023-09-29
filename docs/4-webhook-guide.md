@@ -6,7 +6,7 @@ Make sure to read the `README.md` and previous `user-guide.md` before starting t
 
 ### Setup
 
-Add the below variables to your (Either on `.env` file or as environment variables)
+Add the below variable (Either on `.env` file or as environment variables)
 
 ```
 WEBHOOK_URL=<your_web_hook_url>
