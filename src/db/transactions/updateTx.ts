@@ -92,7 +92,12 @@ export const updateTx = async ({
           id: queueId,
         },
         data: {
-          // TODO: Should we be keeping track of erroredAt here?
+          transactionHash: res?.hash,
+          transactionType: res?.type,
+          gasPrice: res?.gasPrice?.toString(),
+          gasLimit: res?.gasLimit?.toString(),
+          maxFeePerGas: res?.maxFeePerGas?.toString(),
+          maxPriorityFeePerGas: res?.maxPriorityFeePerGas?.toString(),
           ...txData,
         },
       });

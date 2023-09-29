@@ -40,6 +40,7 @@ export const cancelTransactionAndUpdate = async ({
       );
       break;
     case TransactionStatusEnum.Queued:
+    case TransactionStatusEnum.Processed:
       await updateTx({
         queueId,
         status: TransactionStatusEnum.Cancelled,
@@ -87,14 +88,14 @@ export const cancelTransactionAndUpdate = async ({
       await updateTx({
         queueId,
         status: TransactionStatusEnum.Cancelled,
+        res: transferTransactionResult,
         txData: {
           cancelledAt,
-          data: transferTransactionResult.data,
-          value: transferTransactionResult.value.toString(),
           toAddress: walletAddress,
           functionName: null,
           functionArgs: null,
-          transactionHash: transferTransactionResult.hash,
+          data: "0x",
+          value: "0x00",
         },
       });
       break;
