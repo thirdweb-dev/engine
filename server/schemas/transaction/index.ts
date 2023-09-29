@@ -110,6 +110,12 @@ export const transactionResponseSchema = Type.Object({
     }),
     Type.Null(),
   ]),
+  cancelledAt: Type.Union([
+    Type.String({
+      description: "Transaction Cancelled Status Update Timestamp",
+    }),
+    Type.Null(),
+  ]),
   deployedContractAddress: Type.Union([
     Type.String({
       description: "Deployed Contract Address",
@@ -189,6 +195,7 @@ export enum TransactionStatusEnum {
   UserOpSent = "user-op-sent",
   Errored = "errored",
   Mined = "mined",
+  Cancelled = "cancelled",
 }
 
 export interface TransactionSchema {

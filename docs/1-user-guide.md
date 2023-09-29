@@ -66,7 +66,7 @@ Backend wallets are used by the web3-api to execute transactions, you should thi
 
 ### Websocket Listener
 
-For updates on your requests, you can either poll using the `get` (`/tranasction/status/<tx_queue_id>`) method or use websockets. [How to use websockets](./.github/websocket_usage.md)
+For updates on your requests, you can either poll using the `get` (`/tranasction/status/<queueId>`) method or use websockets. [How to use websockets](./.github/websocket_usage.md)
 
 ## Running in Production Mode
 

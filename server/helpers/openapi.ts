@@ -12,8 +12,8 @@ export const openapi = async (server: FastifyInstance) => {
     openapi: {
       info: {
         title: "thirdweb Engine",
-        description: "thirdweb Engine",
-        version: "1.0.0",
+        description: "The most powerful backend engine for web3 apps.",
+        version: "0.0.2",
         license: {
           name: "Apache 2.0",
           url: "http://www.apache.org/licenses/LICENSE-2.0.html",
@@ -46,9 +46,11 @@ export const openapi = async (server: FastifyInstance) => {
     routePrefix: "/",
     initOAuth: {},
     uiConfig: {
-      docExpansion: "list",
+      docExpansion: "none",
+      // filter: true, // This options enables search bar to allow serach by tags
       deepLinking: true,
       displayOperationId: false,
+      layout: "BaseLayout",
     },
 
     staticCSP: true,

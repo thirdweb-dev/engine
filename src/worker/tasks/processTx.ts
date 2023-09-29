@@ -4,6 +4,8 @@ import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { getSdk } from "../../../server/utils/cache/getSdk";
+import { checkIfIDCancelled } from "../../db/cancelledTransactions/checkIfTxCancelled";
+import { updateCancelStatus } from "../../db/cancelledTransactions/updateCancelStatus";
 import { prisma } from "../../db/client";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
@@ -30,6 +32,24 @@ export const processTx = async () => {
             logger.worker.info(
               `[Transaction] [${tx.queueId}] Picked up by worker`,
             );
+
+            const cancelledData = await checkIfIDCancelled({
+              queueId: tx.queueId!,
+            });
+
+            if (cancelledData) {
+              logger.worker.info(
+                `[Transaction] [${tx.queueId}] Cancelled by user`,
+              );
+
+              if (!cancelledData.cancelledByWorkerAt) {
+                await updateCancelStatus({
+                  queueId: tx.queueId!,
+                });
+              }
+
+              continue;
+            }
 
             // Update database that transaction has been picked up by worker
             await updateTx({

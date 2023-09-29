@@ -28,7 +28,7 @@ WHERE
   AND "transactionHash" IS NOT NULL
   AND "retryCount" < ${env.MAX_RETRIES_FOR_TX}
 ORDER BY
-  "sentAt"
+  "queuedAt"
 ASC
 LIMIT
   1
