@@ -2790,15 +2790,15 @@
   resolved "https://registry.yarnpkg.com/@t3-oss/env-core/-/env-core-0.6.0.tgz#a2e6a6a2b166aad2df7ecc5e7a72400946a84fbe"
   integrity sha512-3FkPAba069WRZVVab/sB1m3eSGn/rZeypx5k+sWEu1d+k0OQdRDnvFS+7MtxYgqVrwaRk3b7yVnX2dgSPVmWPQ==
 
+"@thirdweb-dev/chains@0.0.0-dev-18c30e0-20230929194826":
+  version "0.0.0-dev-18c30e0-20230929194826"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.0.0-dev-18c30e0-20230929194826.tgz#b67b6fafa1f4fc8080496db9759e56f6c1106dd5"
+  integrity sha512-kexSETXwrNlZ0ZaHI/mCOB3pM/5zOtxvuUBO+XKJrGP0TCJLx3j57ZsyenP0llBsqE4N8efkoimWnpX94fShtg==
+
 "@thirdweb-dev/chains@0.1.53":
   version "0.1.53"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.53.tgz#49b3e3a2977af497b55dc52cb05d2e5f1e4a76cb"
   integrity sha512-fU+StbWuk4Ri47rPkKRzmD2BEtuh4Ozb0B7k9GRD8E2mH31S77pvUGwO8t0LWUfHIpDSW7nJ4oNQ5YmWDxwcWQ==
-
-"@thirdweb-dev/chains@^0.1.46":
-  version "0.1.46"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.46.tgz#d115c0b8efb02e74ee38ef8c1237bdf476e62717"
-  integrity sha512-AVDLJZ6ttFY8jPzQTKe3mRMnCAQcUzK6eX5vjs9A5CqUCdq7mBmuMM4x3fRs/80FR4vRdEaEYkdRv6HCjCHxGw==
 
 "@thirdweb-dev/contracts-js@1.3.13":
   version "1.3.13"
