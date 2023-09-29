@@ -57,7 +57,8 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/airdrop",
     schema: {
-      description: "Airdrop a ERC1155 NFT to multiple wallets.",
+      summary: "Airdrop tokens",
+      description: "Airdrop ERC-1155 tokens to specific wallets.",
       tags: ["ERC1155"],
       operationId: "erc1155_airdrop",
       params: requestSchema,

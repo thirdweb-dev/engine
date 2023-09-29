@@ -43,7 +43,8 @@ export async function getAllRoles(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/roles/get-all",
     schema: {
-      description: "Get all members of all roles",
+      summary: "Get wallets for all roles",
+      description: "Get all wallets in each role for a contract.",
       tags: ["Contract-Roles"],
       operationId: "roles_getAll",
       params: requestSchema,

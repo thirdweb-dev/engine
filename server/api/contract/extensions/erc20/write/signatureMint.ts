@@ -39,7 +39,8 @@ export async function erc20SignatureMint(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/signature/mint",
     schema: {
-      description: "Mint tokens from a previously generated signature.",
+      summary: "Signature mint",
+      description: "Mint ERC-20 tokens from a generated signature.",
       tags: ["ERC20"],
       operationId: "erc20_signature_mint",
       params: requestSchema,

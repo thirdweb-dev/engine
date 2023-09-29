@@ -35,8 +35,9 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
     method: "GET",
     url: "/contract/:chain/:contract_address/account-factory/is-account-deployed",
     schema: {
+      summary: "Check if deployed",
       description:
-        "Check if the account for a given admin address has been deployed",
+        "Check if a smart account has been deployed to the blockchain.",
       tags: ["Account Factory"],
       operationId: "account-factory:is-account-deployed",
       params: contractParamSchema,

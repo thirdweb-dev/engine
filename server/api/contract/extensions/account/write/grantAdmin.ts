@@ -26,7 +26,8 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/contract/:chain/:contract_address/account/admins/grant",
     schema: {
-      description: "Grant a wallet admin permissions",
+      summary: "Grant admin",
+      description: "Grant a smart account's admin permission.",
       tags: ["Account"],
       operationId: "account:grant-admin",
       headers: walletAuthSchema,

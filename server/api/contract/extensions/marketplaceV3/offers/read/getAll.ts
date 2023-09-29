@@ -68,8 +68,8 @@ export async function offersGetAll(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/offers/get-all",
     schema: {
-      description:
-        "Get all offers on the smart contract. Optionally, provide a filter to filter the offers returned.",
+      summary: "Get all offers",
+      description: "Get all offers on this marketplace contract.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offers_getAll",
       params: requestSchema,

@@ -11,7 +11,7 @@ import { getContract } from "../../../../utils/cache/getContract";
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
   role: Type.String({
-    description: "The Role to to get a memberlist for.",
+    description: "The role to list wallet members",
   }),
 });
 
@@ -35,7 +35,8 @@ export async function getRoles(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/roles/get",
     schema: {
-      description: "Get all members of a specific role",
+      summary: "Get wallets for role",
+      description: "Get all wallets with a specific role for a contract.",
       tags: ["Contract-Roles"],
       operationId: "roles_getRole",
       params: requestSchema,

@@ -74,7 +74,8 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
     method: "GET",
     url: "/transaction/get-all-deployed-contracts",
     schema: {
-      description: "Get All Deploy Contract Transaction Requests",
+      summary: "Get all deployment transactions",
+      description: "Get all transaction requests to deploy contracts.",
       tags: ["Transaction"],
       operationId: "getAllDeployedContracts",
       querystring: requestQuerySchema,

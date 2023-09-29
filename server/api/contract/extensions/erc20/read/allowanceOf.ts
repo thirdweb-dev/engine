@@ -48,7 +48,9 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc20/allowance-of",
     schema: {
-      description: "Get the allowance of the specified wallet address funds.",
+      summary: "Get token allowance",
+      description:
+        "Get the allowance of a specific wallet for an ERC-20 contract.",
       tags: ["ERC20"],
       operationId: "erc20_allowanceOf",
       params: requestSchema,

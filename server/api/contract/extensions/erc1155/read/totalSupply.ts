@@ -38,7 +38,9 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc1155/total-supply",
     schema: {
-      description: "Get the total number of NFTs minted.",
+      summary: "Get total supply",
+      description:
+        "Get the total supply in circulation for this ERC-1155 contract.",
       tags: ["ERC1155"],
       operationId: "erc1155_totalSupply",
       params: requestSchema,

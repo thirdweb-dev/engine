@@ -31,7 +31,8 @@ export const createAccount = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/contract/:chain/:contract_address/account-factory/create-account",
     schema: {
-      description: "Create a new account on the account factory",
+      summary: "Create smart account",
+      description: "Create a smart account for this account factory.",
       tags: ["Account Factory"],
       operationId: "account-factory:create-account",
       params: contractParamSchema,

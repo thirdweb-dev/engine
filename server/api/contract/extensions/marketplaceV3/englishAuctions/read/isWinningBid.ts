@@ -40,8 +40,9 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/english-auctions/is-winning-bid",
     schema: {
+      summary: "Check winning bid",
       description:
-        "Check if a value is/would be the current winning bid of an auction.",
+        "Check if a bid is or will be the winning bid for an auction.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_isWinningBid",
       params: requestSchema,

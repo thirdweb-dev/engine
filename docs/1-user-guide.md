@@ -1,4 +1,4 @@
-# thirdweb web3-api User Guide
+# thirdweb Engine User Guide
 
 ## Getting Started
 
@@ -25,7 +25,7 @@
 
 ### PostgreSQL DB
 
-A PostgreSQL DB is required to run web3-api, both the server and worker need access to it. Check [installation guide](./.github/installations.md) for more details.
+A PostgreSQL DB is required to run _Engine_, both the server and worker need access to it. Check [installation guide](./.github/installations.md) for more details.
 
 Once you have PostgreSQL DB running set the POSTGRES_CONNECTION_URL environment variable:
 

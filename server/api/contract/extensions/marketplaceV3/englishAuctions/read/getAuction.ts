@@ -54,8 +54,9 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/english-auctions/get-auction",
     schema: {
+      summary: "Get English auction",
       description:
-        "Retrieve data for a specific auction listing on the marketplace using the listing ID.",
+        "Get a specific English auction listing on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_GetAuction",
       params: requestSchema,

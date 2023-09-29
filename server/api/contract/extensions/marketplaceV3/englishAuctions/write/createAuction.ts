@@ -40,7 +40,9 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/english-auctions/create-auction",
     schema: {
-      description: "Create a new auction listing on the marketplace.",
+      summary: "Create English auction",
+      description:
+        "Create an English auction listing on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_createAuction",
       params: requestSchema,

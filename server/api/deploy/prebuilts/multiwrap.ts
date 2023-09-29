@@ -47,7 +47,8 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/multiwrap",
     schema: {
-      description: "Deploy prebuilt Multiwrap contract",
+      summary: "Deploy Multiwrap",
+      description: "Deploy a Multiwrap contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltMultiwrap",
       params: requestSchema,
