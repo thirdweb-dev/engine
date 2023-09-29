@@ -18,22 +18,20 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
         const parsedPayload = JSON.parse(msg.payload);
         if (env.WEBHOOK_URL.length > 0) {
           const txData = await getTxById({ queueId: parsedPayload.id });
-          logger.server.debug(
-            `Received notification: ${msg.channel}, ${JSON.stringify(txData)}`,
-          );
-          const response = await fetch(env.WEBHOOK_URL!, {
+          const response = await fetch(env.WEBHOOK_URL, {
             method: "POST",
             headers: {
               Accept: "application/json",
               "Content-Type": "application/json",
-              Authorization: `Bearer ${env.THIRDWEB_API_SECRET_KEY}`,
             },
             body: JSON.stringify(txData),
           });
 
-          logger.server.debug(
-            `Webhook update sent to URL: ${env.WEBHOOK_URL}. Response: ${response.status}`,
-          );
+          if (!response.ok) {
+            logger.server.error(
+              `Webhook error: ${response.status} ${response.statusText}`,
+            );
+          }
         } else {
           logger.server.debug(
             `Webhooks are disabled or no URL is provided. Skipping webhook update`,

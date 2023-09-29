@@ -3,6 +3,7 @@ import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../core";
+import { createCancelledTxData } from "../../src/db/cancelledTransactions/createCancelledTxData";
 import { getTxById } from "../../src/db/transactions/getTxById";
 import { updateTx } from "../../src/db/transactions/updateTx";
 import { TransactionStatusEnum } from "../schemas/transaction";
@@ -43,6 +44,10 @@ export const cancelTransactionAndUpdate = async ({
       break;
     case TransactionStatusEnum.Queued:
     case TransactionStatusEnum.Processed:
+      await createCancelledTxData({
+        queueId,
+      });
+
       await updateTx({
         queueId,
         status: TransactionStatusEnum.Cancelled,
@@ -59,7 +64,7 @@ export const cancelTransactionAndUpdate = async ({
         "TransactionAlreadyMined",
       );
       break;
-    case TransactionStatusEnum.Submitted:
+    case TransactionStatusEnum.Submitted: {
       const sdk = await getSdk({
         chainId: txData.chainId!,
         walletAddress: txData.fromAddress!,
@@ -105,6 +110,7 @@ export const cancelTransactionAndUpdate = async ({
         },
       });
       break;
+    }
 
     default:
       break;

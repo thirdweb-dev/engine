@@ -86,3 +86,10 @@ model Transactions {
 
   @@map("transactions")
 }
+
+model CancelledTransactions {
+  queueId                   String    @id @map("queueId")
+  cancelledByWorkerAt       DateTime?  @map("cancelledByWorkerAt")
+
+  @@map("cancelled_transactions")
+}
