@@ -49,7 +49,8 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/token",
     schema: {
-      description: "Deploy prebuilt Token contract",
+      summary: "Deploy Token",
+      description: "Deploy a Token contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltToken",
       params: requestSchema,
@@ -77,7 +78,7 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
       );
 
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
@@ -87,7 +88,7 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
-          queuedId,
+          queueId,
         },
       });
     },

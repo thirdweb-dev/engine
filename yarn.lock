@@ -2790,15 +2790,15 @@
   resolved "https://registry.yarnpkg.com/@t3-oss/env-core/-/env-core-0.6.0.tgz#a2e6a6a2b166aad2df7ecc5e7a72400946a84fbe"
   integrity sha512-3FkPAba069WRZVVab/sB1m3eSGn/rZeypx5k+sWEu1d+k0OQdRDnvFS+7MtxYgqVrwaRk3b7yVnX2dgSPVmWPQ==
 
+"@thirdweb-dev/chains@0.0.0-dev-18c30e0-20230929194826":
+  version "0.0.0-dev-18c30e0-20230929194826"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.0.0-dev-18c30e0-20230929194826.tgz#b67b6fafa1f4fc8080496db9759e56f6c1106dd5"
+  integrity sha512-kexSETXwrNlZ0ZaHI/mCOB3pM/5zOtxvuUBO+XKJrGP0TCJLx3j57ZsyenP0llBsqE4N8efkoimWnpX94fShtg==
+
 "@thirdweb-dev/chains@0.1.53":
   version "0.1.53"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.53.tgz#49b3e3a2977af497b55dc52cb05d2e5f1e4a76cb"
   integrity sha512-fU+StbWuk4Ri47rPkKRzmD2BEtuh4Ozb0B7k9GRD8E2mH31S77pvUGwO8t0LWUfHIpDSW7nJ4oNQ5YmWDxwcWQ==
-
-"@thirdweb-dev/chains@^0.1.46":
-  version "0.1.46"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.46.tgz#d115c0b8efb02e74ee38ef8c1237bdf476e62717"
-  integrity sha512-AVDLJZ6ttFY8jPzQTKe3mRMnCAQcUzK6eX5vjs9A5CqUCdq7mBmuMM4x3fRs/80FR4vRdEaEYkdRv6HCjCHxGw==
 
 "@thirdweb-dev/contracts-js@1.3.13":
   version "1.3.13"
@@ -2828,10 +2828,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/generated-abis/-/generated-abis-0.0.1.tgz#0d788d6aff0ac08f11e9eeb9ae4c8321845272a8"
   integrity sha512-vO9/3lSLO8smyyH1QVeYravSTzFwV1nf1C/Im1NBDPdH8//YvcbhtETGGiNfHWpyCvSi0vRYwvf+/7FKdwpDGQ==
 
-"@thirdweb-dev/sdk@3.10.63-nightly-c085d690-20230927234230", "@thirdweb-dev/sdk@^3.10.63-nightly-c085d690-20230927234230":
-  version "3.10.63-nightly-c085d690-20230927234230"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.63-nightly-c085d690-20230927234230.tgz#f4e6f4963252c12a975da4eb3ec08bd99b267278"
-  integrity sha512-A2GbH3GthBlfC9WTODsJlveMjHMB0oCZfa7nuzb1Sj2F9+RSA1AwtX8tWCXuUEhw8RpCs+6Ymt2Gcyzc9Wb0KQ==
+"@thirdweb-dev/sdk@3.10.63-nightly-eb9e9f0c-20230928174429", "@thirdweb-dev/sdk@^3.10.63-nightly-eb9e9f0c-20230928174429":
+  version "3.10.63-nightly-eb9e9f0c-20230928174429"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-3.10.63-nightly-eb9e9f0c-20230928174429.tgz#08b5f180fe05712efbe600b0bb85137c5b860214"
+  integrity sha512-7gFPdxs4Li1Sk90TH/yUVuxVl0e6XrzXuKxLCnkFvKTRTc0ErGDYzuVT75O2104H/IfGZTKBzRfoiEEhPYpHwQ==
   dependencies:
     "@thirdweb-dev/chains" "0.1.53"
     "@thirdweb-dev/contracts-js" "1.3.13"
@@ -2869,10 +2869,10 @@
     form-data "^4.0.0"
     uuid "^9.0.0"
 
-"@thirdweb-dev/wallets@^1.3.1-nightly-c085d690-20230927234230":
-  version "1.3.1-nightly-c085d690-20230927234230"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-1.3.1-nightly-c085d690-20230927234230.tgz#df914f2fe0c3dc1abf930bca3da744367fe143a4"
-  integrity sha512-1hOJuu78pGJ7FptJg4+t9iVx8EbYLIufuUzB4326qUEVcziuTm0YR04DKkkein14zJzKUFTo1xUeULHpALPr7g==
+"@thirdweb-dev/wallets@^1.3.1-nightly-eb9e9f0c-20230928174429":
+  version "1.3.1-nightly-eb9e9f0c-20230928174429"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-1.3.1-nightly-eb9e9f0c-20230928174429.tgz#a0e93b2c283740cb498a93fff70845aabde9a1e9"
+  integrity sha512-LM4HJ/vkDfJamUfg9t6smqh1Bojelx8WzK3PtlcEp0H9krOReeymQs7Ltq/f2xDNbBjnDH2so9TwataiZKb8cw==
   dependencies:
     "@account-abstraction/contracts" "^0.5.0"
     "@account-abstraction/sdk" "^0.5.0"
@@ -2889,7 +2889,7 @@
     "@safe-global/safe-ethers-lib" "^1.9.4"
     "@thirdweb-dev/chains" "0.1.53"
     "@thirdweb-dev/contracts-js" "1.3.13"
-    "@thirdweb-dev/sdk" "3.10.63-nightly-c085d690-20230927234230"
+    "@thirdweb-dev/sdk" "3.10.63-nightly-eb9e9f0c-20230928174429"
     "@walletconnect/core" "^2.9.1"
     "@walletconnect/ethereum-provider" "^2.9.1"
     "@walletconnect/jsonrpc-utils" "^1.0.8"

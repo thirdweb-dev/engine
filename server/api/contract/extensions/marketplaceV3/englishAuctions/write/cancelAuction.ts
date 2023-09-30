@@ -40,8 +40,9 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/english-auctions/cancel-auction",
     schema: {
+      summary: "Cancel English auction",
       description:
-        "Cancel an auction listing you previously created. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.",
+        "Cancel an existing auction listing. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_cancelAuction",
       params: requestSchema,
@@ -66,17 +67,19 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
         accountAddress,
       });
 
-      const tx = await contract.englishAuctions.buyoutAuction.prepare(
+      const tx = await contract.englishAuctions.cancelAuction.prepare(
         listing_id,
       );
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

@@ -46,7 +46,8 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/direct-listings/update-listing",
     schema: {
-      description: "Create a new direct listing on the marketplace.",
+      summary: "Update direct listing",
+      description: "Update a direct listing on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_updateListing",
       headers: walletAuthSchema,
@@ -95,13 +96,15 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
           endTimestamp,
         },
       );
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-direct-listings",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

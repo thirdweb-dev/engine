@@ -37,8 +37,8 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc20/get",
     schema: {
-      description:
-        "Get the metadata of the token smart contract, such as the name, symbol, and decimals.",
+      summary: "Get token details",
+      description: "Get details for this ERC-20 contract.",
       tags: ["ERC20"],
       operationId: "erc20_get",
       params: requestSchema,

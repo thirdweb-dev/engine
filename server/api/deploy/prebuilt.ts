@@ -31,7 +31,7 @@ requestBodySchema.examples = [
   {
     contractMetadata: {
       name: `My Contract`,
-      description: "Contract deployed from web3 api",
+      description: "Contract deployed from thirdweb Engine",
       primary_sale_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
       seller_fee_basis_points: 500,
       fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
@@ -43,7 +43,7 @@ requestBodySchema.examples = [
 
 // OUTPUT
 const responseSchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
+  queueId: Type.Optional(Type.String()),
   deployedAddress: Type.Optional(Type.String()),
 });
 
@@ -86,14 +86,14 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
       );
       const deployedAddress = await tx.simulate();
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
       });
       reply.status(StatusCodes.OK).send({
         deployedAddress,
-        queuedId,
+        queueId,
       });
     },
   });

@@ -40,9 +40,9 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/signature/generate",
     schema: {
-      description: `Generate a signature that a wallet address can use to mint the specified number of NFTs.
-        This is typically an admin operation, where the owner of the contract generates a signature that 
-        allows another wallet to mint tokens.`,
+      summary: "Generate signature",
+      description:
+        "Generate a signature granting access for another wallet to mint tokens from this ERC-721 contract. This method is typically called by the token contract owner.",
       tags: ["ERC1155"],
       operationId: "erc1155_signature_generate",
       params: requestSchema,

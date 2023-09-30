@@ -44,7 +44,9 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/transfer-from",
     schema: {
-      description: "Transfer an NFT from a specific wallet to another wallet.",
+      summary: "Transfer token from wallet",
+      description:
+        "Transfer an ERC-721 token from the connected wallet to another wallet. Requires allowance.",
       tags: ["ERC721"],
       operationId: "erc721_transferFrom",
       params: requestSchema,
@@ -71,9 +73,11 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc721.transferFrom.prepare(from, to, token_id);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

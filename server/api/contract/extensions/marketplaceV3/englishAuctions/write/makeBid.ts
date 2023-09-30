@@ -44,7 +44,8 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/english-auctions/make-bid",
     schema: {
-      description: "Place a new bid on an auction listing.",
+      summary: "Make bid",
+      description: "Place a bid on an English auction listing.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_makeBid",
       params: requestSchema,
@@ -74,13 +75,15 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
         bid_amount,
       );
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

@@ -18,29 +18,29 @@ export const baseReplyErrorSchema = Type.Object({
 export const contractParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID or name",
   }),
   contract_address: Type.String({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
-    description: "Contract Address on the Chain",
+    description: "Contract address on the chain",
   }),
 });
 
 export const prebuiltDeployParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID or name",
   }),
   contract_type: Type.String({
     examples: Object.keys(PREBUILT_CONTRACTS_MAP),
-    description: "Contract Type to deploy",
+    description: "Contract type to deploy",
   }),
 });
 
 export const publishedDeployParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID or name",
   }),
   publisher: Type.String({
     examples: ["deployer.thirdweb.eth"],
@@ -134,13 +134,17 @@ export interface publishedDeploySchemaTypes extends RouteGenericInterface {
 }
 
 export const transactionWritesResponseSchema = Type.Object({
-  result: Type.String({
-    description: "Queue ID",
+  result: Type.Object({
+    queueId: Type.String({
+      description: "Queue ID",
+    }),
   }),
 });
 
 transactionWritesResponseSchema.example = {
-  result: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+  result: {
+    queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+  },
 };
 
 /**
@@ -149,7 +153,7 @@ transactionWritesResponseSchema.example = {
 export const erc20ContractParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID or name",
   }),
   contract_address: Type.String({
     examples: ["0x365b83D67D5539C6583b9c0266A548926Bf216F4"],
@@ -163,7 +167,7 @@ export const erc20ContractParamSchema = Type.Object({
 export const erc1155ContractParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID or name",
   }),
   contract_address: Type.String({
     examples: ["0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"],
@@ -177,7 +181,7 @@ export const erc1155ContractParamSchema = Type.Object({
 export const erc721ContractParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID or name",
   }),
   contract_address: Type.String({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
@@ -207,7 +211,7 @@ export enum Status {
 export const marketplaceV3ContractParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID or name",
   }),
   contract_address: Type.String({
     examples: ["0xE8Bf1a01106F3acD7F84acaf5D668D7C9eA11535"],

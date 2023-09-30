@@ -28,7 +28,8 @@ export const updateSession = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/contract/:chain/:contract_address/account/sessions/update",
     schema: {
-      description: "Update a session",
+      summary: "Update session key",
+      description: "Update a session key for a smart account.",
       tags: ["Account"],
       operationId: "account:update-session",
       params: contractParamSchema,
@@ -70,7 +71,9 @@ export const updateSession = async (fastify: FastifyInstance) => {
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({
-        result: queueId,
+        result: {
+          queueId,
+        },
       });
     },
   });

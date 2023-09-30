@@ -40,8 +40,9 @@ export async function erc721SetApprovalForAll(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/set-approval-for-all",
     schema: {
+      summary: "Set approval for all",
       description:
-        "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token in the specified contract owned by the caller.",
+        "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token owned by the caller.",
       tags: ["ERC721"],
       operationId: "erc721_setApprovalForAll",
       params: requestSchema,
@@ -71,9 +72,11 @@ export async function erc721SetApprovalForAll(fastify: FastifyInstance) {
         operator,
         approved,
       );
-      const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

@@ -36,7 +36,8 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/offers/cancel-offer",
     schema: {
-      description: "Cancel an offer you made on an NFT.",
+      summary: "Cancel offer",
+      description: "Cancel a valid offer made by the caller wallet.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offer_cancelOffer",
       headers: walletAuthSchema,
@@ -64,13 +65,15 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
 
       const tx = await contract.offers.cancelOffer.prepare(offer_id);
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-offers",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

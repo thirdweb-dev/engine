@@ -34,7 +34,7 @@ requestBodySchema.examples = [
 
 // OUTPUT
 const responseSchema = Type.Object({
-  queuedId: Type.Optional(Type.String()),
+  queueId: Type.Optional(Type.String()),
   deployedAddress: Type.Optional(Type.String()),
 });
 
@@ -47,7 +47,8 @@ export async function deployPublished(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/:publisher/:contract_name",
     schema: {
-      description: "Deploy published contract",
+      summary: "Deploy published contract",
+      description: "Deploy a published contract to the blockchain.",
       tags: ["Deploy"],
       operationId: "deployPublished",
       params: requestSchema,
@@ -68,7 +69,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       const accountAddress = request.headers["x-account-address"] as string;
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });
-      const tx = await sdk.deployer.deployReleasedContract.prepare(
+      const tx = await sdk.deployer.deployPublishedContract.prepare(
         publisher,
         contract_name,
         constructorParams,
@@ -76,7 +77,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       );
       const deployedAddress = await tx.simulate();
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-published",
@@ -85,7 +86,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       });
       reply.status(StatusCodes.OK).send({
         deployedAddress,
-        queuedId,
+        queueId,
       });
     },
   });

@@ -47,7 +47,8 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/multiwrap",
     schema: {
-      description: "Deploy prebuilt Multiwrap contract",
+      summary: "Deploy Multiwrap",
+      description: "Deploy a Multiwrap contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltMultiwrap",
       params: requestSchema,
@@ -74,7 +75,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
@@ -84,7 +85,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
-          queuedId,
+          queueId,
         },
       });
     },

@@ -25,7 +25,8 @@ export async function erc721TotalClaimedSupply(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/erc721/total-claimed-supply",
     schema: {
-      description: "Get the claimed NFT supply for the contract.",
+      summary: "Get claimed supply",
+      description: "Get the claimed supply for this ERC-721 contract.",
       tags: ["ERC721"],
       operationId: "erc721_totalClaimedSupply",
       params: requestSchema,

@@ -45,7 +45,8 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/split",
     schema: {
-      description: "Deploy prebuilt Split contract",
+      summary: "Deploy Split",
+      description: "Deploy a Split contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltSplit",
       params: requestSchema,
@@ -73,7 +74,7 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
       );
       const deployedAddress = await tx.simulate();
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
@@ -83,7 +84,7 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
-          queuedId,
+          queueId,
         },
       });
     },

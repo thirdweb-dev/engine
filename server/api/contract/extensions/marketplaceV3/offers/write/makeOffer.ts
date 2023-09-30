@@ -37,8 +37,8 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/offers/make-offer",
     schema: {
-      description:
-        "Make a new offer on an NFT. Offers can be made on any NFT, regardless of whether it is listed for sale or not.",
+      summary: "Make offer",
+      description: "Make an offer on a token. A valid listing is not required.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offer_makeOffer",
       headers: walletAuthSchema,
@@ -80,13 +80,15 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
         quantity,
       });
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-offers",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

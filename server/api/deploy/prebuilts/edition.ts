@@ -51,7 +51,8 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/edition",
     schema: {
-      description: "Deploy prebuilt Edition contract",
+      summary: "Deploy Edition",
+      description: "Deploy an Edition contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltEdition",
       params: requestSchema,
@@ -79,7 +80,7 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
@@ -89,7 +90,7 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
-          queuedId,
+          queueId,
         },
       });
     },

@@ -39,7 +39,8 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/signature/mint",
     schema: {
-      description: "Mint tokens from a previously generated signature.",
+      summary: "Signature mint",
+      description: "Mint ERC-1155 tokens from a generated signature.",
       tags: ["ERC1155"],
       operationId: "erc1155_signature_mint",
       params: requestSchema,
@@ -77,9 +78,11 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
         signature,
       };
       const tx = await contract.erc1155.signature.mint.prepare(signedPayload);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

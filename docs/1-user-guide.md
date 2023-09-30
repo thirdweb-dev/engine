@@ -1,4 +1,4 @@
-# thirdweb web3-api User Guide
+# thirdweb Engine User Guide
 
 ## Getting Started
 
@@ -25,7 +25,7 @@
 
 ### PostgreSQL DB
 
-A PostgreSQL DB is required to run web3-api, both the server and worker need access to it. Check [installation guide](./.github/installations.md) for more details.
+A PostgreSQL DB is required to run _Engine_, both the server and worker need access to it. Check [installation guide](./.github/installations.md) for more details.
 
 Once you have PostgreSQL DB running set the POSTGRES_CONNECTION_URL environment variable:
 
@@ -66,7 +66,7 @@ Backend wallets are used by the web3-api to execute transactions, you should thi
 
 ### Websocket Listener
 
-For updates on your requests, you can either poll using the `get` (`/tranasction/status/<tx_queue_id>`) method or use websockets. [How to use websockets](./.github/websocket_usage.md)
+For updates on your requests, you can either poll using the `get` (`/tranasction/status/<queueId>`) method or use websockets. [How to use websockets](./.github/websocket_usage.md)
 
 ## Running in Production Mode
 
@@ -83,6 +83,35 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
    docker run -e .env -p 3005:3005 thirdweb/engine:nightly
    # check other images at https://hub.docker.com/r/thirdweb/engine/tags
    ```
+
+### Run on Cloud
+
+#### Zeet Example:
+
+1. Goto https://zeet.co/ and create an account
+2. Create a new project
+3. Select `Docker Image` as the deployment method
+4. Under `Docker Image`, search for `thirdweb/engine` and select it
+5. Under `Docker Image Tag`, select either `latest` or `nightly`
+   ![Alt text](./images/Zeet-Docker-Source-Setting.png)
+6. Select the Target cluster you want the above image to be deployed to
+7. Choose your `Compute` settings
+8. Update the `port` under `Networking` Tab to `3005`
+9. Under `Environment Vriables` add the below vars with values:
+
+```
+POSTGRES_CONNECTION_URL
+THIRDWEB_API_SECRET_KEY
+```
+
+10. Under `Organize` Tab,
+
+- you can select an existing `group`` or create a new one
+- you can select an existting `sub-group` or create new one
+- Add a Project Name
+
+11. Click on `Deploy` button
+12. Once the deployment is complete, you can click on the URL given by zeet to access the API & Swagger UI
 
 ### Note:
 

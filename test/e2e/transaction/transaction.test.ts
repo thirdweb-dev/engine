@@ -8,11 +8,11 @@ describe("Transaction End-point Test", () => {
   let createdServerInstance: FastifyInstance;
 
   beforeEach(async () => {
-    createdServerInstance = await createServer("Test-Suite");
+    createdServerInstance = await createServer();
   });
 
   // TODO: This test hard codes a queue id?
-  it.skip("should return a specific transaction request data when tx_queue_id is provided", async () => {
+  it.skip("should return a specific transaction request data when queueId is provided", async () => {
     const response = await request(createdServerInstance.server)
       .get("/transaction/status/8fe7d546-2b8b-465e-b0d2-f1cb5d3d0db3")
       .set("Authorization", `Bearer ${env.THIRDWEB_API_SECRET_KEY}`)

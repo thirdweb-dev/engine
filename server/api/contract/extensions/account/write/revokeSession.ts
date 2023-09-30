@@ -26,7 +26,8 @@ export const revokeSession = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/contract/:chain/:contract_address/account/sessions/revoke",
     schema: {
-      description: "Revoke a session",
+      summary: "Revoke session key",
+      description: "Revoke a session key for a smart account.",
       tags: ["Account"],
       operationId: "account:revoke-session",
       params: contractParamSchema,
@@ -54,7 +55,9 @@ export const revokeSession = async (fastify: FastifyInstance) => {
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({
-        result: queueId,
+        result: {
+          queueId,
+        },
       });
     },
   });

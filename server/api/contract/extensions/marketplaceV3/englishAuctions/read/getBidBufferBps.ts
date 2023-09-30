@@ -40,10 +40,11 @@ export async function englishAuctionsGetBidBufferBps(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/english-auctions/get-bid-buffer-bps",
     schema: {
+      summary: "Get bid buffer BPS",
       description: `Get the basis points of the bid buffer. 
-        This is the percentage higher that a new bid must be than the current highest bid in order to be placed. 
-        If there is no current bid, the bid must be at least the minimum bid amount.
-        Returns the value in percentage format, e.g. 100 = 1%.`,
+This is the percentage higher that a new bid must be than the current highest bid in order to be placed. 
+If there is no current bid, the bid must be at least the minimum bid amount.
+Returns the value in percentage format, e.g. 100 = 1%.`,
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_getBidBufferBps",
       params: requestSchema,

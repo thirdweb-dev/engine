@@ -40,10 +40,10 @@ export async function englishAuctionsExecuteSale(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/english-auctions/execute-sale",
     schema: {
+      summary: "Execute sale",
       description: `Close the auction for both buyer and seller.
-      This means the NFT(s) will be transferred to the buyer and the seller will receive the funds.
-      This function can only be called after the auction has ended.
-      `,
+This means the NFT(s) will be transferred to the buyer and the seller will receive the funds.
+This function can only be called after the auction has ended.`,
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_executeSale",
       params: requestSchema,
@@ -70,13 +70,15 @@ export async function englishAuctionsExecuteSale(fastify: FastifyInstance) {
 
       const tx = await contract.englishAuctions.executeSale.prepare(listing_id);
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

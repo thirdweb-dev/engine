@@ -26,7 +26,8 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/contract/:chain/:contract_address/account/admins/revoke",
     schema: {
-      description: "Revoke a wallet's admin permissions",
+      summary: "Revoke admin",
+      description: "Revoke a smart account's admin permission.",
       tags: ["Account"],
       operationId: "account:revoke-admin",
       headers: walletAuthSchema,
@@ -57,7 +58,9 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({
-        result: queueId,
+        result: {
+          queueId,
+        },
       });
     },
   });

@@ -42,10 +42,11 @@ export async function englishAuctionsCloseAuctionForBidder(
     method: "POST",
     url: "/marketplace/:chain/:contract_address/english-auctions/close-auction-for-bidder",
     schema: {
+      summary: "Close English auction for bidder",
       description: `After an auction has concluded (and a buyout did not occur),
-        execute the sale for the buyer, meaning the buyer receives the NFT(s). 
-        You must also call closeAuctionForSeller to execute the sale for the seller,
-        meaning the seller receives the payment from the highest bid.`,
+execute the sale for the buyer, meaning the buyer receives the NFT(s). 
+You must also call closeAuctionForSeller to execute the sale for the seller,
+meaning the seller receives the payment from the highest bid.`,
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_closeAuctionForBidder",
       params: requestSchema,
@@ -74,13 +75,15 @@ export async function englishAuctionsCloseAuctionForBidder(
         listing_id,
       );
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

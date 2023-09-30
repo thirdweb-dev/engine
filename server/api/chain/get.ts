@@ -15,20 +15,18 @@ const responseSchema = Type.Object({
 responseSchema.examples = [
   {
     result: {
-      result: {
-        name: "Mumbai",
-        chain: "Polygon",
-        rpc: ["https://mumbai.rpc.thirdweb.com/${THIRDWEB_API_SECRET_KEY}"],
-        nativeCurrency: {
-          name: "MATIC",
-          symbol: "MATIC",
-          decimals: 18,
-        },
-        shortName: "maticmum",
-        chainId: 80001,
-        testnet: true,
-        slug: "mumbai",
+      name: "Mumbai",
+      chain: "Polygon",
+      rpc: ["https://mumbai.rpc.thirdweb.com/${THIRDWEB_API_SECRET_KEY}"],
+      nativeCurrency: {
+        name: "MATIC",
+        symbol: "MATIC",
+        decimals: 18,
       },
+      shortName: "maticmum",
+      chainId: 80001,
+      testnet: true,
+      slug: "mumbai",
     },
   },
 ];
@@ -42,7 +40,8 @@ export async function getChainData(fastify: FastifyInstance) {
     method: "GET",
     url: "/chain/get",
     schema: {
-      description: "Get a particular chain information",
+      summary: "Get chain details",
+      description: "Get details about a chain.",
       tags: ["Chain"],
       operationId: "chain",
       querystring: chainRequestQuerystringSchema,

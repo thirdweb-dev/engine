@@ -45,7 +45,8 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/marketplace-v3",
     schema: {
-      description: "Deploy prebuilt Marketplace-V3 contract",
+      summary: "Deploy Marketplace",
+      description: "Deploy a Marketplace contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltMarketplaceV3",
       params: requestSchema,
@@ -73,7 +74,7 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
       );
       const deployedAddress = await tx.simulate();
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
@@ -83,7 +84,7 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
-          queuedId,
+          queueId,
         },
       });
     },

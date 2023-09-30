@@ -45,7 +45,8 @@ export async function getContractExtensions(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contract_address/metadata/extensions",
     schema: {
-      description: "Get all extensions of a contract",
+      summary: "Get extensions",
+      description: "Get all detected extensions for a contract.",
       tags: ["Contract-Metadata"],
       operationId: "getExtensions",
       params: requestSchema,

@@ -42,8 +42,9 @@ export async function erc20Transfer(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/transfer",
     schema: {
+      summary: "Transfer tokens",
       description:
-        "Transfer tokens from the connected (Admin) wallet to another wallet.",
+        "Transfer ERC-20 tokens from the caller wallet to a specific wallet.",
       tags: ["ERC20"],
       operationId: "erc20_transfer",
       body: requestBodySchema,
@@ -70,11 +71,11 @@ export async function erc20Transfer(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc20.transfer.prepare(to_address, amount);
-
-      const queuedId = await queueTx({ tx, chainId, extension: "erc20" });
-
+      const queueId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

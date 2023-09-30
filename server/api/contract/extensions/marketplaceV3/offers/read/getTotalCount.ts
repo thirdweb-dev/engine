@@ -31,7 +31,9 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/offers/get-total-count",
     schema: {
-      description: "Get the total number of offers on the smart contract",
+      summary: "Get total count",
+      description:
+        "Get the total number of offers on this marketplace contract.",
       tags: ["Marketplace-Offers"],
       operationId: "mktpv3_offers_getTotalCount",
       params: requestSchema,

@@ -15,7 +15,6 @@ export const retryTx = async () => {
       async (pgtx) => {
         // Get one transaction to retry at a time
         const tx = await getTxToRetry({ pgtx });
-
         if (!tx) {
           return;
         }
@@ -25,7 +24,6 @@ export const retryTx = async () => {
           walletAddress: tx.fromAddress!,
         });
         const blockNumber = await sdk.getProvider().getBlockNumber();
-
         // Only retry if more than the ellapsed blocks before retry has passed
         if (
           blockNumber - tx.sentAtBlockNumber! <=

@@ -22,7 +22,8 @@ export const getAllAdmins = async (fastify: FastifyInstance) => {
     method: "GET",
     url: "/contract/:chain/:contract_address/account/admins/get-all",
     schema: {
-      description: "Get all admins on an account",
+      summary: "Get all admins",
+      description: "Get all admins for a smart account.",
       tags: ["Account"],
       operationId: "account:get-all-admins",
       params: contractParamSchema,

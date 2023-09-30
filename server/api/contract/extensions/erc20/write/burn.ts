@@ -37,7 +37,8 @@ export async function erc20burn(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/burn",
     schema: {
-      description: "Burn Tokens held by the connected wallet.",
+      summary: "Burn token",
+      description: "Burn ERC-20 tokens in the caller wallet.",
       tags: ["ERC20"],
       operationId: "erc20_burn",
       params: requestSchema,
@@ -64,9 +65,11 @@ export async function erc20burn(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc20.burn.prepare(amount);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc20" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

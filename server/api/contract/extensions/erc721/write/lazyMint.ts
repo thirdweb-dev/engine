@@ -46,8 +46,8 @@ export async function erc721lazyMint(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/lazy-mint",
     schema: {
-      description:
-        "Lazy mint multiple NFTs on this contract to be claimed later.",
+      summary: "Lazy mint",
+      description: "Lazy mint ERC-721 tokens to be claimed in the future.",
       tags: ["ERC721"],
       operationId: "erc721_lazyMint",
       params: requestSchema,
@@ -74,9 +74,11 @@ export async function erc721lazyMint(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc721.lazyMint.prepare(metadatas);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

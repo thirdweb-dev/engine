@@ -31,8 +31,9 @@ export async function englishAuctionsGetTotalCount(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/english-auctions/get-total-count",
     schema: {
+      summary: "Get total listings",
       description:
-        "Get the total number of direct listings on the marketplace.",
+        "Get the count of English auction listings on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_getTotalCount",
       params: requestSchema,

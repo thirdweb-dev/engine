@@ -28,7 +28,7 @@ responseSchema.examples = [
 ];
 
 // LOGIC
-export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
+export async function englishAuctionsGetWinner(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
@@ -37,8 +37,9 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
     method: "GET",
     url: "/marketplace/:chain/:contract_address/english-auctions/get-winner",
     schema: {
+      summary: "Get winner",
       description:
-        "Get the wallet address that won an auction. Can only be called after the auction has ended.",
+        "Get the winner of an English auction. Can only be called after the auction has ended.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_getWinner",
       params: requestSchema,

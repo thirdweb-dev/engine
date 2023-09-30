@@ -40,8 +40,8 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/english-auctions/buyout-auction",
     schema: {
-      description:
-        "Pay the full price per token to buy an NFT from an auction listing.",
+      summary: "Buyout English auction",
+      description: "Buyout the listing for this auction.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "mktpv3_englishAuctions_buyoutAuction",
       params: requestSchema,
@@ -70,13 +70,15 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
         listing_id,
       );
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

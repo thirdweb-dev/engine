@@ -23,7 +23,8 @@ export const grantSession = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/contract/:chain/:contract_address/account/sessions/create",
     schema: {
-      description: "Create a new session",
+      summary: "Create session key",
+      description: "Create a session key for a smart account.",
       tags: ["Account"],
       operationId: "account:grant-session",
       params: contractParamSchema,
@@ -61,7 +62,9 @@ export const grantSession = async (fastify: FastifyInstance) => {
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
       rep.status(StatusCodes.OK).send({
-        result: queueId,
+        result: {
+          queueId,
+        },
       });
     },
   });

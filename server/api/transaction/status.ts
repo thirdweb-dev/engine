@@ -17,7 +17,7 @@ import { transactionResponseSchema } from "../../schemas/transaction";
 
 // INPUT
 const requestSchema = Type.Object({
-  tx_queue_id: Type.String({
+  queueId: Type.String({
     description: "Transaction Queue ID",
     examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
   }),
@@ -63,9 +63,10 @@ export async function checkTxStatus(fastify: FastifyInstance) {
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
-    url: "/transaction/status/:tx_queue_id",
+    url: "/transaction/status/:queueId",
     schema: {
-      description: "Get Submitted Transaction Status",
+      summary: "Get transaction status",
+      description: "Get the status for a transaction request.",
       tags: ["Transaction"],
       operationId: "txStatus",
       params: requestSchema,
@@ -75,12 +76,12 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { tx_queue_id } = request.params;
-      const returnData = await getTxById({ queueId: tx_queue_id });
+      const { queueId } = request.params;
+      const returnData = await getTxById({ queueId });
 
       if (!returnData) {
         const error = createCustomError(
-          `Transaction not found with queueId ${tx_queue_id}`,
+          `Transaction not found with queueId ${queueId}`,
           StatusCodes.NOT_FOUND,
           "TX_NOT_FOUND",
         );
@@ -93,12 +94,12 @@ export async function checkTxStatus(fastify: FastifyInstance) {
     },
     wsHandler: async (connection: SocketStream, request) => {
       request.log.info(request, "Websocket Route Handler");
-      const { tx_queue_id } = request.params;
-      // const timeout = await wsTimeout(connection, tx_queue_id, request);
-      request.log.info(`Websocket Connection Established for ${tx_queue_id}`);
-      findOrAddWSConnectionInSharedState(connection, tx_queue_id, request);
+      const { queueId } = request.params;
+      // const timeout = await wsTimeout(connection, queueId, request);
+      request.log.info(`Websocket Connection Established for ${queueId}`);
+      findOrAddWSConnectionInSharedState(connection, queueId, request);
 
-      const returnData = await getTxById({ queueId: tx_queue_id });
+      const returnData = await getTxById({ queueId: queueId });
 
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);

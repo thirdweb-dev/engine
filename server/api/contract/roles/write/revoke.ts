@@ -34,7 +34,8 @@ export async function revokeRole(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/roles/revoke",
     schema: {
-      description: "Revoke a role from a specific address",
+      summary: "Revoke role",
+      description: "Revoke a role from a specific wallet.",
       tags: ["Contract-Roles"],
       operationId: "roles_revoke",
       headers: walletAuthSchema,
@@ -61,9 +62,11 @@ export async function revokeRole(fastify: FastifyInstance) {
       });
 
       const tx = await contract.roles.revoke.prepare(role, address);
-      const queuedId = await queueTx({ tx, chainId, extension: "roles" });
+      const queueId = await queueTx({ tx, chainId, extension: "roles" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

@@ -51,7 +51,8 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/nft-collection",
     schema: {
-      description: "Deploy prebuilt NFT-Collection contract",
+      summary: "Deploy NFT Collection",
+      description: "Deploy an NFT Collection contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltNFTCollection",
       params: requestSchema,
@@ -78,7 +79,7 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
@@ -88,7 +89,7 @@ export async function deployPrebuiltNFTCollection(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
-          queuedId,
+          queueId,
         },
       });
     },

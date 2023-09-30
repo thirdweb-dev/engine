@@ -3,11 +3,11 @@ import { Type } from "@sinclair/typebox";
 export const walletParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Add Chain ID or Chain Name",
+    description: "Chain ID name",
   }),
   wallet_address: Type.String({
     examples: ["0x..."],
-    description: "Add Wallet Address",
+    description: "Wallet Address",
   }),
 });
 

@@ -44,7 +44,9 @@ export async function erc1155mintAdditionalSupplyTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/mint-additional-supply-to",
     schema: {
-      description: "Mint additional supply of an NFT to a specific wallet.",
+      summary: "Mint additional supply",
+      description:
+        "Mint additional supply of ERC-1155 tokens to a specific wallet.",
       tags: ["ERC1155"],
       operationId: "mintAdditionalSupplyTo",
       params: requestSchema,
@@ -76,9 +78,11 @@ export async function erc1155mintAdditionalSupplyTo(fastify: FastifyInstance) {
         additional_supply,
       );
 
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

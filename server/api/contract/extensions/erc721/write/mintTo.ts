@@ -43,7 +43,8 @@ export async function erc721mintTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/mint-to",
     schema: {
-      description: "Mint an NFT to a specific wallet.",
+      summary: "Mint tokens",
+      description: "Mint ERC-721 tokens to a specific wallet.",
       tags: ["ERC721"],
       operationId: "erc721_mintTo",
       params: requestSchema,
@@ -70,9 +71,11 @@ export async function erc721mintTo(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc721.mintTo.prepare(receiver, metadata);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

@@ -41,7 +41,8 @@ export async function erc20claimTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/claim-to",
     schema: {
-      description: "Allow a specific wallet to claim tokens.",
+      summary: "Claim tokens to wallet",
+      description: "Claim ERC-20 tokens to a specific wallet.",
       tags: ["ERC20"],
       operationId: "erc20_claimTo",
       params: requestSchema,
@@ -68,9 +69,11 @@ export async function erc20claimTo(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc20.claimTo.prepare(recipient, amount);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc20" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

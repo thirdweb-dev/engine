@@ -46,7 +46,8 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/burn-batch",
     schema: {
-      description: "Burn multiple NFTs.",
+      summary: "Burn tokens (batch)",
+      description: "Burn a batch of ERC-1155 tokens in the caller wallet.",
       tags: ["ERC1155"],
       operationId: "erc1155_burnBatch",
       params: requestSchema,
@@ -73,9 +74,11 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc1155.burnBatch.prepare(token_ids, amounts);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

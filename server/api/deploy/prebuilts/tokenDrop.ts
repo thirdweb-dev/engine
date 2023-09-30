@@ -51,7 +51,8 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/token-drop",
     schema: {
-      description: "Deploy prebuilt Token Drop contract",
+      summary: "Deploy Token Drop",
+      description: "Deploy a Token Drop contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltTokenDrop",
       params: requestSchema,
@@ -78,7 +79,7 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
@@ -88,7 +89,7 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
-          queuedId,
+          queueId,
         },
       });
     },

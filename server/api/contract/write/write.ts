@@ -51,7 +51,8 @@ export async function writeToContract(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/write",
     schema: {
-      description: "Write to Contract",
+      summary: "Write to contract",
+      description: "Call a write function on a contract.",
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
@@ -79,10 +80,12 @@ export async function writeToContract(fastify: FastifyInstance) {
 
       const tx = await contract.prepare(function_name, args, tx_overrides);
 
-      const queuedId = await queueTx({ tx, chainId, extension: "none" });
+      const queueId = await queueTx({ tx, chainId, extension: "none" });
 
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

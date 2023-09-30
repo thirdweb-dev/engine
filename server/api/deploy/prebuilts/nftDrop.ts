@@ -53,7 +53,8 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
     method: "POST",
     url: "/deploy/:chain/prebuilts/nft-drop",
     schema: {
-      description: "Deploy prebuilt NFT-Drop contract",
+      summary: "Deploy NFT Drop",
+      description: "Deploy an NFT Drop contract.",
       tags: ["Deploy"],
       operationId: "deployPrebuiltNFTDrop",
       params: requestSchema,
@@ -80,7 +81,7 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
         version,
       );
       const deployedAddress = await tx.simulate();
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "deploy-prebuilt",
@@ -90,7 +91,7 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           deployedAddress,
-          queuedId,
+          queueId,
         },
       });
     },

@@ -1,5 +1,7 @@
 import PQueue from "p-queue";
 import { knex } from "../../db/client";
+import { getTxById } from "../../db/transactions/getTxById";
+import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { processTx } from "../tasks/processTx";
 
@@ -26,9 +28,34 @@ export const queuedTxListener = async (): Promise<void> => {
   queue.add(processTx);
 
   // Whenever we receive a new transaction, process it
-  connection.on("notification", async () => {
-    queue.add(processTx);
-  });
+  connection.on(
+    "notification",
+    async (msg: { channel: string; payload: string }) => {
+      if (env.WEBHOOK_URL.length > 0) {
+        const parsedPayload = JSON.parse(msg.payload);
+        const txData = await getTxById({ queueId: parsedPayload.id });
+        const response = await fetch(env.WEBHOOK_URL, {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(txData),
+        });
+
+        if (!response.ok) {
+          logger.server.error(
+            `Webhook error: ${response.status} ${response.statusText}`,
+          );
+        }
+      } else {
+        logger.server.debug(
+          `Webhooks are disabled or no URL is provided. Skipping webhook update`,
+        );
+      }
+      queue.add(processTx);
+    },
+  );
 
   connection.on("end", async () => {
     await knex.destroy();

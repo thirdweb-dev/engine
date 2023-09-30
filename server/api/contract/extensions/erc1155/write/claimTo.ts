@@ -44,7 +44,8 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/claim-to",
     schema: {
-      description: "Claim an NFT to a specific wallet.",
+      summary: "Claim tokens to wallet",
+      description: "Claim ERC-1155 tokens to a specific wallet.",
       tags: ["ERC1155"],
       operationId: "erc1155_claimTo",
       params: requestSchema,
@@ -75,9 +76,11 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
         token_id,
         quantity,
       );
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

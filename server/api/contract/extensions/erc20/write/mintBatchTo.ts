@@ -21,7 +21,7 @@ const requestBodySchema = Type.Object({
         description: "The address to mint tokens to",
       }),
       amount: Type.String({
-        description: "The number of tokens to mint to the specified address.",
+        description: "The number of tokens to mint to the specific address.",
       }),
     }),
   ),
@@ -52,7 +52,8 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc20/mint-batch-to",
     schema: {
-      description: "Mint tokens to many wallets in one transaction.",
+      summary: "Mint tokens (batch)",
+      description: "Mint ERC-20 tokens to multiple wallets in one transaction.",
       tags: ["ERC20"],
       operationId: "erc20_mintBatchTo",
       params: requestSchema,
@@ -79,9 +80,11 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc20.mintBatchTo.prepare(data);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc20" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

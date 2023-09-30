@@ -39,7 +39,8 @@ export async function getBalance(fastify: FastifyInstance) {
     method: "GET",
     url: "/backend-wallet/:chain/:wallet_address/get-balance",
     schema: {
-      description: "Get Wallet Balance",
+      summary: "Get balance",
+      description: "Get the native balance for a backend wallet.",
       tags: ["Backend Wallet"],
       operationId: "backendWallet_getBalance",
       params: requestSchema,

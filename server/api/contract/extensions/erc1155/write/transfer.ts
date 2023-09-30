@@ -44,8 +44,8 @@ export async function erc1155transfer(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc1155/transfer",
     schema: {
-      description:
-        "Transfer an NFT from the connected wallet to another wallet.",
+      summary: "Transfer token",
+      description: "Transfer an ERC-1155 token from the caller wallet.",
       tags: ["ERC1155"],
       operationId: "erc1155_transfer",
       params: requestSchema,
@@ -72,9 +72,11 @@ export async function erc1155transfer(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc1155.transfer.prepare(to, token_id, amount);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

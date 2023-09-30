@@ -17,7 +17,6 @@ export const findWSConnectionInSharedState = async (
   const index = subscriptionsData.findIndex(
     (sub) => sub.socket === connection.socket,
   );
-  request.log.debug(index, "Websocket Already Exists");
   return index;
 };
 
@@ -26,7 +25,6 @@ export const removeWSFromSharedState = async (
   request: FastifyRequest,
 ): Promise<number> => {
   const index = await findWSConnectionInSharedState(connection, request);
-  request.log.debug(index, "Websocket Already Exists");
   if (index == -1) {
     return -1;
   }
@@ -81,19 +79,16 @@ export const onClose = async (
   connection: SocketStream,
   request: FastifyRequest,
 ): Promise<void> => {
-  request.log.debug("Removing wsConnection from subscriptionsData");
   const index = await findWSConnectionInSharedState(connection, request);
-  request.log.debug(index, "Websocket Already Exists");
   if (index == -1) {
     return;
   }
   subscriptionsData.splice(index, 1);
-  request.log.debug(`Removed Subscription from localMem`);
 };
 
 export const wsTimeout = async (
   connection: SocketStream,
-  tx_queue_id: string,
+  queueId: string,
   request: FastifyRequest,
 ): Promise<NodeJS.Timeout> => {
   return setTimeout(() => {
@@ -101,14 +96,14 @@ export const wsTimeout = async (
     removeWSFromSharedState(connection, request);
     connection.socket.close(1000, "Session timeout"); // 1000 is a normal closure status code
     request.log.info(
-      `Websocket connection for ${tx_queue_id} closed due to timeout.`,
+      `Websocket connection for ${queueId} closed due to timeout.`,
     );
   }, timeoutDuration);
 };
 
 export const findOrAddWSConnectionInSharedState = async (
   connection: SocketStream,
-  tx_queue_id: string,
+  queueId: string,
   request: FastifyRequest,
 ) => {
   let userSubscription: UserSubscription | undefined = undefined;
@@ -118,11 +113,10 @@ export const findOrAddWSConnectionInSharedState = async (
   } else {
     userSubscription = {
       socket: connection.socket,
-      requestId: tx_queue_id,
+      requestId: queueId,
     };
 
     subscriptionsData.push(userSubscription);
-    request.log.debug("Pushed to Subscriptions Data", subscriptionsData);
   }
 };
 

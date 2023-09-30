@@ -41,8 +41,8 @@ export async function directListingsApproveBuyerForReservedListing(
     method: "POST",
     url: "/marketplace/:chain/:contract_address/direct-listings/approve-buyer-for-reserved-listing",
     schema: {
-      description:
-        "Approve a wallet address to be able to buy a reserved listing.",
+      summary: "Approve buyer for reserved listing",
+      description: "Approve a wallet address to buy from a reserved listing.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_approveBuyerForReservedListing",
       headers: walletAuthSchema,
@@ -74,13 +74,15 @@ export async function directListingsApproveBuyerForReservedListing(
           buyer,
         );
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-direct-listings",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

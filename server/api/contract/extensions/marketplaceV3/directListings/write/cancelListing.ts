@@ -37,8 +37,9 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
     method: "POST",
     url: "/marketplace/:chain/:contract_address/direct-listings/cancel-listing",
     schema: {
+      summary: "Cancel direct listing",
       description:
-        "Cancel a listing that you created. Only the creator of the listing can cancel it.",
+        "Cancel a direct listing from this marketplace contract. Only the creator of the listing can cancel it.",
       tags: ["Marketplace-DirectListings"],
       operationId: "mktpv3_directListings_cancelListing",
       headers: walletAuthSchema,
@@ -68,13 +69,15 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
         listing_id,
       );
 
-      const queuedId = await queueTx({
+      const queueId = await queueTx({
         tx,
         chainId,
         extension: "marketplace-v3-direct-listings",
       });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });

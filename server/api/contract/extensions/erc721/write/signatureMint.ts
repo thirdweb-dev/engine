@@ -56,7 +56,8 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contract_address/erc721/signature/mint",
     schema: {
-      description: "Mint tokens from a previously generated signature.",
+      summary: "Signature mint",
+      description: "Mint ERC-721 tokens from a generated signature.",
       tags: ["ERC721"],
       operationId: "erc721_signature_mint",
       params: requestSchema,
@@ -93,9 +94,11 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
         signature,
       };
       const tx = await contract.erc721.signature.mint.prepare(signedPayload);
-      const queuedId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
-        result: queuedId,
+        result: {
+          queueId,
+        },
       });
     },
   });
