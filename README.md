@@ -33,6 +33,9 @@ thirdweb engine is a powerful backend service that offers all the tools needed t
 
 It abstracts away all the complexities of building blockchain applications behind a familiar HTTP API interface and handles high throughput & scale out-of-the box.
 
+<!-- Source: https://whimsical.com/engine-architecture-2G6rXEvUM2HFmVwKxPWyzS -->
+<img src="./docs/images/overview.png" alt="Overview" width="600">
+
 Some of the best features of thirdweb engine:
 
 - Create & transact with **managed backend wallets** (Local, AWS KMS, Google KMS, etc.)
