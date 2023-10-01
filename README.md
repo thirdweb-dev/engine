@@ -29,7 +29,10 @@
 
 ## Introduction
 
-thirdweb engine is a powerful backend service that offers all the tools needed to build apps & games on the blockchain.
+<!-- Source: https://whimsical.com/engine-architecture-2G6rXEvUM2HFmVwKxPWyzS -->
+![Engine overview](/docs/images/overview.png)
+
+**thirdweb engine** is a powerful backend service that offers all the tools needed to build apps & games on the blockchain.
 
 It abstracts away all the complexities of building blockchain applications behind a familiar HTTP API interface and handles high throughput & scale out-of-the box.
 
