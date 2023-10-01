@@ -33,6 +33,9 @@ thirdweb engine is a backend server that provides a HTTP interface to interactin
 
 High level features of thirdweb engine:
 
+<!-- Source: https://whimsical.com/engine-architecture-2G6rXEvUM2HFmVwKxPWyzS -->
+<img src="./docs/images/overview.png" alt="Overview" width="600">
+
 - Create & transact with **backend wallets** (Local, AWS KMS, Google KMS, etc.)
 - High reliability transaction execution with **wallet nonce management**, **automatic transaction retrying** and **gas mangement**
 - Deploy and interact with [erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets, handle session keys & sending user operations
