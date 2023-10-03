@@ -1,4 +1,4 @@
-import { env } from "../core";
+import { env } from "../src/utils/env";
 import { logger } from "../src/utils/logger";
 import { startTxUpdatesNotificationListener } from "./controller/tx-update-listener";
 import createServer from "./helpers/server";

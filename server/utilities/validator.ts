@@ -1,11 +1,11 @@
-import { createCustomDateTimestampError } from "../../core/error/customError";
+import { Static } from "@sinclair/typebox";
+import { createCustomDateTimestampError } from "../middleware/error";
 import { erc20ResponseType, signature20InputSchema } from "../schemas/erc20";
 import {
   ercNFTResponseType,
   signature1155InputSchema,
   signature721InputSchema,
 } from "../schemas/nft";
-import { Static } from "@sinclair/typebox";
 
 const timestampValidator = (value: number | string | undefined): Boolean => {
   if (value === undefined) {

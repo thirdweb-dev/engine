@@ -1,11 +1,11 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../../../../core/schema";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
+import { walletAuthSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utilities/chain";
 import { getContract } from "../../../../../../utils/cache/getContract";
 

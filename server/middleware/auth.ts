@@ -1,6 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-
-import { env } from "../../core";
+import { env } from "../../src/utils/env";
 
 export const performHTTPAuthentication = async (
   request: FastifyRequest,

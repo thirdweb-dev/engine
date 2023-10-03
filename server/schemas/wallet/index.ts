@@ -1,5 +1,16 @@
 import { Type } from "@sinclair/typebox";
 
+export const walletAuthSchema = Type.Object({
+  "x-backend-wallet-address": Type.String({
+    description: "Backend wallet address",
+  }),
+  "x-account-address": Type.Optional(
+    Type.String({
+      description: "Smart account address",
+    }),
+  ),
+});
+
 export const walletParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],

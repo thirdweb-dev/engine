@@ -1,7 +1,7 @@
 import { getChainByChainId } from "@thirdweb-dev/chains";
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { LocalFileStorage } from "../../../core";
 import { env } from "../../../src/utils/env";
+import { LocalFileStorage } from "../storage/localStorage";
 
 interface GetLocalWalletParams {
   chainId: number;

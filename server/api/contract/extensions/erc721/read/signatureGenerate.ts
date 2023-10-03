@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../../../core/schema";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
@@ -11,6 +10,7 @@ import {
   signature721InputSchema,
   signature721OutputSchema,
 } from "../../../../../schemas/nft";
+import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
