@@ -14,6 +14,16 @@ import { getContract } from "../../../../../utils/cache/getContract";
 
 const BodySchema = SessionSchema;
 
+BodySchema.examples = [
+  {
+    signerAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
+    startDate: "2021-01-01T00:00:00.000Z",
+    expirationDate: "2022-01-01T00:10:00.000Z",
+    nativeTokenLimitPerTransaction: "1000000000000000000",
+    approvedCallTargets: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
+  },
+];
+
 export const grantSession = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;

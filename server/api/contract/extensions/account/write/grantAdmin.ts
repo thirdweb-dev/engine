@@ -17,6 +17,12 @@ const BodySchema = Type.Object({
   }),
 });
 
+BodySchema.examples = [
+  {
+    signer_address: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
+  },
+];
+
 export const grantAdmin = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
