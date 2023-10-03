@@ -31,10 +31,10 @@
 
 thirdweb engine is a backend server that provides a HTTP interface to interacting with any smart contract on any evm chain. Engine handles creating and managaging backend wallets, enabling high throughput with automatic nonce and gas management.
 
-High level features of thirdweb engine:
+The high level functionality of thirdweb engine:
 
 <!-- Source: https://whimsical.com/engine-architecture-2G6rXEvUM2HFmVwKxPWyzS -->
-<img src="./docs/images/overview.png" alt="Overview" width="600">
+<img src="./docs/images/overview.png" alt="Overview" width="820">
 
 - Create & transact with **backend wallets** (Local, AWS KMS, Google KMS, etc.)
 - High reliability transaction execution with **wallet nonce management**, **automatic transaction retrying** and **gas mangement**
@@ -77,12 +77,12 @@ docker run \
 
 ### Using the server
 
-
 - Every request to the server requires an authentication token for admin actions use the thirdweb SecretKey. Use the `Authorization` Header to set the value shown below:
   - `Authorization: Bearer: <thirdweb SecretKey>`
 - Every write request to the server also requires the `x-backend-wallet-address` header to specify which admin wallet to send a transaction with. Use the following format to set this header:
 
   - `x-backend-wallet-address: 0x3ecdbf3b911d0e9052b64850693888b008e18373`
+
 - Here's the link to the [full API reference](https://redocly.github.io/redoc/?url=https://demo.web3api.thirdweb.com/json), or in development mode, go to the server root url to see the reference.
 
 ## User Guide
