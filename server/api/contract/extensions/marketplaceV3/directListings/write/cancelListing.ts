@@ -22,8 +22,6 @@ const requestBodySchema = Type.Object({
 requestBodySchema.examples = [
   {
     listing_id: "0",
-    quantity: "1",
-    buyer: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
   },
 ];
 
