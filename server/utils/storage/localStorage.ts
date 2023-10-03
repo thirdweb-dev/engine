@@ -1,60 +1,63 @@
 import { AsyncStorage } from "@thirdweb-dev/wallets";
-import * as fs from "fs";
+import fs from "fs";
+import { prisma } from "../../../src/db/client";
+import { WalletType } from "../../../src/schema/wallet";
+import { logger } from "../../../src/utils/logger";
 
 export class LocalFileStorage implements AsyncStorage {
-  constructor(private readonly walletAddress?: string) {
-    if (walletAddress) {
-      this.walletAddress = walletAddress;
-    }
+  constructor(private readonly walletAddress: string) {
+    this.walletAddress = walletAddress.toLowerCase();
   }
 
-  getKey(): string {
-    if (this.walletAddress) {
-      return `localWallet-${this.walletAddress.toLowerCase()}`;
-    }
-    throw new Error("Wallet Address not set");
-  }
+  async getItem(_: string): Promise<string | null> {
+    const walletDetails = await prisma.walletDetails.findUnique({
+      where: {
+        address: this.walletAddress,
+      },
+    });
 
-  getItem(_: string): Promise<string | null> {
-    //read file from home directory/.thirdweb folder
-    //file name is the key name
-    //return null if it doesn't exist
-    //return the value if it does exist
+    if (walletDetails?.encryptedJson) {
+      return walletDetails.encryptedJson;
+    }
+
+    // For backwards compatibility, support old local file storage format
     const dir = `${process.env.HOME}/.thirdweb`;
-    if (!fs.existsSync(dir)) {
-      return Promise.resolve(null);
+    const path = `${dir}/localWallet-${this.walletAddress}`;
+    if (!fs.existsSync(dir) || !fs.existsSync(path)) {
+      logger.worker.error(`No local wallet found!`);
+      return null;
     }
 
-    const path = `${dir}/${this.getKey()}`;
-    if (!fs.existsSync(path)) {
-      return Promise.resolve(null);
-    }
-    return Promise.resolve(fs.readFileSync(path, "utf8"));
+    // Save the encrypted json in the database for future access
+    const encryptedJson = fs.readFileSync(path, "utf8");
+    await this.setItem("", encryptedJson);
+
+    return encryptedJson;
   }
 
-  setItem(_: string, value: string): Promise<void> {
-    //save to home directory .thirdweb folder
-    //create the folder if it doesn't exist
-    const dir = `${process.env.HOME}/.thirdweb`;
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
-    }
-    fs.writeFileSync(`${dir}/${this.getKey()}`, value);
-    return Promise.resolve();
+  async setItem(_: string, value: string): Promise<void> {
+    await prisma.walletDetails.upsert({
+      where: {
+        address: this.walletAddress,
+        type: WalletType.local,
+      },
+      create: {
+        address: this.walletAddress,
+        type: WalletType.local,
+        encryptedJson: value,
+      },
+      update: {
+        encryptedJson: value,
+      },
+    });
   }
 
-  removeItem(_: string): Promise<void> {
-    //delete the file from home directory/.thirdweb folder
-    const dir = `${process.env.HOME}/.thirdweb`;
-    if (!fs.existsSync(dir)) {
-      return Promise.resolve();
-    }
-    const path = `${dir}/${this.getKey()}`;
-    if (!fs.existsSync(path)) {
-      return Promise.resolve();
-    } else {
-      fs.unlinkSync(path);
-      return Promise.resolve();
-    }
+  async removeItem(_: string): Promise<void> {
+    await prisma.walletDetails.delete({
+      where: {
+        address: this.walletAddress,
+        type: WalletType.local,
+      },
+    });
   }
 }

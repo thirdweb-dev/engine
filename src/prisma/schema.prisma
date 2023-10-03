@@ -10,6 +10,8 @@ generator client {
 model WalletDetails {
   address            String  @id @map("address")
   type               String  @map("type")
+  // Local
+  encryptedJson      String? @map("encryptedJson")
   // KMS
   awsKmsKeyId        String? @map("awsKmsKeyId")
   awsKmsArn          String? @map("awsKmsArn")
@@ -88,8 +90,8 @@ model Transactions {
 }
 
 model CancelledTransactions {
-  queueId                   String    @id @map("queueId")
-  cancelledByWorkerAt       DateTime?  @map("cancelledByWorkerAt")
+  queueId             String    @id @map("queueId")
+  cancelledByWorkerAt DateTime? @map("cancelledByWorkerAt")
 
   @@map("cancelled_transactions")
 }
