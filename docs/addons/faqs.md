@@ -15,3 +15,14 @@ _Set the `OPENAPI_BASE_ORIGIN` environment variable to the base URL of your app.
 ### How to set the RPC URLs?
 
 _Set the `CHAIN_OVERRIDES` environment variable to the path of the JSON file or URL (file hosted somehere on the internet) containing the RPC URLs. The default value is `./chain-overrides.json`. Check the [example file](../chain-overrides.example.json) for the format._
+
+### Cannot connect to the Postgres DB?
+
+_Check the below things:_
+
+- Check if the Postgres DB is running.
+  - If DB running on Docker:
+    - In same container, check if the `host` in the `POSTGRES_CONNECTION_URL` is set to `localhost`
+    - In different container, check if the `host` in the `POSTGRES_CONNECTION_URL` is set to `host.docker.internal`.
+- Check if the Postgres DB connection URL with credentials is correct.
+- Check if the database-name exists on the Postgres DB. If not, create a new database with the name.
