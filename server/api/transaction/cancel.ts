@@ -5,12 +5,18 @@ import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { cancelTransactionAndUpdate } from "../../utilities/transaction";
 
 // INPUT
-const requestSchema = Type.Object({
+const requestBodySchema = Type.Object({
   queueId: Type.String({
     description: "Transaction Queue ID",
     examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
   }),
 });
+
+requestBodySchema.examples = [
+  {
+    queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
+  },
+];
 
 // OUTPUT
 export const responseBodySchema = Type.Object({
@@ -47,7 +53,7 @@ responseBodySchema.example = {
 
 export async function cancelTransaction(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof requestSchema>;
+    Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
@@ -56,7 +62,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
       description: "Cancel Transaction",
       tags: ["Transaction"],
       operationId: "cancelTransaction",
-      body: requestSchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
