@@ -50,7 +50,7 @@ This project is in `alpha` - if you're looking for specific features & or want t
 ## Requirements
 
 1. Docker
-2. Postgre DB
+2. Postgres DB
 
 ## Getting started
 
