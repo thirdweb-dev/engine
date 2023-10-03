@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../core/schema";
 import { queueTx } from "../../../../src/db/transactions/queueTx";
 import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
@@ -11,6 +10,7 @@ import {
   prebuiltDeployResponseSchema,
   voteSettingsInputSchema,
 } from "../../../schemas/prebuilts";
+import { walletAuthSchema } from "../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utilities/chain";
 import { getSdk } from "../../../utils/cache/getSdk";

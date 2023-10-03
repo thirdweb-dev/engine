@@ -1,8 +1,8 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { LocalFileStorage } from "../../../core";
 import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
+import { LocalFileStorage } from "../storage/localStorage";
 
 export const createLocalWallet = async (): Promise<string> => {
   if (env.WALLET_CONFIGURATION.type !== WalletType.local) {

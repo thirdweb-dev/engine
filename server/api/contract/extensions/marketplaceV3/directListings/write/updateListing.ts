@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../../../../core/schema";
 import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
 import {
   marketplaceV3ContractParamSchema,
@@ -9,6 +8,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../../helpers/sharedApiSchemas";
 import { directListingV3InputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
+import { walletAuthSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utilities/chain";
 import { getContract } from "../../../../../../utils/cache/getContract";
 

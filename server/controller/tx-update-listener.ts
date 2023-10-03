@@ -1,4 +1,4 @@
-import { connectToDatabase } from "../../core";
+import { knex } from "../../src/db/client";
 import { getTxById } from "../../src/db/transactions/getTxById";
 import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
@@ -6,7 +6,6 @@ import { logger } from "../../src/utils/logger";
 export const startTxUpdatesNotificationListener = async (): Promise<void> => {
   try {
     // Connect to the DB
-    const knex = await connectToDatabase();
     logger.server.info(`Starting update notification listener`);
     // Acquire a connection
     const connection = await knex.client.acquireConnection();

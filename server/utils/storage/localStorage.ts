@@ -1,7 +1,6 @@
 import { AsyncStorage } from "@thirdweb-dev/wallets";
 import * as fs from "fs";
 
-//TODO add constructor so you can pass in directory
 export class LocalFileStorage implements AsyncStorage {
   constructor(private readonly walletAddress?: string) {
     if (walletAddress) {

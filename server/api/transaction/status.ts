@@ -2,7 +2,6 @@ import { SocketStream } from "@fastify/websocket";
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { createCustomError } from "../../../core/error/customError";
 import { getTxById } from "../../../src/db/transactions/getTxById";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import {
@@ -13,6 +12,7 @@ import {
   onError,
   onMessage,
 } from "../../helpers/websocket";
+import { createCustomError } from "../../middleware/error";
 import { transactionResponseSchema } from "../../schemas/transaction";
 
 // INPUT
