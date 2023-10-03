@@ -56,7 +56,7 @@ This project is in `alpha` - if you're looking for specific features & or want t
 
 ### Setup environment variables
 
-Set these variables in the .env file (copy .env.example to get started)
+Set these environment variables to get started.
 
 | Variable Name             | Description                                                                                                   |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -68,65 +68,22 @@ Set these variables in the .env file (copy .env.example to get started)
 Run the server using Docker with the following command.
 
 ```
-docker run --env-file .env -p 3005:3005 thirdweb/engine:latest
+docker run \
+    -e THIRDWEB_API_SECRET_KEY="<your-api-secret-key>" \
+    -e POSTGRES_CONNECTION_URL="<your-connection-url>" \
+    -p 3005:3005 \
+    thirdweb/engine:latest
 ```
 
 ### Using the server
 
-- In development mode, go to the server url to see an admin interface
+
 - Every request to the server requires an authentication token for admin actions use the thirdweb SecretKey. Use the `Authorization` Header to set the value shown below:
   - `Authorization: Bearer: <thirdweb SecretKey>`
 - Every write request to the server also requires the `x-backend-wallet-address` header to specify which admin wallet to send a transaction with. Use the following format to set this header:
 
   - `x-backend-wallet-address: 0x3ecdbf3b911d0e9052b64850693888b008e18373`
-
-- Contract API
-
-  - Read from any contract
-    - GET /contract/[chain]/[contract_address]/[func or variable name]
-  - Write to any contract function
-    - POST /contract/[chain]/[contract_address]/[function name]
-    - JSON body with params
-  - Deploy published contracts
-    - POST /deploy/[chain]/[publisher_address]/[published_name]
-
-- Wallet API (in development)
-
-  - Create Wallets
-    - POST /wallet
-  - Get Wallet Info
-    - Balances - GET /wallet/[wallet_address]
-
-- Auth API (In development)
-- Relayer API (In development)
-
-## Local Development
-
-### Requirements
-
-1. Nodesjs (>= v18)
-2. Docker
-3. PostgreSQL DB
-
-### Install
-
-```
-yarn
-```
-
-### Run:
-
-```
-yarn dev
-```
-
-This command runs the server, worker and sets up a postgres db, for fine grained control you can use these individually:
-
-```
-yarn dev:server
-yarn dev:worker
-yarn dev:infra
-```
+- Here's the link to the [full API reference](https://redocly.github.io/redoc/?url=https://demo.web3api.thirdweb.com/json), or in development mode, go to the server root url to see the reference.
 
 ## User Guide
 
