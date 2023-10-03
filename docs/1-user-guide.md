@@ -25,7 +25,7 @@
 
 ### PostgreSQL DB
 
-A PostgreSQL DB is required to run _Engine_, both the server and worker need access to it. Check [installation guide](./.github/installations.md) for more details.
+A PostgreSQL DB is required to run _Engine_, both the server and worker need access to it. Check [installation guide](./addons/installations.md) for more details.
 
 Once you have PostgreSQL DB running set the POSTGRES_CONNECTION_URL environment variable:
 
@@ -51,22 +51,20 @@ Backend wallets are used by the web3-api to execute transactions, you should thi
 
 1.POST /create/wallet
 `{
-"walletType": "aws-kms | gcp-kms | local"
+  "walletType": "aws-kms | gcp-kms | local"
 }`
 
 #### AWS KMS Wallet
 
-1. Get the AWS KMS Support Variables which can be found in `.env.example` file
-2. Update the AWS KMS ENV Variables with the correct values on `.env` file
+Check the [AWS KMS setup guide](./kms/aws_kms_how_to.md) for more details.
 
-- `AWS_ACCESS_KEY_ID` : AWS Access Key
-- `AWS_SECRET_ACCESS_KEY` : AWS Secret Access Key
-- `AWS_REGION` : AWS KMS Key Region
-- `AWS_KMS_KEY_ID` : Needs to have the full ARN
+#### Google KMS Wallet
+
+Check the [Google KMS setup guide](./kms/google_kms_how_to.md) for more details.
 
 ### Websocket Listener
 
-For updates on your requests, you can either poll using the `get` (`/tranasction/status/<queueId>`) method or use websockets. [How to use websockets](./.github/websocket_usage.md)
+For updates on your requests, you can either poll using the `get` (`/tranasction/status/<queueId>`) method or use websockets. [How to use websockets](./4-websocket-guide.md)
 
 ## Running in Production Mode
 

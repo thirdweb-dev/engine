@@ -78,7 +78,7 @@ docker run \
 ### Using the server
 
 - Every request to the server requires an authentication token for admin actions use the thirdweb SecretKey. Use the `Authorization` Header to set the value shown below:
-  - `Authorization: Bearer: <thirdweb SecretKey>`
+  - `Authorization: Bearer <thirdweb SecretKey>`
 - Every write request to the server also requires the `x-backend-wallet-address` header to specify which admin wallet to send a transaction with. Use the following format to set this header:
 
   - `x-backend-wallet-address: 0x3ecdbf3b911d0e9052b64850693888b008e18373`
@@ -91,7 +91,7 @@ View all end-points details (Open API Specification) : [User Guide](./docs/1-use
 
 ### Webhook Guide
 
-View the webhook guide for setting up webhooks for your app: [Webhook Guide](./docs/4-webhook-guide.md)
+View the webhook guide for setting up webhooks for your app: [Webhook Guide](./docs/3-webhook-guide.md)
 
 ## API Reference
 
@@ -99,7 +99,7 @@ View all end-points details (Open API Specification) : https://web3-api-akbv.cha
 
 ## Contributing
 
-We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](./.github/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.
+We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](./docs/addons/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.
 
 ## Community
 

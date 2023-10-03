@@ -2,6 +2,11 @@ import { knex } from "../../src/db/client";
 import { getTxById } from "../../src/db/transactions/getTxById";
 import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
+import {
+  formatSocketMessage,
+  getStatusMessageAndConnectionStatus,
+} from "../helpers/websocket";
+import { subscriptionsData } from "../schemas/websocket";
 
 export const startTxUpdatesNotificationListener = async (): Promise<void> => {
   try {
@@ -15,6 +20,8 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
       "notification",
       async (msg: { channel: string; payload: string }) => {
         const parsedPayload = JSON.parse(msg.payload);
+
+        // Send webhook
         if (env.WEBHOOK_URL.length > 0) {
           const txData = await getTxById({ queueId: parsedPayload.id });
           const response = await fetch(env.WEBHOOK_URL, {
@@ -36,24 +43,26 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
             `Webhooks are disabled or no URL is provided. Skipping webhook update`,
           );
         }
-        // const index = subscriptionsData.findIndex(
-        //   (sub) => sub.requestId === parsedPayload.identifier,
-        // );
 
-        // if (index == -1) {
-        //   return;
-        // }
+        // Send websocket message
+        const index = subscriptionsData.findIndex(
+          (sub) => sub.requestId === parsedPayload.identifier,
+        );
 
-        // const userSubscription = subscriptionsData[index];
-        // const returnData = await getTxById({
-        //   queueId: parsedPayload.identifier,
-        // });
-        // const { message, closeConnection } =
-        //   await getStatusMessageAndConnectionStatus(returnData);
-        // userSubscription.socket.send(
-        //   await formatSocketMessage(returnData, message),
-        // );
-        // closeConnection ? userSubscription.socket.close() : null;
+        if (index == -1) {
+          return;
+        }
+
+        const userSubscription = subscriptionsData[index];
+        const returnData = await getTxById({
+          queueId: parsedPayload.identifier,
+        });
+        const { message, closeConnection } =
+          await getStatusMessageAndConnectionStatus(returnData);
+        userSubscription.socket.send(
+          await formatSocketMessage(returnData, message),
+        );
+        closeConnection ? userSubscription.socket.close() : null;
       },
     );
 
