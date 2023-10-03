@@ -32,7 +32,23 @@ const requestBodySchema = Type.Object({
 });
 
 // Example for the Request Body
-
+requestBodySchema.examples = [
+  {
+    contractMetadata: {
+      name: "My Split",
+      recipients: [
+        {
+          recipient: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+          percent: 50,
+        },
+        {
+          recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+          percent: 50,
+        },
+      ],
+    },
+  },
+];
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 

@@ -38,7 +38,14 @@ const requestBodySchema = Type.Object({
 });
 
 // Example for the Request Body
-
+requestBodySchema.examples = [
+  {
+    contractMetadata: {
+      name: "My NFT Collection",
+      symbol: "NFT",
+    },
+  },
+];
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
 

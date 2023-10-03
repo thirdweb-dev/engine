@@ -34,6 +34,14 @@ const requestBodySchema = Type.Object({
 });
 
 // Example for the Request Body
+requestBodySchema.examples = [
+  {
+    contractMetadata: {
+      name: "My Multiwrap",
+      symbol: "Mw",
+    },
+  },
+];
 
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;

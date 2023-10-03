@@ -32,6 +32,13 @@ const requestBodySchema = Type.Object({
 });
 
 // Example for the Request Body
+requestBodySchema.examples = [
+  {
+    contractMetadata: {
+      name: "My Marketplace",
+    },
+  },
+];
 
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
