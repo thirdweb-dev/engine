@@ -1,9 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { createCustomError } from "../../../core/error/customError";
 import { getAllTxs } from "../../../src/db/transactions/getAllTxs";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { createCustomError } from "../../middleware/error";
 import {
   TransactionStatusEnum,
   transactionResponseSchema,

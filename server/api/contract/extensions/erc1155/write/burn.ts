@@ -1,13 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { walletAuthSchema } from "../../../../../../core/schema";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../helpers/sharedApiSchemas";
+import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";

@@ -1,6 +1,5 @@
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { BigNumber } from "ethers";
-import { getWalletNonce } from "../../../core/services/blockchain";
 import { getSdk } from "../../../server/utils/cache/getSdk";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
@@ -37,7 +36,9 @@ export const createWalletNonce = async ({
     } else {
       // If the wallet is a regular EOA, get the nonce
       nonce = BigNumber.from(
-        (await getWalletNonce(address.toLowerCase(), sdk.getProvider())) ?? 0,
+        (await sdk
+          .getProvider()
+          .getTransactionCount(address.toLowerCase(), "pending")) ?? 0,
       ).toNumber();
     }
   } catch {

@@ -2,10 +2,12 @@ import { Static, Type } from "@sinclair/typebox";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { createCustomError } from "../../../core/index";
-import { chainResponseSchema } from "../../../core/schema";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { chainRequestQuerystringSchema } from "../../schemas/chain";
+import { createCustomError } from "../../middleware/error";
+import {
+  chainRequestQuerystringSchema,
+  chainResponseSchema,
+} from "../../schemas/chain";
 
 // OUPUT
 const responseSchema = Type.Object({

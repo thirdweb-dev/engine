@@ -2,10 +2,10 @@ import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { StatusCodes } from "http-status-codes";
-import { createCustomError } from "../../core";
 import { createCancelledTxData } from "../../src/db/cancelledTransactions/createCancelledTxData";
 import { getTxById } from "../../src/db/transactions/getTxById";
 import { updateTx } from "../../src/db/transactions/updateTx";
+import { createCustomError } from "../middleware/error";
 import { TransactionStatusEnum } from "../schemas/transaction";
 import { getSdk } from "../utils/cache/getSdk";
 

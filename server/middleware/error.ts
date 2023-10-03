@@ -1,8 +1,39 @@
 import { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { env } from "../../src/utils/env";
-import { CustomError } from "./customError";
-import { getCodeFromStatusCode } from "./errorCodes";
+
+export type CustomError = {
+  message: string;
+  statusCode: number;
+  code: string;
+  stack?: string;
+};
+
+export const createCustomError = (
+  message: string,
+  statusCode: number,
+  code: string,
+): CustomError => ({
+  message,
+  statusCode,
+  code,
+});
+
+export const createCustomDateTimestampError = (key: string): CustomError => {
+  return createCustomError(
+    `Invalid ${key} Value. Needs to new Date() / new Date().toISOstring() / new Date().getTime() / Unix Epoch`,
+    404,
+    "INVALID_DATE_TIME",
+  );
+};
+
+const flipObject = (data: any) =>
+  Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
+
+const StatusCodeToCode = flipObject(StatusCodes);
+
+export const getCodeFromStatusCode = (statusCode: number) =>
+  StatusCodeToCode[statusCode];
 
 export const errorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler((error: Error | CustomError, request, reply) => {

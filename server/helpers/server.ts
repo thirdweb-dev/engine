@@ -3,10 +3,11 @@ import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
 import fastify, { FastifyInstance } from "fastify";
-import { env, errorHandler } from "../../core";
 import { apiRoutes } from "../../server/api";
+import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
 import { performHTTPAuthentication } from "../middleware/auth";
+import { errorHandler } from "../middleware/error";
 import { openapi } from "./openapi";
 
 const createServer = async (): Promise<FastifyInstance> => {
