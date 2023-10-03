@@ -1,6 +1,4 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
-import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
 import { LocalFileStorage } from "../storage/localStorage";
 
@@ -47,15 +45,11 @@ export const importLocalWallet = async (
       break;
   }
 
+  // Creating wallet details gets handled by LocalFileStorage
   await wallet.save({
     strategy: "encryptedJson",
     password: env.THIRDWEB_API_SECRET_KEY,
     storage: new LocalFileStorage(walletAddress),
-  });
-
-  await createWalletDetails({
-    address: walletAddress,
-    type: WalletType.local,
   });
 
   return walletAddress;
