@@ -13,6 +13,7 @@ import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
+import { randomNonce } from "../utils/nonce";
 
 export const processTx = async () => {
   try {
@@ -69,20 +70,7 @@ export const processTx = async () => {
                 })
               ).getSigner() as ERC4337EthersSigner;
 
-              const accountNonce = await signer.smartAccountAPI.getNonce();
-              const dbNonce = await getWalletNonce({
-                pgtx,
-                address: tx.accountAddress!,
-                chainId: tx.chainId!,
-                signerAddress: tx.signerAddress,
-              });
-
-              const nonce = BigNumber.from(accountNonce).gt(
-                BigNumber.from(dbNonce?.nonce || 0),
-              )
-                ? BigNumber.from(accountNonce)
-                : BigNumber.from(dbNonce?.nonce || 0);
-
+              const nonce = randomNonce();
               try {
                 const userOp = await signer.smartAccountAPI.createSignedUserOp(
                   {
@@ -127,13 +115,6 @@ export const processTx = async () => {
                 // TODO: If the transaction errors, we should move onto the next one
                 continue;
               }
-
-              await updateWalletNonce({
-                pgtx,
-                address: tx.accountAddress!,
-                chainId: tx.chainId!,
-                nonce: nonce.toNumber() + 1,
-              });
             } else {
               // Standard transaction processing
               const sdk = await getSdk({

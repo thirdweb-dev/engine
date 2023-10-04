@@ -63,6 +63,7 @@
     "pino-pretty": "^10.0.0",
     "prisma": "^5.2.0",
     "uuidv4": "^6.2.13",
+    "viem": "^1.14.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {
