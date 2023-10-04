@@ -20,13 +20,7 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    assetContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
-    tokenId: "0",
-    pricePerToken: "0.00000001",
-    isReservedListing: false,
-    quantity: "1",
-    startTimestamp: 1686006043038,
-    endTimestamp: 1686610889058,
+    listing_id: "0",
   },
 ];
 

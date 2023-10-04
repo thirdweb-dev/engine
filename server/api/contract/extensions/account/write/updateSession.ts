@@ -19,6 +19,13 @@ const BodySchema = Type.Object({
   nativeTokenLimitPerTransaction: Type.Optional(Type.String()),
 });
 
+BodySchema.examples = [
+  {
+    signerAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
+    approvedCallTargets: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
+  },
+];
+
 export const updateSession = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
