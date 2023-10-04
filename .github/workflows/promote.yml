@@ -1,5 +1,5 @@
 # workflow can be manually triggered and retags the nightly image as latest.
-name: Promote Nightly
+name: Promote To Latest
 
 on:
   workflow_dispatch:
