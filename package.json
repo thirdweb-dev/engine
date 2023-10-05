@@ -26,6 +26,7 @@
     "lint:fix": "eslint --fix 'server/**/*.ts'",
     "test": "make test-evm",
     "test:all": "mocha --exit",
+    "test:load": "npx tsx ./test/benchmark/load.ts",
     "benchmark": "ts-node ./test/benchmark/index.ts"
   },
   "dependencies": {
