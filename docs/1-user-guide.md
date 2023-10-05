@@ -47,7 +47,7 @@ Web3-api enables you to create and use backend wallets. To get started create yo
 
 #### Creating Backend Wallets
 
-Backend wallets are used by the web3-api to execute transactions, you should think of these as owned by the developer who's runnign the server.
+Backend wallets are used by the web3-api to execute transactions, you should think of these as owned by the developer who's running the server.
 
 1.POST /create/wallet
 `{
@@ -93,7 +93,7 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 5. Under `Docker Image Tag`, select either `latest` or `nightly`
    ![Alt text](./images/Zeet-Docker-Source-Setting.png)
 6. Select the Target cluster you want the above image to be deployed to
-7. Choose your `Compute` settings
+7. Choose your `Computer` settings
 8. Update the `port` under `Networking` Tab to `3005`
 9. Under `Environment Vriables` add the below vars with values:
 
