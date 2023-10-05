@@ -3,7 +3,7 @@ export const time = async <TReturnType extends { [key: string]: any }>(
 ): Promise<TReturnType & { time: number }> => {
   const startTime = Date.now();
   const res = await fn();
-  const ellapsedTime = Date.now() - startTime;
+  const ellapsedTime = (Date.now() - startTime) / 1000;
 
   return {
     ...res,
