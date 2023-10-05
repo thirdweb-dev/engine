@@ -18,9 +18,13 @@ const writeRequestBodySchema = Type.Object({
     description: "Name of the function to call on Contract",
   }),
   args: Type.Array(
-    Type.String({
-      description: "Arguments for the function. Comma Separated",
-    }),
+    Type.Union([
+      Type.String({
+        description: "Arguments for the function. Comma Separated",
+      }),
+      Type.Tuple([Type.String(), Type.String()]),
+      Type.Object({}),
+    ]),
   ),
   ...txOverridesForWriteRequest.properties,
 });
