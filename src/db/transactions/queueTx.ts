@@ -24,6 +24,9 @@ export const queueTx = async ({
   deployedContractAddress,
   deployedContractType,
 }: QueueTxParams) => {
+  // Simulate transaction
+  await tx.simulate();
+
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
