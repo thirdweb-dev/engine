@@ -1,8 +1,9 @@
 ## Frequently Asked Questions
 
-1. [What is `tx_overrides`? Do I need to pass it?](#what-is-`tx_overrides`?-do-I-need-to-pass-it?)
-2. [How to set Open API Base URL?](#how-to-set-open-api-base-url?)
-3. [How to set the RPC URLs?](#how-to-set-the-rpc-urls?)
+1. [What is `tx_overrides`? Do I need to pass it?](#what-is-`tx_overrides`?-do-I-need-to-pass-it)
+2. [How to set Open API Base URL?](#how-to-set-open-api-base-url)
+3. [How to set the RPC URLs?](#how-to-set-the-rpc-urls)
+4. [Cannot connect to the Postgres DB?](#cannot-connect-to-the-postgres-db)
 
 ### What is `tx_overrides`? Do I need to pass it?
 
