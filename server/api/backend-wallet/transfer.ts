@@ -49,7 +49,7 @@ export async function transfer(fastify: FastifyInstance) {
       operationId: "backendWallet_transfer",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -62,9 +62,12 @@ export async function transfer(fastify: FastifyInstance) {
         "x-backend-wallet-address"
       ] as string;
       let queueId: string | null = null;
-      const accountAddress = request.headers["x-account-address"] as string;
+
+      // TODO: Bring Smart Wallet back
+      // const accountAddress = request.headers["x-account-address"] as string;
+
       const chainId = getChainIdFromChain(chain);
-      const sdk = await getSdk({ chainId, walletAddress, accountAddress });
+      const sdk = await getSdk({ chainId, walletAddress });
 
       const normalizedValue = await normalizePriceValue(
         sdk.getProvider(),
