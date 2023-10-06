@@ -87,7 +87,7 @@ export async function transfer(fastify: FastifyInstance) {
           extension: "none",
           transferParams: {
             toAddress: to,
-            fromAddress: walletAddress || accountAddress,
+            fromAddress: walletAddress,
             value: normalizedValue.toHexString(),
             currencyAddress: currency_address,
           },
