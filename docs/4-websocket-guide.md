@@ -76,7 +76,7 @@ Received Data will be of the following format:
 }
 ```
 
-The console will start logging the updates on the queueId as and when they are trasmitted.
+The console will start logging the updates on the queueId as and when they are transmitted.
 
 The websocket connection will be closed automatically after the last update of either `errored` or `mined` status is sent.
 
