@@ -93,7 +93,7 @@ For updates on your requests, you can either poll using the `get` (`/tranasction
 5. Under `Docker Image Tag`, select either `latest` or `nightly`
    ![Alt text](./images/Zeet-Docker-Source-Setting.png)
 6. Select the Target cluster you want the above image to be deployed to
-7. Choose your `Computer` settings
+7. Choose your `Compute` settings
 8. Update the `port` under `Networking` Tab to `3005`
 9. Under `Environment Vriables` add the below vars with values:
 
