@@ -27,6 +27,7 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
           const response = await fetch(env.WEBHOOK_URL, {
             method: "POST",
             headers: {
+              "Authorization": `Bearer ${env.THIRDWEB_API_SECRET_KEY}`,
               Accept: "application/json",
               "Content-Type": "application/json",
             },
