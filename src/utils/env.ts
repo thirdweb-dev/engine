@@ -80,6 +80,7 @@ export const env = createEnv({
         }
         return "";
       }),
+    WEBHOOK_AUTH_BEARER_TOKEN: z.string().default(""),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -137,6 +138,7 @@ export const env = createEnv({
       process.env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY,
     MAX_WAIT_TIME_BEFORE_RETRY: process.env.MAX_WAIT_TIME_BEFORE_RETRY,
     WEBHOOK_URL: process.env.WEBHOOK_URL,
+    WEBHOOK_AUTH_BEARER_TOKEN: process.env.WEBHOOK_AUTH_BEARER_TOKEN
   },
   onValidationError: (error: ZodError) => {
     console.error(
