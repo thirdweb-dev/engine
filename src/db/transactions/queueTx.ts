@@ -1,4 +1,8 @@
-import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
+import type {
+  DeployTransaction,
+  Transaction,
+  TransactionError,
+} from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
@@ -24,6 +28,16 @@ export const queueTx = async ({
   deployedContractAddress,
   deployedContractType,
 }: QueueTxParams) => {
+  // Simulate transaction
+  try {
+    if (!deployedContractAddress) {
+      await tx.simulate();
+    }
+  } catch (e) {
+    const message = (e as TransactionError)?.reason || (e as any).message || e;
+    throw new Error(`Transaction simulation failed with reason: ${message}`);
+  }
+
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
