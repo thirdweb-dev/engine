@@ -44,11 +44,13 @@ export const revokeSession = async (fastify: FastifyInstance) => {
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
-    handler: async (req, rep) => {
-      const { chain, contract_address } = req.params;
-      const { wallet_address } = req.body;
-      const walletAddress = req.headers["x-backend-wallet-address"] as string;
-      const accountAddress = req.headers["x-account-address"] as string;
+    handler: async (request, reply) => {
+      const { chain, contract_address } = request.params;
+      const { wallet_address } = request.body;
+      const walletAddress = request.headers[
+        "x-backend-wallet-address"
+      ] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -60,7 +62,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
       const tx = await contract.account.revokeAccess.prepare(wallet_address);
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
-      rep.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: {
           queueId,
         },

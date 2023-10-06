@@ -31,8 +31,8 @@ export const getAllSessions = async (fastify: FastifyInstance) => {
         [StatusCodes.OK]: ReplySchema,
       },
     },
-    handler: async (req, rep) => {
-      const { chain, contract_address } = req.params;
+    handler: async (request, reply) => {
+      const { chain, contract_address } = request.params;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -41,7 +41,7 @@ export const getAllSessions = async (fastify: FastifyInstance) => {
       });
       const sessions = await contract.account.getAllSigners();
 
-      rep.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: sessions.map((session) => ({
           signerAddress: session.signer,
           startDate: session.permissions.startDate.toISOString(),

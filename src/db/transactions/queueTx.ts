@@ -42,11 +42,21 @@ export const queueTx = async ({
 
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
   const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
+  const txTableData = {
+    chainId,
+    functionName: tx.getMethod(),
+    functionArgs: tx.getArgs().toString(),
+    extension,
+    deployedContractAddress: deployedContractAddress,
+    deployedContractType: deployedContractType,
+    data: tx.encode(),
+    value: BigNumber.from(await tx.getValue()).toHexString(),
+  };
 
   if (isUserOp) {
     const { id: queueId } = await prisma.transactions.create({
       data: {
-        chainId,
+        ...txTableData,
         // Fields needed to get smart wallet signer in worker
         signerAddress: await (
           tx.getSigner as ERC4337EthersSigner
@@ -54,14 +64,6 @@ export const queueTx = async ({
         accountAddress: (await tx.getSignerAddress()).toLowerCase(),
         // Fields needed to send user operation
         target: tx.getTarget().toLowerCase(),
-        data: tx.encode(),
-        value: BigNumber.from(await tx.getValue()).toHexString(),
-        // Fields for enhanced data
-        functionName: tx.getMethod(),
-        functionArgs: tx.getArgs().toString(),
-        extension,
-        deployedContractAddress,
-        deployedContractType,
       },
     });
 
@@ -69,18 +71,10 @@ export const queueTx = async ({
   } else {
     const { id: queueId } = await prisma.transactions.create({
       data: {
-        chainId,
+        ...txTableData,
         // Fields needed to send transaction
         fromAddress: (await tx.getSignerAddress()).toLowerCase(),
         toAddress: tx.getTarget().toLowerCase(),
-        data: tx.encode(),
-        value: BigNumber.from(await tx.getValue()).toHexString(),
-        // Fields for enhanced data
-        functionName: tx.getMethod(),
-        functionArgs: tx.getArgs().toString(),
-        extension,
-        deployedContractAddress,
-        deployedContractType,
       },
     });
 

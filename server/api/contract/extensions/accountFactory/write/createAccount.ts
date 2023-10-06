@@ -49,11 +49,13 @@ export const createAccount = async (fastify: FastifyInstance) => {
         [StatusCodes.OK]: prebuiltDeployResponseSchema,
       },
     },
-    handler: async (req, rep) => {
-      const { chain, contract_address } = req.params;
-      const { admin_address, extra_data } = req.body;
-      const walletAddress = req.headers["x-backend-wallet-address"] as string;
-      const accountAddress = req.headers["x-account-address"] as string;
+    handler: async (request, reply) => {
+      const { chain, contract_address } = request.params;
+      const { admin_address, extra_data } = request.body;
+      const walletAddress = request.headers[
+        "x-backend-wallet-address"
+      ] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -79,7 +81,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
         deployedContractType: "account",
       });
 
-      rep.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: {
           queueId,
           deployedAddress,

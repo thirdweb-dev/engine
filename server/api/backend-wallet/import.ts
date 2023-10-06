@@ -109,13 +109,13 @@ export const importWallet = async (fastify: FastifyInstance) => {
         [StatusCodes.OK]: ResponseSchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (request, reply) => {
       let walletAddress: string;
       switch (env.WALLET_CONFIGURATION.type) {
         case WalletType.local:
           // TODO: This is why where zod would be great
           const { privateKey, mnemonic, encryptedJson, password } =
-            req.body as any;
+            request.body as any;
 
           if (privateKey) {
             walletAddress = await importLocalWallet({
@@ -140,7 +140,7 @@ export const importWallet = async (fastify: FastifyInstance) => {
           }
           break;
         case WalletType.awsKms:
-          const { awsKmsArn, awsKmsKeyId } = req.body as any;
+          const { awsKmsArn, awsKmsKeyId } = request.body as any;
           if (!(awsKmsArn && awsKmsKeyId)) {
             throw new Error(
               `Please provide 'awsKmsArn' and 'awsKmsKeyId' to import a wallet.`,
@@ -153,7 +153,7 @@ export const importWallet = async (fastify: FastifyInstance) => {
           });
           break;
         case WalletType.gcpKms:
-          const { gcpKmsKeyId, gcpKmsKeyVersionId } = req.body as any;
+          const { gcpKmsKeyId, gcpKmsKeyVersionId } = request.body as any;
           if (!(gcpKmsKeyId && gcpKmsKeyVersionId)) {
             throw new Error(
               `Please provide 'gcpKmsKeyId' and 'gcpKmsKeyVersionId' to import a wallet.`,
@@ -167,7 +167,7 @@ export const importWallet = async (fastify: FastifyInstance) => {
           break;
       }
 
-      res.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: {
           walletAddress,
           status: "success",

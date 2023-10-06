@@ -45,11 +45,13 @@ export const grantSession = async (fastify: FastifyInstance) => {
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
-    handler: async (req, rep) => {
-      const { chain, contract_address } = req.params;
-      const { signerAddress, ...permissions } = req.body;
-      const walletAddress = req.headers["x-backend-wallet-address"] as string;
-      const accountAddress = req.headers["x-account-address"] as string;
+    handler: async (request, reply) => {
+      const { chain, contract_address } = request.params;
+      const { signerAddress, ...permissions } = request.body;
+      const walletAddress = request.headers[
+        "x-backend-wallet-address"
+      ] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -71,7 +73,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
       );
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 
-      rep.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: {
           queueId,
         },
