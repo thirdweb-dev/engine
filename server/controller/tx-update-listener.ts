@@ -24,13 +24,18 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
         // Send webhook
         if (env.WEBHOOK_URL.length > 0) {
           const txData = await getTxById({ queueId: parsedPayload.id });
+          let headers: { Accept: string, "Content-Type": string, Authorization?: string } = {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          };
+
+          if (process.env.WEBHOOK_AUTH_BEARER_TOKEN) {
+            headers["Authorization"] = `Bearer ${process.env.WEBHOOK_AUTH_BEARER_TOKEN}`;
+          }
+
           const response = await fetch(env.WEBHOOK_URL, {
             method: "POST",
-            headers: {
-              "Authorization": `Bearer ${env.THIRDWEB_API_SECRET_KEY}`,
-              Accept: "application/json",
-              "Content-Type": "application/json",
-            },
+            headers,
             body: JSON.stringify(txData),
           });
 
