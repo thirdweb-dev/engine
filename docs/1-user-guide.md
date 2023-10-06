@@ -47,7 +47,7 @@ Web3-api enables you to create and use backend wallets. To get started create yo
 
 #### Creating Backend Wallets
 
-Backend wallets are used by the web3-api to execute transactions, you should think of these as owned by the developer who's runnign the server.
+Backend wallets are used by the web3-api to execute transactions, you should think of these as owned by the developer who's running the server.
 
 1.POST /create/wallet
 `{
@@ -64,7 +64,7 @@ Check the [Google KMS setup guide](./kms/google_kms_how_to.md) for more details.
 
 ### Websocket Listener
 
-For updates on your requests, you can either poll using the `get` (`/tranasction/status/<queueId>`) method or use websockets. [How to use websockets](./4-websocket-guide.md)
+For updates on your requests, you can either poll using the `get` (`/transaction/status/<queueId>`) method or use websockets. [How to use websockets](./4-websocket-guide.md)
 
 ## Running in Production Mode
 
@@ -105,7 +105,7 @@ THIRDWEB_API_SECRET_KEY
 10. Under `Organize` Tab,
 
 - you can select an existing `group`` or create a new one
-- you can select an existting `sub-group` or create new one
+- you can select an existing `sub-group` or create a new one
 - Add a Project Name
 
 11. Click on `Deploy` button

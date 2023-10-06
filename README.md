@@ -29,7 +29,7 @@
 
 ## Introduction
 
-thirdweb engine is a backend server that provides a HTTP interface to interacting with any smart contract on any evm chain. Engine handles creating and managaging backend wallets, enabling high throughput with automatic nonce and gas management.
+thirdweb engine is a backend server that provides a HTTP interface to interact with any smart contract on any evm chain. Engine handles creating and managing backend wallets, enabling high throughput with automatic nonce and gas management.
 
 The high level functionality of thirdweb engine:
 
@@ -37,7 +37,7 @@ The high level functionality of thirdweb engine:
 <img src="./docs/images/overview.png" alt="Overview" width="820">
 
 - Create & transact with **backend wallets** (Local, AWS KMS, Google KMS, etc.)
-- High reliability transaction execution with **wallet nonce management**, **automatic transaction retrying** and **gas mangement**
+- High reliability transaction execution with **wallet nonce management**, **automatic transaction retrying** and **gas management**
 - Deploy and interact with [erc-4337](https://eips.ethereum.org/EIPS/eip-4337) smart wallets, handle session keys & sending user operations
 - Deploy published smart contracts (any EVM chain)
 - Read, write and interact with smart contracts (any evm chain)

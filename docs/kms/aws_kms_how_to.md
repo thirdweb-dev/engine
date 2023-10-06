@@ -15,7 +15,7 @@ kms:CreateAlias
 kms:Verify
 ```
 
-3. Create a AWS KMS key, see [here](https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html) for more details. or, you can use the `/wallet/create` to create a key.
+3. Create an AWS KMS key, see [here](https://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html) for more details. or, you can use the `/wallet/create` to create a key.
 
 NOTE:
 
