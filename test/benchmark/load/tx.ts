@@ -56,7 +56,7 @@ export const awaitTx = async (params: AwaitTxParams) => {
           };
         }
 
-        const { time: mineTime, res } = await fetchEngine({
+        const { res } = await fetchEngine({
           host: params.host,
           method: "GET",
           path: `/transaction/status/${queueId}`,
@@ -67,7 +67,7 @@ export const awaitTx = async (params: AwaitTxParams) => {
           return {
             status: TxStatus.Mined,
             queueTime,
-            mineTime,
+            mineTime: (Date.now() - startTime) / 1000,
             receipt: res.result,
           };
         } else if (res.result?.status === "errored") {

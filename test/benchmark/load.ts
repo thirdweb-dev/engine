@@ -1,3 +1,5 @@
+import chalk from "chalk";
+import { SingleBar } from "cli-progress";
 import { config } from "dotenv";
 import { fetchEngine } from "./load/fetch";
 import { sleep, time } from "./load/time";
@@ -24,18 +26,34 @@ const deployerWalletAddress = `0x43CAe0d7fe86C713530E679Ce02574743b2Ee9FC`;
 const tokenAddress = `0x7A0CE8524bea337f0beE853B68fAbDE145dAC0A0`;
 const accountFactoryAddress = `0xD48f9d337626a991e5c86c38768DA09428Fa549B`;
 const thirdwebApiSecretKey = process.env.THIRDWEB_API_SECRET_KEY as string;
-const loadTestBatchSize = parseInt(process.env.LOAD_TEST_BATCH_SIZE || "3");
-const loadTestBatches = parseInt(process.env.LOAD_TEST_BATCHES || "1");
+const loadTestBatchSize = parseInt(process.env.LOAD_TEST_BATCH_SIZE || "2");
+const loadTestBatches = parseInt(process.env.LOAD_TEST_BATCHES || "60");
 
 const main = async () => {
   const { time: totalTime } = await time(async () => {
     const txs: Promise<TimedResult>[] = [];
 
+    console.log(
+      `\nSending ${chalk.blue(
+        loadTestBatchSize,
+      )} transactions & user operations per second for ${chalk.green(
+        loadTestBatches,
+      )} seconds\n`,
+    );
+
+    const progress = new SingleBar({
+      format: `Progress | {bar} | {percentage}% | {value}/{total}`,
+      barCompleteChar: "\u2588",
+      barIncompleteChar: "\u2591",
+      hideCursor: true,
+    });
+
+    progress.start(loadTestBatchSize * loadTestBatches * 2, 0);
+
     for (let i = 0; i < loadTestBatches; i++) {
       txs.push(
         ...[...Array(loadTestBatchSize)].map(() =>
           time(async (): Promise<TaskResult> => {
-            console.log(`1. Creating Backend Wallet`);
             const { res } = await fetchEngine({
               host,
               path: `/backend-wallet/create`,
@@ -44,7 +62,6 @@ const main = async () => {
             });
             const backendWalletAddress = res.result.walletAddress;
 
-            console.log(`2. Deploying Smart Account [Transaction]`);
             const tx = await awaitTx({
               host,
               path: `/contract/${chain}/${accountFactoryAddress}/account-factory/create-account`,
@@ -67,8 +84,8 @@ const main = async () => {
             }
 
             const accountAddress = tx.receipt.deployedContractAddress;
+            progress.increment();
 
-            console.log(`3. Generating Signature Payload`);
             const { res: sigRes } = await fetchEngine({
               host,
               path: `/contract/${chain}/${tokenAddress}/erc20/signature/generate`,
@@ -81,7 +98,6 @@ const main = async () => {
             });
             const signedPayload = sigRes.result;
 
-            console.log(`4. Signature Minting [UserOperation]`);
             const userOp = await awaitTx({
               host,
               path: `/contract/${chain}/${tokenAddress}/erc20/signature/mint`,
@@ -90,6 +106,7 @@ const main = async () => {
               thirdwebApiSecretKey,
               body: JSON.stringify(signedPayload),
             });
+            progress.increment();
 
             return {
               txStatus: tx.status,
@@ -107,6 +124,7 @@ const main = async () => {
     }
 
     const awaitedTxs = await Promise.all(txs);
+    progress.stop();
 
     const erroredTxs = awaitedTxs.filter(
       (tx) => tx.txStatus === TxStatus.Error,
@@ -127,7 +145,7 @@ const main = async () => {
       .filter((tx) => tx.userOpStatus === TxStatus.Mined)
       .sort((a, b) => a.userOpMineTime - b.userOpMineTime);
 
-    console.log("-- Transactions --");
+    console.log(chalk.blue(`\n\n===== Transactions =====\n`));
     console.table({
       errored: erroredTxs.length,
       pending: pendingTxs.length,
@@ -135,6 +153,11 @@ const main = async () => {
     });
 
     console.table({
+      "avg queued time":
+        minedTxs.reduce((acc, curr) => acc + (curr.txQueueTime ?? 0), 0) /
+        minedTxs.length,
+      "min queued time": minedTxs[0].txQueueTime ?? 0,
+      "max queued time": minedTxs[minedTxs.length - 1].txQueueTime ?? 0,
       "avg mined time":
         minedTxs.reduce((acc, curr) => acc + (curr.txMineTime ?? 0), 0) /
         minedTxs.length,
@@ -142,7 +165,7 @@ const main = async () => {
       "max mined time": minedTxs[minedTxs.length - 1].txMineTime ?? 0,
     });
 
-    console.log("-- User Operations --");
+    console.log(chalk.blue("\n\n===== User Operations =====\n"));
     console.table({
       errored: erroredUserOps.length,
       pending: pendingUserOps.length,
@@ -150,6 +173,14 @@ const main = async () => {
     });
 
     console.table({
+      "avg queued time":
+        minedUserOps.reduce(
+          (acc, curr) => acc + (curr.userOpQueueTime ?? 0),
+          0,
+        ) / minedUserOps.length,
+      "min queued time": minedUserOps[0].userOpQueueTime ?? 0,
+      "max queued time":
+        minedUserOps[minedUserOps.length - 1].userOpQueueTime ?? 0,
       "avg mined time":
         minedUserOps.reduce(
           (acc, curr) => acc + (curr.userOpMineTime ?? 0),
