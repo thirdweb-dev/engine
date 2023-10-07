@@ -93,3 +93,8 @@ export const eventsQuerystringSchema = Type.Object(
       "Specify the from and to block numbers to get events for, defaults to all blocks",
   },
 );
+
+export const RoyaltySchema = Type.Object({
+  seller_fee_basis_points: Type.Number(),
+  fee_recipient: Type.String(),
+});
