@@ -1,8 +1,11 @@
+import { Static } from "@sinclair/typebox";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
-import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
-import { TransactionStatusEnum } from "../../../server/schemas/transaction";
+import {
+  TransactionStatusEnum,
+  transactionResponseSchema,
+} from "../../../server/schemas/transaction";
 import { getSdk } from "../../../server/utils/cache/getSdk";
 import { checkIfIDCancelled } from "../../db/cancelledTransactions/checkIfTxCancelled";
 import { updateCancelStatus } from "../../db/cancelledTransactions/updateCancelStatus";
@@ -27,190 +30,207 @@ export const processTx = async () => {
           return;
         }
 
-        // Transaction processing needs to happen sequentially for nonce management
+        const txsToSend = [];
+        const userOpsToSend = [];
+
         for (const tx of txs) {
-          try {
+          // We check for cancellation at the beginning of the batch
+          const cancelled = await checkIfIDCancelled({
+            queueId: tx.queueId!,
+          });
+
+          if (cancelled) {
             logger.worker.info(
-              `[Transaction] [${tx.queueId}] Picked up by worker`,
+              `[Transaction] [${tx.queueId}] Cancelled by user`,
             );
 
-            const cancelledData = await checkIfIDCancelled({
-              queueId: tx.queueId!,
-            });
-
-            if (cancelledData) {
-              logger.worker.info(
-                `[Transaction] [${tx.queueId}] Cancelled by user`,
-              );
-
-              if (!cancelledData.cancelledByWorkerAt) {
-                await updateCancelStatus({
-                  queueId: tx.queueId!,
-                });
-              }
-
-              continue;
+            if (!cancelled.cancelledByWorkerAt) {
+              await updateCancelStatus({
+                queueId: tx.queueId!,
+              });
             }
 
-            // Update database that transaction has been picked up by worker
-            await updateTx({
-              pgtx,
-              queueId: tx.queueId!,
-              status: TransactionStatusEnum.Processed,
-            });
+            continue;
+          }
 
-            if (tx.accountAddress && tx.signerAddress) {
-              // User operation processing
-              const signer = (
-                await getSdk({
-                  pgtx,
-                  chainId: tx.chainId!,
-                  walletAddress: tx.signerAddress,
-                  accountAddress: tx.accountAddress!,
-                })
-              ).getSigner() as ERC4337EthersSigner;
+          logger.worker.info(
+            `[Transaction] [${tx.queueId}] Picked up by worker`,
+          );
 
-              const nonce = randomNonce();
-              try {
-                const userOp = await signer.smartAccountAPI.createSignedUserOp(
-                  {
-                    target: tx.target || "",
-                    data: tx.data || "0x",
-                    value: tx.value ? BigNumber.from(tx.value) : undefined,
-                    nonce,
-                  },
-                  false,
-                );
-                const userOpHash = await signer.smartAccountAPI.getUserOpHash(
-                  userOp,
-                );
-                await signer.httpRpcClient.sendUserOpToBundler(userOp);
+          // Update database that transaction has been picked up by worker
+          await updateTx({
+            pgtx,
+            queueId: tx.queueId!,
+            status: TransactionStatusEnum.Processed,
+          });
 
-                // TODO: Need to update with other user op data
-                await updateTx({
-                  pgtx,
-                  queueId: tx.queueId!,
-                  status: TransactionStatusEnum.UserOpSent,
-                  txData: {
-                    userOpHash,
-                  },
-                });
-              } catch (err: any) {
-                logger.worker.warn(
-                  `[User Operation] [${tx.queueId}] Failed to send with error - ${err}`,
-                );
+          if (tx.accountAddress && tx.signerAddress) {
+            userOpsToSend.push(tx);
+          } else {
+            txsToSend.push(tx);
+          }
+        }
 
-                await updateTx({
-                  pgtx,
-                  queueId: tx.queueId!,
-                  status: TransactionStatusEnum.Errored,
-                  txData: {
-                    errorMessage:
-                      err?.message ||
-                      err?.toString() ||
-                      `Failed to handle transaction`,
-                  },
-                });
-
-                // TODO: If the transaction errors, we should move onto the next one
-                continue;
-              }
-            } else {
-              // Standard transaction processing
-              const sdk = await getSdk({
+        // Smart wallet user operation processing can happen in parallel
+        await Promise.all(
+          userOpsToSend.map(async (tx) => {
+            // User operation processing
+            const signer = (
+              await getSdk({
                 pgtx,
                 chainId: tx.chainId!,
-                walletAddress: tx.fromAddress!,
-              });
+                walletAddress: tx.signerAddress!,
+                accountAddress: tx.accountAddress!,
+              })
+            ).getSigner() as ERC4337EthersSigner;
 
-              // Run data gathering async calls in parallel
-              const [mempoolNonce, dbNonce, gasOverrides] = await Promise.all([
-                sdk.wallet.getNonce("pending"),
-                getWalletNonce({
-                  pgtx,
-                  address: tx.fromAddress!,
-                  chainId: tx.chainId!,
-                }),
-                getDefaultGasOverrides(sdk.getProvider()),
-              ]);
-
-              // As a backstop, take the greater value between the mempool nonce and db nonce (in case we get out of sync)
-              const nonce = BigNumber.from(mempoolNonce).gt(
-                BigNumber.from(dbNonce?.nonce || 0),
-              )
-                ? BigNumber.from(mempoolNonce)
-                : BigNumber.from(dbNonce?.nonce || 0);
-
-              let res: ethers.providers.TransactionResponse;
-              try {
-                res = await sdk.getSigner()!.sendTransaction({
-                  to: tx.toAddress!,
-                  from: tx.fromAddress!,
-                  data: tx.data!,
-                  value: tx.value!,
+            const nonce = randomNonce();
+            try {
+              const userOp = await signer.smartAccountAPI.createSignedUserOp(
+                {
+                  target: tx.target || "",
+                  data: tx.data || "0x",
+                  value: tx.value ? BigNumber.from(tx.value) : undefined,
                   nonce,
-                  ...gasOverrides,
-                });
-              } catch (err: any) {
-                logger.worker.warn(
-                  `[Transaction] [${tx.queueId}] Failed to send with error - ${err}`,
-                );
+                },
+                false,
+              );
+              const userOpHash = await signer.smartAccountAPI.getUserOpHash(
+                userOp,
+              );
+              await signer.httpRpcClient.sendUserOpToBundler(userOp);
 
-                await updateTx({
-                  pgtx,
-                  queueId: tx.queueId!,
-                  status: TransactionStatusEnum.Errored,
-                  txData: {
-                    errorMessage:
-                      err?.message ||
-                      err?.toString() ||
-                      `Failed to handle transaction`,
-                  },
-                });
-
-                // TODO: If the transaction errors, we should move onto the next one
-                continue;
-              }
+              // TODO: Need to update with other user op data
+              await updateTx({
+                pgtx,
+                queueId: tx.queueId!,
+                status: TransactionStatusEnum.UserOpSent,
+                txData: {
+                  userOpHash,
+                },
+              });
+            } catch (err: any) {
+              logger.worker.warn(
+                `[User Operation] [${tx.queueId}] Failed to send with error - ${err}`,
+              );
 
               await updateTx({
                 pgtx,
                 queueId: tx.queueId!,
-                status: TransactionStatusEnum.Submitted,
-                res,
+                status: TransactionStatusEnum.Errored,
                 txData: {
-                  sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
+                  errorMessage:
+                    err?.message ||
+                    err?.toString() ||
+                    `Failed to handle transaction`,
                 },
               });
-
-              logger.worker.info(
-                `[Transaction] [${tx.queueId}] Submitted with nonce '${nonce}' & hash '${res.hash}'`,
-              );
-
-              // Increment the nonce used for the transaction and update the database
-              await updateWalletNonce({
-                pgtx,
-                address: tx.fromAddress!,
-                chainId: tx.chainId!,
-                nonce: nonce.toNumber() + 1,
-              });
             }
-          } catch (err) {
-            logger.worker.warn(
-              `[Transaction] [${tx.queueId}] Failed to process with error - ${err}`,
+          }),
+        );
+
+        // Group transactions to be batched by from address & chain id
+        const txsByWallet = txsToSend.reduce((acc, curr) => {
+          const key = `${curr.fromAddress}-${curr.chainId}`;
+          if (key in acc) {
+            acc[key].push(curr);
+          } else {
+            acc[key] = [curr];
+          }
+
+          return acc;
+        }, {} as Record<string, Static<typeof transactionResponseSchema>[]>);
+
+        // Each wallets transactions can be sent in parallel
+        await Promise.all(
+          // For each wallet, send all transactions at once and update nonce once
+          Object.keys(txsByWallet).map(async (key) => {
+            const txsToSend = txsByWallet[key];
+            const idTx = txsToSend[0];
+
+            const sdk = await getSdk({
+              pgtx,
+              chainId: idTx.chainId!,
+              walletAddress: idTx.fromAddress!,
+            });
+
+            const [mempoolNonce, dbNonce, gasOverrides] = await Promise.all([
+              sdk.wallet.getNonce("pending"),
+              getWalletNonce({
+                pgtx,
+                address: idTx.fromAddress!,
+                chainId: idTx.chainId!,
+              }),
+              getDefaultGasOverrides(sdk.getProvider()),
+            ]);
+
+            // As a backstop, take the greater value between the mempool nonce and db nonce (in case we get out of sync)
+            const nonce = BigNumber.from(mempoolNonce).gt(
+              BigNumber.from(dbNonce?.nonce || 0),
+            )
+              ? BigNumber.from(mempoolNonce)
+              : BigNumber.from(dbNonce?.nonce || 0);
+
+            let incrementNonce = 0;
+
+            await Promise.all(
+              txsToSend.map(async (tx, i) => {
+                let res;
+                try {
+                  res = await sdk.getSigner()!.sendTransaction({
+                    to: tx.toAddress!,
+                    from: tx.fromAddress!,
+                    data: tx.data!,
+                    value: tx.value!,
+                    // Increment nonce optimistically
+                    nonce: nonce.add(i),
+                    ...gasOverrides,
+                  });
+                } catch (err: any) {
+                  logger.worker.warn(
+                    `[Transaction] [${tx.queueId}] Failed to send with error - ${err}`,
+                  );
+
+                  await updateTx({
+                    pgtx,
+                    queueId: tx.queueId!,
+                    status: TransactionStatusEnum.Errored,
+                    txData: {
+                      errorMessage:
+                        err?.message ||
+                        err?.toString() ||
+                        `Failed to handle transaction`,
+                    },
+                  });
+
+                  return;
+                }
+
+                incrementNonce++;
+                await updateTx({
+                  pgtx,
+                  queueId: tx.queueId!,
+                  status: TransactionStatusEnum.Submitted,
+                  res,
+                  txData: {
+                    sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
+                  },
+                });
+
+                logger.worker.info(
+                  `[Transaction] [${tx.queueId}] Submitted with nonce '${nonce}' & hash '${res.hash}'`,
+                );
+              }),
             );
 
-            // TODO: Since this is an unknown error, it should be updated to unprocessed and retried if tx hasn't been sent.
-            await updateTx({
+            await updateWalletNonce({
               pgtx,
-              queueId: tx.queueId!,
-              status: TransactionStatusEnum.Errored,
-              txData: {
-                // TODO: Do we want more visibility on this error message? This case should rarely get hit.
-                errorMessage: `Failed to process transaction.`,
-              },
+              address: idTx.fromAddress!,
+              chainId: idTx.chainId!,
+              nonce: nonce.toNumber() + incrementNonce,
             });
-          }
-        }
+          }),
+        );
       },
       {
         // Maximum 3 minutes to send the batch of transactions.
