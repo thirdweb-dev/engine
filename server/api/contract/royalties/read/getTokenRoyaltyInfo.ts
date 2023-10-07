@@ -10,7 +10,7 @@ import { getChainIdFromChain } from "../../../../utilities/chain";
 import { getContract } from "../../../../utils/cache/getContract";
 
 const requestSchema = Type.Object({
-  tokenId: Type.String(),
+  token_id: Type.String(),
   ...contractParamSchema.properties,
 });
 // OUTPUT
@@ -39,7 +39,7 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
       description:
         "Gets the royalty recipient and BPS (basis points) of a particular token in the contract.",
       tags: ["Contract-Royalties"],
-      operationId: "royalties_getDefaultRoyaltyInfo",
+      operationId: "royalties_getTokenRoyaltyInfo",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -47,7 +47,7 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address, tokenId } = request.params;
+      const { chain, contract_address, token_id } = request.params;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
@@ -55,7 +55,7 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
         contractAddress: contract_address,
       });
 
-      const returnData = await contract.royalties.getTokenRoyaltyInfo(tokenId);
+      const returnData = await contract.royalties.getTokenRoyaltyInfo(token_id);
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

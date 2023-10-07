@@ -16,6 +16,13 @@ import { getContract } from "../../../../utils/cache/getContract";
 const requestSchema = contractParamSchema;
 const requestBodySchema = RoyaltySchema;
 
+requestBodySchema.examples = [
+  {
+    fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+    seller_fee_basis_points: 100,
+  },
+];
+
 // OUTPUT
 const responseSchema = transactionWritesResponseSchema;
 

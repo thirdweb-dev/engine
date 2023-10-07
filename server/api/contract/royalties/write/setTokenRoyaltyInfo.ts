@@ -16,10 +16,18 @@ import { getContract } from "../../../../utils/cache/getContract";
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   ...RoyaltySchema.properties,
-  tokenId: Type.String({
+  token_id: Type.String({
     description: "The token ID to set the royalty info for.",
   }),
 });
+
+requestBodySchema.examples = [
+  {
+    fee_recipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+    seller_fee_basis_points: 100,
+    token_id: "0",
+  },
+];
 
 // OUTPUT
 const responseSchema = transactionWritesResponseSchema;
@@ -48,7 +56,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contract_address } = request.params;
-      const { seller_fee_basis_points, fee_recipient, tokenId } = request.body;
+      const { seller_fee_basis_points, fee_recipient, token_id } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -61,10 +69,13 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
         accountAddress,
       });
 
-      const tx = await contract.royalties.setTokenRoyaltyInfo.prepare(tokenId, {
-        seller_fee_basis_points,
-        fee_recipient,
-      });
+      const tx = await contract.royalties.setTokenRoyaltyInfo.prepare(
+        token_id,
+        {
+          seller_fee_basis_points,
+          fee_recipient,
+        },
+      );
       const queueId = await queueTx({ tx, chainId, extension: "none" });
       reply.status(StatusCodes.OK).send({
         result: {
