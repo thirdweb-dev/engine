@@ -32,10 +32,10 @@ import { grantRole } from "./contract/roles/write/grant";
 import { revokeRole } from "./contract/roles/write/revoke";
 
 // Contract Royalties
-import { getDefaultRoyaltyInfo } from "./contract/royalty/read/getDefaultRoyaltyInfo";
-import { getTokenRoyaltyInfo } from "./contract/royalty/read/getTokenRoyaltyInfo";
-import { setDefaultRoyaltyInfo } from "./contract/royalty/write/setDefaultRoyaltyInfo";
-import { setTokenRoyaltyInfo } from "./contract/royalty/write/setTokenRoyaltyInfo";
+import { getDefaultRoyaltyInfo } from "./contract/royalties/read/getDefaultRoyaltyInfo";
+import { getTokenRoyaltyInfo } from "./contract/royalties/read/getTokenRoyaltyInfo";
+import { setDefaultRoyaltyInfo } from "./contract/royalties/write/setDefaultRoyaltyInfo";
+import { setTokenRoyaltyInfo } from "./contract/royalties/write/setTokenRoyaltyInfo";
 
 // Contract Metadata
 import { getABI } from "./contract/metadata/abi";

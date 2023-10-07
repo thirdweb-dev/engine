@@ -31,13 +31,13 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/royalty/set-token-royalty-info",
+    url: "/contract/:chain/:contract_address/royalties/set-token-royalty-info",
     schema: {
       summary: "Set Token Royalty Info",
       description:
         "Set the royalty recipient and fee for a particular token in the contract.",
-      tags: ["Contract-Royalty"],
-      operationId: "royalty_setTokenRoyaltyInfo",
+      tags: ["Contract-Royalties"],
+      operationId: "royalties_setTokenRoyaltyInfo",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
