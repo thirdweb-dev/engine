@@ -100,7 +100,6 @@ export async function transfer(fastify: FastifyInstance) {
           chainId,
           contractAddress: currency_address,
           walletAddress,
-          accountAddress,
         });
 
         const { displayValue } = await fetchCurrencyValue(
