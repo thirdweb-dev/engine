@@ -71,64 +71,6 @@ export const processTx = async () => {
           }
         }
 
-        // Smart wallet user operation processing can happen in parallel
-        await Promise.all(
-          userOpsToSend.map(async (tx) => {
-            // User operation processing
-            const signer = (
-              await getSdk({
-                pgtx,
-                chainId: tx.chainId!,
-                walletAddress: tx.signerAddress!,
-                accountAddress: tx.accountAddress!,
-              })
-            ).getSigner() as ERC4337EthersSigner;
-
-            const nonce = randomNonce();
-            try {
-              const userOp = await signer.smartAccountAPI.createSignedUserOp(
-                {
-                  target: tx.target || "",
-                  data: tx.data || "0x",
-                  value: tx.value ? BigNumber.from(tx.value) : undefined,
-                  nonce,
-                },
-                false,
-              );
-              const userOpHash = await signer.smartAccountAPI.getUserOpHash(
-                userOp,
-              );
-              await signer.httpRpcClient.sendUserOpToBundler(userOp);
-
-              // TODO: Need to update with other user op data
-              await updateTx({
-                pgtx,
-                queueId: tx.queueId!,
-                status: TransactionStatusEnum.UserOpSent,
-                txData: {
-                  userOpHash,
-                },
-              });
-            } catch (err: any) {
-              logger.worker.warn(
-                `[User Operation] [${tx.queueId}] Failed to send with error - ${err}`,
-              );
-
-              await updateTx({
-                pgtx,
-                queueId: tx.queueId!,
-                status: TransactionStatusEnum.Errored,
-                txData: {
-                  errorMessage:
-                    err?.message ||
-                    err?.toString() ||
-                    `Failed to handle transaction`,
-                },
-              });
-            }
-          }),
-        );
-
         // Group transactions to be batched by from address & chain id
         const txsByWallet = txsToSend.reduce((acc, curr) => {
           const key = `${curr.fromAddress}-${curr.chainId}`;
@@ -141,96 +83,148 @@ export const processTx = async () => {
           return acc;
         }, {} as Record<string, Static<typeof transactionResponseSchema>[]>);
 
-        // Each wallets transactions can be sent in parallel
-        await Promise.all(
-          // For each wallet, send all transactions at once and update nonce once
-          Object.keys(txsByWallet).map(async (key) => {
-            const txsToSend = txsByWallet[key];
-            const idTx = txsToSend[0];
+        const sentTxs = Object.keys(txsByWallet).map(async (key) => {
+          const txsToSend = txsByWallet[key];
+          const idTx = txsToSend[0];
 
-            const sdk = await getSdk({
-              pgtx,
-              chainId: idTx.chainId!,
-              walletAddress: idTx.fromAddress!,
-            });
+          const sdk = await getSdk({
+            pgtx,
+            chainId: idTx.chainId!,
+            walletAddress: idTx.fromAddress!,
+          });
 
-            const [mempoolNonce, dbNonce, gasOverrides] = await Promise.all([
-              sdk.wallet.getNonce("pending"),
-              getWalletNonce({
-                pgtx,
-                address: idTx.fromAddress!,
-                chainId: idTx.chainId!,
-              }),
-              getDefaultGasOverrides(sdk.getProvider()),
-            ]);
-
-            // As a backstop, take the greater value between the mempool nonce and db nonce (in case we get out of sync)
-            const nonce = BigNumber.from(mempoolNonce).gt(
-              BigNumber.from(dbNonce?.nonce || 0),
-            )
-              ? BigNumber.from(mempoolNonce)
-              : BigNumber.from(dbNonce?.nonce || 0);
-
-            let incrementNonce = 0;
-
-            await Promise.all(
-              txsToSend.map(async (tx, i) => {
-                let res;
-                try {
-                  res = await sdk.getSigner()!.sendTransaction({
-                    to: tx.toAddress!,
-                    from: tx.fromAddress!,
-                    data: tx.data!,
-                    value: tx.value!,
-                    // Increment nonce optimistically
-                    nonce: nonce.add(i),
-                    ...gasOverrides,
-                  });
-                } catch (err: any) {
-                  logger.worker.warn(
-                    `[Transaction] [${tx.queueId}] Failed to send with error - ${err}`,
-                  );
-
-                  await updateTx({
-                    pgtx,
-                    queueId: tx.queueId!,
-                    status: TransactionStatusEnum.Errored,
-                    txData: {
-                      errorMessage:
-                        err?.message ||
-                        err?.toString() ||
-                        `Failed to handle transaction`,
-                    },
-                  });
-
-                  return;
-                }
-
-                incrementNonce++;
-                await updateTx({
-                  pgtx,
-                  queueId: tx.queueId!,
-                  status: TransactionStatusEnum.Submitted,
-                  res,
-                  txData: {
-                    sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
-                  },
-                });
-
-                logger.worker.info(
-                  `[Transaction] [${tx.queueId}] Submitted with nonce '${nonce}' & hash '${res.hash}'`,
-                );
-              }),
-            );
-
-            await updateWalletNonce({
+          const [mempoolNonce, dbNonce, gasOverrides] = await Promise.all([
+            sdk.wallet.getNonce("pending"),
+            getWalletNonce({
               pgtx,
               address: idTx.fromAddress!,
               chainId: idTx.chainId!,
-              nonce: nonce.toNumber() + incrementNonce,
+            }),
+            getDefaultGasOverrides(sdk.getProvider()),
+          ]);
+
+          // As a backstop, take the greater value between the mempool nonce and db nonce (in case we get out of sync)
+          const nonce = BigNumber.from(mempoolNonce).gt(
+            BigNumber.from(dbNonce?.nonce || 0),
+          )
+            ? BigNumber.from(mempoolNonce)
+            : BigNumber.from(dbNonce?.nonce || 0);
+
+          let incrementNonce = 0;
+
+          await Promise.all(
+            txsToSend.map(async (tx, i) => {
+              let res;
+              try {
+                res = await sdk.getSigner()!.sendTransaction({
+                  to: tx.toAddress!,
+                  from: tx.fromAddress!,
+                  data: tx.data!,
+                  value: tx.value!,
+                  // Increment nonce optimistically
+                  nonce: nonce.add(i),
+                  ...gasOverrides,
+                });
+              } catch (err: any) {
+                logger.worker.warn(
+                  `[Transaction] [${tx.queueId}] Failed to send with error - ${err}`,
+                );
+
+                await updateTx({
+                  pgtx,
+                  queueId: tx.queueId!,
+                  status: TransactionStatusEnum.Errored,
+                  txData: {
+                    errorMessage:
+                      err?.message ||
+                      err?.toString() ||
+                      `Failed to handle transaction`,
+                  },
+                });
+
+                return;
+              }
+
+              incrementNonce++;
+              await updateTx({
+                pgtx,
+                queueId: tx.queueId!,
+                status: TransactionStatusEnum.Submitted,
+                res,
+                txData: {
+                  sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
+                },
+              });
+
+              logger.worker.info(
+                `[Transaction] [${tx.queueId}] Submitted with nonce '${nonce}' & hash '${res.hash}'`,
+              );
+            }),
+          );
+
+          await updateWalletNonce({
+            pgtx,
+            address: idTx.fromAddress!,
+            chainId: idTx.chainId!,
+            nonce: nonce.toNumber() + incrementNonce,
+          });
+        });
+
+        const sentUserOps = userOpsToSend.map(async (tx) => {
+          const signer = (
+            await getSdk({
+              pgtx,
+              chainId: tx.chainId!,
+              walletAddress: tx.signerAddress!,
+              accountAddress: tx.accountAddress!,
+            })
+          ).getSigner() as ERC4337EthersSigner;
+
+          const nonce = randomNonce();
+          try {
+            const userOp = await signer.smartAccountAPI.createSignedUserOp(
+              {
+                target: tx.target || "",
+                data: tx.data || "0x",
+                value: tx.value ? BigNumber.from(tx.value) : undefined,
+                nonce,
+              },
+              false,
+            );
+            const userOpHash = await signer.smartAccountAPI.getUserOpHash(
+              userOp,
+            );
+            await signer.httpRpcClient.sendUserOpToBundler(userOp);
+
+            // TODO: Need to update with other user op data
+            await updateTx({
+              pgtx,
+              queueId: tx.queueId!,
+              status: TransactionStatusEnum.UserOpSent,
+              txData: {
+                userOpHash,
+              },
             });
-          }),
-        );
+          } catch (err: any) {
+            logger.worker.warn(
+              `[User Operation] [${tx.queueId}] Failed to send with error - ${err}`,
+            );
+
+            await updateTx({
+              pgtx,
+              queueId: tx.queueId!,
+              status: TransactionStatusEnum.Errored,
+              txData: {
+                errorMessage:
+                  err?.message ||
+                  err?.toString() ||
+                  `Failed to handle transaction`,
+              },
+            });
+          }
+        });
+
+        await Promise.all([...sentTxs, ...sentUserOps]);
       },
       {
         // Maximum 3 minutes to send the batch of transactions.
