@@ -31,6 +31,12 @@ import { getAllRoles } from "./contract/roles/read/getAll";
 import { grantRole } from "./contract/roles/write/grant";
 import { revokeRole } from "./contract/roles/write/revoke";
 
+// Contract Royalties
+import { getDefaultRoyaltyInfo } from "./contract/royalties/read/getDefaultRoyaltyInfo";
+import { getTokenRoyaltyInfo } from "./contract/royalties/read/getTokenRoyaltyInfo";
+import { setDefaultRoyaltyInfo } from "./contract/royalties/write/setDefaultRoyaltyInfo";
+import { setTokenRoyaltyInfo } from "./contract/royalties/write/setTokenRoyaltyInfo";
+
 // Contract Metadata
 import { getABI } from "./contract/metadata/abi";
 import { extractEvents } from "./contract/metadata/events";
@@ -76,6 +82,12 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllRoles);
   await fastify.register(grantRole);
   await fastify.register(revokeRole);
+
+  // Contract Royalties
+  await fastify.register(getDefaultRoyaltyInfo);
+  await fastify.register(getTokenRoyaltyInfo);
+  await fastify.register(setDefaultRoyaltyInfo);
+  await fastify.register(setTokenRoyaltyInfo);
 
   // deploy
   await fastify.register(prebuiltsRoutes);
