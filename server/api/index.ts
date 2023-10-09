@@ -41,6 +41,7 @@ import { createWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
 import { importWallet } from "./backend-wallet/import";
+import { transfer } from "./backend-wallet/transfer";
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
 
@@ -50,6 +51,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(importWallet);
   await fastify.register(getBalance);
   await fastify.register(getAll);
+  await fastify.register(transfer);
 
   // Chains
   await fastify.register(getChainData);

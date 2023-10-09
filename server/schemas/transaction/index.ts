@@ -185,6 +185,8 @@ export const transactionResponseSchema = Type.Object({
   preVerificationGas: Type.Union([Type.String(), Type.Null()]),
   paymasterAndData: Type.Union([Type.String(), Type.Null()]),
   userOpHash: Type.Union([Type.String(), Type.Null()]),
+  functionName: Type.Union([Type.String(), Type.Null()]),
+  functionArgs: Type.Union([Type.String(), Type.Null()]),
 });
 
 export enum TransactionStatusEnum {

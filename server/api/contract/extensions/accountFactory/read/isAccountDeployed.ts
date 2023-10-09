@@ -47,9 +47,9 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
         [StatusCodes.OK]: ReplySchema,
       },
     },
-    handler: async (req, rep) => {
-      const { chain, contract_address } = req.params;
-      const { admin_address, extra_data } = req.query;
+    handler: async (request, reply) => {
+      const { chain, contract_address } = request.params;
+      const { admin_address, extra_data } = request.query;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -61,7 +61,7 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
         extra_data,
       );
 
-      rep.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: isDeployed,
       });
     },

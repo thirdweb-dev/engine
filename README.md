@@ -105,6 +105,10 @@ We welcome contributions from all developers, regardless of experience level. If
 
 The best place to discuss your ideas, ask questions, and troubleshoot issues is our [Discord server](https://discord.gg/thirdweb).
 
+## FAQs
+
+A list of Frequently Asked Questions: [FAQs](./docs/addons/faqs.md)
+
 ## Security
 
 If you believe you have found a security vulnerability in any of our packages, we kindly ask you not to open a public issue; and to disclose this to us by emailing `security@thirdweb.com`.

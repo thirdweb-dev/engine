@@ -39,7 +39,7 @@ export const createWallet = async (fastify: FastifyInstance) => {
         [StatusCodes.OK]: responseSchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (request, reply) => {
       let walletAddress: string;
       switch (env.WALLET_CONFIGURATION.type) {
         case WalletType.local:
@@ -53,7 +53,7 @@ export const createWallet = async (fastify: FastifyInstance) => {
           break;
       }
 
-      res.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: {
           walletAddress,
           status: "success",

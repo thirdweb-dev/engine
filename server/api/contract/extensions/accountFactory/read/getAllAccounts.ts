@@ -32,8 +32,8 @@ export const getAllAccounts = async (fastify: FastifyInstance) => {
         [StatusCodes.OK]: ReplySchema,
       },
     },
-    handler: async (req, rep) => {
-      const { chain, contract_address } = req.params;
+    handler: async (request, reply) => {
+      const { chain, contract_address } = request.params;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -42,7 +42,7 @@ export const getAllAccounts = async (fastify: FastifyInstance) => {
       });
       const accountAddresses = await contract.accountFactory.getAllAccounts();
 
-      rep.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: accountAddresses,
       });
     },
