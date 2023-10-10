@@ -53,9 +53,9 @@ export const processTx = async () => {
             continue;
           }
 
-          logger.worker.info(
-            `[Transaction] [${tx.queueId}] Picked up by worker`,
-          );
+          // logger.worker.info(
+          //   `[Transaction] [${tx.queueId}] Picked up by worker`,
+          // );
 
           // Update database that transaction has been picked up by worker
           await updateTx({
@@ -85,26 +85,29 @@ export const processTx = async () => {
 
         const sentTxs = Object.keys(txsByWallet).map(async (key) => {
           const txsToSend = txsByWallet[key];
-          const idTx = txsToSend[0];
+          const [walletAddress, chainId] = [
+            key.split("-")[0],
+            parseInt(key.split("-")[1]),
+          ];
 
           const sdk = await getSdk({
             pgtx,
-            chainId: idTx.chainId!,
-            walletAddress: idTx.fromAddress!,
+            chainId,
+            walletAddress,
           });
 
           const [mempoolNonce, dbNonce, gasOverrides] = await Promise.all([
             sdk.wallet.getNonce("pending"),
             getWalletNonce({
               pgtx,
-              address: idTx.fromAddress!,
-              chainId: idTx.chainId!,
+              chainId,
+              address: walletAddress,
             }),
             getDefaultGasOverrides(sdk.getProvider()),
           ]);
 
           // As a backstop, take the greater value between the mempool nonce and db nonce (in case we get out of sync)
-          const nonce = BigNumber.from(mempoolNonce).gt(
+          const startNonce = BigNumber.from(mempoolNonce).gt(
             BigNumber.from(dbNonce?.nonce || 0),
           )
             ? BigNumber.from(mempoolNonce)
@@ -115,19 +118,24 @@ export const processTx = async () => {
           await Promise.all(
             txsToSend.map(async (tx, i) => {
               let res;
+              const nonce = startNonce.add(i);
+
               try {
+                logger.worker.error(
+                  `[Transaction] [${tx.queueId}] [Nonce: ${nonce}] Sending...`,
+                );
                 res = await sdk.getSigner()!.sendTransaction({
                   to: tx.toAddress!,
                   from: tx.fromAddress!,
                   data: tx.data!,
                   value: tx.value!,
                   // Increment nonce optimistically
-                  nonce: nonce.add(i),
+                  nonce,
                   ...gasOverrides,
                 });
               } catch (err: any) {
                 logger.worker.warn(
-                  `[Transaction] [${tx.queueId}] Failed to send with error - ${err}`,
+                  `[Transaction] [${tx.queueId}] [Nonce: ${nonce}] Failed to send with error - ${err}`,
                 );
 
                 await updateTx({
@@ -164,9 +172,9 @@ export const processTx = async () => {
 
           await updateWalletNonce({
             pgtx,
-            address: idTx.fromAddress!,
-            chainId: idTx.chainId!,
-            nonce: nonce.toNumber() + incrementNonce,
+            address: walletAddress,
+            chainId,
+            nonce: startNonce.toNumber() + incrementNonce,
           });
         });
 
@@ -194,6 +202,7 @@ export const processTx = async () => {
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
             );
+
             await signer.httpRpcClient.sendUserOpToBundler(userOp);
 
             // TODO: Need to update with other user op data
