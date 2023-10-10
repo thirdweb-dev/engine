@@ -8,8 +8,6 @@ import {
   transactionResponseSchema,
 } from "../../../server/schemas/transaction";
 import { getSdk } from "../../../server/utils/cache/getSdk";
-import { checkIfIDCancelled } from "../../db/cancelledTransactions/checkIfTxCancelled";
-import { updateCancelStatus } from "../../db/cancelledTransactions/updateCancelStatus";
 import { prisma } from "../../db/client";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
@@ -47,21 +45,10 @@ export const processTx = async () => {
         const txsToSend = [];
         const userOpsToSend = [];
         for (const tx of txs) {
-          const cancelled = await checkIfIDCancelled({
-            queueId: tx.queueId!,
-          });
-
-          if (cancelled) {
+          if (tx.cancelledAt) {
             logger.worker.info(
               `[Transaction] [${tx.queueId}] Cancelled by user`,
             );
-
-            if (!cancelled.cancelledByWorkerAt) {
-              await updateCancelStatus({
-                queueId: tx.queueId!,
-              });
-            }
-
             continue;
           }
 

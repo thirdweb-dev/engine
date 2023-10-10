@@ -2,7 +2,6 @@ import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { StatusCodes } from "http-status-codes";
-import { createCancelledTxData } from "../../src/db/cancelledTransactions/createCancelledTxData";
 import { getTxById } from "../../src/db/transactions/getTxById";
 import { updateTx } from "../../src/db/transactions/updateTx";
 import { createCustomError } from "../middleware/error";
@@ -43,17 +42,9 @@ export const cancelTransactionAndUpdate = async ({
       );
       break;
     case TransactionStatusEnum.Queued:
-    case TransactionStatusEnum.Processed:
-      await createCancelledTxData({
-        queueId,
-      });
-
       await updateTx({
         queueId,
         status: TransactionStatusEnum.Cancelled,
-        txData: {
-          cancelledAt: new Date(),
-        },
       });
       message = "Transaction cancelled on-database successfully.";
       break;
@@ -64,6 +55,7 @@ export const cancelTransactionAndUpdate = async ({
         "TransactionAlreadyMined",
       );
       break;
+    case TransactionStatusEnum.Processed:
     case TransactionStatusEnum.Submitted: {
       const sdk = await getSdk({
         chainId: txData.chainId!,
@@ -80,6 +72,7 @@ export const cancelTransactionAndUpdate = async ({
           "Transaction already mined. Cannot cancel transaction on-chain.";
         break;
       }
+
       const gasOverrides = await getDefaultGasOverrides(sdk.getProvider());
       transferTransactionResult = await sdk.wallet.sendRawTransaction({
         to: txData.fromAddress!,
