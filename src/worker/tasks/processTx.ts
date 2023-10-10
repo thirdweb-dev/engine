@@ -53,9 +53,9 @@ export const processTx = async () => {
             continue;
           }
 
-          // logger.worker.info(
-          //   `[Transaction] [${tx.queueId}] Picked up by worker`,
-          // );
+          logger.worker.info(
+            `[Transaction] [${tx.queueId}] Picked up by worker`,
+          );
 
           // Update database that transaction has been picked up by worker
           await updateTx({
