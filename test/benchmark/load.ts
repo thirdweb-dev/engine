@@ -113,7 +113,7 @@ const main = async () => {
               txStatus: tx.status,
               txQueueTime: tx.queueTime,
               txMineTime: tx.mineTime,
-              userOpStatus: userOp.status,
+              userOpStatus: userOp.status || TxStatus.Error,
               userOpQueueTime: userOp.queueTime || 0,
               userOpMineTime: userOp.mineTime || 0,
             };
