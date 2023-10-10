@@ -58,8 +58,8 @@ export const updateMinedUserOps = async () => {
       updatedUserOps.map(async (userOp) => {
         await updateTx({
           queueId: userOp!.id,
-          status: TransactionStatusEnum.Mined,
-          txData: {
+          data: {
+            status: TransactionStatusEnum.Mined,
             minedAt: userOp!.minedAt,
           },
         });

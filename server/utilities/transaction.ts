@@ -44,7 +44,9 @@ export const cancelTransactionAndUpdate = async ({
     case TransactionStatusEnum.Queued:
       await updateTx({
         queueId,
-        status: TransactionStatusEnum.Cancelled,
+        data: {
+          status: TransactionStatusEnum.Cancelled,
+        },
       });
       message = "Transaction cancelled on-database successfully.";
       break;
@@ -86,20 +88,12 @@ export const cancelTransactionAndUpdate = async ({
         ).mul(2),
       });
 
-      const cancelledAt = new Date();
       message = "Cancellation Transaction sent on chain successfully.";
 
       await updateTx({
         queueId,
-        status: TransactionStatusEnum.Cancelled,
-        res: transferTransactionResult,
-        txData: {
-          cancelledAt,
-          toAddress: walletAddress,
-          functionName: null,
-          functionArgs: null,
-          data: "0x",
-          value: "0x00",
+        data: {
+          status: TransactionStatusEnum.Cancelled,
         },
       });
       break;

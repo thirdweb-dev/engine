@@ -84,8 +84,8 @@ export const retryTx = async () => {
           await updateTx({
             pgtx,
             queueId: tx.id,
-            status: TransactionStatusEnum.Errored,
-            txData: {
+            data: {
+              status: TransactionStatusEnum.Errored,
               errorMessage:
                 err?.message ||
                 err?.toString() ||
@@ -99,11 +99,11 @@ export const retryTx = async () => {
         await updateTx({
           pgtx,
           queueId: tx.id,
-          status: TransactionStatusEnum.Submitted,
-          res,
-          txData: {
-            retryCount: tx.retryCount + 1,
+          data: {
+            status: TransactionStatusEnum.Submitted,
+            res,
             sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
+            retryCount: tx.retryCount + 1,
           },
         });
 
