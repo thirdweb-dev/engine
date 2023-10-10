@@ -59,7 +59,9 @@ export const processTx = async () => {
           await updateTx({
             pgtx,
             queueId: tx.queueId!,
-            status: TransactionStatusEnum.Processed,
+            data: {
+              status: TransactionStatusEnum.Processed,
+            },
           });
 
           if (tx.accountAddress && tx.signerAddress) {
@@ -187,9 +189,9 @@ export const processTx = async () => {
                   await updateTx({
                     pgtx,
                     queueId: tx.queueId,
-                    status: TransactionStatusEnum.Submitted,
-                    res: tx.res,
-                    txData: {
+                    data: {
+                      status: TransactionStatusEnum.Submitted,
+                      res: tx.res,
                       sentAtBlockNumber: await sdk
                         .getProvider()
                         .getBlockNumber(),
@@ -200,8 +202,8 @@ export const processTx = async () => {
                   await updateTx({
                     pgtx,
                     queueId: tx.queueId,
-                    status: tx.status,
-                    txData: {
+                    data: {
+                      status: TransactionStatusEnum.Errored,
                       errorMessage: tx.errorMessage,
                     },
                   });
@@ -250,8 +252,8 @@ export const processTx = async () => {
             await updateTx({
               pgtx,
               queueId: tx.queueId!,
-              status: TransactionStatusEnum.UserOpSent,
-              txData: {
+              data: {
+                status: TransactionStatusEnum.UserOpSent,
                 userOpHash,
               },
             });
@@ -263,8 +265,8 @@ export const processTx = async () => {
             await updateTx({
               pgtx,
               queueId: tx.queueId!,
-              status: TransactionStatusEnum.Errored,
-              txData: {
+              data: {
+                status: TransactionStatusEnum.Errored,
                 errorMessage:
                   err?.message ||
                   err?.toString() ||

@@ -1,5 +1,4 @@
-import { Transactions } from "@prisma/client";
-import { providers } from "ethers";
+import { ethers } from "ethers";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
@@ -7,47 +6,47 @@ import { getPrismaWithPostgresTx } from "../client";
 interface UpdateTxParams {
   pgtx?: PrismaTransaction;
   queueId: string;
-  status: TransactionStatusEnum;
-  // TODO: Receipt never actually gets used here... should get passed through.
-  res?: providers.TransactionResponse;
-  txData?: Partial<Transactions>;
+  data: UpdateTxData;
 }
 
-export const updateTx = async ({
-  pgtx,
-  queueId,
-  status,
-  res,
-  txData,
-}: UpdateTxParams) => {
+type UpdateTxData =
+  | {
+      status: TransactionStatusEnum.Cancelled;
+    }
+  | {
+      status: TransactionStatusEnum.Processed;
+    }
+  | {
+      status: TransactionStatusEnum.Errored;
+      errorMessage: string;
+    }
+  | {
+      status: TransactionStatusEnum.Submitted;
+      res: ethers.providers.TransactionResponse;
+      sentAtBlockNumber: number;
+      retryCount?: number;
+    }
+  | {
+      status: TransactionStatusEnum.UserOpSent;
+      userOpHash: string;
+    }
+  | {
+      status: TransactionStatusEnum.Mined;
+      gasPrice?: string;
+      blockNumber?: number;
+      minedAt: Date;
+    };
+
+export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
-  switch (status) {
-    case TransactionStatusEnum.Submitted:
+  switch (data.status) {
+    case TransactionStatusEnum.Cancelled:
       await prisma.transactions.update({
         where: {
           id: queueId,
         },
         data: {
-          sentAt: new Date(),
-          nonce: res?.nonce,
-          transactionHash: res?.hash,
-          transactionType: res?.type,
-          gasPrice: res?.gasPrice?.toString(),
-          gasLimit: res?.gasLimit?.toString(),
-          maxFeePerGas: res?.maxFeePerGas?.toString(),
-          maxPriorityFeePerGas: res?.maxPriorityFeePerGas?.toString(),
-          ...txData,
-        },
-      });
-      break;
-    case TransactionStatusEnum.UserOpSent:
-      await prisma.transactions.update({
-        where: {
-          id: queueId,
-        },
-        data: {
-          sentAt: new Date(),
-          ...txData,
+          cancelledAt: new Date(),
         },
       });
       break;
@@ -58,7 +57,6 @@ export const updateTx = async ({
         },
         data: {
           processedAt: new Date(),
-          ...txData,
         },
       });
       break;
@@ -68,9 +66,37 @@ export const updateTx = async ({
           id: queueId,
         },
         data: {
-          // TODO: Should we be keeping track of erroredAt here?
-          ...txData,
-          // erroredAt: new Date(),
+          errorMessage: data.errorMessage,
+        },
+      });
+      break;
+    case TransactionStatusEnum.Submitted:
+      await prisma.transactions.update({
+        where: {
+          id: queueId,
+        },
+        data: {
+          sentAt: new Date(),
+          nonce: data.res.nonce,
+          transactionHash: data.res.hash,
+          transactionType: data.res.type || undefined,
+          gasPrice: data.res.gasPrice?.toString(),
+          gasLimit: data.res.gasLimit?.toString(),
+          maxFeePerGas: data.res.maxFeePerGas?.toString(),
+          maxPriorityFeePerGas: data.res.maxPriorityFeePerGas?.toString(),
+          sentAtBlockNumber: data.sentAtBlockNumber,
+          retryCount: data.retryCount,
+        },
+      });
+      break;
+    case TransactionStatusEnum.UserOpSent:
+      await prisma.transactions.update({
+        where: {
+          id: queueId,
+        },
+        data: {
+          sentAt: new Date(),
+          userOpHash: data.userOpHash,
         },
       });
       break;
@@ -80,19 +106,9 @@ export const updateTx = async ({
           id: queueId,
         },
         data: {
-          minedAt: new Date(),
-          ...txData,
-        },
-      });
-      break;
-    case TransactionStatusEnum.Cancelled:
-      await prisma.transactions.update({
-        where: {
-          id: queueId,
-        },
-        data: {
-          cancelledAt: new Date(),
-          ...txData,
+          minedAt: data.minedAt,
+          gasPrice: data.gasPrice,
+          blockNumber: data.blockNumber,
         },
       });
       break;

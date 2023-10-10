@@ -58,8 +58,8 @@ export const updateMinedTx = async () => {
       txsWithReceipts.map(async (txWithReceipt) => {
         await updateTx({
           queueId: txWithReceipt.tx.id,
-          status: TransactionStatusEnum.Mined,
-          txData: {
+          data: {
+            status: TransactionStatusEnum.Mined,
             gasPrice: txWithReceipt.receipt.effectiveGasPrice.toString(),
             blockNumber: txWithReceipt.receipt.blockNumber,
             minedAt: txWithReceipt.minedAt,

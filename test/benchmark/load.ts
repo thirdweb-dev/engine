@@ -21,8 +21,8 @@ interface TimedResult extends TaskResult {
 }
 
 const chain = `arbitrum-goerli`;
-const host = `https://engine-load-testing-small-s4ym.zeet-nftlabs.zeet.app`;
-// const host = `http://127.0.0.1:3005`;
+// const host = `https://engine-load-testing-small-s4ym.zeet-nftlabs.zeet.app`;
+const host = `http://127.0.0.1:3005`;
 const deployerWalletAddress = `0x43CAe0d7fe86C713530E679Ce02574743b2Ee9FC`;
 const tokenAddress = `0x7A0CE8524bea337f0beE853B68fAbDE145dAC0A0`;
 const accountFactoryAddress = `0xD48f9d337626a991e5c86c38768DA09428Fa549B`;
