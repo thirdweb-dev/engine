@@ -80,7 +80,6 @@ export const updateTx = async ({
           id: queueId,
         },
         data: {
-          // TODO: minedAt will always get overwritten in blockchainReader.ts
           minedAt: new Date(),
           ...txData,
         },
@@ -92,12 +91,7 @@ export const updateTx = async ({
           id: queueId,
         },
         data: {
-          transactionHash: res?.hash,
-          transactionType: res?.type,
-          gasPrice: res?.gasPrice?.toString(),
-          gasLimit: res?.gasLimit?.toString(),
-          maxFeePerGas: res?.maxFeePerGas?.toString(),
-          maxPriorityFeePerGas: res?.maxPriorityFeePerGas?.toString(),
+          cancelledAt: new Date(),
           ...txData,
         },
       });
