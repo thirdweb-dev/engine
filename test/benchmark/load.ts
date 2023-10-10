@@ -21,13 +21,13 @@ interface TimedResult extends TaskResult {
 }
 
 const chain = `arbitrum-goerli`;
-const host = `https://engine-load-testing-small-s4ym.zeet-nftlabs.zeet.app`;
-// const host = `http://127.0.0.1:3005`;
+// const host = `https://engine-load-testing-small-s4ym.zeet-nftlabs.zeet.app`;
+const host = `http://127.0.0.1:3005`;
 const deployerWalletAddress = `0x43CAe0d7fe86C713530E679Ce02574743b2Ee9FC`;
 const tokenAddress = `0x7A0CE8524bea337f0beE853B68fAbDE145dAC0A0`;
 const accountFactoryAddress = `0xD48f9d337626a991e5c86c38768DA09428Fa549B`;
 const thirdwebApiSecretKey = process.env.THIRDWEB_API_SECRET_KEY as string;
-const loadTestBatchSize = parseInt(process.env.LOAD_TEST_BATCH_SIZE || "60");
+const loadTestBatchSize = parseInt(process.env.LOAD_TEST_BATCH_SIZE || "30");
 const loadTestBatches = parseInt(process.env.LOAD_TEST_BATCHES || "1");
 
 const main = async () => {
@@ -113,7 +113,7 @@ const main = async () => {
               txStatus: tx.status,
               txQueueTime: tx.queueTime,
               txMineTime: tx.mineTime,
-              userOpStatus: userOp.status,
+              userOpStatus: userOp.status || TxStatus.Error,
               userOpQueueTime: userOp.queueTime || 0,
               userOpMineTime: userOp.mineTime || 0,
             };

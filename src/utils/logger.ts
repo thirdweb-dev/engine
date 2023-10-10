@@ -32,6 +32,6 @@ const createLogger = (options: LoggerOptions) => {
 };
 
 export const logger: Logger = {
-  server: createLogger({ msgPrefix: "[Server] " }),
+  server: createLogger({ msgPrefix: "[Server] ", enabled: false }),
   worker: createLogger({ msgPrefix: "[Worker] " }),
 };
