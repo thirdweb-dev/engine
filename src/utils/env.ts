@@ -93,7 +93,7 @@ export const env = createEnv({
     TRANSACTIONS_TO_BATCH: z.coerce.number().default(10),
     CHAIN_OVERRIDES: z
       .union([JsonSchema, UrlSchema, FilePathSchema])
-      .default(""),
+      .optional(),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
     MINED_TX_CRON_ENABLED: boolSchema("true"),
     MINED_TX_CRON_SCHEDULE: z.string().default("*/5 * * * * *"),
