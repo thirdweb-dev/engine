@@ -22,7 +22,7 @@ If you don't specify some of the required parameters, the command will prompt yo
 
 You can use this tool to load test both read and write endpoints.
 
-For example, here is a command using this tool to load test an erc20 read endpoint for 1 minute:
+For example, here is a command using this tool to load test a read endpoint for 1 minute:
 
 ```
 npx tsx ./test/load/index.ts \
@@ -39,7 +39,7 @@ And here are the results:
 
 ![load-test-read](../images/load-test-read.png)
 
-And here's a command using the tool to send a batch of 30 transacitons all at once:
+And here's a command using the tool to send a batch of 30 transactions all at once:
 
 ```
 npx tsx ./test/load/index.ts \
