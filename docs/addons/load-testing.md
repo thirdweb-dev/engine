@@ -35,6 +35,10 @@ npx tsx ./test/load/index.ts \
   --rps 100
 ```
 
+And here are the results:
+
+![load-test-read](../images/load-test-read.png)
+
 And here's a command using the tool to send a batch of 30 transacitons all at once:
 
 ```
@@ -46,3 +50,7 @@ npx tsx ./test/load/index.ts \
   --secret-key 'n4vKXWdyJVuX7mBky3q5JdRSmueuL_JeNTRj4S-MRCU3PFcz2MHgX4OMopYB2KUyvmAcOF2u1f6_NmSFXhGG9w' \
   --backend-wallet-address 0x43CAe0d7fe86C713530E679Ce02574743b2Ee9FC
 ```
+
+And here are the results:
+
+![load-test-write](../images/load-test-write.png)
