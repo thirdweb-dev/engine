@@ -4,11 +4,13 @@ import type { ZodError } from "zod";
 import { z } from "zod";
 import { WalletType } from "../schema/wallet";
 
+// Load environment variables from .env file
 dotenv.config({
   debug: true,
   override: false,
 });
 
+// Boolean schema to validate and transform string "true" or "false" to boolean type
 const boolSchema = (defaultBool: "true" | "false") =>
   z
     .string()
@@ -17,6 +19,36 @@ const boolSchema = (defaultBool: "true" | "false") =>
     .refine((s) => s === "true" || s === "false", "must be 'true' or 'false'")
     // transform to boolean
     .transform((s) => s === "true");
+
+// Schema for validating JSON strings
+export const JsonSchema = z.string().refine(
+  (value) => {
+    try {
+      JSON.parse(value);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  { message: "Not a valid JSON string" },
+);
+
+// Schema for validating URLs
+export const UrlSchema = z
+  .string()
+  .refine(
+    (value) => value.startsWith("http://") || value.startsWith("https://"),
+    { message: "Not a valid URL" },
+  );
+
+// Basic schema for validating file paths
+export const FilePathSchema = z
+  .string()
+  .refine(
+    (value) =>
+      value.startsWith("./") || value.startsWith("/") || value.includes("."),
+    { message: "Not a valid file path" },
+  );
 
 // ! to make something required, use z.string().min(1) to be sure
 export const env = createEnv({
@@ -59,7 +91,9 @@ export const env = createEnv({
     HOST: z.string().default("0.0.0.0"),
     MIN_TRANSACTION_TO_PROCESS: z.coerce.number().default(1),
     TRANSACTIONS_TO_BATCH: z.coerce.number().default(10),
-    CHAIN_OVERRIDES: z.string().default(""),
+    CHAIN_OVERRIDES: z
+      .union([JsonSchema, UrlSchema, FilePathSchema])
+      .default(""),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
     MINED_TX_CRON_ENABLED: boolSchema("true"),
     MINED_TX_CRON_SCHEDULE: z.string().default("*/5 * * * * *"),
@@ -138,7 +172,7 @@ export const env = createEnv({
       process.env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY,
     MAX_WAIT_TIME_BEFORE_RETRY: process.env.MAX_WAIT_TIME_BEFORE_RETRY,
     WEBHOOK_URL: process.env.WEBHOOK_URL,
-    WEBHOOK_AUTH_BEARER_TOKEN: process.env.WEBHOOK_AUTH_BEARER_TOKEN
+    WEBHOOK_AUTH_BEARER_TOKEN: process.env.WEBHOOK_AUTH_BEARER_TOKEN,
   },
   onValidationError: (error: ZodError) => {
     console.error(

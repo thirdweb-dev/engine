@@ -1,9 +1,9 @@
-import { Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import { getChainByChainId } from "@thirdweb-dev/chains";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
 import * as fs from "fs";
 import { PrismaTransaction } from "../../../src/schema/prisma";
-import { env } from "../../../src/utils/env";
+import { JsonSchema, env } from "../../../src/utils/env";
 import { isValidHttpUrl } from "../../utilities/validator";
 import { getWallet } from "./getWallet";
 
@@ -65,7 +65,7 @@ export const getSdk = async ({
       : `${chainId}-${walletAddress}`
     : `${chainId}`;
 
-  let RPC_OVERRIDES: ChainInfoInputSchema[] = [];
+  let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
   const CHAIN_OVERRIDES = env.CHAIN_OVERRIDES;
 
   if (sdkCache.has(cacheKey)) {
@@ -75,7 +75,9 @@ export const getSdk = async ({
   const chain = getChainByChainId(chainId);
 
   if (CHAIN_OVERRIDES) {
-    if (isValidHttpUrl(CHAIN_OVERRIDES)) {
+    if (JsonSchema.safeParse(CHAIN_OVERRIDES).success) {
+      RPC_OVERRIDES = JSON.parse(CHAIN_OVERRIDES);
+    } else if (isValidHttpUrl(CHAIN_OVERRIDES)) {
       const result = await fetch(CHAIN_OVERRIDES);
       RPC_OVERRIDES = await result.json();
     } else {
