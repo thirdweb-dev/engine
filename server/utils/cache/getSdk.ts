@@ -1,10 +1,50 @@
+import { Type } from "@sinclair/typebox";
 import { getChainByChainId } from "@thirdweb-dev/chains";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import * as fs from "fs";
 import { PrismaTransaction } from "../../../src/schema/prisma";
 import { env } from "../../../src/utils/env";
+import { isValidHttpUrl } from "../../utilities/validator";
 import { getWallet } from "./getWallet";
 
 const sdkCache = new Map<string, ThirdwebSDK>();
+
+export const networkResponseSchema = Type.Object({
+  name: Type.String({
+    description: "Chain name",
+  }),
+  chain: Type.String({
+    description: "Chain name",
+  }),
+  rpc: Type.Array(
+    Type.String({
+      description: "RPC URL",
+    }),
+  ),
+  nativeCurrency: Type.Object({
+    name: Type.String({
+      description: "Native currency name",
+    }),
+    symbol: Type.String({
+      description: "Native currency symbol",
+    }),
+    decimals: Type.Number({
+      description: "Native currency decimals",
+    }),
+  }),
+  shortName: Type.String({
+    description: "Chain short name",
+  }),
+  chainId: Type.Number({
+    description: "Chain ID",
+  }),
+  testnet: Type.Boolean({
+    description: "Is testnet",
+  }),
+  slug: Type.String({
+    description: "Chain slug",
+  }),
+});
 
 interface GetSdkParams {
   pgtx?: PrismaTransaction;
@@ -24,19 +64,31 @@ export const getSdk = async ({
       ? `${chainId}-${walletAddress}-${accountAddress}`
       : `${chainId}-${walletAddress}`
     : `${chainId}`;
+
+  let RPC_OVERRIDES: ChainInfoInputSchema[] = [];
+  const CHAIN_OVERRIDES = env.CHAIN_OVERRIDES;
+
   if (sdkCache.has(cacheKey)) {
     return sdkCache.get(cacheKey)!;
   }
 
   const chain = getChainByChainId(chainId);
 
+  if (CHAIN_OVERRIDES) {
+    if (isValidHttpUrl(CHAIN_OVERRIDES)) {
+      const result = await fetch(CHAIN_OVERRIDES);
+      RPC_OVERRIDES = await result.json();
+    } else {
+      const text = fs.readFileSync(CHAIN_OVERRIDES, "utf8");
+      RPC_OVERRIDES = JSON.parse(text);
+    }
+  }
+
   let sdk: ThirdwebSDK;
   if (!walletAddress) {
     sdk = new ThirdwebSDK(chain, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
-      supportedChains: env.CHAIN_OVERRIDES
-        ? JSON.parse(env.CHAIN_OVERRIDES)
-        : undefined,
+      supportedChains: env.CHAIN_OVERRIDES ? RPC_OVERRIDES : undefined,
     });
   } else {
     const wallet = await getWallet({
@@ -47,9 +99,7 @@ export const getSdk = async ({
     });
     sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
-      supportedChains: env.CHAIN_OVERRIDES
-        ? JSON.parse(env.CHAIN_OVERRIDES)
-        : undefined,
+      supportedChains: env.CHAIN_OVERRIDES ? RPC_OVERRIDES : undefined,
     });
   }
 
