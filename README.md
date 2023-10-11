@@ -97,6 +97,10 @@ View the webhook guide for setting up webhooks for your app: [Webhook Guide](./d
 
 View all end-points details (Open API Specification) : https://web3-api-akbv.chainsaw-dev.zeet.app
 
+## Load Testing
+
+Engine comes with a built-in load testing tool for you to measure scale & reliability: [Load Testing Guide](./docs/addons/load-testing.md)
+
 ## Contributing
 
 We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](./docs/addons/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.

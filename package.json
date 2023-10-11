@@ -26,8 +26,8 @@
     "lint:fix": "eslint --fix 'server/**/*.ts'",
     "test": "make test-evm",
     "test:all": "mocha --exit",
-    "test:load": "npx tsx ./test/benchmark/load.ts",
-    "benchmark": "ts-node ./test/benchmark/index.ts"
+    "test:load": "npx tsx ./test/load/index.ts",
+    "test:load:benchmark": "npx tsx ./test/load/scripts/account.ts"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.398.0",
@@ -88,12 +88,14 @@
     "chai": "^4.3.7",
     "chalk": "^5.3.0",
     "cli-progress": "^3.12.0",
+    "commander": "^11.0.0",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.7.0",
     "hardhat": "^2.1.2",
     "mocha": "^10.2.0",
     "nodemon": "^2.0.21",
     "prettier": "^2.8.7",
+    "prompts": "^2.4.2",
     "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.3"
