@@ -42,7 +42,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
     Reply: Static<typeof transactionWritesResponseSchema>;
   }>({
     method: "POST",
-    url: "/wallet/:chain/send-transaction",
+    url: "/backend-wallet/:chain/send-transaction",
     schema: {
       summary: "Send a raw transaction",
       description: "Send a raw transaction with transaction parameters",
