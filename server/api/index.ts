@@ -47,10 +47,10 @@ import { createWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
 import { importWallet } from "./backend-wallet/import";
+import { sendTransaction } from "./backend-wallet/send";
 import { transfer } from "./backend-wallet/transfer";
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
-import { sendRawTransaction } from "./transaction/send";
 
 export const apiRoutes = async (fastify: FastifyInstance) => {
   // Wallet
@@ -59,6 +59,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getBalance);
   await fastify.register(getAll);
   await fastify.register(transfer);
+  await fastify.register(sendTransaction);
 
   // Chains
   await fastify.register(getChainData);
@@ -97,7 +98,6 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkTxStatus);
   await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
-  await fastify.register(sendRawTransaction);
   await fastify.register(retryTransaction);
   await fastify.register(cancelTransaction);
 
