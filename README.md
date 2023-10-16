@@ -100,7 +100,7 @@ docker run \
 - [Frequently Asked Questions](./docs/addons/faqs.md) - The most common questions & answers.
 - [Contributing to Engine](./docs/addons/contributing.md) - Contribute to this project!
 - [Full API Playground](https://web3-api-akbv.chainsaw-dev.zeet.app) - Full playground to interact with engine yourself.
-- [Community Discord Server](https://discord.gg/thirdweb) - Join our community to discuss ideas, questions, and troubleshooting, or just to hangout 😄
+- [Community Discord Server](https://discord.gg/thirdweb) - Join our community to discuss ideas & issues or just to hangout 😄
 
 ## Security
 
