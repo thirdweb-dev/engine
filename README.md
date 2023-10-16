@@ -89,11 +89,11 @@ docker run \
 
 **Using Engine**
 
-- [User Guide](./docs/1-user-guide.md)
-- [Smart Wallets Guide](./docs/2-smart-wallets.md)
-- [Webhook Guide](./docs/3-webhook-guide.md)
-- [Websocket Guide](./docs/4-websocket-guide.md)
-- [Load Testing Guide](./docs/addons/load-testing.md)
+- [User Guide](./docs/1-user-guide.md) - How to setup an engine instance.
+- [Smart Wallets Guide](./docs/2-smart-wallets.md) - How to deploy, manage, and transact with smart wallets with engine.
+- [Webhook Guide](./docs/3-webhook-guide.md) - How to setup webhooks with engine.
+- [Websocket Guide](./docs/4-websocket-guide.md) - How to listen for transaction updates via websockets.
+- [Load Testing Guide](./docs/addons/load-testing.md) - How to load test engine for your use case.
 
 **Other Resources**
 
