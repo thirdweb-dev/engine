@@ -1,8 +1,8 @@
 import { Static } from "@sinclair/typebox";
 import { transactionResponseSchema } from "../../../server/schemas/transaction";
 import { PrismaTransaction } from "../../schema/prisma";
-import { env } from "../../utils/env";
 import { getPrismaWithPostgresTx } from "../client";
+import { getConfiguration } from "../configuration/getConfiguration";
 import { cleanTxs } from "./cleanTxs";
 
 interface GetQueuedTxsParams {
@@ -13,6 +13,7 @@ export const getQueuedTxs = async ({ pgtx }: GetQueuedTxsParams = {}): Promise<
   Static<typeof transactionResponseSchema>[]
 > => {
   const prisma = getPrismaWithPostgresTx(pgtx);
+  const config = await getConfiguration();
 
   // TODO: Don't use env var for transactions to batch
   const txs = await prisma.$queryRaw`
@@ -29,7 +30,7 @@ ORDER BY
   "queuedAt"
 ASC
 LIMIT
-  ${env.TRANSACTIONS_TO_BATCH}
+  ${config.maxTxsToProcess}
 FOR UPDATE SKIP LOCKED
   `;
 

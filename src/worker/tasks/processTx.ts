@@ -9,11 +9,11 @@ import {
 } from "../../../server/schemas/transaction";
 import { getSdk } from "../../../server/utils/cache/getSdk";
 import { prisma } from "../../db/client";
+import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
-import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { randomNonce } from "../utils/nonce";
 
@@ -37,7 +37,8 @@ export const processTx = async () => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
         const txs = await getQueuedTxs({ pgtx });
 
-        if (txs.length < env.MIN_TRANSACTION_TO_PROCESS) {
+        const config = await getConfiguration();
+        if (txs.length < config.minTxsToProcess) {
           return;
         }
 

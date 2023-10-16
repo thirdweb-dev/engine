@@ -1,7 +1,7 @@
 import { Transactions } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
-import { env } from "../../utils/env";
 import { getPrismaWithPostgresTx } from "../client";
+import { getConfiguration } from "../configuration/getConfiguration";
 
 interface GetSentUserOpsParams {
   pgtx?: PrismaTransaction;
@@ -11,6 +11,7 @@ export const getSentUserOps = async ({
   pgtx,
 }: GetSentUserOpsParams = {}): Promise<Transactions[]> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
+  const config = await getConfiguration();
 
   return prisma.transactions.findMany({
     where: {
@@ -38,6 +39,6 @@ export const getSentUserOps = async ({
         sentAt: "asc",
       },
     ],
-    take: env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
+    take: config.maxTxsToUpdate,
   });
 };

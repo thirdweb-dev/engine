@@ -7,6 +7,24 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Configuration {
+  id                             String  @id @default(uuid()) @map("id")
+  // Tx Processing
+  minTxsToProcess                Int     @map("minTxsToProcess")
+  maxTxsToProcess                Int     @map("maxTxsToProcess")
+  // Tx Updates
+  minedTxListenerCronSchedule    String? @map("minedTxsCronSchedule")
+  maxTxsToUpdate                 Int     @map("maxTxsToUpdate")
+  // Tx Retries
+  retryTxListenerCronSchedule    String? @map("retryTxsCronSchedule")
+  minEllapsedBlocksBeforeRetry   Int     @map("minEllapsedBlocksBeforeRetry")
+  maxFeePerGasForRetries         String  @map("maxFeePerGasForRetries")
+  maxPriorityFeePerGasForRetries String  @map("maxPriorityFeePerGasForRetries")
+  maxRetriesPerTx                Int     @map("maxRetriesPerTx")
+
+  @@map("configuration")
+}
+
 model WalletDetails {
   address            String  @id @map("address")
   type               String  @map("type")

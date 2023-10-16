@@ -1,14 +1,16 @@
 import cron from "node-cron";
-import { env } from "../../utils/env";
+import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { updateMinedTx } from "../tasks/updateMinedTx";
 import { updateMinedUserOps } from "../tasks/updateMinedUserOps";
 
-export const minedTxListener = () => {
-  cron.schedule(env.MINED_TX_CRON_SCHEDULE, async () => {
-    if (!env.MINED_TX_CRON_ENABLED) {
-      return;
-    }
+export const minedTxListener = async () => {
+  const config = await getConfiguration();
 
+  if (!config.minedTxListenerCronSchedule) {
+    return;
+  }
+
+  cron.schedule(config.minedTxListenerCronSchedule, async () => {
     await updateMinedTx();
     await updateMinedUserOps();
   });

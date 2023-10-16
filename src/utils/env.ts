@@ -10,16 +10,6 @@ dotenv.config({
   override: false,
 });
 
-// Boolean schema to validate and transform string "true" or "false" to boolean type
-const boolSchema = (defaultBool: "true" | "false") =>
-  z
-    .string()
-    .default(defaultBool)
-    // only allow "true" or "false"
-    .refine((s) => s === "true" || s === "false", "must be 'true' or 'false'")
-    // transform to boolean
-    .transform((s) => s === "true");
-
 // Schema for validating JSON strings
 export const JsonSchema = z.string().refine(
   (value) => {
@@ -89,21 +79,10 @@ export const env = createEnv({
     OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
-    MIN_TRANSACTION_TO_PROCESS: z.coerce.number().default(1),
-    TRANSACTIONS_TO_BATCH: z.coerce.number().default(10),
     CHAIN_OVERRIDES: z
       .union([JsonSchema, UrlSchema, FilePathSchema])
       .optional(),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
-    MINED_TX_CRON_ENABLED: boolSchema("true"),
-    MINED_TX_CRON_SCHEDULE: z.string().default("*/5 * * * * *"),
-    MIN_TX_TO_CHECK_FOR_MINED_STATUS: z.coerce.number().default(50),
-    RETRY_TX_ENABLED: boolSchema("true"),
-    MAX_FEE_PER_GAS_FOR_RETRY: z.string().default("55000000000"),
-    MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY: z.string().default("55000000000"),
-    MAX_RETRIES_FOR_TX: z.coerce.number().default(3),
-    RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
-    MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(15),
     WEBHOOK_URL: z
       .string()
       .default("")
@@ -153,22 +132,8 @@ export const env = createEnv({
     PORT: process.env.PORT,
     HOST: process.env.HOST,
     OPENAPI_BASE_ORIGIN: process.env.OPENAPI_BASE_ORIGIN,
-    MIN_TRANSACTION_TO_PROCESS: process.env.MIN_TRANSACTION_TO_PROCESS,
-    TRANSACTIONS_TO_BATCH: process.env.TRANSACTIONS_TO_BATCH,
     CHAIN_OVERRIDES: process.env.CHAIN_OVERRIDES,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
-    MINED_TX_CRON_ENABLED: process.env.MINED_TX_CRON_ENABLED,
-    MINED_TX_CRON_SCHEDULE: process.env.MINED_TX_CRON_SCHEDULE,
-    MIN_TX_TO_CHECK_FOR_MINED_STATUS:
-      process.env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
-    RETRY_TX_ENABLED: process.env.RETRY_TX_ENABLED,
-    MAX_FEE_PER_GAS_FOR_RETRY: process.env.MAX_FEE_PER_GAS_FOR_RETRY,
-    MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY:
-      process.env.MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY,
-    MAX_RETRIES_FOR_TX: process.env.MAX_RETRIES_FOR_TX,
-    RETRY_TX_CRON_SCHEDULE: process.env.RETRY_TX_CRON_SCHEDULE,
-    MAX_BLOCKS_ELAPSED_BEFORE_RETRY:
-      process.env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY,
     WEBHOOK_URL: process.env.WEBHOOK_URL,
     WEBHOOK_AUTH_BEARER_TOKEN: process.env.WEBHOOK_AUTH_BEARER_TOKEN,
   },
