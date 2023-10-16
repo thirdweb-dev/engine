@@ -89,18 +89,18 @@ docker run \
 
 **Using Engine**
 
-- [User Guide](./docs/1-user-guide.md) - How to setup an engine instance.
-- [Smart Wallets Guide](./docs/2-smart-wallets.md) - How to deploy, manage, and transact with smart wallets with engine.
-- [Webhook Guide](./docs/3-webhook-guide.md) - How to setup webhooks with engine.
-- [Websocket Guide](./docs/4-websocket-guide.md) - How to listen for transaction updates via websockets.
-- [Load Testing Guide](./docs/addons/load-testing.md) - How to load test engine for your use case.
+- [User Guide](./docs/1-user-guide.md) - Setup an engine instance.
+- [Smart Wallets Guide](./docs/2-smart-wallets.md) - Deploy, manage, and transact with smart wallets with engine.
+- [Webhook Guide](./docs/3-webhook-guide.md) - Setup webhooks with engine.
+- [Websocket Guide](./docs/4-websocket-guide.md) - Listen for transaction updates via websockets.
+- [Load Testing Guide](./docs/addons/load-testing.md) - Load test engine for your use case.
 
 **Other Resources**
 
-- [Frequently Asked Questions](./docs/addons/faqs.md)
-- [Contributing to Engine](./docs/addons/contributing.md)
-- [Full API Playground](https://web3-api-akbv.chainsaw-dev.zeet.app)
-- [Community Discord Server](https://discord.gg/thirdweb)
+- [Frequently Asked Questions](./docs/addons/faqs.md) - The most common questions & answers.
+- [Contributing to Engine](./docs/addons/contributing.md) - Contribute to this project!
+- [Full API Playground](https://web3-api-akbv.chainsaw-dev.zeet.app) - Full playground to interact with engine yourself.
+- [Community Discord Server](https://discord.gg/thirdweb) - Join our community to discuss ideas, questions, and troubleshooting, or just to hangout 😄
 
 ## Security
 
