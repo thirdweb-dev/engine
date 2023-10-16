@@ -1,8 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getConfiguration } from "../../../src/db/configuration/getConfiguration";
 import { WalletType } from "../../../src/schema/wallet";
-import { env } from "../../../src/utils/env";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { createAwsKmsWallet } from "../../utils/wallets/createAwsKmsWallet";
 import { createGcpKmsWallet } from "../../utils/wallets/createGcpKmsWallet";
@@ -41,7 +41,8 @@ export const createWallet = async (fastify: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       let walletAddress: string;
-      switch (env.WALLET_CONFIGURATION.type) {
+      const config = await getConfiguration();
+      switch (config.walletConfiguration.type) {
         case WalletType.local:
           walletAddress = await createLocalWallet();
           break;

@@ -41,12 +41,12 @@ export const getWallet = async <TWallet extends EVMWallet>({
   let wallet: EVMWallet;
   switch (walletDetails.type) {
     case WalletType.awsKms:
-      wallet = getAwsKmsWallet({
+      wallet = await getAwsKmsWallet({
         awsKmsKeyId: walletDetails.awsKmsKeyId!,
       });
       break;
     case WalletType.gcpKms:
-      wallet = getGcpKmsWallet({
+      wallet = await getGcpKmsWallet({
         gcpKmsKeyId: walletDetails.gcpKmsKeyId!,
         gcpKmsKeyVersionId: walletDetails.gcpKmsKeyVersionId!,
       });

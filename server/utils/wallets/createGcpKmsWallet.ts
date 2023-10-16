@@ -1,31 +1,32 @@
 import { KeyManagementServiceClient } from "@google-cloud/kms";
+import { getConfiguration } from "../../../src/db/configuration/getConfiguration";
 import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails";
 import { WalletType } from "../../../src/schema/wallet";
-import { env } from "../../../src/utils/env";
 import { getGcpKmsWallet } from "./getGcpKmsWallet";
 
 export const createGcpKmsWallet = async (): Promise<string> => {
-  if (env.WALLET_CONFIGURATION.type !== WalletType.gcpKms) {
+  const config = await getConfiguration();
+  if (config.walletConfiguration.type !== WalletType.gcpKms) {
     throw new Error(`Server was not configured for GCP KMS wallet creation`);
   }
 
   const client = new KeyManagementServiceClient({
     credentials: {
-      client_email: env.WALLET_CONFIGURATION.gcpApplicationCredentialEmail,
-      private_key: env.WALLET_CONFIGURATION.gcpApplicationCredentialPrivateKey
+      client_email: config.walletConfiguration.gcpApplicationCredentialEmail,
+      private_key: config.walletConfiguration.gcpApplicationCredentialPrivateKey
         .split(String.raw`\n`)
         .join("\n"),
     },
-    projectId: env.WALLET_CONFIGURATION.gcpApplicationProjectId,
+    projectId: config.walletConfiguration.gcpApplicationProjectId,
   });
 
   // TODO: What should we set this to?
   const cryptoKeyId = `ec-web3api-${new Date().getTime()}`;
   const [key] = await client.createCryptoKey({
     parent: client.keyRingPath(
-      env.WALLET_CONFIGURATION.gcpApplicationProjectId,
-      env.WALLET_CONFIGURATION.gcpKmsLocationId,
-      env.WALLET_CONFIGURATION.gcpKmsKeyRingId,
+      config.walletConfiguration.gcpApplicationProjectId,
+      config.walletConfiguration.gcpKmsLocationId,
+      config.walletConfiguration.gcpKmsKeyRingId,
     ),
     cryptoKeyId,
     cryptoKey: {
@@ -39,7 +40,7 @@ export const createGcpKmsWallet = async (): Promise<string> => {
 
   await client.close();
 
-  const wallet = getGcpKmsWallet({
+  const wallet = await getGcpKmsWallet({
     gcpKmsKeyId: cryptoKeyId,
     gcpKmsKeyVersionId: "1",
   });
@@ -49,8 +50,8 @@ export const createGcpKmsWallet = async (): Promise<string> => {
     type: WalletType.gcpKms,
     address: walletAddress,
     gcpKmsKeyId: cryptoKeyId,
-    gcpKmsKeyRingId: env.WALLET_CONFIGURATION.gcpKmsKeyRingId,
-    gcpKmsLocationId: env.WALLET_CONFIGURATION.gcpKmsLocationId,
+    gcpKmsKeyRingId: config.walletConfiguration.gcpKmsKeyRingId,
+    gcpKmsLocationId: config.walletConfiguration.gcpKmsLocationId,
     gcpKmsKeyVersionId: "1",
     gcpKmsResourcePath: `${key.name!}/cryptoKeysVersion/1`,
   });

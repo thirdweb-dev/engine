@@ -1,8 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getConfiguration } from "../../../src/db/configuration/getConfiguration";
 import { WalletType } from "../../../src/schema/wallet";
-import { env } from "../../../src/utils/env";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
@@ -111,7 +111,8 @@ export const importWallet = async (fastify: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       let walletAddress: string;
-      switch (env.WALLET_CONFIGURATION.type) {
+      const config = await getConfiguration();
+      switch (config.walletConfiguration.type) {
         case WalletType.local:
           // TODO: This is why where zod would be great
           const { privateKey, mnemonic, encryptedJson, password } =
