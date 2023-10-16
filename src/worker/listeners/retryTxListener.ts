@@ -1,13 +1,15 @@
 import cron from "node-cron";
-import { env } from "../../utils/env";
+import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { retryTx } from "../tasks/retryTx";
 
-export const retryTxListener = () => {
-  cron.schedule(env.RETRY_TX_CRON_SCHEDULE, async () => {
-    if (!env.RETRY_TX_ENABLED) {
-      return;
-    }
+export const retryTxListener = async () => {
+  const config = await getConfiguration();
 
+  if (!config.retryTxListenerCronSchedule) {
+    return;
+  }
+
+  cron.schedule(config.retryTxListenerCronSchedule, async () => {
     await retryTx();
   });
 };

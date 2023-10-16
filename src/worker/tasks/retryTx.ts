@@ -4,9 +4,9 @@ import { BigNumber } from "ethers/lib/ethers";
 import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { getSdk } from "../../../server/utils/cache/getSdk";
 import { prisma } from "../../db/client";
+import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
 import { updateTx } from "../../db/transactions/updateTx";
-import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
 export const retryTx = async () => {
@@ -19,6 +19,8 @@ export const retryTx = async () => {
           return;
         }
 
+        const config = await getConfiguration();
+
         const sdk = await getSdk({
           chainId: tx.chainId!,
           walletAddress: tx.fromAddress!,
@@ -27,7 +29,7 @@ export const retryTx = async () => {
         // Only retry if more than the ellapsed blocks before retry has passed
         if (
           blockNumber - tx.sentAtBlockNumber! <=
-          env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY
+          config.minEllapsedBlocksBeforeRetry
         ) {
           return;
         }
@@ -53,9 +55,9 @@ export const retryTx = async () => {
           tx.maxFeePerGas = tx.retryMaxFeePerGas!;
           tx.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!;
         } else if (
-          gasOverrides.maxFeePerGas?.gt(env.MAX_FEE_PER_GAS_FOR_RETRY!) ||
+          gasOverrides.maxFeePerGas?.gt(config.maxFeePerGasForRetries) ||
           gasOverrides.maxPriorityFeePerGas?.gt(
-            env.MAX_PRIORITY_FEE_PER_GAS_FOR_RETRY!,
+            config.maxPriorityFeePerGasForRetries,
           )
         ) {
           logger.worker.warn(

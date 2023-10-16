@@ -4,18 +4,14 @@
 
 ### Environment Variables
 
-| Variable Name                      | Description                                                                                                         | Default Value                                                        | Required |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------- |
-| `THIRDWEB_API_SECRET_KEY`          | thirdweb Api Secret Key (get it from thirdweb.com/dashboard)                                                        |                                                                      | ✅       |
-| `POSTGRES_CONNECTION_URL`          | PostgreSQL Connection string                                                                                        | postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable | ✅       |
-| `HOST`                             | Host name of the API Server                                                                                         | `localhost`                                                          | ❌       |
-| `PORT`                             | Port number of the API Server                                                                                       | `3005`                                                               | ❌       |
-| `TRANSACTIONS_TO_BATCH`            | Number of transactions to batch process at a time.                                                                  | `10`                                                                 | ❌       |
-| `CHAIN_OVERRIDES`                  | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                                                                      | ❌       |
-| `OPENAPI_BASE_ORIGIN`              | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005`                                              | ❌       |
-| `MINED_TX_CRON_ENABLED`            | Flag to indicate whether to run the cron job to check mined transactions.                                           | `true`                                                               | ❌       |
-| `MINED_TX_CRON_SCHEDULE`           | Cron Schedule for the cron job to check mined transactions.                                                         | `*/30 * * * *`                                                       | ❌       |
-| `MIN_TX_TO_CHECK_FOR_MINED_STATUS` | Number of transactions to check for mined status at a time.                                                         | `50`                                                                 | ❌       |
+| Variable Name             | Description                                                                                                         | Default Value                                                        | Required |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------- |
+| `THIRDWEB_API_SECRET_KEY` | thirdweb Api Secret Key (get it from thirdweb.com/dashboard)                                                        |                                                                      | ✅       |
+| `POSTGRES_CONNECTION_URL` | PostgreSQL Connection string                                                                                        | postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable | ✅       |
+| `HOST`                    | Host name of the API Server                                                                                         | `localhost`                                                          | ❌       |
+| `PORT`                    | Port number of the API Server                                                                                       | `3005`                                                               | ❌       |
+| `CHAIN_OVERRIDES`         | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                                                                      | ❌       |
+| `OPENAPI_BASE_ORIGIN`     | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005`                                              | ❌       |
 
 ### Setup Instructions
 
