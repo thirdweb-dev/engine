@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { getChainByChainId } from "@thirdweb-dev/chains";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
 import * as fs from "fs";
+import { getConfiguration } from "../../../src/db/configuration/getConfiguration";
 import { PrismaTransaction } from "../../../src/schema/prisma";
 import { JsonSchema, env } from "../../../src/utils/env";
 import { isValidHttpUrl } from "../../utilities/validator";
@@ -66,7 +67,8 @@ export const getSdk = async ({
     : `${chainId}`;
 
   let RPC_OVERRIDES: Static<typeof networkResponseSchema>[] = [];
-  const CHAIN_OVERRIDES = env.CHAIN_OVERRIDES;
+  const config = await getConfiguration();
+  const CHAIN_OVERRIDES = config.chainOverrides;
 
   if (sdkCache.has(cacheKey)) {
     return sdkCache.get(cacheKey)!;
@@ -90,7 +92,7 @@ export const getSdk = async ({
   if (!walletAddress) {
     sdk = new ThirdwebSDK(chain, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
-      supportedChains: env.CHAIN_OVERRIDES ? RPC_OVERRIDES : undefined,
+      supportedChains: config.chainOverrides ? RPC_OVERRIDES : undefined,
     });
   } else {
     const wallet = await getWallet({
@@ -101,7 +103,7 @@ export const getSdk = async ({
     });
     sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
-      supportedChains: env.CHAIN_OVERRIDES ? RPC_OVERRIDES : undefined,
+      supportedChains: config.chainOverrides ? RPC_OVERRIDES : undefined,
     });
   }
 

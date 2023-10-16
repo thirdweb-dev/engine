@@ -54,9 +54,6 @@ export const env = createEnv({
     OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
-    CHAIN_OVERRIDES: z
-      .union([JsonSchema, UrlSchema, FilePathSchema])
-      .optional(),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
     WEBHOOK_URL: z
       .string()
@@ -79,7 +76,6 @@ export const env = createEnv({
     PORT: process.env.PORT,
     HOST: process.env.HOST,
     OPENAPI_BASE_ORIGIN: process.env.OPENAPI_BASE_ORIGIN,
-    CHAIN_OVERRIDES: process.env.CHAIN_OVERRIDES,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
     WEBHOOK_URL: process.env.WEBHOOK_URL,
     WEBHOOK_AUTH_BEARER_TOKEN: process.env.WEBHOOK_AUTH_BEARER_TOKEN,
