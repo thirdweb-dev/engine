@@ -94,6 +94,8 @@ docker run \
 - [Webhook Guide](./docs/3-webhook-guide.md) - Setup webhooks with engine.
 - [Websocket Guide](./docs/4-websocket-guide.md) - Listen for transaction updates via websockets.
 - [Load Testing Guide](./docs/addons/load-testing.md) - Load test engine for your use case.
+- [AWS KMS Setup](./docs/kms/aws_kms_how_to.md) - Setup engine to use AWS KMS to manage wallets.
+- [Google KMS Setup](./docs/kms/google_kms_how_to.md) - Setup engine to use Google KMS to manage wallets.
 
 **Other Resources**
 
