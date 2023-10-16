@@ -38,7 +38,6 @@ export const getSentUserOps = async ({
         sentAt: "asc",
       },
     ],
-    // TODO: Should this be coming from env?
     take: env.MIN_TX_TO_CHECK_FOR_MINED_STATUS,
   });
 };

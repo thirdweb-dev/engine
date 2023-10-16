@@ -104,7 +104,6 @@ export const env = createEnv({
     MAX_RETRIES_FOR_TX: z.coerce.number().default(3),
     RETRY_TX_CRON_SCHEDULE: z.string().default("*/30 * * * * *"),
     MAX_BLOCKS_ELAPSED_BEFORE_RETRY: z.coerce.number().default(15),
-    MAX_WAIT_TIME_BEFORE_RETRY: z.coerce.number().default(600),
     WEBHOOK_URL: z
       .string()
       .default("")
@@ -170,7 +169,6 @@ export const env = createEnv({
     RETRY_TX_CRON_SCHEDULE: process.env.RETRY_TX_CRON_SCHEDULE,
     MAX_BLOCKS_ELAPSED_BEFORE_RETRY:
       process.env.MAX_BLOCKS_ELAPSED_BEFORE_RETRY,
-    MAX_WAIT_TIME_BEFORE_RETRY: process.env.MAX_WAIT_TIME_BEFORE_RETRY,
     WEBHOOK_URL: process.env.WEBHOOK_URL,
     WEBHOOK_AUTH_BEARER_TOKEN: process.env.WEBHOOK_AUTH_BEARER_TOKEN,
   },
