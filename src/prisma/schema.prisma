@@ -9,6 +9,8 @@ generator client {
 
 model Configuration {
   id                                 String  @id @default(uuid()) @map("id")
+  // Chains
+  chainOverrides                     String? @map("chainOverrides")
   // Tx Processing
   minTxsToProcess                    Int     @map("minTxsToProcess")
   maxTxsToProcess                    Int     @map("maxTxsToProcess")
