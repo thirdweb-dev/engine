@@ -85,33 +85,24 @@ docker run \
 
 - Here's the link to the [full API reference](https://redocly.github.io/redoc/?url=https://demo.web3api.thirdweb.com/json), or in development mode, go to the server root url to see the reference.
 
-## User Guide
+## Resources
 
-View all end-points details (Open API Specification) : [User Guide](./docs/1-user-guide.md)
+**Using Engine**
 
-### Webhook Guide
+- [User Guide](./docs/1-user-guide.md) - Setup an engine instance.
+- [Smart Wallets Guide](./docs/2-smart-wallets.md) - Deploy, manage, and transact with smart wallets with engine.
+- [Webhook Guide](./docs/3-webhook-guide.md) - Setup webhooks with engine.
+- [Websocket Guide](./docs/4-websocket-guide.md) - Listen for transaction updates via websockets.
+- [Load Testing Guide](./docs/addons/load-testing.md) - Load test engine for your use case.
+- [AWS KMS Setup](./docs/kms/aws_kms_how_to.md) - Setup engine to use AWS KMS to manage wallets.
+- [Google KMS Setup](./docs/kms/google_kms_how_to.md) - Setup engine to use Google KMS to manage wallets.
 
-View the webhook guide for setting up webhooks for your app: [Webhook Guide](./docs/3-webhook-guide.md)
+**Other Resources**
 
-## API Reference
-
-View all end-points details (Open API Specification) : https://web3-api-akbv.chainsaw-dev.zeet.app
-
-## Load Testing
-
-Engine comes with a built-in load testing tool for you to measure scale & reliability: [Load Testing Guide](./docs/addons/load-testing.md)
-
-## Contributing
-
-We welcome contributions from all developers, regardless of experience level. If you are interested in contributing, please read our [Contributing Guide](./docs/addons/contributing.md) where you'll learn how the repo works, how to test your changes, and how to submit a pull request.
-
-## Community
-
-The best place to discuss your ideas, ask questions, and troubleshoot issues is our [Discord server](https://discord.gg/thirdweb).
-
-## FAQs
-
-A list of Frequently Asked Questions: [FAQs](./docs/addons/faqs.md)
+- [Frequently Asked Questions](./docs/addons/faqs.md) - The most common questions & answers.
+- [Contributing to Engine](./docs/addons/contributing.md) - Contribute to this project!
+- [Full API Playground](https://web3-api-akbv.chainsaw-dev.zeet.app) - Full playground to interact with engine yourself.
+- [Community Discord Server](https://discord.gg/thirdweb) - Join our community to discuss ideas & issues or just to hangout 😄
 
 ## Security
 
