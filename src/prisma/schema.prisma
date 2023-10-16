@@ -8,19 +8,29 @@ generator client {
 }
 
 model Configuration {
-  id                             String  @id @default(uuid()) @map("id")
+  id                                 String  @id @default(uuid()) @map("id")
   // Tx Processing
-  minTxsToProcess                Int     @map("minTxsToProcess")
-  maxTxsToProcess                Int     @map("maxTxsToProcess")
+  minTxsToProcess                    Int     @map("minTxsToProcess")
+  maxTxsToProcess                    Int     @map("maxTxsToProcess")
   // Tx Updates
-  minedTxListenerCronSchedule    String? @map("minedTxsCronSchedule")
-  maxTxsToUpdate                 Int     @map("maxTxsToUpdate")
+  minedTxListenerCronSchedule        String? @map("minedTxsCronSchedule")
+  maxTxsToUpdate                     Int     @map("maxTxsToUpdate")
   // Tx Retries
-  retryTxListenerCronSchedule    String? @map("retryTxsCronSchedule")
-  minEllapsedBlocksBeforeRetry   Int     @map("minEllapsedBlocksBeforeRetry")
-  maxFeePerGasForRetries         String  @map("maxFeePerGasForRetries")
-  maxPriorityFeePerGasForRetries String  @map("maxPriorityFeePerGasForRetries")
-  maxRetriesPerTx                Int     @map("maxRetriesPerTx")
+  retryTxListenerCronSchedule        String? @map("retryTxsCronSchedule")
+  minEllapsedBlocksBeforeRetry       Int     @map("minEllapsedBlocksBeforeRetry")
+  maxFeePerGasForRetries             String  @map("maxFeePerGasForRetries")
+  maxPriorityFeePerGasForRetries     String  @map("maxPriorityFeePerGasForRetries")
+  maxRetriesPerTx                    Int     @map("maxRetriesPerTx")
+  // AWS
+  awsAccessKeyId                     String? @map("awsAccessKeyId")
+  awsSecretAccessKey                 String? @map("awsSecretAccessKey")
+  awsRegion                          String? @map("awsRegion")
+  // GCP
+  gcpApplicationProjectId            String? @map("gcpApplicationProjectId")
+  gcpKmsLocationId                   String? @map("gcpKmsLocationId")
+  gcpKmsKeyRingId                    String? @map("gcpKmsKeyRingId")
+  gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail")
+  gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey")
 
   @@map("configuration")
 }
