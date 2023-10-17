@@ -14,6 +14,15 @@ WEBHOOK_URL=<your_web_hook_url>
 
 The webhook URL needs to be a `POST` method to accept the data being sent.
 
+### Authentication
+
+The webhook URL will be sent with a 'Authorization' header with the value as `Bearer <webhook_auth_bearer_token>`. The value of the token will be the same as the `WEBHOOK_AUTH_BEARER_TOKEN` environment variable. You can set this variable to any value you want.
+
+```
+# env variable
+WEBHOOK_AUTH_BEARER_TOKEN=<your_web_hook_auth_token>
+```
+
 ### Payload
 
 The payload sent to the webhook URL will be in the below format:
