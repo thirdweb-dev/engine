@@ -5,7 +5,7 @@
 3. Select `Docker Image` as the deployment method
 4. Under `Docker Image`, search for `thirdweb/engine` and select it
 5. Under `Docker Image Tag`, select either `latest` or `nightly`
-   ![Alt text](../images/Zeet-Docker-Source-Setting.png)
+   ![Alt text](../../images/Zeet-Docker-Source-Setting.png)
 6. Select the Target cluster you want the above image to be deployed to
 7. Choose your `Compute` settings
 8. Update the `port` under `Networking` Tab to `3005`
