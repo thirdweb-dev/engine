@@ -26,7 +26,7 @@ export const queueNativeTokenTransferTx = async ({
 
   const { id: queueId } = await prisma.transactions.create({
     data: {
-      chainId,
+      chainId: chainId.toString(),
       functionName: "transfer",
       functionArgs: JSON.stringify([
         transferParams.toAddress,

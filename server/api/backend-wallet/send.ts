@@ -66,7 +66,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       // For now, it's okay not to since its a raw transaction
       const { id: queueId } = await prisma.transactions.create({
         data: {
-          chainId,
+          chainId: chainId.toString(),
           fromAddress,
           toAddress,
           data,

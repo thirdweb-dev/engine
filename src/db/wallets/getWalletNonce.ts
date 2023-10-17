@@ -24,7 +24,7 @@ export const getWalletNonce = async ({
     FROM
       "wallet_nonce"
     WHERE
-      "chainId" = ${chainId}
+      "chainId" = ${chainId.toString()}
       AND "address" = ${address.toLowerCase()}
     FOR UPDATE
   `;

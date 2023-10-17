@@ -227,7 +227,7 @@ export const processTx = async () => {
           const signer = (
             await getSdk({
               pgtx,
-              chainId: tx.chainId!,
+              chainId: parseInt(tx.chainId!),
               walletAddress: tx.signerAddress!,
               accountAddress: tx.accountAddress!,
             })

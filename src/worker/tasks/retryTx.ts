@@ -22,7 +22,7 @@ export const retryTx = async () => {
         const config = await getConfiguration();
 
         const sdk = await getSdk({
-          chainId: tx.chainId!,
+          chainId: parseInt(tx.chainId!),
           walletAddress: tx.fromAddress!,
         });
         const blockNumber = await sdk.getProvider().getBlockNumber();

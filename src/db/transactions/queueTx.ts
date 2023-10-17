@@ -43,7 +43,7 @@ export const queueTx = async ({
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
   const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
   const txTableData = {
-    chainId,
+    chainId: chainId.toString(),
     functionName: tx.getMethod(),
     functionArgs: tx.getArgs().toString(),
     extension,

@@ -48,7 +48,7 @@ export const createWalletNonce = async ({
   return prisma.walletNonce.create({
     data: {
       address: address.toLowerCase(),
-      chainId,
+      chainId: chainId.toString(),
       nonce,
     },
   });

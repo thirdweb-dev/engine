@@ -8,7 +8,7 @@ export const transactionResponseSchema = Type.Object({
     Type.Null(),
   ]),
   chainId: Type.Union([
-    Type.Number({
+    Type.String({
       description: "Chain ID where the transaction was submitted",
     }),
     Type.Null(),
