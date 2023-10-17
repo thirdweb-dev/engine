@@ -3066,6 +3066,11 @@
   resolved "https://registry.yarnpkg.com/@types/cookiejar/-/cookiejar-2.1.2.tgz#66ad9331f63fe8a3d3d9d8c6e3906dd10f6446e8"
   integrity sha512-t73xJJrvdTjXrn4jLS9VSGRbz0nUY3cl2DMGDU48lKl+HR9dbbjW2A9r3g40VA++mQpy6uuHg33gy7du2BKpog==
 
+"@types/crypto-js@^4.1.2":
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/@types/crypto-js/-/crypto-js-4.1.2.tgz#fb56b34f397d9ae2335611e416f15e7d65e276e6"
+  integrity sha512-t33RNmTu5ufG/sorROIafiCVJMx3jz95bXUMoPAZcUD14fxMXnuTzqzXZoxpR0tNx2xpw11Dlmem9vGCsrSOfA==
+
 "@types/debug@^4.1.7":
   version "4.1.8"
   resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.8.tgz#cef723a5d0a90990313faec2d1e22aee5eecb317"
