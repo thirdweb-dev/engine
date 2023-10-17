@@ -49,6 +49,10 @@ import { getBalance } from "./backend-wallet/getBalance";
 import { importWallet } from "./backend-wallet/import";
 import { sendTransaction } from "./backend-wallet/send";
 import { transfer } from "./backend-wallet/transfer";
+import { getChainsConfiguration } from "./configuration/chains/get";
+import { getTransactionConfiguration } from "./configuration/transactions/get";
+import { getWalletsConfiguration } from "./configuration/wallets/get";
+import { updateWalletsConfiguration } from "./configuration/wallets/update";
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
 
@@ -65,7 +69,7 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getChainData);
   await fastify.register(getAllChainData);
 
-  // generic
+  // Generic
   await fastify.register(readContract);
   await fastify.register(writeToContract);
 
@@ -91,10 +95,10 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(setDefaultRoyaltyInfo);
   await fastify.register(setTokenRoyaltyInfo);
 
-  // deploy
+  // Deploy
   await fastify.register(prebuiltsRoutes);
 
-  // transaction status
+  // Transactions
   await fastify.register(checkTxStatus);
   await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
@@ -108,4 +112,12 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(erc721Routes);
   await fastify.register(erc1155Routes);
   await fastify.register(marketplaceV3Routes);
+
+  // Configuration
+  await fastify.register(getWalletsConfiguration);
+  await fastify.register(updateWalletsConfiguration);
+  await fastify.register(getChainsConfiguration);
+  await fastify.register(updateWalletsConfiguration);
+  await fastify.register(getTransactionConfiguration);
+  await fastify.register(updateWalletsConfiguration);
 };
