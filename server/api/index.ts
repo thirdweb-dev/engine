@@ -67,6 +67,14 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(transfer);
   await fastify.register(sendTransaction);
 
+  // Configuration
+  await fastify.register(getWalletsConfiguration);
+  await fastify.register(updateWalletsConfiguration);
+  await fastify.register(getChainsConfiguration);
+  await fastify.register(updateChainsConfiguration);
+  await fastify.register(getTransactionConfiguration);
+  await fastify.register(updateTransactionConfiguration);
+
   // Chains
   await fastify.register(getChainData);
   await fastify.register(getAllChainData);
@@ -114,12 +122,4 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(erc721Routes);
   await fastify.register(erc1155Routes);
   await fastify.register(marketplaceV3Routes);
-
-  // Configuration
-  await fastify.register(getWalletsConfiguration);
-  await fastify.register(updateWalletsConfiguration);
-  await fastify.register(getChainsConfiguration);
-  await fastify.register(updateChainsConfiguration);
-  await fastify.register(getTransactionConfiguration);
-  await fastify.register(updateTransactionConfiguration);
 };
