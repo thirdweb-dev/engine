@@ -30,6 +30,7 @@ export async function updateTransactionConfiguration(fastify: FastifyInstance) {
         "Update the engine configuration for processing transactions",
       tags: ["Configuration"],
       operationId: "updateTransactionConfiguration",
+      body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,
       },

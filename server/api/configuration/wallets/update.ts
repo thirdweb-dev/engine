@@ -26,6 +26,27 @@ const BodySchema = Type.Union([
   }),
 ]);
 
+BodySchema.examples = [
+  {
+    type: WalletType.local,
+  },
+  {
+    type: WalletType.awsKms,
+    awsAccessKeyId: "<your-aws-access-key-id>",
+    awsSecretAccessKey: "<your-aws-secret-access-key>",
+    awsRegion: "<your-aws-region>",
+  },
+  {
+    type: WalletType.gcpKms,
+    gcpApplicationProjectId: "<your-gcp-application-project-id>",
+    gcpKmsLocationId: "<your-gcp-kms-location-id>",
+    gcpKmsKeyRingId: "<your-gcp-key-ring-id>",
+    gcpApplicationCredentialEmail: "<your-gcp-application-credential-email>",
+    gcpApplicationCredentialPrivateKey:
+      "<your-gcp-application-credential-private-key>",
+  },
+];
+
 export async function updateWalletsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
@@ -38,6 +59,7 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
       description: "Update the engine configuration for wallets",
       tags: ["Configuration"],
       operationId: "updateWalletsConfiguration",
+      body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,
       },

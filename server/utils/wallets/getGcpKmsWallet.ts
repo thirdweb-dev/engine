@@ -22,5 +22,9 @@ export const getGcpKmsWallet = async ({
     keyRingId: config.walletConfiguration.gcpKmsKeyRingId,
     keyId: gcpKmsKeyId,
     keyVersion: gcpKmsKeyVersionId,
+    applicationCredentialEmail:
+      config.walletConfiguration.gcpApplicationCredentialEmail,
+    applicationCredentialPrivateKey:
+      config.walletConfiguration.gcpApplicationCredentialPrivateKey,
   });
 };

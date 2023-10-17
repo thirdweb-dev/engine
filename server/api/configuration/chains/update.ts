@@ -6,8 +6,38 @@ import { updateConfiguration } from "../../../../src/db/configuration/updateConf
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Object({
-  chainOverrides: Type.String(),
+  chainOverrides: Type.Array(
+    Type.Object({
+      name: Type.String(),
+      chain: Type.String(),
+      rpc: Type.Array(Type.String()),
+      nativeCurrency: Type.Object({
+        name: Type.String(),
+        symbol: Type.String(),
+        decimals: Type.Number(),
+      }),
+      chainId: Type.Number(),
+      slug: Type.String(),
+    }),
+  ),
 });
+
+BodySchema.examples = [
+  [
+    {
+      name: "Localhost",
+      chain: "ETH",
+      rpc: ["http://localhost:8545"],
+      nativeCurrency: {
+        name: "Ether",
+        symbol: "ETH",
+        decimals: 18,
+      },
+      chainId: 1337,
+      slug: "localhost",
+    },
+  ],
+];
 
 export async function updateChainsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
@@ -21,13 +51,14 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
       description: "Update the engine configuration for chain overrides",
       tags: ["Configuration"],
       operationId: "updateChainsConfiguration",
+      body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,
       },
     },
     handler: async (req, res) => {
       await updateConfiguration({
-        chainOverrides: req.body.chainOverrides,
+        chainOverrides: JSON.stringify(req.body.chainOverrides),
       });
 
       const config = await getConfiguration();
