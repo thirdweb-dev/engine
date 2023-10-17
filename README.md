@@ -22,10 +22,10 @@
   - [Setup environment variables](#setup-environment-variables)
   - [Run the server](#run-the-server)
   - [Using the server](#using-the-server)
-- [Local development](#local-development)
-- [User guide](#user-guide)
-- [Documentation](#api-documentation)
-- [Contributing](#contributing)
+- [Resources](#resources)
+  - [Using Engine](#using-engine)
+  - [Other Resources](#other-resources)
+- [Security](#security)
 
 ## Introduction
 
@@ -87,7 +87,7 @@ docker run \
 
 ## Resources
 
-**Using Engine**
+#### Using Engine
 
 - [User Guide](./docs/1-user-guide.md) - Setup an engine instance.
 - [Smart Wallets Guide](./docs/2-smart-wallets.md) - Deploy, manage, and transact with smart wallets with engine.
@@ -97,7 +97,7 @@ docker run \
 - [AWS KMS Setup](./docs/kms/aws_kms_how_to.md) - Setup engine to use AWS KMS to manage wallets.
 - [Google KMS Setup](./docs/kms/google_kms_how_to.md) - Setup engine to use Google KMS to manage wallets.
 
-**Other Resources**
+#### Other Resources
 
 - [Frequently Asked Questions](./docs/addons/faqs.md) - The most common questions & answers.
 - [Contributing to Engine](./docs/addons/contributing.md) - Contribute to this project!
