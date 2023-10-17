@@ -18,7 +18,7 @@ export const updateConfiguration = async (
         : {}),
       ...(typeof data.gcpApplicationCredentialPrivateKey === "string"
         ? {
-            awsSecretAccessKey: encrypt(
+            gcpApplicationCredentialPrivateKey: encrypt(
               data.gcpApplicationCredentialPrivateKey,
             ),
           }
