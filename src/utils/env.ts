@@ -55,16 +55,6 @@ export const env = createEnv({
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
-    WEBHOOK_URL: z
-      .string()
-      .default("")
-      .transform((url) => {
-        if (url.length > 0) {
-          return url;
-        }
-        return "";
-      }),
-    WEBHOOK_AUTH_BEARER_TOKEN: z.string().default(""),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -77,8 +67,6 @@ export const env = createEnv({
     HOST: process.env.HOST,
     OPENAPI_BASE_ORIGIN: process.env.OPENAPI_BASE_ORIGIN,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
-    WEBHOOK_URL: process.env.WEBHOOK_URL,
-    WEBHOOK_AUTH_BEARER_TOKEN: process.env.WEBHOOK_AUTH_BEARER_TOKEN,
   },
   onValidationError: (error: ZodError) => {
     console.error(

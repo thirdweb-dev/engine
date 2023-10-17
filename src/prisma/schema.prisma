@@ -33,6 +33,9 @@ model Configuration {
   gcpKmsKeyRingId                    String? @map("gcpKmsKeyRingId")
   gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail")
   gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey")
+  // Webhook
+  webhookUrl                         String? @map("webhookUrl")
+  webhookAuthBearerToken             String? @map("webhookAuthBearerToken")
 
   @@map("configuration")
 }

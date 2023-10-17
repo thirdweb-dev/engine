@@ -1,7 +1,6 @@
 import PQueue from "p-queue";
 import { sendWebhook } from "../../../server/utilities/webhook";
 import { knex } from "../../db/client";
-import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { processTx } from "../tasks/processTx";
 
@@ -31,14 +30,8 @@ export const queuedTxListener = async (): Promise<void> => {
   connection.on(
     "notification",
     async (msg: { channel: string; payload: string }) => {
-      if (env.WEBHOOK_URL.length > 0) {
-        const parsedPayload = JSON.parse(msg.payload);
-        await sendWebhook(parsedPayload);
-      } else {
-        logger.server.debug(
-          `Webhooks are disabled or no URL is provided. Skipping webhook update`,
-        );
-      }
+      const parsedPayload = JSON.parse(msg.payload);
+      await sendWebhook(parsedPayload);
       queue.add(processTx);
     },
   );
