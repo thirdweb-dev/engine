@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { encrypt } from "../../utils/cypto";
 import { prisma } from "../client";
 import { getConfiguration } from "./getConfiguration";
 
@@ -10,6 +11,18 @@ export const updateConfiguration = async (
     where: {
       id: config.id,
     },
-    data,
+    data: {
+      ...data,
+      ...(typeof data.awsSecretAccessKey === "string"
+        ? { awsSecretAccessKey: encrypt(data.awsSecretAccessKey) }
+        : {}),
+      ...(typeof data.gcpApplicationCredentialPrivateKey === "string"
+        ? {
+            awsSecretAccessKey: encrypt(
+              data.gcpApplicationCredentialPrivateKey,
+            ),
+          }
+        : {}),
+    },
   });
 };

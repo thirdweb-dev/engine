@@ -1,5 +1,6 @@
 import { Configuration } from "@prisma/client";
 import { WalletType } from "../../schema/wallet";
+import { decrypt } from "../../utils/cypto";
 import { prisma } from "../client";
 
 interface Config extends Configuration {
@@ -31,7 +32,7 @@ const withWalletConfig = (config: Configuration): Config => {
         ? {
             type: WalletType.awsKms,
             awsAccessKeyId: config.awsAccessKeyId,
-            awsSecretAccessKey: config.awsSecretAccessKey,
+            awsSecretAccessKey: decrypt(config.awsSecretAccessKey),
             awsRegion: config.awsRegion,
           }
         : config.gcpApplicationProjectId &&
@@ -45,8 +46,9 @@ const withWalletConfig = (config: Configuration): Config => {
             gcpKmsLocationId: config.gcpKmsLocationId,
             gcpKmsKeyRingId: config.gcpKmsKeyRingId,
             gcpApplicationCredentialEmail: config.gcpApplicationCredentialEmail,
-            gcpApplicationCredentialPrivateKey:
+            gcpApplicationCredentialPrivateKey: decrypt(
               config.gcpApplicationCredentialPrivateKey,
+            ),
           }
         : {
             type: WalletType.local,
