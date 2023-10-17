@@ -7,6 +7,7 @@ import {
   getStatusMessageAndConnectionStatus,
 } from "../helpers/websocket";
 import { subscriptionsData } from "../schemas/websocket";
+import { sendWebhook } from "../utilities/webhook";
 
 export const startTxUpdatesNotificationListener = async (): Promise<void> => {
   try {
@@ -23,27 +24,7 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
 
         // Send webhook
         if (env.WEBHOOK_URL.length > 0) {
-          const txData = await getTxById({ queueId: parsedPayload.id });
-          let headers: { Accept: string, "Content-Type": string, Authorization?: string } = {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          };
-
-          if (process.env.WEBHOOK_AUTH_BEARER_TOKEN) {
-            headers["Authorization"] = `Bearer ${process.env.WEBHOOK_AUTH_BEARER_TOKEN}`;
-          }
-
-          const response = await fetch(env.WEBHOOK_URL, {
-            method: "POST",
-            headers,
-            body: JSON.stringify(txData),
-          });
-
-          if (!response.ok) {
-            logger.server.error(
-              `Webhook error: ${response.status} ${response.statusText}`,
-            );
-          }
+          await sendWebhook(parsedPayload);
         } else {
           logger.server.debug(
             `Webhooks are disabled or no URL is provided. Skipping webhook update`,
