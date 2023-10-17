@@ -20,7 +20,7 @@ export const updateWalletNonce = async ({
     where: {
       address_chainId: {
         address: address.toLowerCase(),
-        chainId,
+        chainId: chainId.toString(),
       },
     },
     data: {

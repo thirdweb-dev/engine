@@ -18,7 +18,7 @@ export const updateMinedTx = async () => {
     const txsWithReceipts = (
       await Promise.all(
         txs.map(async (tx) => {
-          const sdk = await getSdk({ chainId: tx.chainId! });
+          const sdk = await getSdk({ chainId: parseInt(tx.chainId!) });
           const receipt: ethers.providers.TransactionReceipt | undefined =
             await sdk.getProvider().getTransactionReceipt(tx.transactionHash!);
 

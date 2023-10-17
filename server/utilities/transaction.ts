@@ -60,7 +60,7 @@ export const cancelTransactionAndUpdate = async ({
     case TransactionStatusEnum.Processed:
     case TransactionStatusEnum.Submitted: {
       const sdk = await getSdk({
-        chainId: txData.chainId!,
+        chainId: parseInt(txData.chainId!),
         walletAddress: txData.fromAddress!,
         accountAddress,
       });

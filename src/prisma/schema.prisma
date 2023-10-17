@@ -57,7 +57,7 @@ model WalletDetails {
 
 model WalletNonce {
   address String @map("address")
-  chainId Int    @map("chainId")
+  chainId String @map("chainId")
   nonce   Int    @default(0) @map("nonce")
 
   @@id([address, chainId])
@@ -66,7 +66,7 @@ model WalletNonce {
 
 model Transactions {
   id                        String    @id @default(uuid()) @map("id")
-  chainId                   Int       @map("chainId")
+  chainId                   String    @map("chainId")
   // Shared
   data                      String?   @map("data")
   value                     String?   @map("value")

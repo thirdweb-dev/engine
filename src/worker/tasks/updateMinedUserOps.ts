@@ -19,7 +19,7 @@ export const updateMinedUserOps = async () => {
       await Promise.all(
         userOps.map(async (userOp) => {
           const sdk = await getSdk({
-            chainId: userOp.chainId!,
+            chainId: parseInt(userOp.chainId!),
             walletAddress: userOp.signerAddress!,
             accountAddress: userOp.accountAddress!,
           });
