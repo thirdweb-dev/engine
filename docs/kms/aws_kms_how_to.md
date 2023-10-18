@@ -31,6 +31,29 @@ Once you create the key above, you can use `/wallet/add` and send details on the
 
 ### Set up Web3-API with AWS KMS
 
+If you are on the `latest` or `nightly` version of Web3-API, then you can use the below steps to set up AWS KMS:
+
+1. Make sure your Engine is running with the environment variables setup, see [here](../1-user-guide.md) for more details.
+2. Open `http://localhost:3005` in your browser to see the Swagger UI.
+3. Copy the `THIRDWEB_API_SECRET_KEY` and use it in the `Authorization` header. On Swagger UI click on `Authorize` on top-righ corner and paste the `THIRDWEB_API_SECRET_KEY` in the `value` field and click `Authorize`.
+4. Open `Configurations Tab`
+5. Click on `POST /configuration/wallets` and paste the below body:
+
+```js
+{
+  "type": "aws-kms",
+  "awsAccessKeyId": "<your-aws-access-key-id>",
+  "awsSecretAccessKey": "<your-aws-secret-access-key>",
+  "awsRegion": "<your-aws-region>"
+}
+```
+
+6. Click `execute` & the AWS KMS Config will be added to Engine.
+
+Now you can Create or Import AWS KMS Wallets using the `/backend-wallet/create` or `/backend-wallet/import` endpoints.
+
+For Engine Version below `v0.0.3`, use the below:
+
 Create a `.env` file in the root directory of the project and add the below details.
 
 ```
