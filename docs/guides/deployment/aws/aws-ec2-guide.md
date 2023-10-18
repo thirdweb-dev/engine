@@ -13,8 +13,8 @@ Before you start, make sure you have the following:
 
 1. Go to the AWS Management Console.
 2. Navigate to the EC2 dashboard.
-3. Click the "Launch Instace" button.
-4. Choose an Amazon Machine Iage (AMI) that suits your application.
+3. Click the "Launch Instance" button.
+4. Choose an Amazon Machine Image (AMI) that suits your application.
 5. Select an instance type based on your resource requirements.
 6. Configure the instance details, including the number of instances and network settings.
 7. Add storage as needed.
@@ -65,7 +65,7 @@ Before you start, make sure you have the following:
 
 2. Run your Docker container.
    ```shell
-   docker run -d -p 3005:3005 thirdweb/engine:latest
+   docker run -d -p 80:3005 thirdweb/engine:latest
    ```
 
 You can change the port mapping and the image tag as needed.
