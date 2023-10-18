@@ -16,6 +16,18 @@ const querystringSchema = Type.Object({
     description: "Address of the wallet to get NFTs for",
     examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
+  start: Type.Optional(
+    Type.Number({
+      description: "The start token id for paginated results. Defaults to 0.",
+      examples: ["0"],
+    }),
+  ),
+  count: Type.Optional(
+    Type.Number({
+      description: "The page count for paginated results. Defaults to 100.",
+      examples: ["20"],
+    }),
+  ),
 });
 
 // OUPUT
@@ -67,13 +79,16 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contract_address } = request.params;
-      const { wallet_address } = request.query;
+      const { wallet_address, start, count } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress: contract_address,
       });
-      const result = await contract.erc721.getOwned(wallet_address);
+      const result = await contract.erc721.getOwned(wallet_address, {
+        start,
+        count,
+      });
       reply.status(StatusCodes.OK).send({
         result,
       });
