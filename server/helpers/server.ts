@@ -17,7 +17,6 @@ const createServer = async (): Promise<FastifyInstance> => {
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
-  console.log(originArray);
   await server.register(fastifyCors, {
     origin: originArray.map((data) => {
       if (data.startsWith("/") && data.endsWith("/")) {
