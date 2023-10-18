@@ -49,12 +49,18 @@ import { getBalance } from "./backend-wallet/getBalance";
 import { importWallet } from "./backend-wallet/import";
 import { sendTransaction } from "./backend-wallet/send";
 import { transfer } from "./backend-wallet/transfer";
+
+// Configuration
 import { getChainsConfiguration } from "./configuration/chains/get";
 import { updateChainsConfiguration } from "./configuration/chains/update";
 import { getTransactionConfiguration } from "./configuration/transactions/get";
 import { updateTransactionConfiguration } from "./configuration/transactions/update";
 import { getWalletsConfiguration } from "./configuration/wallets/get";
 import { updateWalletsConfiguration } from "./configuration/wallets/update";
+import { getWebhookConfiguration } from "./configuration/webhooks/get";
+import { updateWebhookConfiguration } from "./configuration/webhooks/update";
+
+// Accounts
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
 
@@ -74,6 +80,8 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(updateChainsConfiguration);
   await fastify.register(getTransactionConfiguration);
   await fastify.register(updateTransactionConfiguration);
+  await fastify.register(getWebhookConfiguration);
+  await fastify.register(updateWebhookConfiguration);
 
   // Chains
   await fastify.register(getChainData);

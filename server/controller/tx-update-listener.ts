@@ -1,6 +1,5 @@
 import { knex } from "../../src/db/client";
 import { getTxById } from "../../src/db/transactions/getTxById";
-import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
 import {
   formatSocketMessage,
@@ -23,13 +22,7 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
         const parsedPayload = JSON.parse(msg.payload);
 
         // Send webhook
-        if (env.WEBHOOK_URL.length > 0) {
-          await sendWebhook(parsedPayload);
-        } else {
-          logger.server.debug(
-            `Webhooks are disabled or no URL is provided. Skipping webhook update`,
-          );
-        }
+        await sendWebhook(parsedPayload);
 
         // Send websocket message
         const index = subscriptionsData.findIndex(

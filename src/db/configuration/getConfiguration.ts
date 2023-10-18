@@ -1,7 +1,7 @@
 import { Configuration } from "@prisma/client";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { WalletType } from "../../schema/wallet";
-import { decrypt } from "../../utils/cypto";
+import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";

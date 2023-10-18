@@ -36,6 +36,9 @@ model Configuration {
   // Auth
   authDomain                         String  @default("") @map("authDomain") // TODO: Remove defaults on major
   authWalletEncryptedJson            String  @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
+  // Webhook
+  webhookUrl                         String? @map("webhookUrl")
+  webhookAuthBearerToken             String? @map("webhookAuthBearerToken")
 
   @@map("configuration")
 }

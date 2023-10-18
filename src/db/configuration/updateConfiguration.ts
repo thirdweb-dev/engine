@@ -1,10 +1,12 @@
 import { Prisma } from "@prisma/client";
-import { encrypt } from "../../utils/cypto";
+import { webhookCache } from "../../../server/utils/cache/getWebhookConfig";
+import { encrypt } from "../../utils/crypto";
 import { prisma } from "../client";
 
 export const updateConfiguration = async (
   data: Prisma.ConfigurationUpdateArgs["data"],
 ) => {
+  webhookCache.clear();
   return prisma.configuration.update({
     where: {
       id: "default",

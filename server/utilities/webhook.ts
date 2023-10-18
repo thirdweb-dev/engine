@@ -1,9 +1,16 @@
 import { getTxById } from "../../src/db/transactions/getTxById";
-import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
+import { getWebhookConfig } from "../utils/cache/getWebhookConfig";
 
 export const sendWebhook = async (data: any): Promise<void> => {
   try {
+    const webhookConfig = await getWebhookConfig();
+
+    if (!webhookConfig.webhookUrl) {
+      logger.server.debug("No WebhookURL set, skipping webhook send");
+      return;
+    }
+
     const txData = await getTxById({ queueId: data.id });
     const headers: {
       Accept: string;
@@ -14,13 +21,13 @@ export const sendWebhook = async (data: any): Promise<void> => {
       "Content-Type": "application/json",
     };
 
-    if (process.env.WEBHOOK_AUTH_BEARER_TOKEN) {
+    if (webhookConfig.webhookAuthBearerToken) {
       headers[
         "Authorization"
-      ] = `Bearer ${process.env.WEBHOOK_AUTH_BEARER_TOKEN}`;
+      ] = `Bearer ${webhookConfig.webhookAuthBearerToken}`;
     }
 
-    const response = await fetch(env.WEBHOOK_URL, {
+    const response = await fetch(webhookConfig.webhookUrl, {
       method: "POST",
       headers,
       body: JSON.stringify(txData),
