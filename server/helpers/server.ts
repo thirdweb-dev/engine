@@ -2,11 +2,14 @@ import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
+import { ThirdwebAuth } from "@thirdweb-dev/auth/express";
+import { LocalWallet } from "@thirdweb-dev/wallets";
+import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import fastify, { FastifyInstance } from "fastify";
 import { apiRoutes } from "../../server/api";
+import { getConfiguration } from "../../src/db/configuration/getConfiguration";
 import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
-import { performHTTPAuthentication } from "../middleware/auth";
 import { errorHandler } from "../middleware/error";
 import { openapi } from "./openapi";
 
@@ -24,39 +27,6 @@ const createServer = async (): Promise<FastifyInstance> => {
       request.log.info(
         `Request received - ${request.method} - ${request.routerPath}`,
       );
-    }
-
-    // if (process.env.NODE_ENV === "production") {
-    //   if (request.routerPath?.includes("static")) {
-    //     return reply.status(404).send({
-    //       statusCode: 404,
-    //       error: "Not Found",
-    //       message: "Not Found",
-    //     });
-    //   }
-    // }
-
-    const { url } = request;
-    // Skip Authentication for Health Check and Static Files and JSON Files for Swagger
-    // Doing Auth check onRequest helps prevent unauthenticated requests from consuming server resources.
-    if (
-      url === "/favicon.ico" ||
-      url === "/" ||
-      url === "/health" ||
-      url.startsWith("/static") ||
-      url.startsWith("/json")
-    ) {
-      return;
-    }
-
-    if (
-      request.headers.upgrade &&
-      request.headers.upgrade.toLowerCase() === "websocket"
-    ) {
-      // ToDo: Uncomment WebSocket Authentication post Auth SDK is implemented
-      // await performWSAuthentication(request, reply);
-    } else {
-      await performHTTPAuthentication(request, reply);
     }
   });
 
@@ -115,10 +85,72 @@ const createServer = async (): Promise<FastifyInstance> => {
     ],
   });
 
-  await server.register(fastifyExpress);
   await server.register(WebSocketPlugin);
+  await server.register(fastifyExpress);
 
   await openapi(server);
+
+  const config = await getConfiguration();
+  const { authRouter, authMiddleware, getUser } = ThirdwebAuth({
+    domain: config.authDomain,
+    wallet: new AsyncWallet({
+      getSigner: async () => {
+        const config = await getConfiguration();
+        const wallet = new LocalWallet();
+        await wallet.import({
+          encryptedJson: config.authWalletEncryptedJson,
+          password: env.THIRDWEB_API_SECRET_KEY,
+        });
+
+        return wallet.getSigner();
+      },
+      cacheSigner: false,
+    }),
+  });
+
+  server.use(authRouter);
+  server.use(authMiddleware);
+
+  server.use(async (req, res, next) => {
+    // Skip authentication check for certain urls
+    if (
+      req.url === "/favicon.ico" ||
+      req.url === "/" ||
+      req.url === "/health" ||
+      req.url.startsWith("/static") ||
+      req.url.startsWith("/json")
+    ) {
+      return next();
+    }
+
+    // TODO: Enable authenticaiton check for websocket requests
+    if (
+      req.headers.upgrade &&
+      req.headers.upgrade.toLowerCase() === "websocket"
+    ) {
+      return next();
+    }
+
+    // If we have a valid secret key, skip authentication check
+    const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
+    if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
+      return next();
+    }
+
+    // Otherwise, check for an authenticated user
+    const user = await getUser(req);
+    if (user) {
+      return next();
+    }
+
+    // TODO: Needs to add permissions checks here w/ table & default permissions
+
+    // If we have no secret key or authenticated user, return 401
+    return res.status(401).send({
+      error: "Unauthorized",
+      message: "Please provide a valid secret key or JWT",
+    });
+  });
 
   await server.register(apiRoutes);
 
