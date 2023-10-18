@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { webhookCache } from "../../../server/utils/cache/getWebhookConfig";
-import { encrypt } from "../../utils/cypto";
+import { encrypt } from "../../utils/crypto";
 import { prisma } from "../client";
 import { getConfiguration } from "./getConfiguration";
 

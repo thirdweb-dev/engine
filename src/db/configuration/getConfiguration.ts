@@ -1,6 +1,6 @@
 import { Configuration } from "@prisma/client";
 import { WalletType } from "../../schema/wallet";
-import { decrypt } from "../../utils/cypto";
+import { decrypt } from "../../utils/crypto";
 import { prisma } from "../client";
 
 interface Config extends Configuration {
