@@ -50,15 +50,16 @@ model Permissions {
   @@map("permissions")
 }
 
-model JWTs {
+model Tokens {
   id            String    @id @map("id")
   tokenMask     String    @map("tokenMask")
   walletAddress String    @map("walletAddress")
   createdAt     DateTime  @default(now()) @map("createdAt")
   expiresAt     DateTime  @map("expiresAt")
   revokedAt     DateTime? @map("revokedAt")
+  isAccessToken Boolean   @map("isAccessToken")
 
-  @@map("jwts")
+  @@map("tokens")
 }
 
 model WalletDetails {

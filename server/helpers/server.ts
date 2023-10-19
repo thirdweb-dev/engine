@@ -2,12 +2,15 @@ import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
-import { ThirdwebAuth } from "@thirdweb-dev/auth/fastify";
+import { ThirdwebAuth, getToken as getJWT } from "@thirdweb-dev/auth/fastify";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import fastify, { FastifyInstance } from "fastify";
 import { apiRoutes } from "../../server/api";
 import { getConfiguration } from "../../src/db/configuration/getConfiguration";
+import { getPermissions } from "../../src/db/permissions/getPermissions";
+import { createToken } from "../../src/db/tokens/createToken";
+import { getToken } from "../../src/db/tokens/getToken";
 import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
 import { errorHandler } from "../middleware/error";
@@ -104,6 +107,22 @@ const createServer = async (): Promise<FastifyInstance> => {
       },
       cacheSigner: false,
     }),
+    callbacks: {
+      onLogin: async (walletAddress) => {
+        // When a user logs in, we check for their permissions in the database
+        const res = await getPermissions({ walletAddress });
+
+        // And we add their permissions as a scope to their JWT
+        return {
+          // TODO: Replace with default permissions
+          permissions: res?.permissions || "*",
+        };
+      },
+      onToken: async (jwt) => {
+        // When a new JWT is generated, we save it in the database
+        await createToken({ jwt, isAccessToken: false });
+      },
+    },
   });
 
   await server.register(authRouter, { prefix: "/auth" });
@@ -136,12 +155,19 @@ const createServer = async (): Promise<FastifyInstance> => {
     }
 
     // Otherwise, check for an authenticated user
-    const user = await getUser(req);
-    if (user) {
-      return;
-    }
+    const jwt = getJWT(req);
+    if (jwt) {
+      const token = await getToken({ jwt });
 
-    // TODO: Needs to add permissions checks here w/ table & default permissions
+      // First, we ensure that the token hasn't been revoked
+      if (token?.revokedAt === null) {
+        // Then we perform our standard auth checks for the user
+        const user = await getUser(req);
+        if (user) {
+          return;
+        }
+      }
+    }
 
     // If we have no secret key or authenticated user, return 401
     return res.status(401).send({
