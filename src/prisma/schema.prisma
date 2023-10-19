@@ -8,7 +8,7 @@ generator client {
 }
 
 model Configuration {
-  id                                 String  @id @default(uuid()) @map("id")
+  id                                 String  @id @default("default") @map("id")
   // Chains
   chainOverrides                     String? @map("chainOverrides")
   // Tx Processing
@@ -33,11 +33,33 @@ model Configuration {
   gcpKmsKeyRingId                    String? @map("gcpKmsKeyRingId")
   gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail")
   gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey")
+  // Auth
+  authDomain                         String  @default("") @map("authDomain") // TODO: Remove defaults on major
+  authWalletEncryptedJson            String  @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
   // Webhook
   webhookUrl                         String? @map("webhookUrl")
   webhookAuthBearerToken             String? @map("webhookAuthBearerToken")
 
   @@map("configuration")
+}
+
+model Permissions {
+  walletAddress String @id @map("walletAddress")
+  permissions   String @map("permissions")
+
+  @@map("permissions")
+}
+
+model Tokens {
+  id            String    @id @map("id")
+  tokenMask     String    @map("tokenMask")
+  walletAddress String    @map("walletAddress")
+  createdAt     DateTime  @default(now()) @map("createdAt")
+  expiresAt     DateTime  @map("expiresAt")
+  revokedAt     DateTime? @map("revokedAt")
+  isAccessToken Boolean   @map("isAccessToken")
+
+  @@map("tokens")
 }
 
 model WalletDetails {
