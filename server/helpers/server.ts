@@ -11,6 +11,7 @@ import { getConfiguration } from "../../src/db/configuration/getConfiguration";
 import { getPermissions } from "../../src/db/permissions/getPermissions";
 import { createToken } from "../../src/db/tokens/createToken";
 import { getToken } from "../../src/db/tokens/getToken";
+import { revokeToken } from "../../src/db/tokens/revokeToken";
 import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
 import { errorHandler } from "../middleware/error";
@@ -115,12 +116,16 @@ const createServer = async (): Promise<FastifyInstance> => {
         // And we add their permissions as a scope to their JWT
         return {
           // TODO: Replace with default permissions
-          permissions: res?.permissions || "*",
+          permissions: res?.permissions || "none",
         };
       },
       onToken: async (jwt) => {
         // When a new JWT is generated, we save it in the database
         await createToken({ jwt, isAccessToken: false });
+      },
+      onLogout: async (_, req) => {
+        const jwt = getJWT(req!)!; // TODO: Fix this
+        await revokeToken({ jwt });
       },
     },
   });
