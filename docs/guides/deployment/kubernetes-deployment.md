@@ -9,6 +9,7 @@ Before getting started, ensure you have the following prerequisites:
 - A running Kubernetes cluster.
 - `kubectl` command-line tool configured to access your cluster.
 - Docker image `thirdweb/engine` pushed to a container registry accessible from your cluster.
+- Postgres database running on your cluster, which can be connected to from your cluster.
 
 ## Getting the Manifest File
 

@@ -6,6 +6,8 @@ Before you begin, ensure you have the following:
 
 - A Google Cloud Platform (GCP) account.
 - The `gcloud` CLI tool installed and configured with the appropriate GCP project.
+- Docker installed on your local development machine.
+- Postgres Instance Running on either the cluster or Cloud SQL which can be accessed via the internet.
 
 ### Step 1: Create a GKE Cluster
 

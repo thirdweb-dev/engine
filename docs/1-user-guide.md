@@ -83,6 +83,10 @@ For updates on your requests, you can either poll using the `get` (`/transaction
 Check the below Deployment Guides for more details:
 
 1. [Zeet Deployment Guide](./guides//deployment/zeet-deployment.md)
+2. [AWS EC2 Deployment Guide](./guides/deployment/aws/aws-ec2-guide.md)
+3. [GCP GKE Deployment Guide](./guides/deployment/gcp/gke-deployment.md)
+4. [GCP GCE Deployment Guide](./guides//deployment/gcp//gce-deployment.md)
+5. [Kubernetes Deployment Guide](./guides/deployment/kubernetes-deployment.md)
 
 ## Local Development
 

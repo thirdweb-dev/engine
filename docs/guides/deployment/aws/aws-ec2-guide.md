@@ -6,6 +6,7 @@ Before you start, make sure you have the following:
 
 - An AWS account.
 - Docker installed on your local development machine.
+- Postgres Instance Running which can be accessed cia the EC2 instance.
 - An SSH key pair for connecting to EC2 instances.
 - Familiarity with the AWS Management Console.
 
@@ -59,18 +60,48 @@ Before you start, make sure you have the following:
    exec sudo su -l $USER
    ```
 
-### Step 4: Run Your Docker Container
+### Step 4: Create an Environment File (env File)
+
+1. On your local development machine, create a text file and name it `env_file.txt`. In this file, define your environment variables in the format `KEY=VALUE`. Check [Setting Up Server](../../../../README.md#setup-environment-variables)
+
+2. Save the `env_file.txt` file.
+
+### Step 5: Transfer the Environment File to Your EC2 Instance
+
+You can use various methods to transfer the `env_file.txt` to your EC2 instance. One common method is using the `scp` command for Linux or macOS or an SCP client for Windows.
+
+Using `scp`:
+
+```bash
+scp -i /path/to/your-ssh-key.pem /path/to/env_file.txt ec2-user@your-ec2-instance-ip:~/env_file.txt
+```
+
+- Replace `/path/to/your-ssh-key.pem` with the path to your SSH key used for connecting to the EC2 instance.
+- Replace `/path/to/env_file.txt` with the local path to your `env_file.txt`.
+- Replace `your-ec2-instance-ip` with the public IP address or DNS name of your EC2 instance.
+
+### Step 6: SSH into Your EC2 Instance
+
+Use SSH to connect to your EC2 instance:
+
+```bash
+ssh -i /path/to/your-ssh-key.pem ec2-user@your-ec2-instance-ip
+```
+
+Replace `/path/to/your-ssh-key.pem` with the path to your SSH key and `your-ec2-instance-ip` with the public IP address or DNS name of your EC2 instance.
+
+### Step 7: Run Your Docker Container
 
 1. Pull your Docker image from a registry or copy it to the EC2 instance.
 
 2. Run your Docker container.
    ```shell
-   docker run -d -p 80:3005 thirdweb/engine:latest
+   docker run -d -p 80:3005 --env-file ~/env_file.txt thirdweb/engine:latest
    ```
 
 You can change the port mapping and the image tag as needed.
 
-### Step 5: Access Your Application
+### Step 8: Access Your Application
 
 1. Find the public IP or DNS name of your EC2 instance in the AWS Console.
 
