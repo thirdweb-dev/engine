@@ -1,7 +1,6 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import WebSocketPlugin from "@fastify/websocket";
 import { ThirdwebAuth, getToken as getJWT } from "@thirdweb-dev/auth/fastify";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
@@ -22,6 +21,30 @@ const createServer = async (): Promise<FastifyInstance> => {
     logger: logger.server,
     disableRequestLogging: true,
   }).withTypeProvider<TypeBoxTypeProvider>();
+
+  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
+  await server.register(fastifyCors, {
+    origin: originArray.map((data) => {
+      if (data.startsWith("/") && data.endsWith("/")) {
+        return new RegExp(data.slice(1, -1));
+      }
+
+      if (data.startsWith("*.")) {
+        const regex = data.replace("*.", ".*.");
+        return new RegExp(regex);
+      }
+      return data;
+    }),
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Access-Control-Allow-Origin",
+      "Cache-Control",
+      "Authorization",
+    ],
+  });
 
   server.addHook("onRequest", async (request, reply) => {
     if (
@@ -71,26 +94,6 @@ const createServer = async (): Promise<FastifyInstance> => {
   });
 
   await errorHandler(server);
-  const originArray = env.ACCESS_CONTROL_ALLOW_ORIGIN.split(",") as string[];
-  await server.register(fastifyCors, {
-    origin: originArray.map((data) => {
-      if (data.startsWith("/") && data.endsWith("/")) {
-        return new RegExp(data.slice(1, -1));
-      }
-
-      if (data.startsWith("*.")) {
-        const regex = data.replace("*.", ".*.");
-        return new RegExp(regex);
-      }
-      return data;
-    }),
-    allowedHeaders: [
-      "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin, Cache-Control",
-    ],
-    credentials: true,
-  });
-
-  await server.register(WebSocketPlugin);
 
   const config = await getConfiguration();
   const { authRouter, authMiddleware, getUser } = ThirdwebAuth({
@@ -182,7 +185,6 @@ const createServer = async (): Promise<FastifyInstance> => {
   });
 
   await server.register(fastifyExpress);
-
   await openapi(server);
   await server.register(apiRoutes);
 

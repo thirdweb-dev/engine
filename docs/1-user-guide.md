@@ -83,31 +83,10 @@ For updates on your requests, you can either poll using the `get` (`/transaction
 Check the below Deployment Guides for more details:
 
 1. [Zeet Deployment Guide](./guides//deployment/zeet-deployment.md)
-
-### Note:
-
-To access the Swagger UI locally on `http://localhost:3005/` when using the docker image, you need to update add the following to the `.env` file:
-
-```
-NODE_ENV=development
-```
-
-<details>
- <summary>Run on a Server (EC2 Instance/Google Compute/VM) </summary>
-
-| Required: A PostgreSQL DB running instance. |
-| ------------------------------------------- |
-
-1. Clone the project on the remote server
-2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Check [Advance Setup : PostgreSQL DB](#advance-setup--postgresql-db) section to update the `.env` file
-4. Update the `HOST` value on the `.env` file to `localhost`. Example: `HOST=localhost`
-5. Run: `yarn install`
-6. Run: `yarn build && yarn copy-files`
-7. Run: `yarn start`
-
-</details>
-<br/>
+2. [AWS EC2 Deployment Guide](./guides/deployment/aws/aws-ec2-guide.md)
+3. [GCP GKE Deployment Guide](./guides/deployment/gcp/gke-deployment.md)
+4. [GCP GCE Deployment Guide](./guides//deployment/gcp//gce-deployment.md)
+5. [Kubernetes Deployment Guide](./guides/deployment/kubernetes-deployment.md)
 
 ## Local Development
 
@@ -127,14 +106,6 @@ We use `docker-compose-infra.yml` to spin up the supporting infra services, a po
 
 ### Other ways to run locally
 
-<details>
-
-<summary>Click to expand</summary>
-
-<br >
-
----
-
 ### 1. Use only NodeJS/Yarn
 
 ---
@@ -144,12 +115,16 @@ We use `docker-compose-infra.yml` to spin up the supporting infra services, a po
 
 1. Clone the Repo
 2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Run: `yarn install`
-4. Run: `yarn dev:server & yarn dev:worker`
+3. Update the `POSTGRES HOST` on your `POSTGRES_CONNECTION_URL` value on the `.env` file to `host.docker.internal`. Example :
+
+```js
+POSTGRES_CONNECTION_URL=postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+```
+
+4. Run: `yarn install`
+5. Run: `yarn dev:server & yarn dev:worker`
 
 The API defaults to `http://localhost:3005`
-
----
 
 ### 2. Use Docker Compose
 
@@ -162,22 +137,53 @@ In this approach we run everything, i.e., Web3-API Server & Worker, Postgres DB,
 
 1. Clone the Repo
 2. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-3. Update the `HOST` value on the `.env` file to `0.0.0.0`. Example: `HOST=0.0.0.0`
-4. Update the `POSTGRES_HOST` value on the `.env` file to `host.docker.internal`. Example : `POSTGRES_HOST=host.docker.internal`
-5. Run: `yarn docker`
+3. Add the below environment variables required for PostgreSQL Docker image.
+
+```js
+POSTGRES_USER = postgres;
+POSTGRES_PASSWORD = postgres;
+```
+
+4. Run: `yarn docker`
 
 We use `docker-compose.yml` to spin up the API Server & Worker along with supporting infra services, a postgres database and the pg-admin GUI.
 
 The API defaults to `http://localhost:3005`
 
-To access the Swagger UI locally on `http://localhost:3005/` when using the docker image, you need to update add the following to the `.env` file:
+### 3. Use `docker run`
 
-### Note:
+---
 
-To access the Swagger UI locally on `http://localhost:3005/` when using the docker image, you need to update add the following to the `.env` file:
+1. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
+2. Update the `POSTGRES HOST` on your `POSTGRES_CONNECTION_URL` value on the `.env` file to `host.docker.internal`. Example :
 
+```js
+POSTGRES_CONNECTION_URL=postgres://postgres:postgres@host.docker.internal:5432/postgres?sslmode=disable
 ```
-NODE_ENV=development
+
+3. Add the below environment variables required for PostgreSQL Docker image.
+
+```js
+POSTGRES_USER = postgres;
+POSTGRES_PASSWORD = postgres;
 ```
 
-</details>
+4. Run the below command:
+
+```bash
+docker run -e .env -p 5432:5432 postgres:latest
+```
+
+You can check on Docker Dashboard if the container is up & running.
+
+5. Run thirdweb Engine Docker image:
+
+```bash
+docker run -e .env -p 3005:3005 thirdweb/engine:latest
+```
+
+You can check on Docker Dashboard if the container is up & running.
+
+The API defaults to `http://localhost:3005`
+
+---

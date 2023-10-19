@@ -21,6 +21,29 @@ Optional: Create a key in the keyring, see [here](https://cloud.google.com/kms/d
 
 ### Set up with Google KMS
 
+If you are on the `latest` or `nightly` version of Web3-API, then you can use the below steps to set up AWS KMS:
+
+1. Make sure your Engine is running with the environment variables setup, see [here](../1-user-guide.md) for more details.
+2. Open `http://localhost:3005` in your browser to see the Swagger UI.
+3. Copy the `THIRDWEB_API_SECRET_KEY` and use it in the `Authorization` header. On Swagger UI click on `Authorize` on top-righ corner and paste the `THIRDWEB_API_SECRET_KEY` in the `value` field and click `Authorize`.
+4. Open `Configurations Tab`
+5. Click on `POST /configuration/wallets` and paste the below body:
+
+```js
+{
+  "type": "gcp-kms",
+  "gcpApplicationProjectId": "<your-gcp-application-project-id>",
+  "gcpKmsLocationId": "<your-gcp-kms-location-id>",
+  "gcpKmsKeyRingId": "<your-gcp-key-ring-id>",
+  "gcpApplicationCredentialEmail": "<your-gcp-application-credential-email>",
+  "gcpApplicationCredentialPrivateKey": "<your-gcp-application-credential-private-key>"
+}
+```
+
+6. Click `execute` & the GCP KMS Config will be added to Engine.
+
+Now you can Create or Import GCP KMS Wallets using the `/backend-wallet/create` or `/backend-wallet/import` endpoints.
+
 Create a `.env` file in the root directory of the project and add the below details.
 
 ```
