@@ -44,6 +44,7 @@ const createServer = async (): Promise<FastifyInstance> => {
       "Cache-Control",
       "Authorization",
     ],
+    credentials: true,
   });
 
   server.addHook("onRequest", async (request, reply) => {
@@ -127,7 +128,7 @@ const createServer = async (): Promise<FastifyInstance> => {
         await createToken({ jwt, isAccessToken: false });
       },
       onLogout: async (_, req) => {
-        const jwt = getJWT(req!)!; // TODO: Fix this
+        const jwt = getJWT(req)!; // TODO: Fix this
         await revokeToken({ jwt });
       },
     },
