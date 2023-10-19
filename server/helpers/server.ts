@@ -2,7 +2,7 @@ import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import WebSocketPlugin from "@fastify/websocket";
-import { ThirdwebAuth } from "@thirdweb-dev/auth/express";
+import { ThirdwebAuth } from "@thirdweb-dev/auth/fastify";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import fastify, { FastifyInstance } from "fastify";
@@ -83,12 +83,10 @@ const createServer = async (): Promise<FastifyInstance> => {
     allowedHeaders: [
       "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Origin, Cache-Control",
     ],
+    credentials: true,
   });
 
   await server.register(WebSocketPlugin);
-  await server.register(fastifyExpress);
-
-  await openapi(server);
 
   const config = await getConfiguration();
   const { authRouter, authMiddleware, getUser } = ThirdwebAuth({
@@ -108,39 +106,39 @@ const createServer = async (): Promise<FastifyInstance> => {
     }),
   });
 
-  server.use(authRouter);
-  server.use(authMiddleware);
+  await server.register(authRouter, { prefix: "/auth" });
+  await server.register(authMiddleware);
 
-  server.use(async (req, res, next) => {
-    // Skip authentication check for certain urls
+  server.addHook("onRequest", async (req, res) => {
     if (
       req.url === "/favicon.ico" ||
       req.url === "/" ||
       req.url === "/health" ||
       req.url.startsWith("/static") ||
-      req.url.startsWith("/json")
+      req.url.startsWith("/json") ||
+      req.url.startsWith("/auth")
     ) {
-      return next();
+      return;
     }
 
-    // TODO: Enable authenticaiton check for websocket requests
+    // TODO: Enable authentiction check for websocket requests
     if (
       req.headers.upgrade &&
       req.headers.upgrade.toLowerCase() === "websocket"
     ) {
-      return next();
+      return;
     }
 
     // If we have a valid secret key, skip authentication check
     const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
     if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
-      return next();
+      return;
     }
 
     // Otherwise, check for an authenticated user
     const user = await getUser(req);
     if (user) {
-      return next();
+      return;
     }
 
     // TODO: Needs to add permissions checks here w/ table & default permissions
@@ -152,6 +150,9 @@ const createServer = async (): Promise<FastifyInstance> => {
     });
   });
 
+  await server.register(fastifyExpress);
+
+  await openapi(server);
   await server.register(apiRoutes);
 
   /* TODO Add a real health check

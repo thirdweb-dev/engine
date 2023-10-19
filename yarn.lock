@@ -1333,6 +1333,14 @@
     cookie "^0.5.0"
     fastify-plugin "^4.0.0"
 
+"@fastify/cookie@^9.1.0":
+  version "9.1.0"
+  resolved "https://registry.yarnpkg.com/@fastify/cookie/-/cookie-9.1.0.tgz#b9ca95fcb934a21915ab6f228a63dd73013738df"
+  integrity sha512-w/LlQjj7cmYlQNhEKNm4jQoLkFXCL73kFu1Jy3aL7IFbYEojEKur0f7ieCKUxBBaU65tpaWC83UM8xW7AzY6uw==
+  dependencies:
+    cookie "^0.5.0"
+    fastify-plugin "^4.0.0"
+
 "@fastify/cors@^8.2.1":
   version "8.2.1"
   resolved "https://registry.yarnpkg.com/@fastify/cors/-/cors-8.2.1.tgz#dd348162bcbfb87dff4b492e2bef32d41244006a"
@@ -2829,13 +2837,15 @@
   resolved "https://registry.yarnpkg.com/@t3-oss/env-core/-/env-core-0.6.0.tgz#a2e6a6a2b166aad2df7ecc5e7a72400946a84fbe"
   integrity sha512-3FkPAba069WRZVVab/sB1m3eSGn/rZeypx5k+sWEu1d+k0OQdRDnvFS+7MtxYgqVrwaRk3b7yVnX2dgSPVmWPQ==
 
-"@thirdweb-dev/auth@^4.0.7":
-  version "4.0.7"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/auth/-/auth-4.0.7.tgz#4656381b89a650bdd404d2599464fb415c62fe8e"
-  integrity sha512-KNIgtA/hUqcJUUwrH0JxrQNn75Laez/fWkzwQIR62IuhiajNDcx2gECerUcXazzuqK3Iz+lS5gwsFg9RxoHl0Q==
+"@thirdweb-dev/auth@0.0.0-dev-754ea38-20231019214952":
+  version "0.0.0-dev-754ea38-20231019214952"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/auth/-/auth-0.0.0-dev-754ea38-20231019214952.tgz#299641b28c008ff92c2101d0578a1c7576c61737"
+  integrity sha512-bd9k1kUR6KJmhuHbmnaML4/KYBhu9r8rFB4LyGF/3gh2pofx4l86psjDKGy2e+B6qPg5bEM94guA/xkRGB2oeQ==
   dependencies:
-    "@thirdweb-dev/wallets" "2.0.7"
+    "@fastify/cookie" "^9.1.0"
+    "@thirdweb-dev/wallets" "0.0.0-dev-754ea38-20231019214952"
     cookie "^0.5.0"
+    fastify-type-provider-zod "^1.1.9"
     uuid "^9.0.1"
     zod "^3.22.3"
 
@@ -2872,6 +2882,28 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/generated-abis/-/generated-abis-0.0.1.tgz#0d788d6aff0ac08f11e9eeb9ae4c8321845272a8"
   integrity sha512-vO9/3lSLO8smyyH1QVeYravSTzFwV1nf1C/Im1NBDPdH8//YvcbhtETGGiNfHWpyCvSi0vRYwvf+/7FKdwpDGQ==
 
+"@thirdweb-dev/sdk@0.0.0-dev-754ea38-20231019214952":
+  version "0.0.0-dev-754ea38-20231019214952"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-0.0.0-dev-754ea38-20231019214952.tgz#b0395a63f32b1f391545ab540f6a8dc661ca1895"
+  integrity sha512-QsLGnq48en/KQ7EPtSFc0Hv+Vg2r7y2h66vo8umfoVS71T1NNJn1Lb7LA+L6fBbYZ5tkfSBAIBQHLpVDvjqYWA==
+  dependencies:
+    "@thirdweb-dev/chains" "0.1.55"
+    "@thirdweb-dev/contracts-js" "1.3.16"
+    "@thirdweb-dev/generated-abis" "0.0.1"
+    "@thirdweb-dev/storage" "0.0.0-dev-754ea38-20231019214952"
+    abitype "^0.2.5"
+    bn.js "^5.2.1"
+    bs58 "^5.0.0"
+    buffer "^6.0.3"
+    eventemitter3 "^5.0.1"
+    fast-deep-equal "^3.1.3"
+    merkletreejs "^0.2.24"
+    tiny-invariant "^1.2.0"
+    tweetnacl "^1.0.3"
+    uuid "^9.0.1"
+    yaml "^2.3.1"
+    zod "^3.22.3"
+
 "@thirdweb-dev/sdk@4.0.6", "@thirdweb-dev/sdk@^4.0.6":
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.6.tgz#f9c64b7d6a3beafa69777640228b773b40ed7dd5"
@@ -2902,6 +2934,15 @@
     aws4fetch "^1.0.17"
     zod "^3.20.2"
 
+"@thirdweb-dev/storage@0.0.0-dev-754ea38-20231019214952":
+  version "0.0.0-dev-754ea38-20231019214952"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-0.0.0-dev-754ea38-20231019214952.tgz#12023434e7c32905376f68094a9cea8237348841"
+  integrity sha512-PkFyYt5e8nyzIQIerM3PXF+2tUH6niJA27PyX+8/YUtUOYAMFcJNEdI5JsuAGSWh95CR5kLg+Wb9Kyw9tqReyg==
+  dependencies:
+    cid-tool "^3.0.0"
+    form-data "^4.0.0"
+    uuid "^9.0.1"
+
 "@thirdweb-dev/storage@2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-2.0.0.tgz#b3e4a34bcbcdd3b2ce3171af76d69a56993e7fa0"
@@ -2911,19 +2952,21 @@
     form-data "^4.0.0"
     uuid "^9.0.1"
 
-"@thirdweb-dev/wallets@2.0.7":
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-2.0.7.tgz#c22d1470159a150711c75b952e4fd8ef3d7d936a"
-  integrity sha512-df+MjcuIbKE0TjdR/u2WspojNhJipLF+CBXjA7UEUrwgC7VuJTyJF8G3CP/yKAR2YYW/CWJ6DXnDvly+W+JikQ==
+"@thirdweb-dev/wallets@0.0.0-dev-754ea38-20231019214952":
+  version "0.0.0-dev-754ea38-20231019214952"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-0.0.0-dev-754ea38-20231019214952.tgz#b95b7887d3fc96c410c0c2a9c7b5f8cf4c12161b"
+  integrity sha512-H6ntix77E01nkbT08wIA/aBI8mtO4RraKP8Kx57fr4sL74Lxr7ck7Iv03eajSq513nyqNHqJK6e2j5bO3LzCug==
   dependencies:
     "@account-abstraction/contracts" "^0.5.0"
     "@account-abstraction/sdk" "^0.5.0"
     "@account-abstraction/utils" "^0.5.0"
     "@blocto/sdk" "^0.5.4"
     "@coinbase/wallet-sdk" "^3.7.1"
+    "@google-cloud/kms" "3.0.1"
     "@magic-ext/connect" "^6.7.2"
     "@magic-ext/oauth" "^7.6.2"
     "@magic-sdk/provider" "^13.6.2"
+    "@metamask/eth-sig-util" "^4.0.0"
     "@paperxyz/embedded-wallet-service-sdk" "^1.2.4"
     "@paperxyz/sdk-common-utilities" "^0.1.0"
     "@safe-global/safe-core-sdk" "^3.3.4"
@@ -2931,7 +2974,7 @@
     "@safe-global/safe-ethers-lib" "^1.9.4"
     "@thirdweb-dev/chains" "0.1.55"
     "@thirdweb-dev/contracts-js" "1.3.16"
-    "@thirdweb-dev/sdk" "4.0.6"
+    "@thirdweb-dev/sdk" "0.0.0-dev-754ea38-20231019214952"
     "@walletconnect/core" "^2.9.1"
     "@walletconnect/ethereum-provider" "^2.9.1"
     "@walletconnect/jsonrpc-utils" "^1.0.8"
@@ -2939,10 +2982,14 @@
     "@walletconnect/types" "^2.9.1"
     "@walletconnect/utils" "^2.10.2"
     "@walletconnect/web3wallet" "^1.8.7"
+    asn1.js "5.4.1"
+    bn.js "5.2.0"
     buffer "^6.0.3"
     crypto-js "^4.1.1"
     eth-provider "^0.13.6"
+    ethereumjs-util "^7.1.3"
     eventemitter3 "^5.0.1"
+    key-encoder "2.0.3"
     magic-sdk "^13.6.2"
     web3-core "1.5.2"
 
@@ -5709,6 +5756,13 @@ fastify-plugin@^4.0.0, fastify-plugin@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-4.5.0.tgz#8b853923a0bba6ab6921bb8f35b81224e6988d91"
   integrity sha512-79ak0JxddO0utAXAQ5ccKhvs6vX2MGyHHMMsmZkBANrq3hXc1CHzvNPHOcvTsVMEPl5I+NT+RO4YKMGehOfSIg==
+
+fastify-type-provider-zod@^1.1.9:
+  version "1.1.9"
+  resolved "https://registry.yarnpkg.com/fastify-type-provider-zod/-/fastify-type-provider-zod-1.1.9.tgz#fcbb089e20cb91b9798ca8080a52217df191ab7f"
+  integrity sha512-Ztnu1ZWJEKJouZvdTyfgjuVqS+A4JLoCbWBvFqFhfnrg6YQvEvW+5cJvP98kNbuV5gjfpWmHSOTi3BpkidJPQg==
+  dependencies:
+    zod-to-json-schema "^3.17.1"
 
 fastify@^4.15.0:
   version "4.17.0"
@@ -9687,6 +9741,11 @@ zksync-web3@^0.14.3:
   version "0.14.3"
   resolved "https://registry.yarnpkg.com/zksync-web3/-/zksync-web3-0.14.3.tgz#64ac2a16d597464c3fc4ae07447a8007631c57c9"
   integrity sha512-hT72th4AnqyLW1d5Jlv8N2B/qhEnl2NePK2A3org7tAa24niem/UAaHMkEvmWI3SF9waYUPtqAtjpf+yvQ9zvQ==
+
+zod-to-json-schema@^3.17.1:
+  version "3.21.4"
+  resolved "https://registry.yarnpkg.com/zod-to-json-schema/-/zod-to-json-schema-3.21.4.tgz#de97c5b6d4a25e9d444618486cb55c0c7fb949fd"
+  integrity sha512-fjUZh4nQ1s6HMccgIeE0VP4QG/YRGPmyjO9sAh890aQKPEk3nqbfUXhMFaC+Dr5KvYBm8BCyvfpZf2jY9aGSsw==
 
 zod@^3.20.2, zod@^3.21.4:
   version "3.21.4"
