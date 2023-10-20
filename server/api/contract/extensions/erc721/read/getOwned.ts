@@ -18,7 +18,7 @@ const querystringSchema = Type.Object({
   }),
   start: Type.Optional(
     Type.Number({
-      description: "The start token id for paginated results. Defaults to 0.",
+      description: "The starting index for paginated results. Defaults to 0.",
       examples: ["0"],
     }),
   ),
@@ -30,7 +30,7 @@ const querystringSchema = Type.Object({
   ),
 });
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Array(nftSchema),
 });
