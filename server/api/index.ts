@@ -57,8 +57,8 @@ import { getTransactionConfiguration } from "./configuration/transactions/get";
 import { updateTransactionConfiguration } from "./configuration/transactions/update";
 import { getWalletsConfiguration } from "./configuration/wallets/get";
 import { updateWalletsConfiguration } from "./configuration/wallets/update";
-import { getWebhookConfiguration } from "./configuration/webhooks/get";
-import { updateWebhookConfiguration } from "./configuration/webhooks/update";
+import { getWebhooksConfiguration } from "./configuration/webhooks/get";
+import { updateWebhooksConfiguration } from "./configuration/webhooks/update";
 
 // Accounts
 import { accountRoutes } from "./contract/extensions/account";
@@ -80,8 +80,8 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(updateChainsConfiguration);
   await fastify.register(getTransactionConfiguration);
   await fastify.register(updateTransactionConfiguration);
-  await fastify.register(getWebhookConfiguration);
-  await fastify.register(updateWebhookConfiguration);
+  await fastify.register(getWebhooksConfiguration);
+  await fastify.register(updateWebhooksConfiguration);
 
   // Chains
   await fastify.register(getChainData);

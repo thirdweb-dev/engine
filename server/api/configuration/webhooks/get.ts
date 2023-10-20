@@ -10,17 +10,17 @@ export const ReplySchema = Type.Object({
   }),
 });
 
-export async function getWebhookConfiguration(fastify: FastifyInstance) {
+export async function getWebhooksConfiguration(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
-    url: "/configuration/webhook",
+    url: "/configuration/webhooks",
     schema: {
-      summary: "Get webhook configuration",
-      description: "Get the engine configuration for webhook",
+      summary: "Get webhooks configuration",
+      description: "Get the engine configuration for webhooks",
       tags: ["Configuration"],
-      operationId: "getWebhookConfiguration",
+      operationId: "getWebhooksConfiguration",
       response: {
         [StatusCodes.OK]: ReplySchema,
       },

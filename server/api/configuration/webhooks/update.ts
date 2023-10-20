@@ -11,17 +11,17 @@ const BodySchema = Type.Partial(
   }),
 );
 
-export async function updateWebhookConfiguration(fastify: FastifyInstance) {
+export async function updateWebhooksConfiguration(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/configuration/webhook",
+    url: "/configuration/webhooks",
     schema: {
-      summary: "Update webhook configuration",
-      description: "Update the engine configuration for webhook",
+      summary: "Update webhooks configuration",
+      description: "Update the engine configuration for webhooks",
       tags: ["Configuration"],
-      operationId: "updateWebhookConfiguration",
+      operationId: "updateWebhooksConfiguration",
       body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,
