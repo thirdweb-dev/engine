@@ -61,6 +61,14 @@ import { getWebhookConfiguration } from "./configuration/webhooks/get";
 import { updateWebhookConfiguration } from "./configuration/webhooks/update";
 
 // Accounts
+import { createAccessToken } from "./auth/access-tokens/create";
+import { getAllAccessTokens } from "./auth/access-tokens/getAll";
+import { revokeAccessToken } from "./auth/access-tokens/revoke";
+import { getAllPermissions } from "./auth/permissions/getAll";
+import { grantPermissions } from "./auth/permissions/grant";
+import { revokePermissions } from "./auth/permissions/revoke";
+import { getAuthConfiguration } from "./configuration/auth/get";
+import { updateAuthConfiguration } from "./configuration/auth/update";
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
 
@@ -82,6 +90,18 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(updateTransactionConfiguration);
   await fastify.register(getWebhookConfiguration);
   await fastify.register(updateWebhookConfiguration);
+  await fastify.register(getAuthConfiguration);
+  await fastify.register(updateAuthConfiguration);
+
+  // Permissions
+  await fastify.register(getAllPermissions);
+  await fastify.register(grantPermissions);
+  await fastify.register(revokePermissions);
+
+  // Access Tokens
+  await fastify.register(getAllAccessTokens);
+  await fastify.register(createAccessToken);
+  await fastify.register(revokeAccessToken);
 
   // Chains
   await fastify.register(getChainData);
