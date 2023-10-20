@@ -172,6 +172,20 @@ const createServer = async (): Promise<FastifyInstance> => {
     // If we have a valid secret key, skip authentication check
     const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
     if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
+      // If the secret key is being used, treat the user as the auth wallet
+      const config = await getConfiguration();
+      const wallet = new LocalWallet();
+      await wallet.import({
+        encryptedJson: config.authWalletEncryptedJson,
+        password: env.THIRDWEB_API_SECRET_KEY,
+      });
+
+      req.user = {
+        address: await wallet.getAddress(),
+        session: {
+          permissions: Permission.Admin,
+        },
+      };
       return;
     }
 
