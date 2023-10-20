@@ -7,8 +7,8 @@ export const AccessTokenSchema = Type.Object({
   id: Type.String(),
   tokenMask: Type.String(),
   walletAddress: Type.String(),
-  createdAt: Type.Date(),
-  expiresAt: Type.Date(),
+  createdAt: Type.String(),
+  expiresAt: Type.String(),
 });
 
 const ReplySchema = Type.Object({
@@ -33,7 +33,11 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const accessTokens = await getAccessTokens();
       res.status(200).send({
-        result: accessTokens,
+        result: accessTokens.map((token) => ({
+          ...token,
+          createdAt: token.createdAt.toISOString(),
+          expiresAt: token.expiresAt.toISOString(),
+        })),
       });
     },
   });

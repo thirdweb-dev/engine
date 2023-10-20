@@ -152,7 +152,11 @@ const createServer = async (): Promise<FastifyInstance> => {
       req.url === "/health" ||
       req.url.startsWith("/static") ||
       req.url.startsWith("/json") ||
-      req.url.startsWith("/auth")
+      req.url.includes("/auth/payload") ||
+      req.url.includes("/auth/login") ||
+      req.url.includes("/auth/user") ||
+      req.url.includes("/auth/switch-account") ||
+      req.url.includes("/auth/logout")
     ) {
       return;
     }

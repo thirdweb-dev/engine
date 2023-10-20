@@ -58,6 +58,8 @@ export async function createAccessToken(fastify: FastifyInstance) {
       res.status(200).send({
         result: {
           ...token,
+          createdAt: token.createdAt.toISOString(),
+          expiresAt: token.expiresAt.toISOString(),
           accessToken: jwt,
         },
       });

@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "packages": {
+    "@thirdweb-dev/auth": {
+      "signature": "9ec4ad0bfddeb61b16e294095ce463dd",
+      "file": true,
+      "replaced": "0.0.0-dev-c3bd4a3-20231020005533"
+    }
+  }
+}
