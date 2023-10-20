@@ -1,15 +1,13 @@
-import { parseJWT } from "@thirdweb-dev/auth";
 import { prisma } from "../client";
 
 interface RevokeTokenParams {
-  jwt: string;
+  id: string;
 }
 
-export const revokeToken = async ({ jwt }: RevokeTokenParams) => {
-  const { payload } = parseJWT(jwt);
+export const revokeToken = async ({ id }: RevokeTokenParams) => {
   await prisma.tokens.update({
     where: {
-      id: payload.jti,
+      id,
     },
     data: {
       revokedAt: new Date(),
