@@ -13,13 +13,13 @@ export async function updateAuthConfiguration(fastify: FastifyInstance) {
     Reply: Static<typeof ReplySchema>;
     Body: Static<typeof BodySchema>;
   }>({
-    method: "GET",
+    method: "POST",
     url: "/configuration/auth",
     schema: {
-      summary: "Get auth configuration",
-      description: "Get the engine configuration for auth",
+      summary: "Update auth configuration",
+      description: "Update the engine configuration for auth",
       tags: ["Configuration"],
-      operationId: "getAuthConfiguration",
+      operationId: "updateAuthConfiguration",
       response: {
         [StatusCodes.OK]: ReplySchema,
       },
