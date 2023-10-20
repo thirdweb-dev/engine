@@ -5,13 +5,19 @@ interface CreatePermissionsParams {
   permissions: string;
 }
 
-export const createPermissions = async ({
+export const updatePermissions = async ({
   walletAddress,
   permissions,
 }: CreatePermissionsParams) => {
-  return prisma.permissions.create({
-    data: {
+  return prisma.permissions.upsert({
+    where: {
       walletAddress: walletAddress.toLowerCase(),
+    },
+    create: {
+      walletAddress: walletAddress.toLowerCase(),
+      permissions,
+    },
+    update: {
       permissions,
     },
   });

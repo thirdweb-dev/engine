@@ -1,6 +1,7 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import { parseJWT } from "@thirdweb-dev/auth";
 import { ThirdwebAuth, getToken as getJWT } from "@thirdweb-dev/auth/fastify";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
@@ -13,7 +14,9 @@ import { getToken } from "../../src/db/tokens/getToken";
 import { revokeToken } from "../../src/db/tokens/revokeToken";
 import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
+import { TAuthData, TAuthSession } from "../middleware/auth";
 import { errorHandler } from "../middleware/error";
+import { Permission } from "../schemas/auth";
 import { openapi } from "./openapi";
 
 const createServer = async (): Promise<FastifyInstance> => {
@@ -97,7 +100,10 @@ const createServer = async (): Promise<FastifyInstance> => {
   await errorHandler(server);
 
   const config = await getConfiguration();
-  const { authRouter, authMiddleware, getUser } = ThirdwebAuth({
+  const { authRouter, authMiddleware, getUser } = ThirdwebAuth<
+    TAuthData,
+    TAuthSession
+  >({
     domain: config.authDomain,
     wallet: new AsyncWallet({
       getSigner: async () => {
@@ -129,7 +135,8 @@ const createServer = async (): Promise<FastifyInstance> => {
       },
       onLogout: async (_, req) => {
         const jwt = getJWT(req)!; // TODO: Fix this
-        await revokeToken({ jwt });
+        const { payload } = parseJWT(jwt);
+        await revokeToken({ id: payload.jti });
       },
     },
   });
@@ -137,6 +144,7 @@ const createServer = async (): Promise<FastifyInstance> => {
   await server.register(authRouter, { prefix: "/auth" });
   await server.register(authMiddleware);
 
+  server.decorateRequest("user", null);
   server.addHook("onRequest", async (req, res) => {
     if (
       req.url === "/favicon.ico" ||
@@ -144,7 +152,11 @@ const createServer = async (): Promise<FastifyInstance> => {
       req.url === "/health" ||
       req.url.startsWith("/static") ||
       req.url.startsWith("/json") ||
-      req.url.startsWith("/auth")
+      req.url.includes("/auth/payload") ||
+      req.url.includes("/auth/login") ||
+      req.url.includes("/auth/user") ||
+      req.url.includes("/auth/switch-account") ||
+      req.url.includes("/auth/logout")
     ) {
       return;
     }
@@ -160,6 +172,20 @@ const createServer = async (): Promise<FastifyInstance> => {
     // If we have a valid secret key, skip authentication check
     const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
     if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
+      // If the secret key is being used, treat the user as the auth wallet
+      const config = await getConfiguration();
+      const wallet = new LocalWallet();
+      await wallet.import({
+        encryptedJson: config.authWalletEncryptedJson,
+        password: env.THIRDWEB_API_SECRET_KEY,
+      });
+
+      req.user = {
+        address: await wallet.getAddress(),
+        session: {
+          permissions: Permission.Admin,
+        },
+      };
       return;
     }
 
@@ -172,7 +198,13 @@ const createServer = async (): Promise<FastifyInstance> => {
       if (token?.revokedAt === null) {
         // Then we perform our standard auth checks for the user
         const user = await getUser(req);
-        if (user) {
+
+        // Ensure that the token user is an admin or owner
+        if (
+          (user && user?.session?.permissions === Permission.Owner) ||
+          user?.session?.permissions === Permission.Admin
+        ) {
+          req.user = user;
           return;
         }
       }

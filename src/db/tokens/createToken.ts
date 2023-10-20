@@ -11,7 +11,7 @@ export const createToken = async ({
   isAccessToken,
 }: CreateTokenParams) => {
   const { payload } = parseJWT(jwt);
-  await prisma.tokens.create({
+  return prisma.tokens.create({
     data: {
       id: payload.jti,
       tokenMask: jwt.slice(0, 10) + "..." + jwt.slice(-10),
