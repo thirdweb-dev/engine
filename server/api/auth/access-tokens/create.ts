@@ -47,7 +47,8 @@ export async function createAccessToken(fastify: FastifyInstance) {
           sub: req.user.address,
           aud: config.authDomain,
           nbf: new Date(),
-          exp: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          // Set to expire in 100 years
+          exp: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100),
           iat: new Date(),
           ctx: req.user.session,
         },
