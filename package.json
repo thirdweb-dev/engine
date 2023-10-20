@@ -40,7 +40,7 @@
     "@prisma/client": "5.2.0",
     "@sinclair/typebox": "^0.28",
     "@t3-oss/env-core": "^0.6.0",
-    "@thirdweb-dev/auth": "file:.yalc/@thirdweb-dev/auth",
+    "@thirdweb-dev/auth": "0.0.0-dev-517b60c-20231020021137",
     "@thirdweb-dev/chains": "^0.1.55",
     "@thirdweb-dev/sdk": "^4.0.6",
     "@thirdweb-dev/service-utils": "^0.4.2",
