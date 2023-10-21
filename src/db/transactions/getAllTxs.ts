@@ -52,28 +52,27 @@ export const getAllTxs = async ({
   //   filterBy = "errorMessage";
   // }
 
-  // const filterQuery = {
-  //   ...(filterBy
-  //     ? {
-  //         [filterBy]: {
-  //           not: null,
-  //         },
-  //       }
-  //     : {}),
-  //   ...(extensions
-  //     ? {
-  //         extension: {
-  //           in: extensions,
-  //         },
-  //       }
-  //     : {}),
-  // };
+  const filterQuery = {
+    //   ...(filterBy
+    //     ? {
+    //         [filterBy]: {
+    //           not: null,
+    //         },
+    //       }
+    //     : {}),
+    ...(extensions
+      ? {
+          extension: {
+            in: extensions,
+          },
+        }
+      : {}),
+  };
 
   // TODO: Cleaning should be handled by zod
   const totalCountPromise: Promise<number> = prisma.transactions.count({
     where: {
-      // TODO: To bring this back for Paid feature
-      // ...filterQuery,
+      ...filterQuery,
       queuedAt: {
         gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
       },
@@ -83,8 +82,7 @@ export const getAllTxs = async ({
   // TODO: Cleaning should be handled by zod
   const txsPromise: Promise<Transactions[]> = prisma.transactions.findMany({
     where: {
-      // TODO: To bring this back for Paid feature
-      // ...filterQuery,
+      ...filterQuery,
       queuedAt: {
         gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
       },
