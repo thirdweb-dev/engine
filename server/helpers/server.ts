@@ -1,11 +1,14 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
+import fastifyStatic from "@fastify/static";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { parseJWT } from "@thirdweb-dev/auth";
 import { ThirdwebAuth, getToken as getJWT } from "@thirdweb-dev/auth/fastify";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import fastify, { FastifyInstance } from "fastify";
+import path from "path";
+import { fileURLToPath } from "url";
 import { apiRoutes } from "../../server/api";
 import { getConfiguration } from "../../src/db/configuration/getConfiguration";
 import { getPermissions } from "../../src/db/permissions/getPermissions";
@@ -48,6 +51,13 @@ const createServer = async (): Promise<FastifyInstance> => {
       "Authorization",
     ],
     credentials: true,
+  });
+
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+  server.register(fastifyStatic, {
+    root: path.join(__dirname, "../../static/theme"),
+    prefix: "/static/theme", // optional: default '/'
   });
 
   server.addHook("onRequest", async (request, reply) => {
