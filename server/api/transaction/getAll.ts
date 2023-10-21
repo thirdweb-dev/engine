@@ -4,10 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getAllTxs } from "../../../src/db/transactions/getAllTxs";
 import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { createCustomError } from "../../middleware/error";
-import {
-  TransactionStatusEnum,
-  transactionResponseSchema,
-} from "../../schemas/transaction";
+import { transactionResponseSchema } from "../../schemas/transaction";
 
 // INPUT
 const requestQuerySchema = Type.Object({
@@ -23,45 +20,75 @@ const requestQuerySchema = Type.Object({
     examples: ["10"],
     default: "10",
   }),
-  filter: Type.Optional(
-    Type.Union([Type.Enum(TransactionStatusEnum), Type.Literal("all")], {
-      description:
-        "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
-      examples: ["all", "submitted", "processed", "errored", "mined", "queued"],
-      default: "all",
-    }),
-  ),
+  // filter: Type.Optional(
+  //   Type.Union([Type.Enum(TransactionStatusEnum), Type.Literal("all")], {
+  //     description:
+  //       "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
+  //     examples: ["all", "submitted", "processed", "errored", "mined", "queued"],
+  //     default: "all",
+  //   }),
+  // ),
 });
 
 // OUTPUT
 export const responseBodySchema = Type.Object({
-  result: Type.Array(transactionResponseSchema),
+  result: Type.Object({
+    transactions: Type.Array(transactionResponseSchema),
+    totalCount: Type.Number(),
+  }),
 });
 
 responseBodySchema.example = {
-  result: [
-    {
-      queueId: "d09e5849-a262-4f0f-84be-55389c6c7bce",
-      walletAddress: "0x1946267d81fb8adeeea28e6b98bcd446c8248473",
-      contractAddress: "0x365b83d67d5539c6583b9c0266a548926bf216f4",
-      chainId: "80001",
-      extension: "non-extension",
-      status: "submitted",
-      encodedInputData:
-        "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e1837300000000000000000000000000000000000000000000000000000000000f4240",
-      txType: 2,
-      gasPrice: "",
-      gasLimit: "46512",
-      maxPriorityFeePerGas: "1500000000",
-      maxFeePerGas: "1500000032",
-      txHash:
-        "0x6b63bbe29afb2813e8466c0fc48b22f6c2cc835de8b5fd2d9815c28f63b2b701",
-      submittedTxNonce: 562,
-      createdTimestamp: "2023-06-01T18:56:50.787Z",
-      txSubmittedTimestamp: "2023-06-01T18:56:54.908Z",
-      txProcessedTimestamp: "2023-06-01T18:56:54.908Z",
-    },
-  ],
+  result: {
+    transactions: [
+      {
+        queueId: "3bb66998-4c99-436c-9753-9dc931214a9b",
+        chainId: "80001",
+        fromAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
+        toAddress: "0x365b83d67d5539c6583b9c0266a548926bf216f4",
+        data: "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e183730000000000000000000000000000000000000000000000000000000000000064",
+        extension: "none",
+        value: "0x00",
+        nonce: 1758,
+        gasLimit: "39580",
+        gasPrice: "2008818932",
+        maxFeePerGas: "2209700838",
+        maxPriorityFeePerGas: "2008818916",
+        transactionType: 2,
+        transactionHash:
+          "0xf11ca950299c9e72b8d6cac8a03623c6e5a43af1d1b0d45b3fd804c129b573f8",
+        queuedAt: "2023-09-29T18:17:36.929Z",
+        processedAt: "2023-09-29T18:17:37.011Z",
+        sentAt: "2023-09-29T18:17:40.832Z",
+        minedAt: "2023-09-29T18:17:44.000Z",
+        cancelledAt: null,
+        deployedContractAddress: null,
+        deployedContractType: null,
+        errorMessage: null,
+        sentAtBlockNumber: 40653754,
+        blockNumber: 40653756,
+        status: "mined",
+        retryCount: 0,
+        retryGasValues: false,
+        retryMaxFeePerGas: null,
+        retryMaxPriorityFeePerGas: null,
+        signerAddress: null,
+        accountAddress: null,
+        target: null,
+        sender: null,
+        initCode: null,
+        callData: null,
+        callGasLimit: null,
+        verificationGasLimit: null,
+        preVerificationGas: null,
+        paymasterAndData: null,
+        userOpHash: null,
+        functionName: "transfer",
+        functionArgs: "0x3ecdbf3b911d0e9052b64850693888b008e18373,100",
+      },
+    ],
+    totalCount: 1,
+  },
 };
 
 export async function getAllTx(fastify: FastifyInstance) {
@@ -83,7 +110,7 @@ export async function getAllTx(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { page, limit, filter } = request.query;
+      const { page, limit } = request.query;
 
       if (isNaN(parseInt(page, 10))) {
         const customError = createCustomError(
@@ -101,14 +128,17 @@ export async function getAllTx(fastify: FastifyInstance) {
         throw customError;
       }
 
-      const txs = await getAllTxs({
+      const trasactionsData = await getAllTxs({
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
-        filter: filter && filter !== "all" ? filter : undefined,
+        // filter: filter && filter !== "all" ? filter : undefined, // TODO: To bring this back for Paid feature
       });
 
       reply.status(StatusCodes.OK).send({
-        result: txs,
+        result: {
+          transactions: trasactionsData.transactions,
+          totalCount: trasactionsData.totalCount,
+        },
       });
     },
   });
