@@ -22,8 +22,10 @@ export const cleanTxs = (
         ? "mined"
         : !!tx.cancelledAt
         ? "cancelled"
-        : !!tx.sentAt
+        : !!tx.sentAt && tx.retryCount === 0
         ? "sent"
+        : !!tx.sentAt && tx.retryCount > 0
+        ? "retried"
         : !!tx.processedAt
         ? "processed"
         : "queued",

@@ -5,22 +5,23 @@ import { getConfiguration } from "../../../../src/db/configuration/getConfigurat
 
 export const ReplySchema = Type.Object({
   result: Type.Object({
-    webhookUrl: Type.String(),
-    webhookAuthBearerToken: Type.String(),
+    minWalletBalance: Type.String({
+      description: "Minimum wallet balance in wei",
+    }),
   }),
 });
 
-export async function getWebhooksConfiguration(fastify: FastifyInstance) {
+export async function getWalletBalanceConfiguration(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
-    url: "/configuration/webhooks",
+    url: "/configuration/wallet-balance",
     schema: {
-      summary: "Get webhooks configuration",
-      description: "Get the engine configuration for webhooks",
+      summary: "Get wallet-balance configuration",
+      description: "Get wallet-balance configuration",
       tags: ["Configuration"],
-      operationId: "getWebhooksConfiguration",
+      operationId: "getWalletBalanceConfiguration",
       response: {
         [StatusCodes.OK]: ReplySchema,
       },
@@ -29,8 +30,7 @@ export async function getWebhooksConfiguration(fastify: FastifyInstance) {
       const config = await getConfiguration();
       res.status(200).send({
         result: {
-          webhookAuthBearerToken: config.webhookAuthBearerToken || "",
-          webhookUrl: config.webhookUrl || "",
+          minWalletBalance: config.minWalletBalance,
         },
       });
     },

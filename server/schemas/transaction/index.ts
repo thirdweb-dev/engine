@@ -198,6 +198,7 @@ export enum TransactionStatusEnum {
   Errored = "errored",
   Mined = "mined",
   Cancelled = "cancelled",
+  Retried = "retried",
 }
 
 export interface TransactionSchema {

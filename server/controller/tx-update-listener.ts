@@ -6,7 +6,7 @@ import {
   getStatusMessageAndConnectionStatus,
 } from "../helpers/websocket";
 import { subscriptionsData } from "../schemas/websocket";
-import { sendWebhook } from "../utilities/webhook";
+import { sendTxWebhook } from "../utilities/webhook";
 
 export const startTxUpdatesNotificationListener = async (): Promise<void> => {
   try {
@@ -22,7 +22,7 @@ export const startTxUpdatesNotificationListener = async (): Promise<void> => {
         const parsedPayload = JSON.parse(msg.payload);
 
         // Send webhook
-        await sendWebhook(parsedPayload);
+        await sendTxWebhook(parsedPayload);
 
         // Send websocket message
         const index = subscriptionsData.findIndex(

@@ -6,22 +6,25 @@ import { ReplySchema } from "./get";
 
 const BodySchema = Type.Partial(
   Type.Object({
-    webhookUrl: Type.String(),
-    webhookAuthBearerToken: Type.String(),
+    minWalletBalance: Type.String({
+      description: "Minimum wallet balance in wei",
+    }),
   }),
 );
 
-export async function updateWebhooksConfiguration(fastify: FastifyInstance) {
+export async function updateWalletBalanceConfiguration(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/configuration/webhooks",
+    url: "/configuration/wallet-balance",
     schema: {
-      summary: "Update webhooks configuration",
-      description: "Update the engine configuration for webhooks",
+      summary: "Update wallet-balance configuration",
+      description: "Update wallet-balance configuration",
       tags: ["Configuration"],
-      operationId: "updateWebhooksConfiguration",
+      operationId: "updateWalletBalanceConfiguration",
       body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,
@@ -31,8 +34,7 @@ export async function updateWebhooksConfiguration(fastify: FastifyInstance) {
       const config = await updateConfiguration({ ...req.body });
       res.status(200).send({
         result: {
-          webhookUrl: config.webhookUrl,
-          webhookAuthBearerToken: config.webhookAuthBearerToken,
+          minWalletBalance: config.minWalletBalance,
         },
       });
     },

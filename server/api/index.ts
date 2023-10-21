@@ -55,10 +55,16 @@ import { getChainsConfiguration } from "./configuration/chains/get";
 import { updateChainsConfiguration } from "./configuration/chains/update";
 import { getTransactionConfiguration } from "./configuration/transactions/get";
 import { updateTransactionConfiguration } from "./configuration/transactions/update";
+import { getWalletBalanceConfiguration } from "./configuration/wallet-balance/get";
+import { updateWalletBalanceConfiguration } from "./configuration/wallet-balance/update";
 import { getWalletsConfiguration } from "./configuration/wallets/get";
 import { updateWalletsConfiguration } from "./configuration/wallets/update";
-import { getWebhooksConfiguration } from "./configuration/webhooks/get";
-import { updateWebhooksConfiguration } from "./configuration/webhooks/update";
+
+// Webhooks
+import { createWebhook } from "./webhooks/create";
+import { getWebhooksEventTypes } from "./webhooks/events";
+import { getAllWebhooksData } from "./webhooks/getAll";
+import { revokeWebhook } from "./webhooks/revoke";
 
 // Accounts
 import { createAccessToken } from "./auth/access-tokens/create";
@@ -88,10 +94,16 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(updateChainsConfiguration);
   await fastify.register(getTransactionConfiguration);
   await fastify.register(updateTransactionConfiguration);
-  await fastify.register(getWebhooksConfiguration);
-  await fastify.register(updateWebhooksConfiguration);
   await fastify.register(getAuthConfiguration);
   await fastify.register(updateAuthConfiguration);
+  await fastify.register(getWalletBalanceConfiguration);
+  await fastify.register(updateWalletBalanceConfiguration);
+
+  // Webhooks
+  await fastify.register(getAllWebhooksData);
+  await fastify.register(createWebhook);
+  await fastify.register(revokeWebhook);
+  await fastify.register(getWebhooksEventTypes);
 
   // Permissions
   await fastify.register(getAllPermissions);

@@ -7,6 +7,7 @@ import {
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../../../server/schemas/transaction";
+import { sendBalanceWebhook } from "../../../server/utilities/webhook";
 import { getSdk } from "../../../server/utils/cache/getSdk";
 import { prisma } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
@@ -14,6 +15,7 @@ import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
+import { WalletBalanceWebhookSchema } from "../../schema/webhooks";
 import { logger } from "../../utils/logger";
 import { randomNonce } from "../utils/nonce";
 
@@ -99,8 +101,9 @@ export const processTx = async () => {
           });
 
           // - For each wallet address, check the nonce in database and the mempool
-          const [mempoolNonceData, dbNonceData, gasOverrides] =
+          const [walletBalance, mempoolNonceData, dbNonceData, gasOverrides] =
             await Promise.all([
+              sdk.wallet.balance(),
               sdk.wallet.getNonce("pending"),
               getWalletNonce({
                 pgtx,
@@ -110,116 +113,138 @@ export const processTx = async () => {
               getDefaultGasOverrides(sdk.getProvider()),
             ]);
 
-          if (!dbNonceData) {
-            logger.worker.error(
-              `Could not find nonce or details for wallet ${walletAddress} on chain ${chainId}`,
-            );
-          }
+          // Wallet Balance Webhook
+          if (
+            BigNumber.from(walletBalance.value).lte(
+              BigNumber.from(config.minWalletBalance),
+            )
+          ) {
+            const walletBalanceData: WalletBalanceWebhookSchema = {
+              walletAddress,
+              minimumBalance: ethers.utils.formatEther(config.minWalletBalance),
+              currentBalance: walletBalance.displayValue,
+              chainId,
+              message:
+                "Wallet balance is below minimum threshold. Please Refill",
+            };
 
-          // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
-          let startNonce: BigNumber;
-          const mempoolNonce = BigNumber.from(mempoolNonceData);
-          const dbNonce = BigNumber.from(dbNonceData?.nonce || 0);
-          if (mempoolNonce.gt(dbNonce)) {
+            await sendBalanceWebhook(walletBalanceData);
+
+            throw new Error(
+              `Wallet ${walletAddress} balance is below minimum threshold. Please Refill`,
+            );
+          } else {
+            if (!dbNonceData) {
+              logger.worker.error(
+                `Could not find nonce or details for wallet ${walletAddress} on chain ${chainId}`,
+              );
+            }
+
+            // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
+            let startNonce: BigNumber;
+            const mempoolNonce = BigNumber.from(mempoolNonceData);
+            const dbNonce = BigNumber.from(dbNonceData?.nonce || 0);
+            if (mempoolNonce.gt(dbNonce)) {
+              await updateWalletNonce({
+                pgtx,
+                chainId,
+                address: walletAddress,
+                nonce: mempoolNonce.toNumber(),
+              });
+
+              startNonce = mempoolNonce;
+            } else {
+              startNonce = dbNonce;
+            }
+
+            let incrementNonce = 0;
+
+            // - Wait for transactions to be sent successfully
+            const txStatuses: SentTxStatus[] = [];
+            for (const i in txsToSend) {
+              const tx = txsToSend[i];
+              const nonce = startNonce.add(i);
+
+              try {
+                logger.worker.info(
+                  `[Transaction] [${tx.queueId}] Sending with nonce '${nonce}'`,
+                );
+                const res = await sdk.getSigner()!.sendTransaction({
+                  to: tx.toAddress!,
+                  from: tx.fromAddress!,
+                  data: tx.data!,
+                  value: tx.value!,
+                  nonce,
+                  ...gasOverrides,
+                });
+
+                logger.worker.info(
+                  `[Transaction] [${tx.queueId}] Submitted with nonce '${nonce}' & hash '${res.hash}'`,
+                );
+
+                // - Keep track of the number of transactions that went through successfully
+                incrementNonce++;
+                txStatuses.push({
+                  status: TransactionStatusEnum.Submitted,
+                  queueId: tx.queueId!,
+                  res,
+                  sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
+                });
+              } catch (err: any) {
+                logger.worker.warn(
+                  `[Transaction] [${tx.queueId}] [Nonce: ${nonce}] Failed to send with error - ${err}`,
+                );
+
+                txStatuses.push({
+                  status: TransactionStatusEnum.Errored,
+                  queueId: tx.queueId!,
+                  errorMessage:
+                    err?.message ||
+                    err?.toString() ||
+                    `Failed to handle transaction`,
+                });
+              }
+            }
+
+            // - After sending transactions, update database for each transaction
+            await Promise.all(
+              txStatuses.map(async (tx) => {
+                switch (tx.status) {
+                  case TransactionStatusEnum.Submitted:
+                    await updateTx({
+                      pgtx,
+                      queueId: tx.queueId,
+                      data: {
+                        status: TransactionStatusEnum.Submitted,
+                        res: tx.res,
+                        sentAtBlockNumber: await sdk
+                          .getProvider()
+                          .getBlockNumber(),
+                      },
+                    });
+                    break;
+                  case TransactionStatusEnum.Errored:
+                    await updateTx({
+                      pgtx,
+                      queueId: tx.queueId,
+                      data: {
+                        status: TransactionStatusEnum.Errored,
+                        errorMessage: tx.errorMessage,
+                      },
+                    });
+                    break;
+                }
+              }),
+            );
+
+            // - And finally update the nonce with the number of successful transactions
             await updateWalletNonce({
               pgtx,
-              chainId,
               address: walletAddress,
-              nonce: mempoolNonce.toNumber(),
+              chainId,
+              nonce: startNonce.toNumber() + incrementNonce,
             });
-
-            startNonce = mempoolNonce;
-          } else {
-            startNonce = dbNonce;
           }
-
-          let incrementNonce = 0;
-
-          // - Wait for transactions to be sent successfully
-          const txStatuses: SentTxStatus[] = [];
-          for (const i in txsToSend) {
-            const tx = txsToSend[i];
-            const nonce = startNonce.add(i);
-
-            try {
-              logger.worker.info(
-                `[Transaction] [${tx.queueId}] Sending with nonce '${nonce}'`,
-              );
-              const res = await sdk.getSigner()!.sendTransaction({
-                to: tx.toAddress!,
-                from: tx.fromAddress!,
-                data: tx.data!,
-                value: tx.value!,
-                nonce,
-                ...gasOverrides,
-              });
-
-              logger.worker.info(
-                `[Transaction] [${tx.queueId}] Submitted with nonce '${nonce}' & hash '${res.hash}'`,
-              );
-
-              // - Keep track of the number of transactions that went through successfully
-              incrementNonce++;
-              txStatuses.push({
-                status: TransactionStatusEnum.Submitted,
-                queueId: tx.queueId!,
-                res,
-                sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
-              });
-            } catch (err: any) {
-              logger.worker.warn(
-                `[Transaction] [${tx.queueId}] [Nonce: ${nonce}] Failed to send with error - ${err}`,
-              );
-
-              txStatuses.push({
-                status: TransactionStatusEnum.Errored,
-                queueId: tx.queueId!,
-                errorMessage:
-                  err?.message ||
-                  err?.toString() ||
-                  `Failed to handle transaction`,
-              });
-            }
-          }
-
-          // - After sending transactions, update database for each transaction
-          await Promise.all(
-            txStatuses.map(async (tx) => {
-              switch (tx.status) {
-                case TransactionStatusEnum.Submitted:
-                  await updateTx({
-                    pgtx,
-                    queueId: tx.queueId,
-                    data: {
-                      status: TransactionStatusEnum.Submitted,
-                      res: tx.res,
-                      sentAtBlockNumber: await sdk
-                        .getProvider()
-                        .getBlockNumber(),
-                    },
-                  });
-                  break;
-                case TransactionStatusEnum.Errored:
-                  await updateTx({
-                    pgtx,
-                    queueId: tx.queueId,
-                    data: {
-                      status: TransactionStatusEnum.Errored,
-                      errorMessage: tx.errorMessage,
-                    },
-                  });
-                  break;
-              }
-            }),
-          );
-
-          // - And finally update the nonce with the number of successful transactions
-          await updateWalletNonce({
-            pgtx,
-            address: walletAddress,
-            chainId,
-            nonce: startNonce.toNumber() + incrementNonce,
-          });
         });
 
         // 5. Send all user operations in parallel with multi-dimensional nonce

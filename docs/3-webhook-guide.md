@@ -6,24 +6,85 @@ Make sure to read the `README.md` and previous `user-guide.md` before starting t
 
 ### Setup
 
-Add the below variable (Either on `.env` file or as environment variables)
+To setup a webhook, you need to create a webhook URL. You can create a webhook URL using the end-points available in the `Webhooks` section of the API.
 
+### Signature Verification
+
+The payload will be signed with the webhook secret. The signature will be sent as `X-Signature` header in the request. You can verify the signature using `isValidSignature` the below code:
+
+```ts
+const generateSignature = (
+  body: string,
+  timestamp: string,
+  secret: string,
+): string => {
+  const payload = `${timestamp}.${body}`;
+  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
+};
+
+const isValidSignature = (
+  body: string,
+  timestamp: string,
+  signature: string,
+  secret: string,
+): boolean => {
+  const expectedSignature = generateSignature(body, timestamp, secret);
+  return crypto.timingSafeEqual(
+    Buffer.from(expectedSignature),
+    Buffer.from(signature),
+  );
+};
 ```
-WEBHOOK_URL=<your_web_hook_url>
+
+### Timestamp Verification
+
+The timestamp will be sent as `X-Timestamp` header in the request. You can verify the timestamp using the below code:
+
+```ts
+export const isExpired = (
+  timestamp: string,
+  expirationTimeInSeconds: number,
+): boolean => {
+  const currentTime = Math.floor(Date.now() / 1000);
+  return currentTime - parseInt(timestamp) > expirationTimeInSeconds;
+};
 ```
 
-The webhook URL needs to be a `POST` method to accept the data being sent.
+### Sample Webhook Server Code
 
-### Authentication
+```ts
+const WEBHOOK_SECRET = "YOUR_WEBHOOK_AUTH_TOKEN";
 
-The webhook URL will be sent with a 'Authorization' header with the value as `Bearer <webhook_auth_bearer_token>`. The value of the token will be the same as the `WEBHOOK_AUTH_BEARER_TOKEN` environment variable. You can set this variable to any value you want.
+app.post("/webhook", (req, res) => {
+  const signatureFromHeader = req.header("X-Signature");
+  const timestampFromHeader = req.header("X-Timestamp");
 
+  if (!signatureFromHeader || !timestampFromHeader) {
+    return res.status(401).send("Missing signature or timestamp header");
+  }
+
+  if (
+    !isValidSignature(
+      req.body,
+      timestampFromHeader,
+      signatureFromHeader,
+      WEBHOOK_SECRET,
+    )
+  ) {
+    return res.status(401).send("Invalid signature");
+  }
+
+  if (isExpired(timestampFromHeader, 300)) {
+    // Assuming expiration time is 5 minutes (300 seconds)
+    return res.status(401).send("Request has expired");
+  }
+
+  // Process the request
+  res.status(200).send("Webhook received!");
+});
 ```
-# env variable
-WEBHOOK_AUTH_BEARER_TOKEN=<your_web_hook_auth_token>
-```
 
-### Payload
+### Payload Example
 
 The payload sent to the webhook URL will be in the below format:
 
