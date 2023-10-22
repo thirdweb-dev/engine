@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllWebhooks } from "../../../src/db/webhooks/getAllWebhooks";
+import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 
 const ReplySchema = Type.Object({
   result: Type.Array(
@@ -29,6 +30,7 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
       tags: ["Webhooks"],
       operationId: "getAllWebhooksData",
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../src/db/configuration/updateConfiguration";
+import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Partial(
@@ -12,21 +13,22 @@ const BodySchema = Type.Partial(
   }),
 );
 
-export async function updateWalletBalanceConfiguration(
+export async function updateBackendWalletBalanceConfiguration(
   fastify: FastifyInstance,
 ) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/configuration/wallet-balance",
+    url: "/configuration/backend-wallet-balance",
     schema: {
-      summary: "Update wallet-balance configuration",
-      description: "Update wallet-balance configuration",
+      summary: "Update backend-wallet-balance configuration",
+      description: "Update backend-wallet-balance configuration",
       tags: ["Configuration"],
-      operationId: "updateWalletBalanceConfiguration",
+      operationId: "updateBackendWalletBalanceConfiguration",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

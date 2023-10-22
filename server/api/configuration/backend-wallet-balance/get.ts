@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../../src/db/configuration/getConfiguration";
+import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 
 export const ReplySchema = Type.Object({
   result: Type.Object({
@@ -11,18 +12,21 @@ export const ReplySchema = Type.Object({
   }),
 });
 
-export async function getWalletBalanceConfiguration(fastify: FastifyInstance) {
+export async function getBackendWalletBalanceConfiguration(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
-    url: "/configuration/wallet-balance",
+    url: "/configuration/backend-wallet-balance",
     schema: {
       summary: "Get wallet-balance configuration",
       description: "Get wallet-balance configuration",
       tags: ["Configuration"],
-      operationId: "getWalletBalanceConfiguration",
+      operationId: "getBackendWalletBalanceConfiguration",
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

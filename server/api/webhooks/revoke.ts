@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { markWebhookAsRevoked } from "../../../src/db/webhooks/revokeWebhook";
+import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 
 const BodySchema = Type.Object({
   id: Type.Number(),
@@ -27,6 +28,7 @@ export async function revokeWebhook(fastify: FastifyInstance) {
       operationId: "revokeWebhooks",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

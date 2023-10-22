@@ -1,5 +1,6 @@
 import { Static } from "@sinclair/typebox";
 import crypto from "crypto";
+import { getConfiguration } from "../../src/db/configuration/getConfiguration";
 import { getTxById } from "../../src/db/transactions/getTxById";
 import {
   SanitizedWebHooksSchema,
@@ -36,8 +37,8 @@ export const createWebhookRequestHeaders = async (
     Accept: string;
     "Content-Type": string;
     Authorization?: string;
-    "X-Signature"?: string;
-    "X-Timestamp"?: string;
+    "X-Engine-Signature"?: string;
+    "X-Engine-Timestamp"?: string;
   } = {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -48,8 +49,8 @@ export const createWebhookRequestHeaders = async (
     const signature = generateSignature(body, timestamp, webhookConfig.secret);
 
     headers["Authorization"] = `Bearer ${webhookConfig.secret}`;
-    headers["X-Signature"] = signature;
-    headers["X-Timestamp"] = timestamp;
+    headers["X-Engine-Signature"] = signature;
+    headers["X-Engine-Timestamp"] = timestamp;
   }
 
   return headers;
@@ -84,33 +85,44 @@ export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
     let webhookConfig: SanitizedWebHooksSchema | undefined =
       await getWebhookConfig(WebhooksEventTypes.ALL_TX);
 
-    if (txData.status === TransactionStatusEnum.Queued && !webhookConfig) {
-      webhookConfig = await getWebhookConfig(WebhooksEventTypes.QUEUED_TX);
-    } else if (
-      txData.status === TransactionStatusEnum.Submitted &&
-      !webhookConfig
-    ) {
-      webhookConfig = await getWebhookConfig(WebhooksEventTypes.SENT_TX);
-    } else if (
-      txData.status === TransactionStatusEnum.Retried &&
-      !webhookConfig
-    ) {
-      webhookConfig = await getWebhookConfig(WebhooksEventTypes.RETRIED_TX);
-    } else if (
-      txData.status === TransactionStatusEnum.Mined &&
-      !webhookConfig
-    ) {
-      webhookConfig = await getWebhookConfig(WebhooksEventTypes.MINED_TX);
-    } else if (
-      txData.status === TransactionStatusEnum.Errored &&
-      !webhookConfig
-    ) {
-      webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
-    } else if (
-      txData.status === TransactionStatusEnum.Cancelled &&
-      !webhookConfig
-    ) {
-      webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
+    // For Backwards Compatibility
+    const config = await getConfiguration();
+    if (config?.webhookUrl && config?.webhookAuthBearerToken) {
+      webhookConfig = {
+        id: 0,
+        url: config.webhookUrl,
+        secret: config.webhookAuthBearerToken,
+        active: true,
+        eventType: WebhooksEventTypes.ALL_TX,
+        createdAt: new Date().toISOString(),
+        name: "Legacy Webhook",
+      };
+
+      await sendWebhookRequest(webhookConfig, txData);
+      return;
+    }
+
+    if (!webhookConfig) {
+      switch (txData.status) {
+        case TransactionStatusEnum.Queued:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.QUEUED_TX);
+          break;
+        case TransactionStatusEnum.Submitted:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.SENT_TX);
+          break;
+        case TransactionStatusEnum.Retried:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.RETRIED_TX);
+          break;
+        case TransactionStatusEnum.Mined:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.MINED_TX);
+          break;
+        case TransactionStatusEnum.Errored:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
+          break;
+        case TransactionStatusEnum.Cancelled:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
+          break;
+      }
     }
 
     if (!webhookConfig || !webhookConfig?.active) {
@@ -124,14 +136,15 @@ export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
   }
 };
 
+// TODO: Add retry logic upto
 export const sendBalanceWebhook = async (
   data: WalletBalanceWebhookSchema,
 ): Promise<void> => {
   try {
     const elaspsedTime = Date.now() - balanceNotificationLastSentAt;
-    if (elaspsedTime < 60 * 1000) {
+    if (elaspsedTime < 30000) {
       logger.server.warn(
-        `[sendBalanceWebhook] Low Wallet Balance Notification Sent within last minute. Skipping.`,
+        `[sendBalanceWebhook] Low Wallet Balance Notification Sent within last 30 Seconds. Skipping.`,
       );
       return;
     }

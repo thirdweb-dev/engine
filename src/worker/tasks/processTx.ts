@@ -119,20 +119,19 @@ export const processTx = async () => {
               BigNumber.from(config.minWalletBalance),
             )
           ) {
+            const message =
+              "Wallet balance is below minimum threshold. Please top up your wallet.";
             const walletBalanceData: WalletBalanceWebhookSchema = {
               walletAddress,
               minimumBalance: ethers.utils.formatEther(config.minWalletBalance),
               currentBalance: walletBalance.displayValue,
               chainId,
-              message:
-                "Wallet balance is below minimum threshold. Please Refill",
+              message,
             };
 
             await sendBalanceWebhook(walletBalanceData);
 
-            throw new Error(
-              `Wallet ${walletAddress} balance is below minimum threshold. Please Refill`,
-            );
+            throw new Error(message);
           } else {
             if (!dbNonceData) {
               logger.worker.error(

@@ -4,11 +4,6 @@ import {
   WebhooksEventTypes,
 } from "../../../src/schema/webhooks";
 
-interface WebhookConfig {
-  url: string;
-  secret?: string;
-}
-
 export const webhookCache = new Map<string, SanitizedWebHooksSchema>();
 
 export const getWebhookConfig = async (

@@ -37,6 +37,10 @@ model Configuration {
   authDomain                         String  @default("") @map("authDomain") // TODO: Remove defaults on major
   authWalletEncryptedJson            String  @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
   
+  // Webhook
+  webhookUrl                         String? @map("webhookUrl")
+  webhookAuthBearerToken             String? @map("webhookAuthBearerToken")
+  
   // Wallet balance
   minWalletBalance                   String @default("20000000000000000") @map("minWalletBalance")
 
@@ -149,7 +153,7 @@ model Webhooks {
   id            Int           @id @default(autoincrement())@map("id")
   name          String        @map("name")
   url           String        @map("url")
-  secret        String?       @map("secret")
+  secret        String        @map("secret")
   eventType     String        @map("evenType")
   createdAt     DateTime      @default(now()) @map("createdAt")
   updatedAt     DateTime      @updatedAt @map("updatedAt")

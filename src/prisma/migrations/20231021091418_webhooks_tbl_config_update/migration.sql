@@ -6,9 +6,8 @@
 
 */
 -- AlterTable
-ALTER TABLE "configuration" DROP COLUMN "webhookAuthBearerToken",
-DROP COLUMN "webhookUrl",
-ADD COLUMN     "minWalletBalance" TEXT NOT NULL DEFAULT '20000000000000000';
+ALTER TABLE "configuration"
+ADD COLUMN     "minWalletBalance" TEXT NOT NULL DEFAULT '2000000000000000';
 
 -- CreateTable
 CREATE TABLE "webhooks" (

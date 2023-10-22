@@ -1,16 +1,43 @@
 ## Webhooks
 
-Engine now supports Webhooks to allow you to get updates on all activity happening w.r.t your requests.
+Engine now supports Webhooks to allow you to subscribe to event notifications. You can subscribe to events such as when a transaction is mined, when a transaction is sent, when a transaction is queued, backend-wallet balance etc.
 
-Make sure to read the `README.md` and previous `user-guide.md` before starting this one.
+> NOTE: We only support `https` URLs for webhooks & `http://localhost` URLs for local development.
+
+### Supported Webhook Events
+
+| Event Type               | Description                                                                      |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `All_Transaction`        | Subscribe to all transaction events (Queued, Sent, Mined, Errored, Retried).     |
+| `Queued_Transaction`     | When a transaction is queued on event.                                           |
+| `Sent_Transaction`       | When a transaction is sent to the network.                                       |
+| `Mined_Transaction`      | When a transaction is mined on the network.                                      |
+| `Errored_Transaction`    | When a transaction is errored out.                                               |
+| `Retried_Transaction`    | When a transaction is retried.                                                   |
+| `Cancelled_Transaction`  | When a transaction is cancelled.                                                 |
+| `Backend_Wallet_Balance` | When the backend-wallet balance is below `minWalletBalance` Configuration Value. |
 
 ### Setup
 
-To setup a webhook, you need to create a webhook URL. You can create a webhook URL using the end-points available in the `Webhooks` section of the API.
+#### Backend Wallet Balance Webhook
+
+Update the `minWalletBalance` configuration value to the minimum balance you want to maintain in the backend-wallet. By Default the value is `2000000000000000 wei`. Once the balance goes below the configured value, a webhook will be sent to the configured URL. This can be done via the end-point `/configuration/backend-wallet-balance`.
+
+> NOTE: Backend Wallets with low balance will not be able to send transactions, untill the balance is topped up.
+
+#### Transaction Webhook
+
+Use the `/webooks/create` end-point to create a webhook. The payload will be sent to the configured URL when the event occurs. The payload will be sent as `POST` request with `Content-Type: application/json` header.
+
+### Webhook Signature & Security
+
+To make it more secure, you can verify that the request originated from your Engine instance by checking the signature and timestamp.
+
+The payload will be signed with the webhook secret. The signature will be sent as `X-Engine-Signature` header in the request. You can verify the signature using `isValidSignature`. The timestamp will be sent as `X-Engine-Timestamp` header in the request. You can verify the timestamp using `isExpired`. The timestamp will expire after 5 minutes.
 
 ### Signature Verification
 
-The payload will be signed with the webhook secret. The signature will be sent as `X-Signature` header in the request. You can verify the signature using `isValidSignature` the below code:
+The payload will be signed with the webhook secret. The signature will be sent as `X-Engine-Signature` header in the request. You can verify the signature using `isValidSignature` the below code:
 
 ```ts
 const generateSignature = (
@@ -38,7 +65,7 @@ const isValidSignature = (
 
 ### Timestamp Verification
 
-The timestamp will be sent as `X-Timestamp` header in the request. You can verify the timestamp using the below code:
+The timestamp will be sent as `X-Engine-Timestamp` header in the request. You can verify the timestamp using the below code:
 
 ```ts
 export const isExpired = (
@@ -50,14 +77,27 @@ export const isExpired = (
 };
 ```
 
-### Sample Webhook Server Code
+### Sample Webhook Listener Code
+
+Webhook listeners receive requests and process event data.
+
+Below is a sample code in NodeJS. It listens for event notifications on the `/webhook` end-point.
 
 ```ts
-const WEBHOOK_SECRET = "YOUR_WEBHOOK_AUTH_TOKEN";
+import express from "express";
+import bodyParser from "body-parser";
+import { isValidSignature, isExpired } from "./webhookHelper";
+
+const app = express();
+const port = 3000;
+
+const WEBHOOK_SECRET = "YOUR_WEBHOOK_AUTH_TOKEN"; // Replace with your secret
+
+app.use(bodyParser.text());
 
 app.post("/webhook", (req, res) => {
-  const signatureFromHeader = req.header("X-Signature");
-  const timestampFromHeader = req.header("X-Timestamp");
+  const signatureFromHeader = req.header("X-Engine-Signature");
+  const timestampFromHeader = req.header("X-Engine-Timestamp");
 
   if (!signatureFromHeader || !timestampFromHeader) {
     return res.status(401).send("Missing signature or timestamp header");
@@ -82,6 +122,10 @@ app.post("/webhook", (req, res) => {
   // Process the request
   res.status(200).send("Webhook received!");
 });
+
+app.listen(port, () => {
+  console.log(`Server started on http://localhost:${port}`);
+});
 ```
 
 ### Payload Example
@@ -89,6 +133,9 @@ app.post("/webhook", (req, res) => {
 The payload sent to the webhook URL will be in the below format:
 
 ```json
+
+# Transaction Events
+
 {
   "chainId": 80001,
   "data": "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e183730000000000000000000000000000000000000000000000000000000000000064",
@@ -134,13 +181,3 @@ The payload sent to the webhook URL will be in the below format:
   "status": "mined"
 }
 ```
-
-### Statuses
-
-The status of the request will be sent as `status` in the payload. The possible values are:
-
-- `queued`: The request is queued and waiting to be sent.
-- `sent`: The request is sent to the network.
-- `mined`: The request is mined on the network.
-- `cancelled`: The request is cancelled.
-- `errored`: The request is errored out.
