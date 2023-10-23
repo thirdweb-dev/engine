@@ -52,7 +52,6 @@ export const env = createEnv({
       .default(
         "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable",
       ),
-    OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
@@ -67,7 +66,6 @@ export const env = createEnv({
     POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
     PORT: process.env.PORT,
     HOST: process.env.HOST,
-    OPENAPI_BASE_ORIGIN: process.env.OPENAPI_BASE_ORIGIN,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
   },
   onValidationError: (error: ZodError) => {

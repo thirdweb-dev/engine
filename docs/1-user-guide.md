@@ -12,7 +12,6 @@
 | `HOST`                    | Host name of the API Server                                                                                         | `localhost`                                                          | ❌       |
 | `PORT`                    | Port number of the API Server                                                                                       | `3005`                                                               | ❌       |
 | `CHAIN_OVERRIDES`         | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                                                                      | ❌       |
-| `OPENAPI_BASE_ORIGIN`     | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005`                                              | ❌       |
 
 ### Setup Instructions
 

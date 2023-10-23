@@ -9,10 +9,6 @@
 
 _`tx_overrides` is an optional parameter that can be passed in the body of write (on-chain transactions) end-points. It is used to override the gas values & `value` property of the blockchain transaction. If you do not pass this parameter, the default values are used._
 
-### How to set Open API Base URL?
-
-_Set the `OPENAPI_BASE_ORIGIN` environment variable to the base URL of your app. This is used to generate the Open API Specification and allows Swagger UI interaction. The default value is `http://localhost:3005`._
-
 ### How to set the RPC URLs?
 
 _Set the `CHAIN_OVERRIDES` environment variable to the path of the JSON file or URL (file hosted somewhere on the internet) containing the RPC URLs. The default value is `./chain-overrides.json`. Check the [example file](../chain-overrides.example.json) for the format._
