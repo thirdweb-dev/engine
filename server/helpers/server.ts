@@ -1,11 +1,10 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { authenticateJWT, parseJWT } from "@thirdweb-dev/auth";
+import { parseJWT } from "@thirdweb-dev/auth";
 import { ThirdwebAuth, getToken as getJWT } from "@thirdweb-dev/auth/fastify";
-import { GenericAuthWallet, LocalWallet } from "@thirdweb-dev/wallets";
+import { LocalWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
-import { utils } from "ethers";
 import fastify, { FastifyInstance } from "fastify";
 import { apiRoutes } from "../../server/api";
 import { getConfiguration } from "../../src/db/configuration/getConfiguration";
@@ -15,7 +14,7 @@ import { getToken } from "../../src/db/tokens/getToken";
 import { revokeToken } from "../../src/db/tokens/revokeToken";
 import { env } from "../../src/utils/env";
 import { logger } from "../../src/utils/logger";
-import { TAuthData, TAuthSession } from "../middleware/auth";
+import { TAuthData, TAuthSession, authWithApiServer } from "../middleware/auth";
 import { errorHandler } from "../middleware/error";
 import { Permission } from "../schemas/auth";
 import { openapi } from "./openapi";
@@ -222,38 +221,9 @@ const createServer = async (): Promise<FastifyInstance> => {
       }
 
       // 2. Otherwise, check if the token is a valid api-server JWT
-      const user = await authenticateJWT({
-        wallet: {
-          type: "evm",
-          getAddress: async () => "0x016757dDf2Ab6a998a4729A80a091308d9059E17",
-          verifySignature: async (
-            message: string,
-            signature: string,
-            address: string,
-          ) => {
-            try {
-              const messageHash = utils.hashMessage(message);
-              const messageHashBytes = utils.arrayify(messageHash);
-              const recoveredAddress = utils.recoverAddress(
-                messageHashBytes,
-                signature,
-              );
-
-              if (recoveredAddress === address) {
-                return true;
-              }
-            } catch {
-              // no-op
-            }
-
-            return false;
-          },
-        } as GenericAuthWallet,
-        jwt,
-        options: {
-          domain: "thirdweb.com",
-        },
-      });
+      const user =
+        (await authWithApiServer(jwt, "thirdweb.com")) ||
+        (await authWithApiServer(jwt, "thirdweb-preview.com"));
 
       // If we have an api-server user, return it with the proper permissions
       if (user) {
