@@ -10,7 +10,7 @@
     "docker": "docker compose --env-file ./.env up --remove-orphans",
     "docker:build": "docker compose build --no-cache",
     "dev": "yarn dev:infra && yarn prisma:setup:dev && (yarn dev:server & yarn dev:worker)",
-    "dev:server": "nodemon --watch 'server/**/*.ts' --watch 'core/**/*.ts' --watch 'src/**/*.ts' --exec 'npx ts-node ./server/index.ts' --files server/index.ts",
+    "dev:server": "nodemon --watch 'server/**/*.ts' --watch 'core/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./server/index.ts' --files server/index.ts",
     "dev:worker": "nodemon --watch 'src/worker/**/*.ts' --watch 'core/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./src/worker/index.ts' --files src/worker/index.ts",
     "dev:infra": "docker compose -f ./docker-compose-infra.yml up -d",
     "build": "yarn && rm -rf dist && tsc -p ./tsconfig.json --outDir dist",

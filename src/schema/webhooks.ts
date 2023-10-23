@@ -1,12 +1,12 @@
 export enum WebhooksEventTypes {
-  QUEUED_TX = "Queued_Transaction",
-  SENT_TX = "Sent_Transaction",
-  MINED_TX = "Mined_Transaction",
-  ERRORED_TX = "Errored_Transaction",
-  RETRIED_TX = "Retried_Transaction",
-  CANCELLED_TX = "Cancelled_Transaction",
-  ALL_TX = "All_Transactions",
-  BACKEND_WALLET_BALANCE = "Backend_Wallet_Balance",
+  QUEUED_TX = "queued_transaction",
+  SENT_TX = "sent_transaction",
+  MINED_TX = "mined_transaction",
+  ERRORED_TX = "errored_transaction",
+  RETRIED_TX = "retried_transaction",
+  CANCELLED_TX = "cancelled_transaction",
+  ALL_TX = "all_transactions",
+  BACKEND_WALLET_BALANCE = "backend_wallet_balance",
 }
 
 export interface SanitizedWebHooksSchema {
