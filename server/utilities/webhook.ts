@@ -1,42 +1,167 @@
+import { Static } from "@sinclair/typebox";
+import crypto from "crypto";
+import { getConfiguration } from "../../src/db/configuration/getConfiguration";
 import { getTxById } from "../../src/db/transactions/getTxById";
+import {
+  SanitizedWebHooksSchema,
+  WalletBalanceWebhookSchema,
+  WebhooksEventTypes,
+} from "../../src/schema/webhooks";
 import { logger } from "../../src/utils/logger";
-import { getWebhookConfig } from "../utils/cache/getWebhookConfig";
+import {
+  TransactionStatusEnum,
+  transactionResponseSchema,
+} from "../schemas/transaction";
+import { getWebhookConfig } from "../utils/cache/getWebhook";
 
-export const sendWebhook = async (data: any): Promise<void> => {
+let balanceNotificationLastSentAt = -1;
+
+interface TxWebookParams {
+  id: string;
+}
+
+export const generateSignature = (
+  body: Static<typeof transactionResponseSchema> | WalletBalanceWebhookSchema,
+  timestamp: string,
+  secret: string,
+): string => {
+  const payload = `${timestamp}.${body}`;
+  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
+};
+
+export const createWebhookRequestHeaders = async (
+  webhookConfig: SanitizedWebHooksSchema,
+  body: Static<typeof transactionResponseSchema> | WalletBalanceWebhookSchema,
+): Promise<HeadersInit> => {
+  const headers: {
+    Accept: string;
+    "Content-Type": string;
+    Authorization?: string;
+    "X-Engine-Signature"?: string;
+    "X-Engine-Timestamp"?: string;
+  } = {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  };
+
+  if (webhookConfig.secret) {
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const signature = generateSignature(body, timestamp, webhookConfig.secret);
+
+    headers["Authorization"] = `Bearer ${webhookConfig.secret}`;
+    headers["X-Engine-Signature"] = signature;
+    headers["X-Engine-Timestamp"] = timestamp;
+  }
+
+  return headers;
+};
+
+const sendWebhookRequest = async (
+  webhookConfig: SanitizedWebHooksSchema,
+  body: Static<typeof transactionResponseSchema> | WalletBalanceWebhookSchema,
+): Promise<boolean> => {
+  const headers = await createWebhookRequestHeaders(webhookConfig, body);
+  const response = await fetch(webhookConfig?.url, {
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    logger.server.error(
+      `[sendWebhook] Webhook Request error: ${response.status} ${response.statusText}`,
+    );
+
+    return false;
+  }
+
+  return true;
+};
+
+export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
   try {
-    const webhookConfig = await getWebhookConfig();
+    const txData = await getTxById({ queueId: data.id });
 
-    if (!webhookConfig.webhookUrl) {
-      logger.server.debug("No WebhookURL set, skipping webhook send");
+    let webhookConfig: SanitizedWebHooksSchema | undefined =
+      await getWebhookConfig(WebhooksEventTypes.ALL_TX);
+
+    // For Backwards Compatibility
+    const config = await getConfiguration();
+    if (config?.webhookUrl && config?.webhookAuthBearerToken) {
+      webhookConfig = {
+        id: 0,
+        url: config.webhookUrl,
+        secret: config.webhookAuthBearerToken,
+        active: true,
+        eventType: WebhooksEventTypes.ALL_TX,
+        createdAt: new Date().toISOString(),
+        name: "Legacy Webhook",
+      };
+
+      await sendWebhookRequest(webhookConfig, txData);
       return;
     }
 
-    const txData = await getTxById({ queueId: data.id });
-    const headers: {
-      Accept: string;
-      "Content-Type": string;
-      Authorization?: string;
-    } = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    };
-
-    if (webhookConfig.webhookAuthBearerToken) {
-      headers[
-        "Authorization"
-      ] = `Bearer ${webhookConfig.webhookAuthBearerToken}`;
+    if (!webhookConfig) {
+      switch (txData.status) {
+        case TransactionStatusEnum.Queued:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.QUEUED_TX);
+          break;
+        case TransactionStatusEnum.Submitted:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.SENT_TX);
+          break;
+        case TransactionStatusEnum.Retried:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.RETRIED_TX);
+          break;
+        case TransactionStatusEnum.Mined:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.MINED_TX);
+          break;
+        case TransactionStatusEnum.Errored:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
+          break;
+        case TransactionStatusEnum.Cancelled:
+          webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
+          break;
+      }
     }
 
-    const response = await fetch(webhookConfig.webhookUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(txData),
-    });
+    if (!webhookConfig || !webhookConfig?.active) {
+      logger.server.debug("No Webhook Set or Active, skipping webhook send");
+      return;
+    }
 
-    if (!response.ok) {
-      logger.server.error(
-        `[sendWebhook] Webhook Request error: ${response.status} ${response.statusText}`,
+    await sendWebhookRequest(webhookConfig, txData);
+  } catch (error) {
+    logger.server.error(`[sendWebhook] error: ${error}`);
+  }
+};
+
+// TODO: Add retry logic upto
+export const sendBalanceWebhook = async (
+  data: WalletBalanceWebhookSchema,
+): Promise<void> => {
+  try {
+    const elaspsedTime = Date.now() - balanceNotificationLastSentAt;
+    if (elaspsedTime < 30000) {
+      logger.server.warn(
+        `[sendBalanceWebhook] Low Wallet Balance Notification Sent within last 30 Seconds. Skipping.`,
       );
+      return;
+    }
+
+    const webhookConfig = await getWebhookConfig(
+      WebhooksEventTypes.BACKEND_WALLET_BALANCE,
+    );
+
+    if (!webhookConfig || !webhookConfig.active) {
+      logger.server.debug("No Webhook set, skipping webhook send");
+      return;
+    }
+
+    const success = await sendWebhookRequest(webhookConfig, data);
+
+    if (success) {
+      balanceNotificationLastSentAt = Date.now();
     }
   } catch (error) {
     logger.server.error(`[sendWebhook] error: ${error}`);

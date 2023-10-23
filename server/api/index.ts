@@ -51,14 +51,20 @@ import { sendTransaction } from "./backend-wallet/send";
 import { transfer } from "./backend-wallet/transfer";
 
 // Configuration
+import { getBackendWalletBalanceConfiguration } from "./configuration/backend-wallet-balance/get";
+import { updateBackendWalletBalanceConfiguration } from "./configuration/backend-wallet-balance/update";
 import { getChainsConfiguration } from "./configuration/chains/get";
 import { updateChainsConfiguration } from "./configuration/chains/update";
 import { getTransactionConfiguration } from "./configuration/transactions/get";
 import { updateTransactionConfiguration } from "./configuration/transactions/update";
 import { getWalletsConfiguration } from "./configuration/wallets/get";
 import { updateWalletsConfiguration } from "./configuration/wallets/update";
-import { getWebhookConfiguration } from "./configuration/webhooks/get";
-import { updateWebhookConfiguration } from "./configuration/webhooks/update";
+
+// Webhooks
+import { createWebhook } from "./webhooks/create";
+import { getWebhooksEventTypes } from "./webhooks/events";
+import { getAllWebhooksData } from "./webhooks/getAll";
+import { revokeWebhook } from "./webhooks/revoke";
 
 // Accounts
 import { createAccessToken } from "./auth/access-tokens/create";
@@ -88,10 +94,16 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(updateChainsConfiguration);
   await fastify.register(getTransactionConfiguration);
   await fastify.register(updateTransactionConfiguration);
-  await fastify.register(getWebhookConfiguration);
-  await fastify.register(updateWebhookConfiguration);
   await fastify.register(getAuthConfiguration);
   await fastify.register(updateAuthConfiguration);
+  await fastify.register(getBackendWalletBalanceConfiguration);
+  await fastify.register(updateBackendWalletBalanceConfiguration);
+
+  // Webhooks
+  await fastify.register(getAllWebhooksData);
+  await fastify.register(createWebhook);
+  await fastify.register(revokeWebhook);
+  await fastify.register(getWebhooksEventTypes);
 
   // Permissions
   await fastify.register(getAllPermissions);
