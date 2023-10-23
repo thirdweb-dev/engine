@@ -58,10 +58,11 @@ This project is in `alpha` - if you're looking for specific features & or want t
 
 Set these environment variables to get started.
 
-| Variable Name             | Description                                                                                                   |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `THIRDWEB_API_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey.                                               |
-| `POSTGRES_CONNECTION_URL` | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...] |
+| Variable Name             | Description                                                                                                      |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `THIRDWEB_API_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey.                                                  |
+| `POSTGRES_CONNECTION_URL` | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]    |
+| `ADMIN_WALLET_ADDRESS`    | The initial admin wallet address that can connect to this engine instance from the thirdweb dashboard for setup. |
 
 ### Run the server
 
@@ -71,6 +72,7 @@ Run the server using Docker with the following command.
 docker run \
     -e THIRDWEB_API_SECRET_KEY="<your-api-secret-key>" \
     -e POSTGRES_CONNECTION_URL="<your-connection-url>" \
+    -e ADMIN_WALLET_ADDRESS="<your-admin-wallet-address>" \
     -p 3005:3005 \
     thirdweb/engine:latest
 ```
