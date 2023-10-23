@@ -60,6 +60,16 @@ const createServer = async (): Promise<FastifyInstance> => {
         `Request received - ${request.method} - ${request.routerPath}`,
       );
     }
+
+    if (process.env.NODE_ENV === "production") {
+      if (request.routerPath?.includes("static")) {
+        return reply.status(404).send({
+          statusCode: 404,
+          error: "Not Found",
+          message: "Not Found",
+        });
+      }
+    }
   });
 
   server.addHook("preHandler", async (request, reply) => {

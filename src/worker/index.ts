@@ -1,3 +1,4 @@
+import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
 import { retryTxListener } from "./listeners/retryTxListener";
@@ -11,6 +12,9 @@ const worker = async () => {
 
   // Poll for mined transactions to update database
   await minedTxListener();
+
+  // Delete Successfully Processed Transactions which are older than 24 hours
+  await deleteProcessedTx();
 };
 
 worker();
