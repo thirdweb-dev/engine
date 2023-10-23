@@ -1,10 +1,11 @@
 import fastifyCors from "@fastify/cors";
 import fastifyExpress from "@fastify/express";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import { parseJWT } from "@thirdweb-dev/auth";
+import { authenticateJWT, parseJWT } from "@thirdweb-dev/auth";
 import { ThirdwebAuth, getToken as getJWT } from "@thirdweb-dev/auth/fastify";
-import { LocalWallet } from "@thirdweb-dev/wallets";
+import { GenericAuthWallet, LocalWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
+import { utils } from "ethers";
 import fastify, { FastifyInstance } from "fastify";
 import { apiRoutes } from "../../server/api";
 import { getConfiguration } from "../../src/db/configuration/getConfiguration";
@@ -192,6 +193,7 @@ const createServer = async (): Promise<FastifyInstance> => {
     // Otherwise, check for an authenticated user
     const jwt = getJWT(req);
     if (jwt) {
+      // 1. Check if the token is a valid engine JWT
       const token = await getToken({ jwt });
 
       // First, we ensure that the token hasn't been revoked
@@ -207,6 +209,52 @@ const createServer = async (): Promise<FastifyInstance> => {
           req.user = user;
           return;
         }
+      }
+
+      // 2. Otherwise, check if the token is a valid api-server JWT
+      const user = await authenticateJWT({
+        wallet: {
+          type: "evm",
+          getAddress: async () => "0x016757dDf2Ab6a998a4729A80a091308d9059E17",
+          verifySignature: async (
+            message: string,
+            signature: string,
+            address: string,
+          ) => {
+            try {
+              const messageHash = utils.hashMessage(message);
+              const messageHashBytes = utils.arrayify(messageHash);
+              const recoveredAddress = utils.recoverAddress(
+                messageHashBytes,
+                signature,
+              );
+
+              if (recoveredAddress === address) {
+                return true;
+              }
+            } catch {
+              // no-op
+            }
+
+            return false;
+          },
+        } as GenericAuthWallet,
+        jwt,
+        options: {
+          domain: "thirdweb.com",
+        },
+      });
+
+      // If we have an api-server user, return it with the proper permissions
+      if (user) {
+        const res = await getPermissions({ walletAddress: user.address });
+        req.user = {
+          address: user.address,
+          session: {
+            permissions: res?.permissions || "none",
+          },
+        };
+        return;
       }
     }
 
