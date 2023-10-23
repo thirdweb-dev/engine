@@ -1,6 +1,6 @@
 ## Webhooks
 
-Engine now supports Webhooks to allow you to subscribe to event notifications. You can subscribe to events such as when a transaction is mined, when a transaction is sent, when a transaction is queued, backend-wallet balance etc.
+Engine now supports Webhooks to allow you to subscribe to event notifications. You can subscribe to events such as when a transaction is mined, when a transaction is sent, when a transaction is queued, backend wallet balance etc.
 
 > NOTE: We only support `https` URLs for webhooks & `http://localhost` URLs for local development.
 
@@ -15,13 +15,13 @@ Engine now supports Webhooks to allow you to subscribe to event notifications. Y
 | `Errored_Transaction`    | When a transaction is errored out.                                               |
 | `Retried_Transaction`    | When a transaction is retried.                                                   |
 | `Cancelled_Transaction`  | When a transaction is cancelled.                                                 |
-| `Backend_Wallet_Balance` | When the backend-wallet balance is below `minWalletBalance` Configuration Value. |
+| `Backend_Wallet_Balance` | When the backend wallet balance is below `minWalletBalance` Configuration Value. |
 
 ### Setup
 
 #### Backend Wallet Balance Webhook
 
-Update the `minWalletBalance` configuration value to the minimum balance you want to maintain in the backend-wallet. By Default the value is `2000000000000000 wei`. Once the balance goes below the configured value, a webhook will be sent to the configured URL. This can be done via the end-point `/configuration/backend-wallet-balance`.
+Update the `minWalletBalance` configuration value to the minimum balance you want to maintain in the backend wallet. By Default the value is `2000000000000000 wei` or `0.002`. Once the balance goes below the configured value, a webhook will be sent to the configured URL. This can be done via the end-point `/configuration/backend-wallet-balance`.
 
 > NOTE: Backend Wallets with low balance will not be able to send transactions, untill the balance is topped up.
 

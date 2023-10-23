@@ -22,8 +22,8 @@ export async function updateBackendWalletBalanceConfiguration(
     method: "POST",
     url: "/configuration/backend-wallet-balance",
     schema: {
-      summary: "Update backend-wallet-balance configuration",
-      description: "Update backend-wallet-balance configuration",
+      summary: "Update backend wallet balance configuration",
+      description: "Update backend wallet balance configuration",
       tags: ["Configuration"],
       operationId: "updateBackendWalletBalanceConfiguration",
       body: BodySchema,
