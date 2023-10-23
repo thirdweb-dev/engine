@@ -46,6 +46,7 @@ export const env = createEnv({
       .enum(["production", "development", "testing", "local"])
       .default("development"),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
+    ADMIN_WALLET_ADDRESS: z.string().min(1),
     POSTGRES_CONNECTION_URL: z
       .string()
       .default(
@@ -62,6 +63,7 @@ export const env = createEnv({
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
     THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
+    ADMIN_WALLET_ADDRESS: process.env.ADMIN_WALLET_ADDRESS,
     POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
     PORT: process.env.PORT,
     HOST: process.env.HOST,
