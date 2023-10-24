@@ -144,7 +144,11 @@ const createServer = async (): Promise<FastifyInstance> => {
         await createToken({ jwt, isAccessToken: false });
       },
       onLogout: async (_, req) => {
-        const jwt = getJWT(req)!; // TODO: Fix this
+        const jwt = getJWT(req);
+        if (!jwt) {
+          return;
+        }
+
         const { payload } = parseJWT(jwt);
         await revokeToken({ id: payload.jti });
       },
