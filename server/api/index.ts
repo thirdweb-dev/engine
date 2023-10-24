@@ -78,7 +78,7 @@ import { updateAuthConfiguration } from "./configuration/auth/update";
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
 
-export const apiRoutes = async (fastify: FastifyInstance) => {
+export const withRoutes = async (fastify: FastifyInstance) => {
   // Wallet
   await fastify.register(createWallet);
   await fastify.register(importWallet);
@@ -162,4 +162,11 @@ export const apiRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(erc721Routes);
   await fastify.register(erc1155Routes);
   await fastify.register(marketplaceV3Routes);
+
+  // Health
+  fastify.get("/health", async () => {
+    return {
+      status: "OK",
+    };
+  });
 };
