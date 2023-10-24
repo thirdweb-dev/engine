@@ -30,12 +30,7 @@ export const createCustomDateTimestampError = (key: string): CustomError => {
 const flipObject = (data: any) =>
   Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
 
-const StatusCodeToCode = flipObject(StatusCodes);
-
-export const getCodeFromStatusCode = (statusCode: number) =>
-  StatusCodeToCode[statusCode];
-
-export const errorHandler = async (server: FastifyInstance) => {
+export const withErrorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler((error: Error | CustomError, request, reply) => {
     server.log.error(error);
 
@@ -44,7 +39,7 @@ export const errorHandler = async (server: FastifyInstance) => {
       const statusCode = error.statusCode ?? StatusCodes.INTERNAL_SERVER_ERROR;
       const code =
         error.code ??
-        getCodeFromStatusCode(statusCode) ??
+        flipObject(StatusCodes)[statusCode] ??
         StatusCodes.INTERNAL_SERVER_ERROR;
 
       const message = error.message ?? ReasonPhrases.INTERNAL_SERVER_ERROR;

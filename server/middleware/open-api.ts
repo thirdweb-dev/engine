@@ -1,11 +1,8 @@
 import swagger from "@fastify/swagger";
-import fastifySwaggerUI from "@fastify/swagger-ui";
+import swaggerUi from "@fastify/swagger-ui";
 import { FastifyInstance } from "fastify";
 
-// fastify-swagger v8 requires the swagger-ui & openapi specs
-// to be separate unlike old implementation
-
-export const openapi = async (server: FastifyInstance) => {
+export const withOpenApi = async (server: FastifyInstance) => {
   await server.register(swagger, {
     mode: "dynamic",
     openapi: {
@@ -36,7 +33,7 @@ export const openapi = async (server: FastifyInstance) => {
     },
   });
 
-  await server.register(fastifySwaggerUI, {
+  await server.register(swaggerUi, {
     routePrefix: "/",
     initOAuth: {},
     uiConfig: {
