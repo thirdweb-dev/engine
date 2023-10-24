@@ -11,6 +11,10 @@ export const createAwsKmsWallet = async (): Promise<string> => {
 
   const client = new KMSClient({
     region: config.walletConfiguration.awsRegion,
+    credentials: {
+      accessKeyId: config.walletConfiguration.awsAccessKeyId,
+      secretAccessKey: config.walletConfiguration.awsSecretAccessKey,
+    },
   });
 
   const res = await client.send(
