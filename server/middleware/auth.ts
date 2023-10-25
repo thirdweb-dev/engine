@@ -201,13 +201,19 @@ export const withAuth = async (server: FastifyInstance) => {
       // If we have an api-server user, return it with the proper permissions
       if (user) {
         const res = await getPermissions({ walletAddress: user.address });
-        req.user = {
-          address: user.address,
-          session: {
-            permissions: res?.permissions || "none",
-          },
-        };
-        return;
+
+        if (
+          res?.permissions === Permission.Owner ||
+          res?.permissions === Permission.Admin
+        ) {
+          req.user = {
+            address: user.address,
+            session: {
+              permissions: res.permissions,
+            },
+          };
+          return;
+        }
       }
     }
 
