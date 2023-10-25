@@ -33,11 +33,11 @@ Use the `/webooks/create` end-point to create a webhook. The payload will be sen
 
 To make it more secure, you can verify that the request originated from your Engine instance by checking the signature and timestamp.
 
-The payload will be signed with the webhook secret. The signature will be sent as `X-Engine-Signature` header in the request. You can verify the signature using `isValidSignature`. The timestamp will be sent as `X-Engine-Timestamp` header in the request. You can verify the timestamp using `isExpired`. The timestamp will expire after 5 minutes.
+The payload will be signed with the webhook secret. The signature will be sent as `x-engine-signature` header in the request. You can verify the signature using `isValidSignature`. The timestamp will be sent as `x-engine-timestamp` header in the request. You can verify the timestamp using `isExpired`. The timestamp will expire after 5 minutes.
 
 ### Signature Verification
 
-The payload will be signed with the webhook secret. The signature will be sent as `X-Engine-Signature` header in the request. You can verify the signature using `isValidSignature` the below code:
+The payload will be signed with the webhook secret. The signature will be sent as `x-engine-signature` header in the request. You can verify the signature using `isValidSignature` the below code:
 
 ```ts
 const generateSignature = (

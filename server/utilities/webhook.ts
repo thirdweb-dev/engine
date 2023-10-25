@@ -37,8 +37,8 @@ export const createWebhookRequestHeaders = async (
     Accept: string;
     "Content-Type": string;
     Authorization?: string;
-    "X-Engine-Signature"?: string;
-    "X-Engine-Timestamp"?: string;
+    "x-engine-signature"?: string;
+    "x-engine-timestamp"?: string;
   } = {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -49,8 +49,8 @@ export const createWebhookRequestHeaders = async (
     const signature = generateSignature(body, timestamp, webhookConfig.secret);
 
     headers["Authorization"] = `Bearer ${webhookConfig.secret}`;
-    headers["X-Engine-Signature"] = signature;
-    headers["X-Engine-Timestamp"] = timestamp;
+    headers["x-engine-signature"] = signature;
+    headers["x-engine-timestamp"] = timestamp;
   }
 
   return headers;
