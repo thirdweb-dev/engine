@@ -78,8 +78,10 @@ RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/src/prism
 COPY --from=base /app/dist ./dist
 
 # Copy the generated SSL certificates
-COPY --from=cert-generator /app/key.pem ./dist
-COPY --from=cert-generator /app/cert.pem ./dist
+COPY --from=cert-generator /app/key.pem ./dist/https/key.pem
+COPY --from=cert-generator /app/cert.pem ./dist/https/cert.pem
+
+RUN chmod -R 777 ./dist/https
 
 # Install production dependencies only
 RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000
