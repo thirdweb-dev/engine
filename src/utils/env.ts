@@ -63,7 +63,9 @@ export const env = createEnv({
       ),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
-    ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
+    ACCESS_CONTROL_ALLOW_ORIGIN: z
+      .string()
+      .default("https://thirdweb.com,https://thirdweb-preview.com"),
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
   },
