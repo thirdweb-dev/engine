@@ -26,5 +26,6 @@ export const withCors = async (server: FastifyInstance) => {
       "Authorization",
     ],
     credentials: true,
+    methods: ["GET", "PUT", "PATCH", "POST", "DELETE"],
   });
 };
