@@ -35,7 +35,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
       summary: "Revoke session key",
       description: "Revoke a session key for a smart account.",
       tags: ["Account"],
-      operationId: "account:revoke-session",
+      operationId: "revokeSession",
       params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,

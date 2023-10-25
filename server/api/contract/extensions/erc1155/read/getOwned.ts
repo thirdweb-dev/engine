@@ -64,7 +64,7 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
       description:
         "Get all tokens in an ERC-1155 contract owned by a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "erc1155_getOwned",
+      operationId: "getOwned",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

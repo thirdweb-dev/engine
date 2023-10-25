@@ -39,7 +39,7 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
       description:
         "Gets the royalty recipient and BPS (basis points) of a particular token in the contract.",
       tags: ["Contract-Royalties"],
-      operationId: "royalties_getTokenRoyaltyInfo",
+      operationId: "getTokenRoyaltyInfo",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

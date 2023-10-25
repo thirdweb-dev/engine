@@ -41,7 +41,7 @@ export async function directListingsCreateListing(fastify: FastifyInstance) {
       summary: "Create direct listing",
       description: "Create a direct listing on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_createListing",
+      operationId: "createListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

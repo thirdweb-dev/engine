@@ -45,7 +45,7 @@ export async function retryTransaction(fastify: FastifyInstance) {
       summary: "Retry transaction",
       description: "Retry a transaction with updated gas settings.",
       tags: ["Transaction"],
-      operationId: "txRetry",
+      operationId: "retry",
       params: requestSchema,
       body: requestBodySchema,
       response: {

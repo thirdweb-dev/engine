@@ -68,7 +68,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       summary: "Get transaction status",
       description: "Get the status for a transaction request.",
       tags: ["Transaction"],
-      operationId: "txStatus",
+      operationId: "status",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

@@ -45,7 +45,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
       description:
         "Set the royalty recipient and fee for a particular token in the contract.",
       tags: ["Contract-Royalties"],
-      operationId: "royalties_setTokenRoyaltyInfo",
+      operationId: "setTokenRoyaltyInfo",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

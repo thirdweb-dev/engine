@@ -38,7 +38,7 @@ export async function getRoles(fastify: FastifyInstance) {
       summary: "Get wallets for role",
       description: "Get all wallets with a specific role for a contract.",
       tags: ["Contract-Roles"],
-      operationId: "roles_getRole",
+      operationId: "getRole",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

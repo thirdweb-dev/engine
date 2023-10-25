@@ -44,7 +44,7 @@ export async function directListingsRevokeCurrencyApprovalForListing(
       summary: "Revoke currency approval for reserved listing",
       description: "Revoke approval of a currency for a reserved listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_revokeCurrencyApprovalForListing",
+      operationId: "revokeCurrencyApprovalForListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

@@ -35,7 +35,7 @@ export async function directListingsGetTotalCount(fastify: FastifyInstance) {
       description:
         "Get the total number of direct listings on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_getTotalCount",
+      operationId: "getTotalCount",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

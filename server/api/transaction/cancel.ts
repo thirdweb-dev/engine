@@ -61,7 +61,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     schema: {
       description: "Cancel Transaction",
       tags: ["Transaction"],
-      operationId: "cancelTransaction",
+      operationId: "cancel",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,

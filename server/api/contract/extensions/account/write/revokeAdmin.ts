@@ -35,7 +35,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       summary: "Revoke admin",
       description: "Revoke a smart account's admin permission.",
       tags: ["Account"],
-      operationId: "account:revoke-admin",
+      operationId: "revokeAdmin",
       headers: walletAuthSchema,
       params: contractParamSchema,
       body: BodySchema,

@@ -46,7 +46,7 @@ export async function transfer(fastify: FastifyInstance) {
       description:
         "Transfer native or ERC20 tokens from this wallet to another wallet",
       tags: ["Backend Wallet"],
-      operationId: "backendWallet_transfer",
+      operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
       headers: Type.Omit(walletAuthSchema, ["x-account-address"]),

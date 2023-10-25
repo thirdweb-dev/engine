@@ -18,7 +18,7 @@ export async function getWebhooksEventTypes(fastify: FastifyInstance) {
       summary: "Get webhooks event types",
       description: "Get the all the webhooks event types",
       tags: ["Webhooks"],
-      operationId: "getWebhooksEventTypes",
+      operationId: "getEventTypes",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

@@ -35,7 +35,7 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
       summary: "Grant admin",
       description: "Grant a smart account's admin permission.",
       tags: ["Account"],
-      operationId: "account:grant-admin",
+      operationId: "grantAdmin",
       headers: walletAuthSchema,
       params: contractParamSchema,
       body: BodySchema,

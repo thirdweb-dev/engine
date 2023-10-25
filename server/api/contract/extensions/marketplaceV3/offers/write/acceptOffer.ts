@@ -39,7 +39,7 @@ export async function offersAcceptOffer(fastify: FastifyInstance) {
       summary: "Accept offer",
       description: "Accept a valid offer.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offer_acceptOffer",
+      operationId: "acceptOffer",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

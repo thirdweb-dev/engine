@@ -24,7 +24,7 @@ export async function revokePermissions(fastify: FastifyInstance) {
       summary: "Revoke permissions from user",
       description: "Revoke a user's permissions",
       tags: ["Permissions"],
-      operationId: "revokePermissions",
+      operationId: "revoke",
       body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,

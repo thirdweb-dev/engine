@@ -28,7 +28,7 @@ export async function erc721TotalUnclaimedSupply(fastify: FastifyInstance) {
       summary: "Get unclaimed supply",
       description: "Get the unclaimed supply for this ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_totalUnclaimedSupply",
+      operationId: "totalUnclaimedSupply",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

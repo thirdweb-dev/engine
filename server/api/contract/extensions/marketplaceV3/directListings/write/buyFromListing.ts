@@ -47,7 +47,7 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
       description:
         "Buy from a specific direct listing from this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_buyFromListing",
+      operationId: "buyFromListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

@@ -55,7 +55,7 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
       summary: "Mint tokens (batch)",
       description: "Mint ERC-20 tokens to multiple wallets in one transaction.",
       tags: ["ERC20"],
-      operationId: "erc20_mintBatchTo",
+      operationId: "mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

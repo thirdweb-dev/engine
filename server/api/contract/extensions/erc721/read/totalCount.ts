@@ -35,7 +35,7 @@ export async function erc721TotalCount(fastify: FastifyInstance) {
       description:
         "Get the total supply in circulation for this ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_totalCount",
+      operationId: "totalCount",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

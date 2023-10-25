@@ -63,7 +63,7 @@ export async function deployPrebuiltTokenDrop(fastify: FastifyInstance) {
       summary: "Deploy Token Drop",
       description: "Deploy a Token Drop contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltTokenDrop",
+      operationId: "deployTokenDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

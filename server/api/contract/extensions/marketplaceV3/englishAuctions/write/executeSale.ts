@@ -39,7 +39,7 @@ export async function englishAuctionsExecuteSale(fastify: FastifyInstance) {
 This means the NFT(s) will be transferred to the buyer and the seller will receive the funds.
 This function can only be called after the auction has ended.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_executeSale",
+      operationId: "executeSale",
       params: requestSchema,
       body: requestBodySchema,
       response: {

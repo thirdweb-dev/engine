@@ -44,7 +44,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       description:
         "Grant a specific wallet address to transfer ERC-20 tokens from the caller wallet.",
       tags: ["ERC20"],
-      operationId: "erc20_setAllowance",
+      operationId: "setAllowance",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

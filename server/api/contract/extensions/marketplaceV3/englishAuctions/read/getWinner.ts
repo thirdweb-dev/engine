@@ -41,7 +41,7 @@ export async function englishAuctionsGetWinner(fastify: FastifyInstance) {
       description:
         "Get the winner of an English auction. Can only be called after the auction has ended.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_getWinner",
+      operationId: "getWinner",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

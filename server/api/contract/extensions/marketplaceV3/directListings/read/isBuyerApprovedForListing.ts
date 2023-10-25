@@ -47,7 +47,7 @@ export async function directListingsIsBuyerApprovedForListing(
       description:
         "Check if a buyer is approved to purchase a specific direct listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_isBuyerApprovedForListing",
+      operationId: "isBuyerApprovedForListing",
       headers: walletAuthSchema,
       params: requestSchema,
       querystring: requestQuerySchema,

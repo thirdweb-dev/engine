@@ -40,7 +40,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       summary: "Make offer",
       description: "Make an offer on a token. A valid listing is not required.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offer_makeOffer",
+      operationId: "makeOffer",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

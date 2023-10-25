@@ -45,7 +45,7 @@ export async function getChainData(fastify: FastifyInstance) {
       summary: "Get chain details",
       description: "Get details about a chain.",
       tags: ["Chain"],
-      operationId: "chain",
+      operationId: "get",
       querystring: chainRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,

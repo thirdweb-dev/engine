@@ -40,7 +40,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
       summary: "Create smart account",
       description: "Create a smart account for this account factory.",
       tags: ["Account Factory"],
-      operationId: "account-factory:create-account",
+      operationId: "createAccount",
       params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,

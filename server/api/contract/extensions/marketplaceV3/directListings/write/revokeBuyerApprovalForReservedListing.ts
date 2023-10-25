@@ -45,8 +45,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
       description:
         "Revoke approval for a buyer to purchase a reserved listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId:
-        "mktpv3_directListings_revokeBuyerApprovalForReservedListing",
+      operationId: "revokeBuyerApprovalForReservedListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

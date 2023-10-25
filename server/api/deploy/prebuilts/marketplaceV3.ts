@@ -55,7 +55,7 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
       summary: "Deploy Marketplace",
       description: "Deploy a Marketplace contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltMarketplaceV3",
+      operationId: "deployMarketplaceV3",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

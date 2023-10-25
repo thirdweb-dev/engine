@@ -64,7 +64,7 @@ export async function deployPrebuiltSplit(fastify: FastifyInstance) {
       summary: "Deploy Split",
       description: "Deploy a Split contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltSplit",
+      operationId: "deploySplit",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

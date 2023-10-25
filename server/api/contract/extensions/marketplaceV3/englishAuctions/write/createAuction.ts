@@ -44,7 +44,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       description:
         "Create an English auction listing on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_createAuction",
+      operationId: "createAuction",
       params: requestSchema,
       body: requestBodySchema,
       response: {

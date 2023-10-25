@@ -27,7 +27,7 @@ export async function grantPermissions(fastify: FastifyInstance) {
       summary: "Grant permissions to user",
       description: "Grant permissions to a user",
       tags: ["Permissions"],
-      operationId: "grantPermissions",
+      operationId: "grant",
       body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,

@@ -64,7 +64,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
       description:
         "Mint ERC-1155 tokens to multiple wallets in one transaction.",
       tags: ["ERC1155"],
-      operationId: "erc1155_mintBatchTo",
+      operationId: "mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

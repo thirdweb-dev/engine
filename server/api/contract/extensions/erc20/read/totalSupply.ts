@@ -42,7 +42,7 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
       description:
         "Get the total supply in circulation for this ERC-20 contract.",
       tags: ["ERC20"],
-      operationId: "erc20_totalSupply",
+      operationId: "totalSupply",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

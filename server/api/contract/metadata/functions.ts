@@ -65,7 +65,7 @@ export async function extractFunctions(fastify: FastifyInstance) {
       summary: "Get functions",
       description: "Get details of all functions implemented by the contract.",
       tags: ["Contract-Metadata"],
-      operationId: "extractFunctions",
+      operationId: "getFunctions",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

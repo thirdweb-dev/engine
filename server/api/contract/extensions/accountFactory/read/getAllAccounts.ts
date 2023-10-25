@@ -25,7 +25,7 @@ export const getAllAccounts = async (fastify: FastifyInstance) => {
       summary: "Get all smart accounts",
       description: "Get all the smart accounts for this account factory.",
       tags: ["Account Factory"],
-      operationId: "account-factory:get-all-accounts",
+      operationId: "getAllAccounts",
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,

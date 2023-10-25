@@ -54,7 +54,7 @@ export async function erc721mintBatchTo(fastify: FastifyInstance) {
       description:
         "Mint ERC-721 tokens to multiple wallets in one transaction.",
       tags: ["ERC721"],
-      operationId: "erc721_mintBatchTo",
+      operationId: "mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

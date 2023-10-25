@@ -23,7 +23,7 @@ export async function getAllPermissions(fastify: FastifyInstance) {
       summary: "Get all permissions",
       description: "Get all users with their corresponding permissions",
       tags: ["Permissions"],
-      operationId: "getAllPermissions",
+      operationId: "getAll",
       response: {
         [StatusCodes.OK]: ReplySchema,
       },

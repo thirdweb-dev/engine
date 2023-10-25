@@ -72,7 +72,7 @@ export async function directListingsGetAll(fastify: FastifyInstance) {
       summary: "Get all listings",
       description: "Get all direct listings for this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_getAll",
+      operationId: "getAll",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

@@ -64,7 +64,7 @@ export async function deployPrebuiltNFTDrop(fastify: FastifyInstance) {
       summary: "Deploy NFT Drop",
       description: "Deploy an NFT Drop contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltNFTDrop",
+      operationId: "deployNFTDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

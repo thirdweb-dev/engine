@@ -102,7 +102,7 @@ export const importWallet = async (fastify: FastifyInstance) => {
       summary: "Import backend wallet",
       description: "Import an existing wallet as a backend wallet.",
       tags: ["Backend Wallet"],
-      operationId: "backendWallet_import",
+      operationId: "import",
       body: RequestBodySchema,
       response: {
         ...standardResponseSchema,

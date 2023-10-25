@@ -55,7 +55,7 @@ export async function deployPrebuiltVote(fastify: FastifyInstance) {
       summary: "Deploy Vote",
       description: "Deploy a Vote contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltVote",
+      operationId: "deployVote",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

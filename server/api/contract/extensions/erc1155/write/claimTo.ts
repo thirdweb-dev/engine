@@ -47,7 +47,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
       summary: "Claim tokens to wallet",
       description: "Claim ERC-1155 tokens to a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "erc1155_claimTo",
+      operationId: "claimTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

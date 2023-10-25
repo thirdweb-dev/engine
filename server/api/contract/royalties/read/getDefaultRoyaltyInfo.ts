@@ -37,7 +37,7 @@ export async function getDefaultRoyaltyInfo(fastify: FastifyInstance) {
       description:
         "Gets the royalty recipient and BPS (basis points) of the smart contract.",
       tags: ["Contract-Royalties"],
-      operationId: "royalties_getDefaultRoyaltyInfo",
+      operationId: "getDefaultRoyaltyInfo",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
