@@ -64,7 +64,7 @@ RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/src/prism
 # Copy the built dist folder from the base stage to the production stage
 COPY --from=base /app/dist ./dist
 
-# Copy the generated SSL certificates
+# Generate SSL certificates
 RUN apk --update add openssl
 WORKDIR /dist/https
 RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
