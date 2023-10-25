@@ -7,6 +7,7 @@ interface CreateWalletDetailsParams {
   pgtx?: PrismaTransaction;
   address: string;
   type: WalletType;
+  label?: string;
   awsKmsKeyId?: string;
   awsKmsArn?: string;
   gcpKmsKeyRingId?: string;

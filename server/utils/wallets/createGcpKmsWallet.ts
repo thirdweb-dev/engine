@@ -4,7 +4,13 @@ import { createWalletDetails } from "../../../src/db/wallets/createWalletDetails
 import { WalletType } from "../../../src/schema/wallet";
 import { getGcpKmsWallet } from "./getGcpKmsWallet";
 
-export const createGcpKmsWallet = async (): Promise<string> => {
+interface CreateGcpKmsWallet {
+  label?: string;
+}
+
+export const createGcpKmsWallet = async ({
+  label,
+}: CreateGcpKmsWallet): Promise<string> => {
   const config = await getConfiguration();
   if (config.walletConfiguration.type !== WalletType.gcpKms) {
     throw new Error(`Server was not configured for GCP KMS wallet creation`);
@@ -49,6 +55,7 @@ export const createGcpKmsWallet = async (): Promise<string> => {
   await createWalletDetails({
     type: WalletType.gcpKms,
     address: walletAddress,
+    label,
     gcpKmsKeyId: cryptoKeyId,
     gcpKmsKeyRingId: config.walletConfiguration.gcpKmsKeyRingId,
     gcpKmsLocationId: config.walletConfiguration.gcpKmsLocationId,

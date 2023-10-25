@@ -259,6 +259,12 @@ export const walletDetailsSchema = Type.Object({
   type: Type.String({
     description: "Wallet Type",
   }),
+  label: Type.Union([
+    Type.String({
+      description: "A label for your wallet",
+    }),
+    Type.Null(),
+  ]),
   awsKmsKeyId: Type.Union([
     Type.String({
       description: "AWS KMS Key ID",

@@ -8,7 +8,10 @@ import { createAwsKmsWallet } from "../../utils/wallets/createAwsKmsWallet";
 import { createGcpKmsWallet } from "../../utils/wallets/createGcpKmsWallet";
 import { createLocalWallet } from "../../utils/wallets/createLocalWallet";
 
-// OUTPUT
+const BodySchema = Type.Object({
+  label: Type.Optional(Type.String()),
+});
+
 const responseSchema = Type.Object({
   result: Type.Object({
     walletAddress: Type.String(),
@@ -25,6 +28,7 @@ responseSchema.example = {
 
 export const createWallet = async (fastify: FastifyInstance) => {
   fastify.route<{
+    Body: Static<typeof BodySchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
@@ -34,23 +38,26 @@ export const createWallet = async (fastify: FastifyInstance) => {
       description: "Create a backend wallet.",
       tags: ["Backend Wallet"],
       operationId: "backendWallet_create",
+      body: BodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
-    handler: async (request, reply) => {
+    handler: async (req, reply) => {
+      const { label } = req.body;
+
       let walletAddress: string;
       const config = await getConfiguration();
       switch (config.walletConfiguration.type) {
         case WalletType.local:
-          walletAddress = await createLocalWallet();
+          walletAddress = await createLocalWallet({ label });
           break;
         case WalletType.awsKms:
-          walletAddress = await createAwsKmsWallet();
+          walletAddress = await createAwsKmsWallet({ label });
           break;
         case WalletType.gcpKms:
-          walletAddress = await createGcpKmsWallet();
+          walletAddress = await createGcpKmsWallet({ label });
           break;
       }
 

@@ -9,6 +9,7 @@ export const AccessTokenSchema = Type.Object({
   walletAddress: Type.String(),
   createdAt: Type.String(),
   expiresAt: Type.String(),
+  label: Type.Union([Type.String(), Type.Null()]),
 });
 
 const ReplySchema = Type.Object({

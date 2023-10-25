@@ -6,15 +6,18 @@ type ImportLocalWalletParams =
   | {
       method: "privateKey";
       privateKey: string;
+      label?: string;
     }
   | {
       method: "mnemonic";
       mnemonic: string;
+      label?: string;
     }
   | {
       method: "encryptedJson";
       encryptedJson: string;
       password: string;
+      label?: string;
     };
 
 export const importLocalWallet = async (
@@ -49,7 +52,7 @@ export const importLocalWallet = async (
   await wallet.save({
     strategy: "encryptedJson",
     password: env.THIRDWEB_API_SECRET_KEY,
-    storage: new LocalFileStorage(walletAddress),
+    storage: new LocalFileStorage(walletAddress, options.label),
   });
 
   return walletAddress;
