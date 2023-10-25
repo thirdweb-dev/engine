@@ -64,6 +64,18 @@ RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/src/prism
 # Copy the built dist folder from the base stage to the production stage
 COPY --from=base /app/dist ./dist
 
+# Generate SSL certificates
+RUN apk --update add openssl
+WORKDIR /dist/https
+RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
+    -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
+    -passout pass:thirdweb-engine
+RUN chmod 600 key.pem cert.pem
+RUN apk del openssl
+
+# Change Working Directory back to /app
+WORKDIR /app
+
 # Install production dependencies only
 RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000
 

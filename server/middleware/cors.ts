@@ -14,22 +14,13 @@ export const withCors = async (server: FastifyInstance) => {
         const regex = data.replace("*.", ".*.");
         return new RegExp(regex);
       }
+
+      if (data.includes("thirdweb-preview.com")) {
+        return new RegExp(/^https?:\/\/.*\.thirdweb-preview\.com$/);
+      }
+
       return data;
     }),
-    allowedHeaders: [
-      "Origin",
-      "X-Requested-With",
-      "Content-Type",
-      "Accept",
-      "Access-Control-Allow-Origin",
-      "Cache-Control",
-      "Authorization",
-      "x-backend-wallet-address",
-      "x-account-address",
-      "x-engine-signature",
-      "x-engine-timestamp",
-    ],
     credentials: true,
-    methods: ["GET", "PUT", "PATCH", "POST", "DELETE"],
   });
 };

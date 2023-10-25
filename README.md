@@ -87,6 +87,8 @@ docker run \
 
 - Here's the link to the [full API reference](https://redocly.github.io/redoc/?url=https://demo.web3api.thirdweb.com/json), or in development mode, go to the server root url to see the reference.
 
+> NOTE: To use the server in `https` mode on `localhost`, set the env variable `ENABLE_HTTPS` to `true`. This is only recommended for development purposes, when integrating your local Engine Instance with the thirdweb dashboard.
+
 ## Resources
 
 #### Using Engine
