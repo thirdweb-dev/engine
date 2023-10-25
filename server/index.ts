@@ -6,7 +6,6 @@ import { URL } from "url";
 import { env } from "../src/utils/env";
 import { logger } from "../src/utils/logger";
 import { withRoutes } from "./api";
-import { startTxUpdatesNotificationListener } from "./controller/tx-update-listener";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
 import { withErrorHandler } from "./middleware/error";
@@ -65,8 +64,6 @@ const main = async () => {
       }
     },
   );
-
-  await startTxUpdatesNotificationListener();
 };
 
 main();
