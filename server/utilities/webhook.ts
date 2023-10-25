@@ -97,10 +97,7 @@ export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
         createdAt: new Date().toISOString(),
         name: "Legacy Webhook",
       };
-      webhookConfig = [newFormatWebhookData];
-      webhookConfig.map(async (config) => {
-        await sendWebhookRequest(config, txData);
-      });
+      await sendWebhookRequest(newFormatWebhookData, txData);
       return;
     }
 
