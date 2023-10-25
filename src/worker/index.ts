@@ -2,10 +2,14 @@ import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
 import { retryTxListener } from "./listeners/retryTxListener";
+import { updateTxListener } from "./listeners/updateTxListener";
 
 const worker = async () => {
   // Listen for queued transactions to process
   await queuedTxListener();
+
+  // Listen for transaction updates to send webhooks
+  await updateTxListener();
 
   // Poll for transactions stuck in mempool to retry
   await retryTxListener();
