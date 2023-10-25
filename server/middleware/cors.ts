@@ -16,20 +16,6 @@ export const withCors = async (server: FastifyInstance) => {
       }
       return data;
     }),
-    allowedHeaders: [
-      "Origin",
-      "X-Requested-With",
-      "Content-Type",
-      "Accept",
-      "Access-Control-Allow-Origin",
-      "Cache-Control",
-      "Authorization",
-      "x-backend-wallet-address",
-      "x-account-address",
-      "x-engine-signature",
-      "x-engine-timestamp",
-    ],
     credentials: true,
-    methods: ["GET", "PUT", "PATCH", "POST", "DELETE"],
   });
 };

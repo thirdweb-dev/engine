@@ -1,3 +1,12 @@
+FROM alpine AS cert-generator
+
+RUN apk --update add openssl
+RUN mkdir -p /app
+WORKDIR /app
+RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
+    -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
+    -passout pass:thirdweb-engine
+
 FROM node:18.15.0-alpine AS base
 
 # Install tini
@@ -17,6 +26,10 @@ COPY package*.json yarn*.lock ./
 
 # Copy the entire project directory
 COPY . .
+
+# Copy the generated SSL certificates
+COPY --from=cert-generator /app/key.pem /app
+COPY --from=cert-generator /app/cert.pem /app
 
 # Install dependencies for both development and production
 RUN yarn install --frozen-lockfile --network-timeout 1000000
@@ -63,6 +76,10 @@ RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/src/prism
 
 # Copy the built dist folder from the base stage to the production stage
 COPY --from=base /app/dist ./dist
+
+# Copy the generated SSL certificates
+COPY --from=cert-generator /app/key.pem ./dist
+COPY --from=cert-generator /app/cert.pem ./dist
 
 # Install production dependencies only
 RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000

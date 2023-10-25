@@ -39,6 +39,15 @@ export const FilePathSchema = z
     { message: "Not a valid file path" },
   );
 
+const boolSchema = (defaultBool: "true" | "false") =>
+  z
+    .string()
+    .default(defaultBool)
+    // only allow "true" or "false"
+    .refine((s) => s === "true" || s === "false", "must be 'true' or 'false'")
+    // transform to boolean
+    .transform((s) => s === "true");
+
 // ! to make something required, use z.string().min(1) to be sure
 export const env = createEnv({
   server: {
@@ -55,6 +64,8 @@ export const env = createEnv({
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
     ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
+    ENABLE_HTTPS: boolSchema("false"),
+    HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -67,6 +78,8 @@ export const env = createEnv({
     PORT: process.env.PORT,
     HOST: process.env.HOST,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
+    ENABLE_HTTPS: process.env.ENABLE_HTTPS,
+    HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
   },
   onValidationError: (error: ZodError) => {
     console.error(
