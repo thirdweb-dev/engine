@@ -66,6 +66,7 @@ COPY --from=base /app/dist ./dist
 
 # Copy the generated SSL certificates
 RUN apk --update add openssl
+RUN mkdir -p /dist/https
 WORKDIR /dist/https
 RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
