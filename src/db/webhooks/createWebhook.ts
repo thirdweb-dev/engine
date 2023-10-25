@@ -5,7 +5,7 @@ import { prisma } from "../client";
 
 interface CreateWebhooksParams {
   url: string;
-  name: string;
+  name?: string;
   eventType: WebhooksEventTypes;
 }
 

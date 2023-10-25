@@ -5,8 +5,11 @@ import { WalletType } from "../../../src/schema/wallet";
 import { logger } from "../../../src/utils/logger";
 
 export class LocalFileStorage implements AsyncStorage {
-  constructor(private readonly walletAddress: string) {
+  label?: string;
+
+  constructor(private readonly walletAddress: string, label?: string) {
     this.walletAddress = walletAddress.toLowerCase();
+    this.label = label;
   }
 
   async getItem(_: string): Promise<string | null> {
@@ -45,9 +48,11 @@ export class LocalFileStorage implements AsyncStorage {
         address: this.walletAddress,
         type: WalletType.local,
         encryptedJson: value,
+        label: this.label,
       },
       update: {
         encryptedJson: value,
+        label: this.label,
       },
     });
   }

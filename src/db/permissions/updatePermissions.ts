@@ -3,11 +3,13 @@ import { prisma } from "../client";
 interface CreatePermissionsParams {
   walletAddress: string;
   permissions: string;
+  label?: string;
 }
 
 export const updatePermissions = async ({
   walletAddress,
   permissions,
+  label,
 }: CreatePermissionsParams) => {
   return prisma.permissions.upsert({
     where: {
@@ -16,9 +18,11 @@ export const updatePermissions = async ({
     create: {
       walletAddress: walletAddress.toLowerCase(),
       permissions,
+      label,
     },
     update: {
       permissions,
+      label,
     },
   });
 };

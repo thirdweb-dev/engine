@@ -17,6 +17,7 @@ responseSchema.example = {
     {
       address: "0xe201a491a204e4a78e60033ae8ed39036b55bacb",
       type: "local",
+      label: "my-wallet",
       awsKmsKeyId: null,
       awsKmsArn: null,
       gcpKmsKeyId: null,
