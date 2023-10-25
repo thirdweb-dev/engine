@@ -4,7 +4,13 @@ import { WalletType } from "../../../src/schema/wallet";
 import { env } from "../../../src/utils/env";
 import { LocalFileStorage } from "../storage/localStorage";
 
-export const createLocalWallet = async (): Promise<string> => {
+interface CreateLocalWallet {
+  label?: string;
+}
+
+export const createLocalWallet = async ({
+  label,
+}: CreateLocalWallet): Promise<string> => {
   const config = await getConfiguration();
   if (config.walletConfiguration.type !== WalletType.local) {
     throw new Error(`Server was not configured for local wallet creation.`);
@@ -17,7 +23,7 @@ export const createLocalWallet = async (): Promise<string> => {
   await wallet.save({
     strategy: "encryptedJson",
     password: env.THIRDWEB_API_SECRET_KEY,
-    storage: new LocalFileStorage(walletAddress),
+    storage: new LocalFileStorage(walletAddress, label),
   });
 
   return walletAddress;

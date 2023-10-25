@@ -7,6 +7,7 @@ import { PermissionsSchema } from "../../../schemas/auth";
 const BodySchema = Type.Object({
   walletAddress: Type.String(),
   permissions: PermissionsSchema,
+  label: Type.Optional(Type.String()),
 });
 
 const ReplySchema = Type.Object({
@@ -33,10 +34,11 @@ export async function grantPermissions(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { walletAddress, permissions } = req.body;
+      const { walletAddress, permissions, label } = req.body;
       await updatePermissions({
         walletAddress,
         permissions,
+        label,
       });
       res.status(200).send({
         result: {

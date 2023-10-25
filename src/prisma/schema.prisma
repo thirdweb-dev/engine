@@ -46,8 +46,9 @@ model Configuration {
 }
 
 model Permissions {
-  walletAddress String @id @map("walletAddress")
-  permissions   String @map("permissions")
+  walletAddress String  @id @map("walletAddress")
+  permissions   String  @map("permissions")
+  label         String? @map("label")
 
   @@map("permissions")
 }
@@ -60,6 +61,7 @@ model Tokens {
   expiresAt     DateTime  @map("expiresAt")
   revokedAt     DateTime? @map("revokedAt")
   isAccessToken Boolean   @map("isAccessToken")
+  label         String?   @map("label")
 
   @@map("tokens")
 }
@@ -67,6 +69,7 @@ model Tokens {
 model WalletDetails {
   address            String  @id @map("address")
   type               String  @map("type")
+  label              String? @map("label")
   // Local
   encryptedJson      String? @map("encryptedJson")
   // KMS
@@ -148,7 +151,7 @@ model Transactions {
 
 model Webhooks {
   id        Int       @id @default(autoincrement()) @map("id")
-  name      String    @map("name")
+  name      String?   @map("name")
   url       String    @map("url")
   secret    String    @map("secret")
   eventType String    @map("evenType")

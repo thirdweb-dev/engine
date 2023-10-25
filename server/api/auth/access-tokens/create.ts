@@ -8,6 +8,10 @@ import { createToken } from "../../../../src/db/tokens/createToken";
 import { env } from "../../../../src/utils/env";
 import { AccessTokenSchema } from "./getAll";
 
+const BodySchema = Type.Object({
+  label: Type.Optional(Type.String()),
+});
+
 const ReplySchema = Type.Object({
   result: Type.Composite([
     AccessTokenSchema,
@@ -19,6 +23,7 @@ const ReplySchema = Type.Object({
 
 export async function createAccessToken(fastify: FastifyInstance) {
   fastify.route<{
+    Body: Static<typeof BodySchema>;
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "POST",
@@ -28,11 +33,14 @@ export async function createAccessToken(fastify: FastifyInstance) {
       description: "Create a new access token",
       tags: ["Access Tokens"],
       operationId: "createAccessToken",
+      body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,
       },
     },
     handler: async (req, res) => {
+      const { label } = req.body;
+
       const config = await getConfiguration();
       const wallet = new LocalWallet();
       await wallet.import({
@@ -54,7 +62,7 @@ export async function createAccessToken(fastify: FastifyInstance) {
         },
       });
 
-      const token = await createToken({ jwt, isAccessToken: true });
+      const token = await createToken({ jwt, isAccessToken: true, label });
 
       res.status(200).send({
         result: {

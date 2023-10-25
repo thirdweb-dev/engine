@@ -6,11 +6,13 @@ import { getGcpKmsWallet } from "./getGcpKmsWallet";
 interface ImportGcpKmsWalletParams {
   gcpKmsKeyId: string;
   gcpKmsKeyVersionId: string;
+  label?: string;
 }
 
 export const importGcpKmsWallet = async ({
   gcpKmsKeyId,
   gcpKmsKeyVersionId,
+  label,
 }: ImportGcpKmsWalletParams) => {
   const config = await getConfiguration();
   if (config.walletConfiguration.type !== WalletType.gcpKms) {
@@ -24,6 +26,7 @@ export const importGcpKmsWallet = async ({
   await createWalletDetails({
     type: WalletType.gcpKms,
     address: walletAddress,
+    label,
     gcpKmsKeyId: gcpKmsKeyId,
     gcpKmsKeyRingId: config.walletConfiguration.gcpKmsKeyRingId,
     gcpKmsLocationId: config.walletConfiguration.gcpKmsLocationId,

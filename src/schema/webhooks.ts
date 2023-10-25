@@ -11,7 +11,7 @@ export enum WebhooksEventTypes {
 
 export interface SanitizedWebHooksSchema {
   url: string;
-  name: string;
+  name: string | null;
   eventType: string;
   secret?: string;
   createdAt: string;

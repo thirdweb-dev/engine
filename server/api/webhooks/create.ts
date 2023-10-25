@@ -30,9 +30,11 @@ const BodySchema = Type.Object({
       "https://example.com/webhooks",
     ],
   }),
-  name: Type.String({
-    minLength: 5,
-  }),
+  name: Type.Optional(
+    Type.String({
+      minLength: 5,
+    }),
+  ),
   eventType: Type.Enum(WebhooksEventTypes),
 });
 

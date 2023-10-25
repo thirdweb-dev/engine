@@ -8,6 +8,7 @@ const ReplySchema = Type.Object({
     Type.Object({
       walletAddress: Type.String(),
       permissions: Type.String(),
+      label: Type.Union([Type.String(), Type.Null()]),
     }),
   ),
 });

@@ -4,11 +4,13 @@ import { prisma } from "../client";
 interface CreateTokenParams {
   jwt: string;
   isAccessToken: boolean;
+  label?: string;
 }
 
 export const createToken = async ({
   jwt,
   isAccessToken,
+  label,
 }: CreateTokenParams) => {
   const { payload } = parseJWT(jwt);
   return prisma.tokens.create({
@@ -18,6 +20,7 @@ export const createToken = async ({
       walletAddress: payload.sub,
       expiresAt: new Date(payload.exp * 1000),
       isAccessToken,
+      label,
     },
   });
 };
