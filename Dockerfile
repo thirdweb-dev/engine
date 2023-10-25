@@ -66,7 +66,7 @@ COPY --from=base /app/dist ./dist
 
 # Generate SSL certificates
 RUN apk --update add openssl
-WORKDIR /dist/https
+WORKDIR /app/dist/https
 RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
     -passout pass:thirdweb-engine
