@@ -4,14 +4,14 @@ import {
   WebhooksEventTypes,
 } from "../../../src/schema/webhooks";
 
-export const webhookCache = new Map<string, SanitizedWebHooksSchema>();
+export const webhookCache = new Map<string, SanitizedWebHooksSchema[]>();
 
 export const getWebhookConfig = async (
   eventType: WebhooksEventTypes,
-): Promise<SanitizedWebHooksSchema | undefined> => {
+): Promise<SanitizedWebHooksSchema[] | undefined> => {
   const cacheKey = eventType;
   if (webhookCache.has(cacheKey) && webhookCache.get(cacheKey)) {
-    return webhookCache.get(cacheKey) as SanitizedWebHooksSchema;
+    return webhookCache.get(cacheKey) as SanitizedWebHooksSchema[];
   }
 
   const webhookConfig = await getAllWebhooks();
@@ -26,6 +26,6 @@ export const getWebhookConfig = async (
     return undefined;
   }
 
-  webhookCache.set(cacheKey, eventTypeWebhookDetails[0]);
-  return eventTypeWebhookDetails[0];
+  webhookCache.set(cacheKey, eventTypeWebhookDetails);
+  return eventTypeWebhookDetails;
 };

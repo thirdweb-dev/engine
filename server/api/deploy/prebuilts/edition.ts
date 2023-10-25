@@ -44,7 +44,7 @@ requestBodySchema.examples = [
     contractMetadata: {
       name: "My Edition",
       symbol: "ED",
-      primary_sale_recipient: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+      primary_sale_recipient: "<your-wallet-address>",
     },
   },
 ];

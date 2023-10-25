@@ -82,13 +82,13 @@ export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
   try {
     const txData = await getTxById({ queueId: data.id });
 
-    let webhookConfig: SanitizedWebHooksSchema | undefined =
+    let webhookConfig: SanitizedWebHooksSchema[] | undefined =
       await getWebhookConfig(WebhooksEventTypes.ALL_TX);
 
     // For Backwards Compatibility
     const config = await getConfiguration();
     if (config?.webhookUrl && config?.webhookAuthBearerToken) {
-      webhookConfig = {
+      const newFormatWebhookData = {
         id: 0,
         url: config.webhookUrl,
         secret: config.webhookAuthBearerToken,
@@ -97,8 +97,7 @@ export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
         createdAt: new Date().toISOString(),
         name: "Legacy Webhook",
       };
-
-      await sendWebhookRequest(webhookConfig, txData);
+      await sendWebhookRequest(newFormatWebhookData, txData);
       return;
     }
 
@@ -125,12 +124,14 @@ export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
       }
     }
 
-    if (!webhookConfig || !webhookConfig?.active) {
-      logger.server.debug("No Webhook Set or Active, skipping webhook send");
-      return;
-    }
+    webhookConfig?.map(async (config) => {
+      if (!config || !config?.active) {
+        logger.server.debug("No Webhook Set or Active, skipping webhook send");
+        return;
+      }
 
-    await sendWebhookRequest(webhookConfig, txData);
+      await sendWebhookRequest(config, txData);
+    });
   } catch (error) {
     logger.server.error(`[sendWebhook] error: ${error}`);
   }
@@ -153,16 +154,23 @@ export const sendBalanceWebhook = async (
       WebhooksEventTypes.BACKEND_WALLET_BALANCE,
     );
 
-    if (!webhookConfig || !webhookConfig.active) {
+    if (!webhookConfig) {
       logger.server.debug("No Webhook set, skipping webhook send");
       return;
     }
 
-    const success = await sendWebhookRequest(webhookConfig, data);
+    webhookConfig.map(async (config) => {
+      if (!config || !config.active) {
+        logger.server.debug("No Webhook set, skipping webhook send");
+        return;
+      }
 
-    if (success) {
-      balanceNotificationLastSentAt = Date.now();
-    }
+      const success = await sendWebhookRequest(config, data);
+
+      if (success) {
+        balanceNotificationLastSentAt = Date.now();
+      }
+    });
   } catch (error) {
     logger.server.error(`[sendWebhook] error: ${error}`);
   }
