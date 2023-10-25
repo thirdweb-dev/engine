@@ -39,15 +39,15 @@ const requestBodySchema = Type.Object({
 
 // Example for the Request Body
 
-// requestBodySchema.examples = [
-//   {
-//     contractMetadata: {
-//       name: "My Edition",
-//       symbol: "ED",
-//       primary_sale_recipient: "your_wallet_address",
-//     },
-//   },
-// ];
+requestBodySchema.examples = [
+  {
+    contractMetadata: {
+      name: "My Edition",
+      symbol: "ED",
+      primary_sale_recipient: "<your-wallet-address>",
+    },
+  },
+];
 
 // OUTPUT
 const responseSchema = prebuiltDeployResponseSchema;
