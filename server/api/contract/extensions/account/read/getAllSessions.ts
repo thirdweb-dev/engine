@@ -1,13 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { SessionSchema } from "../../../../../schemas/account";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers";
-import { SessionSchema } from "../../../../../schemas/account";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const ReplySchema = Type.Object({
   result: Type.Array(SessionSchema),

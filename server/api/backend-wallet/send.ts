@@ -5,9 +5,9 @@ import { prisma } from "../../../src/db/client";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+} from "../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utilities/chain";
+import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
   chain: Type.String(),

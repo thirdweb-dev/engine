@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 // OUTPUT
 export const responseBodySchema = Type.Object({

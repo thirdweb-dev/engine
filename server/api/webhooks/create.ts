@@ -4,7 +4,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../src/db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../src/schema/webhooks";
-import { standardResponseSchema } from "../../helpers";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const uriFormat = TypeSystem.Format("uri", (input: string) => {
   try {

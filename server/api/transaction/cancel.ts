@@ -1,8 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
-import { cancelTransactionAndUpdate } from "../../utilities/transaction";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { cancelTransactionAndUpdate } from "../../utils/transaction";
 
 // INPUT
 const requestBodySchema = Type.Object({

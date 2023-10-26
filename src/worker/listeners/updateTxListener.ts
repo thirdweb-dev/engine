@@ -1,9 +1,9 @@
+import { subscriptionsData } from "../../../server/schemas/websocket";
+import { sendTxWebhook } from "../../../server/utils/webhook";
 import {
   formatSocketMessage,
   getStatusMessageAndConnectionStatus,
-} from "../../../server/helpers/websocket";
-import { subscriptionsData } from "../../../server/schemas/websocket";
-import { sendTxWebhook } from "../../../server/utilities/webhook";
+} from "../../../server/utils/websocket";
 import { knex } from "../../db/client";
 import { getTxById } from "../../db/transactions/getTxById";
 import { logger } from "../../utils/logger";

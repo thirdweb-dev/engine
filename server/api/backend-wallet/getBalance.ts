@@ -4,10 +4,10 @@ import { StatusCodes } from "http-status-codes";
 import {
   currencyValueSchema,
   standardResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+} from "../../schemas/sharedApiSchemas";
 import { walletParamSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utilities/chain";
 import { getSdk } from "../../utils/cache/getSdk";
+import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
 const requestSchema = walletParamSchema;

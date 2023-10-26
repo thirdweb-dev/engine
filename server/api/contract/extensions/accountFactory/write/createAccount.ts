@@ -2,14 +2,14 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
+import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers";
-import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = Type.Object({
   admin_address: Type.String({

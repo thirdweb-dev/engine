@@ -6,7 +6,7 @@ import { getTxById } from "../../src/db/transactions/getTxById";
 import { updateTx } from "../../src/db/transactions/updateTx";
 import { createCustomError } from "../middleware/error";
 import { TransactionStatusEnum } from "../schemas/transaction";
-import { getSdk } from "../utils/cache/getSdk";
+import { getSdk } from "./cache/getSdk";
 
 interface CancelTransactionAndUpdateParams {
   queueId: string;

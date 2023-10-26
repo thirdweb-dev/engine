@@ -2,8 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { chainResponseSchema } from "../../schemas/chain";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 // OUPUT
 const responseSchema = Type.Object({

@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import { nftMetadataSchema } from "../../nft";
-import { Status } from "../../../helpers/sharedApiSchemas";
+import { Status } from "../../sharedApiSchemas";
 
 const currencyValueSchema = Type.Object({
   name: Type.Optional(Type.String()),
