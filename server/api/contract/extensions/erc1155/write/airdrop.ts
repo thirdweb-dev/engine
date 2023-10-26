@@ -15,7 +15,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "Token ID of the NFT to airdrop",
   }),
   addresses: Type.Array(
@@ -34,7 +34,7 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    token_id: "0",
+    tokenId: "0",
     addresses: [
       {
         address: "0xE79ee09bD47F4F5381dbbACaCff2040f2FbC5803",
@@ -55,7 +55,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc1155/airdrop",
+    url: "/contract/:chain/:contractAddress/erc1155/airdrop",
     schema: {
       summary: "Airdrop tokens",
       description: "Airdrop ERC-1155 tokens to specific wallets.",
@@ -70,8 +70,8 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { token_id, addresses } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { tokenId, addresses } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -79,12 +79,12 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
-      const tx = await contract.erc1155.airdrop.prepare(token_id, addresses);
+      const tx = await contract.erc1155.airdrop.prepare(tokenId, addresses);
       const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
         result: {

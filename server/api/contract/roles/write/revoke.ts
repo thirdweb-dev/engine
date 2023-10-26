@@ -32,7 +32,7 @@ export async function revokeRole(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/roles/revoke",
+    url: "/contract/:chain/:contractAddress/roles/revoke",
     schema: {
       summary: "Revoke role",
       description: "Revoke a role from a specific wallet.",
@@ -47,7 +47,7 @@ export async function revokeRole(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { role, address } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -56,7 +56,7 @@ export async function revokeRole(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

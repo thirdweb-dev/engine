@@ -40,7 +40,7 @@ export async function erc1155SetApprovalForAll(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc1155/set-approval-for-all",
+    url: "/contract/:chain/:contractAddress/erc1155/set-approval-for-all",
     schema: {
       summary: "Set approval for all",
       description:
@@ -56,7 +56,7 @@ export async function erc1155SetApprovalForAll(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { operator, approved } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -65,7 +65,7 @@ export async function erc1155SetApprovalForAll(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

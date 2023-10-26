@@ -20,7 +20,7 @@ export const contractParamSchema = Type.Object({
     examples: ["mumbai"],
     description: "Chain ID or name",
   }),
-  contract_address: Type.String({
+  contractAddress: Type.String({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
     description: "Contract address on the chain",
   }),
@@ -155,7 +155,7 @@ export const erc20ContractParamSchema = Type.Object({
     examples: ["mumbai"],
     description: "Chain ID or name",
   }),
-  contract_address: Type.String({
+  contractAddress: Type.String({
     examples: ["0x365b83D67D5539C6583b9c0266A548926Bf216F4"],
     description: "ERC20 Contract Address on the Chain",
   }),
@@ -169,7 +169,7 @@ export const erc1155ContractParamSchema = Type.Object({
     examples: ["mumbai"],
     description: "Chain ID or name",
   }),
-  contract_address: Type.String({
+  contractAddress: Type.String({
     examples: ["0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"],
     description: "ERC1155 Contract Address on the Chain",
   }),
@@ -183,7 +183,7 @@ export const erc721ContractParamSchema = Type.Object({
     examples: ["mumbai"],
     description: "Chain ID or name",
   }),
-  contract_address: Type.String({
+  contractAddress: Type.String({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
     description: "ERC721 Contract Address on the Chain",
   }),
@@ -213,7 +213,7 @@ export const marketplaceV3ContractParamSchema = Type.Object({
     examples: ["mumbai"],
     description: "Chain ID or name",
   }),
-  contract_address: Type.String({
+  contractAddress: Type.String({
     examples: ["0xE8Bf1a01106F3acD7F84acaf5D668D7C9eA11535"],
     description: "Contract Address on the Chain",
   }),

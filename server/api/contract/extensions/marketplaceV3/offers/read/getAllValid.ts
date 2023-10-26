@@ -66,7 +66,7 @@ export async function offersGetAllValid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/offers/get-all-valid",
+    url: "/marketplace/:chain/:contractAddress/offers/get-all-valid",
     schema: {
       summary: "Get all valid offers",
       description:
@@ -81,12 +81,12 @@ export async function offersGetAllValid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { start, count, offeror, tokenContract, tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.offers.getAllValid({
         start,

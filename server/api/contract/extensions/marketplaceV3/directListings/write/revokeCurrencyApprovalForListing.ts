@@ -14,18 +14,18 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing you want to approve a buyer for.",
   }),
-  currency_contract_address: Type.String({
+  currencyContractAddress: Type.String({
     description: "The wallet address of the buyer to approve.",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
-    currency_contract_address: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
+    listingId: "0",
+    currencyContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
   },
 ];
 
@@ -39,7 +39,7 @@ export async function directListingsRevokeCurrencyApprovalForListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/direct-listings/revoke-currency-approval-for-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/revoke-currency-approval-for-listing",
     schema: {
       summary: "Revoke currency approval for reserved listing",
       description: "Revoke approval of a currency for a reserved listing.",
@@ -54,8 +54,8 @@ export async function directListingsRevokeCurrencyApprovalForListing(
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id, currency_contract_address } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId, currencyContractAddress } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -63,15 +63,15 @@ export async function directListingsRevokeCurrencyApprovalForListing(
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx =
         await contract.directListings.revokeCurrencyApprovalForListing.prepare(
-          listing_id,
-          currency_contract_address,
+          listingId,
+          currencyContractAddress,
         );
 
       const queueId = await queueTx({

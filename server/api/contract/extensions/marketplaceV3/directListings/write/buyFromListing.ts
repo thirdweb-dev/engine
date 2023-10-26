@@ -14,7 +14,7 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing you want to approve a buyer for.",
   }),
   quantity: Type.String({
@@ -27,7 +27,7 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
     quantity: "1",
     buyer: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
   },
@@ -41,7 +41,7 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/direct-listings/buy-from-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/buy-from-listing",
     schema: {
       summary: "Buy from direct listing",
       description:
@@ -57,8 +57,8 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id, quantity, buyer } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId, quantity, buyer } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -66,13 +66,13 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.directListings.buyFromListing.prepare(
-        listing_id,
+        listingId,
         quantity,
         buyer,
       );

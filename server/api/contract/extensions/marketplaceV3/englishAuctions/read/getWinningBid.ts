@@ -36,7 +36,7 @@ export async function englishAuctionsGetWinningBid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/english-auctions/get-winning-bid",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/get-winning-bid",
     schema: {
       summary: "Get winning bid",
       description: "Get the current highest bid of an active auction.",
@@ -50,12 +50,12 @@ export async function englishAuctionsGetWinningBid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { listing_id } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.englishAuctions.getWinningBid(listing_id);
 

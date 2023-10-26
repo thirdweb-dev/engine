@@ -39,7 +39,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc20/claim-to",
+    url: "/contract/:chain/:contractAddress/erc20/claim-to",
     schema: {
       summary: "Claim tokens to wallet",
       description: "Claim ERC-20 tokens to a specific wallet.",
@@ -54,7 +54,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { recipient, amount } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -63,7 +63,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

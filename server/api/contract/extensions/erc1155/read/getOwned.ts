@@ -58,7 +58,7 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc1155/get-owned",
+    url: "/contract/:chain/:contractAddress/erc1155/get-owned",
     schema: {
       summary: "Get owned tokens",
       description:
@@ -73,12 +73,12 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { wallet_address } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.erc1155.getOwned(wallet_address);
       reply.status(StatusCodes.OK).send({

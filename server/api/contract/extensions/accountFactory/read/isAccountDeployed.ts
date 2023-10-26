@@ -33,7 +33,7 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
     Querystring: Static<typeof QuerySchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/account-factory/is-account-deployed",
+    url: "/contract/:chain/:contractAddress/account-factory/is-account-deployed",
     schema: {
       summary: "Check if deployed",
       description:
@@ -48,13 +48,13 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { admin_address, extra_data } = request.query;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const isDeployed = await contract.accountFactory.isAccountDeployed(
         admin_address,

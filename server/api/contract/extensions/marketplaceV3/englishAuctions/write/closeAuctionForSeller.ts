@@ -13,14 +13,14 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing to execute the sale for.",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
   },
 ];
 
@@ -34,7 +34,7 @@ export async function englishAuctionsCloseAuctionForSeller(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/english-auctions/close-auction-for-seller",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/close-auction-for-seller",
     schema: {
       summary: "Close English auction for seller",
       description: `After an auction has concluded (and a buyout did not occur),
@@ -50,8 +50,8 @@ You must also call closeAuctionForBidder to execute the sale for the buyer, mean
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -59,13 +59,13 @@ You must also call closeAuctionForBidder to execute the sale for the buyer, mean
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.englishAuctions.closeAuctionForSeller.prepare(
-        listing_id,
+        listingId,
       );
 
       const queueId = await queueTx({

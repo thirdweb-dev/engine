@@ -74,10 +74,10 @@ export const rolesResponseSchema = Type.Object({
 
 export const eventsQuerystringSchema = Type.Object(
   {
-    from_block: Type.Optional(
+    fromBlock: Type.Optional(
       Type.Union([Type.Number(), Type.String()], { default: "0" }),
     ),
-    to_block: Type.Optional(
+    toBlock: Type.Optional(
       Type.Union([Type.Number({ default: 0 }), Type.String({ default: "0" })], {
         default: "latest",
       }),
@@ -95,10 +95,10 @@ export const eventsQuerystringSchema = Type.Object(
 );
 
 export const RoyaltySchema = Type.Object({
-  seller_fee_basis_points: Type.Number({
+  sellerFeeBasisPoints: Type.Number({
     description: "The royalty fee in BPS (basis points). 100 = 1%.",
   }),
-  fee_recipient: Type.String({
+  feeRecipient: Type.String({
     description: "The wallet address that will receive the royalty fees.",
   }),
 });

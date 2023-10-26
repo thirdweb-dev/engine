@@ -46,7 +46,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc20/allowance-of",
+    url: "/contract/:chain/:contractAddress/erc20/allowance-of",
     schema: {
       summary: "Get token allowance",
       description:
@@ -61,12 +61,12 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { spender_wallet, owner_wallet } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData: any = await contract.erc20.allowanceOf(
         owner_wallet ? owner_wallet : "",

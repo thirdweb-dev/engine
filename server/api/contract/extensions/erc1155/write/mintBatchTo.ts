@@ -58,7 +58,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc1155/mint-batch-to",
+    url: "/contract/:chain/:contractAddress/erc1155/mint-batch-to",
     schema: {
       summary: "Mint tokens (batch)",
       description:
@@ -74,7 +74,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { receiver, metadataWithSupply } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -83,7 +83,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

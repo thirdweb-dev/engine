@@ -51,7 +51,7 @@ export async function erc1155Get(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc1155/get",
+    url: "/contract/:chain/:contractAddress/erc1155/get",
     schema: {
       summary: "Get details",
       description: "Get the details for a token in an ERC-1155 contract.",
@@ -65,12 +65,12 @@ export async function erc1155Get(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { token_id } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.erc1155.get(token_id);
       reply.status(StatusCodes.OK).send({

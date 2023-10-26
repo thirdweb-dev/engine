@@ -36,7 +36,7 @@ export async function directListingsCreateListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/direct-listings/create-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/create-listing",
     schema: {
       summary: "Create direct listing",
       description: "Create a direct listing on this marketplace contract.",
@@ -51,7 +51,7 @@ export async function directListingsCreateListing(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -69,7 +69,7 @@ export async function directListingsCreateListing(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

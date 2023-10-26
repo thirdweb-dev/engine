@@ -24,7 +24,7 @@ const requestBodySchema = Type.Object({
   to: Type.String({
     description: "Address of the wallet to transfer to",
   }),
-  currency_address: Type.String({
+  currencyAddress: Type.String({
     description: "Address of the token to transfer",
     default: [constants.AddressZero],
   }),
@@ -57,7 +57,7 @@ export async function transfer(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { to, amount, currency_address } = request.body;
+      const { to, amount, currencyAddress } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -72,10 +72,10 @@ export async function transfer(fastify: FastifyInstance) {
       const normalizedValue = await normalizePriceValue(
         sdk.getProvider(),
         amount,
-        currency_address,
+        currencyAddress,
       );
 
-      if (isNativeToken(currency_address)) {
+      if (isNativeToken(currencyAddress)) {
         const walletAddress = await sdk.getSigner()?.getAddress();
         if (!walletAddress) throw new Error("No wallet address");
 
@@ -92,19 +92,19 @@ export async function transfer(fastify: FastifyInstance) {
             toAddress: to,
             fromAddress: walletAddress,
             value: normalizedValue.toHexString(),
-            currencyAddress: currency_address,
+            currencyAddress: currencyAddress,
           },
         });
       } else {
         const contract = await getContract({
           chainId,
-          contractAddress: currency_address,
+          contractAddress: currencyAddress,
           walletAddress,
         });
 
         const { displayValue } = await fetchCurrencyValue(
           sdk.getProvider(),
-          currency_address,
+          currencyAddress,
           normalizedValue,
         );
         const tx = await contract.erc20.transfer.prepare(to, displayValue);

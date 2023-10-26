@@ -41,7 +41,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc721/mint-to",
+    url: "/contract/:chain/:contractAddress/erc721/mint-to",
     schema: {
       summary: "Mint tokens",
       description: "Mint ERC-721 tokens to a specific wallet.",
@@ -56,7 +56,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { receiver, metadata } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -65,7 +65,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

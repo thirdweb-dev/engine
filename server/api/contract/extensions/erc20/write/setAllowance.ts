@@ -15,7 +15,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-  spender_address: Type.String({
+  spenderAddress: Type.String({
     description: "Address of the wallet to allow transfers from",
   }),
   amount: Type.String({
@@ -26,7 +26,7 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    spender_address: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+    spenderAddress: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     amount: "100",
   },
 ];
@@ -38,7 +38,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc20/set-allowance",
+    url: "/contract/:chain/:contractAddress/erc20/set-allowance",
     schema: {
       summary: "Set allowance",
       description:
@@ -54,8 +54,8 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { spender_address, amount } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { spenderAddress, amount } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -63,13 +63,13 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.erc20.setAllowance.prepare(
-        spender_address,
+        spenderAddress,
         amount,
       );
       const queueId = await queueTx({ tx, chainId, extension: "erc20" });

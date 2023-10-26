@@ -13,14 +13,14 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing to execute the sale for.",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
   },
 ];
 
@@ -32,7 +32,7 @@ export async function englishAuctionsExecuteSale(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/english-auctions/execute-sale",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/execute-sale",
     schema: {
       summary: "Execute sale",
       description: `Close the auction for both buyer and seller.
@@ -48,8 +48,8 @@ This function can only be called after the auction has ended.`,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -57,12 +57,12 @@ This function can only be called after the auction has ended.`,
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
-      const tx = await contract.englishAuctions.executeSale.prepare(listing_id);
+      const tx = await contract.englishAuctions.executeSale.prepare(listingId);
 
       const queueId = await queueTx({
         tx,

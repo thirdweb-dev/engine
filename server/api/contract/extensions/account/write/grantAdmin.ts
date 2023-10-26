@@ -12,14 +12,14 @@ import { getContract } from "../../../../../utils/cache/getContract";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = Type.Object({
-  signer_address: Type.String({
+  signerAddress: Type.String({
     description: "Address to grant admin permissions to",
   }),
 });
 
 BodySchema.examples = [
   {
-    signer_address: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
+    signerAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
   },
 ];
 
@@ -30,7 +30,7 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/account/admins/grant",
+    url: "/contract/:chain/:contractAddress/account/admins/grant",
     schema: {
       summary: "Grant admin",
       description: "Grant a smart account's admin permission.",
@@ -45,8 +45,8 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { signer_address } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { signerAddress } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -55,13 +55,13 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.account.grantAdminPermissions.prepare(
-        signer_address,
+        signerAddress,
       );
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 

@@ -38,7 +38,7 @@ export async function englishAuctionsGetBidBufferBps(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/english-auctions/get-bid-buffer-bps",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/get-bid-buffer-bps",
     schema: {
       summary: "Get bid buffer BPS",
       description: `Get the basis points of the bid buffer. 
@@ -55,12 +55,12 @@ Returns the value in percentage format, e.g. 100 = 1%.`,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { listing_id } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.englishAuctions.getBidBufferBps(listing_id);
 

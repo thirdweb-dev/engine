@@ -49,7 +49,7 @@ export async function writeToContract(fastify: FastifyInstance) {
     Reply: Static<typeof transactionWritesResponseSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/write",
+    url: "/contract/:chain/:contractAddress/write",
     schema: {
       summary: "Write to contract",
       description: "Call a write function on a contract.",
@@ -64,7 +64,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { function_name, args, tx_overrides } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -73,7 +73,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

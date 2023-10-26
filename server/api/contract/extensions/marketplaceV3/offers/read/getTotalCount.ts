@@ -29,7 +29,7 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/offers/get-total-count",
+    url: "/marketplace/:chain/:contractAddress/offers/get-total-count",
     schema: {
       summary: "Get total count",
       description:
@@ -43,11 +43,11 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.englishAuctions.getTotalCount();
 

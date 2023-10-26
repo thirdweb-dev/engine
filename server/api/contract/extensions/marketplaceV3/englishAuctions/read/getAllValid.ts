@@ -69,7 +69,7 @@ export async function englishAuctionsGetAllValid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/english-auctions/get-all-valid",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/get-all-valid",
     schema: {
       summary: "Get all valid English auctions",
       description:
@@ -84,12 +84,12 @@ export async function englishAuctionsGetAllValid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { start, count, seller, tokenContract, tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.englishAuctions.getAllValid({
         start,
