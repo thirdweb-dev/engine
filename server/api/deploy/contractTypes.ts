@@ -19,7 +19,7 @@ export async function contractTypes(fastify: FastifyInstance) {
       summary: "Get contract types",
       description: "Get all prebuilt contract types.",
       tags: ["Deploy"],
-      operationId: "deployContractTypes",
+      operationId: "contractTypes",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,

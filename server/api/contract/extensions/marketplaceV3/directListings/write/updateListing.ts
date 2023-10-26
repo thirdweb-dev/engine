@@ -42,7 +42,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       summary: "Update direct listing",
       description: "Update a direct listing on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_updateListing",
+      operationId: "updateListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

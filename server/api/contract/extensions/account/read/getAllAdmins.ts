@@ -25,7 +25,7 @@ export const getAllAdmins = async (fastify: FastifyInstance) => {
       summary: "Get all admins",
       description: "Get all admins for a smart account.",
       tags: ["Account"],
-      operationId: "account:get-all-admins",
+      operationId: "getAllAdmins",
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,

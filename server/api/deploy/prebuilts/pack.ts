@@ -60,7 +60,7 @@ export async function deployPrebuiltPack(fastify: FastifyInstance) {
       summary: "Deploy Pack",
       description: "Deploy a Pack contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltPack",
+      operationId: "deployPack",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

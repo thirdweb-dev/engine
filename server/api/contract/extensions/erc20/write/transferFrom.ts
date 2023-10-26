@@ -51,7 +51,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
       description:
         "Transfer ERC-20 tokens from the connected wallet to another wallet. Requires allowance.",
       tags: ["ERC20"],
-      operationId: "erc20_transferFrom",
+      operationId: "transferFrom",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

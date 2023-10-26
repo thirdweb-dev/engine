@@ -41,7 +41,7 @@ export async function englishAuctionsGetWinningBid(fastify: FastifyInstance) {
       summary: "Get winning bid",
       description: "Get the current highest bid of an active auction.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_GetWinningBid",
+      operationId: "getWinningBid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

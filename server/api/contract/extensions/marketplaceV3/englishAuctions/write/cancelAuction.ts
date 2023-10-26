@@ -38,7 +38,7 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
       description:
         "Cancel an existing auction listing. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_cancelAuction",
+      operationId: "cancelAuction",
       params: requestSchema,
       body: requestBodySchema,
       response: {

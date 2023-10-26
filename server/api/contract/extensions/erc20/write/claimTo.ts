@@ -44,7 +44,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
       summary: "Claim tokens to wallet",
       description: "Claim ERC-20 tokens to a specific wallet.",
       tags: ["ERC20"],
-      operationId: "erc20_claimTo",
+      operationId: "claimTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

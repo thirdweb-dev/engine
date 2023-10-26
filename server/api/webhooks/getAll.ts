@@ -28,7 +28,7 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
       summary: "Get all webhooks configured",
       description: "Get all webhooks configuration data set up on Engine",
       tags: ["Webhooks"],
-      operationId: "getAllWebhooksData",
+      operationId: "getAll",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

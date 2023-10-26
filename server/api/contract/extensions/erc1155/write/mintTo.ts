@@ -51,7 +51,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
       summary: "Mint tokens",
       description: "Mint ERC-1155 tokens to a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "erc1155_mintTo",
+      operationId: "mintTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

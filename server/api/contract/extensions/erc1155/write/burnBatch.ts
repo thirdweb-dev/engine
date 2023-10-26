@@ -49,7 +49,7 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
       summary: "Burn tokens (batch)",
       description: "Burn a batch of ERC-1155 tokens in the caller wallet.",
       tags: ["ERC1155"],
-      operationId: "erc1155_burnBatch",
+      operationId: "burnBatch",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

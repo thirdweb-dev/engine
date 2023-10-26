@@ -58,7 +58,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
       summary: "Deploy Multiwrap",
       description: "Deploy a Multiwrap contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltMultiwrap",
+      operationId: "deployMultiwrap",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

@@ -40,7 +40,7 @@ export async function erc20burn(fastify: FastifyInstance) {
       summary: "Burn token",
       description: "Burn ERC-20 tokens in the caller wallet.",
       tags: ["ERC20"],
-      operationId: "erc20_burn",
+      operationId: "burn",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

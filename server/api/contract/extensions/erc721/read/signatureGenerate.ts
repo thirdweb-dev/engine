@@ -69,7 +69,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       description:
         "Generate a signature granting access for another wallet to mint tokens from this ERC-721 contract. This method is typically called by the token contract owner.",
       tags: ["ERC721"],
-      operationId: "erc721_signature_generate",
+      operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

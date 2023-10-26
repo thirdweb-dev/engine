@@ -42,7 +42,7 @@ export async function getBalance(fastify: FastifyInstance) {
       summary: "Get balance",
       description: "Get the native balance for a backend wallet.",
       tags: ["Backend Wallet"],
-      operationId: "backendWallet_getBalance",
+      operationId: "getBalance",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

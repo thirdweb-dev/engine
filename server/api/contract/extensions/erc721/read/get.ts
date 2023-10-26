@@ -53,7 +53,7 @@ export async function erc721Get(fastify: FastifyInstance) {
       summary: "Get details",
       description: "Get the details for a token in an ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_get",
+      operationId: "get",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

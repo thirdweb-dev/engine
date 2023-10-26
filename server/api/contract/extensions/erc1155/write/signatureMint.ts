@@ -42,7 +42,7 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
       summary: "Signature mint",
       description: "Mint ERC-1155 tokens from a generated signature.",
       tags: ["ERC1155"],
-      operationId: "erc1155_signature_mint",
+      operationId: "signatureMint",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

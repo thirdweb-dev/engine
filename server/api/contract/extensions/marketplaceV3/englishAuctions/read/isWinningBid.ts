@@ -44,7 +44,7 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
       description:
         "Check if a bid is or will be the winning bid for an auction.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_isWinningBid",
+      operationId: "isWinningBid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

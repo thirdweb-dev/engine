@@ -44,7 +44,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
       description:
         "Generate a signature granting access for another wallet to mint tokens from this ERC-20 contract. This method is typically called by the token contract owner.",
       tags: ["ERC20"],
-      operationId: "erc20_signature_generate",
+      operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
       response: {

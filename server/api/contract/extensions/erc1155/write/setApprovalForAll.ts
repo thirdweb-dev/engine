@@ -46,7 +46,7 @@ export async function erc1155SetApprovalForAll(fastify: FastifyInstance) {
       description:
         "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token owned by the caller.",
       tags: ["ERC1155"],
-      operationId: "erc1155_setApprovalForAll",
+      operationId: "setApprovalForAll",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

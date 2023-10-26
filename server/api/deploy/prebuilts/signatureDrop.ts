@@ -65,7 +65,7 @@ export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
       summary: "Deploy Signature Drop",
       description: "Deploy a Signature Drop contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltSignatureDrop",
+      operationId: "deploySignatureDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

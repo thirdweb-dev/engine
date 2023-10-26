@@ -54,7 +54,7 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
       description:
         "Transfer an ERC-1155 token from the connected wallet to another wallet. Requires allowance.",
       tags: ["ERC1155"],
-      operationId: "erc1155_transferFrom",
+      operationId: "transferFrom",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

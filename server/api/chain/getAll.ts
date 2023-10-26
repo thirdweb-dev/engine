@@ -56,7 +56,7 @@ export async function getAllChainData(fastify: FastifyInstance) {
       summary: "Get all chain details",
       description: "Get details about all supported chains.",
       tags: ["Chain"],
-      operationId: "getAllChainData",
+      operationId: "getAll",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

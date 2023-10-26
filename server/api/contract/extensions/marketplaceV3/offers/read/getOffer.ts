@@ -57,7 +57,7 @@ export async function offersGetOffer(fastify: FastifyInstance) {
       summary: "Get offer",
       description: "Get details about an offer.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offers_getOffer",
+      operationId: "getOffer",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

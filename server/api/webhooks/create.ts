@@ -102,7 +102,7 @@ export async function createWebhook(fastify: FastifyInstance) {
       summary: "Create a new webhook",
       description: "Create a new webhook",
       tags: ["Webhooks"],
-      operationId: "createWebhooks",
+      operationId: "create",
       body: BodySchema,
       response: {
         ...standardResponseSchema,

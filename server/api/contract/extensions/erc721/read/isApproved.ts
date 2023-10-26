@@ -45,7 +45,7 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
       description:
         "Check if the specific wallet has approved transfers from a specific operator wallet.",
       tags: ["ERC721"],
-      operationId: "erc721_isApproved",
+      operationId: "isApproved",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

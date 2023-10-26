@@ -44,7 +44,7 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
       description:
         "Approve an operator for the NFT owner. Operators can call transferFrom or safeTransferFrom for the specific token.",
       tags: ["ERC721"],
-      operationId: "erc721_setApprovalForToken",
+      operationId: "setApprovalForToken",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

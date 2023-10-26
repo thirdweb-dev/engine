@@ -37,7 +37,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
       summary: "Buyout English auction",
       description: "Buyout the listing for this auction.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_buyoutAuction",
+      operationId: "buyoutAuction",
       params: requestSchema,
       body: requestBodySchema,
       response: {

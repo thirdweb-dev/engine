@@ -43,7 +43,7 @@ export async function erc721transfer(fastify: FastifyInstance) {
       summary: "Transfer token",
       description: "Transfer an ERC-721 token from the caller wallet.",
       tags: ["ERC721"],
-      operationId: "erc721_transfer",
+      operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

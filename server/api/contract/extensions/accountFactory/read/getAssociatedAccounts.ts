@@ -34,7 +34,7 @@ export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
       description:
         "Get all the smart accounts for this account factory associated with the specific admin wallet.",
       tags: ["Account Factory"],
-      operationId: "account-factory:get-associated-accounts",
+      operationId: "getAssociatedAccounts",
       params: contractParamSchema,
       querystring: QuerySchema,
       response: {

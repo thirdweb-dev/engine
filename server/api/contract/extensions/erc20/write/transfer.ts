@@ -46,7 +46,7 @@ export async function erc20Transfer(fastify: FastifyInstance) {
       description:
         "Transfer ERC-20 tokens from the caller wallet to a specific wallet.",
       tags: ["ERC20"],
-      operationId: "erc20_transfer",
+      operationId: "transfer",
       body: requestBodySchema,
       params: requestSchema,
       headers: walletAuthSchema,

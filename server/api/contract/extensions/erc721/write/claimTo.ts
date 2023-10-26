@@ -43,7 +43,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
       summary: "Claim tokens to wallet",
       description: "Claim ERC-721 tokens to a specific wallet.",
       tags: ["ERC721"],
-      operationId: "erc721_claimTo",
+      operationId: "claimTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

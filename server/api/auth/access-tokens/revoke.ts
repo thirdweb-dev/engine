@@ -24,7 +24,7 @@ export async function revokeAccessToken(fastify: FastifyInstance) {
       summary: "Revoke an access token",
       description: "Revoke an access token",
       tags: ["Access Tokens"],
-      operationId: "revokeAccessToken",
+      operationId: "revoke",
       body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,

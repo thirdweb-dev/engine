@@ -72,7 +72,7 @@ export async function offersGetAllValid(fastify: FastifyInstance) {
       description:
         "Get all valid offers on this marketplace contract. Valid offers are offers that have not expired, been canceled, or been accepted.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offers_getAllValid",
+      operationId: "getAllValid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

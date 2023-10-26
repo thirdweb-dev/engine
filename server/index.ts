@@ -64,6 +64,11 @@ const main = async () => {
       }
     },
   );
+
+  fs.writeFileSync(
+    "./dist/openapi.json",
+    JSON.stringify(server.swagger(), undefined, 2),
+  );
 };
 
 main();

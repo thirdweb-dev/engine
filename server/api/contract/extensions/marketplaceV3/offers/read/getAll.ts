@@ -71,7 +71,7 @@ export async function offersGetAll(fastify: FastifyInstance) {
       summary: "Get all offers",
       description: "Get all offers on this marketplace contract.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offers_getAll",
+      operationId: "getAll",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

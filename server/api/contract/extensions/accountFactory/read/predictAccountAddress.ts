@@ -37,7 +37,7 @@ export const predictAccountAddress = async (fastify: FastifyInstance) => {
       summary: "Predict smart account address",
       description: "Get the counterfactual address of a smart account.",
       tags: ["Account Factory"],
-      operationId: "account-factory:predict-account-address",
+      operationId: "predictAccountAddress",
       params: contractParamSchema,
       querystring: QuerySchema,
       response: {

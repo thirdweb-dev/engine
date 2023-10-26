@@ -102,7 +102,7 @@ export async function getAllTx(fastify: FastifyInstance) {
       summary: "Get all transactions",
       description: "Get all transaction requests.",
       tags: ["Transaction"],
-      operationId: "getAllTx",
+      operationId: "getAll",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,

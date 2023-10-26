@@ -61,7 +61,7 @@ export async function erc721GetAll(fastify: FastifyInstance) {
       summary: "Get all details",
       description: "Get details for all tokens in an ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_getAll",
+      operationId: "getAll",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

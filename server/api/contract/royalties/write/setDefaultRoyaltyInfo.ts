@@ -38,7 +38,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       summary: "Set Default Royalty Info",
       description: "Set the royalty recipient and fee for the smart contract.",
       tags: ["Contract-Royalties"],
-      operationId: "royalties_setDefaultRoyaltyInfo",
+      operationId: "setDefaultRoyaltyInfo",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

@@ -52,7 +52,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
       description:
         "Get the allowance of a specific wallet for an ERC-20 contract.",
       tags: ["ERC20"],
-      operationId: "erc20_allowanceOf",
+      operationId: "allowanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

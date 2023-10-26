@@ -35,7 +35,7 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
       description:
         "Get the total number of offers on this marketplace contract.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offers_getTotalCount",
+      operationId: "getTotalCount",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

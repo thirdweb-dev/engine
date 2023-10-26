@@ -25,7 +25,7 @@ export async function revokeWebhook(fastify: FastifyInstance) {
       summary: "Revoke webhook",
       description: "Revoke a Webhook",
       tags: ["Webhooks"],
-      operationId: "revokeWebhooks",
+      operationId: "revoke",
       body: BodySchema,
       response: {
         ...standardResponseSchema,

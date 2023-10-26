@@ -44,7 +44,7 @@ export async function directListingsApproveBuyerForReservedListing(
       summary: "Approve buyer for reserved listing",
       description: "Approve a wallet address to buy from a reserved listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_approveBuyerForReservedListing",
+      operationId: "approveBuyerForReservedListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

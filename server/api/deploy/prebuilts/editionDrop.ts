@@ -64,7 +64,7 @@ export async function deployPrebuiltEditionDrop(fastify: FastifyInstance) {
       summary: "Deploy Edition Drop",
       description: "Deploy an Edition Drop contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltEditionDrop",
+      operationId: "deployEditionDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

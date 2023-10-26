@@ -68,7 +68,7 @@ export async function extractEvents(fastify: FastifyInstance) {
       summary: "Get events",
       description: "Get details of all events implemented by a contract.",
       tags: ["Contract-Metadata"],
-      operationId: "extractEvents",
+      operationId: "getEvents",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

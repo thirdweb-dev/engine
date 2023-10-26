@@ -42,7 +42,7 @@ execute the sale for the buyer, meaning the buyer receives the NFT(s).
 You must also call closeAuctionForSeller to execute the sale for the seller,
 meaning the seller receives the payment from the highest bid.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_closeAuctionForBidder",
+      operationId: "closeAuctionForBidder",
       params: requestSchema,
       body: requestBodySchema,
       response: {

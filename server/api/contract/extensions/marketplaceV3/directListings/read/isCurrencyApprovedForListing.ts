@@ -46,7 +46,7 @@ export async function directListingsIsCurrencyApprovedForListing(
       description:
         "Check if a currency is approved for a specific direct listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_isCurrencyApprovedForListing",
+      operationId: "isCurrencyApprovedForListing",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

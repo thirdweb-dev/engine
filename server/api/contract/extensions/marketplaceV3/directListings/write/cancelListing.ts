@@ -39,7 +39,7 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
       description:
         "Cancel a direct listing from this marketplace contract. Only the creator of the listing can cancel it.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_cancelListing",
+      operationId: "cancelListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,

@@ -38,7 +38,7 @@ export async function getAll(fastify: FastifyInstance) {
       summary: "Get all backend wallets",
       description: "Get all backend wallets.",
       tags: ["Backend Wallet"],
-      operationId: "backendWallet_getAll",
+      operationId: "getAll",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

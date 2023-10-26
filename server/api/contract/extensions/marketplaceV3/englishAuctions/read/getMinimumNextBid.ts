@@ -45,7 +45,7 @@ export async function englishAuctionsGetMinimumNextBid(
 If there is no current bid, the bid must be at least the minimum bid amount.
 If there is a current bid, the bid must be at least the current bid amount + the bid buffer.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_getMinimumNextBid",
+      operationId: "getMinimumNextBid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

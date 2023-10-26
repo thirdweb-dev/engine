@@ -38,7 +38,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
       summary: "Update session key",
       description: "Update a session key for a smart account.",
       tags: ["Account"],
-      operationId: "account:update-session",
+      operationId: "updateSession",
       params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,

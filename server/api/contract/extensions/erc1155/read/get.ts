@@ -56,7 +56,7 @@ export async function erc1155Get(fastify: FastifyInstance) {
       summary: "Get details",
       description: "Get the details for a token in an ERC-1155 contract.",
       tags: ["ERC1155"],
-      operationId: "erc1155_get",
+      operationId: "get",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

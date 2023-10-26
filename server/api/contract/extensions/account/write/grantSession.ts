@@ -36,7 +36,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
       summary: "Create session key",
       description: "Create a session key for a smart account.",
       tags: ["Account"],
-      operationId: "account:grant-session",
+      operationId: "grantSession",
       params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,

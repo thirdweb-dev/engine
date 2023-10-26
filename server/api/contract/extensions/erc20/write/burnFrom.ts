@@ -45,7 +45,7 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
       description:
         "Burn ERC-20 tokens in a specific wallet. Requires allowance.",
       tags: ["ERC20"],
-      operationId: "erc20_burnFrom",
+      operationId: "burnFrom",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

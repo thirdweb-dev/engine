@@ -33,7 +33,7 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
       description:
         "Get the total supply in circulation for this ERC-1155 contract.",
       tags: ["ERC1155"],
-      operationId: "erc1155_totalCount",
+      operationId: "totalCount",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

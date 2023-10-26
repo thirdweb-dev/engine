@@ -47,7 +47,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       summary: "Send a raw transaction",
       description: "Send a raw transaction with transaction parameters",
       tags: ["Backend Wallet"],
-      operationId: "walletSendTransaction",
+      operationId: "sendTransaction",
       params: ParamsSchema,
       body: requestBodySchema,
       headers: Type.Omit(walletAuthSchema, ["x-account-address"]),

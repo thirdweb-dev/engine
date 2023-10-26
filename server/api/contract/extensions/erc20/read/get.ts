@@ -40,7 +40,7 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
       summary: "Get token details",
       description: "Get details for this ERC-20 contract.",
       tags: ["ERC20"],
-      operationId: "erc20_get",
+      operationId: "get",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

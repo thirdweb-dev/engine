@@ -26,7 +26,7 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
       summary: "Get all access tokens",
       description: "Get all access tokens",
       tags: ["Access Tokens"],
-      operationId: "getAllAccessTokens",
+      operationId: "getAll",
       response: {
         [StatusCodes.OK]: ReplySchema,
       },

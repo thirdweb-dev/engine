@@ -41,7 +41,7 @@ export async function erc721BalanceOf(fastify: FastifyInstance) {
       description:
         "Get the balance of a specific wallet address for this ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_balanceOf",
+      operationId: "balanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

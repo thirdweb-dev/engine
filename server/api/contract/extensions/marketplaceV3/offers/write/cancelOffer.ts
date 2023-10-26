@@ -39,7 +39,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       summary: "Cancel offer",
       description: "Cancel a valid offer made by the caller wallet.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offer_cancelOffer",
+      operationId: "cancelOffer",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
