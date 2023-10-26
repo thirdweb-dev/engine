@@ -14,7 +14,7 @@
     "dev:worker": "nodemon --watch 'src/worker/**/*.ts' --watch 'core/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./src/worker/index.ts' --files src/worker/index.ts",
     "dev:infra": "docker compose -f ./docker-compose-infra.yml up -d",
     "build": "yarn && rm -rf dist && tsc -p ./tsconfig.json --outDir dist",
-    "generate:sdk": "npx tsx ./src/scripts/generate-open-api.ts && yarn openapi --input ./dist/openapi.json --output ./dist/sdk --name Engine",
+    "generate:sdk": "npx tsx ./src/scripts/generate-sdk",
     "prisma:setup:dev": "npx tsx ./src/db/scripts/setup.ts",
     "prisma:setup:prod": "npx tsx ./dist/src/db/scripts/setup.js",
     "start": "yarn prisma:setup:prod && (yarn start:server & yarn start:worker)",
