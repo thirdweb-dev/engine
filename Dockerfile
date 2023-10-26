@@ -1,3 +1,24 @@
+# Production Node Modules stage
+FROM node:18.15.0-alpine AS prod-node-modules
+
+# Install tini and other build dependencies
+RUN apk add --no-cache g++ make py3-pip
+
+WORKDIR /app
+
+# Copy package.json and yarn.lock files
+COPY package*.json yarn*.lock ./
+
+# Install production dependencies only
+RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000
+
+# Clean up build dependencies
+RUN apk del g++ make py3-pip
+
+##############################
+##############################
+
+# Base Stage : Build and copy the entire project directory
 FROM node:18.15.0-alpine AS base
 
 # Install tini
@@ -31,15 +52,24 @@ RUN apk del build-dependencies
 # Expose the necessary ports
 EXPOSE 3005
 
+##############################
+##############################
+
 FROM base AS local_server
 
 ENV NODE_ENV="local"
 CMD [ "yarn", "dev:server" ]
 
+##############################
+##############################
+
 FROM base AS local_worker
 
 ENV NODE_ENV="local"
 CMD [ "yarn", "dev:worker" ]
+
+##############################
+##############################
 
 # Production stage
 FROM node:18.15.0-alpine AS prod
@@ -51,9 +81,6 @@ RUN apk add --no-cache tini
 WORKDIR /app
 
 ENV NODE_ENV="production"
-
-# Install build dependencies
-RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip
 
 # Copy package.json and yarn.lock files
 COPY package*.json yarn*.lock ./
@@ -76,11 +103,8 @@ RUN apk del openssl
 # Change Working Directory back to /app
 WORKDIR /app
 
-# Install production dependencies only
-RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000
-
-# Clean up build dependencies
-RUN apk del build-dependencies
+# Copy only production dependencies from the prod-node-modules stage
+COPY --from=prod-node-modules /app/node_modules ./node_modules
 
 # Use tini as entrypoint to handle killing processes
 ENTRYPOINT ["/sbin/tini", "--"]
