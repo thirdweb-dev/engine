@@ -2,17 +2,17 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  erc721ContractParamSchema,
-  standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import {
   erc20ResponseType,
   signature20InputSchema,
   signature20OutputSchema,
 } from "../../../../../schemas/erc20";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
-import { checkAndReturnERC20SignaturePayload } from "../../../../../utilities/validator";
+import {
+  erc721ContractParamSchema,
+  standardResponseSchema,
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
+import { checkAndReturnERC20SignaturePayload } from "../../../../../utils/validator";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;

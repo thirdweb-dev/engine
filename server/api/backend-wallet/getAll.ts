@@ -5,7 +5,7 @@ import { getAllWallets } from "../../../src/db/wallets/getAllWallets";
 import {
   standardResponseSchema,
   walletDetailsSchema,
-} from "../../helpers/sharedApiSchemas";
+} from "../../schemas/sharedApiSchemas";
 
 // OUTPUT
 const responseSchema = Type.Object({

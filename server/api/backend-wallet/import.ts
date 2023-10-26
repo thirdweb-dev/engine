@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../src/db/configuration/getConfiguration";
 import { WalletType } from "../../../src/schema/wallet";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
 import { importLocalWallet } from "../../utils/wallets/importLocalWallet";

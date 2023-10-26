@@ -2,19 +2,19 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  erc721ContractParamSchema,
-  standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import {
   ercNFTResponseType,
   signature721InputSchema,
   signature721OutputSchema,
 } from "../../../../../schemas/nft";
+import {
+  erc721ContractParamSchema,
+  standardResponseSchema,
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
-import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
+import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;

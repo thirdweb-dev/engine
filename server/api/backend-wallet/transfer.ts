@@ -12,11 +12,11 @@ import { queueTx } from "../../../src/db/transactions/queueTx";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+} from "../../schemas/sharedApiSchemas";
 import { walletAuthSchema, walletParamSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utilities/chain";
 import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
+import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
 const requestSchema = Type.Omit(walletParamSchema, ["wallet_address"]);

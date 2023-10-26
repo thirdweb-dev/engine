@@ -3,7 +3,9 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getTxById } from "../../../src/db/transactions/getTxById";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { createCustomError } from "../../middleware/error";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { transactionResponseSchema } from "../../schemas/transaction";
 import {
   findOrAddWSConnectionInSharedState,
   formatSocketMessage,
@@ -11,9 +13,7 @@ import {
   onClose,
   onError,
   onMessage,
-} from "../../helpers/websocket";
-import { createCustomError } from "../../middleware/error";
-import { transactionResponseSchema } from "../../schemas/transaction";
+} from "../../utils/websocket";
 
 // INPUT
 const requestSchema = Type.Object({

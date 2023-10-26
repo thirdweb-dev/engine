@@ -2,15 +2,15 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../src/db/transactions/queueTx";
+import { RoyaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../helpers/sharedApiSchemas";
-import { RoyaltySchema } from "../../../../schemas/contract";
+} from "../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../utilities/chain";
 import { getContract } from "../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;

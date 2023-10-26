@@ -12,7 +12,7 @@ import {
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../schemas/transaction";
-import { getWebhookConfig } from "../utils/cache/getWebhook";
+import { getWebhookConfig } from "./cache/getWebhook";
 
 let balanceNotificationLastSentAt = -1;
 

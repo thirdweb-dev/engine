@@ -5,7 +5,7 @@ import * as fs from "fs";
 import { getConfiguration } from "../../../src/db/configuration/getConfiguration";
 import { PrismaTransaction } from "../../../src/schema/prisma";
 import { JsonSchema, env } from "../../../src/utils/env";
-import { isValidHttpUrl } from "../../utilities/validator";
+import { isValidHttpUrl } from "../validator";
 import { getWallet } from "./getWallet";
 
 const sdkCache = new Map<string, ThirdwebSDK>();

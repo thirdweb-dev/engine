@@ -1,10 +1,10 @@
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { partialRouteSchema } from "../../../helpers/sharedApiSchemas";
 import { readRequestQuerySchema, readSchema } from "../../../schemas/contract";
-import { getChainIdFromChain } from "../../../utilities/chain";
-import { bigNumberReplacer } from "../../../utilities/convertor";
+import { partialRouteSchema } from "../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../utils/chain";
+import { bigNumberReplacer } from "../../../utils/convertor";
 
 export async function readContract(fastify: FastifyInstance) {
   fastify.route<readSchema>({

@@ -5,11 +5,11 @@ import { queueTx } from "../../../src/db/transactions/queueTx";
 import {
   publishedDeployParamSchema,
   standardResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+} from "../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../utilities/chain";
 import { getSdk } from "../../utils/cache/getSdk";
+import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
 const requestSchema = publishedDeployParamSchema;
