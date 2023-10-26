@@ -14,7 +14,7 @@ const requestSchema = erc1155ContractParamSchema;
 
 // QUERY
 const querystringSchema = Type.Object({
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "The tokenId of the NFT to retrieve",
     examples: ["0"],
   }),
@@ -66,13 +66,13 @@ export async function erc1155Get(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { token_id } = request.query;
+      const { tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
-      const result = await contract.erc1155.get(token_id);
+      const result = await contract.erc1155.get(tokenId);
       reply.status(StatusCodes.OK).send({
         result,
       });

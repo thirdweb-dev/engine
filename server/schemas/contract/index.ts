@@ -5,7 +5,7 @@ import { contractSchemaTypes } from "../sharedApiSchemas";
  * Basic schema for all Request Query String
  */
 export const readRequestQuerySchema = Type.Object({
-  function_name: Type.String({
+  functionName: Type.String({
     description: "Name of the function to call on Contract",
     examples: ["balanceOf"],
   }),
@@ -95,10 +95,10 @@ export const eventsQuerystringSchema = Type.Object(
 );
 
 export const RoyaltySchema = Type.Object({
-  sellerFeeBasisPoints: Type.Number({
+  seller_fee_basis_points: Type.Number({
     description: "The royalty fee in BPS (basis points). 100 = 1%.",
   }),
-  feeRecipient: Type.String({
+  fee_recipient: Type.String({
     description: "The wallet address that will receive the royalty fees.",
   }),
 });

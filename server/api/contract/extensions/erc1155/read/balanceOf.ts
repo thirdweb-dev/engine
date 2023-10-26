@@ -12,11 +12,11 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
-  wallet_address: Type.String({
+  walletAddress: Type.String({
     description: "Address of the wallet to check NFT balance",
     examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "The tokenId of the NFT to check balance of",
     examples: ["0"],
   }),
@@ -57,15 +57,15 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { wallet_address, token_id } = request.query;
+      const { walletAddress, tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
       const returnData = await contract.erc1155.balanceOf(
-        wallet_address,
-        token_id,
+        walletAddress,
+        tokenId,
       );
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

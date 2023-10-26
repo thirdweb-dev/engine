@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox";
 
 export const txOverridesForWriteRequest = Type.Object({
-  tx_overrides: Type.Optional(
+  txOverrides: Type.Optional(
     Type.Object({
       value: Type.Optional(
         Type.String({

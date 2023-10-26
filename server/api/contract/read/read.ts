@@ -20,7 +20,7 @@ export async function readContract(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { function_name, args } = request.query;
+      const { functionName, args } = request.query;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
@@ -29,7 +29,7 @@ export async function readContract(fastify: FastifyInstance) {
       });
 
       let returnData = await contract.call(
-        function_name,
+        functionName,
         args ? args.split(",") : [],
       );
       returnData = bigNumberReplacer(returnData);

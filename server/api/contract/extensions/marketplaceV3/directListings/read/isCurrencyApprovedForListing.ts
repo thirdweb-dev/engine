@@ -11,10 +11,10 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The id of the listing to retrieve.",
   }),
-  currency_contract_address: Type.String({
+  currencyContractAddress: Type.String({
     description: "The smart contract address of the ERC20 token to check.",
   }),
 });
@@ -56,15 +56,15 @@ export async function directListingsIsCurrencyApprovedForListing(
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { listing_id, currency_contract_address } = request.query;
+      const { listingId, currencyContractAddress } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
       const result = await contract.directListings.isCurrencyApprovedForListing(
-        listing_id,
-        currency_contract_address,
+        listingId,
+        currencyContractAddress,
       );
 
       reply.status(StatusCodes.OK).send({

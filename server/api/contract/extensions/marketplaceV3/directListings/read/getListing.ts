@@ -13,7 +13,7 @@ import { formatDirectListingV3Result } from "../../../../../../utils/marketplace
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The id of the listing to retrieve.",
   }),
 });
@@ -67,13 +67,13 @@ export async function directListingsGetListing(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { listing_id } = request.query;
+      const { listingId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
-      const result = await contract.directListings.getListing(listing_id);
+      const result = await contract.directListings.getListing(listingId);
 
       reply.status(StatusCodes.OK).send({
         result: formatDirectListingV3Result(result),

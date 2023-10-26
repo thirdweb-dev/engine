@@ -16,7 +16,7 @@ const ReplySchema = Type.Object({
 });
 
 const QuerySchema = Type.Object({
-  signer_address: Type.String({
+  signerAddress: Type.String({
     description: "The address of the signer to get associated accounts from",
   }),
 });
@@ -44,7 +44,7 @@ export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { signer_address } = request.query;
+      const { signerAddress } = request.query;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -52,7 +52,7 @@ export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
         contractAddress,
       });
       const accountAddresses =
-        await contract.accountFactory.getAssociatedAccounts(signer_address);
+        await contract.accountFactory.getAssociatedAccounts(signerAddress);
 
       reply.status(StatusCodes.OK).send({
         result: accountAddresses,

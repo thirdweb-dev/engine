@@ -11,10 +11,10 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing to retrieve the winner for.",
   }),
-  bid_amount: Type.String({
+  bidAmount: Type.String({
     description: "The amount of the bid to check if it is the winning bid.",
   }),
 });
@@ -54,15 +54,15 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { listing_id, bid_amount } = request.query;
+      const { listingId, bidAmount } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
       const result = await contract.englishAuctions.isWinningBid(
-        listing_id,
-        bid_amount,
+        listingId,
+        bidAmount,
       );
 
       reply.status(StatusCodes.OK).send({

@@ -19,7 +19,7 @@ import { getSdk } from "../../utils/cache/getSdk";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
-const requestSchema = Type.Omit(walletParamSchema, ["wallet_address"]);
+const requestSchema = Type.Omit(walletParamSchema, ["walletAddress"]);
 const requestBodySchema = Type.Object({
   to: Type.String({
     description: "Address of the wallet to transfer to",

@@ -31,7 +31,7 @@ export const prebuiltDeployParamSchema = Type.Object({
     examples: ["mumbai"],
     description: "Chain ID or name",
   }),
-  contract_type: Type.String({
+  contractType: Type.String({
     examples: Object.keys(PREBUILT_CONTRACTS_MAP),
     description: "Contract type to deploy",
   }),
@@ -46,7 +46,7 @@ export const publishedDeployParamSchema = Type.Object({
     examples: ["deployer.thirdweb.eth"],
     description: "Address or ENS of the publisher of the contract",
   }),
-  contract_name: Type.String({
+  contractName: Type.String({
     examples: ["AirdropERC20"],
     description: "Name of the published contract to deploy",
   }),

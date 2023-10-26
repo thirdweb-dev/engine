@@ -13,11 +13,11 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const querystringSchema = Type.Object({
-  owner_wallet: Type.String({
+  ownerWallet: Type.String({
     description: "Address of the wallet who owns the funds",
     examples: ["0x3EcDBF3B911d0e9052b64850693888b008e18373"],
   }),
-  spender_wallet: Type.String({
+  spenderWallet: Type.String({
     description: "Address of the wallet to check token allowance",
     examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
@@ -62,15 +62,15 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { spender_wallet, owner_wallet } = request.query;
+      const { spenderWallet, ownerWallet } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
       const returnData: any = await contract.erc20.allowanceOf(
-        owner_wallet ? owner_wallet : "",
-        spender_wallet ? spender_wallet : "",
+        ownerWallet ? ownerWallet : "",
+        spenderWallet ? spenderWallet : "",
       );
       reply.status(StatusCodes.OK).send({
         result: {
