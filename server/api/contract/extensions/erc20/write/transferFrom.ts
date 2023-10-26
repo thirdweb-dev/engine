@@ -15,10 +15,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-  from_address: Type.String({
+  fromAddress: Type.String({
     description: "Address of the wallet sending the tokens",
   }),
-  to_address: Type.String({
+  toAddress: Type.String({
     description: "Address of the wallet you want to send the tokens to",
   }),
   amount: Type.String({
@@ -30,8 +30,8 @@ const requestBodySchema = Type.Object({
 // Example for the Request Body
 requestBodySchema.examples = [
   {
-    from_address: "0x....",
-    to_address: "0x...",
+    fromAddress: "0x....",
+    toAddress: "0x...",
     amount: "0.1",
   },
 ];
@@ -45,7 +45,7 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc20/transfer-from",
+    url: "/contract/:chain/:contractAddress/erc20/transfer-from",
     schema: {
       summary: "Transfer tokens from wallet",
       description:
@@ -61,8 +61,8 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { from_address, to_address, amount } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { fromAddress, toAddress, amount } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -70,14 +70,14 @@ export async function erc20TransferFrom(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.erc20.transferFrom.prepare(
-        from_address,
-        to_address,
+        fromAddress,
+        toAddress,
         amount,
       );
 

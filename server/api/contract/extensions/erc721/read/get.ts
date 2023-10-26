@@ -12,7 +12,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "The tokenId of the NFT to retrieve",
     examples: ["0"],
   }),
@@ -48,7 +48,7 @@ export async function erc721Get(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc721/get",
+    url: "/contract/:chain/:contractAddress/erc721/get",
     schema: {
       summary: "Get details",
       description: "Get the details for a token in an ERC-721 contract.",
@@ -62,14 +62,14 @@ export async function erc721Get(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { token_id } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
-      const result = await contract.erc721.get(token_id);
+      const result = await contract.erc721.get(tokenId);
       reply.status(StatusCodes.OK).send({
         result,
       });

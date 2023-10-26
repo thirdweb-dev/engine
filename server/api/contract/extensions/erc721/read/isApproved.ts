@@ -12,7 +12,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
-  owner_wallet: Type.String({
+  ownerWallet: Type.String({
     description: "Address of the wallet who owns the NFT",
     examples: ["0x3EcDBF3B911d0e9052b64850693888b008e18373"],
   }),
@@ -39,7 +39,7 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc721/is-approved",
+    url: "/contract/:chain/:contractAddress/erc721/is-approved",
     schema: {
       summary: "Check if approved transfers",
       description:
@@ -54,15 +54,15 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { owner_wallet, operator } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { ownerWallet, operator } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData: any = await contract.erc721.isApproved(
-        owner_wallet,
+        ownerWallet,
         operator,
       );
 

@@ -16,7 +16,7 @@ export const walletParamSchema = Type.Object({
     examples: ["mumbai"],
     description: "Chain ID name",
   }),
-  wallet_address: Type.String({
+  walletAddress: Type.String({
     examples: ["0x..."],
     description: "Wallet Address",
   }),

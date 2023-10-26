@@ -31,7 +31,7 @@ export async function getDefaultRoyaltyInfo(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/royalties/get-default-royalty-info",
+    url: "/contract/:chain/:contractAddress/royalties/get-default-royalty-info",
     schema: {
       summary: "Get Default Royalty Info",
       description:
@@ -45,12 +45,12 @@ export async function getDefaultRoyaltyInfo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
       const returnData = await contract.royalties.getDefaultRoyaltyInfo();

@@ -38,7 +38,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc20/signature/generate",
+    url: "/contract/:chain/:contractAddress/erc20/signature/generate",
     schema: {
       summary: "Generate signature",
       description:
@@ -53,7 +53,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         to,
         currencyAddress,
@@ -70,7 +70,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
       });
 

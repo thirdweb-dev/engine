@@ -19,7 +19,7 @@ export const getAllSessions = async (fastify: FastifyInstance) => {
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/account/sessions/get-all",
+    url: "/contract/:chain/:contractAddress/account/sessions/get-all",
     schema: {
       summary: "Get all session keys",
       description: "Get all session keys for a smart account.",
@@ -32,12 +32,12 @@ export const getAllSessions = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const sessions = await contract.account.getAllSigners();
 

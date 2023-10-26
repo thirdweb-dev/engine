@@ -67,7 +67,7 @@ export async function directListingsGetAll(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/direct-listings/get-all",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/get-all",
     schema: {
       summary: "Get all listings",
       description: "Get all direct listings for this marketplace contract.",
@@ -81,12 +81,12 @@ export async function directListingsGetAll(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { start, count, seller, tokenContract, tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.directListings.getAll({
         start,

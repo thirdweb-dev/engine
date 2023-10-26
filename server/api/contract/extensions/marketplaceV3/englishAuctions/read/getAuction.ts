@@ -13,7 +13,7 @@ import { formatEnglishAuctionResult } from "../../../../../../utils/marketplaceV
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The id of the listing to retrieve.",
   }),
 });
@@ -52,7 +52,7 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/english-auctions/get-auction",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/get-auction",
     schema: {
       summary: "Get English auction",
       description:
@@ -67,14 +67,14 @@ export async function englishAuctionsGetAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { listingId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
-      const result = await contract.englishAuctions.getAuction(listing_id);
+      const result = await contract.englishAuctions.getAuction(listingId);
 
       reply.status(StatusCodes.OK).send({
         result: formatEnglishAuctionResult(result),

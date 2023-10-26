@@ -14,14 +14,14 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing you want to cancel.",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
   },
 ];
 
@@ -33,7 +33,7 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/direct-listings/cancel-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/cancel-listing",
     schema: {
       summary: "Cancel direct listing",
       description:
@@ -49,8 +49,8 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -58,14 +58,12 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
-      const tx = await contract.directListings.cancelListing.prepare(
-        listing_id,
-      );
+      const tx = await contract.directListings.cancelListing.prepare(listingId);
 
       const queueId = await queueTx({
         tx,

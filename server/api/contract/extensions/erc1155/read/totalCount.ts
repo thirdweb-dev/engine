@@ -27,7 +27,7 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc1155/total-count",
+    url: "/contract/:chain/:contractAddress/erc1155/total-count",
     schema: {
       summary: "Get total supply",
       description:
@@ -41,11 +41,11 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData = await contract.erc1155.totalCount();
       reply.status(StatusCodes.OK).send({

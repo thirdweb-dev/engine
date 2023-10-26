@@ -16,7 +16,7 @@ const requestSchema = contractParamSchema;
 
 const requestBodyParams = Type.Object(
   {
-    event_name: Type.String({ examples: ["Transfer"] }),
+    eventName: Type.String({ examples: ["Transfer"] }),
     ...eventsQuerystringSchema.properties,
     filters: Type.Optional(Type.Object({})),
   },
@@ -68,7 +68,7 @@ export async function getEvents(fastify: FastifyInstance) {
     Body: Static<typeof requestBodyParams>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/events/get",
+    url: "/contract/:chain/:contractAddress/events/get",
     schema: {
       summary: "Get events",
       description:
@@ -83,18 +83,18 @@ export async function getEvents(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { from_block, to_block, order, event_name, filters } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { fromBlock, toBlock, order, eventName, filters } = request.body;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
-      let returnData = await contract.events.getEvents(event_name, {
-        fromBlock: from_block,
-        toBlock: to_block,
+      let returnData = await contract.events.getEvents(eventName, {
+        fromBlock,
+        toBlock,
         order,
         filters,
       });

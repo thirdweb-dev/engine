@@ -64,7 +64,7 @@ export async function getAllEvents(fastify: FastifyInstance) {
     Querystring: Static<typeof querySringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/events/get-all",
+    url: "/contract/:chain/:contractAddress/events/get-all",
     schema: {
       summary: "Get all events",
       description: "Get a list of all blockchain events for this contract.",
@@ -78,18 +78,18 @@ export async function getAllEvents(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { from_block, to_block, order } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { fromBlock, toBlock, order } = request.query;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
       let returnData = await contract.events.getAllEvents({
-        fromBlock: from_block,
-        toBlock: to_block,
+        fromBlock,
+        toBlock,
         order,
       });
 

@@ -14,18 +14,18 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing you want to approve a buyer for.",
   }),
-  buyer_address: Type.String({
+  buyerAddress: Type.String({
     description: "The wallet address of the buyer to approve.",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
-    buyer_address: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
+    listingId: "0",
+    buyerAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
   },
 ];
 
@@ -39,7 +39,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/direct-listings/revoke-buyer-approval-for-reserved-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/revoke-buyer-approval-for-reserved-listing",
     schema: {
       summary: "Revoke approval for reserved listings",
       description:
@@ -55,8 +55,8 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id, buyer_address } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId, buyerAddress } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -64,15 +64,15 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx =
         await contract.directListings.revokeBuyerApprovalForReservedListing.prepare(
-          listing_id,
-          buyer_address,
+          listingId,
+          buyerAddress,
         );
 
       const queueId = await queueTx({

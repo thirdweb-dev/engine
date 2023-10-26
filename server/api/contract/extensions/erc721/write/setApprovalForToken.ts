@@ -18,7 +18,7 @@ const requestBodySchema = Type.Object({
   operator: Type.String({
     description: "Address of the operator to give approval to",
   }),
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "the tokenId to give approval for",
   }),
   ...txOverridesForWriteRequest.properties,
@@ -27,7 +27,7 @@ const requestBodySchema = Type.Object({
 requestBodySchema.examples = [
   {
     operator: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-    token_id: "0",
+    tokenId: "0",
   },
 ];
 
@@ -38,7 +38,7 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc721/set-approval-for-token",
+    url: "/contract/:chain/:contractAddress/erc721/set-approval-for-token",
     schema: {
       summary: "Set approval for token",
       description:
@@ -54,8 +54,8 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { operator, token_id } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { operator, tokenId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -63,14 +63,14 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.erc721.setApprovalForToken.prepare(
         operator,
-        token_id,
+        tokenId,
       );
       const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({

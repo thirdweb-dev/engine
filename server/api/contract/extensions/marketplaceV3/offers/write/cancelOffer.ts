@@ -14,7 +14,7 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  offer_id: Type.String({
+  offerId: Type.String({
     description:
       "The ID of the offer to cancel. You can view all offers with getAll or getAllValid.",
   }),
@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    offer_id: "1",
+    offerId: "1",
   },
 ];
 
@@ -34,7 +34,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/offers/cancel-offer",
+    url: "/marketplace/:chain/:contractAddress/offers/cancel-offer",
     schema: {
       summary: "Cancel offer",
       description: "Cancel a valid offer made by the caller wallet.",
@@ -49,8 +49,8 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { offer_id } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { offerId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -58,12 +58,12 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
-      const tx = await contract.offers.cancelOffer.prepare(offer_id);
+      const tx = await contract.offers.cancelOffer.prepare(offerId);
 
       const queueId = await queueTx({
         tx,

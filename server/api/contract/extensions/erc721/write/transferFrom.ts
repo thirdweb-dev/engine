@@ -21,7 +21,7 @@ const requestBodySchema = Type.Object({
   to: Type.String({
     description: "Address of the wallet to transferFrom to",
   }),
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "the tokenId to transferFrom",
   }),
   ...txOverridesForWriteRequest.properties,
@@ -31,7 +31,7 @@ requestBodySchema.examples = [
   {
     from: "0xE79ee09bD47F4F5381dbbACaCff2040f2FbC5803",
     to: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-    token_id: "0",
+    tokenId: "0",
   },
 ];
 
@@ -42,7 +42,7 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc721/transfer-from",
+    url: "/contract/:chain/:contractAddress/erc721/transfer-from",
     schema: {
       summary: "Transfer token from wallet",
       description:
@@ -58,8 +58,8 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { from, to, token_id } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { from, to, tokenId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -67,12 +67,12 @@ export async function erc721transferFrom(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
-      const tx = await contract.erc721.transferFrom.prepare(from, to, token_id);
+      const tx = await contract.erc721.transferFrom.prepare(from, to, tokenId);
       const queueId = await queueTx({ tx, chainId, extension: "erc721" });
       reply.status(StatusCodes.OK).send({
         result: {

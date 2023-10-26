@@ -14,7 +14,7 @@ import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
-  function_name: Type.String({
+  functionName: Type.String({
     description: "Name of the function to call on Contract",
   }),
   args: Type.Array(
@@ -49,7 +49,7 @@ export async function writeToContract(fastify: FastifyInstance) {
     Reply: Static<typeof transactionWritesResponseSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/write",
+    url: "/contract/:chain/:contractAddress/write",
     schema: {
       summary: "Write to contract",
       description: "Call a write function on a contract.",
@@ -64,8 +64,8 @@ export async function writeToContract(fastify: FastifyInstance) {
       body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { function_name, args, tx_overrides } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { functionName, args, txOverrides } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -73,12 +73,12 @@ export async function writeToContract(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
-      const tx = await contract.prepare(function_name, args, tx_overrides);
+      const tx = await contract.prepare(functionName, args, txOverrides);
 
       const queueId = await queueTx({ tx, chainId, extension: "none" });
 

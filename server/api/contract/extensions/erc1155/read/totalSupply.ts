@@ -11,7 +11,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "The tokenId of the NFT to retrieve",
     examples: ["0"],
   }),
@@ -36,7 +36,7 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc1155/total-supply",
+    url: "/contract/:chain/:contractAddress/erc1155/total-supply",
     schema: {
       summary: "Get total supply",
       description:
@@ -51,14 +51,14 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { token_id } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
-      const returnData = await contract.erc1155.totalSupply(token_id);
+      const returnData = await contract.erc1155.totalSupply(tokenId);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
       });

@@ -16,7 +16,7 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Intersect([
   Type.Object({
-    listing_id: Type.String({
+    listingId: Type.String({
       description: "The ID of the listing you want to update.",
     }),
   }),
@@ -25,7 +25,7 @@ const requestBodySchema = Type.Intersect([
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
   },
 ];
 
@@ -37,7 +37,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/direct-listings/update-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/update-listing",
     schema: {
       summary: "Update direct listing",
       description: "Update a direct listing on this marketplace contract.",
@@ -52,9 +52,9 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
-        listing_id,
+        listingId,
         assetContractAddress,
         tokenId,
         pricePerToken,
@@ -71,13 +71,13 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.directListings.updateListing.prepare(
-        listing_id,
+        listingId,
         {
           assetContractAddress,
           tokenId,

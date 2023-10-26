@@ -33,7 +33,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/royalties/set-default-royalty-info",
+    url: "/contract/:chain/:contractAddress/royalties/set-default-royalty-info",
     schema: {
       summary: "Set Default Royalty Info",
       description: "Set the royalty recipient and fee for the smart contract.",
@@ -48,7 +48,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { seller_fee_basis_points, fee_recipient } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -57,7 +57,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

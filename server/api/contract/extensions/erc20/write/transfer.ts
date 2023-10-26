@@ -16,7 +16,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-  to_address: Type.String({
+  toAddress: Type.String({
     description: "Address of the wallet you want to send the tokens to",
   }),
   amount: Type.String({
@@ -28,7 +28,7 @@ const requestBodySchema = Type.Object({
 // Example for the Request Body
 requestBodySchema.examples = [
   {
-    to_address: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
+    toAddress: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
     amount: "0.1",
   },
 ];
@@ -40,7 +40,7 @@ export async function erc20Transfer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc20/transfer",
+    url: "/contract/:chain/:contractAddress/erc20/transfer",
     schema: {
       summary: "Transfer tokens",
       description:
@@ -56,8 +56,8 @@ export async function erc20Transfer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { to_address, amount } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { toAddress, amount } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -65,12 +65,12 @@ export async function erc20Transfer(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
-      const tx = await contract.erc20.transfer.prepare(to_address, amount);
+      const tx = await contract.erc20.transfer.prepare(toAddress, amount);
       const queueId = await queueTx({ tx, chainId, extension: "erc20" });
       reply.status(StatusCodes.OK).send({
         result: {

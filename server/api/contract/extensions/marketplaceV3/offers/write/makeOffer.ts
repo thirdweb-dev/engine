@@ -35,7 +35,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/offers/make-offer",
+    url: "/marketplace/:chain/:contractAddress/offers/make-offer",
     schema: {
       summary: "Make offer",
       description: "Make an offer on a token. A valid listing is not required.",
@@ -50,7 +50,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -66,7 +66,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

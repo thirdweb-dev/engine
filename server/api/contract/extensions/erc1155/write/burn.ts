@@ -15,7 +15,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "The token ID to burn",
   }),
   amount: Type.String({
@@ -26,7 +26,7 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    token_id: "0",
+    tokenId: "0",
     amount: "1",
   },
 ];
@@ -38,7 +38,7 @@ export async function erc1155burn(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc1155/burn",
+    url: "/contract/:chain/:contractAddress/erc1155/burn",
     schema: {
       summary: "Burn token",
       description: "Burn ERC-1155 tokens in the caller wallet.",
@@ -53,8 +53,8 @@ export async function erc1155burn(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { token_id, amount } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { tokenId, amount } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -62,12 +62,12 @@ export async function erc1155burn(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
-      const tx = await contract.erc1155.burn.prepare(token_id, amount);
+      const tx = await contract.erc1155.burn.prepare(tokenId, amount);
       const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
       reply.status(StatusCodes.OK).send({
         result: {

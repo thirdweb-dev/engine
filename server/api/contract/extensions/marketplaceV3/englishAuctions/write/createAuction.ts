@@ -38,7 +38,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/english-auctions/create-auction",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/create-auction",
     schema: {
       summary: "Create English auction",
       description:
@@ -53,7 +53,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -73,7 +73,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

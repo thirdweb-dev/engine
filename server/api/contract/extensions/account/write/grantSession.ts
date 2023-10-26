@@ -31,7 +31,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/account/sessions/create",
+    url: "/contract/:chain/:contractAddress/account/sessions/create",
     schema: {
       summary: "Create session key",
       description: "Create a session key for a smart account.",
@@ -46,7 +46,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { signerAddress, ...permissions } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -56,7 +56,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
