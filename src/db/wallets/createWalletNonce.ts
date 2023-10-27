@@ -1,7 +1,7 @@
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { BigNumber } from "ethers";
-import { getSdk } from "../../../server/utils/cache/getSdk";
 import { PrismaTransaction } from "../../schema/prisma";
+import { getSdk } from "../../utils/cache/getSdk";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface CreateWalletNonceParams {

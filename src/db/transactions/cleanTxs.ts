@@ -1,6 +1,6 @@
 import { Transactions } from "@prisma/client";
 import { Static } from "@sinclair/typebox";
-import { transactionResponseSchema } from "../../../server/schemas/transaction";
+import { transactionResponseSchema } from "../../server/schemas/transaction";
 
 // TODO: This shouldn't need to exist with zod
 export const cleanTxs = (

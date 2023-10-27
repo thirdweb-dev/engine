@@ -17,10 +17,9 @@
     "experimentalSpecifierResolution": "node"
   },
   "include": [
-    "server/**/*.ts",
-    "server/**/*.d.ts",
-    "server/**/*.js",
-    "core/**/*.ts",
+    "src/server/**/*.ts",
+    "src/server/**/*.d.ts",
+    "src/server/**/*.js",
     "src/utils/env.ts",
     "src/**/*.ts",
     "src/**/*.js",

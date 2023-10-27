@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "crypto";
-import { webhookCache } from "../../../server/utils/cache/getWebhook";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { webhookCache } from "../../utils/cache/getWebhook";
 import { prisma } from "../client";
 
 interface CreateWebhooksParams {

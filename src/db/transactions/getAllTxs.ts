@@ -1,11 +1,11 @@
 import { Transactions } from "@prisma/client";
 import { Static } from "@sinclair/typebox";
+import { ContractExtension } from "../../schema/extension";
+import { PrismaTransaction } from "../../schema/prisma";
 import {
   TransactionStatusEnum,
   transactionResponseSchema,
-} from "../../../server/schemas/transaction";
-import { ContractExtension } from "../../schema/extension";
-import { PrismaTransaction } from "../../schema/prisma";
+} from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 

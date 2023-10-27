@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import { createCustomError } from "../../../server/middleware/error";
-import { webhookCache } from "../../../server/utils/cache/getWebhook";
+import { createCustomError } from "../../server/middleware/error";
+import { webhookCache } from "../../utils/cache/getWebhook";
 import { prisma } from "../client";
 
 interface RevokeWebhooksParams {
