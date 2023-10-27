@@ -25,24 +25,42 @@ services:
       dockerfile: Dockerfile
       context: .
       target: local_server
+    env_file:
+      - .env
     ports:
       - 3005:3005
-    volumes:
-      - ./:/app
-      - node_modules:/app/node_modules
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+    # volumes:
+    # - ./:/app
+    # - node_modules:/app/node_modules
 
   engine-worker:
     build:
       dockerfile: Dockerfile
       context: .
       target: local_worker
+    env_file:
+      - .env
     ports:
       - 3006:3006
-    volumes:
-      - ./:/app
-      - node_modules:/app/node_modules
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
+    # volumes:
+    # - ./:/app
+    # - node_modules:/app/node_modules
 
 volumes:
-  node_modules:
+  # node_modules:
   db_data:
   pgadmin:

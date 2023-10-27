@@ -5,14 +5,12 @@ import { retryTx } from "../../../src/db/transactions/retryTx";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 // INPUT
-const requestSchema = Type.Object({
+
+const requestBodySchema = Type.Object({
   queueId: Type.String({
     description: "Transaction Queue ID",
     examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
   }),
-});
-
-const requestBodySchema = Type.Object({
   maxFeePerGas: Type.String(),
   maxPriorityFeePerGas: Type.String(),
 });
@@ -35,18 +33,16 @@ responseBodySchema.example = {
 
 export async function retryTransaction(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof requestSchema>;
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
-    url: "/transaction/retry/:queueId",
+    url: "/transaction/retry",
     schema: {
       summary: "Retry transaction",
       description: "Retry a transaction with updated gas settings.",
       tags: ["Transaction"],
       operationId: "retry",
-      params: requestSchema,
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -54,8 +50,7 @@ export async function retryTransaction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { queueId } = request.params;
-      const { maxFeePerGas, maxPriorityFeePerGas } = request.body;
+      const { queueId, maxFeePerGas, maxPriorityFeePerGas } = request.body;
 
       await retryTx({
         queueId: queueId,
