@@ -1,3 +1,6 @@
+# Generated SDK
+sdk/src
+
 # Logs
 logs
 *.log
