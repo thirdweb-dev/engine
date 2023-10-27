@@ -7,35 +7,29 @@ import { cancelTransactionAndUpdate } from "../../utils/transaction";
 // INPUT
 const requestBodySchema = Type.Object({
   queueId: Type.String({
-    description: "Transaction Queue ID",
+    description: "Transaction queue ID",
     examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
   }),
 });
-
-requestBodySchema.examples = [
-  {
-    queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
-  },
-];
 
 // OUTPUT
 export const responseBodySchema = Type.Object({
   result: Type.Object({
     queueId: Type.String({
-      description: "Transaction Queue ID",
+      description: "Transaction queue ID",
       examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
     }),
     status: Type.String({
-      description: "Response Status",
+      description: "Response status",
       examples: ["success, error"],
     }),
     message: Type.String({
-      description: "Response Message",
+      description: "Response message",
       examples: ["Transaction cancelled on-chain successfully"],
     }),
     transactionHash: Type.Optional(
       Type.String({
-        description: "Transaction Hash of the on-chain cancel transaction",
+        description: "Transaction hash of the on-chain cancel transaction",
         examples: [
           "0x0514076b5b7e3062c8dc17e10f7c0befe88e6efb7e97f16e3c14afb36c296467",
         ],
@@ -59,7 +53,9 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     method: "POST",
     url: "/transaction/cancel",
     schema: {
-      description: "Cancel Transaction",
+      summary: "Cancel transaction",
+      description:
+        "Attempt to cancel a transaction by sending a null transaction with a higher gas setting. This transaction is not guaranteed to be cancelled.",
       tags: ["Transaction"],
       operationId: "cancel",
       body: requestBodySchema,

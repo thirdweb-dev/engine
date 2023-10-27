@@ -18,7 +18,7 @@ import {
 // INPUT
 const requestSchema = Type.Object({
   queueId: Type.String({
-    description: "Transaction Queue ID",
+    description: "Transaction queue ID",
     examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
   }),
 });

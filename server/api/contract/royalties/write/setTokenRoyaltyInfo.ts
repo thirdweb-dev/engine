@@ -41,7 +41,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contractAddress/royalties/set-token-royalty-info",
     schema: {
-      summary: "Set Token Royalty Info",
+      summary: "Set token royalty details",
       description:
         "Set the royalty recipient and fee for a particular token in the contract.",
       tags: ["Contract-Royalties"],
