@@ -10,3 +10,8 @@ Dockerfile
 .DS_Store
 swagger.yml
 test
+.dist
+.github
+.gitignore
+.git
+.coverage
