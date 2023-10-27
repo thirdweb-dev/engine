@@ -42,7 +42,7 @@ export async function transfer(fastify: FastifyInstance) {
     method: "POST",
     url: "/backend-wallet/:chain/transfer",
     schema: {
-      summary: "Transfer",
+      summary: "Transfer tokens",
       description:
         "Transfer native or ERC20 tokens from this wallet to another wallet",
       tags: ["Backend Wallet"],

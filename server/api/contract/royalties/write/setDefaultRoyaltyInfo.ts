@@ -35,7 +35,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contractAddress/royalties/set-default-royalty-info",
     schema: {
-      summary: "Set Default Royalty Info",
+      summary: "Set royalty details",
       description: "Set the royalty recipient and fee for the smart contract.",
       tags: ["Contract-Royalties"],
       operationId: "setDefaultRoyaltyInfo",

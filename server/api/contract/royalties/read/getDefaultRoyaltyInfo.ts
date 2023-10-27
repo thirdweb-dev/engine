@@ -33,7 +33,7 @@ export async function getDefaultRoyaltyInfo(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contractAddress/royalties/get-default-royalty-info",
     schema: {
-      summary: "Get Default Royalty Info",
+      summary: "Get royalty details",
       description:
         "Gets the royalty recipient and BPS (basis points) of the smart contract.",
       tags: ["Contract-Royalties"],

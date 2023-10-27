@@ -35,7 +35,7 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contractAddress/royalties/get-token-royalty-info/:token_id",
     schema: {
-      summary: "Get Token Royalty Info",
+      summary: "Get token royalty details",
       description:
         "Gets the royalty recipient and BPS (basis points) of a particular token in the contract.",
       tags: ["Contract-Royalties"],
