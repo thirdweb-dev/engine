@@ -2,15 +2,15 @@ import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
+import { OfferV3InputSchema } from "../../../../../../schemas/marketplaceV3/offer";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { OfferV3InputSchema } from "../../../../../../schemas/marketplaceV3/offer";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -35,12 +35,12 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/offers/make-offer",
+    url: "/marketplace/:chain/:contractAddress/offers/make-offer",
     schema: {
       summary: "Make offer",
       description: "Make an offer on a token. A valid listing is not required.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offer_makeOffer",
+      operationId: "makeOffer",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
@@ -50,7 +50,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -66,7 +66,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

@@ -5,14 +5,14 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
 const querystringSchema = Type.Object({
-  wallet_address: Type.String({
+  walletAddress: Type.String({
     description: "Address of the wallet to check NFT balance",
     examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
@@ -35,13 +35,13 @@ export async function erc721BalanceOf(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc721/balance-of",
+    url: "/contract/:chain/:contractAddress/erc721/balance-of",
     schema: {
       summary: "Get token balance",
       description:
         "Get the balance of a specific wallet address for this ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_balanceOf",
+      operationId: "balanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -50,14 +50,14 @@ export async function erc721BalanceOf(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { wallet_address } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { walletAddress } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
-      const returnData = await contract.erc721.balanceOf(wallet_address);
+      const returnData = await contract.erc721.balanceOf(walletAddress);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
       });

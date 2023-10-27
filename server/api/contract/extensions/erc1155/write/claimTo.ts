@@ -6,11 +6,11 @@ import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -18,7 +18,7 @@ const requestBodySchema = Type.Object({
   receiver: Type.String({
     description: "Address of the wallet to claim the NFT to",
   }),
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "Token ID of the NFT to claim",
   }),
   quantity: Type.String({
@@ -30,7 +30,7 @@ const requestBodySchema = Type.Object({
 requestBodySchema.examples = [
   {
     receiver: "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-    token_id: "0",
+    tokenId: "0",
     quantity: "1",
   },
 ];
@@ -42,12 +42,12 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc1155/claim-to",
+    url: "/contract/:chain/:contractAddress/erc1155/claim-to",
     schema: {
       summary: "Claim tokens to wallet",
       description: "Claim ERC-1155 tokens to a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "erc1155_claimTo",
+      operationId: "claimTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -57,8 +57,8 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { receiver, token_id, quantity } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { receiver, tokenId, quantity } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -66,14 +66,14 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.erc1155.claimTo.prepare(
         receiver,
-        token_id,
+        tokenId,
         quantity,
       );
       const queueId = await queueTx({ tx, chainId, extension: "erc1155" });

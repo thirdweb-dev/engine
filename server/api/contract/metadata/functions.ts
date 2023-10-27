@@ -1,13 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { abiFunctionSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../helpers/sharedApiSchemas";
-import { abiFunctionSchema } from "../../../schemas/contract";
-import { getChainIdFromChain } from "../../../utilities/chain";
+} from "../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestSchema = contractParamSchema;
 
@@ -60,12 +60,12 @@ export async function extractFunctions(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/metadata/functions",
+    url: "/contract/:chain/:contractAddress/metadata/functions",
     schema: {
       summary: "Get functions",
       description: "Get details of all functions implemented by the contract.",
       tags: ["Contract-Metadata"],
-      operationId: "extractFunctions",
+      operationId: "getFunctions",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -73,12 +73,12 @@ export async function extractFunctions(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
       let returnData = await contract.publishedMetadata.extractFunctions();

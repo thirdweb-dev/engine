@@ -6,21 +6,21 @@ import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing to cancel auction.",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
   },
 ];
 
@@ -32,13 +32,13 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/english-auctions/cancel-auction",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/cancel-auction",
     schema: {
       summary: "Cancel English auction",
       description:
         "Cancel an existing auction listing. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_cancelAuction",
+      operationId: "cancelAuction",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -47,8 +47,8 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -56,13 +56,13 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.englishAuctions.cancelAuction.prepare(
-        listing_id,
+        listingId,
       );
 
       const queueId = await queueTx({

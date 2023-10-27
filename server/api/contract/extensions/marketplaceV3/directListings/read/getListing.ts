@@ -1,19 +1,19 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { formatDirectListingV3Result } from "../../../../../../helpers/marketplaceV3";
+import { directListingV3OutputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { directListingV3OutputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
+import { formatDirectListingV3Result } from "../../../../../../utils/marketplaceV3";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The id of the listing to retrieve.",
   }),
 });
@@ -52,12 +52,12 @@ export async function directListingsGetListing(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/direct-listings/get-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/get-listing",
     schema: {
       summary: "Get direct listing",
       description: "Gets a direct listing on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_getListing",
+      operationId: "getListing",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -66,14 +66,14 @@ export async function directListingsGetListing(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { listingId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
-      const result = await contract.directListings.getListing(listing_id);
+      const result = await contract.directListings.getListing(listingId);
 
       reply.status(StatusCodes.OK).send({
         result: formatDirectListingV3Result(result),

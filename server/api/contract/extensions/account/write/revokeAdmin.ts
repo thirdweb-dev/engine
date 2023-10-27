@@ -6,20 +6,20 @@ import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../helpers";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = Type.Object({
-  wallet_address: Type.String({
+  walletAddress: Type.String({
     description: "Address to revoke admin permissions from",
   }),
 });
 
 BodySchema.examples = [
   {
-    wallet_address: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
+    walletAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
   },
 ];
 
@@ -30,12 +30,12 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/account/admins/revoke",
+    url: "/contract/:chain/:contractAddress/account/admins/revoke",
     schema: {
       summary: "Revoke admin",
       description: "Revoke a smart account's admin permission.",
       tags: ["Account"],
-      operationId: "account:revoke-admin",
+      operationId: "revokeAdmin",
       headers: walletAuthSchema,
       params: contractParamSchema,
       body: BodySchema,
@@ -45,9 +45,9 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { wallet_address } = request.body;
-      const walletAddress = request.headers[
+      const { chain, contractAddress } = request.params;
+      const { walletAddress } = request.body;
+      const backendWalletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
@@ -55,13 +55,13 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
-        walletAddress,
+        contractAddress,
+        walletAddress: backendWalletAddress,
         accountAddress,
       });
 
       const tx = await contract.account.revokeAdminPermissions.prepare(
-        wallet_address,
+        walletAddress,
       );
       const queueId = await queueTx({ tx, chainId, extension: "account" });
 

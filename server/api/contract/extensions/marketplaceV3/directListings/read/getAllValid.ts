@@ -1,15 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { formatDirectListingV3Result } from "../../../../../../helpers/marketplaceV3";
+import { directListingV3OutputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import {
   marketplaceFilterSchema,
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { directListingV3OutputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
+import { formatDirectListingV3Result } from "../../../../../../utils/marketplaceV3";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -67,13 +67,13 @@ export async function directListingsGetAllValid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/direct-listings/get-all-valid",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/get-all-valid",
     schema: {
       summary: "Get all valid listings",
       description:
         "Get all the valid direct listings for this marketplace contract. A valid listing is where the listing is active, and the creator still owns & has approved Marketplace to transfer the listed NFTs.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_getAllValid",
+      operationId: "getAllValid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -82,12 +82,12 @@ export async function directListingsGetAllValid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { start, count, seller, tokenContract, tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.directListings.getAllValid({
         start,

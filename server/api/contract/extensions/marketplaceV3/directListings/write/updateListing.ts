@@ -2,21 +2,21 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
+import { directListingV3InputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { directListingV3InputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Intersect([
   Type.Object({
-    listing_id: Type.String({
+    listingId: Type.String({
       description: "The ID of the listing you want to update.",
     }),
   }),
@@ -25,7 +25,7 @@ const requestBodySchema = Type.Intersect([
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
   },
 ];
 
@@ -37,12 +37,12 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/direct-listings/update-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/update-listing",
     schema: {
       summary: "Update direct listing",
       description: "Update a direct listing on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_updateListing",
+      operationId: "updateListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
@@ -52,9 +52,9 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
-        listing_id,
+        listingId,
         assetContractAddress,
         tokenId,
         pricePerToken,
@@ -71,13 +71,13 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.directListings.updateListing.prepare(
-        listing_id,
+        listingId,
         {
           assetContractAddress,
           tokenId,

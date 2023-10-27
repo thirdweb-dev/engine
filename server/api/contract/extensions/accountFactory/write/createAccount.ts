@@ -2,20 +2,20 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
+import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers";
-import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = Type.Object({
-  admin_address: Type.String({
+  adminAddress: Type.String({
     description: "The admin address to create an account for",
   }),
-  extra_data: Type.Optional(
+  extraData: Type.Optional(
     Type.String({
       description: "Extra data to add to use in creating the account address",
     }),
@@ -24,7 +24,7 @@ const BodySchema = Type.Object({
 
 BodySchema.examples = [
   {
-    admin_address: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
+    adminAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
   },
 ];
 
@@ -35,12 +35,12 @@ export const createAccount = async (fastify: FastifyInstance) => {
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/account-factory/create-account",
+    url: "/contract/:chain/:contractAddress/account-factory/create-account",
     schema: {
       summary: "Create smart account",
       description: "Create a smart account for this account factory.",
       tags: ["Account Factory"],
-      operationId: "account-factory:create-account",
+      operationId: "createAccount",
       params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,
@@ -50,8 +50,8 @@ export const createAccount = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { admin_address, extra_data } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { adminAddress, extraData } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -61,17 +61,17 @@ export const createAccount = async (fastify: FastifyInstance) => {
       const contract = await getContract({
         chainId,
         walletAddress,
-        contractAddress: contract_address,
+        contractAddress,
         accountAddress,
       });
       const tx = await contract.accountFactory.createAccount.prepare(
-        admin_address,
-        extra_data,
+        adminAddress,
+        extraData,
       );
       const deployedAddress =
         await contract.accountFactory.predictAccountAddress(
-          admin_address,
-          extra_data,
+          adminAddress,
+          extraData,
         );
       const queueId = await queueTx({
         tx,

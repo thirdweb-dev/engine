@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../src/db/configuration/updateConfiguration";
-import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Partial(

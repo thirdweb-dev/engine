@@ -1,16 +1,16 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { RoyaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../helpers/sharedApiSchemas";
-import { RoyaltySchema } from "../../../../schemas/contract";
-import { getChainIdFromChain } from "../../../../utilities/chain";
+} from "../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../utils/chain";
 
 const requestSchema = Type.Object({
-  token_id: Type.String(),
+  tokenId: Type.String(),
   ...contractParamSchema.properties,
 });
 // OUTPUT
@@ -33,13 +33,13 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/royalties/get-token-royalty-info/:token_id",
+    url: "/contract/:chain/:contractAddress/royalties/get-token-royalty-info/:token_id",
     schema: {
       summary: "Get Token Royalty Info",
       description:
         "Gets the royalty recipient and BPS (basis points) of a particular token in the contract.",
       tags: ["Contract-Royalties"],
-      operationId: "royalties_getTokenRoyaltyInfo",
+      operationId: "getTokenRoyaltyInfo",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -47,15 +47,15 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address, token_id } = request.params;
+      const { chain, contractAddress, tokenId } = request.params;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
-      const returnData = await contract.royalties.getTokenRoyaltyInfo(token_id);
+      const returnData = await contract.royalties.getTokenRoyaltyInfo(tokenId);
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

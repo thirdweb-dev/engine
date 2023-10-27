@@ -2,19 +2,19 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  erc721ContractParamSchema,
-  standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import {
   ercNFTResponseType,
   signature721InputSchema,
   signature721OutputSchema,
 } from "../../../../../schemas/nft";
+import {
+  erc721ContractParamSchema,
+  standardResponseSchema,
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
-import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
+import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
@@ -63,13 +63,13 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc721/signature/generate",
+    url: "/contract/:chain/:contractAddress/erc721/signature/generate",
     schema: {
       summary: "Generate signature",
       description:
         "Generate a signature granting access for another wallet to mint tokens from this ERC-721 contract. This method is typically called by the token contract owner.",
       tags: ["ERC721"],
-      operationId: "erc721_signature_generate",
+      operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -79,7 +79,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         to,
         currencyAddress,
@@ -99,7 +99,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
       });
 

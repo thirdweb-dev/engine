@@ -5,9 +5,9 @@ import { prisma } from "../../../src/db/client";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+} from "../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utilities/chain";
+import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
   chain: Type.String(),
@@ -47,7 +47,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       summary: "Send a raw transaction",
       description: "Send a raw transaction with transaction parameters",
       tags: ["Backend Wallet"],
-      operationId: "walletSendTransaction",
+      operationId: "sendTransaction",
       params: ParamsSchema,
       body: requestBodySchema,
       headers: Type.Omit(walletAuthSchema, ["x-account-address"]),

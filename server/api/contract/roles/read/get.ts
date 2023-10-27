@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../utilities/chain";
+} from "../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../utils/chain";
 
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
@@ -33,12 +33,12 @@ export async function getRoles(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/roles/get",
+    url: "/contract/:chain/:contractAddress/roles/get",
     schema: {
       summary: "Get wallets for role",
       description: "Get all wallets with a specific role for a contract.",
       tags: ["Contract-Roles"],
-      operationId: "roles_getRole",
+      operationId: "getRole",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -47,13 +47,13 @@ export async function getRoles(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { role } = request.query;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
       let returnData = await contract.roles.get(role);

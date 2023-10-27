@@ -1,18 +1,18 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { nftSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { nftSchema } from "../../../../../schemas/nft";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
-  token_id: Type.String({
+  tokenId: Type.String({
     description: "The tokenId of the NFT to retrieve",
     examples: ["0"],
   }),
@@ -48,12 +48,12 @@ export async function erc721Get(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc721/get",
+    url: "/contract/:chain/:contractAddress/erc721/get",
     schema: {
       summary: "Get details",
       description: "Get the details for a token in an ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_get",
+      operationId: "get",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -62,14 +62,14 @@ export async function erc721Get(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { token_id } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
-      const result = await contract.erc721.get(token_id);
+      const result = await contract.erc721.get(tokenId);
       reply.status(StatusCodes.OK).send({
         result,
       });

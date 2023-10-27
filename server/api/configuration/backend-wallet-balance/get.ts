@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../../src/db/configuration/getConfiguration";
-import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const ReplySchema = Type.Object({
   result: Type.Object({

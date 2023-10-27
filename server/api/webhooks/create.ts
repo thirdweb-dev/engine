@@ -4,7 +4,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../src/db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../src/schema/webhooks";
-import { standardResponseSchema } from "../../helpers";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const uriFormat = TypeSystem.Format("uri", (input: string) => {
   try {
@@ -102,7 +102,7 @@ export async function createWebhook(fastify: FastifyInstance) {
       summary: "Create a new webhook",
       description: "Create a new webhook",
       tags: ["Webhooks"],
-      operationId: "createWebhooks",
+      operationId: "create",
       body: BodySchema,
       response: {
         ...standardResponseSchema,

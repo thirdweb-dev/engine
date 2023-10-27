@@ -5,14 +5,14 @@ import { Static, Type } from "@sinclair/typebox";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
-  owner_wallet: Type.String({
+  ownerWallet: Type.String({
     description: "Address of the wallet who owns the NFT",
     examples: ["0x3EcDBF3B911d0e9052b64850693888b008e18373"],
   }),
@@ -41,13 +41,13 @@ export async function erc1155IsApproved(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc1155/is-approved",
+    url: "/contract/:chain/:contractAddress/erc1155/is-approved",
     schema: {
       summary: "Check if approved transfers",
       description:
         "Check if the specific wallet has approved transfers from a specific operator wallet.",
       tags: ["ERC1155"],
-      operationId: "erc1155_isApproved",
+      operationId: "isApproved",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -56,15 +56,15 @@ export async function erc1155IsApproved(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { owner_wallet, operator } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { ownerWallet, operator } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData: any = await contract.erc1155.isApproved(
-        owner_wallet,
+        ownerWallet,
         operator,
       );
 

@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = erc1155ContractParamSchema;
@@ -27,13 +27,13 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc1155/total-count",
+    url: "/contract/:chain/:contractAddress/erc1155/total-count",
     schema: {
       summary: "Get total supply",
       description:
         "Get the total supply in circulation for this ERC-1155 contract.",
       tags: ["ERC1155"],
-      operationId: "erc1155_totalCount",
+      operationId: "totalCount",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -41,11 +41,11 @@ export async function erc1155TotalCount(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData = await contract.erc1155.totalCount();
       reply.status(StatusCodes.OK).send({

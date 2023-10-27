@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const ReplySchema = Type.Object({
   result: Type.Array(Type.String(), {
@@ -20,12 +20,12 @@ export const getAllAccounts = async (fastify: FastifyInstance) => {
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/account-factory/get-all-accounts",
+    url: "/contract/:chain/:contractAddress/account-factory/get-all-accounts",
     schema: {
       summary: "Get all smart accounts",
       description: "Get all the smart accounts for this account factory.",
       tags: ["Account Factory"],
-      operationId: "account-factory:get-all-accounts",
+      operationId: "getAllAccounts",
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,
@@ -33,12 +33,12 @@ export const getAllAccounts = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const accountAddresses = await contract.accountFactory.getAllAccounts();
 

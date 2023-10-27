@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
@@ -23,12 +23,12 @@ export async function erc721TotalUnclaimedSupply(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc721/total-unclaimed-supply",
+    url: "/contract/:chain/:contractAddress/erc721/total-unclaimed-supply",
     schema: {
       summary: "Get unclaimed supply",
       description: "Get the unclaimed supply for this ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_totalUnclaimedSupply",
+      operationId: "totalUnclaimedSupply",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -36,11 +36,11 @@ export async function erc721TotalUnclaimedSupply(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData = await contract.erc721.totalUnclaimedSupply();
       reply.status(StatusCodes.OK).send({

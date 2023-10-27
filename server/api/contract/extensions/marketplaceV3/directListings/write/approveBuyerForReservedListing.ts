@@ -6,15 +6,15 @@ import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing you want to approve a buyer for.",
   }),
   buyer: Type.String({
@@ -24,7 +24,7 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
     buyer: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
   },
 ];
@@ -39,12 +39,12 @@ export async function directListingsApproveBuyerForReservedListing(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/direct-listings/approve-buyer-for-reserved-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/approve-buyer-for-reserved-listing",
     schema: {
       summary: "Approve buyer for reserved listing",
       description: "Approve a wallet address to buy from a reserved listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_approveBuyerForReservedListing",
+      operationId: "approveBuyerForReservedListing",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
@@ -54,8 +54,8 @@ export async function directListingsApproveBuyerForReservedListing(
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id, buyer } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId, buyer } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -63,14 +63,14 @@ export async function directListingsApproveBuyerForReservedListing(
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx =
         await contract.directListings.approveBuyerForReservedListing.prepare(
-          listing_id,
+          listingId,
           buyer,
         );
 

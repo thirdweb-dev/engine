@@ -2,22 +2,22 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
+import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { erc20MetadataSchema } from "../../../../../schemas/erc20";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const querystringSchema = Type.Object({
-  owner_wallet: Type.String({
+  ownerWallet: Type.String({
     description: "Address of the wallet who owns the funds",
     examples: ["0x3EcDBF3B911d0e9052b64850693888b008e18373"],
   }),
-  spender_wallet: Type.String({
+  spenderWallet: Type.String({
     description: "Address of the wallet to check token allowance",
     examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
@@ -46,13 +46,13 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc20/allowance-of",
+    url: "/contract/:chain/:contractAddress/erc20/allowance-of",
     schema: {
       summary: "Get token allowance",
       description:
         "Get the allowance of a specific wallet for an ERC-20 contract.",
       tags: ["ERC20"],
-      operationId: "erc20_allowanceOf",
+      operationId: "allowanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -61,16 +61,16 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { spender_wallet, owner_wallet } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { spenderWallet, ownerWallet } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData: any = await contract.erc20.allowanceOf(
-        owner_wallet ? owner_wallet : "",
-        spender_wallet ? spender_wallet : "",
+        ownerWallet ? ownerWallet : "",
+        spenderWallet ? spenderWallet : "",
       );
       reply.status(StatusCodes.OK).send({
         result: {

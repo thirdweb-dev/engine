@@ -4,17 +4,17 @@ import { StatusCodes } from "http-status-codes";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing to retrieve the winner for.",
   }),
-  bid_amount: Type.String({
+  bidAmount: Type.String({
     description: "The amount of the bid to check if it is the winning bid.",
   }),
 });
@@ -38,13 +38,13 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/english-auctions/is-winning-bid",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/is-winning-bid",
     schema: {
       summary: "Check winning bid",
       description:
         "Check if a bid is or will be the winning bid for an auction.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_isWinningBid",
+      operationId: "isWinningBid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -53,16 +53,16 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id, bid_amount } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { listingId, bidAmount } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.englishAuctions.isWinningBid(
-        listing_id,
-        bid_amount,
+        listingId,
+        bidAmount,
       );
 
       reply.status(StatusCodes.OK).send({

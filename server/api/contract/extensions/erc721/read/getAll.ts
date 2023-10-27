@@ -1,13 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { nftSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { nftSchema } from "../../../../../schemas/nft";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
@@ -56,12 +56,12 @@ export async function erc721GetAll(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc721/get-all",
+    url: "/contract/:chain/:contractAddress/erc721/get-all",
     schema: {
       summary: "Get all details",
       description: "Get details for all tokens in an ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "erc721_getAll",
+      operationId: "getAll",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -70,12 +70,12 @@ export async function erc721GetAll(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { start, count } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.erc721.getAll({
         start,

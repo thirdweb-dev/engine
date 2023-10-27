@@ -1,13 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { erc20MetadataSchema } from "../../../../../schemas/erc20";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = erc20ContractParamSchema;
@@ -36,13 +36,13 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc20/total-supply",
+    url: "/contract/:chain/:contractAddress/erc20/total-supply",
     schema: {
       summary: "Get total supply",
       description:
         "Get the total supply in circulation for this ERC-20 contract.",
       tags: ["ERC20"],
-      operationId: "erc20_totalSupply",
+      operationId: "totalSupply",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -50,11 +50,11 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData = await contract.erc20.totalSupply();
       reply.status(StatusCodes.OK).send({

@@ -2,16 +2,16 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
+import { nftAndSupplySchema } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { nftAndSupplySchema } from "../../../../../schemas/nft";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
@@ -46,12 +46,12 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc1155/mint-to",
+    url: "/contract/:chain/:contractAddress/erc1155/mint-to",
     schema: {
       summary: "Mint tokens",
       description: "Mint ERC-1155 tokens to a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "erc1155_mintTo",
+      operationId: "mintTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -61,7 +61,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { receiver, metadataWithSupply } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -70,7 +70,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

@@ -4,14 +4,14 @@ import { StatusCodes } from "http-status-codes";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The id of the listing to retrieve.",
   }),
 });
@@ -38,7 +38,7 @@ export async function englishAuctionsGetBidBufferBps(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/english-auctions/get-bid-buffer-bps",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/get-bid-buffer-bps",
     schema: {
       summary: "Get bid buffer BPS",
       description: `Get the basis points of the bid buffer. 
@@ -46,7 +46,7 @@ This is the percentage higher that a new bid must be than the current highest bi
 If there is no current bid, the bid must be at least the minimum bid amount.
 Returns the value in percentage format, e.g. 100 = 1%.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_getBidBufferBps",
+      operationId: "getBidBufferBps",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -55,14 +55,14 @@ Returns the value in percentage format, e.g. 100 = 1%.`,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { listingId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
-      const result = await contract.englishAuctions.getBidBufferBps(listing_id);
+      const result = await contract.englishAuctions.getBidBufferBps(listingId);
 
       reply.status(StatusCodes.OK).send({
         result,

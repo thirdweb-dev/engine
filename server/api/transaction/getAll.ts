@@ -2,8 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllTxs } from "../../../src/db/transactions/getAllTxs";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { createCustomError } from "../../middleware/error";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { transactionResponseSchema } from "../../schemas/transaction";
 
 // INPUT
@@ -102,7 +102,7 @@ export async function getAllTx(fastify: FastifyInstance) {
       summary: "Get all transactions",
       description: "Get all transaction requests.",
       tags: ["Transaction"],
-      operationId: "getAllTx",
+      operationId: "getAll",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,

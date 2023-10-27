@@ -6,11 +6,11 @@ import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -38,12 +38,12 @@ export async function erc721claimTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc721/claim-to",
+    url: "/contract/:chain/:contractAddress/erc721/claim-to",
     schema: {
       summary: "Claim tokens to wallet",
       description: "Claim ERC-721 tokens to a specific wallet.",
       tags: ["ERC721"],
-      operationId: "erc721_claimTo",
+      operationId: "claimTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -53,7 +53,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { receiver, quantity } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -62,7 +62,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

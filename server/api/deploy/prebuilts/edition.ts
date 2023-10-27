@@ -2,7 +2,6 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../src/db/transactions/queueTx";
-import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
@@ -13,10 +12,11 @@ import {
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts/index";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../utilities/chain";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
@@ -64,7 +64,7 @@ export async function deployPrebuiltEdition(fastify: FastifyInstance) {
       summary: "Deploy Edition",
       description: "Deploy an Edition contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltEdition",
+      operationId: "deployEdition",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

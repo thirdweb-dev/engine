@@ -6,10 +6,10 @@ import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../helpers";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = Type.Object({
   signerAddress: Type.String(),
@@ -33,12 +33,12 @@ export const updateSession = async (fastify: FastifyInstance) => {
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/account/sessions/update",
+    url: "/contract/:chain/:contractAddress/account/sessions/update",
     schema: {
       summary: "Update session key",
       description: "Update a session key for a smart account.",
       tags: ["Account"],
-      operationId: "account:update-session",
+      operationId: "updateSession",
       params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,
@@ -48,7 +48,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { signerAddress, ...permissions } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -58,7 +58,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

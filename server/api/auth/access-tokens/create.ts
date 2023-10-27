@@ -32,7 +32,7 @@ export async function createAccessToken(fastify: FastifyInstance) {
       summary: "Create a new access token",
       description: "Create a new access token",
       tags: ["Access Tokens"],
-      operationId: "createAccessToken",
+      operationId: "create",
       body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,

@@ -6,21 +6,21 @@ import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing to execute the sale for.",
   }),
 });
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
+    listingId: "0",
   },
 ];
 
@@ -34,7 +34,7 @@ export async function englishAuctionsCloseAuctionForBidder(
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/english-auctions/close-auction-for-bidder",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/close-auction-for-bidder",
     schema: {
       summary: "Close English auction for bidder",
       description: `After an auction has concluded (and a buyout did not occur),
@@ -42,7 +42,7 @@ execute the sale for the buyer, meaning the buyer receives the NFT(s).
 You must also call closeAuctionForSeller to execute the sale for the seller,
 meaning the seller receives the payment from the highest bid.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_closeAuctionForBidder",
+      operationId: "closeAuctionForBidder",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -51,8 +51,8 @@ meaning the seller receives the payment from the highest bid.`,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -60,13 +60,13 @@ meaning the seller receives the payment from the highest bid.`,
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.englishAuctions.closeAuctionForBidder.prepare(
-        listing_id,
+        listingId,
       );
 
       const queueId = await queueTx({

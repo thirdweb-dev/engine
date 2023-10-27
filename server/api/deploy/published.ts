@@ -5,11 +5,11 @@ import { queueTx } from "../../../src/db/transactions/queueTx";
 import {
   publishedDeployParamSchema,
   standardResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+} from "../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../utilities/chain";
 import { getSdk } from "../../utils/cache/getSdk";
+import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
 const requestSchema = publishedDeployParamSchema;
@@ -60,7 +60,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, publisher, contract_name } = request.params;
+      const { chain, publisher, contractName } = request.params;
       const { constructorParams, version } = request.body;
       const chainId = getChainIdFromChain(chain);
       const walletAddress = request.headers[
@@ -71,7 +71,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });
       const tx = await sdk.deployer.deployPublishedContract.prepare(
         publisher,
-        contract_name,
+        contractName,
         constructorParams,
         version,
       );
@@ -82,7 +82,7 @@ export async function deployPublished(fastify: FastifyInstance) {
         chainId,
         extension: "deploy-published",
         deployedContractAddress: deployedAddress,
-        deployedContractType: contract_name,
+        deployedContractType: contractName,
       });
       reply.status(StatusCodes.OK).send({
         deployedAddress,

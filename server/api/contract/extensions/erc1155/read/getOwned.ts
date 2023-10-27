@@ -1,18 +1,18 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { nftSchema } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { nftSchema } from "../../../../../schemas/nft";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
-  wallet_address: Type.String({
+  walletAddress: Type.String({
     description: "Address of the wallet to get NFTs for",
     examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
@@ -58,13 +58,13 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc1155/get-owned",
+    url: "/contract/:chain/:contractAddress/erc1155/get-owned",
     schema: {
       summary: "Get owned tokens",
       description:
         "Get all tokens in an ERC-1155 contract owned by a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "erc1155_getOwned",
+      operationId: "getOwned",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -73,14 +73,14 @@ export async function erc1155GetOwned(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { wallet_address } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { walletAddress } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
-      const result = await contract.erc1155.getOwned(wallet_address);
+      const result = await contract.erc1155.getOwned(walletAddress);
       reply.status(StatusCodes.OK).send({
         result,
       });

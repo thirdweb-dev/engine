@@ -2,8 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { chainResponseSchema } from "../../schemas/chain";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 // OUPUT
 const responseSchema = Type.Object({
@@ -56,7 +56,7 @@ export async function getAllChainData(fastify: FastifyInstance) {
       summary: "Get all chain details",
       description: "Get details about all supported chains.",
       tags: ["Chain"],
-      operationId: "getAllChainData",
+      operationId: "getAll",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

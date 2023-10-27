@@ -2,13 +2,13 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
+import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { erc20MetadataSchema } from "../../../../../schemas/erc20";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
@@ -44,13 +44,13 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
     Querystring: Static<typeof querystringSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/erc20/balance-of",
+    url: "/contract/:chain/:contractAddress/erc20/balance-of",
     schema: {
       summary: "Get token balance",
       description:
         "Get the balance of a specific wallet address for this ERC-20 contract.",
       tags: ["ERC20"],
-      operationId: "erc20_balanceOf",
+      operationId: "balanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -59,12 +59,12 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { wallet_address } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const returnData = await contract.erc20.balanceOf(wallet_address);
       reply.status(StatusCodes.OK).send({

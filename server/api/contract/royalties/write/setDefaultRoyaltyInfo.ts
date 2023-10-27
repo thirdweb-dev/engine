@@ -2,15 +2,15 @@ import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../src/db/transactions/queueTx";
+import { RoyaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../helpers/sharedApiSchemas";
-import { RoyaltySchema } from "../../../../schemas/contract";
+} from "../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../utilities/chain";
 import { getContract } from "../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -33,12 +33,12 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/royalties/set-default-royalty-info",
+    url: "/contract/:chain/:contractAddress/royalties/set-default-royalty-info",
     schema: {
       summary: "Set Default Royalty Info",
       description: "Set the royalty recipient and fee for the smart contract.",
       tags: ["Contract-Royalties"],
-      operationId: "royalties_setDefaultRoyaltyInfo",
+      operationId: "setDefaultRoyaltyInfo",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
@@ -48,7 +48,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { seller_fee_basis_points, fee_recipient } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -57,7 +57,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

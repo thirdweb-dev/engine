@@ -6,17 +6,17 @@ import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The ID of the listing to place a bid on.",
   }),
-  bid_amount: Type.String({
+  bidAmount: Type.String({
     description:
       "The amount of the bid to place in the currency of the listing. Use getNextBidAmount to get the minimum amount for the next bid.",
   }),
@@ -24,8 +24,8 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    listing_id: "0",
-    bid_amount: "0.00000001",
+    listingId: "0",
+    bidAmount: "0.00000001",
   },
 ];
 
@@ -37,12 +37,12 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/english-auctions/make-bid",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/make-bid",
     schema: {
       summary: "Make bid",
       description: "Place a bid on an English auction listing.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_makeBid",
+      operationId: "makeBid",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -51,8 +51,8 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id, bid_amount } = request.body;
+      const { chain, contractAddress } = request.params;
+      const { listingId, bidAmount } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -60,14 +60,14 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });
 
       const tx = await contract.englishAuctions.makeBid.prepare(
-        listing_id,
-        bid_amount,
+        listingId,
+        bidAmount,
       );
 
       const queueId = await queueTx({

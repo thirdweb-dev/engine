@@ -5,9 +5,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../utilities/chain";
+} from "../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestSchema = contractParamSchema;
 
@@ -43,7 +43,7 @@ export async function getContractExtensions(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/metadata/extensions",
+    url: "/contract/:chain/:contractAddress/metadata/extensions",
     schema: {
       summary: "Get extensions",
       description: "Get all detected extensions for a contract.",
@@ -56,12 +56,12 @@ export async function getContractExtensions(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
       let returnData = getAllDetectedExtensionNames(contract.abi);

@@ -2,14 +2,14 @@ import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../src/db/transactions/queueTx";
+import { englishAuctionInputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { englishAuctionInputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -38,13 +38,13 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/marketplace/:chain/:contract_address/english-auctions/create-auction",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/create-auction",
     schema: {
       summary: "Create English auction",
       description:
         "Create an English auction listing on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_createAuction",
+      operationId: "createAuction",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -53,7 +53,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -73,7 +73,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

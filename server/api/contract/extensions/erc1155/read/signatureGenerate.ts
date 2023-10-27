@@ -2,17 +2,17 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  erc721ContractParamSchema,
-  standardResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import {
   ercNFTResponseType,
   signature1155InputSchema,
   signature1155OutputSchema,
 } from "../../../../../schemas/nft";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
-import { checkAndReturnNFTSignaturePayload } from "../../../../../utilities/validator";
+import {
+  erc721ContractParamSchema,
+  standardResponseSchema,
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
+import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
@@ -38,13 +38,13 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc1155/signature/generate",
+    url: "/contract/:chain/:contractAddress/erc1155/signature/generate",
     schema: {
       summary: "Generate signature",
       description:
         "Generate a signature granting access for another wallet to mint tokens from this ERC-721 contract. This method is typically called by the token contract owner.",
       tags: ["ERC1155"],
-      operationId: "erc1155_signature_generate",
+      operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -53,7 +53,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         to,
         currencyAddress,
@@ -70,7 +70,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
       const payload = checkAndReturnNFTSignaturePayload<

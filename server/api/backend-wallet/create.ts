@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../src/db/configuration/getConfiguration";
 import { WalletType } from "../../../src/schema/wallet";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { createAwsKmsWallet } from "../../utils/wallets/createAwsKmsWallet";
 import { createGcpKmsWallet } from "../../utils/wallets/createGcpKmsWallet";
 import { createLocalWallet } from "../../utils/wallets/createLocalWallet";
@@ -37,7 +37,7 @@ export const createWallet = async (fastify: FastifyInstance) => {
       summary: "Create backend wallet",
       description: "Create a backend wallet.",
       tags: ["Backend Wallet"],
-      operationId: "backendWallet_create",
+      operationId: "create",
       body: BodySchema,
       response: {
         ...standardResponseSchema,

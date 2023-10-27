@@ -2,7 +2,6 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../src/db/transactions/queueTx";
-import { standardResponseSchema } from "../../../helpers/sharedApiSchemas";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
@@ -14,10 +13,11 @@ import {
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../utilities/chain";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;
@@ -65,7 +65,7 @@ export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
       summary: "Deploy Signature Drop",
       description: "Deploy a Signature Drop contract.",
       tags: ["Deploy"],
-      operationId: "deployPrebuiltSignatureDrop",
+      operationId: "deploySignatureDrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,

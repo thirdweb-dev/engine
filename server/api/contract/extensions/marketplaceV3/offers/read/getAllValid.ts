@@ -1,15 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
+import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
 import {
   marketplaceFilterSchema,
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
+import { formatOffersV3Result } from "../../../../../../utils/marketplaceV3";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -66,13 +66,13 @@ export async function offersGetAllValid(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/offers/get-all-valid",
+    url: "/marketplace/:chain/:contractAddress/offers/get-all-valid",
     schema: {
       summary: "Get all valid offers",
       description:
         "Get all valid offers on this marketplace contract. Valid offers are offers that have not expired, been canceled, or been accepted.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offers_getAllValid",
+      operationId: "getAllValid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -81,12 +81,12 @@ export async function offersGetAllValid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { start, count, offeror, tokenContract, tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.offers.getAllValid({
         start,

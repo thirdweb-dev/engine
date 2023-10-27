@@ -1,5 +1,5 @@
 import PQueue from "p-queue";
-import { sendTxWebhook } from "../../../server/utilities/webhook";
+import { sendTxWebhook } from "../../../server/utils/webhook";
 import { knex } from "../../db/client";
 import { logger } from "../../utils/logger";
 import { processTx } from "../tasks/processTx";

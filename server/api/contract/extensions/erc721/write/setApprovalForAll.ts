@@ -6,11 +6,11 @@ import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -38,13 +38,13 @@ export async function erc721SetApprovalForAll(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc721/set-approval-for-all",
+    url: "/contract/:chain/:contractAddress/erc721/set-approval-for-all",
     schema: {
       summary: "Set approval for all",
       description:
         "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token owned by the caller.",
       tags: ["ERC721"],
-      operationId: "erc721_setApprovalForAll",
+      operationId: "setApprovalForAll",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -54,7 +54,7 @@ export async function erc721SetApprovalForAll(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { operator, approved } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -63,7 +63,7 @@ export async function erc721SetApprovalForAll(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

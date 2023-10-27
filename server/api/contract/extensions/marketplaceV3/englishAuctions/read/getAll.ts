@@ -1,15 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { formatEnglishAuctionResult } from "../../../../../../helpers/marketplaceV3";
+import { englishAuctionOutputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
 import {
   marketplaceFilterSchema,
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { englishAuctionOutputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
+import { formatEnglishAuctionResult } from "../../../../../../utils/marketplaceV3";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -69,13 +69,13 @@ export async function englishAuctionsGetAll(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/english-auctions/get-all",
+    url: "/marketplace/:chain/:contractAddress/english-auctions/get-all",
     schema: {
       summary: "Get all English auctions",
       description:
         "Get all English auction listings on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "mktpv3_englishAuctions_getAll",
+      operationId: "getAll",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -84,12 +84,12 @@ export async function englishAuctionsGetAll(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { start, count, seller, tokenContract, tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.englishAuctions.getAll({
         start,

@@ -1,15 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { formatOffersV3Result } from "../../../../../../helpers/marketplaceV3";
+import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
 import {
   marketplaceFilterSchema,
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
+import { formatOffersV3Result } from "../../../../../../utils/marketplaceV3";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -66,12 +66,12 @@ export async function offersGetAll(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/offers/get-all",
+    url: "/marketplace/:chain/:contractAddress/offers/get-all",
     schema: {
       summary: "Get all offers",
       description: "Get all offers on this marketplace contract.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offers_getAll",
+      operationId: "getAll",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -80,12 +80,12 @@ export async function offersGetAll(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { start, count, offeror, tokenContract, tokenId } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.offers.getAll({
         start,

@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { retryTx } from "../../../src/db/transactions/retryTx";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 // INPUT
 const requestSchema = Type.Object({
@@ -45,7 +45,7 @@ export async function retryTransaction(fastify: FastifyInstance) {
       summary: "Retry transaction",
       description: "Retry a transaction with updated gas settings.",
       tags: ["Transaction"],
-      operationId: "txRetry",
+      operationId: "retry",
       params: requestSchema,
       body: requestBodySchema,
       response: {

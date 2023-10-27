@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WebhooksEventTypes } from "../../../src/schema/webhooks";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 export const ReplySchema = Type.Object({
   result: Type.Array(Type.Enum(WebhooksEventTypes)),
@@ -18,7 +18,7 @@ export async function getWebhooksEventTypes(fastify: FastifyInstance) {
       summary: "Get webhooks event types",
       description: "Get the all the webhooks event types",
       tags: ["Webhooks"],
-      operationId: "getWebhooksEventTypes",
+      operationId: "getEventTypes",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

@@ -4,10 +4,10 @@ import { StatusCodes } from "http-status-codes";
 import {
   currencyValueSchema,
   standardResponseSchema,
-} from "../../helpers/sharedApiSchemas";
+} from "../../schemas/sharedApiSchemas";
 import { walletParamSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utilities/chain";
 import { getSdk } from "../../utils/cache/getSdk";
+import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
 const requestSchema = walletParamSchema;
@@ -42,7 +42,7 @@ export async function getBalance(fastify: FastifyInstance) {
       summary: "Get balance",
       description: "Get the native balance for a backend wallet.",
       tags: ["Backend Wallet"],
-      operationId: "backendWallet_getBalance",
+      operationId: "getBalance",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -50,15 +50,15 @@ export async function getBalance(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, wallet_address } = request.params;
+      const { chain, walletAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
       const sdk = await getSdk({ chainId });
 
-      let balanceData = await sdk.getBalance(wallet_address);
+      let balanceData = await sdk.getBalance(walletAddress);
 
       reply.status(StatusCodes.OK).send({
         result: {
-          walletAddress: wallet_address,
+          walletAddress,
           ...balanceData,
           value: balanceData.value.toString(),
         },

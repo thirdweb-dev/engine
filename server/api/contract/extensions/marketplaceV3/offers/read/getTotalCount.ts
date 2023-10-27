@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
@@ -29,13 +29,13 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/offers/get-total-count",
+    url: "/marketplace/:chain/:contractAddress/offers/get-total-count",
     schema: {
       summary: "Get total count",
       description:
         "Get the total number of offers on this marketplace contract.",
       tags: ["Marketplace-Offers"],
-      operationId: "mktpv3_offers_getTotalCount",
+      operationId: "getTotalCount",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -43,11 +43,11 @@ export async function offersGetTotalCount(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.englishAuctions.getTotalCount();
 

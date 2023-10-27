@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../helpers";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
+} from "../../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const ReplySchema = Type.Object({
   result: Type.Boolean({
@@ -15,11 +15,11 @@ const ReplySchema = Type.Object({
 });
 
 const QuerySchema = Type.Object({
-  admin_address: Type.String({
+  adminAddress: Type.String({
     description:
       "The address of the admin to check if the account address is deployed",
   }),
-  extra_data: Type.Optional(
+  extraData: Type.Optional(
     Type.String({
       description: "Extra data to use in predicting the account address",
     }),
@@ -33,13 +33,13 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
     Querystring: Static<typeof QuerySchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/account-factory/is-account-deployed",
+    url: "/contract/:chain/:contractAddress/account-factory/is-account-deployed",
     schema: {
       summary: "Check if deployed",
       description:
         "Check if a smart account has been deployed to the blockchain.",
       tags: ["Account Factory"],
-      operationId: "account-factory:is-account-deployed",
+      operationId: "isAccountDeployed",
       params: contractParamSchema,
       querystring: QuerySchema,
       response: {
@@ -48,17 +48,17 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { admin_address, extra_data } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { adminAddress, extraData } = request.query;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const isDeployed = await contract.accountFactory.isAccountDeployed(
-        admin_address,
-        extra_data,
+        adminAddress,
+        extraData,
       );
 
       reply.status(StatusCodes.OK).send({

@@ -2,16 +2,16 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
+import { nftOrInputSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../helpers/sharedApiSchemas";
-import { nftOrInputSchema } from "../../../../../schemas/nft";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -41,12 +41,12 @@ export async function erc721mintTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/erc721/mint-to",
+    url: "/contract/:chain/:contractAddress/erc721/mint-to",
     schema: {
       summary: "Mint tokens",
       description: "Mint ERC-721 tokens to a specific wallet.",
       tags: ["ERC721"],
-      operationId: "erc721_mintTo",
+      operationId: "mintTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
@@ -56,7 +56,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { receiver, metadata } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -65,7 +65,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

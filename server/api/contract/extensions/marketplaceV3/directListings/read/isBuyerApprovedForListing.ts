@@ -4,18 +4,18 @@ import { StatusCodes } from "http-status-codes";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../helpers/sharedApiSchemas";
+} from "../../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../../utilities/chain";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Object({
-  listing_id: Type.String({
+  listingId: Type.String({
     description: "The id of the listing to retrieve.",
   }),
-  wallet_address: Type.String({
+  walletAddress: Type.String({
     description: "The wallet address of the buyer to check.",
   }),
 });
@@ -41,13 +41,13 @@ export async function directListingsIsBuyerApprovedForListing(
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/marketplace/:chain/:contract_address/direct-listings/is-buyer-approved-for-listing",
+    url: "/marketplace/:chain/:contractAddress/direct-listings/is-buyer-approved-for-listing",
     schema: {
       summary: "Check approved buyer",
       description:
         "Check if a buyer is approved to purchase a specific direct listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "mktpv3_directListings_isBuyerApprovedForListing",
+      operationId: "isBuyerApprovedForListing",
       headers: walletAuthSchema,
       params: requestSchema,
       querystring: requestQuerySchema,
@@ -57,16 +57,16 @@ export async function directListingsIsBuyerApprovedForListing(
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
-      const { listing_id, wallet_address } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { listingId, walletAddress } = request.query;
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
       const result = await contract.directListings.isBuyerApprovedForListing(
-        listing_id,
-        wallet_address,
+        listingId,
+        walletAddress,
       );
 
       reply.status(StatusCodes.OK).send({

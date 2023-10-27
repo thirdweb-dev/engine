@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import { nftMetadataSchema } from "../../nft";
-import { currencyValueSchema, Status } from "../../../helpers/sharedApiSchemas";
+import { currencyValueSchema, Status } from "../../sharedApiSchemas";
 
 export const directListingV3InputSchema = Type.Object({
   assetContractAddress: Type.String({

@@ -2,15 +2,15 @@ import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../src/db/transactions/queueTx";
+import { SessionSchema } from "../../../../../schemas/account";
 import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../helpers";
-import { SessionSchema } from "../../../../../schemas/account";
+} from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utilities/chain";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = SessionSchema;
 
@@ -31,12 +31,12 @@ export const grantSession = async (fastify: FastifyInstance) => {
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/account/sessions/create",
+    url: "/contract/:chain/:contractAddress/account/sessions/create",
     schema: {
       summary: "Create session key",
       description: "Create a session key for a smart account.",
       tags: ["Account"],
-      operationId: "account:grant-session",
+      operationId: "grantSession",
       params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,
@@ -46,7 +46,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { signerAddress, ...permissions } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -56,7 +56,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
 
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

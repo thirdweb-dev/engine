@@ -2,12 +2,12 @@ import { Static, Type } from "@sinclair/typebox";
 import { allChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { standardResponseSchema } from "../../helpers/sharedApiSchemas";
 import { createCustomError } from "../../middleware/error";
 import {
   chainRequestQuerystringSchema,
   chainResponseSchema,
 } from "../../schemas/chain";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 // OUPUT
 const responseSchema = Type.Object({
@@ -45,7 +45,7 @@ export async function getChainData(fastify: FastifyInstance) {
       summary: "Get chain details",
       description: "Get details about a chain.",
       tags: ["Chain"],
-      operationId: "chain",
+      operationId: "get",
       querystring: chainRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,

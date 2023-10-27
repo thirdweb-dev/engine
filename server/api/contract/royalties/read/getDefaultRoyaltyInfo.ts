@@ -1,13 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { RoyaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../helpers/sharedApiSchemas";
-import { RoyaltySchema } from "../../../../schemas/contract";
-import { getChainIdFromChain } from "../../../../utilities/chain";
+} from "../../../../schemas/sharedApiSchemas";
 import { getContract } from "../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../utils/chain";
 
 const requestSchema = contractParamSchema;
 
@@ -31,13 +31,13 @@ export async function getDefaultRoyaltyInfo(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contract_address/royalties/get-default-royalty-info",
+    url: "/contract/:chain/:contractAddress/royalties/get-default-royalty-info",
     schema: {
       summary: "Get Default Royalty Info",
       description:
         "Gets the royalty recipient and BPS (basis points) of the smart contract.",
       tags: ["Contract-Royalties"],
-      operationId: "royalties_getDefaultRoyaltyInfo",
+      operationId: "getDefaultRoyaltyInfo",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -45,12 +45,12 @@ export async function getDefaultRoyaltyInfo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
 
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
       });
 
       const returnData = await contract.royalties.getDefaultRoyaltyInfo();

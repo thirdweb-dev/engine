@@ -6,10 +6,10 @@ import {
   contractParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../helpers/sharedApiSchemas";
+} from "../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../utilities/chain";
 import { getContract } from "../../../../utils/cache/getContract";
+import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -32,12 +32,12 @@ export async function grantRole(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contract_address/roles/grant",
+    url: "/contract/:chain/:contractAddress/roles/grant",
     schema: {
       summary: "Grant role",
       description: "Grant a role to a specific wallet.",
       tags: ["Contract-Roles"],
-      operationId: "roles_grant",
+      operationId: "grant",
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
@@ -47,7 +47,7 @@ export async function grantRole(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contract_address } = request.params;
+      const { chain, contractAddress } = request.params;
       const { role, address } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -56,7 +56,7 @@ export async function grantRole(fastify: FastifyInstance) {
       const chainId = getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
-        contractAddress: contract_address,
+        contractAddress,
         walletAddress,
         accountAddress,
       });

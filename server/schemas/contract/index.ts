@@ -1,11 +1,11 @@
 import { Static, Type } from "@sinclair/typebox";
-import { contractSchemaTypes } from "../../helpers/sharedApiSchemas";
+import { contractSchemaTypes } from "../sharedApiSchemas";
 
 /**
  * Basic schema for all Request Query String
  */
 export const readRequestQuerySchema = Type.Object({
-  function_name: Type.String({
+  functionName: Type.String({
     description: "Name of the function to call on Contract",
     examples: ["balanceOf"],
   }),
@@ -74,10 +74,10 @@ export const rolesResponseSchema = Type.Object({
 
 export const eventsQuerystringSchema = Type.Object(
   {
-    from_block: Type.Optional(
+    fromBlock: Type.Optional(
       Type.Union([Type.Number(), Type.String()], { default: "0" }),
     ),
-    to_block: Type.Optional(
+    toBlock: Type.Optional(
       Type.Union([Type.Number({ default: 0 }), Type.String({ default: "0" })], {
         default: "latest",
       }),
