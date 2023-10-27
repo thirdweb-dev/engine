@@ -9,11 +9,11 @@ async function main() {
   process.kill(-child.pid);
 
   execSync(
-    "yarn openapi --input ./dist/openapi.json --output ./src/sdk/generated --name Engine",
+    "yarn openapi --input ./dist/openapi.json --output ./sdk/src --name Engine",
   );
 
   const code = fs
-    .readFileSync("./src/sdk/generated/Engine.ts", "utf-8")
+    .readFileSync("./sdk/src/Engine.ts", "utf-8")
     .replace(`export class Engine`, `class EngineLogic`).concat(`
 export class Engine extends EngineLogic {
   constructor(config: { url: string; accessToken: string; }) {
@@ -21,7 +21,7 @@ export class Engine extends EngineLogic {
   }
 }
 `);
-  fs.writeFileSync("./src/sdk/generated/Engine.ts", code);
+  fs.writeFileSync("./sdk/src/Engine.ts", code);
 }
 
 main();
