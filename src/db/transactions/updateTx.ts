@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import { TransactionStatusEnum } from "../../../server/schemas/transaction";
 import { PrismaTransaction } from "../../schema/prisma";
+import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface UpdateTxParams {

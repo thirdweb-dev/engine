@@ -1,4 +1,4 @@
-import { Permission } from "../../../server/schemas/auth";
+import { Permission } from "../../server/schemas/auth";
 import { env } from "../../utils/env";
 import { prisma } from "../client";
 
