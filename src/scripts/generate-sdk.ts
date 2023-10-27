@@ -2,7 +2,7 @@ import { execSync, spawn } from "child_process";
 import fs from "fs";
 
 async function main() {
-  const child = spawn("yarn", ["dev:server"], { detached: true });
+  const child = spawn("yarn", ["dev"], { detached: true });
   if (!child.pid) return;
 
   await new Promise((resolve) => setTimeout(resolve, 10000));
