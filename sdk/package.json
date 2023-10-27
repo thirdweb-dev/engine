@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "main": "dist/thirdweb-dev-engine.cjs.js",
   "module": "dist/thirdweb-dev-engine.esm.js",
+  "files": [
+    "dist"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@babel/preset-typescript": "^7.23.2",
