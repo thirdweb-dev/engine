@@ -3,8 +3,6 @@ version: "3.8"
 services:
   db:
     image: postgres:latest
-    env_file:
-      - .env
     volumes:
       - psql_db:/var/lib/postgresql/data
     ports:

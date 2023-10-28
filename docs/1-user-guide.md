@@ -8,10 +8,10 @@
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------- |
 | `THIRDWEB_API_SECRET_KEY` | thirdweb Api Secret Key (get it from thirdweb.com/dashboard)                                                        |                                                                      | ✅       |
 | `POSTGRES_CONNECTION_URL` | PostgreSQL Connection string                                                                                        | postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable | ✅       |
+| `ADMIN_WALLET_ADDRESS`    | The initial admin wallet address that can connect to this engine instance from the thirdweb dashboard for setup.    |                                                                      | ✅       |
 | `HOST`                    | Host name of the API Server                                                                                         | `localhost`                                                          | ❌       |
 | `PORT`                    | Port number of the API Server                                                                                       | `3005`                                                               | ❌       |
 | `CHAIN_OVERRIDES`         | Pass your own RPC urls to override the default ones. This can be file or an URL. See example override-rpc-urls.json |                                                                      | ❌       |
-| `OPENAPI_BASE_ORIGIN`     | Base URL for Open API Specification. Should be the Base URL of your App.                                            | `http://localhost:3005`                                              | ❌       |
 
 ### Setup Instructions
 
@@ -155,7 +155,7 @@ The API defaults to `http://localhost:3005`
 ---
 
 1. Check [Setup Instruction section](#setup-instructions) to update the `.env` file
-2. Update the `POSTGRES HOST` on your `POSTGRES_CONNECTION_URL` value on the `.env` file to `host.docker.internal`. Example :
+2. Update the `POSTGRES HOST` on your `POSTGRES_CONNECTION_URL` value on the `.env` file to `host.docker.internal` from `localhost`. Example :
 
 ```js
 POSTGRES_CONNECTION_URL=postgres://postgres:postgres@host.docker.internal:5432/postgres?sslmode=disable
@@ -171,7 +171,7 @@ POSTGRES_PASSWORD = postgres;
 4. Run the below command:
 
 ```bash
-docker run -e .env -p 5432:5432 postgres:latest
+docker run --env-file .env -p 5432:5432 postgres:latest
 ```
 
 You can check on Docker Dashboard if the container is up & running.
@@ -179,7 +179,7 @@ You can check on Docker Dashboard if the container is up & running.
 5. Run thirdweb Engine Docker image:
 
 ```bash
-docker run -e .env -p 3005:3005 thirdweb/engine:latest
+docker run --env-file .env -p 3005:3005 thirdweb/engine:latest
 ```
 
 You can check on Docker Dashboard if the container is up & running.
@@ -187,3 +187,16 @@ You can check on Docker Dashboard if the container is up & running.
 The API defaults to `http://localhost:3005`
 
 ---
+
+### Integrate Engine with thirdweb Dashboard
+
+#### Run Engine in HTTPS mode
+
+To use the Engine in `https` mode on `localhost`, set the env variable `ENABLE_HTTPS` to `true`. This is only recommended for development purposes or when integrating your local Engine Instance with the thirdweb dashboard.
+
+#### Setup Engine Instance on thirdweb Dashboard
+
+1. Go to [thirdweb Dashboard](https://thirdweb.com/dashboard/engine)
+2. Click on `Set Engine instance URL to get started.`
+3. Add the URL of your Engine instance, Name and click on `Save`.
+4. You should now see the Overview page of your Engine instance.

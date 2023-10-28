@@ -14,7 +14,7 @@ const main = async () => {
 
   const schema =
     process.env.NODE_ENV === "production"
-      ? `./dist/src/prisma/schema.prisma`
+      ? `./dist/prisma/schema.prisma`
       : `./src/prisma/schema.prisma`;
 
   if (hasWalletsTable) {

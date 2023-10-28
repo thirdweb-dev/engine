@@ -39,6 +39,15 @@ export const FilePathSchema = z
     { message: "Not a valid file path" },
   );
 
+const boolSchema = (defaultBool: "true" | "false") =>
+  z
+    .string()
+    .default(defaultBool)
+    // only allow "true" or "false"
+    .refine((s) => s === "true" || s === "false", "must be 'true' or 'false'")
+    // transform to boolean
+    .transform((s) => s === "true");
+
 // ! to make something required, use z.string().min(1) to be sure
 export const env = createEnv({
   server: {
@@ -46,15 +55,19 @@ export const env = createEnv({
       .enum(["production", "development", "testing", "local"])
       .default("development"),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
+    ADMIN_WALLET_ADDRESS: z.string().min(1),
     POSTGRES_CONNECTION_URL: z
       .string()
       .default(
         "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable",
       ),
-    OPENAPI_BASE_ORIGIN: z.string().default("http://localhost:3005"),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
-    ACCESS_CONTROL_ALLOW_ORIGIN: z.string().default("*"),
+    ACCESS_CONTROL_ALLOW_ORIGIN: z
+      .string()
+      .default("https://thirdweb.com,https://thirdweb-preview.com"),
+    ENABLE_HTTPS: boolSchema("false"),
+    HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -62,11 +75,13 @@ export const env = createEnv({
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
     THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
+    ADMIN_WALLET_ADDRESS: process.env.ADMIN_WALLET_ADDRESS,
     POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
     PORT: process.env.PORT,
     HOST: process.env.HOST,
-    OPENAPI_BASE_ORIGIN: process.env.OPENAPI_BASE_ORIGIN,
     ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
+    ENABLE_HTTPS: process.env.ENABLE_HTTPS,
+    HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
   },
   onValidationError: (error: ZodError) => {
     console.error(

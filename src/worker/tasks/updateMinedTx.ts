@@ -1,10 +1,10 @@
 import { Transactions } from "@prisma/client";
 import { getBlock } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
-import { TransactionStatusEnum } from "../../../server/schemas/transaction";
-import { getSdk } from "../../../server/utils/cache/getSdk";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
+import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 
 export const updateMinedTx = async () => {

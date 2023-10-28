@@ -93,6 +93,7 @@ export const getConfiguration = async (): Promise<Config> => {
         maxRetriesPerTx: 3,
         authDomain: "thirdweb.com",
         authWalletEncryptedJson: await createAuthWalletEncryptedJson(),
+        minWalletBalance: "20000000000000000",
       },
       update: {},
     });

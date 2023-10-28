@@ -1,3 +1,6 @@
+# Generated SDK
+sdk/src
+
 # Logs
 logs
 *.log
@@ -140,3 +143,6 @@ benchmark.local.sh
 # GCP Service Account JSON
 thrdweb-biyvmatstwcbrb08y692g-41baca7a34a1.json
 thrdweb-biyvmatstwcbrb08y692g-7762eca4411b.json
+
+# SSL Local Certs folder
+https

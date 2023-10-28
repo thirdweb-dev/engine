@@ -39,13 +39,16 @@ model Configuration {
   // Webhook
   webhookUrl                         String? @map("webhookUrl")
   webhookAuthBearerToken             String? @map("webhookAuthBearerToken")
+  // Wallet balance
+  minWalletBalance                   String  @default("20000000000000000") @map("minWalletBalance")
 
   @@map("configuration")
 }
 
 model Permissions {
-  walletAddress String @id @map("walletAddress")
-  permissions   String @map("permissions")
+  walletAddress String  @id @map("walletAddress")
+  permissions   String  @map("permissions")
+  label         String? @map("label")
 
   @@map("permissions")
 }
@@ -58,6 +61,7 @@ model Tokens {
   expiresAt     DateTime  @map("expiresAt")
   revokedAt     DateTime? @map("revokedAt")
   isAccessToken Boolean   @map("isAccessToken")
+  label         String?   @map("label")
 
   @@map("tokens")
 }
@@ -65,6 +69,7 @@ model Tokens {
 model WalletDetails {
   address            String  @id @map("address")
   type               String  @map("type")
+  label              String? @map("label")
   // Local
   encryptedJson      String? @map("encryptedJson")
   // KMS
@@ -121,7 +126,7 @@ model Transactions {
   functionName              String?   @map("functionName")
   functionArgs              String?   @map("functionArgs")
   extension                 String?   @map("extension")
-  // TODO: These shouldnt be in here...
+  // TODO: These shouldn't be in here...
   deployedContractAddress   String?   @map("deployedContractAddress")
   deployedContractType      String?   @map("deployedContractType")
   // Timestamps
@@ -142,4 +147,17 @@ model Transactions {
   blockNumber               Int?      @map("blockNumber")
 
   @@map("transactions")
+}
+
+model Webhooks {
+  id        Int       @id @default(autoincrement()) @map("id")
+  name      String?   @map("name")
+  url       String    @map("url")
+  secret    String    @map("secret")
+  eventType String    @map("evenType")
+  createdAt DateTime  @default(now()) @map("createdAt")
+  updatedAt DateTime  @updatedAt @map("updatedAt")
+  revokedAt DateTime? @map("revokedAt")
+
+  @@map("webhooks")
 }

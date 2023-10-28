@@ -1,3 +1,5 @@
+import { Permission } from "../../server/schemas/auth";
+import { env } from "../../utils/env";
 import { prisma } from "../client";
 
 interface GetPermissionsParams {
@@ -7,9 +9,24 @@ interface GetPermissionsParams {
 export const getPermissions = async ({
   walletAddress,
 }: GetPermissionsParams) => {
-  return prisma.permissions.findUnique({
+  const permissions = await prisma.permissions.findUnique({
     where: {
       walletAddress: walletAddress.toLowerCase(),
     },
   });
+
+  // If the admin wallet isn't in the permissions table yet, add it
+  if (
+    !permissions &&
+    walletAddress.toLowerCase() === env.ADMIN_WALLET_ADDRESS.toLowerCase()
+  ) {
+    return prisma.permissions.create({
+      data: {
+        walletAddress: walletAddress.toLowerCase(),
+        permissions: Permission.Admin,
+      },
+    });
+  }
+
+  return permissions;
 };

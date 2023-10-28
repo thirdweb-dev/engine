@@ -1,6 +1,6 @@
 import PQueue from "p-queue";
-import { sendWebhook } from "../../../server/utilities/webhook";
 import { knex } from "../../db/client";
+import { sendTxWebhook } from "../../server/utils/webhook";
 import { logger } from "../../utils/logger";
 import { processTx } from "../tasks/processTx";
 
@@ -31,7 +31,7 @@ export const queuedTxListener = async (): Promise<void> => {
     "notification",
     async (msg: { channel: string; payload: string }) => {
       const parsedPayload = JSON.parse(msg.payload);
-      await sendWebhook(parsedPayload);
+      await sendTxWebhook(parsedPayload);
       queue.add(processTx);
     },
   );
