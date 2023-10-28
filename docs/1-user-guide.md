@@ -45,7 +45,7 @@ Web3-api enables you to create and use backend wallets. To get started create yo
 
 Backend wallets are used by the web3-api to execute transactions, you should think of these as owned by the developer who's running the server.
 
-1.POST /create/wallet
+1.POST /backend-wallet/create
 `{
   "walletType": "aws-kms | gcp-kms | local"
 }`
