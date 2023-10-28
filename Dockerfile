@@ -114,7 +114,7 @@ EXPOSE 3005
 COPY package*.json yarn*.lock ./
 
 # Replace the schema path in the package.json file
-RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/src/prisma/schema.prisma"_g' package.json
+RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/prisma/schema.prisma"_g' package.json
 
 # Copy only production dependencies from the prod-dependencies stage
 COPY --from=prod-dependencies /app/node_modules ./node_modules
