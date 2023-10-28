@@ -67,7 +67,7 @@
     "prisma": "^5.2.0",
     "uuidv4": "^6.2.13",
     "viem": "^1.14.0",
-    "zod": "^3.21.4"
+    "zod": "^3.22.3"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
