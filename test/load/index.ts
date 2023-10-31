@@ -29,6 +29,7 @@ type OptionsInput = z.input<typeof OptionsSchema>;
 type Result = {
   requestTime: number;
   status?: "mined" | "errored" | "pending";
+  sendTime?: number;
   mineTime?: number;
 };
 
@@ -162,7 +163,7 @@ program
 
               const {
                 res: {
-                  result: { status },
+                  result: { status, sentAt, minedAt },
                 },
               } = await fetchEngine({
                 host: options.host as string,
@@ -173,8 +174,10 @@ program
 
               if (status === "mined") {
                 result.status = "mined";
-                result.mineTime = timer.ellapsed();
+                result.sendTime = timer.ellapsed(new Date(sentAt));
+                result.mineTime = timer.ellapsed(new Date(minedAt));
                 break;
+              } else if (res.result?.status === "sent") {
               } else if (res.result?.status === "errored") {
                 result.status = "errored";
                 break;
@@ -213,6 +216,16 @@ program
     if (minedResults.length === 0) {
       return;
     }
+
+    console.log("\n\nsent times (seconds)");
+    console.table({
+      average:
+        results.reduce((acc, curr) => acc + curr.sendTime!, 0) / results.length,
+      minimum: results.sort((a, b) => a.sendTime! - b.sendTime!)[0].sendTime,
+      maximum: results.sort((a, b) => a.sendTime! - b.sendTime!)[
+        results.length - 1
+      ].sendTime,
+    });
 
     console.log("\n\nmine times (seconds)");
     console.table({
