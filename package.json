@@ -22,7 +22,7 @@
     "start:worker": "node --experimental-specifier-resolution=node ./dist/worker/index.js",
     "start:docker": "docker compose build && docker compose --env-file ./.env up --remove-orphans",
     "docker-build-run": "docker compose build --no-cache && docker compose --env-file ./.env up --remove-orphans",
-    "copy-files": "copyfiles ./src/prisma/schema.prisma ./dist/ && copyfiles ./src/prisma/migrations/**/*.sql ./dist/",
+    "copy-files": "copyfiles -u 2 ./src/prisma/* ./dist/prisma/ && copyfiles -u 3 ./src/prisma/migrations/**/*.sql ./dist/prisma/migrations/",
     "lint": "eslint 'src/**/*.ts'",
     "lint:fix": "eslint --fix 'src/**/*.ts'",
     "test:load": "npx tsx ./test/load/index.ts",
