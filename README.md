@@ -13,26 +13,12 @@
     </a>
 </p>
 
-<!-- <p align="center"><strong>The most powerful backend engine for web3 apps.</strong></p>
-
-## Table of contents
-
-- [Introduction](#introduction)
-- [Getting started](#getting-started)
-  - [Setup environment variables](#setup-environment-variables)
-  - [Run the server](#run-the-server)
-  - [Using the server](#using-the-server)
-- [Resources](#resources)
-  - [Using Engine](#using-engine)
-  - [Other Resources](#other-resources)
-- [Security](#security) -->
-
 Engine is a backend HTTP server that calls smart contracts with your managed backend wallets.
+
+[**Read the documentation**](https://portal.thirdweb.com/engine) for features, setup, configuration, guides, and references.
 
 <!-- Source: https://whimsical.com/engine-architecture-2G6rXEvUM2HFmVwKxPWyzS -->
 <img src="./docs/images/overview.png" alt="Overview" width="820">
-
-> [**See the documentation**](https://portal.thirdweb.com/engine) for features, setup, configuration, guides, and references.
 
 ## Features
 
