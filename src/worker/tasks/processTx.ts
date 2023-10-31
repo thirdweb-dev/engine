@@ -234,7 +234,11 @@ export const processTx = async () => {
                 };
               } else {
                 logger.worker.warn(
-                  `[Transaction] [${tx.queueId}] Failed to send with error - ${rpcRes.error}`,
+                  `[Transaction] [${
+                    tx.queueId
+                  }] Failed to send with error - ${JSON.stringify(
+                    rpcRes.error,
+                  )}`,
                 );
 
                 return {
