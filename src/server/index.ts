@@ -5,13 +5,13 @@ import path from "path";
 import { URL } from "url";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
-import { withRoutes } from "./api";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
 import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
+import { withRoutes } from "./routes";
 
 const __dirname = new URL(".", import.meta.url).pathname;
 
