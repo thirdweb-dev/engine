@@ -24,6 +24,8 @@ const writeRequestBodySchema = Type.Object({
       }),
       Type.Tuple([Type.String(), Type.String()]),
       Type.Object({}),
+      Type.Array(Type.Any()),
+      Type.Any(),
     ]),
   ),
   ...txOverridesForWriteRequest.properties,
@@ -32,7 +34,7 @@ const writeRequestBodySchema = Type.Object({
 // Adding example for Swagger File
 writeRequestBodySchema.examples = [
   {
-    function_name: "transferFrom",
+    functionName: "transferFrom",
     args: [
       "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
       "0x3EcDBF3B911d0e9052b64850693888b008e18373",
