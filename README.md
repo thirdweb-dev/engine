@@ -59,14 +59,6 @@ Learn more: [Getting Started](https://portal.thirdweb.com/engine/getting-started
 
 ## Contributing
 
-| Variable Name             | Description                                                                                                      |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `THIRDWEB_API_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey.                                                  |
-| `POSTGRES_CONNECTION_URL` | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]    |
-| `ADMIN_WALLET_ADDRESS`    | The initial admin wallet address that can connect to this engine instance from the thirdweb dashboard for setup. |
-| `ENCRYPTION_PASSWORD`     | A password used to encrypt sensitive wallet data for security.                                                   |
-|                           |
-
 We welcome external contributions! See [how to contribute to thirdweb repos]. Please try to follow the existing code style and conventions.
 
 ## Get in touch
