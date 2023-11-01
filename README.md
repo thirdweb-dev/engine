@@ -17,7 +17,9 @@
 
 ## Table of contents
 
+- [Table of contents](#table-of-contents)
 - [Introduction](#introduction)
+- [Requirements](#requirements)
 - [Getting started](#getting-started)
   - [Setup environment variables](#setup-environment-variables)
   - [Run the server](#run-the-server)
@@ -63,6 +65,7 @@ Set these environment variables to get started.
 | `THIRDWEB_API_SECRET_KEY` | Create an API KEY on thirdweb Dashboard and copy the SecretKey.                                                  |
 | `POSTGRES_CONNECTION_URL` | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]    |
 | `ADMIN_WALLET_ADDRESS`    | The initial admin wallet address that can connect to this engine instance from the thirdweb dashboard for setup. |
+| `ENCRYPTION_PASSWORD`     | A password used to encrypt sensitive wallet data for security.                                                   |
 
 ### Run the server
 
