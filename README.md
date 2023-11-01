@@ -15,8 +15,6 @@
 
 Engine is a backend HTTP server that calls smart contracts with your managed backend wallets.
 
-<<<<<<< HEAD
-
 ## Table of contents
 
 - [Table of contents](#table-of-contents)
@@ -38,8 +36,6 @@ thirdweb engine is a backend server that provides a HTTP interface to interact w
 # The high level functionality of thirdweb engine:
 
 [**Read the documentation**](https://portal.thirdweb.com/engine) for features, setup, configuration, guides, and references.
-
-> > > > > > > main
 
 <!-- Source: https://whimsical.com/engine-architecture-2G6rXEvUM2HFmVwKxPWyzS -->
 <img src="./docs/images/overview.png" alt="Overview" width="820">
@@ -89,7 +85,7 @@ Learn more: [Getting Started](https://portal.thirdweb.com/engine/getting-started
 | `POSTGRES_CONNECTION_URL` | Postgres connection string, format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]    |
 | `ADMIN_WALLET_ADDRESS`    | The initial admin wallet address that can connect to this engine instance from the thirdweb dashboard for setup. |
 | `ENCRYPTION_PASSWORD`     | A password used to encrypt sensitive wallet data for security.                                                   |
-|  |
+|                           |
 
 We welcome external contributions! See [how to contribute to thirdweb repos]. Please try to follow the existing code style and conventions.
 
