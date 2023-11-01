@@ -3,13 +3,11 @@ import * as dotenv from "dotenv";
 import type { ZodError } from "zod";
 import { z } from "zod";
 
-// Load environment variables from .env file
 dotenv.config({
   debug: true,
   override: false,
 });
 
-// Schema for validating JSON strings
 export const JsonSchema = z.string().refine(
   (value) => {
     try {
@@ -22,7 +20,6 @@ export const JsonSchema = z.string().refine(
   { message: "Not a valid JSON string" },
 );
 
-// Schema for validating URLs
 export const UrlSchema = z
   .string()
   .refine(
@@ -30,7 +27,6 @@ export const UrlSchema = z
     { message: "Not a valid URL" },
   );
 
-// Basic schema for validating file paths
 export const FilePathSchema = z
   .string()
   .refine(
@@ -43,12 +39,9 @@ const boolSchema = (defaultBool: "true" | "false") =>
   z
     .string()
     .default(defaultBool)
-    // only allow "true" or "false"
     .refine((s) => s === "true" || s === "false", "must be 'true' or 'false'")
-    // transform to boolean
     .transform((s) => s === "true");
 
-// ! to make something required, use z.string().min(1) to be sure
 export const env = createEnv({
   server: {
     NODE_ENV: z
@@ -56,6 +49,7 @@ export const env = createEnv({
       .default("development"),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
     ADMIN_WALLET_ADDRESS: z.string().min(1),
+    ENCRYPTION_PASSWORD: z.string().min(1),
     POSTGRES_CONNECTION_URL: z
       .string()
       .default(
@@ -76,6 +70,7 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
     ADMIN_WALLET_ADDRESS: process.env.ADMIN_WALLET_ADDRESS,
+    ENCRYPTION_PASSWORD: process.env.ENCRYPTION_PASSWORD,
     POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
     PORT: process.env.PORT,
     HOST: process.env.HOST,

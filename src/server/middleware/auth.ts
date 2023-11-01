@@ -9,11 +9,13 @@ import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { utils } from "ethers";
 import { FastifyInstance } from "fastify";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
+import { updateConfiguration } from "../../db/configuration/updateConfiguration";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
 import { getToken } from "../../db/tokens/getToken";
 import { revokeToken } from "../../db/tokens/revokeToken";
 import { env } from "../../utils/env";
+import { logger } from "../../utils/logger";
 import { Permission } from "../schemas/auth";
 
 export type TAuthData = never;
@@ -83,10 +85,33 @@ export const withAuth = async (server: FastifyInstance) => {
       getSigner: async () => {
         const config = await getConfiguration();
         const wallet = new LocalWallet();
-        await wallet.import({
-          encryptedJson: config.authWalletEncryptedJson,
-          password: env.THIRDWEB_API_SECRET_KEY,
-        });
+
+        try {
+          // First, we try to load the wallet with the encryption password
+          await wallet.import({
+            encryptedJson: config.authWalletEncryptedJson,
+            password: env.ENCRYPTION_PASSWORD,
+          });
+        } catch {
+          // If that fails, we try to load the wallet with the secret key
+          await wallet.import({
+            encryptedJson: config.authWalletEncryptedJson,
+            password: env.THIRDWEB_API_SECRET_KEY,
+          });
+
+          // And then update the auth wallet to use encryption password instead
+          const encryptedJson = await wallet.export({
+            strategy: "encryptedJson",
+            password: env.ENCRYPTION_PASSWORD,
+          });
+
+          logger.worker.info(
+            `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+          );
+          await updateConfiguration({
+            authWalletEncryptedJson: encryptedJson,
+          });
+        }
 
         return wallet.getSigner();
       },
@@ -114,7 +139,12 @@ export const withAuth = async (server: FastifyInstance) => {
         }
 
         const { payload } = parseJWT(jwt);
-        await revokeToken({ id: payload.jti });
+
+        try {
+          await revokeToken({ id: payload.jti });
+        } catch {
+          logger.worker.error(`[Auth] Failed to revoke token ${payload.jti}`);
+        }
       },
     },
   });

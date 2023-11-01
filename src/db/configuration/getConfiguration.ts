@@ -3,6 +3,7 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { WalletType } from "../../schema/wallet";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
+import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";
 
@@ -27,35 +28,94 @@ interface Config extends Configuration {
       };
 }
 
-const withWalletConfig = (config: Configuration): Config => {
+const withWalletConfig = async (config: Configuration): Promise<Config> => {
+  // TODO: Remove backwards compatibility with next breaking change
+  if (config.awsAccessKeyId && config.awsSecretAccessKey && config.awsRegion) {
+    // First try to load the aws secret using the encryption password
+    let awsSecretAccessKey = decrypt(
+      config.awsSecretAccessKey,
+      env.ENCRYPTION_PASSWORD,
+    );
+
+    // If that fails, try to load the aws secret using the thirdweb api secret key
+    if (!awsSecretAccessKey) {
+      awsSecretAccessKey = decrypt(
+        config.awsSecretAccessKey,
+        env.THIRDWEB_API_SECRET_KEY,
+      );
+
+      // If that succeeds, update the configuration with the encryption password instead
+      if (awsSecretAccessKey) {
+        logger.worker.info(
+          `[Encryption] Updating awsSecretAccessKey to use ENCRYPTION_PASSWORD`,
+        );
+        await updateConfiguration({
+          awsSecretAccessKey,
+        });
+      }
+    }
+
+    return {
+      ...config,
+      walletConfiguration: {
+        type: WalletType.awsKms,
+        awsRegion: config.awsRegion,
+        awsAccessKeyId: config.awsAccessKeyId,
+        awsSecretAccessKey,
+      },
+    };
+  }
+
+  // TODO: Remove backwards compatibility with next breaking change
+  if (
+    config.gcpApplicationProjectId &&
+    config.gcpKmsLocationId &&
+    config.gcpKmsKeyRingId &&
+    config.gcpApplicationCredentialEmail &&
+    config.gcpApplicationCredentialPrivateKey
+  ) {
+    // First try to load the gcp secret using the encryption password
+    let gcpApplicationCredentialPrivateKey = decrypt(
+      config.gcpApplicationCredentialPrivateKey,
+      env.ENCRYPTION_PASSWORD,
+    );
+
+    // If that fails, try to load the gcp secret using the thirdweb api secret key
+    if (!gcpApplicationCredentialPrivateKey) {
+      gcpApplicationCredentialPrivateKey = decrypt(
+        config.gcpApplicationCredentialPrivateKey,
+        env.THIRDWEB_API_SECRET_KEY,
+      );
+
+      // If that succeeds, update the configuration with the encryption password instead
+      if (gcpApplicationCredentialPrivateKey) {
+        logger.worker.info(
+          `[Encryption] Updating gcpApplicationCredentialPrivateKey to use ENCRYPTION_PASSWORD`,
+        );
+        await updateConfiguration({
+          gcpApplicationCredentialPrivateKey,
+        });
+      }
+    }
+
+    return {
+      ...config,
+      walletConfiguration: {
+        type: WalletType.gcpKms,
+        gcpApplicationProjectId: config.gcpApplicationProjectId,
+        gcpKmsLocationId: config.gcpKmsLocationId,
+        gcpKmsKeyRingId: config.gcpKmsKeyRingId,
+        gcpApplicationCredentialEmail: config.gcpApplicationCredentialEmail,
+        gcpApplicationCredentialPrivateKey,
+      },
+    };
+  }
+
   return {
     ...config,
-    walletConfiguration:
-      config.awsAccessKeyId && config.awsSecretAccessKey && config.awsRegion
-        ? {
-            type: WalletType.awsKms,
-            awsAccessKeyId: config.awsAccessKeyId,
-            awsSecretAccessKey: decrypt(config.awsSecretAccessKey),
-            awsRegion: config.awsRegion,
-          }
-        : config.gcpApplicationProjectId &&
-          config.gcpKmsLocationId &&
-          config.gcpKmsKeyRingId &&
-          config.gcpApplicationCredentialEmail &&
-          config.gcpApplicationCredentialPrivateKey
-        ? {
-            type: WalletType.gcpKms,
-            gcpApplicationProjectId: config.gcpApplicationProjectId,
-            gcpKmsLocationId: config.gcpKmsLocationId,
-            gcpKmsKeyRingId: config.gcpKmsKeyRingId,
-            gcpApplicationCredentialEmail: config.gcpApplicationCredentialEmail,
-            gcpApplicationCredentialPrivateKey: decrypt(
-              config.gcpApplicationCredentialPrivateKey,
-            ),
-          }
-        : {
-            type: WalletType.local,
-          },
+    walletConfiguration: {
+      type: WalletType.local,
+    },
   };
 };
 
@@ -64,7 +124,7 @@ const createAuthWalletEncryptedJson = async () => {
   await wallet.generate();
   return wallet.export({
     strategy: "encryptedJson",
-    password: env.THIRDWEB_API_SECRET_KEY,
+    password: env.ENCRYPTION_PASSWORD,
   });
 };
 
