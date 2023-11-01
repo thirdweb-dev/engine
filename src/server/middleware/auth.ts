@@ -15,6 +15,7 @@ import { createToken } from "../../db/tokens/createToken";
 import { getToken } from "../../db/tokens/getToken";
 import { revokeToken } from "../../db/tokens/revokeToken";
 import { env } from "../../utils/env";
+import { logger } from "../../utils/logger";
 import { Permission } from "../schemas/auth";
 
 export type TAuthData = never;
@@ -135,7 +136,12 @@ export const withAuth = async (server: FastifyInstance) => {
         }
 
         const { payload } = parseJWT(jwt);
-        await revokeToken({ id: payload.jti });
+
+        try {
+          await revokeToken({ id: payload.jti });
+        } catch {
+          logger.worker.error(`[Auth] Failed to revoke token ${payload.jti}`);
+        }
       },
     },
   });
