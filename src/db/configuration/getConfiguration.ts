@@ -7,7 +7,18 @@ import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";
 
-interface Config extends Configuration {
+interface Config
+  extends Omit<
+    Configuration,
+    | "awsAccessKeyId"
+    | "awsSecretAccessKey"
+    | "awsRegion"
+    | "gcpApplicationProjectId"
+    | "gcpKmsLocationId"
+    | "gcpKmsKeyRingId"
+    | "gcpApplicationCredentialEmail"
+    | "gcpApplicationCredentialPrivateKey"
+  > {
   walletConfiguration:
     | {
         type: WalletType.local;
@@ -29,90 +40,103 @@ interface Config extends Configuration {
 }
 
 const withWalletConfig = async (config: Configuration): Promise<Config> => {
+  // We destructure the config to omit wallet related fields to prevent direct access
+  const {
+    awsAccessKeyId,
+    awsSecretAccessKey,
+    awsRegion,
+    gcpApplicationProjectId,
+    gcpKmsLocationId,
+    gcpKmsKeyRingId,
+    gcpApplicationCredentialEmail,
+    gcpApplicationCredentialPrivateKey,
+    ...restConfig
+  } = config;
+
   // TODO: Remove backwards compatibility with next breaking change
-  if (config.awsAccessKeyId && config.awsSecretAccessKey && config.awsRegion) {
+  if (awsAccessKeyId && awsSecretAccessKey && awsRegion) {
     // First try to load the aws secret using the encryption password
-    let awsSecretAccessKey = decrypt(
-      config.awsSecretAccessKey,
+    let decryptedSecretAccessKey = decrypt(
+      awsSecretAccessKey,
       env.ENCRYPTION_PASSWORD,
     );
 
     // If that fails, try to load the aws secret using the thirdweb api secret key
     if (!awsSecretAccessKey) {
-      awsSecretAccessKey = decrypt(
-        config.awsSecretAccessKey,
+      decryptedSecretAccessKey = decrypt(
+        awsSecretAccessKey,
         env.THIRDWEB_API_SECRET_KEY,
       );
 
       // If that succeeds, update the configuration with the encryption password instead
-      if (awsSecretAccessKey) {
+      if (decryptedSecretAccessKey) {
         logger.worker.info(
           `[Encryption] Updating awsSecretAccessKey to use ENCRYPTION_PASSWORD`,
         );
         await updateConfiguration({
-          awsSecretAccessKey,
+          awsSecretAccessKey: decryptedSecretAccessKey,
         });
       }
     }
 
     return {
-      ...config,
+      ...restConfig,
       walletConfiguration: {
         type: WalletType.awsKms,
-        awsRegion: config.awsRegion,
-        awsAccessKeyId: config.awsAccessKeyId,
-        awsSecretAccessKey,
+        awsRegion,
+        awsAccessKeyId,
+        awsSecretAccessKey: decryptedSecretAccessKey,
       },
     };
   }
 
   // TODO: Remove backwards compatibility with next breaking change
   if (
-    config.gcpApplicationProjectId &&
-    config.gcpKmsLocationId &&
-    config.gcpKmsKeyRingId &&
-    config.gcpApplicationCredentialEmail &&
-    config.gcpApplicationCredentialPrivateKey
+    gcpApplicationProjectId &&
+    gcpKmsLocationId &&
+    gcpKmsKeyRingId &&
+    gcpApplicationCredentialEmail &&
+    gcpApplicationCredentialPrivateKey
   ) {
     // First try to load the gcp secret using the encryption password
-    let gcpApplicationCredentialPrivateKey = decrypt(
-      config.gcpApplicationCredentialPrivateKey,
+    let decryptedGcpKey = decrypt(
+      gcpApplicationCredentialPrivateKey,
       env.ENCRYPTION_PASSWORD,
     );
 
     // If that fails, try to load the gcp secret using the thirdweb api secret key
     if (!gcpApplicationCredentialPrivateKey) {
-      gcpApplicationCredentialPrivateKey = decrypt(
-        config.gcpApplicationCredentialPrivateKey,
+      decryptedGcpKey = decrypt(
+        gcpApplicationCredentialPrivateKey,
         env.THIRDWEB_API_SECRET_KEY,
       );
 
       // If that succeeds, update the configuration with the encryption password instead
-      if (gcpApplicationCredentialPrivateKey) {
+      if (decryptedGcpKey) {
         logger.worker.info(
           `[Encryption] Updating gcpApplicationCredentialPrivateKey to use ENCRYPTION_PASSWORD`,
         );
         await updateConfiguration({
-          gcpApplicationCredentialPrivateKey,
+          gcpApplicationCredentialPrivateKey: decryptedGcpKey,
         });
       }
     }
 
     return {
-      ...config,
+      ...restConfig,
       walletConfiguration: {
         type: WalletType.gcpKms,
-        gcpApplicationProjectId: config.gcpApplicationProjectId,
-        gcpKmsLocationId: config.gcpKmsLocationId,
-        gcpKmsKeyRingId: config.gcpKmsKeyRingId,
-        gcpApplicationCredentialEmail: config.gcpApplicationCredentialEmail,
-        gcpApplicationCredentialPrivateKey,
+        gcpApplicationProjectId,
+        gcpKmsLocationId,
+        gcpKmsKeyRingId,
+        gcpApplicationCredentialEmail,
+        gcpApplicationCredentialPrivateKey: decryptedGcpKey,
       },
     };
   }
 
   return {
-    ...config,
+    ...restConfig,
     walletConfiguration: {
       type: WalletType.local,
     },
