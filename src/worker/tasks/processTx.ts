@@ -225,7 +225,9 @@ export const processTx = async () => {
               if (rpcRes.result) {
                 const txHash = rpcRes.result;
                 const txRes = await provider.getTransaction(txHash);
-
+                logger.worker.info(
+                  `[Transaction] [${tx.queueId}] Sent tx ${txHash}, with Nonce ${txRes.nonce}`,
+                );
                 return {
                   status: TransactionStatusEnum.Submitted,
                   queueId: tx.queueId!,
