@@ -15,26 +15,6 @@
 
 Engine is a backend HTTP server that calls smart contracts with your managed backend wallets.
 
-## Table of contents
-
-- [Table of contents](#table-of-contents)
-- [Introduction](#introduction)
-- [Requirements](#requirements)
-- [Getting started](#getting-started)
-  - [Setup environment variables](#setup-environment-variables)
-  - [Run the server](#run-the-server)
-  - [Using the server](#using-the-server)
-- [Resources](#resources)
-  - [Using Engine](#using-engine)
-  - [Other Resources](#other-resources)
-- [Security](#security)
-
-## Introduction
-
-thirdweb engine is a backend server that provides a HTTP interface to interact with any smart contract on any evm chain. Engine handles creating and managing backend wallets, enabling high throughput with automatic nonce and gas management.
-
-# The high level functionality of thirdweb engine:
-
 [**Read the documentation**](https://portal.thirdweb.com/engine) for features, setup, configuration, guides, and references.
 
 <!-- Source: https://whimsical.com/engine-architecture-2G6rXEvUM2HFmVwKxPWyzS -->
