@@ -2,6 +2,7 @@ import { getChainByChainId } from "@thirdweb-dev/chains";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { getWalletDetails } from "../../../db/wallets/getWalletDetails";
 import { env } from "../../../utils/env";
+import { logger } from "../../../utils/logger";
 import { LocalFileStorage } from "../storage/localStorage";
 
 interface GetLocalWalletParams {
@@ -39,6 +40,10 @@ export const getLocalWallet = async ({
         `Wallet details not found for wallet address ${walletAddress}`,
       );
     }
+
+    logger.worker.info(
+      `[Encryption] Updating local wallet ${walletAddress} to use ENCRYPTION_PASSWORD`,
+    );
 
     await wallet.save({
       strategy: "encryptedJson",

@@ -105,6 +105,9 @@ export const withAuth = async (server: FastifyInstance) => {
             password: env.ENCRYPTION_PASSWORD,
           });
 
+          logger.worker.info(
+            `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+          );
           await updateConfiguration({
             authWalletEncryptedJson: encryptedJson,
           });

@@ -1,8 +1,9 @@
 import { Configuration } from "@prisma/client";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { WalletType } from "../../schema/wallet";
-import { decrypt, encrypt } from "../../utils/crypto";
+import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
+import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";
 
@@ -45,8 +46,11 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
       // If that succeeds, update the configuration with the encryption password instead
       if (awsSecretAccessKey) {
+        logger.worker.info(
+          `[Encryption] Updating awsSecretAccessKey to use ENCRYPTION_PASSWORD`,
+        );
         await updateConfiguration({
-          awsSecretAccessKey: encrypt(awsSecretAccessKey),
+          awsSecretAccessKey,
         });
       }
     }
@@ -85,10 +89,11 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
       // If that succeeds, update the configuration with the encryption password instead
       if (gcpApplicationCredentialPrivateKey) {
+        logger.worker.info(
+          `[Encryption] Updating gcpApplicationCredentialPrivateKey to use ENCRYPTION_PASSWORD`,
+        );
         await updateConfiguration({
-          gcpApplicationCredentialPrivateKey: encrypt(
-            gcpApplicationCredentialPrivateKey,
-          ),
+          gcpApplicationCredentialPrivateKey,
         });
       }
     }
