@@ -51,7 +51,7 @@ export const importLocalWallet = async (
   // Creating wallet details gets handled by LocalFileStorage
   await wallet.save({
     strategy: "encryptedJson",
-    password: env.THIRDWEB_API_SECRET_KEY,
+    password: env.ENCRYPTION_PASSWORD,
     storage: new LocalFileStorage(walletAddress, options.label),
   });
 

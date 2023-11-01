@@ -22,7 +22,7 @@ export const createLocalWallet = async ({
   // Creating wallet details row is handled by LocalFileStorage
   await wallet.save({
     strategy: "encryptedJson",
-    password: env.THIRDWEB_API_SECRET_KEY,
+    password: env.ENCRYPTION_PASSWORD,
     storage: new LocalFileStorage(walletAddress, label),
   });
 

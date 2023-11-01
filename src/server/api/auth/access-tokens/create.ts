@@ -4,6 +4,7 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../../db/configuration/getConfiguration";
+import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { createToken } from "../../../../db/tokens/createToken";
 import { env } from "../../../../utils/env";
 import { AccessTokenSchema } from "./getAll";
@@ -43,10 +44,31 @@ export async function createAccessToken(fastify: FastifyInstance) {
 
       const config = await getConfiguration();
       const wallet = new LocalWallet();
-      await wallet.import({
-        encryptedJson: config.authWalletEncryptedJson,
-        password: env.THIRDWEB_API_SECRET_KEY,
-      });
+
+      // TODO: Remove this with next breaking change
+      try {
+        // First try to load the wallet using the encryption password
+        await wallet.import({
+          encryptedJson: config.authWalletEncryptedJson,
+          password: env.ENCRYPTION_PASSWORD,
+        });
+      } catch {
+        // If that fails, try the thirdweb api secret key for backwards compatibility
+        await wallet.import({
+          encryptedJson: config.authWalletEncryptedJson,
+          password: env.THIRDWEB_API_SECRET_KEY,
+        });
+
+        // If that works, save the wallet using the encryption password for the future
+        const authWalletEncryptedJson = await wallet.export({
+          strategy: "encryptedJson",
+          password: env.ENCRYPTION_PASSWORD,
+        });
+
+        await updateConfiguration({
+          authWalletEncryptedJson,
+        });
+      }
 
       const jwt = await buildJWT({
         wallet,
