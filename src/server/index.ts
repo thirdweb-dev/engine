@@ -12,6 +12,7 @@ import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
 import { withRoutes } from "./routes";
+import { writeOpenApiToFile } from "./utils/openapi";
 
 const __dirname = new URL(".", import.meta.url).pathname;
 
@@ -65,10 +66,7 @@ const main = async () => {
     },
   );
 
-  fs.writeFileSync(
-    "./dist/openapi.json",
-    JSON.stringify(server.swagger(), undefined, 2),
-  );
+  writeOpenApiToFile(server);
 };
 
 main();
