@@ -20,6 +20,7 @@ import {
 } from "../../server/schemas/transaction";
 import { sendBalanceWebhook } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
+import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { randomNonce } from "../utils/nonce";
 
@@ -201,6 +202,11 @@ export const processTx = async () => {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              ...(provider.connection.url.includes("rpc.thirdweb.com")
+                ? {
+                    "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+                  }
+                : {}),
             },
             body: JSON.stringify(rpcRequests),
           });
