@@ -19,7 +19,9 @@ import {
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import { sendBalanceWebhook } from "../../server/utils/webhook";
+import { getClientId } from "../../utils/cache/getClientId";
 import { getSdk } from "../../utils/cache/getSdk";
+import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { randomNonce } from "../utils/nonce";
 
@@ -196,11 +198,20 @@ export const processTx = async () => {
             });
           }
 
+          sdk.getProvider();
+
           // Send all the transactions as one batch request
+          logger.worker.error(provider.connection.url);
           const res = await fetch(provider.connection.url, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              ...(provider.connection.url.includes("rpc.thirdweb.com")
+                ? {
+                    "x-client-id": getClientId(),
+                    "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+                  }
+                : {}),
             },
             body: JSON.stringify(rpcRequests),
           });
