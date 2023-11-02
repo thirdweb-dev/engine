@@ -198,7 +198,6 @@ export const processTx = async () => {
           }
 
           // Send all the transactions as one batch request
-          logger.worker.error(provider.connection.url);
           const res = await fetch(provider.connection.url, {
             method: "POST",
             headers: {
