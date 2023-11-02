@@ -30,7 +30,7 @@ ORDER BY
   "queuedAt"
 ASC
 LIMIT
-  ${config.maxTxsToProcess}
+  20
 FOR UPDATE SKIP LOCKED
   `;
 
