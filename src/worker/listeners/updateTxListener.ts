@@ -35,9 +35,6 @@ export const updateTxListener = async (): Promise<void> => {
       const returnData = await getTxById({
         queueId: parsedPayload.identifier,
       });
-      if (!returnData) {
-        throw new Error(`Transaction ${parsedPayload.identifier} not found.`);
-      }
 
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);

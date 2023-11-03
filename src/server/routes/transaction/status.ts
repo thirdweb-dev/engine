@@ -101,9 +101,6 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       findOrAddWSConnectionInSharedState(connection, queueId, request);
 
       const returnData = await getTxById({ queueId });
-      if (!returnData) {
-        throw new Error(`Transaction ${queueId} not found.`);
-      }
 
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);
