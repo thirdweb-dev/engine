@@ -76,7 +76,6 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      console.log("hello world");
       const { queueId } = request.params;
       const returnData = await getTxById({ queueId });
 
