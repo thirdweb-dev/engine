@@ -6,7 +6,10 @@ import { getChainIdFromChain } from "../../utils/chain";
 
 const BodySchema = Type.Object({
   chain: Type.String(),
-  walletAddress: Type.String(),
+  walletAddress: Type.String({
+    description:
+      "The address of the backend wallet to use for relaying transactions.",
+  }),
   allowedContracts: Type.Optional(Type.Array(Type.String())),
 });
 
