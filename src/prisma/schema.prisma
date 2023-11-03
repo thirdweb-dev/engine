@@ -161,3 +161,11 @@ model Webhooks {
 
   @@map("webhooks")
 }
+
+model Relayers {
+  id               String  @id @default(uuid()) @map("id")
+  name             String? @map("name")
+  chainId          String  @map("chainId")
+  walletAddress    String  @map("walletAddress")
+  allowedContracts String? @map("allowedContracts")
+}

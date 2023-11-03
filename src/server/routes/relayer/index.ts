@@ -2,17 +2,16 @@ import { Static, Type } from "@sinclair/typebox";
 import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getRelayerById } from "../../../db/relayer/getRelayerById";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getContract } from "../../../utils/cache/getContract";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
-  chain: Type.String(),
+  relayerId: Type.String(),
 });
 
 const BodySchema = Type.Object({
@@ -47,13 +46,12 @@ export async function relayTransaction(fastify: FastifyInstance) {
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/relayer/:chain",
+    url: "/relayer/:relayerId",
     schema: {
       summary: "Relay a meta-transaction",
       description: "Relay an EIP-2771 meta-transaction",
       tags: ["Relayer"],
       operationId: "relay",
-      headers: walletAuthSchema,
       body: BodySchema,
       response: {
         ...standardResponseSchema,
@@ -61,16 +59,32 @@ export async function relayTransaction(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { chain } = req.params;
+      const { relayerId } = req.params;
       const { request, signature, forwarderAddress } = req.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const chainId = getChainIdFromChain(chain);
+
+      const relayer = await getRelayerById({ id: relayerId });
+      if (!relayer) {
+        return res.status(400).send({
+          error: {
+            message: `No relayer found with id '${relayerId}'`,
+          },
+        });
+      }
+
+      if (
+        relayer.allowedContracts &&
+        !relayer.allowedContracts.includes(request.to.toLowerCase())
+      ) {
+        return res.status(400).send({
+          error: {
+            message: `Requesting to relay transaction to unauthorized contract ${request.to}.`,
+          },
+        });
+      }
 
       const contract = await getContract({
-        chainId,
-        walletAddress,
+        chainId: relayer.chainId,
+        walletAddress: relayer.walletAddress,
         contractAddress: forwarderAddress,
       });
 
@@ -82,15 +96,18 @@ export async function relayTransaction(fastify: FastifyInstance) {
       if (!valid) {
         res.status(400).send({
           error: {
-            message:
-              "Invalid request - verification failed with provided message and signature",
+            message: "Verification failed with provided message and signature",
           },
         });
         return;
       }
 
       const tx = await contract.prepare("execute", [request, signature]);
-      const queueId = await queueTx({ tx, chainId, extension: "forwarder" });
+      const queueId = await queueTx({
+        tx,
+        chainId: relayer.chainId,
+        extension: "forwarder",
+      });
 
       res.status(200).send({
         result: {
