@@ -122,6 +122,11 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getChainData);
   await fastify.register(getAllChainData);
 
+  // Relayer
+  await fastify.register(createRelayer);
+  await fastify.register(revokeRelayer);
+  await fastify.register(relayTransaction);
+
   // Generic
   await fastify.register(readContract);
   await fastify.register(writeToContract);
@@ -165,11 +170,6 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(erc721Routes);
   await fastify.register(erc1155Routes);
   await fastify.register(marketplaceV3Routes);
-
-  // Relayer
-  await fastify.register(relayTransaction);
-  await fastify.register(createRelayer);
-  await fastify.register(revokeRelayer);
 
   // Health
   fastify.get("/health", async () => {
