@@ -126,13 +126,16 @@ type CustomStatusAndConnectionType = {
 };
 
 export const getStatusMessageAndConnectionStatus = async (
-  data: Static<typeof transactionResponseSchema>,
+  data: Static<typeof transactionResponseSchema> | null,
 ): Promise<CustomStatusAndConnectionType> => {
   let message =
     "Request is queued. Waiting for transaction to be picked up by worker.";
   let closeConnection = false;
 
-  if (data.status === TransactionStatusEnum.Mined) {
+  if (!data) {
+    message = `Transaction not found. Make sure the provided ID is correct.`;
+    closeConnection = true;
+  } else if (data.status === TransactionStatusEnum.Mined) {
     message = "Transaction mined. Closing connection.";
     closeConnection = true;
   } else if (data.status === TransactionStatusEnum.Errored) {
@@ -149,12 +152,12 @@ export const getStatusMessageAndConnectionStatus = async (
 };
 
 export const formatSocketMessage = async (
-  data: Static<typeof transactionResponseSchema>,
+  data: Static<typeof transactionResponseSchema> | null,
   message: string,
 ): Promise<string> => {
   const returnData = JSON.stringify({
-    result: JSON.stringify(data),
-    queueId: data.queueId,
+    result: data ? JSON.stringify(data) : undefined,
+    queueId: data?.queueId,
     message,
   });
   return returnData;

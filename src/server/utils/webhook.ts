@@ -81,6 +81,9 @@ const sendWebhookRequest = async (
 export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
   try {
     const txData = await getTxById({ queueId: data.id });
+    if (!txData) {
+      throw new Error(`Transaction ${data.id} not found.`);
+    }
 
     let webhookConfig: SanitizedWebHooksSchema[] | undefined =
       await getWebhookConfig(WebhooksEventTypes.ALL_TX);
