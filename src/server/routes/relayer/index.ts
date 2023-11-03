@@ -8,14 +8,11 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { TransactionStatusEnum } from "../../schemas/transaction";
 import { walletAuthSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-import { awaitTx } from "../../utils/wait";
 
 const ParamsSchema = Type.Object({
   chain: Type.String(),
-  backendWalletAddress: Type.String(),
 });
 
 const BodySchema = Type.Object({
@@ -33,7 +30,6 @@ const ReplySchema = Type.Composite([
         }),
       }),
     ),
-    txHash: Type.Optional(Type.String()),
   }),
   Type.Object({
     error: Type.Optional(
@@ -51,7 +47,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
-    url: "/relayer/:chain/:backendWalletAddress",
+    url: "/relayer/:chain",
     schema: {
       summary: "Relay a meta-transaction",
       description: "Relay an EIP-2771 meta-transaction",
@@ -65,13 +61,16 @@ export async function relayTransaction(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { chain, backendWalletAddress } = req.params;
+      const { chain } = req.params;
       const { request, signature, forwarderAddress } = req.body;
+      const walletAddress = request.headers[
+        "x-backend-wallet-address"
+      ] as string;
       const chainId = getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,
-        walletAddress: backendWalletAddress,
+        walletAddress,
         contractAddress: forwarderAddress,
       });
 
@@ -93,18 +92,10 @@ export async function relayTransaction(fastify: FastifyInstance) {
       const tx = await contract.prepare("execute", [request, signature]);
       const queueId = await queueTx({ tx, chainId, extension: "forwarder" });
 
-      const data = await awaitTx({
-        queueId,
-        status: TransactionStatusEnum.Submitted,
-        timeoutInSeconds: 60 * 5,
-      });
-
       res.status(200).send({
         result: {
           queueId,
         },
-        // Include txHash to be compatible with SDK
-        txHash: data.transactionHash as string,
       });
     },
   });
