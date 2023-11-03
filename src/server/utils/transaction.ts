@@ -20,6 +20,11 @@ export const cancelTransactionAndUpdate = async ({
   accountAddress,
 }: CancelTransactionAndUpdateParams) => {
   const txData = await getTxById({ queueId });
+  if (!txData) {
+    return {
+      message: `Transaction ${queueId} not found.`,
+    };
+  }
 
   let error = null;
   let transferTransactionResult: TransactionResponse | null = null;

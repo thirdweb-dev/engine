@@ -76,6 +76,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
+      console.log("hello world");
       const { queueId } = request.params;
       const returnData = await getTxById({ queueId });
 
@@ -99,7 +100,10 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       request.log.info(`Websocket Connection Established for ${queueId}`);
       findOrAddWSConnectionInSharedState(connection, queueId, request);
 
-      const returnData = await getTxById({ queueId: queueId });
+      const returnData = await getTxById({ queueId });
+      if (!returnData) {
+        throw new Error(`Transaction ${queueId} not found.`);
+      }
 
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);
