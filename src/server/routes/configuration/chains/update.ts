@@ -23,20 +23,22 @@ const BodySchema = Type.Object({
 });
 
 BodySchema.examples = [
-  [
-    {
-      name: "Localhost",
-      chain: "ETH",
-      rpc: ["http://localhost:8545"],
-      nativeCurrency: {
-        name: "Ether",
-        symbol: "ETH",
-        decimals: 18,
+  {
+    chainOverrides: [
+      {
+        name: "Localhost",
+        chain: "ETH",
+        rpc: ["http://localhost:8545"],
+        nativeCurrency: {
+          name: "Ether",
+          symbol: "ETH",
+          decimals: 18,
+        },
+        chainId: 1337,
+        slug: "localhost",
       },
-      chainId: 1337,
-      slug: "localhost",
-    },
-  ],
+    ],
+  },
 ];
 
 export async function updateChainsConfiguration(fastify: FastifyInstance) {
