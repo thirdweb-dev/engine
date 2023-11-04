@@ -174,6 +174,15 @@ export const withAuth = async (server: FastifyInstance) => {
       return;
     }
 
+    if (
+      req.url.includes("/relayer") &&
+      !req.url.includes("/create") &&
+      !req.url.includes("/revoke")
+    ) {
+      // Relayer endpoints can handle their own authentication
+      return;
+    }
+
     // TODO: Enable authentication check for websocket requests
     if (
       req.headers.upgrade &&
