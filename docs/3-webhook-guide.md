@@ -23,7 +23,7 @@ Engine now supports Webhooks to allow you to subscribe to event notifications. Y
 
 Update the `minWalletBalance` configuration value to the minimum balance you want to maintain in the backend wallet. By Default the value is `2000000000000000 wei` or `0.002`. Once the balance goes below the configured value, a webhook will be sent to the configured URL. This can be done via the end-point `/configuration/backend-wallet-balance`.
 
-> NOTE: Backend Wallets with low balance will not be able to send transactions, untill the balance is topped up.
+> NOTE: Backend Wallets with low balance will not be able to send transactions, until the balance is topped up.
 
 #### Transaction Webhook
 

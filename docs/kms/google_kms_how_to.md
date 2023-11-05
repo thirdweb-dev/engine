@@ -25,7 +25,7 @@ If you are on the `latest` or `nightly` version of Web3-API, then you can use th
 
 1. Make sure your Engine is running with the environment variables setup, see [here](../1-user-guide.md) for more details.
 2. Open `http://localhost:3005` in your browser to see the Swagger UI.
-3. Copy the `THIRDWEB_API_SECRET_KEY` and use it in the `Authorization` header. On Swagger UI click on `Authorize` on top-righ corner and paste the `THIRDWEB_API_SECRET_KEY` in the `value` field and click `Authorize`.
+3. Copy the `THIRDWEB_API_SECRET_KEY` and use it in the `Authorization` header. On Swagger UI click on `Authorize` on top-right corner and paste the `THIRDWEB_API_SECRET_KEY` in the `value` field and click `Authorize`.
 4. Open `Configurations Tab`
 5. Click on `POST /configuration/wallets` and paste the below body:
 
