@@ -9,11 +9,13 @@ import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { utils } from "ethers";
 import { FastifyInstance } from "fastify";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
+import { updateConfiguration } from "../../db/configuration/updateConfiguration";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
 import { getToken } from "../../db/tokens/getToken";
 import { revokeToken } from "../../db/tokens/revokeToken";
 import { env } from "../../utils/env";
+import { logger } from "../../utils/logger";
 import { Permission } from "../schemas/auth";
 
 export type TAuthData = never;
@@ -83,10 +85,33 @@ export const withAuth = async (server: FastifyInstance) => {
       getSigner: async () => {
         const config = await getConfiguration();
         const wallet = new LocalWallet();
-        await wallet.import({
-          encryptedJson: config.authWalletEncryptedJson,
-          password: env.THIRDWEB_API_SECRET_KEY,
-        });
+
+        try {
+          // First, we try to load the wallet with the encryption password
+          await wallet.import({
+            encryptedJson: config.authWalletEncryptedJson,
+            password: env.ENCRYPTION_PASSWORD,
+          });
+        } catch {
+          // If that fails, we try to load the wallet with the secret key
+          await wallet.import({
+            encryptedJson: config.authWalletEncryptedJson,
+            password: env.THIRDWEB_API_SECRET_KEY,
+          });
+
+          // And then update the auth wallet to use encryption password instead
+          const encryptedJson = await wallet.export({
+            strategy: "encryptedJson",
+            password: env.ENCRYPTION_PASSWORD,
+          });
+
+          logger.worker.info(
+            `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+          );
+          await updateConfiguration({
+            authWalletEncryptedJson: encryptedJson,
+          });
+        }
 
         return wallet.getSigner();
       },
@@ -114,7 +139,12 @@ export const withAuth = async (server: FastifyInstance) => {
         }
 
         const { payload } = parseJWT(jwt);
-        await revokeToken({ id: payload.jti });
+
+        try {
+          await revokeToken({ id: payload.jti });
+        } catch {
+          logger.worker.error(`[Auth] Failed to revoke token ${payload.jti}`);
+        }
       },
     },
   });
@@ -138,9 +168,19 @@ export const withAuth = async (server: FastifyInstance) => {
       req.url.includes("/auth/login") ||
       req.url.includes("/auth/user") ||
       req.url.includes("/auth/switch-account") ||
-      req.url.includes("/auth/logout")
+      req.url.includes("/auth/logout") ||
+      req.url.includes("/transaction/status")
     ) {
       // We skip auth check for static endpoints and auth routes
+      return;
+    }
+
+    if (
+      req.url.includes("/relayer") &&
+      !req.url.includes("/create") &&
+      !req.url.includes("/revoke")
+    ) {
+      // Relayer endpoints can handle their own authentication
       return;
     }
 
@@ -152,69 +192,73 @@ export const withAuth = async (server: FastifyInstance) => {
       return;
     }
 
-    // If we have a valid secret key, skip authentication check
-    const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
-    if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
-      // If the secret key is being used, treat the user as the auth wallet
-      const config = await getConfiguration();
-      const wallet = new LocalWallet();
-      await wallet.import({
-        encryptedJson: config.authWalletEncryptedJson,
-        password: env.THIRDWEB_API_SECRET_KEY,
-      });
+    try {
+      // If we have a valid secret key, skip authentication check
+      const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
+      if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
+        // If the secret key is being used, treat the user as the auth wallet
+        const config = await getConfiguration();
+        const wallet = new LocalWallet();
+        await wallet.import({
+          encryptedJson: config.authWalletEncryptedJson,
+          password: env.THIRDWEB_API_SECRET_KEY,
+        });
 
-      req.user = {
-        address: await wallet.getAddress(),
-        session: {
-          permissions: Permission.Admin,
-        },
-      };
-      return;
-    }
-
-    // Otherwise, check for an authenticated user
-    const jwt = getJWT(req);
-    if (jwt) {
-      // 1. Check if the token is a valid engine JWT
-      const token = await getToken({ jwt });
-
-      // First, we ensure that the token hasn't been revoked
-      if (token?.revokedAt === null) {
-        // Then we perform our standard auth checks for the user
-        const user = await getUser(req);
-
-        // Ensure that the token user is an admin or owner
-        if (
-          (user && user?.session?.permissions === Permission.Owner) ||
-          user?.session?.permissions === Permission.Admin
-        ) {
-          req.user = user;
-          return;
-        }
+        req.user = {
+          address: await wallet.getAddress(),
+          session: {
+            permissions: Permission.Admin,
+          },
+        };
+        return;
       }
 
-      // 2. Otherwise, check if the token is a valid api-server JWT
-      const user =
-        (await authWithApiServer(jwt, "thirdweb.com")) ||
-        (await authWithApiServer(jwt, "thirdweb-preview.com"));
+      // Otherwise, check for an authenticated user
+      const jwt = getJWT(req);
+      if (jwt) {
+        // 1. Check if the token is a valid engine JWT
+        const token = await getToken({ jwt });
 
-      // If we have an api-server user, return it with the proper permissions
-      if (user) {
-        const res = await getPermissions({ walletAddress: user.address });
+        // First, we ensure that the token hasn't been revoked
+        if (token?.revokedAt === null) {
+          // Then we perform our standard auth checks for the user
+          const user = await getUser(req);
 
-        if (
-          res?.permissions === Permission.Owner ||
-          res?.permissions === Permission.Admin
-        ) {
-          req.user = {
-            address: user.address,
-            session: {
-              permissions: res.permissions,
-            },
-          };
-          return;
+          // Ensure that the token user is an admin or owner
+          if (
+            (user && user?.session?.permissions === Permission.Owner) ||
+            user?.session?.permissions === Permission.Admin
+          ) {
+            req.user = user;
+            return;
+          }
+        }
+
+        // 2. Otherwise, check if the token is a valid api-server JWT
+        const user =
+          (await authWithApiServer(jwt, "thirdweb.com")) ||
+          (await authWithApiServer(jwt, "thirdweb-preview.com"));
+
+        // If we have an api-server user, return it with the proper permissions
+        if (user) {
+          const res = await getPermissions({ walletAddress: user.address });
+
+          if (
+            res?.permissions === Permission.Owner ||
+            res?.permissions === Permission.Admin
+          ) {
+            req.user = {
+              address: user.address,
+              session: {
+                permissions: res.permissions,
+              },
+            };
+            return;
+          }
         }
       }
+    } catch {
+      // no-op
     }
 
     // If we have no secret key or authenticated user, return 401

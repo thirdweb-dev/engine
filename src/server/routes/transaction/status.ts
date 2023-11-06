@@ -99,7 +99,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       request.log.info(`Websocket Connection Established for ${queueId}`);
       findOrAddWSConnectionInSharedState(connection, queueId, request);
 
-      const returnData = await getTxById({ queueId: queueId });
+      const returnData = await getTxById({ queueId });
 
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);

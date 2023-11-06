@@ -1,16 +1,16 @@
 import { execSync } from "child_process";
-import { prisma } from "../client";
+import { prisma } from "../db/client";
 
 const main = async () => {
   const [{ exists: hasWalletsTable }]: [{ exists: boolean }] =
     await prisma.$queryRaw`
-    SELECT EXISTS (
-      SELECT 1 
-      FROM   pg_tables 
-      WHERE  schemaname = 'public'
-      AND    tablename = 'wallets'
-    );
-  `;
+      SELECT EXISTS (
+        SELECT 1 
+        FROM   pg_tables 
+        WHERE  schemaname = 'public'
+        AND    tablename = 'wallets'
+      );
+    `;
 
   const schema =
     process.env.NODE_ENV === "production"

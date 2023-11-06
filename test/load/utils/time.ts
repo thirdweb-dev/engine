@@ -14,7 +14,13 @@ export const time = async <TReturnType extends { [key: string]: any }>(
 export const createTimer = () => {
   const start = Date.now();
   return {
-    ellapsed: () => (Date.now() - start) / 1000,
+    ellapsed: (end?: Date) => {
+      if (end) {
+        return (end.getTime() - start) / 1000;
+      }
+
+      return (Date.now() - start) / 1000;
+    },
   };
 };
 

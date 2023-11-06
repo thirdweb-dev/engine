@@ -1,13 +1,20 @@
+import { Static } from "@sinclair/typebox";
 import { PrismaTransaction } from "../../schema/prisma";
+import { transactionResponseSchema } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
 interface GetTxByIdParams {
-  pgtx?: PrismaTransaction;
   queueId: string;
+  pgtx?: PrismaTransaction;
 }
 
-export const getTxById = async ({ pgtx, queueId }: GetTxByIdParams) => {
+export const getTxById = async ({
+  pgtx,
+  queueId,
+}: GetTxByIdParams): Promise<Static<
+  typeof transactionResponseSchema
+> | null> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   const tx = await prisma.transactions.findUnique({
@@ -15,10 +22,8 @@ export const getTxById = async ({ pgtx, queueId }: GetTxByIdParams) => {
       id: queueId,
     },
   });
-
   if (!tx) {
-    // TODO: Defined error types
-    throw new Error(`Transaction with queueId ${queueId} not found!`);
+    return null;
   }
 
   const [cleanedTx] = cleanTxs([tx]);

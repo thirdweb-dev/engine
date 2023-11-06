@@ -35,6 +35,7 @@ export const updateTxListener = async (): Promise<void> => {
       const returnData = await getTxById({
         queueId: parsedPayload.identifier,
       });
+
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);
       userSubscription.socket.send(
