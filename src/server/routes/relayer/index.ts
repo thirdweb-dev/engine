@@ -110,6 +110,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
       description: "Relay an EIP-2771 meta-transaction",
       tags: ["Relayer"],
       operationId: "relay",
+      params: ParamsSchema,
       body: BodySchema,
       response: {
         ...standardResponseSchema,
