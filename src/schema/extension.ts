@@ -10,4 +10,5 @@ export type ContractExtension =
   | "deploy-prebuilt"
   | "deploy-published"
   | "account-factory"
-  | "account";
+  | "account"
+  | "forwarder";

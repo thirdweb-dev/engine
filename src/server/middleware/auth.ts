@@ -168,9 +168,19 @@ export const withAuth = async (server: FastifyInstance) => {
       req.url.includes("/auth/login") ||
       req.url.includes("/auth/user") ||
       req.url.includes("/auth/switch-account") ||
-      req.url.includes("/auth/logout")
+      req.url.includes("/auth/logout") ||
+      req.url.includes("/transaction/status")
     ) {
       // We skip auth check for static endpoints and auth routes
+      return;
+    }
+
+    if (
+      req.url.includes("/relayer") &&
+      !req.url.includes("/create") &&
+      !req.url.includes("/revoke")
+    ) {
+      // Relayer endpoints can handle their own authentication
       return;
     }
 
