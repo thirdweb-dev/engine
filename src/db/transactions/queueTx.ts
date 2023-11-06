@@ -45,7 +45,7 @@ export const queueTx = async ({
   const txTableData = {
     chainId: chainId.toString(),
     functionName: tx.getMethod(),
-    functionArgs: tx.getArgs().toString(),
+    functionArgs: JSON.stringify(tx.getArgs()),
     extension,
     deployedContractAddress: deployedContractAddress,
     deployedContractType: deployedContractType,

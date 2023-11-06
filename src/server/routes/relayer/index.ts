@@ -4,11 +4,69 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getRelayerById } from "../../../db/relayer/getRelayerById";
 import { queueTx } from "../../../db/transactions/queueTx";
-import { getContract } from "../../../utils/cache/getContract";
+import { getSdk } from "../../../utils/cache/getSdk";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
+
+const ForwarderAbi = [
+  { inputs: [], stateMutability: "nonpayable", type: "constructor" },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: "address", name: "from", type: "address" },
+          { internalType: "address", name: "to", type: "address" },
+          { internalType: "uint256", name: "value", type: "uint256" },
+          { internalType: "uint256", name: "gas", type: "uint256" },
+          { internalType: "uint256", name: "nonce", type: "uint256" },
+          { internalType: "bytes", name: "data", type: "bytes" },
+        ],
+        internalType: "struct MinimalForwarder.ForwardRequest",
+        name: "req",
+        type: "tuple",
+      },
+      { internalType: "bytes", name: "signature", type: "bytes" },
+    ],
+    name: "execute",
+    outputs: [
+      { internalType: "bool", name: "", type: "bool" },
+      { internalType: "bytes", name: "", type: "bytes" },
+    ],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [{ internalType: "address", name: "from", type: "address" }],
+    name: "getNonce",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        components: [
+          { internalType: "address", name: "from", type: "address" },
+          { internalType: "address", name: "to", type: "address" },
+          { internalType: "uint256", name: "value", type: "uint256" },
+          { internalType: "uint256", name: "gas", type: "uint256" },
+          { internalType: "uint256", name: "nonce", type: "uint256" },
+          { internalType: "bytes", name: "data", type: "bytes" },
+        ],
+        internalType: "struct MinimalForwarder.ForwardRequest",
+        name: "req",
+        type: "tuple",
+      },
+      { internalType: "bytes", name: "signature", type: "bytes" },
+    ],
+    name: "verify",
+    outputs: [{ internalType: "bool", name: "", type: "bool" }],
+    stateMutability: "view",
+    type: "function",
+  },
+];
 
 const ParamsSchema = Type.Object({
   relayerId: Type.String(),
@@ -82,11 +140,15 @@ export async function relayTransaction(fastify: FastifyInstance) {
         });
       }
 
-      const contract = await getContract({
+      const sdk = await getSdk({
         chainId: relayer.chainId,
-        walletAddress: relayer.walletAddress,
-        contractAddress: forwarderAddress,
+        walletAddress: relayer.backendWalletAddress,
       });
+
+      const contract = await sdk.getContractFromAbi(
+        forwarderAddress,
+        ForwarderAbi,
+      );
 
       const valid = await contract.call("verify", [
         request,

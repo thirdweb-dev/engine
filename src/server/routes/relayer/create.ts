@@ -6,7 +6,7 @@ import { getChainIdFromChain } from "../../utils/chain";
 
 const BodySchema = Type.Object({
   chain: Type.String(),
-  walletAddress: Type.String({
+  backendWalletAddress: Type.String({
     description:
       "The address of the backend wallet to use for relaying transactions.",
   }),
@@ -37,12 +37,12 @@ export async function createRelayer(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { chain, walletAddress, allowedContracts } = req.body;
+      const { chain, backendWalletAddress, allowedContracts } = req.body;
 
       const relayer = await prisma.relayers.create({
         data: {
           chainId: getChainIdFromChain(chain).toString(),
-          walletAddress,
+          backendWalletAddress,
           allowedContracts: allowedContracts
             ? JSON.stringify(allowedContracts)
             : null,

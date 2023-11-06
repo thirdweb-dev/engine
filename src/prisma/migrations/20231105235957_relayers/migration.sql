@@ -1,10 +1,10 @@
 -- CreateTable
-CREATE TABLE "Relayers" (
+CREATE TABLE "relayers" (
     "id" TEXT NOT NULL,
     "name" TEXT,
     "chainId" TEXT NOT NULL,
-    "walletAddress" TEXT NOT NULL,
+    "backendWalletAddress" TEXT NOT NULL,
     "allowedContracts" TEXT,
 
-    CONSTRAINT "Relayers_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "relayers_pkey" PRIMARY KEY ("id")
 );
