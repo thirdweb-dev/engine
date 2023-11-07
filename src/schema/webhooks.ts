@@ -7,6 +7,7 @@ export enum WebhooksEventTypes {
   CANCELLED_TX = "cancelled_transaction",
   ALL_TX = "all_transactions",
   BACKEND_WALLET_BALANCE = "backend_wallet_balance",
+  AUTH = "auth",
 }
 
 export interface SanitizedWebHooksSchema {

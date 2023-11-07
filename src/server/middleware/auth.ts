@@ -14,9 +14,12 @@ import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
 import { getToken } from "../../db/tokens/getToken";
 import { revokeToken } from "../../db/tokens/revokeToken";
+import { WebhooksEventTypes } from "../../schema/webhooks";
+import { getWebhookConfig } from "../../utils/cache/getWebhook";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { Permission } from "../schemas/auth";
+import { sendWebhookRequest } from "../utils/webhook";
 
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };
@@ -255,6 +258,30 @@ export const withAuth = async (server: FastifyInstance) => {
             };
             return;
           }
+        }
+      }
+
+      const authWebhooks = await getWebhookConfig(WebhooksEventTypes.AUTH);
+      if (authWebhooks) {
+        const authResponses = await Promise.all(
+          authWebhooks.map((webhook) =>
+            sendWebhookRequest(webhook, {
+              req: {
+                url: req.url,
+                method: req.method,
+                headers: req.headers,
+                params: req.params,
+                query: req.query,
+                cookies: req.cookies,
+                body: req.body,
+              },
+            }),
+          ),
+        );
+
+        // If every auth webhook returns true, we allow the request
+        if (authResponses.every((ok) => !!ok)) {
+          return;
         }
       }
     } catch {
