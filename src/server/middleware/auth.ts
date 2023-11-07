@@ -213,6 +213,7 @@ export const withAuth = async (server: FastifyInstance) => {
             permissions: Permission.Admin,
           },
         };
+
         return;
       }
 
@@ -284,7 +285,8 @@ export const withAuth = async (server: FastifyInstance) => {
           return;
         }
       }
-    } catch {
+    } catch (err: any) {
+      logger.server.error(`[Auth] ${err?.message || err}`);
       // no-op
     }
 
