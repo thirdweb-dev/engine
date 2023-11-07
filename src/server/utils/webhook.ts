@@ -1,4 +1,3 @@
-import { Static } from "@sinclair/typebox";
 import crypto from "crypto";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { getTxById } from "../../db/transactions/getTxById";
@@ -9,10 +8,7 @@ import {
 } from "../../schema/webhooks";
 import { getWebhookConfig } from "../../utils/cache/getWebhook";
 import { logger } from "../../utils/logger";
-import {
-  TransactionStatusEnum,
-  transactionResponseSchema,
-} from "../schemas/transaction";
+import { TransactionStatusEnum } from "../schemas/transaction";
 
 let balanceNotificationLastSentAt = -1;
 
@@ -21,7 +17,7 @@ interface TxWebookParams {
 }
 
 export const generateSignature = (
-  body: Static<typeof transactionResponseSchema> | WalletBalanceWebhookSchema,
+  body: Record<string, any>,
   timestamp: string,
   secret: string,
 ): string => {
@@ -31,7 +27,7 @@ export const generateSignature = (
 
 export const createWebhookRequestHeaders = async (
   webhookConfig: SanitizedWebHooksSchema,
-  body: Static<typeof transactionResponseSchema> | WalletBalanceWebhookSchema,
+  body: Record<string, any>,
 ): Promise<HeadersInit> => {
   const headers: {
     Accept: string;
@@ -56,9 +52,9 @@ export const createWebhookRequestHeaders = async (
   return headers;
 };
 
-const sendWebhookRequest = async (
+export const sendWebhookRequest = async (
   webhookConfig: SanitizedWebHooksSchema,
-  body: Static<typeof transactionResponseSchema> | WalletBalanceWebhookSchema,
+  body: Record<string, any>,
 ): Promise<boolean> => {
   const headers = await createWebhookRequestHeaders(webhookConfig, body);
   const response = await fetch(webhookConfig?.url, {
