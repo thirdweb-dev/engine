@@ -202,10 +202,32 @@ export const withAuth = async (server: FastifyInstance) => {
         // If the secret key is being used, treat the user as the auth wallet
         const config = await getConfiguration();
         const wallet = new LocalWallet();
-        await wallet.import({
-          encryptedJson: config.authWalletEncryptedJson,
-          password: env.THIRDWEB_API_SECRET_KEY,
-        });
+
+        try {
+          await wallet.import({
+            encryptedJson: config.authWalletEncryptedJson,
+            password: env.ENCRYPTION_PASSWORD,
+          });
+        } catch {
+          // If that fails, we try to load the wallet with the secret key
+          await wallet.import({
+            encryptedJson: config.authWalletEncryptedJson,
+            password: env.THIRDWEB_API_SECRET_KEY,
+          });
+
+          // And then update the auth wallet to use encryption password instead
+          const encryptedJson = await wallet.export({
+            strategy: "encryptedJson",
+            password: env.ENCRYPTION_PASSWORD,
+          });
+
+          logger.worker.info(
+            `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+          );
+          await updateConfiguration({
+            authWalletEncryptedJson: encryptedJson,
+          });
+        }
 
         req.user = {
           address: await wallet.getAddress(),
@@ -218,48 +240,52 @@ export const withAuth = async (server: FastifyInstance) => {
       }
 
       // Otherwise, check for an authenticated user
-      const jwt = getJWT(req);
-      if (jwt) {
-        // 1. Check if the token is a valid engine JWT
-        const token = await getToken({ jwt });
+      try {
+        const jwt = getJWT(req);
+        if (jwt) {
+          // 1. Check if the token is a valid engine JWT
+          const token = await getToken({ jwt });
 
-        // First, we ensure that the token hasn't been revoked
-        if (token?.revokedAt === null) {
-          // Then we perform our standard auth checks for the user
-          const user = await getUser(req);
+          // First, we ensure that the token hasn't been revoked
+          if (token?.revokedAt === null) {
+            // Then we perform our standard auth checks for the user
+            const user = await getUser(req);
 
-          // Ensure that the token user is an admin or owner
-          if (
-            (user && user?.session?.permissions === Permission.Owner) ||
-            user?.session?.permissions === Permission.Admin
-          ) {
-            req.user = user;
-            return;
+            // Ensure that the token user is an admin or owner
+            if (
+              (user && user?.session?.permissions === Permission.Owner) ||
+              user?.session?.permissions === Permission.Admin
+            ) {
+              req.user = user;
+              return;
+            }
+          }
+
+          // 2. Otherwise, check if the token is a valid api-server JWT
+          const user =
+            (await authWithApiServer(jwt, "thirdweb.com")) ||
+            (await authWithApiServer(jwt, "thirdweb-preview.com"));
+
+          // If we have an api-server user, return it with the proper permissions
+          if (user) {
+            const res = await getPermissions({ walletAddress: user.address });
+
+            if (
+              res?.permissions === Permission.Owner ||
+              res?.permissions === Permission.Admin
+            ) {
+              req.user = {
+                address: user.address,
+                session: {
+                  permissions: res.permissions,
+                },
+              };
+              return;
+            }
           }
         }
-
-        // 2. Otherwise, check if the token is a valid api-server JWT
-        const user =
-          (await authWithApiServer(jwt, "thirdweb.com")) ||
-          (await authWithApiServer(jwt, "thirdweb-preview.com"));
-
-        // If we have an api-server user, return it with the proper permissions
-        if (user) {
-          const res = await getPermissions({ walletAddress: user.address });
-
-          if (
-            res?.permissions === Permission.Owner ||
-            res?.permissions === Permission.Admin
-          ) {
-            req.user = {
-              address: user.address,
-              session: {
-                permissions: res.permissions,
-              },
-            };
-            return;
-          }
-        }
+      } catch {
+        // no-op
       }
 
       const authWebhooks = await getWebhookConfig(WebhooksEventTypes.AUTH);
@@ -267,15 +293,13 @@ export const withAuth = async (server: FastifyInstance) => {
         const authResponses = await Promise.all(
           authWebhooks.map((webhook) =>
             sendWebhookRequest(webhook, {
-              req: {
-                url: req.url,
-                method: req.method,
-                headers: req.headers,
-                params: req.params,
-                query: req.query,
-                cookies: req.cookies,
-                body: req.body,
-              },
+              url: req.url,
+              method: req.method,
+              headers: req.headers,
+              params: req.params,
+              query: req.query,
+              cookies: req.cookies,
+              body: req.body,
             }),
           ),
         );
@@ -287,7 +311,6 @@ export const withAuth = async (server: FastifyInstance) => {
       }
     } catch (err: any) {
       logger.server.error(`[Auth] ${err?.message || err}`);
-      // no-op
     }
 
     // If we have no secret key or authenticated user, return 401
