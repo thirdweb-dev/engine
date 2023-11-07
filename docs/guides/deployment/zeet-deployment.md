@@ -23,4 +23,4 @@ THIRDWEB_API_SECRET_KEY
 - Add a Project Name
 
 11. Click on `Deploy` button
-12. Once the deployment is complete, you can click on the URL given by zeet to access the API & Swagger UI
+12. Once the deployment is complete, you can click on the URL given by zeet to check if Engine is running.
