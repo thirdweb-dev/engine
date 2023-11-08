@@ -79,6 +79,11 @@ BodySchema.examples = [
     name: "Backend Wallet Balance Event",
     eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
   },
+  {
+    url: "http://localhost:3000/auth",
+    name: "Auth Check",
+    eventType: WebhooksEventTypes.AUTH,
+  },
 ];
 
 const ReplySchema = Type.Object({

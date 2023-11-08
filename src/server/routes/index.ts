@@ -77,6 +77,10 @@ import { getAuthConfiguration } from "./configuration/auth/get";
 import { updateAuthConfiguration } from "./configuration/auth/update";
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
+import { relayTransaction } from "./relayer";
+import { createRelayer } from "./relayer/create";
+import { getAllRelayers } from "./relayer/getAll";
+import { revokeRelayer } from "./relayer/revoke";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Wallet
@@ -118,6 +122,12 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   // Chains
   await fastify.register(getChainData);
   await fastify.register(getAllChainData);
+
+  // Relayer
+  await fastify.register(getAllRelayers);
+  await fastify.register(createRelayer);
+  await fastify.register(revokeRelayer);
+  await fastify.register(relayTransaction);
 
   // Generic
   await fastify.register(readContract);
