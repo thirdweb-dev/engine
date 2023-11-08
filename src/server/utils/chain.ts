@@ -35,7 +35,8 @@ export const getChainIdFromChain = async (chain: string): Promise<number> => {
         if (config?.chainOverrides) {
           const parsedChainOverrides = JSON.parse(config.chainOverrides);
           chainData = parsedChainOverrides.find(
-            (chainData: any) => chainData.chainId === unknownChainId,
+            (chainData: Static<typeof networkResponseSchema>) =>
+              chainData.chainId === unknownChainId,
           );
         }
       }
@@ -45,7 +46,8 @@ export const getChainIdFromChain = async (chain: string): Promise<number> => {
     if (config?.chainOverrides) {
       const parsedChainOverrides = JSON.parse(config.chainOverrides);
       chainData = parsedChainOverrides.find(
-        (chainData: any) => chainData.slug === chain,
+        (chainData: Static<typeof networkResponseSchema>) =>
+          chainData.slug === chain,
       );
     }
   }

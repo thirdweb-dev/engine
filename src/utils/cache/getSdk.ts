@@ -95,7 +95,8 @@ export const getSdk = async ({
     if (CHAIN_OVERRIDES) {
       const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
       chain = parsedChainOverrides.find(
-        (chainData: any) => chainData.chainId === chainId,
+        (chainData: Static<typeof networkResponseSchema>) =>
+          chainData.chainId === chainId,
       );
     } else {
       throw new Error(
