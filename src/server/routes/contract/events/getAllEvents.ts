@@ -81,7 +81,7 @@ export async function getAllEvents(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { fromBlock, toBlock, order } = request.query;
 
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,

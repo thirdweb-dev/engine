@@ -60,7 +60,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       const { chain } = request.params;
       const { toAddress, data, value } = request.body;
       const fromAddress = request.headers["x-backend-wallet-address"] as string;
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
 
       // TODO: At some point we should simulate this first
       // For now, it's okay not to since its a raw transaction

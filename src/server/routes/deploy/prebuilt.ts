@@ -71,7 +71,7 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractType } = request.params;
       const { contractMetadata, version } = request.body;
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;

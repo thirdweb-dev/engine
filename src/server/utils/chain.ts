@@ -1,4 +1,7 @@
+import { Static } from "@sinclair/typebox";
 import { allChains, getChainByChainId } from "@thirdweb-dev/chains";
+import { getConfiguration } from "../../db/configuration/getConfiguration";
+import { networkResponseSchema } from "../../utils/cache/getSdk";
 
 const ChainNameToChainId = {
   ...allChains.reduce((acc, chain) => {
@@ -8,13 +11,16 @@ const ChainNameToChainId = {
 } as Record<string, number>;
 
 // TODO: We should use a universal name - probably chain in the routes
-export const getChainIdFromChain = (chain: string): number => {
+export const getChainIdFromChain = async (chain: string): Promise<number> => {
   let chainId: number | undefined = undefined;
+  let chainData: Static<typeof networkResponseSchema> | undefined = undefined;
 
   // If we detect a valid chain name, use the corresponding chain id
   if (chain in ChainNameToChainId) {
     chainId = ChainNameToChainId[chain as keyof typeof ChainNameToChainId];
   }
+
+  const config = await getConfiguration();
 
   // If we're passed a valid chain id directly, then use it
   if (!isNaN(parseInt(chain))) {
@@ -25,8 +31,27 @@ export const getChainIdFromChain = (chain: string): number => {
         chainId = unknownChainId;
       }
     } catch {
+      if (!chainId) {
+        if (config?.chainOverrides) {
+          const parsedChainOverrides = JSON.parse(config.chainOverrides);
+          chainData = parsedChainOverrides.find(
+            (chainData: any) => chainData.chainId === unknownChainId,
+          );
+        }
+      }
       // If the chain id is unsupported, getChainByChainId will throw
     }
+  } else {
+    if (config?.chainOverrides) {
+      const parsedChainOverrides = JSON.parse(config.chainOverrides);
+      chainData = parsedChainOverrides.find(
+        (chainData: any) => chainData.slug === chain,
+      );
+    }
+  }
+
+  if (chainData) {
+    chainId = chainData.chainId;
   }
 
   if (!chainId) {

@@ -51,7 +51,7 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
         "x-backend-wallet-address"
       ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,

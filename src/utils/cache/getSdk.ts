@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { getChainByChainId } from "@thirdweb-dev/chains";
-import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import { NetworkInput, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import * as fs from "fs";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { PrismaTransaction } from "../../schema/prisma";
@@ -74,7 +74,10 @@ export const getSdk = async ({
     return sdkCache.get(cacheKey)!;
   }
 
-  const chain = getChainByChainId(chainId);
+  let chain: NetworkInput | undefined = undefined;
+  try {
+    chain = getChainByChainId(chainId);
+  } catch (error) {}
 
   if (CHAIN_OVERRIDES) {
     if (JsonSchema.safeParse(CHAIN_OVERRIDES).success) {
@@ -88,9 +91,22 @@ export const getSdk = async ({
     }
   }
 
+  if (!chain) {
+    if (CHAIN_OVERRIDES) {
+      const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
+      chain = parsedChainOverrides.find(
+        (chainData: any) => chainData.chainId === chainId,
+      );
+    } else {
+      throw new Error(
+        `Invalid chain ${chainId}, please use a different value or provide Chain Override Data.`,
+      );
+    }
+  }
+
   let sdk: ThirdwebSDK;
   if (!walletAddress) {
-    sdk = new ThirdwebSDK(chain, {
+    sdk = new ThirdwebSDK(chain!, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
       supportedChains: config.chainOverrides ? RPC_OVERRIDES : undefined,
     });
@@ -101,7 +117,7 @@ export const getSdk = async ({
       walletAddress,
       accountAddress,
     });
-    sdk = await ThirdwebSDK.fromWallet(wallet, chain, {
+    sdk = await ThirdwebSDK.fromWallet(wallet, chainId, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
       supportedChains: config.chainOverrides ? RPC_OVERRIDES : undefined,
     });
