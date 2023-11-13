@@ -58,7 +58,7 @@ export async function getContractExtensions(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
 
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,

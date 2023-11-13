@@ -1,6 +1,9 @@
-import { getChainByChainId } from "@thirdweb-dev/chains";
+import { Static } from "@sinclair/typebox";
+import { Chain, getChainByChainId } from "@thirdweb-dev/chains";
 import { LocalWallet } from "@thirdweb-dev/wallets";
+import { getConfiguration } from "../../../db/configuration/getConfiguration";
 import { getWalletDetails } from "../../../db/wallets/getWalletDetails";
+import { networkResponseSchema } from "../../../utils/cache/getSdk";
 import { env } from "../../../utils/env";
 import { logger } from "../../../utils/logger";
 import { LocalFileStorage } from "../storage/localStorage";
@@ -14,7 +17,29 @@ export const getLocalWallet = async ({
   chainId,
   walletAddress,
 }: GetLocalWalletParams) => {
-  const chain = getChainByChainId(chainId);
+  let chain: Chain | undefined = undefined;
+  const config = await getConfiguration();
+  const CHAIN_OVERRIDES = config.chainOverrides;
+  try {
+    chain = getChainByChainId(chainId);
+  } catch (error) {}
+
+  if (!chain) {
+    if (CHAIN_OVERRIDES) {
+      const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
+      chain = parsedChainOverrides.find(
+        (chainData: Static<typeof networkResponseSchema>) =>
+          chainData.chainId === chainId,
+      );
+    }
+  }
+
+  if (!chain) {
+    throw new Error(
+      `Invalid chain ${chainId}, please use a different value or provide Chain Override Data.`,
+    );
+  }
+
   const wallet = new LocalWallet({ chain });
 
   // TODO: Remove this with next breaking change

@@ -50,7 +50,7 @@ export async function getRoles(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { role } = request.query;
 
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,

@@ -28,4 +28,6 @@ jobs:
           target: prod
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: thirdweb/engine:${{ github.ref_name }} # Set the docker tag to the Git tag name
+          tags: |
+            thirdweb/engine:${{ github.ref_name }}
+            thirdweb/engine:latest

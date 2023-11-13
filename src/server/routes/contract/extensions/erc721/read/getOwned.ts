@@ -80,7 +80,7 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { walletAddress, start, count } = request.query;
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,

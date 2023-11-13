@@ -29,7 +29,7 @@ Before you begin, ensure you have the following:
 
 ### Step 2: Deploy Your Docker Image
 
-1. Ensure that your are connected to the GKE cluster:
+1. Ensure that you are connected to the GKE cluster:
 
    ```bash
    gcloud container clusters get-credentials your-cluster-name --region your-regsion

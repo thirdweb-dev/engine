@@ -60,7 +60,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
         "x-backend-wallet-address"
       ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,

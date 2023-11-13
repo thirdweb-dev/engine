@@ -67,7 +67,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
         royaltyRecipient,
         uid,
       } = request.body;
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,

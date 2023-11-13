@@ -17,21 +17,18 @@ Cloud KMS CryptoKey Signer/Verifier
 5. Click `Add Key` -> Create new Key -> select `JSON` & download the JSON file. This JSON file details will be used to authenticate google auth while using Google Cloud KMS.
 6. Create a keyring in Google KMS, see [here](https://cloud.google.com/kms/docs/create-key-ring) for more details.
 
-Optional: Create a key in the keyring, see [here](https://cloud.google.com/kms/docs/create-key) for more details. or, you can use the `/wallet/create` to create a key in the keyring.
+Optional: Create a key in the keyring, see [here](https://cloud.google.com/kms/docs/create-key) for more details. or, you can use the `/backend-wallet/create` to create a key in the keyring.
 
 ### Set up with Google KMS
 
 If you are on the `latest` or `nightly` version of Web3-API, then you can use the below steps to set up AWS KMS:
 
 1. Make sure your Engine is running with the environment variables setup, see [here](../1-user-guide.md) for more details.
-2. Open `http://localhost:3005` in your browser to see the Swagger UI.
-3. Copy the `THIRDWEB_API_SECRET_KEY` and use it in the `Authorization` header. On Swagger UI click on `Authorize` on top-righ corner and paste the `THIRDWEB_API_SECRET_KEY` in the `value` field and click `Authorize`.
-4. Open `Configurations Tab`
-5. Click on `POST /configuration/wallets` and paste the below body:
+2. Open [thirdweb Engine Dashboard](https://thirdweb.com/dashboard/engine) and add your local Engine URL `https://localhost:3005`
+3. Open `Configurations Tab` and use the details from the JSON file downloaded to setup GCP KMS.
 
 ```js
 {
-  "type": "gcp-kms",
   "gcpApplicationProjectId": "<your-gcp-application-project-id>",
   "gcpKmsLocationId": "<your-gcp-kms-location-id>",
   "gcpKmsKeyRingId": "<your-gcp-key-ring-id>",
@@ -40,9 +37,11 @@ If you are on the `latest` or `nightly` version of Web3-API, then you can use th
 }
 ```
 
-6. Click `execute` & the GCP KMS Config will be added to Engine.
+4. Click `create` & the GCP KMS Config will be added to Engine.
 
 Now you can Create or Import GCP KMS Wallets using the `/backend-wallet/create` or `/backend-wallet/import` endpoints.
+
+#### For Engine Version below `v0.0.3`, use the below:
 
 Create a `.env` file in the root directory of the project and add the below details.
 
