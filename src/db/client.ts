@@ -19,3 +19,12 @@ export const knex = pg({
   },
   acquireConnectionTimeout: 10000,
 } as Knex.Config);
+
+export const isDatabaseHealthy = async (): Promise<boolean> => {
+  try {
+    await prisma.walletDetails.findFirst();
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
