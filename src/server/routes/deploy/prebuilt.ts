@@ -54,7 +54,7 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/deploy/:chain/:contract_type",
+    url: "/deploy/:chain/:contractType",
     schema: {
       description: "Deploy prebuilt contract",
       tags: ["Deploy"],
