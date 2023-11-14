@@ -17,38 +17,39 @@ import { erc721Routes } from "./contract/extensions/erc721";
 import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
 import { prebuiltsRoutes } from "./deploy";
 
-// Chain
+// Chains
 import { getChainData } from "./chain/get";
 import { getAllChainData } from "./chain/getAll";
 
-// Contract Events
+// Contract events
 import { getAllEvents } from "./contract/events/getAllEvents";
 import { getEvents } from "./contract/events/getEvents";
 
-// Contract Roles
+// Contract roles
 import { getRoles } from "./contract/roles/read/get";
 import { getAllRoles } from "./contract/roles/read/getAll";
 import { grantRole } from "./contract/roles/write/grant";
 import { revokeRole } from "./contract/roles/write/revoke";
 
-// Contract Royalties
+// Contract royalties
 import { getDefaultRoyaltyInfo } from "./contract/royalties/read/getDefaultRoyaltyInfo";
 import { getTokenRoyaltyInfo } from "./contract/royalties/read/getTokenRoyaltyInfo";
 import { setDefaultRoyaltyInfo } from "./contract/royalties/write/setDefaultRoyaltyInfo";
 import { setTokenRoyaltyInfo } from "./contract/royalties/write/setTokenRoyaltyInfo";
 
-// Contract Metadata
+// Contract metadata
 import { getABI } from "./contract/metadata/abi";
 import { extractEvents } from "./contract/metadata/events";
 import { extractFunctions } from "./contract/metadata/functions";
 
 // Wallet
-import { createWallet } from "./backend-wallet/create";
+import { createBackendWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
-import { importWallet } from "./backend-wallet/import";
+import { importBackendWallet } from "./backend-wallet/import";
 import { sendTransaction } from "./backend-wallet/send";
 import { transfer } from "./backend-wallet/transfer";
+import { updateBackendWallet } from "./backend-wallet/update";
 
 // Configuration
 import { getBackendWalletBalanceConfiguration } from "./configuration/backend-wallet-balance/get";
@@ -66,17 +67,24 @@ import { getWebhooksEventTypes } from "./webhooks/events";
 import { getAllWebhooksData } from "./webhooks/getAll";
 import { revokeWebhook } from "./webhooks/revoke";
 
-// Accounts
+// Access tokens
 import { createAccessToken } from "./auth/access-tokens/create";
 import { getAllAccessTokens } from "./auth/access-tokens/getAll";
 import { revokeAccessToken } from "./auth/access-tokens/revoke";
+import { updateAccessToken } from "./auth/access-tokens/update";
+
+// Admins
 import { getAllPermissions } from "./auth/permissions/getAll";
 import { grantPermissions } from "./auth/permissions/grant";
 import { revokePermissions } from "./auth/permissions/revoke";
 import { getAuthConfiguration } from "./configuration/auth/get";
 import { updateAuthConfiguration } from "./configuration/auth/update";
+
+// Smart accounts
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
+
+// Relayers
 import { relayTransaction } from "./relayer";
 import { createRelayer } from "./relayer/create";
 import { getAllRelayers } from "./relayer/getAll";
@@ -87,9 +95,10 @@ import { healthCheck } from "./health";
 import { home } from "./home";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
-  // Wallet
-  await fastify.register(createWallet);
-  await fastify.register(importWallet);
+  // Backend Wallets
+  await fastify.register(createBackendWallet);
+  await fastify.register(importBackendWallet);
+  await fastify.register(updateBackendWallet);
   await fastify.register(getBalance);
   await fastify.register(getAll);
   await fastify.register(transfer);
@@ -122,6 +131,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllAccessTokens);
   await fastify.register(createAccessToken);
   await fastify.register(revokeAccessToken);
+  await fastify.register(updateAccessToken);
 
   // Chains
   await fastify.register(getChainData);
