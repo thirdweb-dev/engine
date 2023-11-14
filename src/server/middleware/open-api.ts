@@ -20,7 +20,7 @@ export const withOpenApi = async (server: FastifyInstance) => {
             type: "http",
             scheme: "bearer",
             bearerFormat: "JWT",
-            description: "For Secure Server-Server Calls",
+            description: "For secure server-authenticated calls",
           },
         },
       },

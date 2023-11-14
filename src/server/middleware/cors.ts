@@ -18,6 +18,9 @@ export const withCors = async (server: FastifyInstance) => {
       if (data.includes("thirdweb-preview.com")) {
         return new RegExp(/^https?:\/\/.*\.thirdweb-preview\.com$/);
       }
+      if (data.includes("thirdweb-dev.com")) {
+        return new RegExp(/^https?:\/\/.*\.thirdweb-dev\.com$/);
+      }
 
       return data;
     }),
