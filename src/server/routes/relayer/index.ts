@@ -22,7 +22,14 @@ const ParamsSchema = Type.Object({
 const BodySchema = Type.Union([
   Type.Object({
     type: Type.Literal("forward"),
-    request: Type.Any(),
+    request: Type.Object({
+      from: Type.String(),
+      to: Type.String(),
+      value: Type.String(),
+      gas: Type.String(),
+      nonce: Type.String(),
+      data: Type.String(),
+    }),
     signature: Type.String(),
     forwarderAddress: Type.String(),
   }),
@@ -152,6 +159,14 @@ export async function relayTransaction(fastify: FastifyInstance) {
         return res.status(400).send({
           error: {
             message: `Requesting to relay transaction to unauthorized contract ${request.to}.`,
+          },
+        });
+      }
+
+      if (request.value !== "0") {
+        return res.status(400).send({
+          error: {
+            message: `Requesting to relay transaction with non-zero value ${request.value}.`,
           },
         });
       }
