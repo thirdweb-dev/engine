@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { ERC2771ContextAbi, ForwarderAbi } from "../../../constants/relayer";
 import { getRelayerById } from "../../../db/relayer/getRelayerById";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getSdk } from "../../../utils/cache/getSdk";
@@ -9,64 +10,6 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-
-const ForwarderAbi = [
-  { inputs: [], stateMutability: "nonpayable", type: "constructor" },
-  {
-    inputs: [
-      {
-        components: [
-          { internalType: "address", name: "from", type: "address" },
-          { internalType: "address", name: "to", type: "address" },
-          { internalType: "uint256", name: "value", type: "uint256" },
-          { internalType: "uint256", name: "gas", type: "uint256" },
-          { internalType: "uint256", name: "nonce", type: "uint256" },
-          { internalType: "bytes", name: "data", type: "bytes" },
-        ],
-        internalType: "struct MinimalForwarder.ForwardRequest",
-        name: "req",
-        type: "tuple",
-      },
-      { internalType: "bytes", name: "signature", type: "bytes" },
-    ],
-    name: "execute",
-    outputs: [
-      { internalType: "bool", name: "", type: "bool" },
-      { internalType: "bytes", name: "", type: "bytes" },
-    ],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [{ internalType: "address", name: "from", type: "address" }],
-    name: "getNonce",
-    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        components: [
-          { internalType: "address", name: "from", type: "address" },
-          { internalType: "address", name: "to", type: "address" },
-          { internalType: "uint256", name: "value", type: "uint256" },
-          { internalType: "uint256", name: "gas", type: "uint256" },
-          { internalType: "uint256", name: "nonce", type: "uint256" },
-          { internalType: "bytes", name: "data", type: "bytes" },
-        ],
-        internalType: "struct MinimalForwarder.ForwardRequest",
-        name: "req",
-        type: "tuple",
-      },
-      { internalType: "bytes", name: "signature", type: "bytes" },
-    ],
-    name: "verify",
-    outputs: [{ internalType: "bool", name: "", type: "bool" }],
-    stateMutability: "view",
-    type: "function",
-  },
-];
 
 const ParamsSchema = Type.Object({
   relayerId: Type.String(),
@@ -131,6 +74,17 @@ export async function relayTransaction(fastify: FastifyInstance) {
       }
 
       if (
+        relayer.allowedForwarders &&
+        !relayer.allowedForwarders.includes(forwarderAddress.toLowerCase())
+      ) {
+        return res.status(400).send({
+          error: {
+            message: `Requesting to relay transaction with unauthorized forwarder ${forwarderAddress}.`,
+          },
+        });
+      }
+
+      if (
         relayer.allowedContracts &&
         !relayer.allowedContracts.includes(request.to.toLowerCase())
       ) {
@@ -146,12 +100,30 @@ export async function relayTransaction(fastify: FastifyInstance) {
         walletAddress: relayer.backendWalletAddress,
       });
 
-      const contract = await sdk.getContractFromAbi(
+      // EIP-2771
+      const target = await sdk.getContractFromAbi(
+        request.to.toLowerCase(),
+        ERC2771ContextAbi,
+      );
+
+      const isTrustedForwarder = await target.call("isTrustedForwarder", [
+        forwarderAddress,
+      ]);
+      if (!isTrustedForwarder) {
+        res.status(400).send({
+          error: {
+            message: `Requesting to relay transaction with untrusted forwarder ${forwarderAddress}.`,
+          },
+        });
+        return;
+      }
+
+      const forwarder = await sdk.getContractFromAbi(
         forwarderAddress,
         ForwarderAbi,
       );
 
-      const valid = await contract.call("verify", [
+      const valid = await forwarder.call("verify", [
         request,
         ethers.utils.joinSignature(ethers.utils.splitSignature(signature)),
       ]);
@@ -165,7 +137,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
         return;
       }
 
-      const tx = await contract.prepare("execute", [request, signature]);
+      const tx = await forwarder.prepare("execute", [request, signature]);
       const queueId = await queueTx({
         tx,
         chainId: relayer.chainId,
