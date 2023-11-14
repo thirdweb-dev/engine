@@ -82,6 +82,10 @@ import { createRelayer } from "./relayer/create";
 import { getAllRelayers } from "./relayer/getAll";
 import { revokeRelayer } from "./relayer/revoke";
 
+// System
+import { healthCheck } from "./health";
+import { home } from "./home";
+
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Wallet
   await fastify.register(createWallet);
@@ -173,10 +177,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(erc1155Routes);
   await fastify.register(marketplaceV3Routes);
 
-  // Health
-  fastify.get("/health", async () => {
-    return {
-      status: "OK",
-    };
-  });
+  // System
+  await fastify.register(home);
+  await fastify.register(healthCheck);
 };
