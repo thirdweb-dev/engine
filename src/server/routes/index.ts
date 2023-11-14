@@ -47,7 +47,7 @@ import { createWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
 import { importWallet } from "./backend-wallet/import";
-import { sendTransaction } from "./backend-wallet/send";
+import { sendTransaction } from "./backend-wallet/sendTransaction";
 import { transfer } from "./backend-wallet/transfer";
 
 // Configuration
@@ -73,6 +73,8 @@ import { revokeAccessToken } from "./auth/access-tokens/revoke";
 import { getAllPermissions } from "./auth/permissions/getAll";
 import { grantPermissions } from "./auth/permissions/grant";
 import { revokePermissions } from "./auth/permissions/revoke";
+import { signMessage } from "./backend-wallet/signMessage";
+import { signTransaction } from "./backend-wallet/signTransaction";
 import { getAuthConfiguration } from "./configuration/auth/get";
 import { updateAuthConfiguration } from "./configuration/auth/update";
 import { accountRoutes } from "./contract/extensions/account";
@@ -90,6 +92,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAll);
   await fastify.register(transfer);
   await fastify.register(sendTransaction);
+  await fastify.register(signTransaction);
+  await fastify.register(signMessage);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);
