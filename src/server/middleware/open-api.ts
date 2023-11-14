@@ -1,4 +1,5 @@
 import swagger from "@fastify/swagger";
+import swaggerUi from "@fastify/swagger-ui";
 import { FastifyInstance } from "fastify";
 
 export const withOpenApi = async (server: FastifyInstance) => {
@@ -30,5 +31,20 @@ export const withOpenApi = async (server: FastifyInstance) => {
         },
       ],
     },
+  });
+
+  await server.register(swaggerUi, {
+    routePrefix: "/json",
+    initOAuth: {},
+    uiConfig: {
+      docExpansion: "none",
+      // filter: true, // This options enables search bar to allow serach by tags
+      deepLinking: true,
+      displayOperationId: false,
+      layout: "BaseLayout",
+    },
+
+    staticCSP: true,
+    transformStaticCSP: (header) => header,
   });
 };
