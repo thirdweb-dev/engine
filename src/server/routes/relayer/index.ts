@@ -2,7 +2,11 @@ import { Static, Type } from "@sinclair/typebox";
 import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { ERC2771ContextAbi, ForwarderAbi } from "../../../constants/relayer";
+import {
+  ERC20PermitAbi,
+  ERC2771ContextAbi,
+  ForwarderAbi,
+} from "../../../constants/relayer";
 import { getRelayerById } from "../../../db/relayer/getRelayerById";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getSdk } from "../../../utils/cache/getSdk";
@@ -15,11 +19,28 @@ const ParamsSchema = Type.Object({
   relayerId: Type.String(),
 });
 
-const BodySchema = Type.Object({
-  request: Type.Any(),
-  signature: Type.String(),
-  forwarderAddress: Type.String(),
-});
+const BodySchema = Type.Union([
+  Type.Object({
+    type: Type.Literal("forward"),
+    request: Type.Any(),
+    signature: Type.String(),
+    forwarderAddress: Type.String(),
+  }),
+  Type.Object({
+    type: Type.Literal("permit"),
+    request: Type.Object({
+      to: Type.String(),
+      owner: Type.String(),
+      spender: Type.String(),
+      value: Type.String(),
+      nonce: Type.String(),
+      deadline: Type.String(),
+      r: Type.String(),
+      s: Type.String(),
+      v: Type.String(),
+    }),
+  }),
+]);
 
 const ReplySchema = Type.Composite([
   Type.Object({
@@ -62,7 +83,6 @@ export async function relayTransaction(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const { relayerId } = req.params;
-      const { request, signature, forwarderAddress } = req.body;
 
       const relayer = await getRelayerById({ id: relayerId });
       if (!relayer) {
@@ -72,6 +92,47 @@ export async function relayTransaction(fastify: FastifyInstance) {
           },
         });
       }
+
+      const sdk = await getSdk({
+        chainId: relayer.chainId,
+        walletAddress: relayer.backendWalletAddress,
+      });
+
+      if (req.body.type === "permit") {
+        // EIP-2612
+        const { request } = req.body;
+
+        const target = await sdk.getContractFromAbi(
+          request.to.toLowerCase(),
+          ERC20PermitAbi,
+        );
+
+        const tx = await target.prepare("permit", [
+          request.owner,
+          request.spender,
+          request.value,
+          request.deadline,
+          request.v,
+          request.r,
+          request.s,
+        ]);
+
+        const queueId = await queueTx({
+          tx,
+          chainId: relayer.chainId,
+          extension: "forwarder",
+        });
+
+        res.status(200).send({
+          result: {
+            queueId,
+          },
+        });
+        return;
+      }
+
+      // EIP-2771
+      const { request, signature, forwarderAddress } = req.body;
 
       if (
         relayer.allowedForwarders &&
@@ -94,11 +155,6 @@ export async function relayTransaction(fastify: FastifyInstance) {
           },
         });
       }
-
-      const sdk = await getSdk({
-        chainId: relayer.chainId,
-        walletAddress: relayer.backendWalletAddress,
-      });
 
       // EIP-2771
       const target = await sdk.getContractFromAbi(
