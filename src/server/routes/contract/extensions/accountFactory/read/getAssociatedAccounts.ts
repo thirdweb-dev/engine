@@ -45,7 +45,7 @@ export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { signerAddress } = request.query;
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({
         chainId,

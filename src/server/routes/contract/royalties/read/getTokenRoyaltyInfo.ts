@@ -49,7 +49,7 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress, tokenId } = request.params;
 
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,

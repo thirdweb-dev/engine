@@ -91,7 +91,7 @@ ResponseSchema.example = {
   },
 };
 
-export const importWallet = async (fastify: FastifyInstance) => {
+export const importBackendWallet = async (fastify: FastifyInstance) => {
   fastify.route<{
     Reply: Static<typeof ResponseSchema>;
     Body: Static<typeof RequestBodySchema>;

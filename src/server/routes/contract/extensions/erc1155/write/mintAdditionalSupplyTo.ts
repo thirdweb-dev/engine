@@ -42,7 +42,7 @@ export async function erc1155mintAdditionalSupplyTo(fastify: FastifyInstance) {
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain:contractAddress/erc1155/mint-additional-supply-to",
+    url: "/contract/:chain/:contractAddress/erc1155/mint-additional-supply-to",
     schema: {
       summary: "Mint additional supply",
       description:
@@ -64,7 +64,7 @@ export async function erc1155mintAdditionalSupplyTo(fastify: FastifyInstance) {
         "x-backend-wallet-address"
       ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,

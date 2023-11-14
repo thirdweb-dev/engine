@@ -66,7 +66,7 @@ export async function transfer(fastify: FastifyInstance) {
       // TODO: Bring Smart Wallet back
       // const accountAddress = request.headers["x-account-address"] as string;
 
-      const chainId = getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chain);
       const sdk = await getSdk({ chainId, walletAddress });
 
       const normalizedValue = await normalizePriceValue(
