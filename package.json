@@ -35,7 +35,6 @@
     "@fastify/cors": "^8.2.1",
     "@fastify/express": "^2.3.0",
     "@fastify/swagger": "^8.9.0",
-    "@fastify/swagger-ui": "^1.9.3",
     "@fastify/type-provider-typebox": "^3.2.0",
     "@fastify/websocket": "^8.2.0",
     "@google-cloud/kms": "^4.0.0",

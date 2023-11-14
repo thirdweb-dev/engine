@@ -49,6 +49,7 @@ import { getBalance } from "./backend-wallet/getBalance";
 import { importBackendWallet } from "./backend-wallet/import";
 import { sendTransaction } from "./backend-wallet/send";
 import { transfer } from "./backend-wallet/transfer";
+import { updateBackendWallet } from "./backend-wallet/update";
 
 // Configuration
 import { getBackendWalletBalanceConfiguration } from "./configuration/backend-wallet-balance/get";
@@ -89,14 +90,10 @@ import { createRelayer } from "./relayer/create";
 import { getAllRelayers } from "./relayer/getAll";
 import { revokeRelayer } from "./relayer/revoke";
 
-<<<<<<< Updated upstream
-=======
 // System
-import { updateBackendWallet } from "./backend-wallet/update";
 import { healthCheck } from "./health";
 import { home } from "./home";
 
->>>>>>> Stashed changes
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
   await fastify.register(createBackendWallet);
@@ -190,10 +187,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(erc1155Routes);
   await fastify.register(marketplaceV3Routes);
 
-  // Health
-  fastify.get("/health", async () => {
-    return {
-      status: "OK",
-    };
-  });
+  // System
+  await fastify.register(home);
+  await fastify.register(healthCheck);
 };
