@@ -50,10 +50,14 @@ export async function createRelayer(fastify: FastifyInstance) {
           chainId: getChainIdFromChain(chain).toString(),
           backendWalletAddress,
           allowedContracts: allowedContracts
-            ? JSON.stringify(allowedContracts)
+            ? JSON.stringify(
+                allowedContracts.map((address) => address.toLowerCase()),
+              )
             : null,
           allowedForwarders: allowedForwarders
-            ? JSON.stringify(allowedForwarders)
+            ? JSON.stringify(
+                allowedForwarders.map((address) => address.toLowerCase()),
+              )
             : null,
         },
       });
