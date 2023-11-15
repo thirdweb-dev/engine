@@ -40,6 +40,7 @@ Engine is a backend HTTP server that calls smart contracts with your managed bac
 1. Run Engine.
    ```bash
    docker run \
+     -e ENCRYPTION_PASSWORD="<encryption_password>" \
      -e THIRDWEB_API_SECRET_KEY="<thirdweb_secret_key>" \
      -e ADMIN_WALLET_ADDRESS="<admin_wallet_address>" \
      -e POSTGRES_CONNECTION_URL="postgresql://postgres:postgres@host.docker.internal:5432/postgres?sslmode=disable" \
