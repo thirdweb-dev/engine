@@ -11,6 +11,7 @@ const BodySchema = Type.Object({
       "The address of the backend wallet to use for relaying transactions.",
   }),
   allowedContracts: Type.Optional(Type.Array(Type.String())),
+  allowedForwarders: Type.Optional(Type.Array(Type.String())),
 });
 
 const ReplySchema = Type.Object({
@@ -37,14 +38,26 @@ export async function createRelayer(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { chain, backendWalletAddress, allowedContracts } = req.body;
+      const {
+        chain,
+        backendWalletAddress,
+        allowedContracts,
+        allowedForwarders,
+      } = req.body;
 
       const relayer = await prisma.relayers.create({
         data: {
           chainId: getChainIdFromChain(chain).toString(),
           backendWalletAddress,
           allowedContracts: allowedContracts
-            ? JSON.stringify(allowedContracts)
+            ? JSON.stringify(
+                allowedContracts.map((address) => address.toLowerCase()),
+              )
+            : null,
+          allowedForwarders: allowedForwarders
+            ? JSON.stringify(
+                allowedForwarders.map((address) => address.toLowerCase()),
+              )
             : null,
         },
       });

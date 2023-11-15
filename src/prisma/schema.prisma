@@ -168,6 +168,7 @@ model Relayers {
   chainId              String  @map("chainId")
   backendWalletAddress String  @map("backendWalletAddress")
   allowedContracts     String? @map("allowedContracts")
+  allowedForwarders    String? @map("allowedForwarders")
 
   @@map("relayers")
 }

@@ -11,6 +11,7 @@ const ReplySchema = Type.Object({
       chainId: Type.String(),
       backendWalletAddress: Type.String(),
       allowedContracts: Type.Union([Type.Array(Type.String()), Type.Null()]),
+      allowedForwarders: Type.Union([Type.Array(Type.String()), Type.Null()]),
     }),
   ),
 });
@@ -36,6 +37,9 @@ export async function getAllRelayers(fastify: FastifyInstance) {
           ...relayer,
           allowedContracts: relayer.allowedContracts
             ? JSON.parse(relayer.allowedContracts)
+            : null,
+          allowedForwarders: relayer.allowedForwarders
+            ? JSON.parse(relayer.allowedForwarders)
             : null,
         })),
       });
