@@ -304,15 +304,12 @@ export const processTx = async () => {
 
           const nonce = randomNonce();
           try {
-            const userOp = await signer.smartAccountAPI.createSignedUserOp(
-              {
-                target: tx.target || "",
-                data: tx.data || "0x",
-                value: tx.value ? BigNumber.from(tx.value) : undefined,
-                nonce,
-              },
-              false,
-            );
+            const userOp = await signer.smartAccountAPI.createSignedUserOp({
+              target: tx.target || "",
+              data: tx.data || "0x",
+              value: tx.value ? BigNumber.from(tx.value) : undefined,
+              nonce,
+            });
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
             );
