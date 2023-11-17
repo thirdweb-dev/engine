@@ -134,3 +134,19 @@ export const ERC20PermitAbi = [
     type: "function",
   },
 ];
+
+export const NativeMetaTransaction = [
+  {
+    inputs: [
+      { internalType: "address", name: "userAddress", type: "address" },
+      { internalType: "bytes", name: "functionSignature", type: "bytes" },
+      { internalType: "bytes32", name: "sigR", type: "bytes32" },
+      { internalType: "bytes32", name: "sigS", type: "bytes32" },
+      { internalType: "uint8", name: "sigV", type: "uint8" },
+    ],
+    name: "executeMetaTransaction",
+    outputs: [{ internalType: "bytes", name: "", type: "bytes" }],
+    stateMutability: "payable",
+    type: "function",
+  },
+];
