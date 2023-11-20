@@ -1,11 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
-import { ethers } from "ethers";
+import { ethers, utils } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
   ERC20PermitAbi,
   ERC2771ContextAbi,
   ForwarderAbi,
+  NativeMetaTransaction,
 } from "../../../constants/relayer";
 import { getRelayerById } from "../../../db/relayer/getRelayerById";
 import { queueTx } from "../../../db/transactions/queueTx";
@@ -42,10 +43,17 @@ const BodySchema = Type.Union([
       value: Type.String(),
       nonce: Type.String(),
       deadline: Type.String(),
-      r: Type.String(),
-      s: Type.String(),
-      v: Type.String(),
     }),
+    signature: Type.String(),
+  }),
+  Type.Object({
+    type: Type.Literal("execute-meta-transaction"),
+    request: Type.Object({
+      from: Type.String(),
+      to: Type.String(),
+      data: Type.String(),
+    }),
+    signature: Type.String(),
   }),
 ]);
 
@@ -105,9 +113,62 @@ export async function relayTransaction(fastify: FastifyInstance) {
         walletAddress: relayer.backendWalletAddress,
       });
 
-      if (req.body.type === "permit") {
+      if (req.body.type === "execute-meta-transaction") {
+        // Polygon Execute Meta Transaction
+        const { request, signature } = req.body;
+        const { v, r, s } = utils.splitSignature(signature);
+
+        if (
+          relayer.allowedContracts &&
+          !relayer.allowedContracts.includes(request.to.toLowerCase())
+        ) {
+          return res.status(400).send({
+            error: {
+              message: `Requesting to relay transaction to unauthorized contract ${request.to}.`,
+            },
+          });
+        }
+
+        const target = await sdk.getContractFromAbi(
+          request.to.toLowerCase(),
+          NativeMetaTransaction,
+        );
+
+        const tx = await target.prepare("executeMetaTransaction", [
+          request.from,
+          request.data,
+          r,
+          s,
+          v,
+        ]);
+
+        const queueId = await queueTx({
+          tx,
+          chainId: relayer.chainId,
+          extension: "relayer",
+        });
+
+        res.status(200).send({
+          result: {
+            queueId,
+          },
+        });
+        return;
+      } else if (req.body.type === "permit") {
         // EIP-2612
-        const { request } = req.body;
+        const { request, signature } = req.body;
+        const { v, r, s } = utils.splitSignature(signature);
+
+        if (
+          relayer.allowedContracts &&
+          !relayer.allowedContracts.includes(request.to.toLowerCase())
+        ) {
+          return res.status(400).send({
+            error: {
+              message: `Requesting to relay transaction to unauthorized contract ${request.to}.`,
+            },
+          });
+        }
 
         const target = await sdk.getContractFromAbi(
           request.to.toLowerCase(),
@@ -119,15 +180,15 @@ export async function relayTransaction(fastify: FastifyInstance) {
           request.spender,
           request.value,
           request.deadline,
-          request.v,
-          request.r,
-          request.s,
+          v,
+          r,
+          s,
         ]);
 
         const queueId = await queueTx({
           tx,
           chainId: relayer.chainId,
-          extension: "forwarder",
+          extension: "relayer",
         });
 
         res.status(200).send({
@@ -212,7 +273,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
       const queueId = await queueTx({
         tx,
         chainId: relayer.chainId,
-        extension: "forwarder",
+        extension: "relayer",
       });
 
       res.status(200).send({

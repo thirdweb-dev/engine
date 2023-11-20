@@ -11,4 +11,4 @@ export type ContractExtension =
   | "deploy-published"
   | "account-factory"
   | "account"
-  | "forwarder";
+  | "relayer";
