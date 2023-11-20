@@ -45,9 +45,10 @@ export async function createRelayer(fastify: FastifyInstance) {
         allowedForwarders,
       } = req.body;
 
+      const chainId = (await getChainIdFromChain(chain)).toString();
       const relayer = await prisma.relayers.create({
         data: {
-          chainId: getChainIdFromChain(chain).toString(),
+          chainId,
           backendWalletAddress,
           allowedContracts: allowedContracts
             ? JSON.stringify(
