@@ -60,6 +60,9 @@ CMD [ "sh", "-c", "yarn prisma:setup:dev && yarn dev:worker" ]
 # Production Node Modules stage
 FROM node:18.15.0-alpine AS prod-dependencies
 
+# Setting Docker Tag
+ENV ENGINE_VERSION=$DOCKER_TAG
+
 # Install build dependencies
 RUN apk add --no-cache g++ make py3-pip openssl
 
