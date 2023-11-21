@@ -31,3 +31,5 @@ jobs:
           tags: |
             thirdweb/engine:${{ github.ref_name }}
             thirdweb/engine:latest
+          build-args: |
+            ENGINE_VERSION=${{ github.ref_name }}
