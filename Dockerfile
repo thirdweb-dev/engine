@@ -61,7 +61,8 @@ CMD [ "sh", "-c", "yarn prisma:setup:dev && yarn dev:worker" ]
 FROM node:18.15.0-alpine AS prod-dependencies
 
 # Setting ENV variables for image information
-ENV ENGINE_VERSION=$ENGINE_VERSION
+ARG ENGINE_VERSION
+ENV ENGINE_VERSION=${ENGINE_VERSION}
 
 # Install build dependencies
 RUN apk add --no-cache g++ make py3-pip openssl
