@@ -1,6 +1,5 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
-import { BigNumber } from "ethers/lib/ethers";
 import { prisma } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
@@ -45,10 +44,6 @@ export const retryTx = async () => {
 
         // TODO: We should still retry anyway
         const gasOverrides = await getDefaultGasOverrides(sdk.getProvider());
-        if (gasOverrides.maxFeePerGas?.lte(BigNumber.from(tx.maxFeePerGas))) {
-          // If the current blockchain gas fees are lower than the transaction, wait
-          return;
-        }
 
         if (tx.retryGasValues) {
           // If a retry has been triggered manually
@@ -77,6 +72,8 @@ export const retryTx = async () => {
             nonce: tx.nonce!,
             value: tx.value!,
             ...gasOverrides,
+            gasPrice: gasOverrides.gasPrice?.mul(1.2),
+            maxFeePerGas: gasOverrides.maxFeePerGas?.mul(1.2),
           });
         } catch (err: any) {
           logger.worker.warn(

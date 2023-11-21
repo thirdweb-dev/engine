@@ -87,6 +87,7 @@ export const cancelTransactionAndUpdate = async ({
         data: "0x",
         value: "0x00",
         nonce: txData.nonce!,
+        ...gasOverrides,
         maxFeePerGas: BigNumber.from(gasOverrides.maxFeePerGas).mul(2),
         maxPriorityFeePerGas: BigNumber.from(
           gasOverrides.maxPriorityFeePerGas,
