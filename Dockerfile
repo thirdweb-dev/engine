@@ -60,7 +60,7 @@ CMD [ "sh", "-c", "yarn prisma:setup:dev && yarn dev:worker" ]
 # Production Node Modules stage
 FROM node:18.15.0-alpine AS prod-dependencies
 
-# Setting Docker Tag
+# Setting ENV variables for image information
 ENV ENGINE_VERSION=$DOCKER_TAG
 
 # Install build dependencies
