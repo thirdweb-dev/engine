@@ -72,8 +72,9 @@ export const retryTx = async () => {
             nonce: tx.nonce!,
             value: tx.value!,
             ...gasOverrides,
-            gasPrice: gasOverrides.gasPrice?.mul(1.2),
-            maxFeePerGas: gasOverrides.maxFeePerGas?.mul(1.2),
+            gasPrice: gasOverrides.gasPrice?.mul(2),
+            maxFeePerGas: gasOverrides.maxFeePerGas?.mul(2),
+            maxPriorityFeePerGas: gasOverrides.maxPriorityFeePerGas?.mul(2),
           });
         } catch (err: any) {
           logger.worker.warn(
