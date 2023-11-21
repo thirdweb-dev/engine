@@ -95,6 +95,7 @@ import { revokeRelayer } from "./relayer/revoke";
 // System
 import { healthCheck } from "./health";
 import { home } from "./home";
+import { updateRelayer } from "./relayer/update";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -145,6 +146,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllRelayers);
   await fastify.register(createRelayer);
   await fastify.register(revokeRelayer);
+  await fastify.register(updateRelayer);
   await fastify.register(relayTransaction);
 
   // Generic

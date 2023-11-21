@@ -5,34 +5,32 @@ import { prisma } from "../../../db/client";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const BodySchema = Type.Object({
+  id: Type.String(),
   name: Type.Optional(Type.String()),
-  chain: Type.String(),
-  backendWalletAddress: Type.String({
-    description:
-      "The address of the backend wallet to use for relaying transactions.",
-  }),
+  chain: Type.Optional(Type.String()),
+  backendWalletAddress: Type.Optional(Type.String()),
   allowedContracts: Type.Optional(Type.Array(Type.String())),
   allowedForwarders: Type.Optional(Type.Array(Type.String())),
 });
 
 const ReplySchema = Type.Object({
   result: Type.Object({
-    relayerId: Type.String(),
+    success: Type.Boolean(),
   }),
 });
 
-export async function createRelayer(fastify: FastifyInstance) {
+export async function updateRelayer(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
     Body: Static<typeof BodySchema>;
+    Reply: Static<typeof ReplySchema>;
   }>({
     method: "POST",
-    url: "/relayer/create",
+    url: "/relayer/update",
     schema: {
-      summary: "Create a new meta-transaction relayer",
-      description: "Create a new meta-transaction relayer",
+      summary: "Update a relayer",
+      description: "Update a relayer",
       tags: ["Relayer"],
-      operationId: "create",
+      operationId: "update",
       body: BodySchema,
       response: {
         [StatusCodes.OK]: ReplySchema,
@@ -40,6 +38,7 @@ export async function createRelayer(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const {
+        id,
         name,
         chain,
         backendWalletAddress,
@@ -47,8 +46,13 @@ export async function createRelayer(fastify: FastifyInstance) {
         allowedForwarders,
       } = req.body;
 
-      const chainId = (await getChainIdFromChain(chain)).toString();
-      const relayer = await prisma.relayers.create({
+      const chainId = chain
+        ? (await getChainIdFromChain(chain)).toString()
+        : undefined;
+      await prisma.relayers.update({
+        where: {
+          id,
+        },
         data: {
           name,
           chainId,
@@ -66,9 +70,9 @@ export async function createRelayer(fastify: FastifyInstance) {
         },
       });
 
-      return res.status(200).send({
+      res.status(200).send({
         result: {
-          relayerId: relayer.id,
+          success: true,
         },
       });
     },
