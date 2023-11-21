@@ -60,10 +60,6 @@ CMD [ "sh", "-c", "yarn prisma:setup:dev && yarn dev:worker" ]
 # Production Node Modules stage
 FROM node:18.15.0-alpine AS prod-dependencies
 
-# Setting ENV variables for image information
-ARG ENGINE_VERSION
-ENV ENGINE_VERSION=${ENGINE_VERSION}
-
 # Install build dependencies
 RUN apk add --no-cache g++ make py3-pip openssl
 
@@ -103,6 +99,10 @@ RUN apk del g++ make py3-pip openssl
 
 # Production stage
 FROM node:18.15.0-alpine AS prod
+
+# Setting ENV variables for image information
+ARG ENGINE_VERSION
+ENV ENGINE_VERSION=${ENGINE_VERSION}
 
 # Install tini
 RUN apk add --no-cache tini
