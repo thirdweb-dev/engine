@@ -13,30 +13,17 @@ export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
   const prisma = getPrismaWithPostgresTx(pgtx);
   const config = await getConfiguration();
 
-  return prisma.transactions.findMany({
-    where: {
-      processedAt: {
-        not: null,
-      },
-      sentAt: {
-        not: null,
-      },
-      transactionHash: {
-        not: null,
-      },
-      accountAddress: null,
-      minedAt: null,
-      errorMessage: null,
-      retryCount: {
-        // TODO: What should the max retries be here?
-        lt: 3,
-      },
-    },
-    orderBy: [
-      {
-        sentAt: "asc",
-      },
-    ],
-    take: config.maxTxsToUpdate,
-  });
+  return prisma.$queryRaw`
+    SELECT * FROM "transactions"
+    WHERE "processedAt" IS NOT NULL
+    AND "sentAt" IS NOT NULL
+    AND "transactionHash" IS NOT NULL
+    AND "accountAddress" IS NULL
+    AND "minedAt" IS NULL
+    AND "errorMessage" IS NULL
+    AND "retryCount" < ${config.maxTxsToUpdate}
+    ORDER BY "sentAt" ASC
+    LIMIT ${config.maxTxsToUpdate}
+    FOR UPDATE SKIP LOCKED
+  `;
 };

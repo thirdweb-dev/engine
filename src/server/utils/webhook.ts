@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
+import { prisma } from "../../db/client";
 import { getTxById } from "../../db/transactions/getTxById";
 import {
   SanitizedWebHooksSchema,
@@ -76,63 +76,68 @@ export const sendWebhookRequest = async (
 
 export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
   try {
-    const txData = await getTxById({ queueId: data.id });
-    if (!txData) {
-      throw new Error(`Transaction ${data.id} not found.`);
-    }
+    await prisma.$transaction(
+      async (pgtx) => {
+        const txData = await getTxById({ pgtx, queueId: data.id });
+        if (!txData) {
+          return;
+        } else {
+          let webhookConfig: SanitizedWebHooksSchema[] | undefined =
+            await getWebhookConfig(WebhooksEventTypes.ALL_TX);
 
-    let webhookConfig: SanitizedWebHooksSchema[] | undefined =
-      await getWebhookConfig(WebhooksEventTypes.ALL_TX);
+          if (!webhookConfig) {
+            switch (txData.status) {
+              case TransactionStatusEnum.Queued:
+                webhookConfig = await getWebhookConfig(
+                  WebhooksEventTypes.QUEUED_TX,
+                );
+                break;
+              case TransactionStatusEnum.Submitted:
+                webhookConfig = await getWebhookConfig(
+                  WebhooksEventTypes.SENT_TX,
+                );
+                break;
+              case TransactionStatusEnum.Retried:
+                webhookConfig = await getWebhookConfig(
+                  WebhooksEventTypes.RETRIED_TX,
+                );
+                break;
+              case TransactionStatusEnum.Mined:
+                webhookConfig = await getWebhookConfig(
+                  WebhooksEventTypes.MINED_TX,
+                );
+                break;
+              case TransactionStatusEnum.Errored:
+                webhookConfig = await getWebhookConfig(
+                  WebhooksEventTypes.ERRORED_TX,
+                );
+                break;
+              case TransactionStatusEnum.Cancelled:
+                webhookConfig = await getWebhookConfig(
+                  WebhooksEventTypes.ERRORED_TX,
+                );
+                break;
+            }
+          }
 
-    // For Backwards Compatibility
-    const config = await getConfiguration();
-    if (config?.webhookUrl && config?.webhookAuthBearerToken) {
-      const newFormatWebhookData = {
-        id: 0,
-        url: config.webhookUrl,
-        secret: config.webhookAuthBearerToken,
-        active: true,
-        eventType: WebhooksEventTypes.ALL_TX,
-        createdAt: new Date().toISOString(),
-        name: "Legacy Webhook",
-      };
-      await sendWebhookRequest(newFormatWebhookData, txData);
-      return;
-    }
+          webhookConfig?.map(async (config) => {
+            if (!config || !config?.active) {
+              logger.server.debug(
+                "No Webhook Set or Active, skipping webhook send",
+              );
+              return;
+            }
 
-    if (!webhookConfig) {
-      switch (txData.status) {
-        case TransactionStatusEnum.Queued:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.QUEUED_TX);
-          break;
-        case TransactionStatusEnum.Submitted:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.SENT_TX);
-          break;
-        case TransactionStatusEnum.Retried:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.RETRIED_TX);
-          break;
-        case TransactionStatusEnum.Mined:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.MINED_TX);
-          break;
-        case TransactionStatusEnum.Errored:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
-          break;
-        case TransactionStatusEnum.Cancelled:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
-          break;
-      }
-    }
-
-    webhookConfig?.map(async (config) => {
-      if (!config || !config?.active) {
-        logger.server.debug("No Webhook Set or Active, skipping webhook send");
-        return;
-      }
-
-      await sendWebhookRequest(config, txData);
-    });
+            await sendWebhookRequest(config, txData);
+          });
+        }
+      },
+      {
+        timeout: 60000,
+      },
+    );
   } catch (error) {
-    logger.server.error(`[sendWebhook] error: ${error}`);
+    logger.server.error(error);
   }
 };
 
@@ -171,6 +176,6 @@ export const sendBalanceWebhook = async (
       }
     });
   } catch (error) {
-    logger.server.error(`[sendWebhook] error: ${error}`);
+    logger.server.error(error);
   }
 };

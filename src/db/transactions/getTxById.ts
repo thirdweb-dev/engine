@@ -1,3 +1,4 @@
+import { Transactions } from "@prisma/client";
 import { Static } from "@sinclair/typebox";
 import { PrismaTransaction } from "../../schema/prisma";
 import { transactionResponseSchema } from "../../server/schemas/transaction";
@@ -17,15 +18,20 @@ export const getTxById = async ({
 > | null> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  const tx = await prisma.transactions.findUnique({
-    where: {
-      id: queueId,
-    },
-  });
-  if (!tx) {
+  const tx: Transactions[] = await prisma.$queryRaw`
+    SELECT
+    *
+    FROM
+    "transactions"
+    WHERE
+      "id" = ${queueId}
+    LIMIT 1
+    FOR UPDATE SKIP LOCKED`;
+
+  if (tx.length === 0 || !tx) {
     return null;
   }
 
-  const [cleanedTx] = cleanTxs([tx]);
+  const [cleanedTx] = cleanTxs(tx);
   return cleanedTx;
 };
