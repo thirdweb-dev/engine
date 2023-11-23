@@ -13,7 +13,7 @@ export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
   const prisma = getPrismaWithPostgresTx(pgtx);
   const config = await getConfiguration();
 
-  return prisma.$queryRaw`
+  return prisma.$queryRaw<Transactions[]>`
     SELECT * FROM "transactions"
     WHERE "processedAt" IS NOT NULL
     AND "sentAt" IS NOT NULL

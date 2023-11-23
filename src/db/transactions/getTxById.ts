@@ -20,13 +20,13 @@ export const getTxById = async ({
   let tx: Transactions[] | null;
 
   if (!pgtx) {
-    tx = await prisma.$queryRaw`
+    tx = await prisma.$queryRaw<Transactions[]>`
       SELECT * FROM "transactions"
       WHERE
         "id" = ${queueId}
       LIMIT 1`;
   } else {
-    tx = await prisma.$queryRaw`
+    tx = await prisma.$queryRaw<Transactions[]>`
       SELECT * FROM "transactions"
       WHERE
         "id" = ${queueId}
