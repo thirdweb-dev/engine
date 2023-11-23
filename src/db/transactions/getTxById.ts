@@ -17,18 +17,24 @@ export const getTxById = async ({
   typeof transactionResponseSchema
 > | null> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
+  let tx: Transactions[] | null;
 
-  const tx: Transactions[] = await prisma.$queryRaw`
-    SELECT
-    *
-    FROM
-    "transactions"
-    WHERE
-      "id" = ${queueId}
-    LIMIT 1
-    FOR UPDATE SKIP LOCKED`;
+  if (!pgtx) {
+    tx = await prisma.$queryRaw`
+      SELECT * FROM "transactions"
+      WHERE
+        "id" = ${queueId}
+      LIMIT 1`;
+  } else {
+    tx = await prisma.$queryRaw`
+      SELECT * FROM "transactions"
+      WHERE
+        "id" = ${queueId}
+      LIMIT 1
+      FOR UPDATE SKIP LOCKED`;
+  }
 
-  if (tx.length === 0 || !tx) {
+  if (!tx || tx.length === 0) {
     return null;
   }
 

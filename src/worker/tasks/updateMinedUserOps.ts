@@ -60,6 +60,7 @@ export const updateMinedUserOps = async () => {
         await Promise.all(
           updatedUserOps.map(async (userOp) => {
             await updateTx({
+              pgtx,
               queueId: userOp!.id,
               data: {
                 status: TransactionStatusEnum.Mined,
