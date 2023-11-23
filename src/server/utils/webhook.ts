@@ -133,7 +133,7 @@ export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
         }
       },
       {
-        timeout: 60000,
+        timeout: 5 * 60000,
       },
     );
   } catch (error) {
