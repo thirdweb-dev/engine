@@ -6,6 +6,8 @@ import { z } from "zod";
 import { fetchEngine } from "./utils/fetch";
 import { createTimer, sleep } from "./utils/time";
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 const OptionsSchema = z.object({
   host: z.string().optional(),
   path: z.string().optional(),
