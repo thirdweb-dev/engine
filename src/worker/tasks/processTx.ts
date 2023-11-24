@@ -267,7 +267,6 @@ export const processTx = async () => {
           // - After sending transactions, update database for each transaction
           await Promise.all(
             txStatuses.map(async (tx) => {
-              sendWebhookForQueueIds.push(tx.queueId!);
               switch (tx.status) {
                 case TransactionStatusEnum.Submitted:
                   await updateTx({
@@ -291,6 +290,7 @@ export const processTx = async () => {
                   });
                   break;
               }
+              sendWebhookForQueueIds.push(tx.queueId!);
             }),
           );
         });
@@ -333,7 +333,6 @@ export const processTx = async () => {
             logger.worker.warn(
               `[User Operation] [${tx.queueId}] Failed to send with error - ${err}`,
             );
-            sendWebhookForQueueIds.push(tx.queueId!);
             await updateTx({
               pgtx,
               queueId: tx.queueId!,
@@ -345,6 +344,7 @@ export const processTx = async () => {
                   `Failed to handle transaction`,
               },
             });
+            sendWebhookForQueueIds.push(tx.queueId!);
           }
         });
 
