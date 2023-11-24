@@ -36,6 +36,11 @@ type UpdateTxData =
       blockNumber?: number;
       minedAt: Date;
       onChainTxStatus?: number;
+      transactionHash?: string;
+      transactionType?: number;
+      gasLimit?: string;
+      maxFeePerGas?: string;
+      maxPriorityFeePerGas?: string;
     };
 
 export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
@@ -111,6 +116,11 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           gasPrice: data.gasPrice,
           blockNumber: data.blockNumber,
           onChainTxStatus: data.onChainTxStatus,
+          transactionHash: data.transactionHash,
+          transactionType: data.transactionType,
+          gasLimit: data.gasLimit,
+          maxFeePerGas: data.maxFeePerGas,
+          maxPriorityFeePerGas: data.maxPriorityFeePerGas,
         },
       });
       break;

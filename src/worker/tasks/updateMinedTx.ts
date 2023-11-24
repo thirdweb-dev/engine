@@ -5,11 +5,13 @@ import { prisma } from "../../db/client";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { sendTxWebhook } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 
 export const updateMinedTx = async () => {
   try {
+    const sendWebhookForQueueIds: string[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         const txs = await getSentTxs({ pgtx });
@@ -72,10 +74,10 @@ export const updateMinedTx = async () => {
                 onChainTxStatus: txWithReceipt.receipt.status,
               },
             });
-
             logger.worker.info(
               `[Transaction] [${txWithReceipt.tx.id}] Updated with receipt`,
             );
+            sendWebhookForQueueIds.push(txWithReceipt.tx.id);
           }),
         );
       },
@@ -83,6 +85,8 @@ export const updateMinedTx = async () => {
         timeout: 5 * 60000,
       },
     );
+
+    await sendTxWebhook(sendWebhookForQueueIds);
   } catch (err) {
     logger.worker.error(err);
     return;

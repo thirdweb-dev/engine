@@ -18,7 +18,7 @@ import {
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
-import { sendBalanceWebhook } from "../../server/utils/webhook";
+import { sendBalanceWebhook, sendTxWebhook } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -39,6 +39,8 @@ type SentTxStatus =
 
 export const processTx = async () => {
   try {
+    // 0. Initialize queueIds to send webhook
+    const sendWebhookForQueueIds: string[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
@@ -48,6 +50,8 @@ export const processTx = async () => {
         if (txs.length < config.minTxsToProcess) {
           return;
         }
+        // Send Queued Webhook
+        await sendTxWebhook(txs.map((tx) => tx.queueId!));
 
         // 2. Iterate through all filtering cancelled trandsactions, and sorting transactions and user operations
         const txsToSend = [];
@@ -59,7 +63,6 @@ export const processTx = async () => {
             );
             continue;
           }
-
           logger.worker.info(
             `[Transaction] [${tx.queueId}] Picked up by worker`,
           );
@@ -264,6 +267,7 @@ export const processTx = async () => {
           // - After sending transactions, update database for each transaction
           await Promise.all(
             txStatuses.map(async (tx) => {
+              sendWebhookForQueueIds.push(tx.queueId!);
               switch (tx.status) {
                 case TransactionStatusEnum.Submitted:
                   await updateTx({
@@ -324,11 +328,12 @@ export const processTx = async () => {
                 userOpHash,
               },
             });
+            sendWebhookForQueueIds.push(tx.queueId!);
           } catch (err: any) {
             logger.worker.warn(
               `[User Operation] [${tx.queueId}] Failed to send with error - ${err}`,
             );
-
+            sendWebhookForQueueIds.push(tx.queueId!);
             await updateTx({
               pgtx,
               queueId: tx.queueId!,
@@ -351,6 +356,8 @@ export const processTx = async () => {
         timeout: 5 * 60000,
       },
     );
+
+    await sendTxWebhook(sendWebhookForQueueIds);
   } catch (err: any) {
     logger.worker.error(
       `Failed to process batch of transactions with error - ${err}`,

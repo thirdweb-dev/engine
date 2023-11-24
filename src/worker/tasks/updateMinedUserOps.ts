@@ -4,11 +4,13 @@ import { prisma } from "../../db/client";
 import { getSentUserOps } from "../../db/transactions/getSentUserOps";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { sendTxWebhook } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 
 export const updateMinedUserOps = async () => {
   try {
+    const sendWebhookForQueueIds: string[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         const userOps = await getSentUserOps({ pgtx });
@@ -28,6 +30,7 @@ export const updateMinedUserOps = async () => {
               });
 
               const signer = sdk.getSigner() as ERC4337EthersSigner;
+
               const txHash = await signer.smartAccountAPI.getUserOpReceipt(
                 userOp.userOpHash!,
                 3000,
@@ -37,8 +40,14 @@ export const updateMinedUserOps = async () => {
                 // If no receipt was received, return undefined to filter out tx
                 return undefined;
               }
+              const _sdk = await getSdk({
+                chainId: parseInt(userOp.chainId!),
+              });
 
               const tx = await signer.provider!.getTransaction(txHash);
+              const txReceipt = await _sdk
+                .getProvider()
+                .getTransactionReceipt(txHash);
               const minedAt = new Date(
                 (
                   await getBlock({
@@ -52,6 +61,12 @@ export const updateMinedUserOps = async () => {
                 ...userOp,
                 blockNumber: tx.blockNumber!,
                 minedAt,
+                onChainTxStatus: txReceipt.status,
+                transactionHash: txHash,
+                transactionType: tx.type,
+                gasLimit: tx.gasLimit.toString(),
+                maxFeePerGas: tx.maxFeePerGas?.toString(),
+                maxPriorityFeePerGas: tx.maxPriorityFeePerGas?.toString(),
               };
             }),
           )
@@ -65,12 +80,21 @@ export const updateMinedUserOps = async () => {
               data: {
                 status: TransactionStatusEnum.Mined,
                 minedAt: userOp!.minedAt,
+                blockNumber: userOp!.blockNumber,
+                onChainTxStatus: userOp!.onChainTxStatus,
+                transactionHash: userOp!.transactionHash,
+                transactionType: userOp!.transactionType || undefined,
+                gasLimit: userOp!.gasLimit || undefined,
+                maxFeePerGas: userOp!.maxFeePerGas || undefined,
+                maxPriorityFeePerGas: userOp!.maxPriorityFeePerGas || undefined,
+                gasPrice: userOp!.gasPrice || undefined,
               },
             });
 
             logger.worker.info(
               `[User Op] [${userOp!.id}] Updated with receipt`,
             );
+            sendWebhookForQueueIds.push(userOp!.id);
           }),
         );
       },
@@ -78,6 +102,8 @@ export const updateMinedUserOps = async () => {
         timeout: 5 * 60000,
       },
     );
+
+    await sendTxWebhook(sendWebhookForQueueIds);
   } catch (err) {
     logger.worker.error(`Failed to update receipts with error - ${err}`);
     return;

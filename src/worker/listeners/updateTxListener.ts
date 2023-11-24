@@ -1,7 +1,6 @@
 import { knex } from "../../db/client";
 import { getTxById } from "../../db/transactions/getTxById";
 import { subscriptionsData } from "../../server/schemas/websocket";
-import { sendTxWebhook } from "../../server/utils/webhook";
 import {
   formatSocketMessage,
   getStatusMessageAndConnectionStatus,
@@ -18,9 +17,6 @@ export const updateTxListener = async (): Promise<void> => {
     "notification",
     async (msg: { channel: string; payload: string }) => {
       const parsedPayload = JSON.parse(msg.payload);
-
-      // Send webhook
-      await sendTxWebhook(parsedPayload);
 
       // Send websocket message
       const index = subscriptionsData.findIndex(
