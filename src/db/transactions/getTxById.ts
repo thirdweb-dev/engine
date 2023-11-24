@@ -16,12 +16,12 @@ export const getTxById = async ({
   typeof transactionResponseSchema
 > | null> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
-
   const tx = await prisma.transactions.findUnique({
     where: {
       id: queueId,
     },
   });
+
   if (!tx) {
     return null;
   }

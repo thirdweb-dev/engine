@@ -13,32 +13,17 @@ export const getSentUserOps = async ({
   const prisma = getPrismaWithPostgresTx(pgtx);
   const config = await getConfiguration();
 
-  return prisma.transactions.findMany({
-    where: {
-      processedAt: {
-        not: null,
-      },
-      sentAt: {
-        not: null,
-      },
-      accountAddress: {
-        not: null,
-      },
-      userOpHash: {
-        not: null,
-      },
-      minedAt: null,
-      errorMessage: null,
-      retryCount: {
-        // TODO: What should the max retries be here?
-        lt: 3,
-      },
-    },
-    orderBy: [
-      {
-        sentAt: "asc",
-      },
-    ],
-    take: config.maxTxsToUpdate,
-  });
+  return prisma.$queryRaw<Transactions[]>`
+    SELECT * FROM "transactions"
+    WHERE "processedAt" IS NOT NULL
+    AND "sentAt" IS NOT NULL
+    AND "accountAddress" IS NOT NULL
+    AND "userOpHash" IS NOT NULL
+    AND "minedAt" IS NULL
+    AND "errorMessage" IS NULL
+    AND "retryCount" < 3
+    ORDER BY "sentAt" ASC
+    LIMIT ${config.maxTxsToUpdate}
+    FOR UPDATE SKIP LOCKED;
+  `;
 };

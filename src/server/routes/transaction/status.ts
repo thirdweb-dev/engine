@@ -54,6 +54,7 @@ responseBodySchema.example = {
     errorMessage: "",
     txMinedTimestamp: "2023-08-25T22:42:33.000Z",
     blockNumber: 39398545,
+    onChainTxStatus: 1,
   },
 };
 

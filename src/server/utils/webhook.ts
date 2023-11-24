@@ -1,6 +1,5 @@
 import crypto from "crypto";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
-import { getTxById } from "../../db/transactions/getTxById";
+import { getTxByIds } from "../../db/transactions/getTxByIds";
 import {
   SanitizedWebHooksSchema,
   WalletBalanceWebhookSchema,
@@ -11,10 +10,6 @@ import { logger } from "../../utils/logger";
 import { TransactionStatusEnum } from "../schemas/transaction";
 
 let balanceNotificationLastSentAt = -1;
-
-interface TxWebookParams {
-  id: string;
-}
 
 export const generateSignature = (
   body: Record<string, any>,
@@ -74,65 +69,68 @@ export const sendWebhookRequest = async (
   return true;
 };
 
-export const sendTxWebhook = async (data: TxWebookParams): Promise<void> => {
+export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
   try {
-    const txData = await getTxById({ queueId: data.id });
-    if (!txData) {
-      throw new Error(`Transaction ${data.id} not found.`);
-    }
-
-    let webhookConfig: SanitizedWebHooksSchema[] | undefined =
-      await getWebhookConfig(WebhooksEventTypes.ALL_TX);
-
-    // For Backwards Compatibility
-    const config = await getConfiguration();
-    if (config?.webhookUrl && config?.webhookAuthBearerToken) {
-      const newFormatWebhookData = {
-        id: 0,
-        url: config.webhookUrl,
-        secret: config.webhookAuthBearerToken,
-        active: true,
-        eventType: WebhooksEventTypes.ALL_TX,
-        createdAt: new Date().toISOString(),
-        name: "Legacy Webhook",
-      };
-      await sendWebhookRequest(newFormatWebhookData, txData);
+    const txDataByIds = await getTxByIds({ queueIds });
+    if (!txDataByIds || txDataByIds.length === 0) {
       return;
     }
+    for (const txData of txDataByIds!) {
+      if (!txData) {
+        return;
+      } else {
+        let webhookConfig: SanitizedWebHooksSchema[] | undefined =
+          await getWebhookConfig(WebhooksEventTypes.ALL_TX);
 
-    if (!webhookConfig) {
-      switch (txData.status) {
-        case TransactionStatusEnum.Queued:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.QUEUED_TX);
-          break;
-        case TransactionStatusEnum.Submitted:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.SENT_TX);
-          break;
-        case TransactionStatusEnum.Retried:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.RETRIED_TX);
-          break;
-        case TransactionStatusEnum.Mined:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.MINED_TX);
-          break;
-        case TransactionStatusEnum.Errored:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
-          break;
-        case TransactionStatusEnum.Cancelled:
-          webhookConfig = await getWebhookConfig(WebhooksEventTypes.ERRORED_TX);
-          break;
+        if (!webhookConfig) {
+          switch (txData.status) {
+            case TransactionStatusEnum.Queued:
+              webhookConfig = await getWebhookConfig(
+                WebhooksEventTypes.QUEUED_TX,
+              );
+              break;
+            case TransactionStatusEnum.Submitted:
+              webhookConfig = await getWebhookConfig(
+                WebhooksEventTypes.SENT_TX,
+              );
+              break;
+            case TransactionStatusEnum.Retried:
+              webhookConfig = await getWebhookConfig(
+                WebhooksEventTypes.RETRIED_TX,
+              );
+              break;
+            case TransactionStatusEnum.Mined:
+              webhookConfig = await getWebhookConfig(
+                WebhooksEventTypes.MINED_TX,
+              );
+              break;
+            case TransactionStatusEnum.Errored:
+              webhookConfig = await getWebhookConfig(
+                WebhooksEventTypes.ERRORED_TX,
+              );
+              break;
+            case TransactionStatusEnum.Cancelled:
+              webhookConfig = await getWebhookConfig(
+                WebhooksEventTypes.ERRORED_TX,
+              );
+              break;
+          }
+        }
+
+        webhookConfig?.map(async (config) => {
+          if (!config || !config?.active) {
+            logger.server.debug(
+              "No Webhook Set or Active, skipping webhook send",
+            );
+            return;
+          }
+
+          await sendWebhookRequest(config, txData);
+        });
       }
     }
-
-    webhookConfig?.map(async (config) => {
-      if (!config || !config?.active) {
-        logger.server.debug("No Webhook Set or Active, skipping webhook send");
-        return;
-      }
-
-      await sendWebhookRequest(config, txData);
-    });
   } catch (error) {
-    logger.server.error(`[sendWebhook] error: ${error}`);
+    logger.server.error(error);
   }
 };
 
@@ -171,6 +169,6 @@ export const sendBalanceWebhook = async (
       }
     });
   } catch (error) {
-    logger.server.error(`[sendWebhook] error: ${error}`);
+    logger.server.error(error);
   }
 };
