@@ -186,6 +186,7 @@ model Bundlers {
 
 model BundlerUserOperations {
   id                   String    @id @default(uuid()) @map("id")
+  chainId              String    @map("chainId")
   userOpHash           String    @map("userOpHash")
   sender               String    @map("sender")
   nonce                String    @map("nonce")
@@ -198,6 +199,8 @@ model BundlerUserOperations {
   maxPriorityFeePerGas String    @map("maxPriorityFeePerGas")
   signature            String    @map("signature")
   paymasterAndData     String    @map("paymasterAndData")
+  backendWalletAddress String    @map("backendWalletAddress")
+  entrypointAddress    String    @map("entrypointAddress")
   queuedAt             DateTime  @map("queuedAt")
   sentAt               DateTime? @map("sentAt")
 

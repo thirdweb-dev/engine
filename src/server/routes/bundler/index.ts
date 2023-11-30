@@ -124,6 +124,8 @@ export async function bundler(fastify: FastifyInstance) {
           ...userOp,
           userOpHash,
           queuedAt: new Date(),
+          entrypointAddress: bundler.entrypointAddress,
+          backendWalletAddress: bundler.backendWalletAddress,
         },
       });
 
