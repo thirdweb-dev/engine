@@ -183,3 +183,23 @@ model Bundlers {
 
   @@map("bundlers")
 }
+
+model BundlerUserOperations {
+  id                   String    @id @default(uuid()) @map("id")
+  userOpHash           String    @map("userOpHash")
+  sender               String    @map("sender")
+  nonce                String    @map("nonce")
+  initCode             String    @map("initCode")
+  callData             String    @map("callData")
+  callGasLimit         String    @map("callGasLimit")
+  verificationGasLimit String    @map("verificationGasLimit")
+  preVerificationGas   String    @map("preVerificationGas")
+  maxFeePerGas         String    @map("maxFeePerGas")
+  maxPriorityFeePerGas String    @map("maxPriorityFeePerGas")
+  signature            String    @map("signature")
+  paymasterAndData     String    @map("paymasterAndData")
+  queuedAt             DateTime  @map("queuedAt")
+  sentAt               DateTime? @map("sentAt")
+
+  @@map("bundler_user_operations")
+}
