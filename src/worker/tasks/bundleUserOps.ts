@@ -22,7 +22,7 @@ export const bundleUserOps = async () => {
       const [backendWalletAddress, entrypointAddress] = key.split("-");
 
       const sdk = await getSdk({
-        chain: parseInt(userOps[0].chainId),
+        chainId: parseInt(userOps[0].chainId),
         walletAddress: backendWalletAddress,
       });
     });
