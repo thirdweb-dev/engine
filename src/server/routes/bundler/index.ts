@@ -122,6 +122,7 @@ export async function bundler(fastify: FastifyInstance) {
       await prisma.bundlerUserOperations.create({
         data: {
           ...userOp,
+          chainId: bundler.chainId.toString(),
           userOpHash,
           queuedAt: new Date(),
           entrypointAddress: bundler.entrypointAddress,
