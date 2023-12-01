@@ -12,8 +12,22 @@ const BodySchema = Type.Object({
     description:
       "The address of the backend wallet to use for relaying transactions.",
   }),
-  allowedContracts: Type.Optional(Type.Array(Type.String())),
-  allowedForwarders: Type.Optional(Type.Array(Type.String())),
+  allowedContracts: Type.Optional(
+    Type.Array(
+      Type.String({
+        minLength: 42,
+        maxLength: 42,
+      }),
+    ),
+  ),
+  allowedForwarders: Type.Optional(
+    Type.Array(
+      Type.String({
+        minLength: 42,
+        maxLength: 42,
+      }),
+    ),
+  ),
 });
 
 BodySchema.examples = [

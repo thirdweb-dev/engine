@@ -165,14 +165,14 @@ export const withAuth = async (server: FastifyInstance) => {
       req.url === "/favicon.ico" ||
       req.url === "/" ||
       req.url === "/health" ||
-      req.url.startsWith("/static") ||
-      req.url.startsWith("/json") ||
-      req.url.startsWith("/auth/payload") ||
-      req.url.startsWith("/auth/login") ||
-      req.url.startsWith("/auth/user") ||
-      req.url.startsWith("/auth/switch-account") ||
-      req.url.startsWith("/auth/logout") ||
-      req.url.startsWith("/transaction/status")
+      req.url === "/static" ||
+      req.url === "/json" ||
+      req.url === "/auth/payload" ||
+      req.url === "/auth/login" ||
+      req.url === "/auth/user" ||
+      req.url === "/auth/switch-account" ||
+      req.url === "/auth/logout" ||
+      req.url === "/transaction/status"
     ) {
       // We skip auth check for static endpoints and auth routes
       return;
@@ -182,9 +182,9 @@ export const withAuth = async (server: FastifyInstance) => {
       req.url.startsWith("/relayer/") &&
       req.method === "POST" &&
       req.url.split("/").length === 2 &&
-      !req.url.startsWith("/realyer/create") &&
-      !req.url.startsWith("/realyer/revoke") &&
-      !req.url.startsWith("/realyer/update")
+      req.url !== "/realyer/create" &&
+      req.url !== "/realyer/revoke" &&
+      req.url !== "/realyer/update"
     ) {
       // Relayer endpoints can handle their own authentication
       return;
