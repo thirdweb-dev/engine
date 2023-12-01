@@ -167,19 +167,21 @@ export const withAuth = async (server: FastifyInstance) => {
       req.url === "/health" ||
       req.url.startsWith("/static") ||
       req.url.startsWith("/json") ||
-      req.url.includes("/auth/payload") ||
-      req.url.includes("/auth/login") ||
-      req.url.includes("/auth/user") ||
-      req.url.includes("/auth/switch-account") ||
-      req.url.includes("/auth/logout") ||
-      req.url.includes("/transaction/status")
+      req.url.startsWith("/auth/payload") ||
+      req.url.startsWith("/auth/login") ||
+      req.url.startsWith("/auth/user") ||
+      req.url.startsWith("/auth/switch-account") ||
+      req.url.startsWith("/auth/logout") ||
+      req.url.startsWith("/transaction/status")
     ) {
       // We skip auth check for static endpoints and auth routes
       return;
     }
 
     if (
-      req.url.includes("/relayer") &&
+      req.url.startsWith("/relayer/") &&
+      req.method === "POST" &&
+      req.url.split("/").length > 2 &&
       !req.url.includes("/create") &&
       !req.url.includes("/revoke")
     ) {

@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
+import { createCustomError } from "../../middleware/error";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const BodySchema = Type.Object({
@@ -14,6 +15,16 @@ const BodySchema = Type.Object({
   allowedContracts: Type.Optional(Type.Array(Type.String())),
   allowedForwarders: Type.Optional(Type.Array(Type.String())),
 });
+
+BodySchema.examples = [
+  {
+    name: "My relayer",
+    chain: "mainnet",
+    backendWalletAddress: "0",
+    allowedContracts: ["0x1234...."],
+    allowedForwarders: ["0x1234..."],
+  },
+];
 
 const ReplySchema = Type.Object({
   result: Type.Object({
@@ -46,6 +57,14 @@ export async function createRelayer(fastify: FastifyInstance) {
         allowedContracts,
         allowedForwarders,
       } = req.body;
+
+      if (!allowedContracts && !allowedForwarders) {
+        throw createCustomError(
+          "At least one of 'allowedContracts' or 'allowedForwarders' must be specified",
+          400,
+          "INVALID_PARAMS",
+        );
+      }
 
       const chainId = (await getChainIdFromChain(chain)).toString();
       const relayer = await prisma.relayers.create({
