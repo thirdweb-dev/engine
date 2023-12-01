@@ -181,9 +181,10 @@ export const withAuth = async (server: FastifyInstance) => {
     if (
       req.url.startsWith("/relayer/") &&
       req.method === "POST" &&
-      req.url.split("/").length > 2 &&
-      !req.url.includes("/create") &&
-      !req.url.includes("/revoke")
+      req.url.split("/").length === 2 &&
+      !req.url.startsWith("/realyer/create") &&
+      !req.url.startsWith("/realyer/revoke") &&
+      !req.url.startsWith("/realyer/update")
     ) {
       // Relayer endpoints can handle their own authentication
       return;
