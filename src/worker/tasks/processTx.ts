@@ -26,9 +26,10 @@ import { randomNonce } from "../utils/nonce";
 
 type SentTxStatus =
   | {
+      transactionHash: string;
       status: TransactionStatusEnum.Submitted;
       queueId: string;
-      res: ethers.providers.TransactionResponse;
+      res: ethers.providers.TransactionResponse | null;
       sentAtBlockNumber: number;
     }
   | {
@@ -233,11 +234,23 @@ export const processTx = async () => {
               const tx = txsToSend[i];
               if (rpcRes.result) {
                 const txHash = rpcRes.result;
-                const txRes = await provider.getTransaction(txHash);
+
+                const txRes = (await provider.getTransaction(
+                  txHash,
+                )) as ethers.providers.TransactionResponse | null;
+
                 logger.worker.info(
-                  `[Transaction] [${tx.queueId}] Sent tx ${txHash}, with Nonce ${txRes.nonce}`,
+                  `[Transaction] [${tx.queueId}] Sent transaction with hash ${txHash}`,
                 );
+
+                if (!!txRes) {
+                  logger.worker.debug(
+                    `[Transaction] [${tx.queueId}] Using nonce ${txRes.nonce}`,
+                  );
+                }
+
                 return {
+                  transactionHash: txHash,
                   status: TransactionStatusEnum.Submitted,
                   queueId: tx.queueId!,
                   res: txRes,
@@ -274,6 +287,7 @@ export const processTx = async () => {
                     queueId: tx.queueId,
                     data: {
                       status: TransactionStatusEnum.Submitted,
+                      transactionHash: tx.transactionHash,
                       res: tx.res,
                       sentAtBlockNumber: await provider.getBlockNumber(),
                     },

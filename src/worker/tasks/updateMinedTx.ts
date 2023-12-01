@@ -34,6 +34,12 @@ export const updateMinedTx = async () => {
                 return undefined;
               }
 
+              const response = (await sdk
+                .getProvider()
+                .getTransaction(
+                  tx.transactionHash!,
+                )) as ethers.providers.TransactionResponse | null;
+
               // Get the timestamp when the transaction was mined
               const minedAt = new Date(
                 (
@@ -47,6 +53,7 @@ export const updateMinedTx = async () => {
               return {
                 tx,
                 receipt,
+                response,
                 minedAt,
               };
             }),
@@ -57,6 +64,7 @@ export const updateMinedTx = async () => {
         }) as {
           tx: Transactions;
           receipt: ethers.providers.TransactionReceipt;
+          response: ethers.providers.TransactionResponse;
           minedAt: Date;
         }[];
 
@@ -68,12 +76,20 @@ export const updateMinedTx = async () => {
               queueId: txWithReceipt.tx.id,
               data: {
                 status: TransactionStatusEnum.Mined,
-                gasPrice: txWithReceipt.receipt.effectiveGasPrice.toString(),
-                blockNumber: txWithReceipt.receipt.blockNumber,
                 minedAt: txWithReceipt.minedAt,
+                blockNumber: txWithReceipt.receipt.blockNumber,
                 onChainTxStatus: txWithReceipt.receipt.status,
+                transactionHash: txWithReceipt.receipt.transactionHash,
+                transactionType: txWithReceipt.receipt.type,
+                gasPrice: txWithReceipt.receipt.effectiveGasPrice.toString(),
+                gasLimit: txWithReceipt.response?.gasLimit?.toString(),
+                maxFeePerGas: txWithReceipt.response?.maxFeePerGas?.toString(),
+                maxPriorityFeePerGas:
+                  txWithReceipt.response?.maxPriorityFeePerGas?.toString(),
+                nonce: txWithReceipt.response?.nonce,
               },
             });
+
             logger.worker.info(
               `[Transaction] [${txWithReceipt.tx.id}] Updated with receipt`,
             );
