@@ -104,6 +104,7 @@ export const retryTx = async () => {
             res,
             sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
             retryCount: tx.retryCount + 1,
+            transactionHash: res.hash,
           },
         });
 
