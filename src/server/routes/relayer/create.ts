@@ -11,9 +11,32 @@ const BodySchema = Type.Object({
     description:
       "The address of the backend wallet to use for relaying transactions.",
   }),
-  allowedContracts: Type.Optional(Type.Array(Type.String())),
-  allowedForwarders: Type.Optional(Type.Array(Type.String())),
+  allowedContracts: Type.Array(
+    Type.String({
+      minLength: 42,
+      maxLength: 42,
+    }),
+  ),
+
+  allowedForwarders: Type.Optional(
+    Type.Array(
+      Type.String({
+        minLength: 42,
+        maxLength: 42,
+      }),
+    ),
+  ),
 });
+
+BodySchema.examples = [
+  {
+    name: "My relayer",
+    chain: "mainnet",
+    backendWalletAddress: "0",
+    allowedContracts: ["0x1234...."],
+    allowedForwarders: ["0x1234..."],
+  },
+];
 
 const ReplySchema = Type.Object({
   result: Type.Object({

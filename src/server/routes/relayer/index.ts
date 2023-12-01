@@ -159,6 +159,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
         const { request, signature } = req.body;
         const { v, r, s } = utils.splitSignature(signature);
 
+        // TODO: Remaining for backwards compatibility, but should enforce in the future
         if (
           relayer.allowedContracts &&
           !relayer.allowedContracts.includes(request.to.toLowerCase())
@@ -213,6 +214,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
         });
       }
 
+      // TODO: Remaining for backwards compatibility, but should enforce in the future
       if (
         relayer.allowedContracts &&
         !relayer.allowedContracts.includes(request.to.toLowerCase())
