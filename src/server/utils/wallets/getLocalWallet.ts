@@ -24,13 +24,15 @@ export const getLocalWallet = async ({
     chain = getChainByChainId(chainId);
   } catch (error) {}
 
-  if (!chain) {
-    if (CHAIN_OVERRIDES) {
-      const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
-      chain = parsedChainOverrides.find(
-        (chainData: Static<typeof networkResponseSchema>) =>
-          chainData.chainId === chainId,
-      );
+  if (CHAIN_OVERRIDES) {
+    const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
+    const overrideChain = parsedChainOverrides.find(
+      (chainData: Static<typeof networkResponseSchema>) =>
+        chainData.chainId === chainId,
+    );
+
+    if (overrideChain) {
+      chain = overrideChain;
     }
   }
 
