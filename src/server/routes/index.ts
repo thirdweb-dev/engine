@@ -93,6 +93,7 @@ import { getAllRelayers } from "./relayer/getAll";
 import { revokeRelayer } from "./relayer/revoke";
 
 // System
+import { getAllTransactions } from "./backend-wallet/getTransactions";
 import { healthCheck } from "./health";
 import { home } from "./home";
 import { updateRelayer } from "./relayer/update";
@@ -108,6 +109,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(sendTransaction);
   await fastify.register(signTransaction);
   await fastify.register(signMessage);
+  await fastify.register(getAllTransactions);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);
