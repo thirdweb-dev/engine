@@ -230,19 +230,22 @@ export const processTx = async () => {
           }
 
           // Send all the transactions as one batch request
-          const res = await fetch(provider.connection.url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(provider.connection.url.includes("rpc.thirdweb.com")
-                ? {
-                    "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
-                  }
-                : {}),
-            },
-            body: JSON.stringify(rpcRequests),
-          });
-          const rpcResponses: RpcResponse[] = await res.json();
+          let rpcResponses: RpcResponse[] = [];
+          if (rpcRequests.length > 0) {
+            const res = await fetch(provider.connection.url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(provider.connection.url.includes("rpc.thirdweb.com")
+                  ? {
+                      "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+                    }
+                  : {}),
+              },
+              body: JSON.stringify(rpcRequests),
+            });
+            rpcResponses = await res.json();
+          }
 
           // Check how many transactions succeeded and increment nonce
           const incrementNonce = rpcResponses.reduce((acc, curr) => {

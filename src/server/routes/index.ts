@@ -98,6 +98,7 @@ import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
 import { healthCheck } from "./health";
 import { home } from "./home";
 import { updateRelayer } from "./relayer/update";
+import { checkGroupStatus } from "./transaction/group";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -186,6 +187,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkTxStatus);
   await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
+  await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
   await fastify.register(cancelTransaction);
 
