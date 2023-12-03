@@ -178,27 +178,55 @@ export const processTx = async () => {
           }
 
           // Group all transactions into a single batch rpc request
+          let i = 0;
           const rpcRequests = [];
-          for (const i in txsToSend) {
-            const tx = txsToSend[i];
+          const preparedTxs: typeof txsToSend = [];
+          for (const tx of txsToSend) {
             const nonce = startNonce.add(i);
 
-            const txRequest = await signer.populateTransaction({
-              to: tx.toAddress!,
-              from: tx.fromAddress!,
-              data: tx.data!,
-              value: tx.value!,
-              nonce,
-              ...gasOverrides,
-            });
-            const signature = await signer.signTransaction(txRequest);
+            try {
+              const txRequest = await signer.populateTransaction({
+                to: tx.toAddress!,
+                from: tx.fromAddress!,
+                data: tx.data!,
+                value: tx.value!,
+                nonce,
+                ...gasOverrides,
+              });
+              const signature = await signer.signTransaction(txRequest);
 
-            rpcRequests.push({
-              id: i,
-              jsonrpc: "2.0",
-              method: "eth_sendRawTransaction",
-              params: [signature],
-            });
+              rpcRequests.push({
+                id: i,
+                jsonrpc: "2.0",
+                method: "eth_sendRawTransaction",
+                params: [signature],
+              });
+
+              preparedTxs.push(tx);
+
+              i++;
+            } catch (err: any) {
+              logger.worker.warn(
+                `[Transaction] [${
+                  tx.queueId
+                }] Failed to send transaction with error - ${
+                  err?.message || err
+                }`,
+              );
+
+              await updateTx({
+                pgtx,
+                queueId: tx.queueId!,
+                data: {
+                  status: TransactionStatusEnum.Errored,
+                  errorMessage:
+                    err?.message ||
+                    err?.toString() ||
+                    `Failed to handle transaction`,
+                },
+              });
+              sendWebhookForQueueIds.push(tx.queueId!);
+            }
           }
 
           // Send all the transactions as one batch request
@@ -231,7 +259,7 @@ export const processTx = async () => {
           // Update transaction records with updated data
           const txStatuses: SentTxStatus[] = await Promise.all(
             rpcResponses.map(async (rpcRes, i) => {
-              const tx = txsToSend[i];
+              const tx = preparedTxs[i];
               if (rpcRes.result) {
                 const txHash = rpcRes.result;
 
