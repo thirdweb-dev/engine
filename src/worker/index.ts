@@ -1,3 +1,4 @@
+import { logger } from "../utils/logger";
 import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
@@ -22,3 +23,13 @@ const worker = async () => {
 };
 
 worker();
+
+process.on("unhandledRejection", (err) => {
+  logger.worker.error(`unhandledRejection - `, err);
+  worker();
+});
+
+process.on("uncaughtException", (err) => {
+  logger.worker.error(`uncaughtException - `, err);
+  worker();
+});
