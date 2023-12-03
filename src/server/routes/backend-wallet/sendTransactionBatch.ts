@@ -29,6 +29,7 @@ const BodySchema = Type.Array(
 
 const ReplySchema = Type.Object({
   result: Type.Object({
+    groupId: Type.String(),
     queueIds: Type.Array(Type.String()),
   }),
 });
@@ -61,7 +62,9 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
       const fromAddress = req.headers["x-backend-wallet-address"] as string;
       const chainId = await getChainIdFromChain(chain);
 
+      const groupId = uuidv4();
       const data = txs.map((tx) => ({
+        groupId,
         id: uuidv4(),
         chainId: chainId.toString(),
         fromAddress,
@@ -75,6 +78,7 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
 
       res.status(StatusCodes.OK).send({
         result: {
+          groupId,
           queueIds: data.map((tx) => tx.id.toString()),
         },
       });

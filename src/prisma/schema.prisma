@@ -96,6 +96,7 @@ model WalletNonce {
 
 model Transactions {
   id                        String    @id @default(uuid()) @map("id")
+  groupId                   String?   @map("groupId")
   chainId                   String    @map("chainId")
   // Shared
   data                      String?   @map("data")
@@ -110,7 +111,7 @@ model Transactions {
   gasPrice                  String?   @map("gasPrice")
   transactionType           Int?      @map("transactionType")
   transactionHash           String?   @map("transactionHash")
-  onChainTxStatus             Int?      @map("onChainTxStatus")
+  onChainTxStatus           Int?      @map("onChainTxStatus")
   // User Operation
   signerAddress             String?   @map("signerAddress")
   accountAddress            String?   @map("accountAddress")
