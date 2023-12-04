@@ -189,21 +189,6 @@ export const processTx = async () => {
             const nonce = startNonce.add(sentTxCount);
 
             try {
-              logger.worker.info(
-                `maxFeePerGas ${
-                  gasOverrides.maxFeePerGas !== undefined
-                    ? formatUnits(gasOverrides.maxFeePerGas, "gwei")
-                    : undefined
-                }`,
-              );
-              logger.worker.info(
-                `maxPriorityFeePerGas ${
-                  gasOverrides.maxPriorityFeePerGas !== undefined
-                    ? formatUnits(gasOverrides.maxPriorityFeePerGas, "gwei")
-                    : undefined
-                }`,
-              );
-
               const txRequest = await signer.populateTransaction({
                 to: tx.toAddress!,
                 from: tx.fromAddress!,
@@ -212,6 +197,23 @@ export const processTx = async () => {
                 nonce,
                 ...gasOverrides,
               });
+
+              logger.worker.info(
+                `[Transaction] [${tx.queueId}] Using maxFeePerGas ${
+                  txRequest.maxFeePerGas !== undefined
+                    ? formatUnits(txRequest.maxFeePerGas, "gwei")
+                    : undefined
+                }, maxPriorityFeePerGas ${
+                  txRequest.maxPriorityFeePerGas !== undefined
+                    ? formatUnits(txRequest.maxPriorityFeePerGas, "gwei")
+                    : undefined
+                }, gasPrice ${
+                  txRequest.gasPrice !== undefined
+                    ? formatUnits(txRequest.gasPrice, "gwei")
+                    : undefined
+                }`,
+              );
+
               const signature = await signer.signTransaction(txRequest);
 
               logger.worker.info(
