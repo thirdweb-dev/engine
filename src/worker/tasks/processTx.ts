@@ -2,7 +2,6 @@ import { Static } from "@sinclair/typebox";
 import {
   StaticJsonRpcBatchProvider,
   getDefaultGasOverrides,
-  toEther,
 } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
@@ -190,24 +189,17 @@ export const processTx = async () => {
             const nonce = startNonce.add(sentTxCount);
 
             try {
-              logger.worker.error(
+              logger.worker.info(
                 `maxFeePerGas ${
                   gasOverrides.maxFeePerGas !== undefined
                     ? formatUnits(gasOverrides.maxFeePerGas, "gwei")
                     : undefined
                 }`,
               );
-              logger.worker.error(
+              logger.worker.info(
                 `maxPriorityFeePerGas ${
                   gasOverrides.maxPriorityFeePerGas !== undefined
                     ? formatUnits(gasOverrides.maxPriorityFeePerGas, "gwei")
-                    : undefined
-                }`,
-              );
-              logger.worker.error(
-                `gasPrice ${
-                  gasOverrides.gasPrice !== undefined
-                    ? toEther(gasOverrides.gasPrice)
                     : undefined
                 }`,
               );
