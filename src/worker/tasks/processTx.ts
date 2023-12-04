@@ -2,10 +2,12 @@ import { Static } from "@sinclair/typebox";
 import {
   StaticJsonRpcBatchProvider,
   getDefaultGasOverrides,
+  toEther,
 } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
+import { formatUnits } from "ethers/lib/utils";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
@@ -188,6 +190,28 @@ export const processTx = async () => {
             const nonce = startNonce.add(sentTxCount);
 
             try {
+              logger.worker.error(
+                `maxFeePerGas ${
+                  gasOverrides.maxFeePerGas !== undefined
+                    ? formatUnits(gasOverrides.maxFeePerGas, "gwei")
+                    : undefined
+                }`,
+              );
+              logger.worker.error(
+                `maxPriorityFeePerGas ${
+                  gasOverrides.maxPriorityFeePerGas !== undefined
+                    ? formatUnits(gasOverrides.maxPriorityFeePerGas, "gwei")
+                    : undefined
+                }`,
+              );
+              logger.worker.error(
+                `gasPrice ${
+                  gasOverrides.gasPrice !== undefined
+                    ? toEther(gasOverrides.gasPrice)
+                    : undefined
+                }`,
+              );
+
               const txRequest = await signer.populateTransaction({
                 to: tx.toAddress!,
                 from: tx.fromAddress!,
