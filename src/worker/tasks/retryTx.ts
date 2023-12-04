@@ -81,17 +81,17 @@ export const retryTx = async () => {
             `[Transaction] [${tx.id}] Failed to retry with error - ${err}`,
           );
 
-          await updateTx({
-            pgtx,
-            queueId: tx.id,
-            data: {
-              status: TransactionStatusEnum.Errored,
-              errorMessage:
-                err?.message ||
-                err?.toString() ||
-                `Failed to handle transaction`,
-            },
-          });
+          // await updateTx({
+          //   pgtx,
+          //   queueId: tx.id,
+          //   data: {
+          //     status: TransactionStatusEnum.Errored,
+          //     errorMessage:
+          //       err?.message ||
+          //       err?.toString() ||
+          //       `Failed to handle transaction`,
+          //   },
+          // });
 
           return;
         }
@@ -108,7 +108,9 @@ export const retryTx = async () => {
           },
         });
 
-        logger.worker.info(`[Transaction] [${tx.id}] Retried`);
+        logger.worker.info(
+          `[Transaction] [${tx.id}] Retried with hash ${res.hash} for Nonce ${res.nonce}`,
+        );
       },
       {
         timeout: 5 * 60000,
