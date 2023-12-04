@@ -178,11 +178,14 @@ export const processTx = async () => {
           }
 
           // Group all transactions into a single batch rpc request
-          let i = 0;
-          const rpcRequests = [];
-          const preparedTxs: typeof txsToSend = [];
+          let sentTxCount = 0;
+          const rpcResponses: {
+            queueId: string;
+            tx: ethers.providers.TransactionRequest;
+            res: RpcResponse;
+          }[] = [];
           for (const tx of txsToSend) {
-            const nonce = startNonce.add(i);
+            const nonce = startNonce.add(sentTxCount);
 
             try {
               const txRequest = await signer.populateTransaction({
@@ -195,21 +198,38 @@ export const processTx = async () => {
               });
               const signature = await signer.signTransaction(txRequest);
 
-              rpcRequests.push({
-                id: i,
-                jsonrpc: "2.0",
-                method: "eth_sendRawTransaction",
-                params: [signature],
+              const res = await fetch(provider.connection.url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...(provider.connection.url.includes("rpc.thirdweb.com")
+                    ? {
+                        "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+                      }
+                    : {}),
+                },
+                body: JSON.stringify({
+                  id: 0,
+                  jsonrpc: "2.0",
+                  method: "eth_sendRawTransaction",
+                  params: [signature],
+                }),
+              });
+              const rpcResponse = (await res.json()) as RpcResponse;
+              rpcResponses.push({
+                queueId: tx.queueId!,
+                tx: txRequest,
+                res: rpcResponse,
               });
 
-              preparedTxs.push(tx);
-
-              i++;
+              if (!rpcResponse.error && !!rpcResponse.result) {
+                sentTxCount++;
+              }
             } catch (err: any) {
               logger.worker.warn(
                 `[Transaction] [${
                   tx.queueId
-                }] Failed to send transaction with error - ${
+                }] Failed to build transaction with error - ${
                   err?.message || err
                 }`,
               );
@@ -229,27 +249,9 @@ export const processTx = async () => {
             }
           }
 
-          // Send all the transactions as one batch request
-          let rpcResponses: RpcResponse[] = [];
-          if (rpcRequests.length > 0) {
-            const res = await fetch(provider.connection.url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...(provider.connection.url.includes("rpc.thirdweb.com")
-                  ? {
-                      "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
-                    }
-                  : {}),
-              },
-              body: JSON.stringify(rpcRequests),
-            });
-            rpcResponses = await res.json();
-          }
-
           // Check how many transactions succeeded and increment nonce
           const incrementNonce = rpcResponses.reduce((acc, curr) => {
-            return curr.result && !curr.error ? acc + 1 : acc;
+            return curr.res.result && !curr.res.error ? acc + 1 : acc;
           }, 0);
 
           await updateWalletNonce({
@@ -261,41 +263,37 @@ export const processTx = async () => {
 
           // Update transaction records with updated data
           const txStatuses: SentTxStatus[] = await Promise.all(
-            rpcResponses.map(async (rpcRes, i) => {
-              const tx = preparedTxs[i];
-              if (rpcRes.result) {
-                const txHash = rpcRes.result;
-
+            rpcResponses.map(async ({ queueId, tx, res }) => {
+              if (res.result) {
+                const txHash = res.result;
                 const txRes = (await provider.getTransaction(
                   txHash,
                 )) as ethers.providers.TransactionResponse | null;
 
                 logger.worker.info(
-                  `[Transaction] [${tx.queueId}] Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
+                  `[Transaction] [${queueId}] Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
                 );
 
                 return {
                   transactionHash: txHash,
                   status: TransactionStatusEnum.Submitted,
-                  queueId: tx.queueId!,
+                  queueId: queueId,
                   res: txRes,
                   sentAtBlockNumber: await provider.getBlockNumber(),
                 };
               } else {
                 logger.worker.warn(
-                  `[Transaction] [${
-                    tx.queueId
-                  }] Failed to send with error - ${JSON.stringify(
-                    rpcRes.error,
+                  `[Transaction] [${queueId}] Failed to send with error - ${JSON.stringify(
+                    res.error,
                   )}`,
                 );
 
                 return {
                   status: TransactionStatusEnum.Errored,
-                  queueId: tx.queueId!,
+                  queueId: queueId,
                   errorMessage:
-                    rpcRes.error?.message ||
-                    rpcRes.error?.toString() ||
+                    res.error?.message ||
+                    res.error?.toString() ||
                     `Failed to handle transaction`,
                 };
               }
