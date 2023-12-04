@@ -2913,29 +2913,6 @@
     yaml "^2.3.1"
     zod "^3.22.3"
 
-"@thirdweb-dev/sdk@4.0.17":
-  version "4.0.17"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.17.tgz#213aa8d81a50d3b827d5691b02fe8cdedf8cc3d9"
-  integrity sha512-1OZiOSRmNsrMzkzGcoDoUnUlUUFCJwjDqFTQACgoD/LL0zj4X+W6IZ9qngMsJ98tU13ZHpYWwSkI/flzg5Jzkg==
-  dependencies:
-    "@thirdweb-dev/chains" "0.1.59"
-    "@thirdweb-dev/contracts-js" "1.3.16"
-    "@thirdweb-dev/crypto" "0.2.0"
-    "@thirdweb-dev/generated-abis" "0.0.1"
-    "@thirdweb-dev/merkletree" "0.2.0"
-    "@thirdweb-dev/storage" "2.0.5"
-    abitype "^0.2.5"
-    bn.js "^5.2.1"
-    bs58 "^5.0.0"
-    buffer "^6.0.3"
-    eventemitter3 "^5.0.1"
-    fast-deep-equal "^3.1.3"
-    tiny-invariant "^1.2.0"
-    tweetnacl "^1.0.3"
-    uuid "^9.0.1"
-    yaml "^2.3.1"
-    zod "^3.22.3"
-
 "@thirdweb-dev/sdk@4.0.7-nightly-c238fde8-20231020022304":
   version "4.0.7-nightly-c238fde8-20231020022304"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.7-nightly-c238fde8-20231020022304.tgz#dbd3a99fd3c2d5b66c916353e98fd13d670201a3"
@@ -2952,6 +2929,29 @@
     eventemitter3 "^5.0.1"
     fast-deep-equal "^3.1.3"
     merkletreejs "^0.2.24"
+    tiny-invariant "^1.2.0"
+    tweetnacl "^1.0.3"
+    uuid "^9.0.1"
+    yaml "^2.3.1"
+    zod "^3.22.3"
+
+"@thirdweb-dev/sdk@^4.0.17":
+  version "4.0.17"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.17.tgz#213aa8d81a50d3b827d5691b02fe8cdedf8cc3d9"
+  integrity sha512-1OZiOSRmNsrMzkzGcoDoUnUlUUFCJwjDqFTQACgoD/LL0zj4X+W6IZ9qngMsJ98tU13ZHpYWwSkI/flzg5Jzkg==
+  dependencies:
+    "@thirdweb-dev/chains" "0.1.59"
+    "@thirdweb-dev/contracts-js" "1.3.16"
+    "@thirdweb-dev/crypto" "0.2.0"
+    "@thirdweb-dev/generated-abis" "0.0.1"
+    "@thirdweb-dev/merkletree" "0.2.0"
+    "@thirdweb-dev/storage" "2.0.5"
+    abitype "^0.2.5"
+    bn.js "^5.2.1"
+    bs58 "^5.0.0"
+    buffer "^6.0.3"
+    eventemitter3 "^5.0.1"
+    fast-deep-equal "^3.1.3"
     tiny-invariant "^1.2.0"
     tweetnacl "^1.0.3"
     uuid "^9.0.1"
