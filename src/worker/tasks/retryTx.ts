@@ -81,18 +81,6 @@ export const retryTx = async () => {
             `[Transaction] [${tx.id}] Failed to retry with error - ${err}`,
           );
 
-          // await updateTx({
-          //   pgtx,
-          //   queueId: tx.id,
-          //   data: {
-          //     status: TransactionStatusEnum.Errored,
-          //     errorMessage:
-          //       err?.message ||
-          //       err?.toString() ||
-          //       `Failed to handle transaction`,
-          //   },
-          // });
-
           return;
         }
 
