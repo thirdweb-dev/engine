@@ -179,8 +179,11 @@ export const processTx = async () => {
 
           // Group all transactions into a single batch rpc request
           let sentTxCount = 0;
-          const rpcResponses: RpcResponse[] = [];
-          const preparedTxs: typeof txsToSend = [];
+          const rpcResponses: {
+            queueId: string;
+            tx: ethers.providers.TransactionRequest;
+            res: RpcResponse;
+          }[] = [];
           for (const tx of txsToSend) {
             const nonce = startNonce.add(sentTxCount);
 
@@ -213,8 +216,11 @@ export const processTx = async () => {
                 }),
               });
               const rpcResponse = (await res.json()) as RpcResponse;
-              rpcResponses.push(rpcResponse);
-              preparedTxs.push(tx);
+              rpcResponses.push({
+                queueId: tx.queueId!,
+                tx: txRequest,
+                res: rpcResponse,
+              });
 
               if (!rpcResponse.error && !!rpcResponse.result) {
                 sentTxCount++;
@@ -245,7 +251,7 @@ export const processTx = async () => {
 
           // Check how many transactions succeeded and increment nonce
           const incrementNonce = rpcResponses.reduce((acc, curr) => {
-            return curr.result && !curr.error ? acc + 1 : acc;
+            return curr.res.result && !curr.res.error ? acc + 1 : acc;
           }, 0);
 
           await updateWalletNonce({
@@ -257,41 +263,37 @@ export const processTx = async () => {
 
           // Update transaction records with updated data
           const txStatuses: SentTxStatus[] = await Promise.all(
-            rpcResponses.map(async (rpcRes, i) => {
-              const tx = preparedTxs[i];
-              if (rpcRes.result) {
-                const txHash = rpcRes.result;
-
+            rpcResponses.map(async ({ queueId, tx, res }) => {
+              if (res.result) {
+                const txHash = res.result;
                 const txRes = (await provider.getTransaction(
                   txHash,
                 )) as ethers.providers.TransactionResponse | null;
 
                 logger.worker.info(
-                  `[Transaction] [${tx.queueId}] Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
+                  `[Transaction] [${queueId}] Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
                 );
 
                 return {
                   transactionHash: txHash,
                   status: TransactionStatusEnum.Submitted,
-                  queueId: tx.queueId!,
+                  queueId: queueId,
                   res: txRes,
                   sentAtBlockNumber: await provider.getBlockNumber(),
                 };
               } else {
                 logger.worker.warn(
-                  `[Transaction] [${
-                    tx.queueId
-                  }] Failed to send with error - ${JSON.stringify(
-                    rpcRes.error,
+                  `[Transaction] [${queueId}] Failed to send with error - ${JSON.stringify(
+                    res.error,
                   )}`,
                 );
 
                 return {
                   status: TransactionStatusEnum.Errored,
-                  queueId: tx.queueId!,
+                  queueId: queueId,
                   errorMessage:
-                    rpcRes.error?.message ||
-                    rpcRes.error?.toString() ||
+                    res.error?.message ||
+                    res.error?.toString() ||
                     `Failed to handle transaction`,
                 };
               }
