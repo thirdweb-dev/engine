@@ -6,6 +6,7 @@ import {
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
+import { formatUnits } from "ethers/lib/utils";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
@@ -188,6 +189,21 @@ export const processTx = async () => {
             const nonce = startNonce.add(sentTxCount);
 
             try {
+              logger.worker.info(
+                `maxFeePerGas ${
+                  gasOverrides.maxFeePerGas !== undefined
+                    ? formatUnits(gasOverrides.maxFeePerGas, "gwei")
+                    : undefined
+                }`,
+              );
+              logger.worker.info(
+                `maxPriorityFeePerGas ${
+                  gasOverrides.maxPriorityFeePerGas !== undefined
+                    ? formatUnits(gasOverrides.maxPriorityFeePerGas, "gwei")
+                    : undefined
+                }`,
+              );
+
               const txRequest = await signer.populateTransaction({
                 to: tx.toAddress!,
                 from: tx.fromAddress!,
