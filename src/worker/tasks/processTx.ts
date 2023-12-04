@@ -178,11 +178,11 @@ export const processTx = async () => {
           }
 
           // Group all transactions into a single batch rpc request
-          let i = 0;
-          const rpcRequests = [];
+          let sentTxCount = 0;
+          const rpcResponses: RpcResponse[] = [];
           const preparedTxs: typeof txsToSend = [];
           for (const tx of txsToSend) {
-            const nonce = startNonce.add(i);
+            const nonce = startNonce.add(sentTxCount);
 
             try {
               const txRequest = await signer.populateTransaction({
@@ -195,21 +195,35 @@ export const processTx = async () => {
               });
               const signature = await signer.signTransaction(txRequest);
 
-              rpcRequests.push({
-                id: i,
-                jsonrpc: "2.0",
-                method: "eth_sendRawTransaction",
-                params: [signature],
+              const res = await fetch(provider.connection.url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...(provider.connection.url.includes("rpc.thirdweb.com")
+                    ? {
+                        "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+                      }
+                    : {}),
+                },
+                body: JSON.stringify({
+                  id: 0,
+                  jsonrpc: "2.0",
+                  method: "eth_sendRawTransaction",
+                  params: [signature],
+                }),
               });
-
+              const rpcResponse = (await res.json()) as RpcResponse;
+              rpcResponses.push(rpcResponse);
               preparedTxs.push(tx);
 
-              i++;
+              if (!rpcResponse.error && !!rpcResponse.result) {
+                sentTxCount++;
+              }
             } catch (err: any) {
               logger.worker.warn(
                 `[Transaction] [${
                   tx.queueId
-                }] Failed to send transaction with error - ${
+                }] Failed to build transaction with error - ${
                   err?.message || err
                 }`,
               );
@@ -227,24 +241,6 @@ export const processTx = async () => {
               });
               sendWebhookForQueueIds.push(tx.queueId!);
             }
-          }
-
-          // Send all the transactions as one batch request
-          let rpcResponses: RpcResponse[] = [];
-          if (rpcRequests.length > 0) {
-            const res = await fetch(provider.connection.url, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...(provider.connection.url.includes("rpc.thirdweb.com")
-                  ? {
-                      "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
-                    }
-                  : {}),
-              },
-              body: JSON.stringify(rpcRequests),
-            });
-            rpcResponses = await res.json();
           }
 
           // Check how many transactions succeeded and increment nonce
