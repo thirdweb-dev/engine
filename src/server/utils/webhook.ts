@@ -16,7 +16,8 @@ export const generateSignature = (
   timestamp: string,
   secret: string,
 ): string => {
-  const payload = `${timestamp}.${body}`;
+  const _body = JSON.stringify(body);
+  const payload = `${timestamp}.${_body}`;
   return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 };
 
