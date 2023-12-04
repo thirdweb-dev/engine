@@ -214,6 +214,9 @@ export const processTx = async () => {
               });
               const signature = await signer.signTransaction(txRequest);
 
+              logger.worker.info(
+                `[Transaction] [${tx.queueId}] Sending transaction to ${provider.connection.url}`,
+              );
               const res = await fetch(provider.connection.url, {
                 method: "POST",
                 headers: {
