@@ -271,14 +271,8 @@ export const processTx = async () => {
                 )) as ethers.providers.TransactionResponse | null;
 
                 logger.worker.info(
-                  `[Transaction] [${tx.queueId}] Sent transaction with hash ${txHash}`,
+                  `[Transaction] [${tx.queueId}] Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
                 );
-
-                if (!!txRes) {
-                  logger.worker.debug(
-                    `[Transaction] [${tx.queueId}] Using nonce ${txRes.nonce}`,
-                  );
-                }
 
                 return {
                   transactionHash: txHash,
