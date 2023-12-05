@@ -198,6 +198,12 @@ export const processTx = async () => {
                 ...gasOverrides,
               });
 
+              // TODO: We need to target specific cases here
+              // Bump gas limit to avoid occasional out of gas errors
+              txRequest.gasLimit = txRequest.gasLimit
+                ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
+                : undefined;
+
               logger.worker.info(
                 `[Transaction] [${tx.queueId}] Using maxFeePerGas ${
                   txRequest.maxFeePerGas !== undefined
