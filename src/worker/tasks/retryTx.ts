@@ -58,6 +58,7 @@ export const retryTx = async () => {
           logger.worker.warn(
             `[Transaction] [${tx.id}] ${tx.chainId} chain gas price is higher than maximum threshold.`,
           );
+
           return;
         }
 
@@ -80,6 +81,18 @@ export const retryTx = async () => {
           logger.worker.warn(
             `[Transaction] [${tx.id}] Failed to retry with error - ${err}`,
           );
+
+          await updateTx({
+            pgtx,
+            queueId: tx.id,
+            data: {
+              status: TransactionStatusEnum.Errored,
+              errorMessage:
+                err?.message ||
+                err?.toString() ||
+                `Failed to handle transaction`,
+            },
+          });
 
           return;
         }
