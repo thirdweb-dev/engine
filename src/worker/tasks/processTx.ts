@@ -104,7 +104,6 @@ export const processTx = async () => {
             parseInt(key.split("-")[1]),
           ];
 
-          // TODO: We need to target specific cases
           try {
             const sdk = await getSdk({
               pgtx,
