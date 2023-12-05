@@ -361,18 +361,24 @@ export const processTx = async () => {
                 sendWebhookForQueueIds.push(tx.queueId!);
               }),
             );
-          } catch {
+          } catch (err: any) {
             await Promise.all(
               txsToSend.map(async (tx) => {
                 logger.worker.error(
-                  `[Transaction] [${tx.queueId}] Failed to process batch of transactions for wallet '${walletAddress}' on chain '${chainId}'`,
+                  `[Transaction] [${
+                    tx.queueId
+                  }] Failed to process batch of transactions for wallet '${walletAddress}' on chain '${chainId}' - ${
+                    err || err?.message
+                  }`,
                 );
                 await updateTx({
                   pgtx,
                   queueId: tx.queueId!,
                   data: {
                     status: TransactionStatusEnum.Errored,
-                    errorMessage: `[Worker] [Error] Failed to process batch of transactions for wallet`,
+                    errorMessage: `[Worker] [Error] Failed to process batch of transactions for wallet - ${
+                      err || err?.message
+                    }`,
                   },
                 });
               }),
