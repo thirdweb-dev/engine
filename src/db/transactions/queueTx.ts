@@ -8,6 +8,7 @@ import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
+import { getWalletDetails } from "../wallets/getWalletDetails";
 
 interface QueueTxParams {
   pgtx?: PrismaTransaction;
@@ -40,6 +41,16 @@ export const queueTx = async ({
 
   const prisma = getPrismaWithPostgresTx(pgtx);
 
+  const fromAddress = (await tx.getSignerAddress()).toLowerCase();
+  const walletDetails = await getWalletDetails({
+    pgtx,
+    address: fromAddress,
+  });
+
+  if (!walletDetails) {
+    throw new Error(`No configured wallet found with address ${fromAddress}`);
+  }
+
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
   const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
   const txTableData = {
@@ -61,7 +72,7 @@ export const queueTx = async ({
         signerAddress: await (
           tx.getSigner as ERC4337EthersSigner
         ).originalSigner.getAddress(),
-        accountAddress: (await tx.getSignerAddress()).toLowerCase(),
+        accountAddress: fromAddress,
         // Fields needed to send user operation
         target: tx.getTarget().toLowerCase(),
       },
@@ -73,7 +84,7 @@ export const queueTx = async ({
       data: {
         ...txTableData,
         // Fields needed to send transaction
-        fromAddress: (await tx.getSignerAddress()).toLowerCase(),
+        fromAddress,
         toAddress: tx.getTarget().toLowerCase(),
       },
     });

@@ -104,274 +104,295 @@ export const processTx = async () => {
             parseInt(key.split("-")[1]),
           ];
 
-          const sdk = await getSdk({
-            pgtx,
-            chainId,
-            walletAddress,
-          });
+          // TODO: We need to target specific cases
+          try {
+            const sdk = await getSdk({
+              pgtx,
+              chainId,
+              walletAddress,
+            });
 
-          const [signer, provider] = await Promise.all([
-            sdk.getSigner(),
-            sdk.getProvider() as StaticJsonRpcBatchProvider,
-          ]);
+            const [signer, provider] = await Promise.all([
+              sdk.getSigner(),
+              sdk.getProvider() as StaticJsonRpcBatchProvider,
+            ]);
 
-          if (!signer || !provider) {
-            return;
-          }
+            if (!signer || !provider) {
+              return;
+            }
 
-          // - For each wallet address, check the nonce in database and the mempool
-          const [walletBalance, mempoolNonceData, dbNonceData, gasOverrides] =
-            await Promise.all([
-              sdk.wallet.balance(),
-              sdk.wallet.getNonce("pending"),
-              getWalletNonce({
+            // - For each wallet address, check the nonce in database and the mempool
+            const [walletBalance, mempoolNonceData, dbNonceData, gasOverrides] =
+              await Promise.all([
+                sdk.wallet.balance(),
+                sdk.wallet.getNonce("pending"),
+                getWalletNonce({
+                  pgtx,
+                  chainId,
+                  address: walletAddress,
+                }),
+                getDefaultGasOverrides(provider),
+              ]);
+
+            // Wallet Balance Webhook
+            if (
+              BigNumber.from(walletBalance.value).lte(
+                BigNumber.from(config.minWalletBalance),
+              )
+            ) {
+              const message =
+                "Wallet balance is below minimum threshold. Please top up your wallet.";
+              const walletBalanceData: WalletBalanceWebhookSchema = {
+                walletAddress,
+                minimumBalance: ethers.utils.formatEther(
+                  config.minWalletBalance,
+                ),
+                currentBalance: walletBalance.displayValue,
+                chainId,
+                message,
+              };
+
+              await sendBalanceWebhook(walletBalanceData);
+
+              logger.worker.warn(
+                `[Low Wallet Balance] [${walletAddress}]: ` + message,
+              );
+            }
+
+            if (!dbNonceData) {
+              logger.worker.error(
+                `Could not find nonce or details for wallet ${walletAddress} on chain ${chainId}`,
+              );
+            }
+
+            // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
+            let startNonce: BigNumber;
+            const mempoolNonce = BigNumber.from(mempoolNonceData);
+            const dbNonce = BigNumber.from(dbNonceData?.nonce || 0);
+            if (mempoolNonce.gt(dbNonce)) {
+              await updateWalletNonce({
                 pgtx,
                 chainId,
                 address: walletAddress,
-              }),
-              getDefaultGasOverrides(provider),
-            ]);
-
-          // Wallet Balance Webhook
-          if (
-            BigNumber.from(walletBalance.value).lte(
-              BigNumber.from(config.minWalletBalance),
-            )
-          ) {
-            const message =
-              "Wallet balance is below minimum threshold. Please top up your wallet.";
-            const walletBalanceData: WalletBalanceWebhookSchema = {
-              walletAddress,
-              minimumBalance: ethers.utils.formatEther(config.minWalletBalance),
-              currentBalance: walletBalance.displayValue,
-              chainId,
-              message,
-            };
-
-            await sendBalanceWebhook(walletBalanceData);
-
-            logger.worker.warn(
-              `[Low Wallet Balance] [${walletAddress}]: ` + message,
-            );
-          }
-
-          if (!dbNonceData) {
-            logger.worker.error(
-              `Could not find nonce or details for wallet ${walletAddress} on chain ${chainId}`,
-            );
-          }
-
-          // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
-          let startNonce: BigNumber;
-          const mempoolNonce = BigNumber.from(mempoolNonceData);
-          const dbNonce = BigNumber.from(dbNonceData?.nonce || 0);
-          if (mempoolNonce.gt(dbNonce)) {
-            await updateWalletNonce({
-              pgtx,
-              chainId,
-              address: walletAddress,
-              nonce: mempoolNonce.toNumber(),
-            });
-
-            startNonce = mempoolNonce;
-          } else {
-            startNonce = dbNonce;
-          }
-
-          // Group all transactions into a single batch rpc request
-          let sentTxCount = 0;
-          const rpcResponses: {
-            queueId: string;
-            tx: ethers.providers.TransactionRequest;
-            res: RpcResponse;
-          }[] = [];
-          for (const tx of txsToSend) {
-            const nonce = startNonce.add(sentTxCount);
-
-            try {
-              const txRequest = await signer.populateTransaction({
-                to: tx.toAddress!,
-                from: tx.fromAddress!,
-                data: tx.data!,
-                value: tx.value!,
-                nonce,
-                ...gasOverrides,
+                nonce: mempoolNonce.toNumber(),
               });
 
-              // TODO: We need to target specific cases here
-              // Bump gas limit to avoid occasional out of gas errors
-              txRequest.gasLimit = txRequest.gasLimit
-                ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
-                : undefined;
-
-              logger.worker.info(
-                `[Transaction] [${tx.queueId}] Using maxFeePerGas ${
-                  txRequest.maxFeePerGas !== undefined
-                    ? formatUnits(txRequest.maxFeePerGas, "gwei")
-                    : undefined
-                }, maxPriorityFeePerGas ${
-                  txRequest.maxPriorityFeePerGas !== undefined
-                    ? formatUnits(txRequest.maxPriorityFeePerGas, "gwei")
-                    : undefined
-                }, gasPrice ${
-                  txRequest.gasPrice !== undefined
-                    ? formatUnits(txRequest.gasPrice, "gwei")
-                    : undefined
-                }`,
-              );
-
-              const signature = await signer.signTransaction(txRequest);
-
-              logger.worker.info(
-                `[Transaction] [${tx.queueId}] Sending transaction to ${provider.connection.url}`,
-              );
-              const res = await fetch(provider.connection.url, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  ...(provider.connection.url.includes("rpc.thirdweb.com")
-                    ? {
-                        "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
-                      }
-                    : {}),
-                },
-                body: JSON.stringify({
-                  id: 0,
-                  jsonrpc: "2.0",
-                  method: "eth_sendRawTransaction",
-                  params: [signature],
-                }),
-              });
-              const rpcResponse = (await res.json()) as RpcResponse;
-              rpcResponses.push({
-                queueId: tx.queueId!,
-                tx: txRequest,
-                res: rpcResponse,
-              });
-
-              if (!rpcResponse.error && !!rpcResponse.result) {
-                sentTxCount++;
-              }
-            } catch (err: any) {
-              logger.worker.warn(
-                `[Transaction] [${
-                  tx.queueId
-                }] Failed to build transaction with error - ${
-                  err?.message || err
-                }`,
-              );
-
-              await updateTx({
-                pgtx,
-                queueId: tx.queueId!,
-                data: {
-                  status: TransactionStatusEnum.Errored,
-                  errorMessage:
-                    err?.message ||
-                    err?.toString() ||
-                    `Failed to handle transaction`,
-                },
-              });
-              sendWebhookForQueueIds.push(tx.queueId!);
+              startNonce = mempoolNonce;
+            } else {
+              startNonce = dbNonce;
             }
-          }
 
-          // Check how many transactions succeeded and increment nonce
-          const incrementNonce = rpcResponses.reduce((acc, curr) => {
-            return curr.res.result && !curr.res.error ? acc + 1 : acc;
-          }, 0);
+            // Group all transactions into a single batch rpc request
+            let sentTxCount = 0;
+            const rpcResponses: {
+              queueId: string;
+              tx: ethers.providers.TransactionRequest;
+              res: RpcResponse;
+            }[] = [];
+            for (const tx of txsToSend) {
+              const nonce = startNonce.add(sentTxCount);
 
-          await updateWalletNonce({
-            pgtx,
-            address: walletAddress,
-            chainId,
-            nonce: startNonce.toNumber() + incrementNonce,
-          });
+              try {
+                const txRequest = await signer.populateTransaction({
+                  to: tx.toAddress!,
+                  from: tx.fromAddress!,
+                  data: tx.data!,
+                  value: tx.value!,
+                  nonce,
+                  ...gasOverrides,
+                });
 
-          // Update transaction records with updated data
-          const txStatuses: SentTxStatus[] = await Promise.all(
-            rpcResponses.map(async ({ queueId, tx, res }) => {
-              if (res.result) {
-                const txHash = res.result;
-                const txRes = (await provider.getTransaction(
-                  txHash,
-                )) as ethers.providers.TransactionResponse | null;
+                // TODO: We need to target specific cases
+                // Bump gas limit to avoid occasional out of gas errors
+                txRequest.gasLimit = txRequest.gasLimit
+                  ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
+                  : undefined;
 
                 logger.worker.info(
-                  `[Transaction] [${queueId}] Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
+                  `[Transaction] [${tx.queueId}] Using maxFeePerGas ${
+                    txRequest.maxFeePerGas !== undefined
+                      ? formatUnits(txRequest.maxFeePerGas, "gwei")
+                      : undefined
+                  }, maxPriorityFeePerGas ${
+                    txRequest.maxPriorityFeePerGas !== undefined
+                      ? formatUnits(txRequest.maxPriorityFeePerGas, "gwei")
+                      : undefined
+                  }, gasPrice ${
+                    txRequest.gasPrice !== undefined
+                      ? formatUnits(txRequest.gasPrice, "gwei")
+                      : undefined
+                  }`,
                 );
 
-                return {
-                  transactionHash: txHash,
-                  status: TransactionStatusEnum.Submitted,
-                  queueId: queueId,
-                  res: txRes,
-                  sentAtBlockNumber: await provider.getBlockNumber(),
-                };
-              } else {
+                const signature = await signer.signTransaction(txRequest);
+
+                logger.worker.info(
+                  `[Transaction] [${tx.queueId}] Sending transaction to ${provider.connection.url}`,
+                );
+                const res = await fetch(provider.connection.url, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    ...(provider.connection.url.includes("rpc.thirdweb.com")
+                      ? {
+                          "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+                        }
+                      : {}),
+                  },
+                  body: JSON.stringify({
+                    id: 0,
+                    jsonrpc: "2.0",
+                    method: "eth_sendRawTransaction",
+                    params: [signature],
+                  }),
+                });
+                const rpcResponse = (await res.json()) as RpcResponse;
+                rpcResponses.push({
+                  queueId: tx.queueId!,
+                  tx: txRequest,
+                  res: rpcResponse,
+                });
+
+                if (!rpcResponse.error && !!rpcResponse.result) {
+                  sentTxCount++;
+                }
+              } catch (err: any) {
                 logger.worker.warn(
-                  `[Transaction] [${queueId}] Failed to send with error - ${JSON.stringify(
-                    res.error,
-                  )}`,
+                  `[Transaction] [${
+                    tx.queueId
+                  }] Failed to build transaction with error - ${
+                    err?.message || err
+                  }`,
                 );
 
-                return {
-                  status: TransactionStatusEnum.Errored,
-                  queueId: queueId,
-                  errorMessage:
-                    res.error?.message ||
-                    res.error?.toString() ||
-                    `Failed to handle transaction`,
-                };
+                await updateTx({
+                  pgtx,
+                  queueId: tx.queueId!,
+                  data: {
+                    status: TransactionStatusEnum.Errored,
+                    errorMessage:
+                      err?.message ||
+                      err?.toString() ||
+                      `Failed to handle transaction`,
+                  },
+                });
+                sendWebhookForQueueIds.push(tx.queueId!);
               }
-            }),
-          );
+            }
 
-          // - After sending transactions, update database for each transaction
-          await Promise.all(
-            txStatuses.map(async (tx) => {
-              switch (tx.status) {
-                case TransactionStatusEnum.Submitted:
-                  await updateTx({
-                    pgtx,
-                    queueId: tx.queueId,
-                    data: {
-                      status: TransactionStatusEnum.Submitted,
-                      transactionHash: tx.transactionHash,
-                      res: tx.res,
-                      sentAtBlockNumber: await provider.getBlockNumber(),
-                    },
-                  });
-                  break;
-                case TransactionStatusEnum.Errored:
-                  await updateTx({
-                    pgtx,
-                    queueId: tx.queueId,
-                    data: {
-                      status: TransactionStatusEnum.Errored,
-                      errorMessage: tx.errorMessage,
-                    },
-                  });
-                  break;
-              }
-              sendWebhookForQueueIds.push(tx.queueId!);
-            }),
-          );
+            // Check how many transactions succeeded and increment nonce
+            const incrementNonce = rpcResponses.reduce((acc, curr) => {
+              return curr.res.result && !curr.res.error ? acc + 1 : acc;
+            }, 0);
+
+            await updateWalletNonce({
+              pgtx,
+              address: walletAddress,
+              chainId,
+              nonce: startNonce.toNumber() + incrementNonce,
+            });
+
+            // Update transaction records with updated data
+            const txStatuses: SentTxStatus[] = await Promise.all(
+              rpcResponses.map(async ({ queueId, tx, res }) => {
+                if (res.result) {
+                  const txHash = res.result;
+                  const txRes = (await provider.getTransaction(
+                    txHash,
+                  )) as ethers.providers.TransactionResponse | null;
+
+                  logger.worker.info(
+                    `[Transaction] [${queueId}] Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
+                  );
+
+                  return {
+                    transactionHash: txHash,
+                    status: TransactionStatusEnum.Submitted,
+                    queueId: queueId,
+                    res: txRes,
+                    sentAtBlockNumber: await provider.getBlockNumber(),
+                  };
+                } else {
+                  logger.worker.warn(
+                    `[Transaction] [${queueId}] Failed to send with error - ${JSON.stringify(
+                      res.error,
+                    )}`,
+                  );
+
+                  return {
+                    status: TransactionStatusEnum.Errored,
+                    queueId: queueId,
+                    errorMessage:
+                      res.error?.message ||
+                      res.error?.toString() ||
+                      `Failed to handle transaction`,
+                  };
+                }
+              }),
+            );
+
+            // - After sending transactions, update database for each transaction
+            await Promise.all(
+              txStatuses.map(async (tx) => {
+                switch (tx.status) {
+                  case TransactionStatusEnum.Submitted:
+                    await updateTx({
+                      pgtx,
+                      queueId: tx.queueId,
+                      data: {
+                        status: TransactionStatusEnum.Submitted,
+                        transactionHash: tx.transactionHash,
+                        res: tx.res,
+                        sentAtBlockNumber: await provider.getBlockNumber(),
+                      },
+                    });
+                    break;
+                  case TransactionStatusEnum.Errored:
+                    await updateTx({
+                      pgtx,
+                      queueId: tx.queueId,
+                      data: {
+                        status: TransactionStatusEnum.Errored,
+                        errorMessage: tx.errorMessage,
+                      },
+                    });
+                    break;
+                }
+                sendWebhookForQueueIds.push(tx.queueId!);
+              }),
+            );
+          } catch {
+            await Promise.all(
+              txsToSend.map(async (tx) => {
+                logger.worker.error(
+                  `[Transaction] [${tx.queueId}] Failed to process batch of transactions for wallet '${walletAddress}' on chain '${chainId}'`,
+                );
+                await updateTx({
+                  pgtx,
+                  queueId: tx.queueId!,
+                  data: {
+                    status: TransactionStatusEnum.Errored,
+                    errorMessage: `[Worker] [Error] Failed to process batch of transactions for wallet`,
+                  },
+                });
+              }),
+            );
+          }
         });
 
         // 5. Send all user operations in parallel with multi-dimensional nonce
         const sentUserOps = userOpsToSend.map(async (tx) => {
-          const signer = (
-            await getSdk({
-              pgtx,
-              chainId: parseInt(tx.chainId!),
-              walletAddress: tx.signerAddress!,
-              accountAddress: tx.accountAddress!,
-            })
-          ).getSigner() as ERC4337EthersSigner;
-
-          const nonce = randomNonce();
           try {
+            const signer = (
+              await getSdk({
+                pgtx,
+                chainId: parseInt(tx.chainId!),
+                walletAddress: tx.signerAddress!,
+                accountAddress: tx.accountAddress!,
+              })
+            ).getSigner() as ERC4337EthersSigner;
+
+            const nonce = randomNonce();
             const userOp = await signer.smartAccountAPI.createSignedUserOp({
               target: tx.target || "",
               data: tx.data || "0x",
