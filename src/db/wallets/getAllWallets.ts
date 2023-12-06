@@ -15,9 +15,8 @@ export const getAllWallets = async ({
 }: GetAllWalletsParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  const wallets = await prisma.walletDetails.findMany({
+  return prisma.walletDetails.findMany({
     skip: (page - 1) * limit,
     take: limit,
   });
-  return wallets;
 };
