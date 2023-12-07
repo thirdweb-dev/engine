@@ -15,7 +15,7 @@
     "dev:server": "nodemon --watch 'src/server/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./src/server/index.ts' --files src/server/index.ts",
     "dev:worker": "nodemon --watch 'src/worker/**/*.ts' --watch 'src/**/*.ts' --exec 'npx tsx ./src/worker/index.ts' --files src/worker/index.ts",
     "build": "yarn && rm -rf dist && tsc -p ./tsconfig.json --outDir dist",
-    "generate:sdk": "npx tsx ./src/scripts/generate-sdk",
+    "generate:sdk": "npx tsx ./src/scripts/generate-sdk && cd ./sdk && yarn build",
     "prisma:setup:dev": "npx tsx ./src/scripts/setup-db.ts",
     "prisma:setup:prod": "npx tsx ./dist/scripts/setup-db.js",
     "start": "yarn prisma:setup:prod && (yarn start:server & yarn start:worker)",

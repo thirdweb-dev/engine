@@ -11,5 +11,8 @@
     "@babel/preset-typescript": "^7.23.2",
     "@preconstruct/cli": "^2.8.1"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "scripts": {
+    "build": "preconstruct build"
+  }
 }
