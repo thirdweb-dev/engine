@@ -24,6 +24,7 @@ import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { randomNonce } from "../utils/nonce";
+import { getWithdrawalValue } from "../utils/withdraw";
 
 type SentTxStatus =
   | {
@@ -192,11 +193,23 @@ export const processTx = async () => {
               const nonce = startNonce.add(sentTxCount);
 
               try {
+                let value: ethers.BigNumberish = tx.value!;
+
+                if (tx.extension === "withdraw") {
+                  value = await getWithdrawalValue({
+                    provider,
+                    chainId,
+                    fromAddress: tx.fromAddress!,
+                    toAddress: tx.toAddress!,
+                    gasOverrides,
+                  });
+                }
+
                 const txRequest = await signer.populateTransaction({
                   to: tx.toAddress!,
                   from: tx.fromAddress!,
                   data: tx.data!,
-                  value: tx.value!,
+                  value,
                   nonce,
                   ...gasOverrides,
                 });

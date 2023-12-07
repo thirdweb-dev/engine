@@ -7,6 +7,7 @@ export type ContractExtension =
   | "marketplace-v3-offers"
   | "roles"
   | "none"
+  | "withdraw"
   | "deploy-prebuilt"
   | "deploy-published"
   | "account-factory"
