@@ -40,7 +40,7 @@ export const logger = ({
   error,
   data,
 }: LoggerParams) => {
-  let prefix = `[${service}] `;
+  let prefix = `[${service.charAt(0).toUpperCase() + service.slice(1)}] `;
   if (queueId) {
     prefix += `[Transaction] [${queueId}] `;
   }
