@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../db/client";
+import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
@@ -62,16 +62,12 @@ export async function sendTransaction(fastify: FastifyInstance) {
       const fromAddress = request.headers["x-backend-wallet-address"] as string;
       const chainId = await getChainIdFromChain(chain);
 
-      // TODO: At some point we should simulate this first
-      // For now, it's okay not to since its a raw transaction
-      const { id: queueId } = await prisma.transactions.create({
-        data: {
-          chainId: chainId.toString(),
-          fromAddress,
-          toAddress,
-          data,
-          value,
-        },
+      const { id: queueId } = await queueTxRaw({
+        chainId: chainId.toString(),
+        fromAddress,
+        toAddress,
+        data,
+        value,
       });
 
       reply.status(StatusCodes.OK).send({

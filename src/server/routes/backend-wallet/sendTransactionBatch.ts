@@ -67,11 +67,12 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
         groupId,
         id: uuidv4(),
         chainId: chainId.toString(),
-        fromAddress,
-        toAddress: tx.toAddress,
+        fromAddress: fromAddress.toLowerCase(),
+        toAddress: tx.toAddress?.toLowerCase(),
         data: tx.data,
         value: tx.value,
       }));
+
       await prisma.transactions.createMany({
         data,
       });
