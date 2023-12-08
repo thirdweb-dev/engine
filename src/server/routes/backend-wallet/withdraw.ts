@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../db/client";
+import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
@@ -45,15 +45,13 @@ export async function withdraw(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      const { id: queueId } = await prisma.transactions.create({
-        data: {
-          chainId: chainId.toString(),
-          extension: "withdraw",
-          functionName: "transfer",
-          fromAddress: walletAddress,
-          toAddress,
-          data: "0x",
-        },
+      const { id: queueId } = await queueTxRaw({
+        chainId: chainId.toString(),
+        extension: "withdraw",
+        functionName: "transfer",
+        fromAddress: walletAddress,
+        toAddress,
+        data: "0x",
       });
 
       res.status(StatusCodes.OK).send({
