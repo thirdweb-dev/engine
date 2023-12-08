@@ -11,21 +11,14 @@ const defaultOptions: LoggerOptions = {
       singleLine: true,
     },
   },
-  level:
-    env.NODE_ENV === "production"
-      ? "info"
-      : env.NODE_ENV === "development"
-      ? "debug"
-      : env.NODE_ENV === "testing"
-      ? "debug"
-      : "trace",
+  level: env.LOG_LEVEL,
 };
 
 const pino = Pino(defaultOptions);
 
 interface LoggerParams {
-  service: "server" | "worker";
-  level: "trace" | "debug" | "info" | "warn" | "error" | "fatal";
+  service: (typeof env)["LOG_SERVICES"][0];
+  level: (typeof env)["LOG_LEVEL"];
   message: string;
   queueId?: string | null;
   error?: any;
@@ -40,6 +33,10 @@ export const logger = ({
   error,
   data,
 }: LoggerParams) => {
+  if (!env.LOG_SERVICES.includes(service)) {
+    return;
+  }
+
   let prefix = `[${service.charAt(0).toUpperCase() + service.slice(1)}] `;
   if (queueId) {
     prefix += `[Transaction] [${queueId}] `;

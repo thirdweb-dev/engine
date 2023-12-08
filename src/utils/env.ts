@@ -47,6 +47,15 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["production", "development", "testing", "local"])
       .default("development"),
+    LOG_LEVEL: z
+      .enum(["fatal", "error", "warn", "info", "debug", "trace"])
+      .default("debug"),
+    LOG_SERVICES: z
+      .string()
+      .default("server,worker")
+      .transform((s) =>
+        z.array(z.enum(["server", "worker"])).parse(s.split(",")),
+      ),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
     ADMIN_WALLET_ADDRESS: z.string().min(1),
     ENCRYPTION_PASSWORD: z.string().min(1),
@@ -68,6 +77,8 @@ export const env = createEnv({
   isServer: true,
   runtimeEnvStrict: {
     NODE_ENV: process.env.NODE_ENV,
+    LOG_LEVEL: process.env.LOG_LEVEL,
+    LOG_SERVICES: process.env.LOG_SERVICES,
     THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
     ADMIN_WALLET_ADDRESS: process.env.ADMIN_WALLET_ADDRESS,
     ENCRYPTION_PASSWORD: process.env.ENCRYPTION_PASSWORD,
