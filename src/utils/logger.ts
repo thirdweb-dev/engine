@@ -1,19 +1,6 @@
 import Pino, { LoggerOptions } from "pino";
 import { env } from "./env";
 
-/**
- * - Configure log level
- * - Filter based on log level
- * - Filter based on arbitrary stuff (like worker vs server)
- * - Maybe we only wanna log transaction
- * - Start using log levels, debug/trace
- * - I want logging pattern to be clean
- *
- * - Everything through one function
- * - Takes all params we ned
- * - Handles log level filtering/config
- */
-
 const defaultOptions: LoggerOptions = {
   redact: ["headers.authorization"],
   transport: {
