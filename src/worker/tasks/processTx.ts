@@ -6,7 +6,6 @@ import {
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
-import { formatUnits } from "ethers/lib/utils";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
@@ -61,14 +60,21 @@ export const processTx = async () => {
         const userOpsToSend = [];
         for (const tx of txs) {
           if (tx.cancelledAt) {
-            logger.worker.info(
-              `[Transaction] [${tx.queueId}] Cancelled by user`,
-            );
+            logger({
+              service: "worker",
+              level: "info",
+              queueId: tx.queueId,
+              message: `Cancelled by user`,
+            });
             continue;
           }
-          logger.worker.info(
-            `[Transaction] [${tx.queueId}] Picked up by worker`,
-          );
+
+          logger({
+            service: "worker",
+            level: "info",
+            queueId: tx.queueId,
+            message: `Picked up by worker`,
+          });
 
           await updateTx({
             pgtx,
@@ -154,15 +160,19 @@ export const processTx = async () => {
 
               await sendBalanceWebhook(walletBalanceData);
 
-              logger.worker.warn(
-                `[Low Wallet Balance] [${walletAddress}]: ` + message,
-              );
+              logger({
+                service: "worker",
+                level: "warn",
+                message: `[Low Wallet Balance] [${walletAddress}] ${message}`,
+              });
             }
 
             if (!dbNonceData) {
-              logger.worker.error(
-                `Could not find nonce or details for wallet ${walletAddress} on chain ${chainId}`,
-              );
+              logger({
+                service: "worker",
+                level: "error",
+                message: `Could not find nonce for wallet ${walletAddress} on chain ${chainId}`,
+              });
             }
 
             // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
@@ -214,33 +224,23 @@ export const processTx = async () => {
                   ...gasOverrides,
                 });
 
+                // TODO: Add debug/trace level info on transaction info
+
                 // TODO: We need to target specific cases
                 // Bump gas limit to avoid occasional out of gas errors
                 txRequest.gasLimit = txRequest.gasLimit
                   ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
                   : undefined;
 
-                logger.worker.info(
-                  `[Transaction] [${tx.queueId}] Using maxFeePerGas ${
-                    txRequest.maxFeePerGas !== undefined
-                      ? formatUnits(txRequest.maxFeePerGas, "gwei")
-                      : undefined
-                  }, maxPriorityFeePerGas ${
-                    txRequest.maxPriorityFeePerGas !== undefined
-                      ? formatUnits(txRequest.maxPriorityFeePerGas, "gwei")
-                      : undefined
-                  }, gasPrice ${
-                    txRequest.gasPrice !== undefined
-                      ? formatUnits(txRequest.gasPrice, "gwei")
-                      : undefined
-                  }`,
-                );
-
                 const signature = await signer.signTransaction(txRequest);
 
-                logger.worker.info(
-                  `[Transaction] [${tx.queueId}] Sending transaction to ${provider.connection.url}`,
-                );
+                logger({
+                  service: "worker",
+                  level: "debug",
+                  queueId: tx.queueId,
+                  message: `Sending transaction to ${provider.connection.url}`,
+                });
+
                 const res = await fetch(provider.connection.url, {
                   method: "POST",
                   headers: {
@@ -269,13 +269,13 @@ export const processTx = async () => {
                   sentTxCount++;
                 }
               } catch (err: any) {
-                logger.worker.warn(
-                  `[Transaction] [${
-                    tx.queueId
-                  }] Failed to build transaction with error - ${
-                    err?.message || err
-                  }`,
-                );
+                logger({
+                  service: "worker",
+                  level: "warn",
+                  queueId: tx.queueId,
+                  message: `Failed to send`,
+                  error: err,
+                });
 
                 await updateTx({
                   pgtx,
@@ -313,9 +313,12 @@ export const processTx = async () => {
                     txHash,
                   )) as ethers.providers.TransactionResponse | null;
 
-                  logger.worker.info(
-                    `[Transaction] [${queueId}] Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
-                  );
+                  logger({
+                    service: "worker",
+                    level: "info",
+                    queueId,
+                    message: `Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
+                  });
 
                   return {
                     transactionHash: txHash,
@@ -325,11 +328,13 @@ export const processTx = async () => {
                     sentAtBlockNumber: await provider.getBlockNumber(),
                   };
                 } else {
-                  logger.worker.warn(
-                    `[Transaction] [${queueId}] Failed to send with error - ${JSON.stringify(
-                      res.error,
-                    )}`,
-                  );
+                  logger({
+                    service: "worker",
+                    level: "warn",
+                    queueId,
+                    message: `Failed to send`,
+                    error: res.error,
+                  });
 
                   return {
                     status: TransactionStatusEnum.Errored,
@@ -376,13 +381,14 @@ export const processTx = async () => {
           } catch (err: any) {
             await Promise.all(
               txsToSend.map(async (tx) => {
-                logger.worker.error(
-                  `[Transaction] [${
-                    tx.queueId
-                  }] Failed to process batch of transactions for wallet '${walletAddress}' on chain '${chainId}' - ${
-                    err || err?.message
-                  }`,
-                );
+                logger({
+                  service: "worker",
+                  level: "error",
+                  queueId: tx.queueId,
+                  message: `Failed to process batch of transactions for wallet '${walletAddress}' on chain '${chainId}'`,
+                  error: err,
+                });
+
                 await updateTx({
                   pgtx,
                   queueId: tx.queueId!,
@@ -433,9 +439,14 @@ export const processTx = async () => {
             });
             sendWebhookForQueueIds.push(tx.queueId!);
           } catch (err: any) {
-            logger.worker.warn(
-              `[User Operation] [${tx.queueId}] Failed to send with error - ${err}`,
-            );
+            logger({
+              service: "worker",
+              level: "warn",
+              queueId: tx.queueId,
+              message: `Failed to send`,
+              error: err,
+            });
+
             await updateTx({
               pgtx,
               queueId: tx.queueId!,
@@ -462,8 +473,11 @@ export const processTx = async () => {
 
     await sendTxWebhook(sendWebhookForQueueIds);
   } catch (err: any) {
-    logger.worker.error(
-      `Failed to process batch of transactions with error - ${err}`,
-    );
+    logger({
+      service: "worker",
+      level: "error",
+      message: `Failed to process batch of transactions`,
+      error: err,
+    });
   }
 };

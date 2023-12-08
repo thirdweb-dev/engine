@@ -68,9 +68,11 @@ export const getLocalWallet = async ({
       );
     }
 
-    logger.worker.info(
-      `[Encryption] Updating local wallet ${walletAddress} to use ENCRYPTION_PASSWORD`,
-    );
+    logger({
+      service: "worker",
+      level: "info",
+      message: `[Encryption] Updating local wallet ${walletAddress} to use ENCRYPTION_PASSWORD`,
+    });
 
     await wallet.save({
       strategy: "encryptedJson",

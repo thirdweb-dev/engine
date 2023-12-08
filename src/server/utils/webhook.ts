@@ -60,9 +60,11 @@ export const sendWebhookRequest = async (
   });
 
   if (!response.ok) {
-    logger.server.error(
-      `[sendWebhook] Webhook Request error: ${response.status} ${response.statusText}`,
-    );
+    logger({
+      service: "server",
+      level: "error",
+      message: `[sendWebhook] Webhook request error: ${response.status} ${response.statusText}`,
+    });
 
     return false;
   }
@@ -120,9 +122,12 @@ export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
 
         webhookConfig?.map(async (config) => {
           if (!config || !config?.active) {
-            logger.server.debug(
-              "No Webhook Set or Active, skipping webhook send",
-            );
+            logger({
+              service: "server",
+              level: "debug",
+              message: "No webhook set or active, skipping webhook send",
+            });
+
             return;
           }
 
@@ -131,7 +136,12 @@ export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
       }
     }
   } catch (error) {
-    logger.server.error(error);
+    logger({
+      service: "server",
+      level: "error",
+      message: `Failed to send webhook`,
+      error,
+    });
   }
 };
 
@@ -142,9 +152,11 @@ export const sendBalanceWebhook = async (
   try {
     const elaspsedTime = Date.now() - balanceNotificationLastSentAt;
     if (elaspsedTime < 30000) {
-      logger.server.warn(
-        `[sendBalanceWebhook] Low Wallet Balance Notification Sent within last 30 Seconds. Skipping.`,
-      );
+      logger({
+        service: "server",
+        level: "warn",
+        message: `[sendBalanceWebhook] Low wallet balance notification sent within last 30 Seconds. Skipping.`,
+      });
       return;
     }
 
@@ -153,13 +165,23 @@ export const sendBalanceWebhook = async (
     );
 
     if (!webhookConfig) {
-      logger.server.debug("No Webhook set, skipping webhook send");
+      logger({
+        service: "server",
+        level: "debug",
+        message: "No webhook set, skipping webhook send",
+      });
+
       return;
     }
 
     webhookConfig.map(async (config) => {
       if (!config || !config.active) {
-        logger.server.debug("No Webhook set, skipping webhook send");
+        logger({
+          service: "server",
+          level: "debug",
+          message: "No webhook set or active, skipping webhook send",
+        });
+
         return;
       }
 
@@ -170,6 +192,11 @@ export const sendBalanceWebhook = async (
       }
     });
   } catch (error) {
-    logger.server.error(error);
+    logger({
+      service: "server",
+      level: "error",
+      message: `Failed to send balance webhook`,
+      error,
+    });
   }
 };

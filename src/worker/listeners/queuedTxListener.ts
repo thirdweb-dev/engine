@@ -9,14 +9,22 @@ const queue = new PQueue({
 });
 
 queue.on("error", (err) => {
-  logger.worker.error(
-    `[Queue Error] Size: ${queue.size}, Pending: ${queue.pending}\n${err}`,
-  );
+  logger({
+    service: "worker",
+    level: "error",
+    message: `[Queue Error] Size: ${queue.size}, Pending: ${queue.pending}`,
+    error: err,
+  });
+
   throw err;
 });
 
 export const queuedTxListener = async (): Promise<void> => {
-  logger.worker.info(`Listening for queued transactions`);
+  logger({
+    service: "worker",
+    level: "info",
+    message: `Listening for queued transactions`,
+  });
 
   // TODO: This doesn't even need to be a listener
   const connection = await knex.client.acquireConnection();
@@ -37,14 +45,29 @@ export const queuedTxListener = async (): Promise<void> => {
     await knex.destroy();
     knex.client.releaseConnection(connection);
 
-    logger.worker.info(`Released database connection on end`);
+    logger({
+      service: "worker",
+      level: "info",
+      message: `Released database connection on end`,
+    });
   });
 
   connection.on("error", async (err: any) => {
-    logger.worker.error(err);
+    logger({
+      service: "worker",
+      level: "error",
+      message: `Database connection error`,
+      error: err,
+    });
+
     await knex.destroy();
     knex.client.releaseConnection(connection);
 
-    logger.worker.info(`Released database connection on error`);
+    logger({
+      service: "worker",
+      level: "info",
+      message: `Released database connection on error`,
+      error: err,
+    });
   });
 };

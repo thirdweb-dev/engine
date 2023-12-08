@@ -90,9 +90,13 @@ export const updateMinedTx = async () => {
               },
             });
 
-            logger.worker.info(
-              `[Transaction] [${txWithReceipt.tx.id}] Updated with receipt`,
-            );
+            logger({
+              service: "worker",
+              level: "info",
+              queueId: txWithReceipt.tx.id,
+              message: `Updated with receipt`,
+            });
+
             sendWebhookForQueueIds.push(txWithReceipt.tx.id);
           }),
         );
@@ -104,7 +108,12 @@ export const updateMinedTx = async () => {
 
     await sendTxWebhook(sendWebhookForQueueIds);
   } catch (err) {
-    logger.worker.error(err);
+    logger({
+      service: "worker",
+      level: "error",
+      message: `Failed to update mined transactions`,
+      error: err,
+    });
     return;
   }
 };

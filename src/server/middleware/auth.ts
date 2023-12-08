@@ -108,9 +108,12 @@ export const withAuth = async (server: FastifyInstance) => {
             password: env.ENCRYPTION_PASSWORD,
           });
 
-          logger.worker.info(
-            `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
-          );
+          logger({
+            service: "worker",
+            level: "info",
+            message: `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+          });
+
           await updateConfiguration({
             authWalletEncryptedJson: encryptedJson,
           });
@@ -146,7 +149,11 @@ export const withAuth = async (server: FastifyInstance) => {
         try {
           await revokeToken({ id: payload.jti });
         } catch {
-          logger.worker.error(`[Auth] Failed to revoke token ${payload.jti}`);
+          logger({
+            service: "worker",
+            level: "error",
+            message: `[Auth] Failed to revoke token ${payload.jti}`,
+          });
         }
       },
     },
@@ -223,9 +230,12 @@ export const withAuth = async (server: FastifyInstance) => {
             password: env.ENCRYPTION_PASSWORD,
           });
 
-          logger.worker.info(
-            `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
-          );
+          logger({
+            service: "worker",
+            level: "info",
+            message: `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+          });
+
           await updateConfiguration({
             authWalletEncryptedJson: encryptedJson,
           });
@@ -312,7 +322,12 @@ export const withAuth = async (server: FastifyInstance) => {
         }
       }
     } catch (err: any) {
-      logger.server.error(`[Auth] ${err?.message || err}`);
+      logger({
+        service: "server",
+        level: "warn",
+        message: `Caught error authenticating user`,
+        error: err,
+      });
     }
 
     // If we have no secret key or authenticated user, return 401

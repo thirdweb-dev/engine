@@ -38,7 +38,6 @@ const main = async () => {
   }
 
   const server: FastifyInstance = fastify({
-    logger: logger.server,
     disableRequestLogging: true,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
@@ -60,7 +59,12 @@ const main = async () => {
     },
     (err) => {
       if (err) {
-        logger.server.error(err);
+        logger({
+          service: "server",
+          level: "fatal",
+          message: `Failed to start server`,
+          error: err,
+        });
         process.exit(1);
       }
     },

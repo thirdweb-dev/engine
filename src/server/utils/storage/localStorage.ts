@@ -27,7 +27,11 @@ export class LocalFileStorage implements AsyncStorage {
     const dir = `${process.env.HOME}/.thirdweb`;
     const path = `${dir}/localWallet-${this.walletAddress}`;
     if (!fs.existsSync(dir) || !fs.existsSync(path)) {
-      logger.worker.error(`No local wallet found!`);
+      logger({
+        service: "server",
+        level: "error",
+        message: `No local wallet found!`,
+      });
       return null;
     }
 

@@ -7,7 +7,6 @@ interface GetAllWalletsParams {
   limit: number;
 }
 
-// TODO: Add error logging handler from req.log to all queries
 export const getAllWallets = async ({
   pgtx,
   page,
