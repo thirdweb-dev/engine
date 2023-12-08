@@ -3,6 +3,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getTxById } from "../../../db/transactions/getTxById";
+import { logger } from "../../../utils/logger";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { transactionResponseSchema } from "../../schemas/transaction";
@@ -94,10 +95,22 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       });
     },
     wsHandler: async (connection: SocketStream, request) => {
-      request.log.info(request, "Websocket Route Handler");
+      logger({
+        service: "server",
+        level: "info",
+        message: `Websocket route handler`,
+        data: request,
+      });
+
       const { queueId } = request.params;
       // const timeout = await wsTimeout(connection, queueId, request);
-      request.log.info(`Websocket Connection Established for ${queueId}`);
+
+      logger({
+        service: "server",
+        level: "info",
+        message: `Websocket connection established for ${queueId}`,
+      });
+
       findOrAddWSConnectionInSharedState(connection, queueId, request);
 
       const returnData = await getTxById({ queueId });
@@ -113,17 +126,34 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       }
 
       connection.socket.on("error", (error) => {
-        request.log.error(error, "Websocket Error");
+        logger({
+          service: "server",
+          level: "error",
+          message: `Websocket error`,
+          error,
+        });
+
         onError(error, connection, request);
       });
 
       connection.socket.on("message", async (message, isBinary) => {
-        request.log.info(message, "Websocket Message Received");
+        logger({
+          service: "server",
+          level: "info",
+          message: `Websocket message received`,
+          data: message,
+        });
+
         onMessage(connection, request);
       });
 
       connection.socket.on("close", () => {
-        request.log.info("Websocket Connection Closed");
+        logger({
+          service: "server",
+          level: "info",
+          message: `Websocket connection closed`,
+        });
+
         onClose(connection, request);
         // clearTimeout(timeout);
       });

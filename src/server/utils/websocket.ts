@@ -1,6 +1,7 @@
 import { SocketStream } from "@fastify/websocket";
 import { Static } from "@sinclair/typebox";
 import { FastifyRequest } from "fastify";
+import { logger } from "../../utils/logger";
 import {
   TransactionStatusEnum,
   transactionResponseSchema,
@@ -37,7 +38,13 @@ export const onError = async (
   connection: SocketStream,
   request: FastifyRequest,
 ): Promise<void> => {
-  request.log.error(error, "Websocket Error");
+  logger({
+    service: "server",
+    level: "error",
+    message: `Websocket error`,
+    error,
+  });
+
   const index = await findWSConnectionInSharedState(connection, request);
   if (index == -1) {
     return;
@@ -95,9 +102,12 @@ export const wsTimeout = async (
     connection.socket.send("Timeout exceeded. Closing connection...");
     removeWSFromSharedState(connection, request);
     connection.socket.close(1000, "Session timeout"); // 1000 is a normal closure status code
-    request.log.info(
-      `Websocket connection for ${queueId} closed due to timeout.`,
-    );
+
+    logger({
+      service: "server",
+      level: "info",
+      message: `Websocket connection for ${queueId} closed due to timeout.`,
+    });
   }, timeoutDuration);
 };
 

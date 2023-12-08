@@ -55,14 +55,22 @@ export const retryTx = async () => {
             config.maxPriorityFeePerGasForRetries,
           )
         ) {
-          logger.worker.warn(
-            `[Transaction] [${tx.id}] ${tx.chainId} chain gas price is higher than maximum threshold.`,
-          );
+          logger({
+            service: "worker",
+            level: "warn",
+            queueId: tx.id,
+            message: `${tx.chainId} chain gas price is higher than maximum threshold.`,
+          });
 
           return;
         }
 
-        logger.worker.info(`[Transaction] [${tx.id}] Retrying`);
+        logger({
+          service: "worker",
+          level: "info",
+          queueId: tx.id,
+          message: `Retrying with nonce ${tx.nonce}`,
+        });
 
         let res: ethers.providers.TransactionResponse;
         try {
@@ -78,9 +86,13 @@ export const retryTx = async () => {
             maxPriorityFeePerGas: gasOverrides.maxPriorityFeePerGas?.mul(2),
           });
         } catch (err: any) {
-          logger.worker.warn(
-            `[Transaction] [${tx.id}] Failed to retry with error - ${err}`,
-          );
+          logger({
+            service: "worker",
+            level: "error",
+            queueId: tx.id,
+            message: `Failed to retry`,
+            error: err,
+          });
 
           await updateTx({
             pgtx,
@@ -109,16 +121,23 @@ export const retryTx = async () => {
           },
         });
 
-        logger.worker.info(
-          `[Transaction] [${tx.id}] Retried with hash ${res.hash} for Nonce ${res.nonce}`,
-        );
+        logger({
+          service: "worker",
+          level: "info",
+          queueId: tx.id,
+          message: `Retried with hash ${res.hash} for Nonce ${res.nonce}`,
+        });
       },
       {
         timeout: 5 * 60000,
       },
     );
   } catch (err) {
-    logger.worker.error(`Failed to retry transactions with error - ${err}`);
+    logger({
+      service: "worker",
+      level: "error",
+      message: `Failed to retry transactions with error - ${err}`,
+    });
     return;
   }
 };

@@ -25,11 +25,23 @@ const worker = async () => {
 worker();
 
 process.on("unhandledRejection", (err) => {
-  logger.worker.error(`unhandledRejection - `, err);
+  logger({
+    service: "worker",
+    level: "fatal",
+    message: `unhandledRejection`,
+    error: err,
+  });
+
   worker();
 });
 
 process.on("uncaughtException", (err) => {
-  logger.worker.error(`uncaughtException - `, err);
+  logger({
+    service: "worker",
+    level: "fatal",
+    message: `uncaughtException`,
+    error: err,
+  });
+
   worker();
 });
