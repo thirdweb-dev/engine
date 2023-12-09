@@ -2,6 +2,7 @@ import { Static } from "@sinclair/typebox";
 import {
   StaticJsonRpcBatchProvider,
   getDefaultGasOverrides,
+  toEther,
 } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
@@ -64,7 +65,7 @@ export const processTx = async () => {
               service: "worker",
               level: "info",
               queueId: tx.queueId,
-              message: `Cancelled by user`,
+              message: `Cancelled`,
             });
             continue;
           }
@@ -73,7 +74,7 @@ export const processTx = async () => {
             service: "worker",
             level: "info",
             queueId: tx.queueId,
-            message: `Picked up by worker`,
+            message: `Processing`,
           });
 
           await updateTx({
@@ -163,7 +164,7 @@ export const processTx = async () => {
               logger({
                 service: "worker",
                 level: "warn",
-                message: `[Low Wallet Balance] [${walletAddress}] ${message}`,
+                message: `[${walletAddress}] ${message}`,
               });
             }
 
@@ -224,7 +225,25 @@ export const processTx = async () => {
                   ...gasOverrides,
                 });
 
-                // TODO: Add debug/trace level info on transaction info
+                logger({
+                  service: "worker",
+                  level: "debug",
+                  queueId: tx.queueId,
+                  message: `Populated`,
+                  data: {
+                    nonce: txRequest.nonce?.toString(),
+                    gasLimit: txRequest.gasLimit?.toString(),
+                    gasPrice: txRequest.gasPrice
+                      ? toEther(txRequest.gasPrice)
+                      : undefined,
+                    maxFeePerGas: txRequest.maxFeePerGas
+                      ? toEther(txRequest.maxFeePerGas)
+                      : undefined,
+                    maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas
+                      ? toEther(txRequest.maxPriorityFeePerGas)
+                      : undefined,
+                  },
+                });
 
                 // TODO: We need to target specific cases
                 // Bump gas limit to avoid occasional out of gas errors
@@ -233,12 +252,19 @@ export const processTx = async () => {
                   : undefined;
 
                 const signature = await signer.signTransaction(txRequest);
+                const rpcRequest = {
+                  id: 0,
+                  jsonrpc: "2.0",
+                  method: "eth_sendRawTransaction",
+                  params: [signature],
+                };
 
                 logger({
                   service: "worker",
                   level: "debug",
                   queueId: tx.queueId,
-                  message: `Sending transaction to ${provider.connection.url}`,
+                  message: `Sending to ${provider.connection.url}`,
+                  data: rpcRequest,
                 });
 
                 const res = await fetch(provider.connection.url, {
@@ -251,14 +277,18 @@ export const processTx = async () => {
                         }
                       : {}),
                   },
-                  body: JSON.stringify({
-                    id: 0,
-                    jsonrpc: "2.0",
-                    method: "eth_sendRawTransaction",
-                    params: [signature],
-                  }),
+                  body: JSON.stringify(rpcRequest),
                 });
                 const rpcResponse = (await res.json()) as RpcResponse;
+
+                logger({
+                  service: "worker",
+                  level: "debug",
+                  queueId: tx.queueId,
+                  message: `Received response`,
+                  data: rpcResponse,
+                });
+
                 rpcResponses.push({
                   queueId: tx.queueId!,
                   tx: txRequest,
@@ -332,7 +362,7 @@ export const processTx = async () => {
                     service: "worker",
                     level: "warn",
                     queueId,
-                    message: `Failed to send`,
+                    message: `Received error from RPC`,
                     error: res.error,
                   });
 
