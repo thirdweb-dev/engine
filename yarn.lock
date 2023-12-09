@@ -2876,7 +2876,7 @@
     uuid "^9.0.1"
     zod "^3.22.3"
 
-"@thirdweb-dev/chains@0.1.55", "@thirdweb-dev/chains@^0.1.55":
+"@thirdweb-dev/chains@0.1.55":
   version "0.1.55"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.55.tgz#0a33740a016ec5a787e293c3b38ca9992db99540"
   integrity sha512-jOAP9SQYQ8VgGJ6KGJIoiiIPesGrmPm9n/c/DthcCXCw0V/Ze6ZJihIcDdSOoT/6ySeAH8dRR3xMfqjaD5J7CA==
@@ -2890,6 +2890,11 @@
   version "0.1.59"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.59.tgz#6dc700ac6c8acf584ba6ac268b12606bd09236d7"
   integrity sha512-fd1ZjHGwz/P1eRPffxfhITa/wv+DJuIG/5SIRZS22mOKTQNHr8+HtrmO/sous/D8ZMgIHmRCmOMeUfiYinxdKA==
+
+"@thirdweb-dev/chains@^0.1.61-nightly-d2001ca4-20231209002129":
+  version "0.1.61-nightly-d2001ca4-20231209002129"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.61-nightly-d2001ca4-20231209002129.tgz#366a284ae2fa2f81167b0e4941be1b3d74c05838"
+  integrity sha512-nQfCDMg9YY/7CS7S2X6Cu1U+RksS3lLUDoNQQyoo1S6pVBygYyzezgFNmX5TxB0S1VMwvM+rmSVk6ENbwr7B5Q==
 
 "@thirdweb-dev/contracts-js@1.3.16":
   version "1.3.16"
