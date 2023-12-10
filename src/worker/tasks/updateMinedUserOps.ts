@@ -91,9 +91,12 @@ export const updateMinedUserOps = async () => {
               },
             });
 
-            logger.worker.info(
-              `[User Op] [${userOp!.id}] Updated with receipt`,
-            );
+            logger({
+              service: "worker",
+              level: "info",
+              queueId: userOp!.id,
+              message: `Updated with receipt`,
+            });
             sendWebhookForQueueIds.push(userOp!.id);
           }),
         );
@@ -105,7 +108,12 @@ export const updateMinedUserOps = async () => {
 
     await sendTxWebhook(sendWebhookForQueueIds);
   } catch (err) {
-    logger.worker.error(`Failed to update receipts with error - ${err}`);
+    logger({
+      service: "worker",
+      level: "error",
+      message: `Failed to update receipts`,
+      error: err,
+    });
     return;
   }
 };

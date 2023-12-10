@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { logger } from "../../utils/logger";
 
 export const withRequestLogs = async (server: FastifyInstance) => {
   server.addHook("onRequest", async (request, reply) => {
@@ -6,9 +7,11 @@ export const withRequestLogs = async (server: FastifyInstance) => {
       !request.routerPath?.includes("static") &&
       !request.routerPath?.includes("json")
     ) {
-      request.log.info(
-        `Request Received - ${request.method} - ${request.routerPath}`,
-      );
+      logger({
+        service: "server",
+        level: "info",
+        message: `Request received - ${request.method} - ${request.routerPath}`,
+      });
     }
 
     if (process.env.NODE_ENV === "production") {
@@ -29,15 +32,30 @@ export const withRequestLogs = async (server: FastifyInstance) => {
       !request.routerPath?.includes("/backend-wallet/import")
     ) {
       if (request.body && Object.keys(request.body).length > 0) {
-        request.log.info({ ...request.body }, "Request Body - ");
+        logger({
+          service: "server",
+          level: "info",
+          message: `Request body`,
+          data: request.body,
+        });
       }
 
       if (request.params && Object.keys(request.params).length > 0) {
-        request.log.info({ ...request.params }, "Request Params - ");
+        logger({
+          service: "server",
+          level: "info",
+          message: `Request params`,
+          data: request.params,
+        });
       }
 
       if (request.query && Object.keys(request.query).length > 0) {
-        request.log.info({ ...request.query }, "Request Querystring - ");
+        logger({
+          service: "server",
+          level: "info",
+          message: `Request querystring`,
+          data: request.query,
+        });
       }
     }
   });
@@ -47,13 +65,15 @@ export const withRequestLogs = async (server: FastifyInstance) => {
       !request.routerPath?.includes("static") &&
       !request.routerPath?.includes("json")
     ) {
-      request.log.info(
-        `Request Completed - ${request.method} - ${
+      logger({
+        service: "server",
+        level: "info",
+        message: `Request completed - ${request.method} - ${
           reply.request.routerPath
-        } - StatusCode: ${reply.statusCode} - Response Time: ${reply
+        } - status code: ${reply.statusCode} - Response time: ${reply
           .getResponseTime()
           .toFixed(2)}ms`,
-      );
+      });
     }
 
     done();

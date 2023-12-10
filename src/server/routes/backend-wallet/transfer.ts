@@ -7,8 +7,8 @@ import {
 import { constants } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueNativeTokenTransferTx } from "../../../db/transactions/queueNativeTokenTransferTx";
 import { queueTx } from "../../../db/transactions/queueTx";
+import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
 import { getContract } from "../../../utils/cache/getContract";
 import { getSdk } from "../../../utils/cache/getSdk";
 import {
@@ -85,16 +85,27 @@ export async function transfer(fastify: FastifyInstance) {
           throw new Error("Insufficient balance");
         }
 
-        queueId = await queueNativeTokenTransferTx({
-          chainId,
+        const params = {
+          toAddress: to,
+          fromAddress: walletAddress,
+          currencyAddress,
+          value: normalizedValue.toHexString(),
+        };
+
+        ({ id: queueId } = await queueTxRaw({
+          chainId: chainId.toString(),
+          functionName: "transfer",
+          functionArgs: JSON.stringify([
+            params.toAddress,
+            params.value,
+            params.currencyAddress,
+          ]),
           extension: "none",
-          transferParams: {
-            toAddress: to,
-            fromAddress: walletAddress,
-            value: normalizedValue.toHexString(),
-            currencyAddress: currencyAddress,
-          },
-        });
+          fromAddress: params.fromAddress,
+          toAddress: params.toAddress,
+          value: params.value,
+          data: "0x",
+        }));
       } else {
         const contract = await getContract({
           chainId,

@@ -7,7 +7,19 @@ import {
   walletDetailsSchema,
 } from "../../schemas/sharedApiSchemas";
 
-// OUTPUT
+const QuerySchema = Type.Object({
+  page: Type.Number({
+    description: "The page of wallets to get.",
+    examples: ["1"],
+    default: "1",
+  }),
+  limit: Type.Number({
+    description: "The number of wallets to get per page.",
+    examples: ["10"],
+    default: "10",
+  }),
+});
+
 const responseSchema = Type.Object({
   result: Type.Array(walletDetailsSchema),
 });
@@ -30,6 +42,7 @@ responseSchema.example = {
 };
 export async function getAll(fastify: FastifyInstance) {
   fastify.route<{
+    Querystring: Static<typeof QuerySchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
@@ -39,15 +52,19 @@ export async function getAll(fastify: FastifyInstance) {
       description: "Get all backend wallets.",
       tags: ["Backend Wallet"],
       operationId: "getAll",
+      querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
-    handler: async (request, reply) => {
-      const wallets = await getAllWallets();
+    handler: async (req, res) => {
+      const wallets = await getAllWallets({
+        page: req.query.page,
+        limit: req.query.limit,
+      });
 
-      reply.status(StatusCodes.OK).send({
+      res.status(StatusCodes.OK).send({
         result: wallets,
       });
     },

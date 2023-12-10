@@ -96,6 +96,7 @@ model WalletNonce {
 
 model Transactions {
   id                        String    @id @default(uuid()) @map("id")
+  groupId                   String?   @map("groupId")
   chainId                   String    @map("chainId")
   // Shared
   data                      String?   @map("data")

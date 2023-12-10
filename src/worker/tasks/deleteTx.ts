@@ -41,8 +41,17 @@ export const deleteTx = async () => {
       },
     });
 
-    logger.worker.debug(`Deleted ${deletedItems?.count} transactions`);
+    logger({
+      service: "worker",
+      level: "debug",
+      message: `Deleted ${deletedItems?.count} transactions`,
+    });
   } catch (error) {
-    logger.worker.error(error);
+    logger({
+      service: "worker",
+      level: "error",
+      message: `Failed to delete transactions`,
+      error,
+    });
   }
 };

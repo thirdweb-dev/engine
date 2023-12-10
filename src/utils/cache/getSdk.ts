@@ -89,20 +89,22 @@ export const getSdk = async ({
       const text = fs.readFileSync(CHAIN_OVERRIDES, "utf8");
       RPC_OVERRIDES = JSON.parse(text);
     }
+
+    const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
+    const overrideChain = parsedChainOverrides.find(
+      (chainData: Static<typeof networkResponseSchema>) =>
+        chainData.chainId === chainId,
+    );
+
+    if (overrideChain) {
+      chain = overrideChain;
+    }
   }
 
   if (!chain) {
-    if (CHAIN_OVERRIDES) {
-      const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
-      chain = parsedChainOverrides.find(
-        (chainData: Static<typeof networkResponseSchema>) =>
-          chainData.chainId === chainId,
-      );
-    } else {
-      throw new Error(
-        `Invalid chain ${chainId}, please use a different value or provide Chain Override Data.`,
-      );
-    }
+    throw new Error(
+      `Invalid chain ${chainId}, please use a different value or provide Chain Override Data.`,
+    );
   }
 
   let sdk: ThirdwebSDK;

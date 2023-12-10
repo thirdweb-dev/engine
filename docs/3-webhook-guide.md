@@ -65,7 +65,7 @@ const isValidSignature = (
 
 ### Timestamp Verification
 
-The timestamp will be sent as `X-Engine-Timestamp` header in the request. You can verify the timestamp using the below code:
+The timestamp will be sent as `x-engine-timestamp` header in the request. You can verify the timestamp using the below code:
 
 ```ts
 export const isExpired = (
@@ -96,8 +96,8 @@ const WEBHOOK_SECRET = "YOUR_WEBHOOK_AUTH_TOKEN"; // Replace with your secret
 app.use(bodyParser.text());
 
 app.post("/webhook", (req, res) => {
-  const signatureFromHeader = req.header("X-Engine-Signature");
-  const timestampFromHeader = req.header("X-Engine-Timestamp");
+  const signatureFromHeader = req.header("x-engine-signature");
+  const timestampFromHeader = req.header("x-engine-timestamp");
 
   if (!signatureFromHeader || !timestampFromHeader) {
     return res.status(401).send("Missing signature or timestamp header");
@@ -178,6 +178,6 @@ The payload sent to the webhook URL will be in the below format:
   "sentAtBlockNumber": 40660021,
   "blockNumber": 40660026,
   "queueId": "1411246e-b1c8-4f5d-9a25-8c1f40b54e55",
-  "status": "mined"
+  "status": "mined",
 }
 ```

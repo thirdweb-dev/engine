@@ -70,9 +70,12 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
       // If that succeeds, update the configuration with the encryption password instead
       if (decryptedSecretAccessKey) {
-        logger.worker.info(
-          `[Encryption] Updating awsSecretAccessKey to use ENCRYPTION_PASSWORD`,
-        );
+        logger({
+          service: "worker",
+          level: "info",
+          message: `[Encryption] Updating awsSecretAccessKey to use ENCRYPTION_PASSWORD`,
+        });
+
         await updateConfiguration({
           awsSecretAccessKey: decryptedSecretAccessKey,
         });
@@ -113,9 +116,12 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
       // If that succeeds, update the configuration with the encryption password instead
       if (decryptedGcpKey) {
-        logger.worker.info(
-          `[Encryption] Updating gcpApplicationCredentialPrivateKey to use ENCRYPTION_PASSWORD`,
-        );
+        logger({
+          service: "worker",
+          level: "info",
+          message: `[Encryption] Updating gcpApplicationCredentialPrivateKey to use ENCRYPTION_PASSWORD`,
+        });
+
         await updateConfiguration({
           gcpApplicationCredentialPrivateKey: decryptedGcpKey,
         });

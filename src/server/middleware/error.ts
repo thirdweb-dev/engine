@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { env } from "../../utils/env";
+import { logger } from "../../utils/logger";
 
 export type CustomError = {
   message: string;
@@ -32,7 +33,12 @@ const flipObject = (data: any) =>
 
 export const withErrorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler((error: Error | CustomError, request, reply) => {
-    server.log.error(error);
+    logger({
+      service: "server",
+      level: "error",
+      message: `Encountered unhandled server error`,
+      error,
+    });
 
     if ("statusCode" in error && "code" in error) {
       // Transform unexpected errors into a standard payload

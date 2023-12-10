@@ -22,7 +22,8 @@ type UpdateTxData =
     }
   | {
       status: TransactionStatusEnum.Submitted;
-      res: ethers.providers.TransactionResponse;
+      transactionHash: string;
+      res: ethers.providers.TransactionResponse | null;
       sentAtBlockNumber: number;
       retryCount?: number;
     }
@@ -41,6 +42,7 @@ type UpdateTxData =
       gasLimit?: string;
       maxFeePerGas?: string;
       maxPriorityFeePerGas?: string;
+      nonce?: number;
     };
 
 export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
@@ -83,15 +85,15 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         },
         data: {
           sentAt: new Date(),
-          nonce: data.res.nonce,
-          transactionHash: data.res.hash,
-          transactionType: data.res.type || undefined,
-          gasPrice: data.res.gasPrice?.toString(),
-          gasLimit: data.res.gasLimit?.toString(),
-          maxFeePerGas: data.res.maxFeePerGas?.toString(),
-          maxPriorityFeePerGas: data.res.maxPriorityFeePerGas?.toString(),
+          transactionHash: data.transactionHash,
           sentAtBlockNumber: data.sentAtBlockNumber,
           retryCount: data.retryCount,
+          nonce: data.res?.nonce,
+          transactionType: data.res?.type || undefined,
+          gasPrice: data.res?.gasPrice?.toString(),
+          gasLimit: data.res?.gasLimit?.toString(),
+          maxFeePerGas: data.res?.maxFeePerGas?.toString(),
+          maxPriorityFeePerGas: data.res?.maxPriorityFeePerGas?.toString(),
         },
       });
       break;
@@ -113,14 +115,15 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         },
         data: {
           minedAt: data.minedAt,
-          gasPrice: data.gasPrice,
           blockNumber: data.blockNumber,
           onChainTxStatus: data.onChainTxStatus,
           transactionHash: data.transactionHash,
           transactionType: data.transactionType,
+          gasPrice: data.gasPrice,
           gasLimit: data.gasLimit,
           maxFeePerGas: data.maxFeePerGas,
           maxPriorityFeePerGas: data.maxPriorityFeePerGas,
+          nonce: data.nonce,
         },
       });
       break;

@@ -93,9 +93,13 @@ import { getAllRelayers } from "./relayer/getAll";
 import { revokeRelayer } from "./relayer/revoke";
 
 // System
+import { getAllTransactions } from "./backend-wallet/getTransactions";
+import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
+import { withdraw } from "./backend-wallet/withdraw";
 import { healthCheck } from "./health";
 import { home } from "./home";
 import { updateRelayer } from "./relayer/update";
+import { checkGroupStatus } from "./transaction/group";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -105,9 +109,12 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getBalance);
   await fastify.register(getAll);
   await fastify.register(transfer);
+  await fastify.register(withdraw);
   await fastify.register(sendTransaction);
+  await fastify.register(sendTransactionBatch);
   await fastify.register(signTransaction);
   await fastify.register(signMessage);
+  await fastify.register(getAllTransactions);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);
@@ -182,6 +189,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkTxStatus);
   await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
+  await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
   await fastify.register(cancelTransaction);
 

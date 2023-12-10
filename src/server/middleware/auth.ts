@@ -108,9 +108,12 @@ export const withAuth = async (server: FastifyInstance) => {
             password: env.ENCRYPTION_PASSWORD,
           });
 
-          logger.worker.info(
-            `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
-          );
+          logger({
+            service: "worker",
+            level: "info",
+            message: `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+          });
+
           await updateConfiguration({
             authWalletEncryptedJson: encryptedJson,
           });
@@ -146,7 +149,11 @@ export const withAuth = async (server: FastifyInstance) => {
         try {
           await revokeToken({ id: payload.jti });
         } catch {
-          logger.worker.error(`[Auth] Failed to revoke token ${payload.jti}`);
+          logger({
+            service: "worker",
+            level: "error",
+            message: `[Auth] Failed to revoke token ${payload.jti}`,
+          });
         }
       },
     },
@@ -165,23 +172,25 @@ export const withAuth = async (server: FastifyInstance) => {
       req.url === "/favicon.ico" ||
       req.url === "/" ||
       req.url === "/health" ||
-      req.url.startsWith("/static") ||
-      req.url.startsWith("/json") ||
-      req.url.includes("/auth/payload") ||
-      req.url.includes("/auth/login") ||
-      req.url.includes("/auth/user") ||
-      req.url.includes("/auth/switch-account") ||
-      req.url.includes("/auth/logout") ||
-      req.url.includes("/transaction/status")
+      req.url === "/static" ||
+      req.url === "/json" ||
+      req.url.startsWith("/auth/payload") ||
+      req.url.startsWith("/auth/login") ||
+      req.url.startsWith("/auth/user") ||
+      req.url.startsWith("/auth/switch-account") ||
+      req.url.startsWith("/auth/logout") ||
+      req.url.startsWith("/transaction/status")
     ) {
       // We skip auth check for static endpoints and auth routes
       return;
     }
 
     if (
-      req.url.includes("/relayer") &&
-      !req.url.includes("/create") &&
-      !req.url.includes("/revoke")
+      req.url.startsWith("/relayer/") &&
+      req.method === "POST" &&
+      !req.url.startsWith("/relayer/create") &&
+      !req.url.startsWith("/relayer/revoke") &&
+      !req.url.startsWith("/relayer/update")
     ) {
       // Relayer endpoints can handle their own authentication
       return;
@@ -221,9 +230,12 @@ export const withAuth = async (server: FastifyInstance) => {
             password: env.ENCRYPTION_PASSWORD,
           });
 
-          logger.worker.info(
-            `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
-          );
+          logger({
+            service: "worker",
+            level: "info",
+            message: `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+          });
+
           await updateConfiguration({
             authWalletEncryptedJson: encryptedJson,
           });
@@ -310,7 +322,12 @@ export const withAuth = async (server: FastifyInstance) => {
         }
       }
     } catch (err: any) {
-      logger.server.error(`[Auth] ${err?.message || err}`);
+      logger({
+        service: "server",
+        level: "warn",
+        message: `Caught error authenticating user`,
+        error: err,
+      });
     }
 
     // If we have no secret key or authenticated user, return 401

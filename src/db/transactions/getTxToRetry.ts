@@ -29,7 +29,7 @@ WHERE
   AND "transactionHash" IS NOT NULL
   AND "retryCount" < ${config.maxRetriesPerTx}
 ORDER BY
-  "queuedAt"
+  "nonce"
 ASC
 LIMIT
   1

@@ -24,13 +24,15 @@ export const getLocalWallet = async ({
     chain = getChainByChainId(chainId);
   } catch (error) {}
 
-  if (!chain) {
-    if (CHAIN_OVERRIDES) {
-      const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
-      chain = parsedChainOverrides.find(
-        (chainData: Static<typeof networkResponseSchema>) =>
-          chainData.chainId === chainId,
-      );
+  if (CHAIN_OVERRIDES) {
+    const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
+    const overrideChain = parsedChainOverrides.find(
+      (chainData: Static<typeof networkResponseSchema>) =>
+        chainData.chainId === chainId,
+    );
+
+    if (overrideChain) {
+      chain = overrideChain;
     }
   }
 
@@ -66,9 +68,11 @@ export const getLocalWallet = async ({
       );
     }
 
-    logger.worker.info(
-      `[Encryption] Updating local wallet ${walletAddress} to use ENCRYPTION_PASSWORD`,
-    );
+    logger({
+      service: "worker",
+      level: "info",
+      message: `[Encryption] Updating local wallet ${walletAddress} to use ENCRYPTION_PASSWORD`,
+    });
 
     await wallet.save({
       strategy: "encryptedJson",

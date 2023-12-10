@@ -8,7 +8,11 @@ import {
 import { logger } from "../../utils/logger";
 
 export const updateTxListener = async (): Promise<void> => {
-  logger.worker.info(`Listening for updated transactions`);
+  logger({
+    service: "worker",
+    level: "info",
+    message: `Listening for updated transactions`,
+  });
 
   const connection = await knex.client.acquireConnection();
   connection.query(`LISTEN updated_transaction_data`);
@@ -42,16 +46,37 @@ export const updateTxListener = async (): Promise<void> => {
   );
 
   connection.on("end", async () => {
-    logger.server.info(`Connection database ended`);
+    logger({
+      service: "worker",
+      level: "info",
+      message: `Connection database ended`,
+    });
+
     knex.client.releaseConnection(connection);
     await knex.destroy();
-    logger.server.info(`Released sql connection : on end`);
+
+    logger({
+      service: "worker",
+      level: "info",
+      message: `Released database connection on end`,
+    });
   });
 
   connection.on("error", async (err: any) => {
-    logger.server.error(err);
+    logger({
+      service: "worker",
+      level: "error",
+      message: `Database connection error`,
+      error: err,
+    });
+
     knex.client.releaseConnection(connection);
     await knex.destroy();
-    logger.server.info(`Released sql connection: on error`);
+
+    logger({
+      service: "worker",
+      level: "info",
+      message: `Released database connection on error`,
+    });
   });
 };

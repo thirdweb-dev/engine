@@ -7,7 +7,7 @@ import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src
 import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
 import { PrismaTransaction } from "../../schema/prisma";
-import { getPrismaWithPostgresTx } from "../client";
+import { queueTxRaw } from "./queueTxRaw";
 
 interface QueueTxParams {
   pgtx?: PrismaTransaction;
@@ -28,21 +28,21 @@ export const queueTx = async ({
   deployedContractAddress,
   deployedContractType,
 }: QueueTxParams) => {
-  // Simulate transaction
   try {
     if (!deployedContractAddress) {
       await tx.simulate();
     }
-  } catch (e) {
-    const message = (e as TransactionError)?.reason || (e as any).message || e;
-    throw new Error(`Transaction simulation failed with reason: ${message}`);
+  } catch (err: any) {
+    const errorMessage =
+      (err as TransactionError)?.reason || (err as any).message || err;
+    throw new Error(
+      `Transaction simulation failed with reason: ${errorMessage}`,
+    );
   }
-
-  const prisma = getPrismaWithPostgresTx(pgtx);
 
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
   const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
-  const txTableData = {
+  const txData = {
     chainId: chainId.toString(),
     functionName: tx.getMethod(),
     functionArgs: JSON.stringify(tx.getArgs()),
@@ -54,28 +54,30 @@ export const queueTx = async ({
   };
 
   if (isUserOp) {
-    const { id: queueId } = await prisma.transactions.create({
-      data: {
-        ...txTableData,
-        // Fields needed to get smart wallet signer in worker
-        signerAddress: await (
-          tx.getSigner as ERC4337EthersSigner
-        ).originalSigner.getAddress(),
-        accountAddress: (await tx.getSignerAddress()).toLowerCase(),
-        // Fields needed to send user operation
-        target: tx.getTarget().toLowerCase(),
-      },
+    const signerAddress = await (
+      tx.getSigner as ERC4337EthersSigner
+    ).originalSigner.getAddress();
+    const accountAddress = await tx.getSignerAddress();
+    const target = tx.getTarget();
+
+    const { id: queueId } = await queueTxRaw({
+      pgtx,
+      ...txData,
+      signerAddress,
+      accountAddress,
+      target,
     });
 
     return queueId;
   } else {
-    const { id: queueId } = await prisma.transactions.create({
-      data: {
-        ...txTableData,
-        // Fields needed to send transaction
-        fromAddress: (await tx.getSignerAddress()).toLowerCase(),
-        toAddress: tx.getTarget().toLowerCase(),
-      },
+    const fromAddress = await tx.getSignerAddress();
+    const toAddress = tx.getTarget();
+
+    const { id: queueId } = await queueTxRaw({
+      pgtx,
+      ...txData,
+      fromAddress,
+      toAddress,
     });
 
     return queueId;
