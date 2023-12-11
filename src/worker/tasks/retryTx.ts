@@ -19,13 +19,13 @@ export const retryTx = async () => {
         }
 
         const config = await getConfiguration();
-
         const sdk = await getSdk({
           chainId: parseInt(tx.chainId!),
           walletAddress: tx.fromAddress!,
         });
+
         const blockNumber = await sdk.getProvider().getBlockNumber();
-        // Only retry if more than the ellapsed blocks before retry has passed
+        // Only retry if more than the elapsed blocks before retry has passed.
         if (
           blockNumber - tx.sentAtBlockNumber! <=
           config.minEllapsedBlocksBeforeRetry
@@ -37,8 +37,8 @@ export const retryTx = async () => {
           .getProvider()
           .getTransactionReceipt(tx.transactionHash!);
 
-        // If the transaction has been mined but just not updated yet in database, don't retry
-        if (!!receipt) {
+        // If the transaction is mined, update the DB.
+        if (receipt) {
           return;
         }
 
