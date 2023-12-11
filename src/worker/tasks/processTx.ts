@@ -49,6 +49,12 @@ export const processTx = async () => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
         const txs = await getQueuedTxs({ pgtx });
 
+        logger({
+          service: "worker",
+          level: "info",
+          message: `Received ${txs.length} transactions to process`,
+        });
+
         const config = await getConfiguration();
         if (txs.length < config.minTxsToProcess) {
           return;
