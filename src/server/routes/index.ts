@@ -100,6 +100,8 @@ import { healthCheck } from "./health";
 import { home } from "./home";
 import { updateRelayer } from "./relayer/update";
 import { checkGroupStatus } from "./transaction/group";
+import { sendSignedTransaction } from "./transaction/sendSignedTx";
+import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -192,6 +194,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
   await fastify.register(cancelTransaction);
+  await fastify.register(sendSignedTransaction);
+  await fastify.register(sendSignedUserOp);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);

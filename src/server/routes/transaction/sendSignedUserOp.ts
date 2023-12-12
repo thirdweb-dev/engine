@@ -1,6 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { HttpRpcClient } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/http-rpc-client";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { deriveClientId } from "../../../utils/api-keys";
@@ -85,15 +84,25 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
         userOp = signedUserOp;
       }
 
-      const client = new HttpRpcClient(
-        `https://${chainId}.bundler.thirdweb.com`,
-        "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789",
-        chainId,
-        deriveClientId(env.THIRDWEB_API_SECRET_KEY),
-        env.THIRDWEB_API_SECRET_KEY,
-      );
+      const entryPointAddress = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
+      const userOpRes = await fetch(`https://${chainId}.bundler.thirdweb.com`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-client-id": deriveClientId(env.THIRDWEB_API_SECRET_KEY),
+          "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+        },
+        body: JSON.stringify({
+          id: "1",
+          jsonrpc: "2.0",
+          method: "eth_sendUserOperation",
+          params: [userOp, entryPointAddress],
+        }),
+      });
 
-      const userOpHash = await client.sendUserOpToBundler(userOp);
+      const { result: userOpHash } = (await userOpRes.json()) as {
+        result: string;
+      };
       return res.status(200).send({
         result: {
           userOpHash,
