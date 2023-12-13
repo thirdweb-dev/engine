@@ -40,7 +40,7 @@
     "@fastify/websocket": "^8.2.0",
     "@google-cloud/kms": "^4.0.0",
     "@prisma/client": "5.2.0",
-    "@sinclair/typebox": "^0.28",
+    "@sinclair/typebox": "^0.31.28",
     "@t3-oss/env-core": "^0.6.0",
     "@thirdweb-dev/auth": "^4.1.0-nightly-c238fde8-20231020022304",
     "@thirdweb-dev/chains": "^0.1.61-nightly-d2001ca4-20231209002129",

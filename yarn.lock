@@ -2286,10 +2286,10 @@
     "@sentry/types" "5.30.0"
     tslib "^1.9.3"
 
-"@sinclair/typebox@^0.28":
-  version "0.28.11"
-  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.28.11.tgz#f094caefc315e1a9b4e649056f661ddb20fcea97"
-  integrity sha512-8QPhkOowccAdXa/ra54pq+UVYvzbKjYMuojxCOTFq+yyEfcWZJSdlIVdivTRrIq7Mgjx1n4E37t8Js/RXwyvUg==
+"@sinclair/typebox@^0.31.28":
+  version "0.31.28"
+  resolved "https://registry.yarnpkg.com/@sinclair/typebox/-/typebox-0.31.28.tgz#b68831e7bc7d09daac26968ea32f42bedc968ede"
+  integrity sha512-/s55Jujywdw/Jpan+vsy6JZs1z2ZTGxTmbZTPiuSL2wz9mfzA2gN1zzaqmvfi4pq+uOt7Du85fkiwv5ymW84aQ==
 
 "@smithy/abort-controller@^2.0.5":
   version "2.0.5"
