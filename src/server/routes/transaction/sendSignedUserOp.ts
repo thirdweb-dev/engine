@@ -30,7 +30,8 @@ const ParamsSchema = Type.Object({
 });
 
 const BodySchema = Type.Object({
-  signedUserOp: Type.Union([UserOpString, UserOp]),
+  // signedUserOp: Type.Union([UserOpString, UserOp]),
+  signedUserOp: Type.Any(),
 });
 
 const ReplySchema = Type.Union([
@@ -46,6 +47,18 @@ const ReplySchema = Type.Union([
   }),
 ]);
 
+type RpcResponse =
+  | {
+      result: string;
+      error: undefined;
+    }
+  | {
+      result: undefined;
+      error: {
+        message: string;
+      };
+    };
+
 export async function sendSignedUserOp(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
@@ -59,6 +72,8 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
       description: "Send a signed user operation",
       tags: ["Transaction"],
       operationId: "sendSignedUserOp",
+      params: ParamsSchema,
+      body: BodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
@@ -93,16 +108,24 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
           "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
         },
         body: JSON.stringify({
-          id: "1",
+          id: 1,
           jsonrpc: "2.0",
           method: "eth_sendUserOperation",
           params: [userOp, entryPointAddress],
         }),
       });
 
-      const { result: userOpHash } = (await userOpRes.json()) as {
-        result: string;
-      };
+      const { result: userOpHash, error } =
+        (await userOpRes.json()) as RpcResponse;
+
+      if (error) {
+        return res.status(400).send({
+          error: {
+            message: `Failed to send - ${error.message || error}`,
+          },
+        });
+      }
+
       return res.status(200).send({
         result: {
           userOpHash,
