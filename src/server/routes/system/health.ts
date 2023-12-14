@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { isDatabaseHealthy } from "../../db/client";
+import { isDatabaseHealthy } from "../../../db/client";
 
 const ReplySchemaOk = Type.Object({
   status: Type.String(),
@@ -19,7 +19,7 @@ export async function healthCheck(fastify: FastifyInstance) {
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
-    url: "/health",
+    url: "/system/health",
     schema: {
       summary: "Check health",
       description: "Check the system health of Engine",
