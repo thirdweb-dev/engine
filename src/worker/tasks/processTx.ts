@@ -211,18 +211,18 @@ export const processTx = async () => {
             for (const tx of txsToSend) {
               const nonce = startNonce.add(sentTxCount);
 
-              let value: ethers.BigNumberish = tx.value!;
-              if (tx.extension === "withdraw") {
-                value = await getWithdrawalValue({
-                  provider,
-                  chainId,
-                  fromAddress: tx.fromAddress!,
-                  toAddress: tx.toAddress!,
-                  gasOverrides,
-                });
-              }
-
               try {
+                let value: ethers.BigNumberish = tx.value!;
+                if (tx.extension === "withdraw") {
+                  value = await getWithdrawalValue({
+                    provider,
+                    chainId,
+                    fromAddress: tx.fromAddress!,
+                    toAddress: tx.toAddress!,
+                    gasOverrides,
+                  });
+                }
+
                 const txRequest = await signer.populateTransaction({
                   to: tx.toAddress!,
                   from: tx.fromAddress!,
@@ -307,15 +307,6 @@ export const processTx = async () => {
                   sentTxCount++;
                 }
               } catch (err: any) {
-                signer.call({
-                  to: tx.toAddress!,
-                  from: tx.fromAddress!,
-                  data: tx.data!,
-                  value,
-                  nonce,
-                  ...gasOverrides,
-                });
-
                 logger({
                   service: "worker",
                   level: "warn",
