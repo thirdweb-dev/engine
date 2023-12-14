@@ -22,6 +22,7 @@ type UpdateTxData =
     }
   | {
       status: TransactionStatusEnum.Submitted;
+      sentAt: Date;
       transactionHash: string;
       res: ethers.providers.TransactionResponse | null;
       sentAtBlockNumber: number;
@@ -29,6 +30,7 @@ type UpdateTxData =
     }
   | {
       status: TransactionStatusEnum.UserOpSent;
+      sentAt: Date;
       userOpHash: string;
     }
   | {
@@ -84,7 +86,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           id: queueId,
         },
         data: {
-          sentAt: new Date(),
+          sentAt: data.sentAt,
           transactionHash: data.transactionHash,
           sentAtBlockNumber: data.sentAtBlockNumber,
           retryCount: data.retryCount,
@@ -103,7 +105,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           id: queueId,
         },
         data: {
-          sentAt: new Date(),
+          sentAt: data.sentAt,
           userOpHash: data.userOpHash,
         },
       });

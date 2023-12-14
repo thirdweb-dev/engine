@@ -72,6 +72,7 @@ export const retryTx = async () => {
           message: `Retrying with nonce ${tx.nonce}`,
         });
 
+        const sentAt = new Date();
         let res: ethers.providers.TransactionResponse;
         try {
           res = await sdk.getSigner()!.sendTransaction({
@@ -113,6 +114,7 @@ export const retryTx = async () => {
           pgtx,
           queueId: tx.id,
           data: {
+            sentAt,
             status: TransactionStatusEnum.Submitted,
             res,
             sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
