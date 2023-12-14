@@ -29,6 +29,7 @@ import { getWithdrawalValue } from "../utils/withdraw";
 type SentTxStatus =
   | {
       transactionHash: string;
+      sentAt: Date;
       status: TransactionStatusEnum.Submitted;
       queueId: string;
       res: ethers.providers.TransactionResponse | null;
@@ -205,13 +206,13 @@ export const processTx = async () => {
               queueId: string;
               tx: ethers.providers.TransactionRequest;
               res: RpcResponse;
+              sentAt: Date;
             }[] = [];
             for (const tx of txsToSend) {
               const nonce = startNonce.add(sentTxCount);
 
               try {
                 let value: ethers.BigNumberish = tx.value!;
-
                 if (tx.extension === "withdraw") {
                   value = await getWithdrawalValue({
                     provider,
@@ -299,6 +300,7 @@ export const processTx = async () => {
                   queueId: tx.queueId!,
                   tx: txRequest,
                   res: rpcResponse,
+                  sentAt: new Date(),
                 });
 
                 if (!rpcResponse.error && !!rpcResponse.result) {
@@ -342,7 +344,7 @@ export const processTx = async () => {
 
             // Update transaction records with updated data
             const txStatuses: SentTxStatus[] = await Promise.all(
-              rpcResponses.map(async ({ queueId, tx, res }) => {
+              rpcResponses.map(async ({ queueId, tx, res, sentAt }) => {
                 if (res.result) {
                   const txHash = res.result;
                   const txRes = (await provider.getTransaction(
@@ -357,6 +359,7 @@ export const processTx = async () => {
                   });
 
                   return {
+                    sentAt,
                     transactionHash: txHash,
                     status: TransactionStatusEnum.Submitted,
                     queueId: queueId,
@@ -393,6 +396,7 @@ export const processTx = async () => {
                       pgtx,
                       queueId: tx.queueId,
                       data: {
+                        sentAt: tx.sentAt,
                         status: TransactionStatusEnum.Submitted,
                         transactionHash: tx.transactionHash,
                         res: tx.res,
@@ -462,6 +466,7 @@ export const processTx = async () => {
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
             );
+
             await signer.httpRpcClient.sendUserOpToBundler(userOp);
 
             // TODO: Need to update with other user op data
@@ -469,6 +474,7 @@ export const processTx = async () => {
               pgtx,
               queueId: tx.queueId!,
               data: {
+                sentAt: new Date(),
                 status: TransactionStatusEnum.UserOpSent,
                 userOpHash,
               },
