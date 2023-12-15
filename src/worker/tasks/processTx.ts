@@ -41,6 +41,13 @@ type SentTxStatus =
       errorMessage: string;
     };
 
+type RpcResponseData = {
+  queueId: string;
+  tx: ethers.providers.TransactionRequest;
+  res: RpcResponse;
+  sentAt: Date;
+};
+
 export const processTx = async () => {
   try {
     // 0. Initialize queueIds to send webhook
@@ -202,16 +209,14 @@ export const processTx = async () => {
               startNonce = dbNonce;
             }
 
-            // Group all transactions into a single batch rpc request
-            let sentTxCount = 0;
-            const rpcResponses: {
-              queueId: string;
-              tx: ethers.providers.TransactionRequest;
-              res: RpcResponse;
-              sentAt: Date;
-            }[] = [];
-            for (const tx of txsToSend) {
-              const nonce = startNonce.add(sentTxCount);
+            const rpcResponses: RpcResponseData[] = [];
+
+            let txIndex = 0;
+            let nonceIncrement = 0;
+
+            while (txIndex < txsToSend.length) {
+              const nonce = startNonce.add(nonceIncrement);
+              const tx = txsToSend[txIndex];
 
               try {
                 let value: ethers.BigNumberish = tx.value!;
@@ -306,7 +311,19 @@ export const processTx = async () => {
                 });
 
                 if (!rpcResponse.error && !!rpcResponse.result) {
-                  sentTxCount++;
+                  nonceIncrement++;
+                  txIndex++;
+                  sendWebhookForQueueIds.push(tx.queueId!);
+                } else if (
+                  typeof rpcResponse.error?.message === "string" &&
+                  (rpcResponse.error.message as string)
+                    .toLowerCase()
+                    .includes("nonce too low")
+                ) {
+                  nonceIncrement++;
+                } else {
+                  txIndex++;
+                  sendWebhookForQueueIds.push(tx.queueId!);
                 }
               } catch (err: any) {
                 logger({
@@ -328,20 +345,16 @@ export const processTx = async () => {
                       `Failed to handle transaction`,
                   },
                 });
+
                 sendWebhookForQueueIds.push(tx.queueId!);
               }
             }
-
-            // Check how many transactions succeeded and increment nonce
-            const incrementNonce = rpcResponses.reduce((acc, curr) => {
-              return curr.res.result && !curr.res.error ? acc + 1 : acc;
-            }, 0);
 
             await updateWalletNonce({
               pgtx,
               address: walletAddress,
               chainId,
-              nonce: startNonce.toNumber() + incrementNonce,
+              nonce: startNonce.add(nonceIncrement).add(1).toNumber(),
             });
 
             // Update transaction records with updated data
