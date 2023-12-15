@@ -135,20 +135,22 @@ export const processTx = async () => {
               return;
             }
 
-            // - For each wallet address, check the nonce in database and the mempool
-            const [walletBalance, mempoolNonceData, dbNonceData, gasOverrides] =
+            // Important: We need to block this worker until the nonce lock is acquired
+            const dbNonceData = await getWalletNonce({
+              pgtx,
+              chainId,
+              address: walletAddress,
+            });
+
+            // For each wallet address, check the nonce in database and the mempool
+            const [walletBalance, mempoolNonceData, gasOverrides] =
               await Promise.all([
                 sdk.wallet.balance(),
                 sdk.wallet.getNonce("pending"),
-                getWalletNonce({
-                  pgtx,
-                  chainId,
-                  address: walletAddress,
-                }),
                 getDefaultGasOverrides(provider),
               ]);
 
-            // Wallet Balance Webhook
+            // Wallet balance webhook
             if (
               BigNumber.from(walletBalance.value).lte(
                 BigNumber.from(config.minWalletBalance),
