@@ -7,7 +7,6 @@ import {
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
-import { decodeFunctionResult } from "viem";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
@@ -21,7 +20,6 @@ import {
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import { sendBalanceWebhook, sendTxWebhook } from "../../server/utils/webhook";
-import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -137,13 +135,14 @@ export const processTx = async () => {
               return;
             }
 
+            // Important: We need to block this worker until the nonce lock is acquired
             const dbNonceData = await getWalletNonce({
               pgtx,
               chainId,
               address: walletAddress,
             });
 
-            // - For each wallet address, check the nonce in database and the mempool
+            // For each wallet address, check the nonce in database and the mempool
             const [walletBalance, mempoolNonceData, gasOverrides] =
               await Promise.all([
                 sdk.wallet.balance(),
@@ -151,7 +150,7 @@ export const processTx = async () => {
                 getDefaultGasOverrides(provider),
               ]);
 
-            // Wallet Balance Webhook
+            // Wallet balance webhook
             if (
               BigNumber.from(walletBalance.value).lte(
                 BigNumber.from(config.minWalletBalance),
@@ -214,18 +213,18 @@ export const processTx = async () => {
             for (const tx of txsToSend) {
               const nonce = startNonce.add(sentTxCount);
 
-              let value: ethers.BigNumberish = tx.value!;
-              if (tx.extension === "withdraw") {
-                value = await getWithdrawalValue({
-                  provider,
-                  chainId,
-                  fromAddress: tx.fromAddress!,
-                  toAddress: tx.toAddress!,
-                  gasOverrides,
-                });
-              }
-
               try {
+                let value: ethers.BigNumberish = tx.value!;
+                if (tx.extension === "withdraw") {
+                  value = await getWithdrawalValue({
+                    provider,
+                    chainId,
+                    fromAddress: tx.fromAddress!,
+                    toAddress: tx.toAddress!,
+                    gasOverrides,
+                  });
+                }
+
                 const txRequest = await signer.populateTransaction({
                   to: tx.toAddress!,
                   from: tx.fromAddress!,
@@ -310,28 +309,6 @@ export const processTx = async () => {
                   sentTxCount++;
                 }
               } catch (err: any) {
-                const data = await signer.call({
-                  to: tx.toAddress!,
-                  from: tx.fromAddress!,
-                  data: tx.data!,
-                  value,
-                });
-
-                const contract = await getContract({
-                  chainId,
-                  walletAddress: tx.fromAddress!,
-                  contractAddress: tx.toAddress!,
-                });
-
-                console.log(
-                  decodeFunctionResult({
-                    abi: contract.abi,
-                    functionName: tx.functionName!,
-                    args: JSON.parse(tx.functionArgs!) as any[],
-                    data: data as `0x${string}`,
-                  }),
-                );
-
                 logger({
                   service: "worker",
                   level: "warn",
