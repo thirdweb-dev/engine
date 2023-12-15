@@ -303,16 +303,16 @@ export const processTx = async () => {
                   data: rpcResponse,
                 });
 
-                rpcResponses.push({
-                  queueId: tx.queueId!,
-                  tx: txRequest,
-                  res: rpcResponse,
-                  sentAt: new Date(),
-                });
-
                 if (!rpcResponse.error && !!rpcResponse.result) {
                   nonceIncrement++;
                   txIndex++;
+
+                  rpcResponses.push({
+                    queueId: tx.queueId!,
+                    tx: txRequest,
+                    res: rpcResponse,
+                    sentAt: new Date(),
+                  });
                   sendWebhookForQueueIds.push(tx.queueId!);
                 } else if (
                   typeof rpcResponse.error?.message === "string" &&
@@ -323,6 +323,13 @@ export const processTx = async () => {
                   nonceIncrement++;
                 } else {
                   txIndex++;
+
+                  rpcResponses.push({
+                    queueId: tx.queueId!,
+                    tx: txRequest,
+                    res: rpcResponse,
+                    sentAt: new Date(),
+                  });
                   sendWebhookForQueueIds.push(tx.queueId!);
                 }
               } catch (err: any) {
