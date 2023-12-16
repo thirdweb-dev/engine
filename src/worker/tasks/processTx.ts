@@ -304,6 +304,7 @@ export const processTx = async () => {
                 });
 
                 if (!rpcResponse.error && !!rpcResponse.result) {
+                  // Success (continue to next transaction)
                   nonceIncrement++;
                   txIndex++;
 
@@ -320,8 +321,10 @@ export const processTx = async () => {
                     .toLowerCase()
                     .includes("nonce too low")
                 ) {
+                  // Nonce too low (retry same transaction with higher nonce)
                   nonceIncrement++;
                 } else {
+                  // Error (continue to next transaction)
                   txIndex++;
 
                   rpcResponses.push({
@@ -333,6 +336,10 @@ export const processTx = async () => {
                   sendWebhookForQueueIds.push(tx.queueId!);
                 }
               } catch (err: any) {
+                // Error (continue to next transaction)
+                txIndex++;
+                sendWebhookForQueueIds.push(tx.queueId!);
+
                 logger({
                   service: "worker",
                   level: "warn",
@@ -352,8 +359,6 @@ export const processTx = async () => {
                       `Failed to handle transaction`,
                   },
                 });
-
-                sendWebhookForQueueIds.push(tx.queueId!);
               }
             }
 
