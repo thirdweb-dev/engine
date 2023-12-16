@@ -366,7 +366,7 @@ export const processTx = async () => {
               pgtx,
               address: walletAddress,
               chainId,
-              nonce: startNonce.add(nonceIncrement).add(1).toNumber(),
+              nonce: startNonce.add(nonceIncrement).toNumber(),
             });
 
             // Update transaction records with updated data
