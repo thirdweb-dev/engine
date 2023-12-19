@@ -45,7 +45,7 @@ const boolSchema = (defaultBool: "true" | "false") =>
 export const env = createEnv({
   server: {
     NODE_ENV: z
-      .enum(["production", "development", "testing", "local"])
+      .enum(["production", "development", "test", "local"])
       .default("development"),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace"])
