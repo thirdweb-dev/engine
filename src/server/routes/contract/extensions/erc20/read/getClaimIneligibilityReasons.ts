@@ -1,12 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
+import { ClaimEligibility } from "@thirdweb-dev/sdk";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../../utils/cache/getContract";
+import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../../schemas/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utils/chain";
+} from "../../../../../schemas/sharedApiSchemas";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
@@ -23,24 +24,12 @@ const requestBodySchema = Type.Object({
 });
 
 // OUPUT
-enum ClaimEligibility {
-  NotEnoughSupply = "There is not enough supply to claim.",
-  AddressNotAllowed = "This address is not on the allowlist.",
-  WaitBeforeNextClaimTransaction = "Not enough time since last claim transaction. Please wait.",
-  AlreadyClaimed = "You have already claimed the token.",
-  NotEnoughTokens = "There are not enough tokens in the wallet to pay for the claim.",
-  NoActiveClaimPhase = "There is no active claim phase at the moment. Please check back in later.",
-  NoClaimConditionSet = "There is no claim condition set.",
-  NoWallet = "No wallet connected.",
-  Unknown = "No claim conditions found.",
-}
-
 const responseSchema = Type.Object({
   result: Type.Array(Type.Union([Type.String(), Type.Enum(ClaimEligibility)])),
 });
 
 // LOGIC
-export async function erc721ClaimContitionsGetClaimIneligibilityReasons(
+export async function erc20GetClaimIneligibilityReasons(
   fastify: FastifyInstance,
 ) {
   fastify.route<{
@@ -73,7 +62,7 @@ export async function erc721ClaimContitionsGetClaimIneligibilityReasons(
         contractAddress,
       });
       const returnData =
-        await contract.erc721.claimConditions.getClaimIneligibilityReasons(
+        await contract.erc20.claimConditions.getClaimIneligibilityReasons(
           quantity,
           addressToCheck,
         );

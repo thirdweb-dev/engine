@@ -1,67 +1,44 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../../utils/cache/getContract";
+import { getContract } from "../../../../../../utils/cache/getContract";
+import { claimConditionInputSchema } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
-  currencyValueSchema,
   standardResponseSchema,
-} from "../../../../../../schemas/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utils/chain";
+} from "../../../../../schemas/sharedApiSchemas";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  withAllowList: Type.Boolean({
-    description:
-      "Provide a boolean value to include the allowlist in the response.",
-  }),
+  withAllowList: Type.Optional(
+    Type.Boolean({
+      description:
+        "Provide a boolean value to include the allowlist in the response.",
+    }),
+  ),
 });
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Object({
-    maxClaimableSupply: Type.String(),
-    startTime: Type.Date(),
-    price: Type.String(),
-    currencyAddress: Type.String(),
-    maxClaimablePerWallet: Type.String(),
-    waitInSeconds: Type.String(),
-    merkleRootHash: Type.Union([Type.String(), Type.Array(Type.Number())]),
-    availableSupply: Type.String(),
-    currentMintSupply: Type.String(),
-    currencyMetadata: currencyValueSchema,
-    metadata: Type.Optional(Type.Any()),
-    snapshot: Type.Optional(
-      Type.Union([
-        Type.Null(),
-        Type.Array(
-          Type.Object({
-            price: Type.Optional(Type.String()),
-            currencyAddress: Type.Optional(Type.String()),
-            address: Type.String(),
-            maxClaimable: Type.String(),
-          }),
-        ),
-      ]),
-    ),
-  }),
+  result: claimConditionInputSchema,
 });
 
 // LOGIC
-export async function erc721ClaimConditionsGetActive(fastify: FastifyInstance) {
+export async function erc20GetActiveClaimConditions(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contractAddress/erc721/claim-conditions/get-active",
+    url: "/contract/:chain/:contractAddress/erc20/claim-conditions/get-active",
     schema: {
       summary: "Retrieve the currently active claim phase, if any.",
       description: "Retrieve the currently active claim phase, if any.",
-      tags: ["ERC721"],
-      operationId: "claimConditionsGetActive",
+      tags: ["ERC20"],
+      operationId: "getActiveClaimConditions",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -78,7 +55,7 @@ export async function erc721ClaimConditionsGetActive(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc721.claimConditions.getActive({
+      const returnData = await contract.erc20.claimConditions.getActive({
         withAllowList,
       });
       reply.status(StatusCodes.OK).send({

@@ -1,18 +1,21 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../../utils/cache/getContract";
+import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../../schemas/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utils/chain";
+} from "../../../../../schemas/sharedApiSchemas";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const querystringSchema = Type.Object({
+const requestBodySchema = Type.Object({
   quantity: Type.String({
     description: "The amount of tokens to claim.",
+  }),
+  tokenId: Type.String({
+    description: "The token ID of the NFT you want to claim.",
   }),
   addressToCheck: Type.Optional(
     Type.String({
@@ -29,22 +32,22 @@ const responseSchema = Type.Object({
 });
 
 // LOGIC
-export async function erc721ClaimConditionsCanClaim(fastify: FastifyInstance) {
+export async function erc1155CanClaim(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Querystring: Static<typeof querystringSchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contractAddress/erc721/claim-conditions/can-claim",
+    url: "/contract/:chain/:contractAddress/erc1155/claim-conditions/can-claim",
     schema: {
       summary: "Check if tokens are available for claiming",
       description:
         "Check if tokens are currently available for claiming, optionally specifying if a specific wallet address can claim.",
-      tags: ["ERC721"],
-      operationId: "claimConditionsCanClaim",
+      tags: ["ERC1155"],
+      operationId: "canClaim",
       params: requestSchema,
-      querystring: querystringSchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -52,15 +55,16 @@ export async function erc721ClaimConditionsCanClaim(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { quantity, addressToCheck } = request.query;
+      const { quantity, tokenId, addressToCheck } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc721.claimConditions.canClaim(
+      const returnData = await contract.erc1155.claimConditions.canClaim(
         quantity,
+        tokenId,
         addressToCheck,
       );
       reply.status(StatusCodes.OK).send({

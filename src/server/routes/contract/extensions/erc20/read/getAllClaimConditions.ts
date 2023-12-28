@@ -1,13 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../../utils/cache/getContract";
+import { getContract } from "../../../../../../utils/cache/getContract";
+import { claimConditionInputSchema } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
-  currencyValueSchema,
   standardResponseSchema,
-} from "../../../../../../schemas/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../../../../utils/chain";
+} from "../../../../../schemas/sharedApiSchemas";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
@@ -20,51 +20,23 @@ const requestBodySchema = Type.Object({
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(
-    Type.Object({
-      maxClaimableSupply: Type.String(),
-      startTime: Type.Date(),
-      price: Type.String(),
-      currencyAddress: Type.String(),
-      maxClaimablePerWallet: Type.String(),
-      waitInSeconds: Type.String(),
-      merkleRootHash: Type.Union([Type.String(), Type.Array(Type.Number())]),
-      availableSupply: Type.String(),
-      currentMintSupply: Type.String(),
-      currencyMetadata: currencyValueSchema,
-      metadata: Type.Optional(Type.Any()),
-      snapshot: Type.Optional(
-        Type.Union([
-          Type.Null(),
-          Type.Undefined(),
-          Type.Array(
-            Type.Object({
-              price: Type.Optional(Type.String()),
-              currencyAddress: Type.Optional(Type.String()),
-              address: Type.String(),
-              maxClaimable: Type.String(),
-            }),
-          ),
-        ]),
-      ),
-    }),
-  ),
+  result: Type.Array(claimConditionInputSchema),
 });
 
 // LOGIC
-export async function erc721ClaimContitionsGetAll(fastify: FastifyInstance) {
+export async function erc20GetAllClaimConditions(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contractAddress/erc721/claim-conditions/get-all",
+    url: "/contract/:chain/:contractAddress/erc20/claim-conditions/get-all",
     schema: {
-      summary: "Get all the claim phases configured for the drop.",
-      description: "Get all the claim phases configured for the drop.",
-      tags: ["ERC721"],
-      operationId: "claimConditionsGetAll",
+      summary: "Get all the claim phases configured.",
+      description: "Get all the claim phases configured on the drop contract.",
+      tags: ["ERC20"],
+      operationId: "getAllClaimConditions",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -81,7 +53,7 @@ export async function erc721ClaimContitionsGetAll(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc721.claimConditions.getAll({
+      const returnData = await contract.erc20.claimConditions.getAll({
         withAllowList,
       });
 
