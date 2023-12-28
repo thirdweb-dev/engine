@@ -70,6 +70,12 @@ const main = async () => {
     },
   );
 
+  logger({
+    service: "server",
+    level: "info",
+    message: `Listening on ${env.HOST}:${env.PORT}`,
+  });
+
   writeOpenApiToFile(server);
 };
 
