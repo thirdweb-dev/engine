@@ -1,11 +1,17 @@
 import { FastifyInstance } from "fastify";
-import { erc1155Get } from "./read/get";
-import { erc1155GetAll } from "./read/getAll";
 import { erc1155BalanceOf } from "./read/balanceOf";
-import { erc1155IsApproved } from "./read/isApproved";
+import { erc1155CanClaim } from "./read/canClaim";
+import { erc1155Get } from "./read/get";
+import { erc1155GetActiveClaimConditions } from "./read/getActiveClaimConditions";
+import { erc1155GetAll } from "./read/getAll";
+import { erc1155GetAllClaimConditions } from "./read/getAllClaimConditions";
+import { erc1155GetClaimIneligibilityReasons } from "./read/getClaimIneligibilityReasons";
+import { erc1155GetClaimerProofs } from "./read/getClaimerProofs";
 import { erc1155GetOwned } from "./read/getOwned";
-import { erc1155TotalSupply } from "./read/totalSupply";
+import { erc1155IsApproved } from "./read/isApproved";
+import { erc1155SignatureGenerate } from "./read/signatureGenerate";
 import { erc1155TotalCount } from "./read/totalCount";
+import { erc1155TotalSupply } from "./read/totalSupply";
 import { erc1155airdrop } from "./write/airdrop";
 import { erc1155burn } from "./write/burn";
 import { erc1155burnBatch } from "./write/burnBatch";
@@ -15,10 +21,12 @@ import { erc1155mintAdditionalSupplyTo } from "./write/mintAdditionalSupplyTo";
 import { erc1155mintBatchTo } from "./write/mintBatchTo";
 import { erc1155mintTo } from "./write/mintTo";
 import { erc1155SetApprovalForAll } from "./write/setApprovalForAll";
+import { erc1155SetBatchClaimConditions } from "./write/setBatchClaimConditions";
+import { erc1155SetClaimCondition } from "./write/setClaimConditions";
+import { erc1155SignatureMint } from "./write/signatureMint";
 import { erc1155transfer } from "./write/transfer";
 import { erc1155transferFrom } from "./write/transferFrom";
-import { erc1155SignatureGenerate } from "./read/signatureGenerate";
-import { erc1155SignatureMint } from "./write/signatureMint";
+import { erc1155UpdateClaimConditions } from "./write/updateClaimConditions";
 
 export const erc1155Routes = async (fastify: FastifyInstance) => {
   // GET
@@ -30,6 +38,11 @@ export const erc1155Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc1155TotalCount);
   await fastify.register(erc1155TotalSupply);
   await fastify.register(erc1155SignatureGenerate);
+  await fastify.register(erc1155CanClaim);
+  await fastify.register(erc1155GetActiveClaimConditions);
+  await fastify.register(erc1155GetAllClaimConditions);
+  await fastify.register(erc1155GetClaimerProofs);
+  await fastify.register(erc1155GetClaimIneligibilityReasons);
 
   // POST
   await fastify.register(erc1155airdrop);
@@ -44,4 +57,7 @@ export const erc1155Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc1155transfer);
   await fastify.register(erc1155transferFrom);
   await fastify.register(erc1155SignatureMint);
+  await fastify.register(erc1155SetClaimCondition);
+  await fastify.register(erc1155SetBatchClaimConditions);
+  await fastify.register(erc1155UpdateClaimConditions);
 };

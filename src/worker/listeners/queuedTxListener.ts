@@ -3,6 +3,7 @@ import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { logger } from "../../utils/logger";
 import { processTx } from "../tasks/processTx";
 
+let processTxStarted = false;
 export const queuedTxListener = async (): Promise<void> => {
   logger({
     service: "worker",
@@ -17,6 +18,16 @@ export const queuedTxListener = async (): Promise<void> => {
   }
 
   cron.schedule(config.minedTxListenerCronSchedule, async () => {
-    await processTx();
+    if (!processTxStarted) {
+      processTxStarted = true;
+      await processTx();
+      processTxStarted = false;
+    } else {
+      logger({
+        service: "worker",
+        level: "warn",
+        message: `processTx already running, skipping`,
+      });
+    }
   });
 };
