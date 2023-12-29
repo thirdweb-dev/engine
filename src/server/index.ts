@@ -73,7 +73,9 @@ const main = async () => {
   logger({
     service: "server",
     level: "info",
-    message: `Listening on ${env.HOST}:${env.PORT}`,
+    message: `Listening on ${env.ENABLE_HTTPS ? "https://" : "http://"}${
+      env.HOST
+    }:${env.PORT}`,
   });
 
   writeOpenApiToFile(server);

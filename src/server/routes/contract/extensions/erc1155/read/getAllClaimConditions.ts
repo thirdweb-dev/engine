@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
-import { claimConditionInputSchema } from "../../../../../schemas/claimConditions";
+import { claimConditionOutputSchema } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -11,20 +11,22 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestBodySchema = Type.Object({
+const requestQueryString = Type.Object({
   tokenId: Type.Union([Type.String(), Type.Number()], {
     description:
       "The token ID of the NFT you want to get the claim conditions for.",
   }),
-  withAllowList: Type.Boolean({
-    description:
-      "Provide a boolean value to include the allowlist in the response.",
-  }),
+  withAllowList: Type.Optional(
+    Type.Boolean({
+      description:
+        "Provide a boolean value to include the allowlist in the response.",
+    }),
+  ),
 });
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(claimConditionInputSchema),
+  result: Type.Array(claimConditionOutputSchema),
 });
 
 // LOGIC
@@ -32,9 +34,9 @@ export async function erc1155GetAllClaimConditions(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQueryString>;
   }>({
-    method: "POST",
+    method: "GET",
     url: "/contract/:chain/:contractAddress/erc1155/claim-conditions/get-all",
     schema: {
       summary: "Get all the claim phases configured for a specific token ID.",
@@ -43,7 +45,7 @@ export async function erc1155GetAllClaimConditions(fastify: FastifyInstance) {
       tags: ["ERC1155"],
       operationId: "getAllClaimConditions",
       params: requestSchema,
-      body: requestBodySchema,
+      querystring: requestQueryString,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -51,7 +53,7 @@ export async function erc1155GetAllClaimConditions(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { tokenId, withAllowList } = request.body;
+      const { tokenId, withAllowList } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -74,6 +76,7 @@ export async function erc1155GetAllClaimConditions(fastify: FastifyInstance) {
             ...item.currencyMetadata,
             value: item.currencyMetadata.value.toString(),
           },
+          startTime: item.startTime.toISOString(),
         };
       });
 

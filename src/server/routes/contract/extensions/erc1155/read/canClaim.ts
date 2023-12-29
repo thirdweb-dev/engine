@@ -10,7 +10,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestBodySchema = Type.Object({
+const requestQueryString = Type.Object({
   quantity: Type.String({
     description: "The amount of tokens to claim.",
   }),
@@ -36,7 +36,7 @@ export async function erc1155CanClaim(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQueryString>;
   }>({
     method: "GET",
     url: "/contract/:chain/:contractAddress/erc1155/claim-conditions/can-claim",
@@ -47,7 +47,7 @@ export async function erc1155CanClaim(fastify: FastifyInstance) {
       tags: ["ERC1155"],
       operationId: "canClaim",
       params: requestSchema,
-      body: requestBodySchema,
+      querystring: requestQueryString,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -55,7 +55,7 @@ export async function erc1155CanClaim(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { quantity, tokenId, addressToCheck } = request.body;
+      const { quantity, tokenId, addressToCheck } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

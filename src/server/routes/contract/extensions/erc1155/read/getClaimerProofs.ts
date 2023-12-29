@@ -11,7 +11,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestBodySchema = Type.Object({
+const requestQueryString = Type.Object({
   tokenId: Type.Union([Type.String(), Type.Number()], {
     description:
       "The token ID of the NFT you want to get the claimer proofs for.",
@@ -31,9 +31,9 @@ export async function erc1155GetClaimerProofs(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQueryString>;
   }>({
-    method: "POST",
+    method: "GET",
     url: "/contract/:chain/:contractAddress/erc1155/claim-conditions/get-claimer-proofs",
     schema: {
       summary: "Get claimer proofs",
@@ -42,7 +42,7 @@ export async function erc1155GetClaimerProofs(fastify: FastifyInstance) {
       tags: ["ERC1155"],
       operationId: "getClaimerProofs",
       params: requestSchema,
-      querystring: requestBodySchema,
+      querystring: requestQueryString,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -50,7 +50,7 @@ export async function erc1155GetClaimerProofs(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { tokenId, walletAddress } = request.body;
+      const { tokenId, walletAddress } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

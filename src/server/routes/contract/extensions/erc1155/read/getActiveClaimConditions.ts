@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
-import { claimConditionInputSchema } from "../../../../../schemas/claimConditions";
+import { claimConditionOutputSchema } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -11,7 +11,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestBodySchema = Type.Object({
+const requestQueryString = Type.Object({
   tokenId: Type.Union([Type.String(), Type.Number()], {
     description: "The token ID of the NFT you want to claim.",
   }),
@@ -25,7 +25,7 @@ const requestBodySchema = Type.Object({
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: claimConditionInputSchema,
+  result: claimConditionOutputSchema,
 });
 
 // LOGIC
@@ -35,9 +35,9 @@ export async function erc1155GetActiveClaimConditions(
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQueryString>;
   }>({
-    method: "POST",
+    method: "GET",
     url: "/contract/:chain/:contractAddress/erc1155/claim-conditions/get-active",
     schema: {
       summary: "Get currently active claim phase for a specific token ID.",
@@ -46,7 +46,7 @@ export async function erc1155GetActiveClaimConditions(
       tags: ["ERC1155"],
       operationId: "getActiveClaimConditions",
       params: requestSchema,
-      body: requestBodySchema,
+      body: requestQueryString,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -54,7 +54,7 @@ export async function erc1155GetActiveClaimConditions(
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { tokenId, withAllowList } = request.body;
+      const { tokenId, withAllowList } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -76,6 +76,7 @@ export async function erc1155GetActiveClaimConditions(
             ...returnData.currencyMetadata,
             value: returnData.currencyMetadata.value.toString(),
           },
+          startTime: returnData.startTime.toISOString(),
         },
       });
     },

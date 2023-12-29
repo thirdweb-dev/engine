@@ -11,7 +11,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestBodySchema = Type.Object({
+const requestQueryString = Type.Object({
   walletAddress: Type.String({
     description: "The wallet address to get the merkle proofs for.",
   }),
@@ -27,9 +27,9 @@ export async function erc721GetClaimerProofs(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQueryString>;
   }>({
-    method: "POST",
+    method: "GET",
     url: "/contract/:chain/:contractAddress/erc721/claim-conditions/get-claimer-proofs",
     schema: {
       summary: "Get claimer proofs",
@@ -38,7 +38,7 @@ export async function erc721GetClaimerProofs(fastify: FastifyInstance) {
       tags: ["ERC721"],
       operationId: "getClaimerProofs",
       params: requestSchema,
-      querystring: requestBodySchema,
+      querystring: requestQueryString,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -46,7 +46,7 @@ export async function erc721GetClaimerProofs(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { walletAddress } = request.body;
+      const { walletAddress } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
