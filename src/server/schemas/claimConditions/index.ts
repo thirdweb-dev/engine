@@ -44,7 +44,7 @@ export const claimConditionInputSchema = Type.Object({
 });
 
 export const sanitizedClaimConditionInputSchema = Type.Object({
-  ...claimConditionInputSchema.props,
+  ...claimConditionInputSchema.properties,
   startTime: Type.Optional(Type.Union([Type.Date(), Type.Number()])),
 });
 
@@ -96,3 +96,15 @@ export const claimerProofSchema = Type.Union([
     proof: Type.Array(Type.String()),
   }),
 ]);
+
+export const setBatchSantiziedClaimConditionsRequestSchema = Type.Object({
+  claimConditionsForToken: Type.Array(
+    Type.Object({
+      tokenId: Type.Union([Type.String(), Type.Number()], {
+        description: "ID of the token to set the claim conditions for",
+      }),
+      claimConditions: Type.Array(sanitizedClaimConditionInputSchema),
+    }),
+  ),
+  resetClaimEligibilityForAll: Type.Optional(Type.Boolean()),
+});
