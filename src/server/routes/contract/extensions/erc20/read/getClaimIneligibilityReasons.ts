@@ -38,7 +38,7 @@ export async function erc20GetClaimIneligibilityReasons(
     Querystring: Static<typeof requestQueryString>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contractAddress/erc721/claim-conditions/get-claim-ineligibility-reasons",
+    url: "/contract/:chain/:contractAddress/erc20/claim-conditions/get-claim-ineligibility-reasons",
     schema: {
       summary: "Get claim ineligibility reasons",
       description:

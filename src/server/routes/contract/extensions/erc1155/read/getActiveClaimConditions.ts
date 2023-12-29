@@ -46,7 +46,7 @@ export async function erc1155GetActiveClaimConditions(
       tags: ["ERC1155"],
       operationId: "getActiveClaimConditions",
       params: requestSchema,
-      body: requestQueryString,
+      querystring: requestQueryString,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
