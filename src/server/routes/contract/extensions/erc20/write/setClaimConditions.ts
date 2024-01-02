@@ -36,7 +36,7 @@ export async function erc20SetClaimConditions(fastify: FastifyInstance) {
       summary: "Overwrite the claim conditions for the drop.",
       description:
         "Overwrite the claim conditions for the drop. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.",
-      tags: ["ERC721"],
+      tags: ["ERC20"],
       operationId: "setClaimConditions",
       params: requestSchema,
       body: requestBodySchema,

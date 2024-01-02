@@ -43,7 +43,7 @@ export async function erc20GetClaimIneligibilityReasons(
       summary: "Get claim ineligibility reasons",
       description:
         "Get an array of reasons why a specific wallet address is not eligible to claim tokens, if any.",
-      tags: ["ERC721"],
+      tags: ["ERC20"],
       operationId: "claimConditionsGetClaimIneligibilityReasons",
       params: requestSchema,
       querystring: requestQueryString,
