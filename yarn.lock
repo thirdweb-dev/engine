@@ -3430,10 +3430,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.58.tgz#5a26fe187ef39b7c6af87972166785d110cad53e"
   integrity sha512-prSShAWoLODuZQcDBwNDqcXLzfevV2BOw54cDaHetSP+Sw/BP6SaPKIxojRQGsXARjn0JMWniG/NCtppUUHALQ==
 
-"@thirdweb-dev/chains@0.1.59":
-  version "0.1.59"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.59.tgz#6dc700ac6c8acf584ba6ac268b12606bd09236d7"
-  integrity sha512-fd1ZjHGwz/P1eRPffxfhITa/wv+DJuIG/5SIRZS22mOKTQNHr8+HtrmO/sous/D8ZMgIHmRCmOMeUfiYinxdKA==
+"@thirdweb-dev/chains@0.1.62":
+  version "0.1.62"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.62.tgz#d7a5c8bc71d3dac68c7da44b13b5ea7113a01151"
+  integrity sha512-BLJEub6SIDfwktqLhFkeurVQbJp/RZeJLhzjjwxSWE4Kb1K7rv/nNkwRFXd3Hhc46DPJvrHuG3oBwkZgWxWgQw==
 
 "@thirdweb-dev/chains@^0.1.61-nightly-d2001ca4-20231209002129":
   version "0.1.61-nightly-d2001ca4-20231209002129"
@@ -3530,17 +3530,17 @@
     yaml "^2.3.1"
     zod "^3.22.3"
 
-"@thirdweb-dev/sdk@^4.0.17":
-  version "4.0.17"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.17.tgz#213aa8d81a50d3b827d5691b02fe8cdedf8cc3d9"
-  integrity sha512-1OZiOSRmNsrMzkzGcoDoUnUlUUFCJwjDqFTQACgoD/LL0zj4X+W6IZ9qngMsJ98tU13ZHpYWwSkI/flzg5Jzkg==
+"@thirdweb-dev/sdk@^4.0.23":
+  version "4.0.23"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.23.tgz#4c5e692abf63ce0219796bafd4c80f9d24d03b1b"
+  integrity sha512-xDEsJbwYOZAp2BAkevvt/R1ZX4AgD0gwy9O0/kPe7jUG7Nrw2u790DFUsATHS00xi8lirXeTcw5VIDGwJ6TFTg==
   dependencies:
-    "@thirdweb-dev/chains" "0.1.59"
+    "@thirdweb-dev/chains" "0.1.62"
     "@thirdweb-dev/contracts-js" "1.3.16"
     "@thirdweb-dev/crypto" "0.2.0"
     "@thirdweb-dev/generated-abis" "0.0.1"
     "@thirdweb-dev/merkletree" "0.2.0"
-    "@thirdweb-dev/storage" "2.0.5"
+    "@thirdweb-dev/storage" "2.0.8"
     abitype "^0.2.5"
     bn.js "^5.2.1"
     bs58 "^5.0.0"
@@ -3579,10 +3579,10 @@
     form-data "^4.0.0"
     uuid "^9.0.1"
 
-"@thirdweb-dev/storage@2.0.5":
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-2.0.5.tgz#e492923ca0037db7cd8f30572333a3bb2f67639e"
-  integrity sha512-I3DK/ZNWOMa/XE2hfJnGKVfc9INn5c3if1qavyK/1fjJBxhUiUXjT59UYbuoWhHLEq0rS/QZVOGS/9qcOs/DAQ==
+"@thirdweb-dev/storage@2.0.8":
+  version "2.0.8"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-2.0.8.tgz#ffc4014d46b575d08af2f69ef360d95497773d52"
+  integrity sha512-h1+3px/01jxM3Ob4fDB+11Jm9r5rEPk8NLrcuKRCRZYxfsThaINpIvmuAkvKlVR2kVvYGKTGbmPVydjNBmPkbA==
   dependencies:
     "@thirdweb-dev/crypto" "0.2.0"
     cid-tool "^3.0.0"
