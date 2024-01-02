@@ -32,7 +32,7 @@ export async function erc20GetAllClaimConditions(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQueryString>;
   }>({
-    method: "POST",
+    method: "GET",
     url: "/contract/:chain/:contractAddress/erc20/claim-conditions/get-all",
     schema: {
       summary: "Get all the claim phases configured.",
