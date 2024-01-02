@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 
 export const withOpenApi = async (server: FastifyInstance) => {
   await server.register(swagger, {
-    mode: "dynamic",
+    // mode: ,
     openapi: {
       info: {
         title: "thirdweb Engine",
