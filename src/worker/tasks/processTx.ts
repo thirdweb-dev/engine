@@ -9,7 +9,6 @@ import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
@@ -20,6 +19,7 @@ import {
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import { sendBalanceWebhook, sendTxWebhook } from "../../server/utils/webhook";
+import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -63,7 +63,7 @@ export const processTx = async () => {
           message: `Received ${txs.length} transactions to process`,
         });
 
-        const config = await getConfiguration();
+        const config = await getConfig();
         if (txs.length < config.minTxsToProcess) {
           return;
         }

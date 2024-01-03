@@ -1,10 +1,10 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { prisma } from "../../db/client";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 
@@ -18,7 +18,7 @@ export const retryTx = async () => {
           return;
         }
 
-        const config = await getConfiguration();
+        const config = await getConfig();
         const sdk = await getSdk({
           chainId: parseInt(tx.chainId!),
           walletAddress: tx.fromAddress!,

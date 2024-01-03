@@ -1,9 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../../db/configuration/getConfiguration";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { WalletType } from "../../../../schema/wallet";
+import { getConfig } from "../../../../utils/cache/getConfig";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Union([
@@ -124,7 +124,7 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
           break;
       }
 
-      const config = await getConfiguration();
+      const config = await getConfig();
       res.status(200).send({
         result: config.walletConfiguration,
       });

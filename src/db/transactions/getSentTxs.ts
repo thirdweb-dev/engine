@@ -1,7 +1,7 @@
 import { Transactions } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
+import { getConfig } from "../../utils/cache/getConfig";
 import { getPrismaWithPostgresTx } from "../client";
-import { getConfiguration } from "../configuration/getConfiguration";
 
 interface GetSentTxsParams {
   pgtx?: PrismaTransaction;
@@ -11,7 +11,7 @@ export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
   Transactions[]
 > => {
   const prisma = getPrismaWithPostgresTx(pgtx);
-  const config = await getConfiguration();
+  const config = await getConfig();
 
   return prisma.$queryRaw<Transactions[]>`
     SELECT * FROM "transactions"

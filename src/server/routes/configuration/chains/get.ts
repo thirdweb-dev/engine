@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../../db/configuration/getConfiguration";
+import { getConfig } from "../../../../utils/cache/getConfig";
 
 export const ReplySchema = Type.Object({
   result: Type.Union([Type.String(), Type.Null()]),
@@ -23,7 +23,7 @@ export async function getChainsConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const config = await getConfiguration();
+      const config = await getConfig();
       res.status(200).send({
         result: config.chainOverrides,
       });

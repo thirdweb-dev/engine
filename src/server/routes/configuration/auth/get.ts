@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../../db/configuration/getConfiguration";
+import { getConfig } from "../../../../utils/cache/getConfig";
 
 export const ReplySchema = Type.Object({
   result: Type.Object({
@@ -25,7 +25,7 @@ export async function getAuthConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const config = await getConfiguration();
+      const config = await getConfig();
       res.status(200).send({
         result: {
           domain: config.authDomain,

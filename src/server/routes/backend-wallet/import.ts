@@ -1,8 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../db/configuration/getConfiguration";
 import { WalletType } from "../../../schema/wallet";
+import { getConfig } from "../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
@@ -111,7 +111,7 @@ export const importBackendWallet = async (fastify: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       let walletAddress: string;
-      const config = await getConfiguration();
+      const config = await getConfig();
       switch (config.walletConfiguration.type) {
         case WalletType.local:
           // TODO: This is why where zod would be great

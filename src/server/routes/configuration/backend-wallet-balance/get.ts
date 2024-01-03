@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../../db/configuration/getConfiguration";
+import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const ReplySchema = Type.Object({
@@ -31,7 +31,7 @@ export async function getBackendWalletBalanceConfiguration(
       },
     },
     handler: async (req, res) => {
-      const config = await getConfiguration();
+      const config = await getConfig();
       res.status(200).send({
         result: {
           minWalletBalance: config.minWalletBalance,
