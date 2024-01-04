@@ -18,7 +18,7 @@ export const getWebhook = async (
     retrieveFromCache
   ) {
     logger({
-      level: "info",
+      level: "debug",
       service: "cache",
       message: `Fetching webhook url for ${eventType}`,
     });
