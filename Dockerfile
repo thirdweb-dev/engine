@@ -23,7 +23,7 @@ RUN npm install -g nodemon
 # Install dependencies for both development and production
 RUN yarn install --frozen-lockfile --network-timeout 1000000
 
-WORKDIR /app/https
+WORKDIR /app/src/https
 
 RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
