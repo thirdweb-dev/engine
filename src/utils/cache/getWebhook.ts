@@ -28,12 +28,6 @@ export const getWebhook = async (
 
   const webhookConfig = await getAllWebhooks();
 
-  logger({
-    level: "info",
-    service: "worker",
-    message: `Fetching webhook url for ${eventType}`,
-  });
-
   const eventTypeWebhookDetails = webhookConfig.filter((webhook) => {
     if (webhook.active && webhook.eventType === eventType) {
       return webhook;
@@ -41,6 +35,7 @@ export const getWebhook = async (
   });
 
   if (eventTypeWebhookDetails.length === 0) {
+    webhookCache.delete(cacheKey);
     return undefined;
   }
 
