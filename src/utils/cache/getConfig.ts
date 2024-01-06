@@ -35,7 +35,7 @@ interface Config
       };
 }
 
-export const configCache = new Map<string, Config>();
+const configCache = new Map<string, Config>();
 
 export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
   if (

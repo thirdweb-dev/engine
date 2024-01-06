@@ -5,7 +5,7 @@ import {
 } from "../../schema/webhooks";
 import { logger } from "../logger";
 
-export const webhookCache = new Map<string, SanitizedWebHooksSchema[]>();
+const webhookCache = new Map<string, SanitizedWebHooksSchema[]>();
 
 export const getWebhook = async (
   eventType: WebhooksEventTypes,
