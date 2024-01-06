@@ -63,7 +63,7 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
         chainOverrides: JSON.stringify(req.body.chainOverrides),
       });
 
-      const config = await getConfig();
+      const config = await getConfig(false);
       res.status(200).send({
         result: config.chainOverrides,
       });
