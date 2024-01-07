@@ -3,7 +3,6 @@ import {
   SanitizedWebHooksSchema,
   WebhooksEventTypes,
 } from "../../schema/webhooks";
-import { logger } from "../logger";
 
 const webhookCache = new Map<string, SanitizedWebHooksSchema[]>();
 
@@ -12,18 +11,12 @@ export const getWebhook = async (
   retrieveFromCache = true,
 ): Promise<SanitizedWebHooksSchema[] | undefined> => {
   const cacheKey = eventType;
-  if (
-    webhookCache.has(cacheKey) &&
-    webhookCache.get(cacheKey) &&
-    retrieveFromCache
-  ) {
-    logger({
-      level: "debug",
-      service: "cache",
-      message: `Fetching webhook url for ${eventType}`,
-    });
-
-    return webhookCache.get(cacheKey) as SanitizedWebHooksSchema[];
+  if (retrieveFromCache) {
+    if (webhookCache.has(cacheKey) && webhookCache.get(cacheKey)) {
+      return webhookCache.get(cacheKey) as SanitizedWebHooksSchema[];
+    } else {
+      return undefined;
+    }
   }
 
   const webhookConfig = await getAllWebhooks();
