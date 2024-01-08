@@ -9,7 +9,6 @@ import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
@@ -20,6 +19,7 @@ import {
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import { sendBalanceWebhook, sendTxWebhook } from "../../server/utils/webhook";
+import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -29,6 +29,7 @@ import { getWithdrawalValue } from "../utils/withdraw";
 type SentTxStatus =
   | {
       transactionHash: string;
+      sentAt: Date;
       status: TransactionStatusEnum.Submitted;
       queueId: string;
       res: ethers.providers.TransactionResponse | null;
@@ -40,6 +41,13 @@ type SentTxStatus =
       errorMessage: string;
     };
 
+type RpcResponseData = {
+  queueId: string;
+  tx: ethers.providers.TransactionRequest;
+  res: RpcResponse;
+  sentAt: Date;
+};
+
 export const processTx = async () => {
   try {
     // 0. Initialize queueIds to send webhook
@@ -49,7 +57,13 @@ export const processTx = async () => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
         const txs = await getQueuedTxs({ pgtx });
 
-        const config = await getConfiguration();
+        logger({
+          service: "worker",
+          level: "info",
+          message: `Received ${txs.length} transactions to process`,
+        });
+
+        const config = await getConfig();
         if (txs.length < config.minTxsToProcess) {
           return;
         }
@@ -128,20 +142,22 @@ export const processTx = async () => {
               return;
             }
 
-            // - For each wallet address, check the nonce in database and the mempool
-            const [walletBalance, mempoolNonceData, dbNonceData, gasOverrides] =
+            // Important: We need to block this worker until the nonce lock is acquired
+            const dbNonceData = await getWalletNonce({
+              pgtx,
+              chainId,
+              address: walletAddress,
+            });
+
+            // For each wallet address, check the nonce in database and the mempool
+            const [walletBalance, mempoolNonceData, gasOverrides] =
               await Promise.all([
                 sdk.wallet.balance(),
                 sdk.wallet.getNonce("pending"),
-                getWalletNonce({
-                  pgtx,
-                  chainId,
-                  address: walletAddress,
-                }),
                 getDefaultGasOverrides(provider),
               ]);
 
-            // Wallet Balance Webhook
+            // Wallet balance webhook
             if (
               BigNumber.from(walletBalance.value).lte(
                 BigNumber.from(config.minWalletBalance),
@@ -193,19 +209,17 @@ export const processTx = async () => {
               startNonce = dbNonce;
             }
 
-            // Group all transactions into a single batch rpc request
-            let sentTxCount = 0;
-            const rpcResponses: {
-              queueId: string;
-              tx: ethers.providers.TransactionRequest;
-              res: RpcResponse;
-            }[] = [];
-            for (const tx of txsToSend) {
-              const nonce = startNonce.add(sentTxCount);
+            const rpcResponses: RpcResponseData[] = [];
+
+            let txIndex = 0;
+            let nonceIncrement = 0;
+
+            while (txIndex < txsToSend.length) {
+              const nonce = startNonce.add(nonceIncrement);
+              const tx = txsToSend[txIndex];
 
               try {
                 let value: ethers.BigNumberish = tx.value!;
-
                 if (tx.extension === "withdraw") {
                   value = await getWithdrawalValue({
                     provider,
@@ -289,16 +303,43 @@ export const processTx = async () => {
                   data: rpcResponse,
                 });
 
-                rpcResponses.push({
-                  queueId: tx.queueId!,
-                  tx: txRequest,
-                  res: rpcResponse,
-                });
-
                 if (!rpcResponse.error && !!rpcResponse.result) {
-                  sentTxCount++;
+                  // Success (continue to next transaction)
+                  nonceIncrement++;
+                  txIndex++;
+
+                  rpcResponses.push({
+                    queueId: tx.queueId!,
+                    tx: txRequest,
+                    res: rpcResponse,
+                    sentAt: new Date(),
+                  });
+                  sendWebhookForQueueIds.push(tx.queueId!);
+                } else if (
+                  typeof rpcResponse.error?.message === "string" &&
+                  (rpcResponse.error.message as string)
+                    .toLowerCase()
+                    .includes("nonce too low")
+                ) {
+                  // Nonce too low (retry same transaction with higher nonce)
+                  nonceIncrement++;
+                } else {
+                  // Error (continue to next transaction)
+                  txIndex++;
+
+                  rpcResponses.push({
+                    queueId: tx.queueId!,
+                    tx: txRequest,
+                    res: rpcResponse,
+                    sentAt: new Date(),
+                  });
+                  sendWebhookForQueueIds.push(tx.queueId!);
                 }
               } catch (err: any) {
+                // Error (continue to next transaction)
+                txIndex++;
+                sendWebhookForQueueIds.push(tx.queueId!);
+
                 logger({
                   service: "worker",
                   level: "warn",
@@ -318,25 +359,19 @@ export const processTx = async () => {
                       `Failed to handle transaction`,
                   },
                 });
-                sendWebhookForQueueIds.push(tx.queueId!);
               }
             }
-
-            // Check how many transactions succeeded and increment nonce
-            const incrementNonce = rpcResponses.reduce((acc, curr) => {
-              return curr.res.result && !curr.res.error ? acc + 1 : acc;
-            }, 0);
 
             await updateWalletNonce({
               pgtx,
               address: walletAddress,
               chainId,
-              nonce: startNonce.toNumber() + incrementNonce,
+              nonce: startNonce.add(nonceIncrement).toNumber(),
             });
 
             // Update transaction records with updated data
             const txStatuses: SentTxStatus[] = await Promise.all(
-              rpcResponses.map(async ({ queueId, tx, res }) => {
+              rpcResponses.map(async ({ queueId, tx, res, sentAt }) => {
                 if (res.result) {
                   const txHash = res.result;
                   const txRes = (await provider.getTransaction(
@@ -351,6 +386,7 @@ export const processTx = async () => {
                   });
 
                   return {
+                    sentAt,
                     transactionHash: txHash,
                     status: TransactionStatusEnum.Submitted,
                     queueId: queueId,
@@ -387,6 +423,7 @@ export const processTx = async () => {
                       pgtx,
                       queueId: tx.queueId,
                       data: {
+                        sentAt: tx.sentAt,
                         status: TransactionStatusEnum.Submitted,
                         transactionHash: tx.transactionHash,
                         res: tx.res,
@@ -456,6 +493,7 @@ export const processTx = async () => {
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
             );
+
             await signer.httpRpcClient.sendUserOpToBundler(userOp);
 
             // TODO: Need to update with other user op data
@@ -463,6 +501,7 @@ export const processTx = async () => {
               pgtx,
               queueId: tx.queueId!,
               data: {
+                sentAt: new Date(),
                 status: TransactionStatusEnum.UserOpSent,
                 userOpHash,
               },

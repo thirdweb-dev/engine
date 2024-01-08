@@ -1,9 +1,16 @@
-import { logger } from "../utils/logger";
+import {
+  newConfigurationListener,
+  updatedConfigurationListener,
+} from "./listeners/configListener";
 import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
 import { retryTxListener } from "./listeners/retryTxListener";
 import { updateTxListener } from "./listeners/updateTxListener";
+import {
+  newWebhooksListener,
+  updatedWebhooksListener,
+} from "./listeners/webhookListener";
 
 const worker = async () => {
   // Listen for queued transactions to process
@@ -20,28 +27,14 @@ const worker = async () => {
 
   // Delete Successfully Processed Transactions which are older than 24 hours
   await deleteProcessedTx();
+
+  // Listen for new & updated configuration data
+  await newConfigurationListener();
+  await updatedConfigurationListener();
+
+  // Listen for new & updated webhooks data
+  await newWebhooksListener();
+  await updatedWebhooksListener();
 };
 
 worker();
-
-process.on("unhandledRejection", (err) => {
-  logger({
-    service: "worker",
-    level: "fatal",
-    message: `unhandledRejection`,
-    error: err,
-  });
-
-  worker();
-});
-
-process.on("uncaughtException", (err) => {
-  logger({
-    service: "worker",
-    level: "fatal",
-    message: `uncaughtException`,
-    error: err,
-  });
-
-  worker();
-});

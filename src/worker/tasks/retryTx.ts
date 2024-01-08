@@ -1,10 +1,10 @@
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { prisma } from "../../db/client";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 
@@ -18,14 +18,14 @@ export const retryTx = async () => {
           return;
         }
 
-        const config = await getConfiguration();
-
+        const config = await getConfig();
         const sdk = await getSdk({
           chainId: parseInt(tx.chainId!),
           walletAddress: tx.fromAddress!,
         });
+
         const blockNumber = await sdk.getProvider().getBlockNumber();
-        // Only retry if more than the ellapsed blocks before retry has passed
+        // Only retry if more than the elapsed blocks before retry has passed.
         if (
           blockNumber - tx.sentAtBlockNumber! <=
           config.minEllapsedBlocksBeforeRetry
@@ -37,8 +37,8 @@ export const retryTx = async () => {
           .getProvider()
           .getTransactionReceipt(tx.transactionHash!);
 
-        // If the transaction has been mined but just not updated yet in database, don't retry
-        if (!!receipt) {
+        // If the transaction is mined, update the DB.
+        if (receipt) {
           return;
         }
 
@@ -72,6 +72,7 @@ export const retryTx = async () => {
           message: `Retrying with nonce ${tx.nonce}`,
         });
 
+        const sentAt = new Date();
         let res: ethers.providers.TransactionResponse;
         try {
           res = await sdk.getSigner()!.sendTransaction({
@@ -113,6 +114,7 @@ export const retryTx = async () => {
           pgtx,
           queueId: tx.id,
           data: {
+            sentAt,
             status: TransactionStatusEnum.Submitted,
             res,
             sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),

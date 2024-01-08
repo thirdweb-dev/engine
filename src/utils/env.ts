@@ -45,16 +45,16 @@ const boolSchema = (defaultBool: "true" | "false") =>
 export const env = createEnv({
   server: {
     NODE_ENV: z
-      .enum(["production", "development", "testing", "local"])
+      .enum(["production", "development", "test", "local"])
       .default("development"),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace"])
       .default("debug"),
     LOG_SERVICES: z
       .string()
-      .default("server,worker")
+      .default("server,worker,cache")
       .transform((s) =>
-        z.array(z.enum(["server", "worker"])).parse(s.split(",")),
+        z.array(z.enum(["server", "worker", "cache"])).parse(s.split(",")),
       ),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
     ADMIN_WALLET_ADDRESS: z.string().min(1),

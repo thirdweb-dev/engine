@@ -20,6 +20,8 @@ export const updateMinedTx = async () => {
           return;
         }
 
+        const droppedTxs: Transactions[] = [];
+
         const txsWithReceipts = (
           await Promise.all(
             txs.map(async (tx) => {
@@ -30,8 +32,16 @@ export const updateMinedTx = async () => {
                   .getTransactionReceipt(tx.transactionHash!);
 
               if (!receipt) {
-                // If no receipt was received, return undefined to filter out tx
-                return undefined;
+                // This tx is not yet mined or was dropped.
+
+                // If the tx was submitted over 1 hour ago, assume it is dropped.
+                // @TODO: move duration to config
+                const sentAt = new Date(tx.sentAt!);
+                const ageInMilliseconds = Date.now() - sentAt.getTime();
+                if (ageInMilliseconds > 1000 * 60 * 60 * 1) {
+                  droppedTxs.push(tx);
+                }
+                return;
               }
 
               const response = (await sdk
@@ -68,7 +78,7 @@ export const updateMinedTx = async () => {
           minedAt: Date;
         }[];
 
-        // Update all transactions with a receipt in parallel
+        // Update mined transactions.
         await Promise.all(
           txsWithReceipts.map(async (txWithReceipt) => {
             await updateTx({
@@ -94,10 +104,33 @@ export const updateMinedTx = async () => {
               service: "worker",
               level: "info",
               queueId: txWithReceipt.tx.id,
-              message: `Updated with receipt`,
+              message: "Updated mined tx.",
             });
 
             sendWebhookForQueueIds.push(txWithReceipt.tx.id);
+          }),
+        );
+
+        // Update dropped txs.
+        await Promise.all(
+          droppedTxs.map(async (tx) => {
+            await updateTx({
+              pgtx,
+              queueId: tx.id,
+              data: {
+                status: TransactionStatusEnum.Errored,
+                errorMessage: "Transaction timed out.",
+              },
+            });
+
+            logger({
+              service: "worker",
+              level: "info",
+              queueId: tx.id,
+              message: "Update dropped tx.",
+            });
+
+            sendWebhookForQueueIds.push(tx.id);
           }),
         );
       },

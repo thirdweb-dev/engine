@@ -3,9 +3,9 @@ import { buildJWT } from "@thirdweb-dev/auth";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../../db/configuration/getConfiguration";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { createToken } from "../../../../db/tokens/createToken";
+import { getConfig } from "../../../../utils/cache/getConfig";
 import { env } from "../../../../utils/env";
 import { AccessTokenSchema } from "./getAll";
 
@@ -42,7 +42,7 @@ export async function createAccessToken(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const { label } = req.body;
 
-      const config = await getConfiguration();
+      const config = await getConfig();
       const wallet = new LocalWallet();
 
       // TODO: Remove this with next breaking change

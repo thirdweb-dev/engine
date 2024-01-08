@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
+import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
@@ -33,7 +34,9 @@ export async function updateBackendWalletBalanceConfiguration(
       },
     },
     handler: async (req, res) => {
-      const config = await updateConfiguration({ ...req.body });
+      await updateConfiguration({ ...req.body });
+      const config = await getConfig(false);
+
       res.status(200).send({
         result: {
           minWalletBalance: config.minWalletBalance,

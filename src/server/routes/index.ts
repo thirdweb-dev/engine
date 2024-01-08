@@ -96,10 +96,13 @@ import { revokeRelayer } from "./relayer/revoke";
 import { getAllTransactions } from "./backend-wallet/getTransactions";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
 import { withdraw } from "./backend-wallet/withdraw";
-import { healthCheck } from "./health";
 import { home } from "./home";
 import { updateRelayer } from "./relayer/update";
+import { healthCheck } from "./system/health";
+import { queueStatus } from "./system/queue";
 import { checkGroupStatus } from "./transaction/group";
+import { sendSignedTransaction } from "./transaction/sendSignedTx";
+import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -192,6 +195,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
   await fastify.register(cancelTransaction);
+  await fastify.register(sendSignedTransaction);
+  await fastify.register(sendSignedUserOp);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);
@@ -204,4 +209,5 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   // System
   await fastify.register(home);
   await fastify.register(healthCheck);
+  await fastify.register(queueStatus);
 };

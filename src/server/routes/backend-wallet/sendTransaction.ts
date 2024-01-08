@@ -44,8 +44,8 @@ export async function sendTransaction(fastify: FastifyInstance) {
     method: "POST",
     url: "/backend-wallet/:chain/send-transaction",
     schema: {
-      summary: "Send a raw transaction",
-      description: "Send a raw transaction with transaction parameters",
+      summary: "Send a transaction",
+      description: "Send a transaction with transaction parameters",
       tags: ["Backend Wallet"],
       operationId: "sendTransaction",
       params: ParamsSchema,

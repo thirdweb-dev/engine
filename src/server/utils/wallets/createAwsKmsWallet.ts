@@ -1,6 +1,6 @@
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
-import { getConfiguration } from "../../../db/configuration/getConfiguration";
 import { WalletType } from "../../../schema/wallet";
+import { getConfig } from "../../../utils/cache/getConfig";
 import { importAwsKmsWallet } from "./importAwsKmsWallet";
 
 interface CreateAwsKmsWalletParams {
@@ -10,7 +10,7 @@ interface CreateAwsKmsWalletParams {
 export const createAwsKmsWallet = async ({
   label,
 }: CreateAwsKmsWalletParams): Promise<string> => {
-  const config = await getConfiguration();
+  const config = await getConfig();
   if (config.walletConfiguration.type !== WalletType.awsKms) {
     throw new Error(`Server was not configured for AWS KMS wallet creation`);
   }

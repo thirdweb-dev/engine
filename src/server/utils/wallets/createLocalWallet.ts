@@ -1,6 +1,6 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { getConfiguration } from "../../../db/configuration/getConfiguration";
 import { WalletType } from "../../../schema/wallet";
+import { getConfig } from "../../../utils/cache/getConfig";
 import { env } from "../../../utils/env";
 import { LocalFileStorage } from "../storage/localStorage";
 
@@ -11,7 +11,7 @@ interface CreateLocalWallet {
 export const createLocalWallet = async ({
   label,
 }: CreateLocalWallet): Promise<string> => {
-  const config = await getConfiguration();
+  const config = await getConfig();
   if (config.walletConfiguration.type !== WalletType.local) {
     throw new Error(`Server was not configured for local wallet creation.`);
   }

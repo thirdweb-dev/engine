@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
+import { getConfig } from "../../../../utils/cache/getConfig";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Partial(
@@ -36,7 +37,8 @@ export async function updateTransactionConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const config = await updateConfiguration({ ...req.body });
+      await updateConfiguration({ ...req.body });
+      const config = await getConfig(false);
       res.status(200).send({
         result: {
           minTxsToProcess: config.minTxsToProcess,
