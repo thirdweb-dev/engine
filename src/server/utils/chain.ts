@@ -1,6 +1,6 @@
 import { Static } from "@sinclair/typebox";
 import { allChains, getChainByChainId } from "@thirdweb-dev/chains";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
+import { getConfig } from "../../utils/cache/getConfig";
 import { networkResponseSchema } from "../../utils/cache/getSdk";
 
 const ChainNameToChainId = {
@@ -20,7 +20,7 @@ export const getChainIdFromChain = async (chain: string): Promise<number> => {
     chainId = ChainNameToChainId[chain as keyof typeof ChainNameToChainId];
   }
 
-  const config = await getConfiguration();
+  const config = await getConfig();
 
   // If we're passed a valid chain id directly, then use it
   if (!isNaN(parseInt(chain))) {

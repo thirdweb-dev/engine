@@ -1,6 +1,6 @@
 import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
-import { getConfiguration } from "../../../db/configuration/getConfiguration";
 import { WalletType } from "../../../schema/wallet";
+import { getConfig } from "../../../utils/cache/getConfig";
 
 interface GetGcpKmsWalletParams {
   gcpKmsKeyId: string;
@@ -11,7 +11,7 @@ export const getGcpKmsWallet = async ({
   gcpKmsKeyId,
   gcpKmsKeyVersionId,
 }: GetGcpKmsWalletParams) => {
-  const config = await getConfiguration();
+  const config = await getConfig();
   if (config.walletConfiguration.type !== WalletType.gcpKms) {
     throw new Error(`Server was not configured for GCP KMS.`);
   }

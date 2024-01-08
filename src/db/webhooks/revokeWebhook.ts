@@ -1,6 +1,5 @@
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../server/middleware/error";
-import { webhookCache } from "../../utils/cache/getWebhook";
 import { prisma } from "../client";
 
 interface RevokeWebhooksParams {
@@ -8,8 +7,6 @@ interface RevokeWebhooksParams {
 }
 
 export const markWebhookAsRevoked = async ({ id }: RevokeWebhooksParams) => {
-  // Clear Cache
-  webhookCache.clear();
   const currentTimestamp = new Date();
 
   const exists = await prisma.webhooks.findUnique({
