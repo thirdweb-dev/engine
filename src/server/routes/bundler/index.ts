@@ -72,7 +72,26 @@ export async function bundler(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const { bundlerId } = req.params;
-      const [userOp] = req.body.params;
+      const [userOp, entrypointAddress] = req.body.params;
+
+      if (req.body.method !== "eth_sendUserOperation") {
+        return res.status(400).send({
+          error: {
+            message: `Unsupported bundler request method '${req.body.method}'`,
+          },
+        });
+      }
+
+      if (
+        req.body.params[1] &&
+        req.body.params[1]?.toLowerCase() !== entrypointAddress?.toLowerCase()
+      ) {
+        return res.status(400).send({
+          error: {
+            message: `Entrypoint address is not supported by this bundler.`,
+          },
+        });
+      }
 
       const bundler = await getBundlerById({ id: bundlerId });
       if (!bundler) {
