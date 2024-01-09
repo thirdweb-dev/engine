@@ -13,7 +13,7 @@ const ReplySchema = Type.Object({
   }),
 });
 
-export async function revokeRelayer(fastify: FastifyInstance) {
+export async function revokeBundler(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
     Reply: Static<typeof ReplySchema>;

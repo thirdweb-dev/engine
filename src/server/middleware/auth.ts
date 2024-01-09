@@ -196,6 +196,17 @@ export const withAuth = async (server: FastifyInstance) => {
       return;
     }
 
+    if (
+      req.url.startsWith("/bundler/") &&
+      req.method === "POST" &&
+      !req.url.startsWith("/bundler/create") &&
+      !req.url.startsWith("/bundler/revoke") &&
+      !req.url.startsWith("/bundler/update")
+    ) {
+      // Bundler endpoints can handle their own authentication
+      return;
+    }
+
     // TODO: Enable authentication check for websocket requests
     if (
       req.headers.upgrade &&
