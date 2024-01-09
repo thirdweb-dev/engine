@@ -118,19 +118,21 @@ export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
           }
         }
 
-        webhookConfig?.map(async (config) => {
-          if (!config || !config?.active) {
-            logger({
-              service: "server",
-              level: "debug",
-              message: "No webhook set or active, skipping webhook send",
-            });
+        await Promise.all(
+          webhookConfig?.map(async (config) => {
+            if (!config || !config?.active) {
+              logger({
+                service: "server",
+                level: "debug",
+                message: "No webhook set or active, skipping webhook send",
+              });
 
-            return;
-          }
+              return;
+            }
 
-          await sendWebhookRequest(config, txData);
-        });
+            await sendWebhookRequest(config, txData);
+          }) || [],
+        );
       }
     }
   } catch (error) {
