@@ -4,16 +4,18 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
+import { isLocalhost } from "../../../utils/url";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const uriFormat = TypeSystem.Format("uri", (input: string) => {
+  // Assert valid URL.
   try {
-    const url = new URL(input);
-    return url.protocol === "https:";
+    new URL(input);
   } catch (err) {
-    // Invalid URL
     return false;
   }
+
+  return !isLocalhost(input);
 });
 
 const BodySchema = Type.Object({
