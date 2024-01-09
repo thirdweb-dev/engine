@@ -16,7 +16,7 @@ responseSchema.example = {
   },
 };
 
-export const resetBackendWallet = async (fastify: FastifyInstance) => {
+export const resetBackendWalletNonces = async (fastify: FastifyInstance) => {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
   }>({
