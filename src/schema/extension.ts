@@ -12,4 +12,5 @@ export type ContractExtension =
   | "deploy-published"
   | "account-factory"
   | "account"
-  | "relayer";
+  | "relayer"
+  | "entrypoint";

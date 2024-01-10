@@ -30,8 +30,13 @@ const BodySchema = Type.Union([
   Type.Object({
     id: Type.String(),
     jsonrpc: Type.String(),
-    method: Type.String(),
+    method: Type.Literal("eth_sendUserOperation"),
     params: Type.Tuple([UserOperationSchema, Type.String()]),
+  }),
+  Type.Object({
+    id: Type.String(),
+    jsonrpc: Type.String(),
+    method: Type.Literal("eth_chainId"),
   }),
 ]);
 
@@ -72,15 +77,24 @@ export async function bundler(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const { bundlerId } = req.params;
-      const [userOp, entrypointAddress] = req.body.params;
-
-      if (req.body.method !== "eth_sendUserOperation") {
+      const bundler = await getBundlerById({ id: bundlerId });
+      if (!bundler) {
         return res.status(400).send({
           error: {
-            message: `Unsupported bundler request method '${req.body.method}'`,
+            message: `No bundler found with id '${bundlerId}'`,
           },
         });
       }
+
+      if (req.body.method === "eth_chainId") {
+        return res.status(200).send({
+          id: req.body.id,
+          jsonrpc: req.body.jsonrpc,
+          result: `0x${bundler.chainId.toString(16)}`,
+        });
+      }
+
+      const [userOp, entrypointAddress] = req.body.params;
 
       if (
         req.body.params[1] &&
@@ -89,15 +103,6 @@ export async function bundler(fastify: FastifyInstance) {
         return res.status(400).send({
           error: {
             message: `Entrypoint address is not supported by this bundler.`,
-          },
-        });
-      }
-
-      const bundler = await getBundlerById({ id: bundlerId });
-      if (!bundler) {
-        return res.status(400).send({
-          error: {
-            message: `No bundler found with id '${bundlerId}'`,
           },
         });
       }
