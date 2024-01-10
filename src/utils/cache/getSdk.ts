@@ -1,5 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
-import { getChainByChainId } from "@thirdweb-dev/chains";
+import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import { NetworkInput, ThirdwebSDK } from "@thirdweb-dev/sdk";
 import * as fs from "fs";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
@@ -76,7 +76,7 @@ export const getSdk = async ({
 
   let chain: NetworkInput | undefined = undefined;
   try {
-    chain = getChainByChainId(chainId);
+    chain = await getChainByChainIdAsync(chainId);
   } catch (error) {}
 
   if (CHAIN_OVERRIDES) {
