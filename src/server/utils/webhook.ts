@@ -82,6 +82,55 @@ export const sendWebhookRequest = async (
   }
 };
 
+interface WebhookData {
+  queueId: string;
+  status: WebhooksEventTypes;
+}
+
+export const sendWebhooks = async (webhooks: WebhookData[]) => {
+  const queueIds = webhooks.map((webhook) => webhook.queueId);
+  const txs = await getTxByIds({ queueIds });
+  if (!txs || txs.length === 0) {
+    return;
+  }
+
+  const webhooksWithTxs = webhooks
+    .map((webhook) => {
+      const tx = txs.find((tx) => tx.queueId === webhook.queueId);
+      return {
+        ...webhook,
+        tx,
+      };
+    })
+    .filter((webhook) => !!webhook.tx);
+
+  for (const webhook of webhooksWithTxs) {
+    const webhookConfigs = await Promise.all([
+      ...((await getWebhook(WebhooksEventTypes.ALL_TX)) || []),
+      ...((await getWebhook(webhook.status)) || []),
+    ]);
+
+    await Promise.all(
+      webhookConfigs.map(async (webhookConfig) => {
+        if (!webhookConfig.active) {
+          logger({
+            service: "server",
+            level: "debug",
+            message: "No webhook set or active, skipping webhook send",
+          });
+
+          return;
+        }
+
+        await sendWebhookRequest(
+          webhookConfig,
+          webhook.tx as Record<string, any>,
+        );
+      }),
+    );
+  }
+};
+
 export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
   try {
     const txDataByIds = await getTxByIds({ queueIds });
