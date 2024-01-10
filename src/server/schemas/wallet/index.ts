@@ -14,11 +14,11 @@ export const walletAuthSchema = Type.Object({
 export const walletParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
-    description: "Chain ID name",
+    description: "Chain name",
   }),
   walletAddress: Type.String({
     examples: ["0x..."],
-    description: "Wallet Address",
+    description: "Backend wallet address",
   }),
 });
 

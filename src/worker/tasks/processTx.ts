@@ -18,7 +18,11 @@ import {
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
-import { sendBalanceWebhook, sendTxWebhook } from "../../server/utils/webhook";
+import {
+  WebhookData,
+  sendBalanceWebhook,
+  sendWebhooks,
+} from "../../server/utils/webhook";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
@@ -51,7 +55,7 @@ type RpcResponseData = {
 export const processTx = async () => {
   try {
     // 0. Initialize queueIds to send webhook
-    const sendWebhookForQueueIds: string[] = [];
+    const sendWebhookForQueueIds: WebhookData[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
@@ -68,7 +72,12 @@ export const processTx = async () => {
           return;
         }
         // Send Queued Webhook
-        await sendTxWebhook(txs.map((tx) => tx.queueId!));
+        await sendWebhooks(
+          txs.map((tx) => ({
+            queueId: tx.queueId!,
+            status: TransactionStatusEnum.Queued,
+          })),
+        );
 
         // 2. Iterate through all filtering cancelled trandsactions, and sorting transactions and user operations
         const txsToSend = [];
@@ -314,7 +323,10 @@ export const processTx = async () => {
                     res: rpcResponse,
                     sentAt: new Date(),
                   });
-                  sendWebhookForQueueIds.push(tx.queueId!);
+                  sendWebhookForQueueIds.push({
+                    queueId: tx.queueId!,
+                    status: TransactionStatusEnum.Submitted,
+                  });
                 } else if (
                   typeof rpcResponse.error?.message === "string" &&
                   (rpcResponse.error.message as string)
@@ -333,12 +345,18 @@ export const processTx = async () => {
                     res: rpcResponse,
                     sentAt: new Date(),
                   });
-                  sendWebhookForQueueIds.push(tx.queueId!);
+                  sendWebhookForQueueIds.push({
+                    queueId: tx.queueId!,
+                    status: TransactionStatusEnum.Errored,
+                  });
                 }
               } catch (err: any) {
                 // Error (continue to next transaction)
                 txIndex++;
-                sendWebhookForQueueIds.push(tx.queueId!);
+                sendWebhookForQueueIds.push({
+                  queueId: tx.queueId!,
+                  status: TransactionStatusEnum.Errored,
+                });
 
                 logger({
                   service: "worker",
@@ -442,7 +460,6 @@ export const processTx = async () => {
                     });
                     break;
                 }
-                sendWebhookForQueueIds.push(tx.queueId!);
               }),
             );
           } catch (err: any) {
@@ -506,7 +523,10 @@ export const processTx = async () => {
                 userOpHash,
               },
             });
-            sendWebhookForQueueIds.push(tx.queueId!);
+            sendWebhookForQueueIds.push({
+              queueId: tx.queueId!,
+              status: TransactionStatusEnum.UserOpSent,
+            });
           } catch (err: any) {
             logger({
               service: "worker",
@@ -527,7 +547,10 @@ export const processTx = async () => {
                   `Failed to handle transaction`,
               },
             });
-            sendWebhookForQueueIds.push(tx.queueId!);
+            sendWebhookForQueueIds.push({
+              queueId: tx.queueId!,
+              status: TransactionStatusEnum.Errored,
+            });
           }
         });
 
@@ -540,7 +563,7 @@ export const processTx = async () => {
       },
     );
 
-    await sendTxWebhook(sendWebhookForQueueIds);
+    await sendWebhooks(sendWebhookForQueueIds);
   } catch (err: any) {
     logger({
       service: "worker",

@@ -4,35 +4,29 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
+import { isLocalhost } from "../../../utils/url";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const uriFormat = TypeSystem.Format("uri", (input: string) => {
+  // Assert valid URL.
   try {
-    if (input.startsWith("http://localhost")) return true;
-
-    const url = new URL(input);
-
-    if (url.protocol === "http:") {
-      return false;
-    }
-    return true;
+    new URL(input);
   } catch (err) {
     return false;
   }
+
+  return !isLocalhost(input);
 });
 
 const BodySchema = Type.Object({
   url: Type.String({
-    description: "URL to send the webhook to",
+    description: "Webhook URL",
     format: uriFormat,
-    examples: [
-      "http://localhost:3000/webhooks",
-      "https://example.com/webhooks",
-    ],
+    examples: ["https://example.com/webhooks"],
   }),
   name: Type.Optional(
     Type.String({
-      minLength: 5,
+      minLength: 3,
     }),
   ),
   eventType: Type.Enum(WebhooksEventTypes),
@@ -40,47 +34,47 @@ const BodySchema = Type.Object({
 
 BodySchema.examples = [
   {
-    url: "http://localhost:3000/allTxUpdate",
+    url: "https://example.com/allTxUpdate",
     name: "All Transaction Events",
     eventType: WebhooksEventTypes.ALL_TX,
   },
   {
-    url: "http://localhost:3000/queuedTx",
+    url: "https://example.com/queuedTx",
     name: "QueuedTx",
     eventType: WebhooksEventTypes.QUEUED_TX,
   },
   {
-    url: "http://localhost:3000/retiredTx",
+    url: "https://example.com/retiredTx",
     name: "RetriedTx",
     eventType: WebhooksEventTypes.RETRIED_TX,
   },
   {
-    url: "http://localhost:3000/sentTx",
+    url: "https://example.com/sentTx",
     name: "Sent Transaction Event",
     eventType: WebhooksEventTypes.SENT_TX,
   },
   {
-    url: "http://localhost:3000/minedTx",
+    url: "https://example.com/minedTx",
     name: "Mined Transaction Event",
     eventType: WebhooksEventTypes.MINED_TX,
   },
   {
-    url: "http://localhost:3000/erroredTx",
+    url: "https://example.com/erroredTx",
     name: "Errored Transaction Event",
     eventType: WebhooksEventTypes.ERRORED_TX,
   },
   {
-    url: "http://localhost:3000/cancelledTx",
+    url: "https://example.com/cancelledTx",
     name: "Cancelled Transaction Event",
     eventType: WebhooksEventTypes.CANCELLED_TX,
   },
   {
-    url: "http://localhost:3000/walletBalance",
+    url: "https://example.com/walletBalance",
     name: "Backend Wallet Balance Event",
     eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
   },
   {
-    url: "http://localhost:3000/auth",
+    url: "https://example.com/auth",
     name: "Auth Check",
     eventType: WebhooksEventTypes.AUTH,
   },
@@ -104,8 +98,9 @@ export async function createWebhook(fastify: FastifyInstance) {
     method: "POST",
     url: "/webhooks/create",
     schema: {
-      summary: "Create a new webhook",
-      description: "Create a new webhook",
+      summary: "Create a webhook",
+      description:
+        "Create a webhook to call when certain blockchain events occur.",
       tags: ["Webhooks"],
       operationId: "create",
       body: BodySchema,

@@ -1,3 +1,5 @@
+import { WebhooksEventTypes } from "../schema/webhooks";
+import { getWebhook } from "../utils/cache/getWebhook";
 import {
   newConfigurationListener,
   updatedConfigurationListener,
@@ -35,6 +37,10 @@ const worker = async () => {
   // Listen for new & updated webhooks data
   await newWebhooksListener();
   await updatedWebhooksListener();
+
+  for (const eventType of Object.values(WebhooksEventTypes)) {
+    await getWebhook(eventType, false);
+  }
 };
 
 worker();
