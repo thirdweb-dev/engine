@@ -1,4 +1,4 @@
-import { getChainIdFromChain } from "../../server/utils/chain";
+import { getChainIdFromChain } from "../server/utils/chain";
 
 describe("getChainIdFromChain", () => {
   it("returns chain that exists in chains db", async () => {
