@@ -94,6 +94,7 @@ import { revokeRelayer } from "./relayer/revoke";
 
 // System
 import { getAllTransactions } from "./backend-wallet/getTransactions";
+import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
 import { withdraw } from "./backend-wallet/withdraw";
 import { home } from "./home";
@@ -118,6 +119,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(signTransaction);
   await fastify.register(signMessage);
   await fastify.register(getAllTransactions);
+  await fastify.register(resetBackendWalletNonces);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);
