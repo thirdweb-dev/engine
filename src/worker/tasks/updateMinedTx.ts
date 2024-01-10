@@ -5,13 +5,13 @@ import { prisma } from "../../db/client";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
-import { sendTxWebhook } from "../../server/utils/webhook";
+import { WebhookData, sendWebhooks } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 
 export const updateMinedTx = async () => {
   try {
-    const sendWebhookForQueueIds: string[] = [];
+    const sendWebhookForQueueIds: WebhookData[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         const txs = await getSentTxs({ pgtx });
@@ -107,7 +107,10 @@ export const updateMinedTx = async () => {
               message: "Updated mined tx.",
             });
 
-            sendWebhookForQueueIds.push(txWithReceipt.tx.id);
+            sendWebhookForQueueIds.push({
+              queueId: txWithReceipt.tx.id,
+              status: TransactionStatusEnum.Mined,
+            });
           }),
         );
 
@@ -130,7 +133,10 @@ export const updateMinedTx = async () => {
               message: "Update dropped tx.",
             });
 
-            sendWebhookForQueueIds.push(tx.id);
+            sendWebhookForQueueIds.push({
+              queueId: tx.id,
+              status: TransactionStatusEnum.Errored,
+            });
           }),
         );
       },
@@ -139,7 +145,7 @@ export const updateMinedTx = async () => {
       },
     );
 
-    await sendTxWebhook(sendWebhookForQueueIds);
+    await sendWebhooks(sendWebhookForQueueIds);
   } catch (err) {
     logger({
       service: "worker",

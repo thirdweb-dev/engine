@@ -82,9 +82,9 @@ export const sendWebhookRequest = async (
   }
 };
 
-interface WebhookData {
+export interface WebhookData {
   queueId: string;
-  status: WebhooksEventTypes;
+  status: TransactionStatusEnum;
 }
 
 export const sendWebhooks = async (webhooks: WebhookData[]) => {
@@ -105,9 +105,24 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
     .filter((webhook) => !!webhook.tx);
 
   for (const webhook of webhooksWithTxs) {
+    const webhookStatus =
+      webhook.status === TransactionStatusEnum.Queued
+        ? WebhooksEventTypes.QUEUED_TX
+        : webhook.status === TransactionStatusEnum.Submitted
+        ? WebhooksEventTypes.SENT_TX
+        : webhook.status === TransactionStatusEnum.Retried
+        ? WebhooksEventTypes.RETRIED_TX
+        : webhook.status === TransactionStatusEnum.Mined
+        ? WebhooksEventTypes.MINED_TX
+        : webhook.status === TransactionStatusEnum.Errored
+        ? WebhooksEventTypes.ERRORED_TX
+        : webhook.status === TransactionStatusEnum.Cancelled
+        ? WebhooksEventTypes.CANCELLED_TX
+        : undefined;
+
     const webhookConfigs = await Promise.all([
       ...((await getWebhook(WebhooksEventTypes.ALL_TX)) || []),
-      ...((await getWebhook(webhook.status)) || []),
+      ...(webhookStatus ? (await getWebhook(webhookStatus)) || [] : []),
     ]);
 
     await Promise.all(
@@ -128,69 +143,6 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
         );
       }),
     );
-  }
-};
-
-export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
-  try {
-    const txDataByIds = await getTxByIds({ queueIds });
-    if (!txDataByIds || txDataByIds.length === 0) {
-      return;
-    }
-    for (const txData of txDataByIds!) {
-      if (!txData) {
-        return;
-      } else {
-        let webhookConfig: SanitizedWebHooksSchema[] | undefined =
-          await getWebhook(WebhooksEventTypes.ALL_TX);
-
-        if (!webhookConfig) {
-          switch (txData.status) {
-            case TransactionStatusEnum.Queued:
-              webhookConfig = await getWebhook(WebhooksEventTypes.QUEUED_TX);
-              break;
-            case TransactionStatusEnum.Submitted:
-              webhookConfig = await getWebhook(WebhooksEventTypes.SENT_TX);
-              break;
-            case TransactionStatusEnum.Retried:
-              webhookConfig = await getWebhook(WebhooksEventTypes.RETRIED_TX);
-              break;
-            case TransactionStatusEnum.Mined:
-              webhookConfig = await getWebhook(WebhooksEventTypes.MINED_TX);
-              break;
-            case TransactionStatusEnum.Errored:
-              webhookConfig = await getWebhook(WebhooksEventTypes.ERRORED_TX);
-              break;
-            case TransactionStatusEnum.Cancelled:
-              webhookConfig = await getWebhook(WebhooksEventTypes.ERRORED_TX);
-              break;
-          }
-        }
-
-        await Promise.all(
-          webhookConfig?.map(async (config) => {
-            if (!config || !config?.active) {
-              logger({
-                service: "server",
-                level: "debug",
-                message: "No webhook set or active, skipping webhook send",
-              });
-
-              return;
-            }
-
-            await sendWebhookRequest(config, txData);
-          }) || [],
-        );
-      }
-    }
-  } catch (error) {
-    logger({
-      service: "server",
-      level: "error",
-      message: `Failed to send webhook`,
-      error,
-    });
   }
 };
 
