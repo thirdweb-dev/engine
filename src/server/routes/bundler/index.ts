@@ -1,4 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
+import { TransactionError } from "@thirdweb-dev/sdk";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { EntrypointAbi } from "../../../constants/bundler";
@@ -118,16 +119,16 @@ export async function bundler(fastify: FastifyInstance) {
       );
 
       try {
-        const isValid = await entrypoint.call("simulateValidation", [userOp]);
-
-        if (!isValid) {
+        await entrypoint.call("simulateValidation", [userOp]);
+      } catch (err: any) {
+        if (err instanceof TransactionError) {
           return res.status(400).send({
             error: {
-              message: `Invalid user operation - failed in simulation`,
+              message: `Invalid user operation - failed in simulation with error: ${err.reason}`,
             },
           });
         }
-      } catch (err: any) {
+
         return res.status(400).send({
           error: {
             message: `Invalid user operation - failed in simulation with error: ${err.message}`,
