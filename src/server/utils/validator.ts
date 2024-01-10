@@ -98,3 +98,8 @@ export const isValidHttpUrl = (urlString: string): boolean => {
 
   return url.protocol === "http:" || url.protocol === "https:";
 };
+
+export const isUnixEpochTimestamp = (timestamp: number): boolean => {
+  const date = new Date(timestamp);
+  return date.getFullYear() === 1970;
+};

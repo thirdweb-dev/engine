@@ -52,9 +52,9 @@ export const env = createEnv({
       .default("debug"),
     LOG_SERVICES: z
       .string()
-      .default("server,worker")
+      .default("server,worker,cache")
       .transform((s) =>
-        z.array(z.enum(["server", "worker"])).parse(s.split(",")),
+        z.array(z.enum(["server", "worker", "cache"])).parse(s.split(",")),
       ),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
     ADMIN_WALLET_ADDRESS: z.string().min(1),

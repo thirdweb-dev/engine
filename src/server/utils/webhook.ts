@@ -5,7 +5,7 @@ import {
   WalletBalanceWebhookSchema,
   WebhooksEventTypes,
 } from "../../schema/webhooks";
-import { getWebhookConfig } from "../../utils/cache/getWebhook";
+import { getWebhook } from "../../utils/cache/getWebhook";
 import { logger } from "../../utils/logger";
 import { TransactionStatusEnum } from "../schemas/transaction";
 
@@ -52,24 +52,34 @@ export const sendWebhookRequest = async (
   webhookConfig: SanitizedWebHooksSchema,
   body: Record<string, any>,
 ): Promise<boolean> => {
-  const headers = await createWebhookRequestHeaders(webhookConfig, body);
-  const response = await fetch(webhookConfig?.url, {
-    method: "POST",
-    headers: headers,
-    body: JSON.stringify(body),
-  });
+  try {
+    const headers = await createWebhookRequestHeaders(webhookConfig, body);
+    const response = await fetch(webhookConfig?.url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(body),
+    });
 
-  if (!response.ok) {
+    if (!response.ok) {
+      logger({
+        service: "server",
+        level: "error",
+        message: `[sendWebhook] Webhook request error: ${response.status} ${response.statusText}`,
+      });
+
+      return false;
+    }
+
+    return true;
+  } catch (error) {
     logger({
       service: "server",
       level: "error",
-      message: `[sendWebhook] Webhook request error: ${response.status} ${response.statusText}`,
+      message: `[sendWebhook] Webhook request error: ${error}`,
+      error,
     });
-
     return false;
   }
-
-  return true;
 };
 
 export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
@@ -83,56 +93,46 @@ export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
         return;
       } else {
         let webhookConfig: SanitizedWebHooksSchema[] | undefined =
-          await getWebhookConfig(WebhooksEventTypes.ALL_TX);
+          await getWebhook(WebhooksEventTypes.ALL_TX);
 
         if (!webhookConfig) {
           switch (txData.status) {
             case TransactionStatusEnum.Queued:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.QUEUED_TX,
-              );
+              webhookConfig = await getWebhook(WebhooksEventTypes.QUEUED_TX);
               break;
             case TransactionStatusEnum.Submitted:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.SENT_TX,
-              );
+              webhookConfig = await getWebhook(WebhooksEventTypes.SENT_TX);
               break;
             case TransactionStatusEnum.Retried:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.RETRIED_TX,
-              );
+              webhookConfig = await getWebhook(WebhooksEventTypes.RETRIED_TX);
               break;
             case TransactionStatusEnum.Mined:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.MINED_TX,
-              );
+              webhookConfig = await getWebhook(WebhooksEventTypes.MINED_TX);
               break;
             case TransactionStatusEnum.Errored:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.ERRORED_TX,
-              );
+              webhookConfig = await getWebhook(WebhooksEventTypes.ERRORED_TX);
               break;
             case TransactionStatusEnum.Cancelled:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.ERRORED_TX,
-              );
+              webhookConfig = await getWebhook(WebhooksEventTypes.ERRORED_TX);
               break;
           }
         }
 
-        webhookConfig?.map(async (config) => {
-          if (!config || !config?.active) {
-            logger({
-              service: "server",
-              level: "debug",
-              message: "No webhook set or active, skipping webhook send",
-            });
+        await Promise.all(
+          webhookConfig?.map(async (config) => {
+            if (!config || !config?.active) {
+              logger({
+                service: "server",
+                level: "debug",
+                message: "No webhook set or active, skipping webhook send",
+              });
 
-            return;
-          }
+              return;
+            }
 
-          await sendWebhookRequest(config, txData);
-        });
+            await sendWebhookRequest(config, txData);
+          }) || [],
+        );
       }
     }
   } catch (error) {
@@ -160,7 +160,7 @@ export const sendBalanceWebhook = async (
       return;
     }
 
-    const webhookConfig = await getWebhookConfig(
+    const webhookConfig = await getWebhook(
       WebhooksEventTypes.BACKEND_WALLET_BALANCE,
     );
 

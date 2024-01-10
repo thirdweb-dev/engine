@@ -3,7 +3,9 @@ import pg, { Knex } from "knex";
 import { PrismaTransaction } from "../schema/prisma";
 import { env } from "../utils/env";
 
-export const prisma = new PrismaClient();
+export const prisma = new PrismaClient({
+  log: ["info"],
+});
 
 export const getPrismaWithPostgresTx = (pgtx?: PrismaTransaction) => {
   return pgtx || prisma;

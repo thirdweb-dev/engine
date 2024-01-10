@@ -8,14 +8,14 @@ import { GenericAuthWallet, LocalWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { utils } from "ethers";
 import { FastifyInstance } from "fastify";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { updateConfiguration } from "../../db/configuration/updateConfiguration";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
 import { getToken } from "../../db/tokens/getToken";
 import { revokeToken } from "../../db/tokens/revokeToken";
 import { WebhooksEventTypes } from "../../schema/webhooks";
-import { getWebhookConfig } from "../../utils/cache/getWebhook";
+import { getConfig } from "../../utils/cache/getConfig";
+import { getWebhook } from "../../utils/cache/getWebhook";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { Permission } from "../schemas/auth";
@@ -73,7 +73,7 @@ const authWithApiServer = async (jwt: string, domain: string) => {
 };
 
 export const withAuth = async (server: FastifyInstance) => {
-  const config = await getConfiguration();
+  const config = await getConfig();
 
   // Configure the ThirdwebAuth fastify plugin
   const { authRouter, authMiddleware, getUser } = ThirdwebAuth<
@@ -86,7 +86,7 @@ export const withAuth = async (server: FastifyInstance) => {
     wallet: new AsyncWallet({
       // TODO: Use caching for the signer
       getSigner: async () => {
-        const config = await getConfiguration();
+        const config = await getConfig();
         const wallet = new LocalWallet();
 
         try {
@@ -209,7 +209,7 @@ export const withAuth = async (server: FastifyInstance) => {
       const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
       if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
         // If the secret key is being used, treat the user as the auth wallet
-        const config = await getConfiguration();
+        const config = await getConfig();
         const wallet = new LocalWallet();
 
         try {
@@ -300,7 +300,7 @@ export const withAuth = async (server: FastifyInstance) => {
         // no-op
       }
 
-      const authWebhooks = await getWebhookConfig(WebhooksEventTypes.AUTH);
+      const authWebhooks = await getWebhook(WebhooksEventTypes.AUTH);
       if (authWebhooks) {
         const authResponses = await Promise.all(
           authWebhooks.map((webhook) =>
