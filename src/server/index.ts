@@ -3,6 +3,7 @@ import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
 import path from "path";
 import { URL } from "url";
+import { deleteAllWalletNonces } from "../db/wallets/deleteAllWalletNonces";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
 import { withAuth } from "./middleware/auth";
@@ -25,8 +26,12 @@ interface HttpsObject {
 }
 
 const main = async () => {
-  let httpsObject: HttpsObject | undefined = undefined;
+  // Reset any server state that is safe to reset.
+  // This allows the server to start in a predictable state.
+  await deleteAllWalletNonces({});
 
+  // Enables the server to run on https://localhost:PORT, if ENABLE_HTTPS is provided.
+  let httpsObject: HttpsObject | undefined = undefined;
   if (env.ENABLE_HTTPS) {
     httpsObject = {
       https: {
@@ -37,6 +42,7 @@ const main = async () => {
     };
   }
 
+  // Start the server with middleware.
   const server: FastifyInstance = fastify({
     disableRequestLogging: true,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
