@@ -118,9 +118,7 @@ export async function bundler(fastify: FastifyInstance) {
       );
 
       try {
-        const isValid = await entrypoint.prepare("simulateValidation", [
-          userOp,
-        ]);
+        const isValid = await entrypoint.call("simulateValidation", [userOp]);
 
         if (!isValid) {
           return res.status(400).send({

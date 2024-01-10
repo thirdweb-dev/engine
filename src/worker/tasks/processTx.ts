@@ -501,12 +501,19 @@ export const processTx = async () => {
             ).getSigner() as ERC4337EthersSigner;
 
             const nonce = randomNonce();
-            const userOp = await signer.smartAccountAPI.createSignedUserOp({
-              target: tx.target || "",
-              data: tx.data || "0x",
-              value: tx.value ? BigNumber.from(tx.value) : undefined,
-              nonce,
-            });
+            const unsignedUserOp =
+              await signer.smartAccountAPI.createUnsignedUserOp(
+                signer.httpRpcClient,
+                {
+                  target: tx.target || "",
+                  data: tx.data || "0x",
+                  value: tx.value ? BigNumber.from(tx.value) : undefined,
+                  nonce,
+                },
+              );
+            const userOp = await signer.smartAccountAPI.signUserOp(
+              unsignedUserOp,
+            );
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
             );

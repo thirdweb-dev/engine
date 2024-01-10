@@ -48,7 +48,7 @@ export const bundleUserOps = async () => {
           message: `Sending ${userOps.length} user ops to entrypoint ${entrypointAddress} on chain id ${chainId} for wallet ${backendWalletAddress}`,
         });
 
-        const tx = await entrypoint.prepare("handleOps", [
+        const tx = entrypoint.prepare("handleOps", [
           userOps, // user ops
           backendWalletAddress, // beneficiary
         ]);
