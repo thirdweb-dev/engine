@@ -52,9 +52,11 @@ export const env = createEnv({
       .default("debug"),
     LOG_SERVICES: z
       .string()
-      .default("server,worker,cache")
+      .default("server,worker,cache,websocket")
       .transform((s) =>
-        z.array(z.enum(["server", "worker", "cache"])).parse(s.split(",")),
+        z
+          .array(z.enum(["server", "worker", "cache", "websocket"]))
+          .parse(s.split(",")),
       ),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
     ADMIN_WALLET_ADDRESS: z.string().min(1),

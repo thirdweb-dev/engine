@@ -12,6 +12,7 @@ import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
+import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
 
@@ -51,6 +52,7 @@ const main = async () => {
   await withCors(server);
   await withRequestLogs(server);
   await withErrorHandler(server);
+  await withWebSocket(server);
   await withAuth(server);
   await withExpress(server);
   await withOpenApi(server);

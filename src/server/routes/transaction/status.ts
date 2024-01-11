@@ -95,18 +95,11 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       });
     },
     wsHandler: async (connection: SocketStream, request) => {
-      logger({
-        service: "server",
-        level: "info",
-        message: `Websocket route handler`,
-        data: request,
-      });
-
       const { queueId } = request.params;
       // const timeout = await wsTimeout(connection, queueId, request);
 
       logger({
-        service: "server",
+        service: "websocket",
         level: "info",
         message: `Websocket connection established for ${queueId}`,
       });
@@ -127,7 +120,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
 
       connection.socket.on("error", (error) => {
         logger({
-          service: "server",
+          service: "websocket",
           level: "error",
           message: `Websocket error`,
           error,
@@ -138,7 +131,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
 
       connection.socket.on("message", async (message, isBinary) => {
         logger({
-          service: "server",
+          service: "websocket",
           level: "info",
           message: `Websocket message received`,
           data: message,
@@ -149,7 +142,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
 
       connection.socket.on("close", () => {
         logger({
-          service: "server",
+          service: "websocket",
           level: "info",
           message: `Websocket connection closed`,
         });
