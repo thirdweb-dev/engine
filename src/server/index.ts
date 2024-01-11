@@ -42,6 +42,8 @@ const main = async () => {
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
+  server.decorateRequest("corsPreflightEnabled", false);
+
   await withCors(server);
   await withRequestLogs(server);
   await withErrorHandler(server);
