@@ -3508,29 +3508,7 @@
     yaml "^2.3.1"
     zod "^3.22.3"
 
-"@thirdweb-dev/sdk@4.0.7-nightly-c238fde8-20231020022304":
-  version "4.0.7-nightly-c238fde8-20231020022304"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.7-nightly-c238fde8-20231020022304.tgz#dbd3a99fd3c2d5b66c916353e98fd13d670201a3"
-  integrity sha512-Ri/BlCd/u8loyoWQoLJT34WaEwIm2YYIJ+uIcgI2u6ZhD/Al7ArwbhPDMABVbPYuNofJj2PibYxl4tD5uKKovQ==
-  dependencies:
-    "@thirdweb-dev/chains" "0.1.55"
-    "@thirdweb-dev/contracts-js" "1.3.16"
-    "@thirdweb-dev/generated-abis" "0.0.1"
-    "@thirdweb-dev/storage" "2.0.1-nightly-c238fde8-20231020022304"
-    abitype "^0.2.5"
-    bn.js "^5.2.1"
-    bs58 "^5.0.0"
-    buffer "^6.0.3"
-    eventemitter3 "^5.0.1"
-    fast-deep-equal "^3.1.3"
-    merkletreejs "^0.2.24"
-    tiny-invariant "^1.2.0"
-    tweetnacl "^1.0.3"
-    uuid "^9.0.1"
-    yaml "^2.3.1"
-    zod "^3.22.3"
-
-"@thirdweb-dev/sdk@^4.0.23":
+"@thirdweb-dev/sdk@4.0.23":
   version "4.0.23"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.23.tgz#4c5e692abf63ce0219796bafd4c80f9d24d03b1b"
   integrity sha512-xDEsJbwYOZAp2BAkevvt/R1ZX4AgD0gwy9O0/kPe7jUG7Nrw2u790DFUsATHS00xi8lirXeTcw5VIDGwJ6TFTg==
@@ -3547,6 +3525,28 @@
     buffer "^6.0.3"
     eventemitter3 "^5.0.1"
     fast-deep-equal "^3.1.3"
+    tiny-invariant "^1.2.0"
+    tweetnacl "^1.0.3"
+    uuid "^9.0.1"
+    yaml "^2.3.1"
+    zod "^3.22.3"
+
+"@thirdweb-dev/sdk@4.0.7-nightly-c238fde8-20231020022304":
+  version "4.0.7-nightly-c238fde8-20231020022304"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.7-nightly-c238fde8-20231020022304.tgz#dbd3a99fd3c2d5b66c916353e98fd13d670201a3"
+  integrity sha512-Ri/BlCd/u8loyoWQoLJT34WaEwIm2YYIJ+uIcgI2u6ZhD/Al7ArwbhPDMABVbPYuNofJj2PibYxl4tD5uKKovQ==
+  dependencies:
+    "@thirdweb-dev/chains" "0.1.55"
+    "@thirdweb-dev/contracts-js" "1.3.16"
+    "@thirdweb-dev/generated-abis" "0.0.1"
+    "@thirdweb-dev/storage" "2.0.1-nightly-c238fde8-20231020022304"
+    abitype "^0.2.5"
+    bn.js "^5.2.1"
+    bs58 "^5.0.0"
+    buffer "^6.0.3"
+    eventemitter3 "^5.0.1"
+    fast-deep-equal "^3.1.3"
+    merkletreejs "^0.2.24"
     tiny-invariant "^1.2.0"
     tweetnacl "^1.0.3"
     uuid "^9.0.1"
@@ -3630,7 +3630,7 @@
     magic-sdk "^13.6.2"
     web3-core "1.5.2"
 
-"@thirdweb-dev/wallets@^2.1.5":
+"@thirdweb-dev/wallets@2.1.5":
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/wallets/-/wallets-2.1.5.tgz#af78d6251873adadfc692346bc60654e4c7fc0ce"
   integrity sha512-C82sY+xJMCOFzI4Vly6nRtbdfBzVYoqs6sJudT94xX0KTZm92y6LkPIgE/FKTzB7U7Ipq7FN5I1SmTd5Sbzu/A==

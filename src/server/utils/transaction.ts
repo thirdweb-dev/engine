@@ -10,14 +10,10 @@ import { TransactionStatusEnum } from "../schemas/transaction";
 
 interface CancelTransactionAndUpdateParams {
   queueId: string;
-  walletAddress: string;
-  accountAddress: string;
 }
 
 export const cancelTransactionAndUpdate = async ({
   queueId,
-  walletAddress,
-  accountAddress,
 }: CancelTransactionAndUpdateParams) => {
   const txData = await getTxById({ queueId });
   if (!txData) {
@@ -67,7 +63,9 @@ export const cancelTransactionAndUpdate = async ({
       const sdk = await getSdk({
         chainId: parseInt(txData.chainId!),
         walletAddress: txData.fromAddress!,
-        accountAddress,
+        accountAddress: txData.accountAddress
+          ? txData.accountAddress
+          : undefined,
       });
 
       const txReceipt = await sdk
