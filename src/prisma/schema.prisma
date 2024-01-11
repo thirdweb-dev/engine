@@ -41,6 +41,7 @@ model Configuration {
   webhookAuthBearerToken             String? @map("webhookAuthBearerToken")
   // Wallet balance
   minWalletBalance                   String  @default("20000000000000000") @map("minWalletBalance")
+  accessControlAllowOrigin           String  @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
 
   @@map("configuration")
 }

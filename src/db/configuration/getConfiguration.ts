@@ -1,6 +1,7 @@
 import { Configuration } from "@prisma/client";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { WalletType } from "../../schema/wallet";
+import { mandatoryAllowedCorsUrls } from "../../server/utils/cors-urls";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -184,6 +185,7 @@ export const getConfiguration = async (): Promise<Config> => {
         authDomain: "thirdweb.com",
         authWalletEncryptedJson: await createAuthWalletEncryptedJson(),
         minWalletBalance: "20000000000000000",
+        accessControlAllowOrigin: mandatoryAllowedCorsUrls.join(","),
       },
       update: {},
     });
