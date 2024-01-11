@@ -7,14 +7,16 @@ import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Object({
-  urlsToRemove: Type.String({
-    description: "Comma separated list urls",
-  }),
+  urlsToRemove: Type.Array(
+    Type.String({
+      description: "Comma separated list urls",
+    }),
+  ),
 });
 
 BodySchema.examples = [
   {
-    urlsToRemove: "https://example.com,https://example2.com",
+    urlsToRemove: ["https://example.com", "https://example2.com"],
   },
 ];
 
@@ -38,9 +40,7 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const currentConfig = await getConfig();
 
-      const urlsToRemove = req.body.urlsToRemove
-        .split(",")
-        .map((url) => url.trim());
+      const urlsToRemove = req.body.urlsToRemove.map((url) => url.trim());
 
       // Check for mandatory URLs
       const containsMandatoryUrl = urlsToRemove.some((url) =>

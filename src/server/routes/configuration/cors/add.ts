@@ -7,16 +7,18 @@ import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Object({
-  urlsToAdd: Type.String({
-    description:
-      "Comma separated list of origins to allow CORS for. Thirdweb URLs are automatically added.",
-    minLength: 1,
-  }),
+  urlsToAdd: Type.Array(
+    Type.String({
+      description:
+        "Comma separated list of origins to allow CORS for. Thirdweb URLs are automatically added.",
+      minLength: 1,
+    }),
+  ),
 });
 
 BodySchema.examples = [
   {
-    urlsToAdd: "https://example.com,https://example2.com",
+    urlsToAdd: ["https://example.com", "https://example2.com"],
   },
 ];
 
@@ -40,7 +42,7 @@ export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const oldConfig = await getConfig();
 
-      const urlsToAdd = req.body.urlsToAdd.split(",").map((url) => url.trim());
+      const urlsToAdd = req.body.urlsToAdd.map((url) => url.trim());
 
       const requiredUrls = mandatoryAllowedCorsUrls;
 
