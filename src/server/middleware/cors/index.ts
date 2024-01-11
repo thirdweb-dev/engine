@@ -1,19 +1,13 @@
 import { FastifyInstance } from "fastify";
-import { getConfig } from "../../../utils/cache/getConfig";
 import { fastifyCors } from "./cors";
 
 export const withCors = async (server: FastifyInstance) => {
-  const config = await getConfig();
-
-  const originArray = config.accessControlAllowOrigin.split(",") as string[];
-
   server.addHook("preHandler", (request, reply, next) => {
     fastifyCors(
       server,
       request,
       reply,
       {
-        origin: originArray,
         credentials: true,
       },
       next,

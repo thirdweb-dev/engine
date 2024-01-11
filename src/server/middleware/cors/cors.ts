@@ -4,6 +4,7 @@ import {
   FastifyRequest,
   HookHandlerDoneFunction,
 } from "fastify";
+import { getConfig } from "../../../utils/cache/getConfig";
 import {
   addAccessControlRequestHeadersToVaryHeader,
   addOriginToVaryHeader,
@@ -101,13 +102,18 @@ const defaultOptions = {
   strictPreflight: true,
 };
 
-export const fastifyCors = (
+export const fastifyCors = async (
   fastify: FastifyInstance,
   req: FastifyRequest,
   reply: FastifyReply,
   opts: FastifyCorsOptions,
   next: HookHandlerDoneFunction,
 ) => {
+  const config = await getConfig();
+
+  const originArray = config.accessControlAllowOrigin.split(",") as string[];
+  opts.origin = originArray;
+
   let hideOptionsRoute = true;
   if (opts.hideOptionsRoute !== undefined) {
     hideOptionsRoute = opts.hideOptionsRoute;
