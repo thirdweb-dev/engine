@@ -102,7 +102,7 @@ const defaultOptions = {
   strictPreflight: true,
 };
 
-const sanitizeOrigin = (data: string): string | RegExp => {
+export const sanitizeOrigin = (data: string): string | RegExp => {
   if (data.startsWith("/") && data.endsWith("/")) {
     return new RegExp(data.slice(1, -1));
   }
