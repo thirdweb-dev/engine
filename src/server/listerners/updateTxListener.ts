@@ -22,12 +22,6 @@ export const updateTxListener = async (): Promise<void> => {
     async (msg: { channel: string; payload: string }) => {
       const parsedPayload = JSON.parse(msg.payload);
 
-      logger({
-        service: "server",
-        level: "debug",
-        message: `[updateTxListener] Received updated transaction data ${parsedPayload.id}.`,
-      });
-
       // Send websocket message
       const index = subscriptionsData.findIndex(
         (sub) => sub.requestId === parsedPayload.id,
@@ -40,6 +34,12 @@ export const updateTxListener = async (): Promise<void> => {
       const userSubscription = subscriptionsData[index];
       const returnData = await getTxById({
         queueId: parsedPayload.id,
+      });
+
+      logger({
+        service: "server",
+        level: "info",
+        message: `[updateTxListener] Sending websocket update for queueId: ${parsedPayload.id}, status ${returnData?.status}.`,
       });
 
       const { message, closeConnection } =
