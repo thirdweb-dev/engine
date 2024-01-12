@@ -185,7 +185,9 @@ export const getConfiguration = async (): Promise<Config> => {
         authDomain: "thirdweb.com",
         authWalletEncryptedJson: await createAuthWalletEncryptedJson(),
         minWalletBalance: "20000000000000000",
-        accessControlAllowOrigin: mandatoryAllowedCorsUrls.join(","),
+        accessControlAllowOrigin: !!process.env.ACCESS_CONTROL_ALLOW_ORIGIN
+          ? process.env.ACCESS_CONTROL_ALLOW_ORIGIN
+          : mandatoryAllowedCorsUrls.join(","),
       },
       update: {},
     });
