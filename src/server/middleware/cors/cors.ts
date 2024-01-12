@@ -203,7 +203,7 @@ const addCorsHeadersHandler = (
         }
       }
 
-      return next();
+      return;
     },
   );
 };
