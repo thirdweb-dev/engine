@@ -197,6 +197,12 @@ export const getConfiguration = async (): Promise<Config> => {
       authDomain: "thirdweb.com",
       authWalletEncryptedJson: await createAuthWalletEncryptedJson(),
     });
+  } else if (!config.accessControlAllowOrigin) {
+    config = await updateConfiguration({
+      accessControlAllowOrigin: !!process.env.ACCESS_CONTROL_ALLOW_ORIGIN
+        ? process.env.ACCESS_CONTROL_ALLOW_ORIGIN
+        : mandatoryAllowedCorsUrls.join(","),
+    });
   }
 
   return withWalletConfig(config);
