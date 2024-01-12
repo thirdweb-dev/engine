@@ -6,6 +6,7 @@ import { URL } from "url";
 import { deleteAllWalletNonces } from "../db/wallets/deleteAllWalletNonces";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
+import { updateTxListener } from "./listerners/updateTxListener";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
 import { withErrorHandler } from "./middleware/error";
@@ -89,6 +90,7 @@ const main = async () => {
   });
 
   writeOpenApiToFile(server);
+  await updateTxListener();
 };
 
 main();

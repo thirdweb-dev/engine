@@ -9,7 +9,7 @@ import { logger } from "../../utils/logger";
 
 export const updateTxListener = async (): Promise<void> => {
   logger({
-    service: "worker",
+    service: "server",
     level: "info",
     message: `Listening for updated transactions`,
   });
@@ -24,7 +24,7 @@ export const updateTxListener = async (): Promise<void> => {
 
       // Send websocket message
       const index = subscriptionsData.findIndex(
-        (sub) => sub.requestId === parsedPayload.identifier,
+        (sub) => sub.requestId === parsedPayload.id,
       );
 
       if (index == -1) {
@@ -33,7 +33,13 @@ export const updateTxListener = async (): Promise<void> => {
 
       const userSubscription = subscriptionsData[index];
       const returnData = await getTxById({
-        queueId: parsedPayload.identifier,
+        queueId: parsedPayload.id,
+      });
+
+      logger({
+        service: "server",
+        level: "info",
+        message: `[updateTxListener] Sending websocket update for queueId: ${parsedPayload.id}, status ${returnData?.status}.`,
       });
 
       const { message, closeConnection } =
@@ -47,26 +53,26 @@ export const updateTxListener = async (): Promise<void> => {
 
   connection.on("end", async () => {
     logger({
-      service: "worker",
+      service: "server",
       level: "info",
-      message: `Connection database ended`,
+      message: `[updateTxListener] Connection database ended`,
     });
 
     knex.client.releaseConnection(connection);
     await knex.destroy();
 
     logger({
-      service: "worker",
+      service: "server",
       level: "info",
-      message: `Released database connection on end`,
+      message: `[updateTxListener] Released database connection on end`,
     });
   });
 
   connection.on("error", async (err: any) => {
     logger({
-      service: "worker",
+      service: "server",
       level: "error",
-      message: `Database connection error`,
+      message: `[updateTxListener] Database connection error`,
       error: err,
     });
 
@@ -76,7 +82,7 @@ export const updateTxListener = async (): Promise<void> => {
     logger({
       service: "worker",
       level: "info",
-      message: `Released database connection on error`,
+      message: `[updateTxListener] Released database connection on error`,
     });
   });
 };
