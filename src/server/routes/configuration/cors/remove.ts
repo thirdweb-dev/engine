@@ -48,7 +48,7 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
       );
       if (containsMandatoryUrl) {
         throw new Error(
-          `Cannot remove mandatory URLs: ${mandatoryAllowedCorsUrls.join(",")}`,
+          `Cannot remove URLs: ${mandatoryAllowedCorsUrls.join(",")}`,
         );
       }
 
