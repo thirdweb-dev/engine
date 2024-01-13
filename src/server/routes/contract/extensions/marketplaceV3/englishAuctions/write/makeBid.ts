@@ -51,7 +51,7 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { listingId, bidAmount } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -73,6 +73,7 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({

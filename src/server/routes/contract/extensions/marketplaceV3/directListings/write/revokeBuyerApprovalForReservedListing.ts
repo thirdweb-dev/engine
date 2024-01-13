@@ -55,7 +55,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { listingId, buyerAddress } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -78,6 +78,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-direct-listings",
       });
       reply.status(StatusCodes.OK).send({

@@ -8,7 +8,7 @@ import {
   sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -17,7 +17,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestBodySchema = Type.Object({
   claimConditionInputs: Type.Array(claimConditionInputSchema),
   resetClaimEligibilityForAll: Type.Optional(Type.Boolean()),
@@ -47,7 +47,7 @@ export async function erc721SetClaimConditions(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { claimConditionInputs, resetClaimEligibilityForAll } =
         request.body;
       const walletAddress = request.headers[
@@ -81,7 +81,12 @@ export async function erc721SetClaimConditions(fastify: FastifyInstance) {
         sanitizedClaimConditionInputs,
         resetClaimEligibilityForAll,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc721",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

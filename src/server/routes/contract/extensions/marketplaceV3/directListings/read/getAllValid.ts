@@ -82,7 +82,7 @@ export async function directListingsGetAllValid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { start, count, seller, tokenContract, tokenId } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

@@ -8,7 +8,7 @@ import {
   sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -17,7 +17,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestBodySchema = Type.Object({
   claimConditionInput: claimConditionInputSchema,
   index: Type.Number({
@@ -49,7 +49,7 @@ export async function erc20UpdateClaimConditions(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { claimConditionInput, index } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -84,7 +84,12 @@ export async function erc20UpdateClaimConditions(fastify: FastifyInstance) {
         index,
         sanitizedClaimConditionInput,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "erc20" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc20",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

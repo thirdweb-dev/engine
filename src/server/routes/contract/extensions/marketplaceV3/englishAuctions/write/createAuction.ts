@@ -53,7 +53,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -94,6 +94,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({

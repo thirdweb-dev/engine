@@ -43,7 +43,7 @@ export async function englishAuctionsGetTotalCount(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,

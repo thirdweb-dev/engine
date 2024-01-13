@@ -56,7 +56,7 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { walletAddress, tokenId } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

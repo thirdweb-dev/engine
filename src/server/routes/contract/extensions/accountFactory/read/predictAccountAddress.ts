@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
@@ -27,7 +27,7 @@ const QuerySchema = Type.Object({
 
 export const predictAccountAddress = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof contractParamSchema>;
+    Params: Static<typeof requestParamSchema>;
     Reply: Static<typeof ReplySchema>;
     Querystring: Static<typeof QuerySchema>;
   }>({
@@ -38,7 +38,7 @@ export const predictAccountAddress = async (fastify: FastifyInstance) => {
       description: "Get the counterfactual address of a smart account.",
       tags: ["Account Factory"],
       operationId: "predictAccountAddress",
-      params: contractParamSchema,
+      params: requestParamSchema,
       querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
@@ -46,7 +46,7 @@ export const predictAccountAddress = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { adminAddress, extraData } = request.query;
       const chainId = await getChainIdFromChain(chain);
 

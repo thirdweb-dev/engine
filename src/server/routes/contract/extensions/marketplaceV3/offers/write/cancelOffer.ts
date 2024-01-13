@@ -49,7 +49,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { offerId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -68,6 +68,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-offers",
       });
       reply.status(StatusCodes.OK).send({

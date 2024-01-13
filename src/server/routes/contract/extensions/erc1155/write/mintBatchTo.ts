@@ -74,7 +74,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { receiver, metadataWithSupply } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -92,7 +92,12 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
         receiver,
         metadataWithSupply,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc1155",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

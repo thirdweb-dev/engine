@@ -55,7 +55,7 @@ Returns the value in percentage format, e.g. 100 = 1%.`,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { listingId } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

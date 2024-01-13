@@ -51,7 +51,7 @@ export async function directListingsCreateListing(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const {
         assetContractAddress,
         tokenId,
@@ -88,6 +88,7 @@ export async function directListingsCreateListing(fastify: FastifyInstance) {
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-direct-listings",
       });
       reply.status(StatusCodes.OK).send({

@@ -51,7 +51,7 @@ meaning the seller receives the payment from the highest bid.`,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -72,6 +72,7 @@ meaning the seller receives the payment from the highest bid.`,
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({

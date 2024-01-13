@@ -5,7 +5,7 @@ import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -14,7 +14,7 @@ import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overr
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestBodySchema = Type.Object({
   metadatas: Type.Array(nftOrInputSchema),
   ...txOverridesForWriteRequest.properties,
@@ -59,7 +59,7 @@ export async function erc721lazyMint(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { metadatas } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -74,7 +74,12 @@ export async function erc721lazyMint(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc721.lazyMint.prepare(metadatas);
-      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc721",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

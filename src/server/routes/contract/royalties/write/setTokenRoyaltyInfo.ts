@@ -5,7 +5,7 @@ import { queueTx } from "../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../utils/cache/getContract";
 import { RoyaltySchema } from "../../../../schemas/contract";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
@@ -13,7 +13,7 @@ import { walletAuthSchema } from "../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestBodySchema = Type.Object({
   ...RoyaltySchema.properties,
   token_id: Type.String({
@@ -55,7 +55,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { seller_fee_basis_points, fee_recipient, token_id } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -76,7 +76,12 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
           fee_recipient,
         },
       );
-      const queueId = await queueTx({ tx, chainId, extension: "none" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "none",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

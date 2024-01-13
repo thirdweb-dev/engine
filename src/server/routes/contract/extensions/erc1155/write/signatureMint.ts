@@ -7,7 +7,7 @@ import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { signature1155OutputSchema } from "../../../../../schemas/nft";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -16,7 +16,7 @@ import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overr
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestBodySchema = Type.Object({
   payload: signature1155OutputSchema,
   signature: Type.String(),
@@ -52,7 +52,7 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { payload, signature } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -78,7 +78,12 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
         signature,
       };
       const tx = await contract.erc1155.signature.mint.prepare(signedPayload);
-      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc1155",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

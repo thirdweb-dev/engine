@@ -5,7 +5,7 @@ import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
@@ -30,7 +30,7 @@ BodySchema.examples = [
 
 export const createAccount = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof contractParamSchema>;
+    Params: Static<typeof requestParamSchema>;
     Reply: Static<typeof prebuiltDeployResponseSchema>;
     Body: Static<typeof BodySchema>;
   }>({
@@ -41,7 +41,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
       description: "Create a smart account for this account factory.",
       tags: ["Account Factory"],
       operationId: "createAccount",
-      params: contractParamSchema,
+      params: requestParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,
       response: {
@@ -50,7 +50,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { adminAddress, extraData } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -76,6 +76,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "account-factory",
         deployedContractAddress: deployedAddress,
         deployedContractType: "account",

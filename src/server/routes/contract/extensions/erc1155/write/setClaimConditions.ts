@@ -8,7 +8,7 @@ import {
   sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -17,7 +17,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestBodySchema = Type.Object({
   tokenId: Type.Union([Type.String(), Type.Number()], {
     description: "ID of the token to set the claim conditions for",
@@ -50,7 +50,7 @@ export async function erc1155SetClaimCondition(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { tokenId, claimConditionInputs, resetClaimEligibilityForAll } =
         request.body;
       const walletAddress = request.headers[
@@ -85,7 +85,12 @@ export async function erc1155SetClaimCondition(fastify: FastifyInstance) {
         sanitizedClaimConditionInputs,
         resetClaimEligibilityForAll,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc1155",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

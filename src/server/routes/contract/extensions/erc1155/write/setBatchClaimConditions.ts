@@ -8,7 +8,7 @@ import {
   setBatchSantiziedClaimConditionsRequestSchema,
 } from "../../../../../schemas/claimConditions";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -17,7 +17,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestBodySchema = Type.Object({
   claimConditionsForToken: Type.Array(
     Type.Object({
@@ -54,7 +54,7 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { claimConditionsForToken, resetClaimEligibilityForAll } =
         request.body;
       const walletAddress = request.headers[
@@ -98,7 +98,12 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
         sanitizedClaimConditionInputs.claimConditionsForToken,
         resetClaimEligibilityForAll,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc1155",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

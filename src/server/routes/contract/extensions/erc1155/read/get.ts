@@ -65,7 +65,7 @@ export async function erc1155Get(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { tokenId } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

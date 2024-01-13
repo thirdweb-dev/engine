@@ -14,8 +14,6 @@ export const getWebhook = async (
   if (retrieveFromCache) {
     if (webhookCache.has(cacheKey) && webhookCache.get(cacheKey)) {
       return webhookCache.get(cacheKey) as SanitizedWebHooksSchema[];
-    } else {
-      return undefined;
     }
   }
 

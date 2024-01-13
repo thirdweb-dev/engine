@@ -57,7 +57,7 @@ export async function erc1155transfer(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { to, tokenId, amount } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -72,7 +72,12 @@ export async function erc1155transfer(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc1155.transfer.prepare(to, tokenId, amount);
-      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc1155",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

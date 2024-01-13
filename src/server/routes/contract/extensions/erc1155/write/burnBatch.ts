@@ -59,7 +59,7 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { tokenIds, amounts } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -74,7 +74,12 @@ export async function erc1155burnBatch(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc1155.burnBatch.prepare(tokenIds, amounts);
-      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc1155",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

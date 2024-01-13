@@ -4,13 +4,13 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestQueryString = Type.Object({
   quantity: Type.String({
     description: "The amount of tokens to claim.",
@@ -53,7 +53,7 @@ export async function erc721GetClaimIneligibilityReasons(
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { quantity, addressToCheck } = request.query;
 
       const chainId = await getChainIdFromChain(chain);

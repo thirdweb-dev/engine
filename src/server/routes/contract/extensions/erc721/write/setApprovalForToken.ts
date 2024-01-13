@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -13,7 +13,7 @@ import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overr
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestBodySchema = Type.Object({
   operator: Type.String({
     description: "Address of the operator to give approval to",
@@ -54,7 +54,7 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { operator, tokenId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -72,7 +72,12 @@ export async function erc721SetApprovalForToken(fastify: FastifyInstance) {
         operator,
         tokenId,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc721",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
@@ -16,7 +16,7 @@ const ReplySchema = Type.Object({
 
 export const getAllAdmins = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof contractParamSchema>;
+    Params: Static<typeof requestParamSchema>;
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
@@ -26,7 +26,7 @@ export const getAllAdmins = async (fastify: FastifyInstance) => {
       description: "Get all admins for a smart account.",
       tags: ["Account"],
       operationId: "getAllAdmins",
-      params: contractParamSchema,
+      params: requestParamSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

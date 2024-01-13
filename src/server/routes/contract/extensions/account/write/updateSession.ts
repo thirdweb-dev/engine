@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -28,7 +28,7 @@ BodySchema.examples = [
 
 export const updateSession = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof contractParamSchema>;
+    Params: Static<typeof requestParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof BodySchema>;
   }>({
@@ -39,7 +39,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
       description: "Update a session key for a smart account.",
       tags: ["Account"],
       operationId: "updateSession",
-      params: contractParamSchema,
+      params: requestParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,
       response: {
@@ -48,7 +48,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { signerAddress, ...permissions } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -77,7 +77,12 @@ export const updateSession = async (fastify: FastifyInstance) => {
             permissions.nativeTokenLimitPerTransaction,
         },
       );
-      const queueId = await queueTx({ tx, chainId, extension: "account" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "account",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

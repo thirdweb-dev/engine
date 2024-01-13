@@ -4,13 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { claimerProofSchema } from "../../../../../schemas/claimConditions";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestQueryString = Type.Object({
   walletAddress: Type.String({
     description: "The wallet address to get the merkle proofs for.",
@@ -45,7 +45,7 @@ export async function erc721GetClaimerProofs(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { walletAddress } = request.query;
 
       const chainId = await getChainIdFromChain(chain);

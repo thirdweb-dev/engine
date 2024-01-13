@@ -3,12 +3,12 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../utils/cache/getContract";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const querystringSchema = Type.Object({
   role: Type.String({
     description: "The role to list wallet members",
@@ -47,7 +47,7 @@ export async function getRoles(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { role } = request.query;
 
       const chainId = await getChainIdFromChain(chain);

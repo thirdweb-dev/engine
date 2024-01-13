@@ -4,13 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { claimConditionOutputSchema } from "../../../../../schemas/claimConditions";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 const requestQueryString = Type.Object({
   withAllowList: Type.Optional(
     Type.Boolean({
@@ -47,7 +47,7 @@ export async function erc721GetAllClaimConditions(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { withAllowList } = request.query;
 
       const chainId = await getChainIdFromChain(chain);

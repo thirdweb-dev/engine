@@ -7,12 +7,12 @@ import {
   eventsQuerystringSchema,
 } from "../../../schemas/contract";
 import {
-  contractParamSchema,
+  requestParamSchema,
   standardResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
-const requestSchema = contractParamSchema;
+const requestSchema = requestParamSchema;
 
 const querySringSchema = Type.Optional(eventsQuerystringSchema);
 

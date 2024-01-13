@@ -50,7 +50,7 @@ You must also call closeAuctionForBidder to execute the sale for the buyer, mean
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, simulateTx } = request.params;
       const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -71,6 +71,7 @@ You must also call closeAuctionForBidder to execute the sale for the buyer, mean
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({
