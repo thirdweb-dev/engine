@@ -1,43 +1,16 @@
-import { Configuration } from "@prisma/client";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
-import { WalletType } from "../../schema/wallet";
+import {
+  Config,
+  getConfiguration,
+} from "../../db/configuration/getConfiguration";
 
 const cacheKey = "config";
-interface Config
-  extends Omit<
-    Configuration,
-    | "awsAccessKeyId"
-    | "awsSecretAccessKey"
-    | "awsRegion"
-    | "gcpApplicationProjectId"
-    | "gcpKmsLocationId"
-    | "gcpKmsKeyRingId"
-    | "gcpApplicationCredentialEmail"
-    | "gcpApplicationCredentialPrivateKey"
-  > {
-  walletConfiguration:
-    | {
-        type: WalletType.local;
-      }
-    | {
-        type: WalletType.awsKms;
-        awsAccessKeyId: string;
-        awsSecretAccessKey: string;
-        awsRegion: string;
-      }
-    | {
-        type: WalletType.gcpKms;
-        gcpApplicationProjectId: string;
-        gcpKmsLocationId: string;
-        gcpKmsKeyRingId: string;
-        gcpApplicationCredentialEmail: string;
-        gcpApplicationCredentialPrivateKey: string;
-      };
-}
-
 const configCache = new Map<string, Config>();
 
-export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
+export const getConfig = async (
+  retrieveFromCache = true,
+): Promise<
+  Omit<Config, "thirdwebApiSecretKey"> & { thirdwebApiSecretKey: string }
+> => {
   if (
     configCache.has(cacheKey) &&
     configCache.get(cacheKey) &&

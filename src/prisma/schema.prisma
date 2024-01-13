@@ -9,6 +9,8 @@ generator client {
 
 model Configuration {
   id                                 String  @id @default("default") @map("id")
+  // Secret Key
+  thirdwebApiSecretKey               String? @map("thirdwebApiSecretKey")
   // Chains
   chainOverrides                     String? @map("chainOverrides")
   // Tx Processing

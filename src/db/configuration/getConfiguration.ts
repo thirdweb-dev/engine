@@ -8,9 +8,10 @@ import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";
 
-interface Config
+export interface Config
   extends Omit<
     Configuration,
+    | "thirdwebApiSecretKey"
     | "awsAccessKeyId"
     | "awsSecretAccessKey"
     | "awsRegion"
@@ -20,6 +21,7 @@ interface Config
     | "gcpApplicationCredentialEmail"
     | "gcpApplicationCredentialPrivateKey"
   > {
+  thirdwebApiSecretKey: string;
   walletConfiguration:
     | {
         type: WalletType.local;
@@ -54,6 +56,12 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
     ...restConfig
   } = config;
 
+  if (!restConfig.thirdwebApiSecretKey) {
+    throw new Error(
+      `Missing thirdwebApiSecretKey! Please set it with the POST - /configuration/thirdweb-api-secret-key endpoint.`,
+    );
+  }
+
   // TODO: Remove backwards compatibility with next breaking change
   if (awsAccessKeyId && awsSecretAccessKey && awsRegion) {
     // First try to load the aws secret using the encryption password
@@ -66,7 +74,7 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
     if (!awsSecretAccessKey) {
       decryptedSecretAccessKey = decrypt(
         awsSecretAccessKey,
-        env.THIRDWEB_API_SECRET_KEY,
+        restConfig.thirdwebApiSecretKey,
       );
 
       // If that succeeds, update the configuration with the encryption password instead
@@ -85,6 +93,7 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
     return {
       ...restConfig,
+      thirdwebApiSecretKey: restConfig.thirdwebApiSecretKey,
       walletConfiguration: {
         type: WalletType.awsKms,
         awsRegion,
@@ -112,7 +121,7 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
     if (!gcpApplicationCredentialPrivateKey) {
       decryptedGcpKey = decrypt(
         gcpApplicationCredentialPrivateKey,
-        env.THIRDWEB_API_SECRET_KEY,
+        restConfig.thirdwebApiSecretKey,
       );
 
       // If that succeeds, update the configuration with the encryption password instead
@@ -131,6 +140,7 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
     return {
       ...restConfig,
+      thirdwebApiSecretKey: restConfig.thirdwebApiSecretKey,
       walletConfiguration: {
         type: WalletType.gcpKms,
         gcpApplicationProjectId,
@@ -144,6 +154,7 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
   return {
     ...restConfig,
+    thirdwebApiSecretKey: restConfig.thirdwebApiSecretKey,
     walletConfiguration: {
       type: WalletType.local,
     },

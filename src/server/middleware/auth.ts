@@ -99,7 +99,7 @@ export const withAuth = async (server: FastifyInstance) => {
           // If that fails, we try to load the wallet with the secret key
           await wallet.import({
             encryptedJson: config.authWalletEncryptedJson,
-            password: env.THIRDWEB_API_SECRET_KEY,
+            password: config.thirdwebApiSecretKey,
           });
 
           // And then update the auth wallet to use encryption password instead
@@ -207,7 +207,7 @@ export const withAuth = async (server: FastifyInstance) => {
     try {
       // If we have a valid secret key, skip authentication check
       const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
-      if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
+      if (thirdwebApiSecretKey === config.thirdwebApiSecretKey) {
         // If the secret key is being used, treat the user as the auth wallet
         const config = await getConfig();
         const wallet = new LocalWallet();
@@ -221,7 +221,7 @@ export const withAuth = async (server: FastifyInstance) => {
           // If that fails, we try to load the wallet with the secret key
           await wallet.import({
             encryptedJson: config.authWalletEncryptedJson,
-            password: env.THIRDWEB_API_SECRET_KEY,
+            password: config.thirdwebApiSecretKey,
           });
 
           // And then update the auth wallet to use encryption password instead

@@ -58,7 +58,6 @@ export const env = createEnv({
           .array(z.enum(["server", "worker", "cache", "websocket"]))
           .parse(s.split(",")),
       ),
-    THIRDWEB_API_SECRET_KEY: z.string().min(1),
     ADMIN_WALLET_ADDRESS: z.string().min(1),
     ENCRYPTION_PASSWORD: z.string().min(1),
     POSTGRES_CONNECTION_URL: z
@@ -78,7 +77,6 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     LOG_LEVEL: process.env.LOG_LEVEL,
     LOG_SERVICES: process.env.LOG_SERVICES,
-    THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
     ADMIN_WALLET_ADDRESS: process.env.ADMIN_WALLET_ADDRESS,
     ENCRYPTION_PASSWORD: process.env.ENCRYPTION_PASSWORD,
     POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
