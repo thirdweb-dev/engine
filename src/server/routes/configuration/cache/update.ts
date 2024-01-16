@@ -32,8 +32,6 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const { clearCacheCronSchedule } = req.body;
-      console.log("clearCacheCronSchedule", clearCacheCronSchedule);
-
       if (isValidCron(clearCacheCronSchedule) === false) {
         return res.status(400).send({
           error: {
