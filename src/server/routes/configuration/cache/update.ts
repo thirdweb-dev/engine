@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { clearCacheCron } from "../../../../utils/cron/clearCacheCron";
 import { isValidCron } from "../../../../utils/cron/isValid";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
@@ -43,6 +44,8 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
 
       await updateConfiguration({ ...req.body });
       const config = await getConfig(false);
+      // restarting cache cron with updated cron schedule
+      await clearCacheCron();
       res.status(200).send({
         result: {
           clearCacheCronSchedule: config.clearCacheCronSchedule,
