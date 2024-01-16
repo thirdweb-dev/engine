@@ -8,7 +8,9 @@ import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Object({
-  clearCacheCronSchedule: Type.String(),
+  clearCacheCronSchedule: Type.String({
+    minLength: 11,
+  }),
 });
 
 export async function updateCacheConfiguration(fastify: FastifyInstance) {
@@ -30,6 +32,7 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const { clearCacheCronSchedule } = req.body;
+      console.log("clearCacheCronSchedule", clearCacheCronSchedule);
 
       if (isValidCron(clearCacheCronSchedule) === false) {
         return res.status(400).send({

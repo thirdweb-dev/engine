@@ -1,4 +1,4 @@
-import * as cronParser from "cron-parser";
+import cronParser from "cron-parser";
 
 export const isValidCron = (input: string): boolean => {
   try {

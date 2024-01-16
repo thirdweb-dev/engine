@@ -156,7 +156,7 @@ export const fastifyCors = async (
   next();
 };
 
-function normalizeCorsOptions(opts: FastifyCorsOptions) {
+const normalizeCorsOptions = (opts: FastifyCorsOptions): FastifyCorsOptions => {
   const corsOptions = { ...defaultOptions, ...opts };
   if (Array.isArray(opts.origin) && opts.origin.indexOf("*") !== -1) {
     corsOptions.origin = "*";
@@ -169,7 +169,7 @@ function normalizeCorsOptions(opts: FastifyCorsOptions) {
     corsOptions.cacheControl = undefined;
   }
   return corsOptions;
-}
+};
 
 const addCorsHeadersHandler = (
   fastify: FastifyInstance,
