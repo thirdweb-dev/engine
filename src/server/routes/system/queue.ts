@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getQueueStatus } from "../../../db/transactions/getQueueStatus";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const QuerySchema = Type.Object({
   walletAddress: Type.Optional(Type.String()),
@@ -28,6 +29,7 @@ export async function queueStatus(fastify: FastifyInstance) {
       operationId: "queueStatus",
       querystring: QuerySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

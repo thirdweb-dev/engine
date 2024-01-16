@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Partial(
@@ -16,7 +17,6 @@ const BodySchema = Type.Partial(
     maxFeePerGasForRetries: Type.String(),
     maxPriorityFeePerGasForRetries: Type.String(),
     maxRetriesPerTx: Type.Number(),
-    clearCacheCronSchedule: Type.Optional(Type.String()),
   }),
 );
 
@@ -34,6 +34,7 @@ export async function updateTransactionConfiguration(fastify: FastifyInstance) {
       operationId: "updateTransactionConfiguration",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },
@@ -51,7 +52,6 @@ export async function updateTransactionConfiguration(fastify: FastifyInstance) {
           maxFeePerGasForRetries: config.maxFeePerGasForRetries,
           maxPriorityFeePerGasForRetries: config.maxPriorityFeePerGasForRetries,
           maxRetriesPerTx: config.maxRetriesPerTx,
-          clearCacheCronSchedule: config.clearCacheCronSchedule,
         },
       });
     },

@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../../db/client";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const ReplySchema = Type.Object({
   result: Type.Array(
@@ -25,6 +26,7 @@ export async function getAllPermissions(fastify: FastifyInstance) {
       tags: ["Permissions"],
       operationId: "getAll",
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

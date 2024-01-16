@@ -1,5 +1,6 @@
 import { knex } from "../../db/client";
 import { getConfig } from "../../utils/cache/getConfig";
+import { clearCacheCron } from "../../utils/cron/clearCacheCron";
 import { logger } from "../../utils/logger";
 import { minedTxListener } from "./minedTxListener";
 import { queuedTxListener } from "./queuedTxListener";
@@ -81,6 +82,7 @@ export const updatedConfigurationListener = async (): Promise<void> => {
       await queuedTxListener();
       await minedTxListener();
       await retryTxListener();
+      await clearCacheCron();
     },
   );
 
