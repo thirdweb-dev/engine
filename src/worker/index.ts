@@ -1,5 +1,4 @@
-import { WebhooksEventTypes } from "../schema/webhooks";
-import { getWebhook } from "../utils/cache/getWebhook";
+import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import {
   newConfigurationListener,
   updatedConfigurationListener,
@@ -34,9 +33,8 @@ const worker = async () => {
   await newWebhooksListener();
   await updatedWebhooksListener();
 
-  for (const eventType of Object.values(WebhooksEventTypes)) {
-    await getWebhook(eventType, false);
-  }
+  // Rest Cache Cron
+  await clearCacheCron();
 };
 
 worker();

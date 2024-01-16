@@ -4,7 +4,7 @@ import {
   WebhooksEventTypes,
 } from "../../schema/webhooks";
 
-const webhookCache = new Map<string, SanitizedWebHooksSchema[]>();
+export const webhookCache = new Map<string, SanitizedWebHooksSchema[]>();
 
 export const getWebhook = async (
   eventType: WebhooksEventTypes,

@@ -10,6 +10,12 @@ import {
   addOriginToVaryHeader,
 } from "./vary";
 
+declare module "fastify" {
+  interface FastifyRequest {
+    corsPreflightEnabled: boolean;
+  }
+}
+
 interface ArrayOfValueOrArray<T> extends Array<ValueOrArray<T>> {}
 
 type OriginCallback = (

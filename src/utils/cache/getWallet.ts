@@ -7,7 +7,7 @@ import { getGcpKmsWallet } from "../../server/utils/wallets/getGcpKmsWallet";
 import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../../server/utils/wallets/getSmartWallet";
 
-const walletsCache = new Map<string, EVMWallet>();
+export const walletsCache = new Map<string, EVMWallet>();
 
 interface GetWalletParams {
   pgtx?: PrismaTransaction;

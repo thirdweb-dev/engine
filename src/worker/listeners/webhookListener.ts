@@ -1,6 +1,5 @@
 import { knex } from "../../db/client";
-import { WebhooksEventTypes } from "../../schema/webhooks";
-import { getWebhook } from "../../utils/cache/getWebhook";
+import { webhookCache } from "../../utils/cache/getWebhook";
 import { logger } from "../../utils/logger";
 
 export const newWebhooksListener = async (): Promise<void> => {
@@ -24,9 +23,7 @@ export const newWebhooksListener = async (): Promise<void> => {
         message: `Received new webhooks data`,
       });
       // Update Webhooks Data
-      for (const eventType of Object.values(WebhooksEventTypes)) {
-        await getWebhook(eventType, false);
-      }
+      webhookCache.clear();
     },
   );
 
@@ -82,9 +79,7 @@ export const updatedWebhooksListener = async (): Promise<void> => {
         level: "info",
         message: `Received updated webhooks data`,
       });
-      for (const eventType of Object.values(WebhooksEventTypes)) {
-        await getWebhook(eventType, false);
-      }
+      webhookCache.clear();
     },
   );
 

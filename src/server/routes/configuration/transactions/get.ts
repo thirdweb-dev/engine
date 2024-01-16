@@ -14,6 +14,7 @@ export const ReplySchema = Type.Object({
     maxFeePerGasForRetries: Type.String(),
     maxPriorityFeePerGasForRetries: Type.String(),
     maxRetriesPerTx: Type.Number(),
+    clearCacheCronSchedule: Type.Union([Type.String(), Type.Null()]),
   }),
 });
 
@@ -45,6 +46,7 @@ export async function getTransactionConfiguration(fastify: FastifyInstance) {
           maxFeePerGasForRetries: config.maxFeePerGasForRetries,
           maxPriorityFeePerGasForRetries: config.maxPriorityFeePerGasForRetries,
           maxRetriesPerTx: config.maxRetriesPerTx,
+          clearCacheCronSchedule: config.clearCacheCronSchedule,
         },
       });
     },
