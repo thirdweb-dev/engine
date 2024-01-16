@@ -32,13 +32,13 @@ export const getBackendWalletNonce = async (fastify: FastifyInstance) => {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/backend-wallet/:chain/:walletAddress/get-nonces",
+    url: "/backend-wallet/:chain/:walletAddress/get-nonce",
     schema: {
       summary: "Get backend-wallet nonces from DB",
       description:
         "Get nonce for a backend wallets from DB. This is for debugging purposes and does not impact held tokens.",
       tags: ["Backend Wallet"],
-      operationId: "getNonces",
+      operationId: "getNonce",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
