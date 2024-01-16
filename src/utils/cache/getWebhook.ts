@@ -11,11 +11,10 @@ export const getWebhook = async (
   retrieveFromCache = true,
 ): Promise<SanitizedWebHooksSchema[] | undefined> => {
   const cacheKey = eventType;
+
   if (retrieveFromCache) {
     if (webhookCache.has(cacheKey) && webhookCache.get(cacheKey)) {
       return webhookCache.get(cacheKey) as SanitizedWebHooksSchema[];
-    } else {
-      return undefined;
     }
   }
 
@@ -26,11 +25,6 @@ export const getWebhook = async (
       return webhook;
     }
   });
-
-  if (eventTypeWebhookDetails.length === 0) {
-    webhookCache.delete(cacheKey);
-    return undefined;
-  }
 
   webhookCache.set(cacheKey, eventTypeWebhookDetails);
   return eventTypeWebhookDetails;
