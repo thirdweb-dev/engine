@@ -1,7 +1,7 @@
 import { Transactions } from "@prisma/client";
 import type { PrismaTransaction } from "../../schema/prisma";
+import { getConfig } from "../../utils/cache/getConfig";
 import { getPrismaWithPostgresTx } from "../client";
-import { getConfiguration } from "../configuration/getConfiguration";
 
 interface GetTxToRetryParams {
   pgtx?: PrismaTransaction;
@@ -11,7 +11,7 @@ export const getTxToRetry = async ({ pgtx }: GetTxToRetryParams = {}): Promise<
   Transactions | undefined
 > => {
   const prisma = getPrismaWithPostgresTx(pgtx);
-  const config = await getConfiguration();
+  const config = await getConfig();
 
   // TODO: Remove transactionHash
   // TODO: For now, we're not retrying user ops

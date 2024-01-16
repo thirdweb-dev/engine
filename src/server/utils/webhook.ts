@@ -5,7 +5,7 @@ import {
   WalletBalanceWebhookSchema,
   WebhooksEventTypes,
 } from "../../schema/webhooks";
-import { getWebhookConfig } from "../../utils/cache/getWebhook";
+import { getWebhook } from "../../utils/cache/getWebhook";
 import { logger } from "../../utils/logger";
 import { TransactionStatusEnum } from "../schemas/transaction";
 
@@ -52,96 +52,97 @@ export const sendWebhookRequest = async (
   webhookConfig: SanitizedWebHooksSchema,
   body: Record<string, any>,
 ): Promise<boolean> => {
-  const headers = await createWebhookRequestHeaders(webhookConfig, body);
-  const response = await fetch(webhookConfig?.url, {
-    method: "POST",
-    headers: headers,
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    logger({
-      service: "server",
-      level: "error",
-      message: `[sendWebhook] Webhook request error: ${response.status} ${response.statusText}`,
+  try {
+    const headers = await createWebhookRequestHeaders(webhookConfig, body);
+    const response = await fetch(webhookConfig?.url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(body),
     });
 
-    return false;
-  }
+    if (!response.ok) {
+      logger({
+        service: "server",
+        level: "error",
+        message: `[sendWebhook] Webhook request error: ${response.status} ${response.statusText}`,
+      });
 
-  return true;
-};
-
-export const sendTxWebhook = async (queueIds: string[]): Promise<void> => {
-  try {
-    const txDataByIds = await getTxByIds({ queueIds });
-    if (!txDataByIds || txDataByIds.length === 0) {
-      return;
+      return false;
     }
-    for (const txData of txDataByIds!) {
-      if (!txData) {
-        return;
-      } else {
-        let webhookConfig: SanitizedWebHooksSchema[] | undefined =
-          await getWebhookConfig(WebhooksEventTypes.ALL_TX);
 
-        if (!webhookConfig) {
-          switch (txData.status) {
-            case TransactionStatusEnum.Queued:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.QUEUED_TX,
-              );
-              break;
-            case TransactionStatusEnum.Submitted:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.SENT_TX,
-              );
-              break;
-            case TransactionStatusEnum.Retried:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.RETRIED_TX,
-              );
-              break;
-            case TransactionStatusEnum.Mined:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.MINED_TX,
-              );
-              break;
-            case TransactionStatusEnum.Errored:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.ERRORED_TX,
-              );
-              break;
-            case TransactionStatusEnum.Cancelled:
-              webhookConfig = await getWebhookConfig(
-                WebhooksEventTypes.ERRORED_TX,
-              );
-              break;
-          }
-        }
-
-        webhookConfig?.map(async (config) => {
-          if (!config || !config?.active) {
-            logger({
-              service: "server",
-              level: "debug",
-              message: "No webhook set or active, skipping webhook send",
-            });
-
-            return;
-          }
-
-          await sendWebhookRequest(config, txData);
-        });
-      }
-    }
+    return true;
   } catch (error) {
     logger({
       service: "server",
       level: "error",
-      message: `Failed to send webhook`,
+      message: `[sendWebhook] Webhook request error: ${error}`,
       error,
     });
+    return false;
+  }
+};
+
+export interface WebhookData {
+  queueId: string;
+  status: TransactionStatusEnum;
+}
+
+export const sendWebhooks = async (webhooks: WebhookData[]) => {
+  const queueIds = webhooks.map((webhook) => webhook.queueId);
+  const txs = await getTxByIds({ queueIds });
+  if (!txs || txs.length === 0) {
+    return;
+  }
+
+  const webhooksWithTxs = webhooks
+    .map((webhook) => {
+      const tx = txs.find((tx) => tx.queueId === webhook.queueId);
+      return {
+        ...webhook,
+        tx,
+      };
+    })
+    .filter((webhook) => !!webhook.tx);
+
+  for (const webhook of webhooksWithTxs) {
+    const webhookStatus =
+      webhook.status === TransactionStatusEnum.Queued
+        ? WebhooksEventTypes.QUEUED_TX
+        : webhook.status === TransactionStatusEnum.Submitted
+        ? WebhooksEventTypes.SENT_TX
+        : webhook.status === TransactionStatusEnum.Retried
+        ? WebhooksEventTypes.RETRIED_TX
+        : webhook.status === TransactionStatusEnum.Mined
+        ? WebhooksEventTypes.MINED_TX
+        : webhook.status === TransactionStatusEnum.Errored
+        ? WebhooksEventTypes.ERRORED_TX
+        : webhook.status === TransactionStatusEnum.Cancelled
+        ? WebhooksEventTypes.CANCELLED_TX
+        : undefined;
+
+    const webhookConfigs = await Promise.all([
+      ...((await getWebhook(WebhooksEventTypes.ALL_TX)) || []),
+      ...(webhookStatus ? (await getWebhook(webhookStatus)) || [] : []),
+    ]);
+
+    await Promise.all(
+      webhookConfigs.map(async (webhookConfig) => {
+        if (!webhookConfig.active) {
+          logger({
+            service: "server",
+            level: "debug",
+            message: "No webhook set or active, skipping webhook send",
+          });
+
+          return;
+        }
+
+        await sendWebhookRequest(
+          webhookConfig,
+          webhook.tx as Record<string, any>,
+        );
+      }),
+    );
   }
 };
 
@@ -160,7 +161,7 @@ export const sendBalanceWebhook = async (
       return;
     }
 
-    const webhookConfig = await getWebhookConfig(
+    const webhookConfig = await getWebhook(
       WebhooksEventTypes.BACKEND_WALLET_BALANCE,
     );
 

@@ -52,9 +52,11 @@ export const env = createEnv({
       .default("debug"),
     LOG_SERVICES: z
       .string()
-      .default("server,worker")
+      .default("server,worker,cache,websocket")
       .transform((s) =>
-        z.array(z.enum(["server", "worker"])).parse(s.split(",")),
+        z
+          .array(z.enum(["server", "worker", "cache", "websocket"]))
+          .parse(s.split(",")),
       ),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
     ADMIN_WALLET_ADDRESS: z.string().min(1),
@@ -66,9 +68,6 @@ export const env = createEnv({
       ),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
-    ACCESS_CONTROL_ALLOW_ORIGIN: z
-      .string()
-      .default("https://thirdweb.com,https://thirdweb-preview.com"),
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
   },
@@ -85,7 +84,6 @@ export const env = createEnv({
     POSTGRES_CONNECTION_URL: process.env.POSTGRES_CONNECTION_URL,
     PORT: process.env.PORT,
     HOST: process.env.HOST,
-    ACCESS_CONTROL_ALLOW_ORIGIN: process.env.ACCESS_CONTROL_ALLOW_ORIGIN,
     ENABLE_HTTPS: process.env.ENABLE_HTTPS,
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
   },

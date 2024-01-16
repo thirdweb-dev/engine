@@ -1,8 +1,8 @@
 import { Static } from "@sinclair/typebox";
-import { Chain, getChainByChainId } from "@thirdweb-dev/chains";
-import { LocalWallet } from "@thirdweb-dev/wallets";
-import { getConfiguration } from "../../../db/configuration/getConfiguration";
+import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
+import { Chain, LocalWallet } from "@thirdweb-dev/wallets";
 import { getWalletDetails } from "../../../db/wallets/getWalletDetails";
+import { getConfig } from "../../../utils/cache/getConfig";
 import { networkResponseSchema } from "../../../utils/cache/getSdk";
 import { env } from "../../../utils/env";
 import { logger } from "../../../utils/logger";
@@ -18,10 +18,10 @@ export const getLocalWallet = async ({
   walletAddress,
 }: GetLocalWalletParams) => {
   let chain: Chain | undefined = undefined;
-  const config = await getConfiguration();
+  const config = await getConfig();
   const CHAIN_OVERRIDES = config.chainOverrides;
   try {
-    chain = getChainByChainId(chainId);
+    chain = await getChainByChainIdAsync(chainId);
   } catch (error) {}
 
   if (CHAIN_OVERRIDES) {

@@ -1,6 +1,6 @@
 import { Static } from "@sinclair/typebox";
-import { allChains, getChainByChainId } from "@thirdweb-dev/chains";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
+import { allChains, getChainByChainIdAsync } from "@thirdweb-dev/chains";
+import { getConfig } from "../../utils/cache/getConfig";
 import { networkResponseSchema } from "../../utils/cache/getSdk";
 
 const ChainNameToChainId = {
@@ -20,14 +20,15 @@ export const getChainIdFromChain = async (chain: string): Promise<number> => {
     chainId = ChainNameToChainId[chain as keyof typeof ChainNameToChainId];
   }
 
-  const config = await getConfiguration();
+  const config = await getConfig();
 
   // If we're passed a valid chain id directly, then use it
   if (!isNaN(parseInt(chain))) {
     const unknownChainId = parseInt(chain);
     try {
+      const chain = await getChainByChainIdAsync(unknownChainId);
       // If the chain id is for a supported chain, use the chain id
-      if (getChainByChainId(unknownChainId)) {
+      if (chain) {
         chainId = unknownChainId;
       }
     } catch {
@@ -40,7 +41,7 @@ export const getChainIdFromChain = async (chain: string): Promise<number> => {
           );
         }
       }
-      // If the chain id is unsupported, getChainByChainId will throw
+      // If the chain id is unsupported, getChainByChainIdAsync will throw
     }
   } else {
     if (config?.chainOverrides) {

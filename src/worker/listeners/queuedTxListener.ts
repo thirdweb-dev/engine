@@ -1,9 +1,11 @@
 import cron from "node-cron";
-import { getConfiguration } from "../../db/configuration/getConfiguration";
+import { getConfig } from "../../utils/cache/getConfig";
 import { logger } from "../../utils/logger";
 import { processTx } from "../tasks/processTx";
 
 let processTxStarted = false;
+let task: cron.ScheduledTask;
+
 export const queuedTxListener = async (): Promise<void> => {
   logger({
     service: "worker",
@@ -11,13 +13,16 @@ export const queuedTxListener = async (): Promise<void> => {
     message: `Listening for queued transactions`,
   });
 
-  const config = await getConfiguration();
+  const config = await getConfig();
 
   if (!config.minedTxListenerCronSchedule) {
     return;
   }
+  if (task) {
+    task.stop();
+  }
 
-  cron.schedule(config.minedTxListenerCronSchedule, async () => {
+  task = cron.schedule(config.minedTxListenerCronSchedule, async () => {
     if (!processTxStarted) {
       processTxStarted = true;
       await processTx();
