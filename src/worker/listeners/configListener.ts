@@ -82,7 +82,7 @@ export const updatedConfigurationListener = async (): Promise<void> => {
       await queuedTxListener();
       await minedTxListener();
       await retryTxListener();
-      await clearCacheCron();
+      await clearCacheCron("worker");
     },
   );
 

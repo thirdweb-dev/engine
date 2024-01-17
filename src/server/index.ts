@@ -92,7 +92,7 @@ const main = async () => {
 
   writeOpenApiToFile(server);
   await updateTxListener();
-  await clearCacheCron();
+  await clearCacheCron("server");
 };
 
 main();

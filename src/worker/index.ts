@@ -34,7 +34,7 @@ const worker = async () => {
   await updatedWebhooksListener();
 
   // Rest Cache Cron
-  await clearCacheCron();
+  await clearCacheCron("worker");
 };
 
 worker();

@@ -11,6 +11,9 @@ import { ReplySchema } from "./get";
 const BodySchema = Type.Object({
   clearCacheCronSchedule: Type.String({
     minLength: 11,
+    description:
+      "Cron expression for clearing cache. It should be in the format of 'ss mm hh * * *' where ss is seconds, mm is minutes and hh is hours. Seconds should not be '*' or less than 10",
+    default: "*/30 * * * * *",
   }),
 });
 
@@ -45,7 +48,7 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
       await updateConfiguration({ ...req.body });
       const config = await getConfig(false);
       // restarting cache cron with updated cron schedule
-      await clearCacheCron();
+      await clearCacheCron("server");
       res.status(200).send({
         result: {
           clearCacheCronSchedule: config.clearCacheCronSchedule,
