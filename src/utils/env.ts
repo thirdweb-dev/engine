@@ -70,6 +70,7 @@ export const env = createEnv({
     HOST: z.string().default("0.0.0.0"),
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
+    PRUNE_TRANSACTIONS: boolSchema("true"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -86,6 +87,7 @@ export const env = createEnv({
     HOST: process.env.HOST,
     ENABLE_HTTPS: process.env.ENABLE_HTTPS,
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
+    PRUNE_TRANSACTIONS: process.env.PRUNE_TRANSACTIONS,
   },
   onValidationError: (error: ZodError) => {
     console.error(

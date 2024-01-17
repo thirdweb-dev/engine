@@ -12,6 +12,7 @@ import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
 import { getContract } from "../../../utils/cache/getContract";
 import { getSdk } from "../../../utils/cache/getSdk";
 import {
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
@@ -38,6 +39,7 @@ export async function transfer(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/backend-wallet/:chain/transfer",
@@ -50,6 +52,7 @@ export async function transfer(fastify: FastifyInstance) {
       params: requestSchema,
       body: requestBodySchema,
       headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -65,7 +68,7 @@ export async function transfer(fastify: FastifyInstance) {
 
       // TODO: Bring Smart Wallet back
       // const accountAddress = request.headers["x-account-address"] as string;
-
+      const { simulateTx } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const sdk = await getSdk({ chainId, walletAddress });
 
@@ -120,7 +123,12 @@ export async function transfer(fastify: FastifyInstance) {
         );
         const tx = await contract.erc20.transfer.prepare(to, displayValue);
 
-        queueId = await queueTx({ tx, chainId, extension: "erc20" });
+        queueId = await queueTx({
+          tx,
+          chainId,
+          extension: "erc20",
+          simulateTx,
+        });
       }
 
       reply.status(StatusCodes.OK).send({
