@@ -32,7 +32,7 @@ Before you begin, ensure you have the following:
 1. Ensure that you are connected to the GKE cluster:
 
    ```bash
-   gcloud container clusters get-credentials your-cluster-name --region your-regsion
+   gcloud container clusters get-credentials your-cluster-name --region your-region
    ```
 
    Replace `your-cluster-name` and `your-region` with your specific details.
