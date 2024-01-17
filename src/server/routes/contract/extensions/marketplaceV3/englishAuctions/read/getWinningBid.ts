@@ -50,7 +50,7 @@ export async function englishAuctionsGetWinningBid(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const { listingId } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

@@ -4,13 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { claimerProofSchema } from "../../../../../schemas/claimConditions";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
-const requestSchema = requestParamSchema;
+const requestSchema = contractParamSchema;
 const requestQueryString = Type.Object({
   tokenId: Type.Union([Type.String(), Type.Number()], {
     description:
@@ -49,7 +49,7 @@ export async function erc1155GetClaimerProofs(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const { tokenId, walletAddress } = request.query;
 
       const chainId = await getChainIdFromChain(chain);

@@ -7,12 +7,12 @@ import {
   eventsQuerystringSchema,
 } from "../../../schemas/contract";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
-const requestSchema = requestParamSchema;
+const requestSchema = contractParamSchema;
 
 const requestBodyParams = Type.Object(
   {

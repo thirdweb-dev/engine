@@ -8,7 +8,8 @@ import {
   sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
-  requestParamSchema,
+  contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -17,7 +18,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
 // INPUT
-const requestSchema = requestParamSchema;
+const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   tokenId: Type.Union([Type.String(), Type.Number()], {
     description: "Token ID to update claim phase for",
@@ -34,6 +35,7 @@ export async function erc1155UpdateClaimConditions(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/erc1155/claim-conditions/update",
@@ -46,13 +48,15 @@ export async function erc1155UpdateClaimConditions(fastify: FastifyInstance) {
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { tokenId, claimConditionInput, index } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"

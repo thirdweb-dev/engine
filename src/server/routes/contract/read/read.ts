@@ -19,7 +19,7 @@ export async function readContract(fastify: FastifyInstance) {
       querystring: readRequestQuerySchema,
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const { functionName, args } = request.query;
 
       const chainId = await getChainIdFromChain(chain);

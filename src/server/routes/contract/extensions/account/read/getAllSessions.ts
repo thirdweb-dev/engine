@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { SessionSchema } from "../../../../../schemas/account";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
@@ -15,7 +15,7 @@ const ReplySchema = Type.Object({
 
 export const getAllSessions = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
@@ -25,7 +25,7 @@ export const getAllSessions = async (fastify: FastifyInstance) => {
       description: "Get all session keys for a smart account.",
       tags: ["Account"],
       operationId: "getAllSessions",
-      params: requestParamSchema,
+      params: contractParamSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

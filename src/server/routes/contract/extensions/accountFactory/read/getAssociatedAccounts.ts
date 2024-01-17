@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
@@ -23,7 +23,7 @@ const QuerySchema = Type.Object({
 
 export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof ReplySchema>;
     Querystring: Static<typeof QuerySchema>;
   }>({
@@ -35,7 +35,7 @@ export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
         "Get all the smart accounts for this account factory associated with the specific admin wallet.",
       tags: ["Account Factory"],
       operationId: "getAssociatedAccounts",
-      params: requestParamSchema,
+      params: contractParamSchema,
       querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
@@ -43,7 +43,7 @@ export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const { signerAddress } = request.query;
       const chainId = await getChainIdFromChain(chain);
 

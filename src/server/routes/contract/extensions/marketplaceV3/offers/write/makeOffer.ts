@@ -6,6 +6,7 @@ import { getContract } from "../../../../../../../utils/cache/getContract";
 import { OfferV3InputSchema } from "../../../../../../schemas/marketplaceV3/offer";
 import {
   marketplaceV3ContractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
@@ -33,6 +34,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/marketplace/:chain/:contractAddress/offers/make-offer",
@@ -44,13 +46,15 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const {
         assetContractAddress,
         tokenId,

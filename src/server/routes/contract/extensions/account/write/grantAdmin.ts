@@ -4,7 +4,8 @@ import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  requestParamSchema,
+  contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -25,9 +26,10 @@ BodySchema.examples = [
 
 export const grantAdmin = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof BodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/account/admins/grant",
@@ -37,15 +39,17 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
       tags: ["Account"],
       operationId: "grantAdmin",
       headers: walletAuthSchema,
-      params: requestParamSchema,
+      params: contractParamSchema,
       body: BodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { signerAddress } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"

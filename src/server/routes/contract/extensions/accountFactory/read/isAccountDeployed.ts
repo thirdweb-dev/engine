@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
@@ -28,7 +28,7 @@ const QuerySchema = Type.Object({
 
 export const isAccountDeployed = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof ReplySchema>;
     Querystring: Static<typeof QuerySchema>;
   }>({
@@ -40,7 +40,7 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
         "Check if a smart account has been deployed to the blockchain.",
       tags: ["Account Factory"],
       operationId: "isAccountDeployed",
-      params: requestParamSchema,
+      params: contractParamSchema,
       querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
@@ -48,7 +48,7 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const { adminAddress, extraData } = request.query;
       const chainId = await getChainIdFromChain(chain);
 

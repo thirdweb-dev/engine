@@ -4,14 +4,14 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../utils/cache/getContract";
 import { RoyaltySchema } from "../../../../schemas/contract";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 const requestSchema = Type.Object({
   tokenId: Type.String(),
-  ...requestParamSchema.properties,
+  ...contractParamSchema.properties,
 });
 // OUTPUT
 const responseSchema = Type.Object({

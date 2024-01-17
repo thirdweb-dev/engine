@@ -6,6 +6,7 @@ import { getContract } from "../../../../../../utils/cache/getContract";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -42,6 +43,7 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/erc1155/lazy-mint",
@@ -53,13 +55,15 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { metadatas } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"

@@ -4,7 +4,8 @@ import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../utils/cache/getContract";
 import {
-  requestParamSchema,
+  contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
@@ -12,7 +13,7 @@ import { walletAuthSchema } from "../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
-const requestSchema = requestParamSchema;
+const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   role: Type.String({
     description: "The role to grant",
@@ -30,6 +31,7 @@ export async function grantRole(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/roles/grant",
@@ -41,13 +43,15 @@ export async function grantRole(fastify: FastifyInstance) {
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { role, address } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"

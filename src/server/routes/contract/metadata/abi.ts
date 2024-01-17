@@ -4,12 +4,12 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../utils/cache/getContract";
 import { abiSchema } from "../../../schemas/contract";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
-const requestSchema = requestParamSchema;
+const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -76,7 +76,7 @@ export async function getABI(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

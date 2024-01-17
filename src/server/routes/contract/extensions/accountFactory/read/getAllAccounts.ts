@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
@@ -16,7 +16,7 @@ const ReplySchema = Type.Object({
 
 export const getAllAccounts = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
@@ -26,14 +26,14 @@ export const getAllAccounts = async (fastify: FastifyInstance) => {
       description: "Get all the smart accounts for this account factory.",
       tags: ["Account Factory"],
       operationId: "getAllAccounts",
-      params: requestParamSchema,
+      params: contractParamSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({

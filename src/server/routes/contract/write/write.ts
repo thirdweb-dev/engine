@@ -4,7 +4,8 @@ import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getContract } from "../../../../utils/cache/getContract";
 import {
-  requestParamSchema,
+  contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
@@ -47,8 +48,9 @@ writeRequestBodySchema.examples = [
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof writeRequestBodySchema>;
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/write",
@@ -57,8 +59,9 @@ export async function writeToContract(fastify: FastifyInstance) {
       description: "Call a write function on a contract.",
       tags: ["Contract"],
       operationId: "write",
-      params: requestParamSchema,
+      params: contractParamSchema,
       headers: walletAuthSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -66,7 +69,8 @@ export async function writeToContract(fastify: FastifyInstance) {
       body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { functionName, args, txOverrides } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"

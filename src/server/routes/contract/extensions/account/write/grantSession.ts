@@ -5,7 +5,8 @@ import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { SessionSchema } from "../../../../../schemas/account";
 import {
-  requestParamSchema,
+  contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -26,9 +27,10 @@ BodySchema.examples = [
 
 export const grantSession = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof BodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/account/sessions/create",
@@ -37,16 +39,18 @@ export const grantSession = async (fastify: FastifyInstance) => {
       description: "Create a session key for a smart account.",
       tags: ["Account"],
       operationId: "grantSession",
-      params: requestParamSchema,
+      params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { signerAddress, ...permissions } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"

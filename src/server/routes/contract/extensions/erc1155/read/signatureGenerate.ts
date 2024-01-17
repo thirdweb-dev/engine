@@ -53,7 +53,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const {
         to,
         currencyAddress,

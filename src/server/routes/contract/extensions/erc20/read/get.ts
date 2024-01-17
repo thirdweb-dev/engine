@@ -48,7 +48,7 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,

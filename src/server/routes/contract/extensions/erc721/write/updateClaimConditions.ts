@@ -8,7 +8,8 @@ import {
   sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
-  requestParamSchema,
+  contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -17,7 +18,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
 // INPUT
-const requestSchema = requestParamSchema;
+const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   claimConditionInput: claimConditionInputSchema,
   index: Type.Number({
@@ -31,6 +32,7 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/erc721/claim-conditions/update",
@@ -43,13 +45,15 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { claimConditionInput, index } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"

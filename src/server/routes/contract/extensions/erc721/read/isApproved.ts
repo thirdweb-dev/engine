@@ -4,13 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import { Static, Type } from "@sinclair/typebox";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
-const requestSchema = requestParamSchema;
+const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
   ownerWallet: Type.String({
     description: "Address of the wallet who owns the NFT",
@@ -54,7 +54,7 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const { ownerWallet, operator } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

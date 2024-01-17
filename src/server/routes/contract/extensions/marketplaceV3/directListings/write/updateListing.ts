@@ -6,6 +6,7 @@ import { getContract } from "../../../../../../../utils/cache/getContract";
 import { directListingV3InputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import {
   marketplaceV3ContractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
@@ -35,6 +36,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/marketplace/:chain/:contractAddress/direct-listings/update-listing",
@@ -46,13 +48,15 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const {
         listingId,
         assetContractAddress,

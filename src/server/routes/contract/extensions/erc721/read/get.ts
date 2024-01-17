@@ -4,13 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { nftSchema } from "../../../../../schemas/nft";
 import {
-  requestParamSchema,
+  contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
-const requestSchema = requestParamSchema;
+const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
   tokenId: Type.String({
     description: "The tokenId of the NFT to retrieve",
@@ -62,7 +62,7 @@ export async function erc721Get(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
       const { tokenId } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

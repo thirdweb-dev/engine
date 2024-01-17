@@ -5,7 +5,8 @@ import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import {
-  requestParamSchema,
+  contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
@@ -30,9 +31,10 @@ BodySchema.examples = [
 
 export const createAccount = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof prebuiltDeployResponseSchema>;
     Body: Static<typeof BodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/account-factory/create-account",
@@ -41,16 +43,18 @@ export const createAccount = async (fastify: FastifyInstance) => {
       description: "Create a smart account for this account factory.",
       tags: ["Account Factory"],
       operationId: "createAccount",
-      params: requestParamSchema,
+      params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: prebuiltDeployResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { adminAddress, extraData } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"

@@ -4,7 +4,8 @@ import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  requestParamSchema,
+  contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -25,8 +26,9 @@ BodySchema.examples = [
 
 export const revokeAdmin = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestParamSchema>;
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
@@ -37,15 +39,17 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       tags: ["Account"],
       operationId: "revokeAdmin",
       headers: walletAuthSchema,
-      params: requestParamSchema,
+      params: contractParamSchema,
       body: BodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, simulateTx } = request.params;
+      const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { walletAddress } = request.body;
       const backendWalletAddress = request.headers[
         "x-backend-wallet-address"

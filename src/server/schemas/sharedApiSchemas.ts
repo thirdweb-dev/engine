@@ -15,7 +15,7 @@ export const baseReplyErrorSchema = Type.Object({
 /**
  * Basic schema for Request Parameters
  */
-export const requestParamSchema = Type.Object({
+export const contractParamSchema = Type.Object({
   chain: Type.String({
     examples: ["mumbai"],
     description: "Chain ID or name",
@@ -24,12 +24,13 @@ export const requestParamSchema = Type.Object({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
     description: "Contract address on the chain",
   }),
-  simulateTx: Type.Optional(
-    Type.Boolean({
-      description: "Simulate the transaction",
-      default: false,
-    }),
-  ),
+});
+
+export const requestQuerystringSchema = Type.Object({
+  simulateTx: Type.Boolean({
+    description: "Simulate the transaction on-chain without executing",
+    default: false,
+  }),
 });
 
 export const prebuiltDeployParamSchema = Type.Object({
@@ -125,12 +126,12 @@ export const standardResponseSchema = {
  * Basic Fastify Partial schema for request/response
  */
 export const partialRouteSchema: FastifySchema = {
-  params: requestParamSchema,
+  params: contractParamSchema,
   response: standardResponseSchema,
 };
 
 export interface contractSchemaTypes extends RouteGenericInterface {
-  Params: Static<typeof requestParamSchema>;
+  Params: Static<typeof contractParamSchema>;
   Reply: Static<typeof replyBodySchema>;
 }
 
