@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 import { ReplySchema } from "./get";
 
@@ -34,6 +35,7 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
       operationId: "removeUrlToCorsConfiguration",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

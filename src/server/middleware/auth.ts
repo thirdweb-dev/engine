@@ -167,7 +167,7 @@ export const withAuth = async (server: FastifyInstance) => {
   server.decorateRequest("user", null);
 
   // Add auth validation middleware to check for authenticated requests
-  server.addHook("preHandler", async (req, res) => {
+  server.addHook("onRequest", async (req, res) => {
     if (
       req.url === "/favicon.ico" ||
       req.url === "/" ||
