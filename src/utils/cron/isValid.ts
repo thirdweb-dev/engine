@@ -24,7 +24,7 @@ export const isValidCron = (input: string): boolean => {
     );
   }
 
-  const seconds = fields[0];
+  const [seconds, minutes, hours, dayOfMonth, month, dayOfWeek] = fields;
 
   let parsedSecondsValue: number | null = null;
   if (seconds.startsWith("*/")) {
@@ -49,5 +49,30 @@ export const isValidCron = (input: string): boolean => {
     );
   }
 
+  // Check other fields
+  checkCronFieldInterval(minutes, 0, 59, "Minutes");
+  checkCronFieldInterval(hours, 0, 23, "Hours");
+  checkCronFieldInterval(dayOfMonth, 1, 31, "Day of month");
+  checkCronFieldInterval(month, 1, 12, "Month");
+  checkCronFieldInterval(dayOfWeek, 0, 7, "Day of week");
+
   return true;
+};
+
+const checkCronFieldInterval = (
+  field: string,
+  minValue: number,
+  maxValue: number,
+  fieldName: string,
+) => {
+  if (field.startsWith("*/")) {
+    const parsedValue = parseInt(field.split("/")[1]);
+    if (parsedValue < minValue || parsedValue > maxValue) {
+      throw createCustomError(
+        `Invalid cron expression. ${fieldName} must be between ${minValue} and ${maxValue} when using an interval.`,
+        StatusCodes.BAD_REQUEST,
+        "BAD_REQUEST",
+      );
+    }
+  }
 };
