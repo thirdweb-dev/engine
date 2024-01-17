@@ -8,7 +8,7 @@ import { JsonSchema, env } from "../env";
 import { getConfig } from "./getConfig";
 import { getWallet } from "./getWallet";
 
-const sdkCache = new Map<string, ThirdwebSDK>();
+export const sdkCache = new Map<string, ThirdwebSDK>();
 
 export const networkResponseSchema = Type.Object({
   name: Type.String({

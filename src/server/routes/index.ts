@@ -46,6 +46,7 @@ import { extractFunctions } from "./contract/metadata/functions";
 import { createBackendWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
+import { getBackendWalletNonce } from "./backend-wallet/getNonce";
 import { importBackendWallet } from "./backend-wallet/import";
 import { sendTransaction } from "./backend-wallet/sendTransaction";
 import { transfer } from "./backend-wallet/transfer";
@@ -54,6 +55,8 @@ import { updateBackendWallet } from "./backend-wallet/update";
 // Configuration
 import { getBackendWalletBalanceConfiguration } from "./configuration/backend-wallet-balance/get";
 import { updateBackendWalletBalanceConfiguration } from "./configuration/backend-wallet-balance/update";
+import { getCacheConfiguration } from "./configuration/cache/get";
+import { updateCacheConfiguration } from "./configuration/cache/update";
 import { getChainsConfiguration } from "./configuration/chains/get";
 import { updateChainsConfiguration } from "./configuration/chains/update";
 import { addUrlToCorsConfiguration } from "./configuration/cors/add";
@@ -123,6 +126,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(signMessage);
   await fastify.register(getAllTransactions);
   await fastify.register(resetBackendWalletNonces);
+  await fastify.register(getBackendWalletNonce);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);
@@ -138,6 +142,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getCorsConfiguration);
   await fastify.register(addUrlToCorsConfiguration);
   await fastify.register(removeUrlToCorsConfiguration);
+  await fastify.register(getCacheConfiguration);
+  await fastify.register(updateCacheConfiguration);
 
   // Webhooks
   await fastify.register(getAllWebhooksData);

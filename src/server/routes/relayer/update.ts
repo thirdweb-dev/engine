@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const BodySchema = Type.Object({
@@ -33,6 +34,7 @@ export async function updateRelayer(fastify: FastifyInstance) {
       operationId: "update",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

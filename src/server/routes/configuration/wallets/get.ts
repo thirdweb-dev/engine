@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../../schema/wallet";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const ReplySchema = Type.Object({
   result: Type.Union([
@@ -38,6 +39,7 @@ export async function getWalletsConfiguration(fastify: FastifyInstance) {
       tags: ["Configuration"],
       operationId: "getWalletsConfiguration",
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

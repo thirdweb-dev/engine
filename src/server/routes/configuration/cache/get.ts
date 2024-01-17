@@ -5,20 +5,22 @@ import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const ReplySchema = Type.Object({
-  result: Type.Union([Type.String(), Type.Null()]),
+  result: Type.Object({
+    clearCacheCronSchedule: Type.String(),
+  }),
 });
 
-export async function getChainsConfiguration(fastify: FastifyInstance) {
+export async function getCacheConfiguration(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
-    url: "/configuration/chains",
+    url: "/configuration/cache",
     schema: {
-      summary: "Get chain overrides configuration",
-      description: "Get the engine configuration for chain overrides",
+      summary: "Get cache configuration",
+      description: "Get the engine configuration for cache",
       tags: ["Configuration"],
-      operationId: "getChainsConfiguration",
+      operationId: "getCacheConfiguration",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
@@ -27,7 +29,9 @@ export async function getChainsConfiguration(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const config = await getConfig();
       res.status(200).send({
-        result: config.chainOverrides,
+        result: {
+          clearCacheCronSchedule: config.clearCacheCronSchedule,
+        },
       });
     },
   });

@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const ReplySchema = Type.Object({
   result: Type.Object({
@@ -21,6 +22,7 @@ export async function getAuthConfiguration(fastify: FastifyInstance) {
       tags: ["Configuration"],
       operationId: "getAuthConfiguration",
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },
