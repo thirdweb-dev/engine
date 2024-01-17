@@ -9,7 +9,7 @@
 6. Select the Target cluster you want the above image to be deployed to
 7. Choose your `Compute` settings
 8. Update the `port` under `Networking` Tab to `3005`
-9. Under `Environment Vriables` add the below vars with values:
+9. Under `Environment Variables` add the below vars with values:
 
 ```
 POSTGRES_CONNECTION_URL

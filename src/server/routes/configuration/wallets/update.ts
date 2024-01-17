@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { WalletType } from "../../../../schema/wallet";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Union([
@@ -61,6 +62,7 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
       operationId: "updateWalletsConfiguration",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

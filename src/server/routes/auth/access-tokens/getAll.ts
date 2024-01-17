@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAccessTokens } from "../../../../db/tokens/getAccessTokens";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const AccessTokenSchema = Type.Object({
   id: Type.String(),
@@ -28,6 +29,7 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
       tags: ["Access Tokens"],
       operationId: "getAll",
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

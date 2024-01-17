@@ -188,6 +188,7 @@ export const getConfiguration = async (): Promise<Config> => {
         accessControlAllowOrigin: !!process.env.ACCESS_CONTROL_ALLOW_ORIGIN
           ? process.env.ACCESS_CONTROL_ALLOW_ORIGIN
           : mandatoryAllowedCorsUrls.join(","),
+        clearCacheCronSchedule: "*/30 * * * * *",
       },
       update: {},
     });

@@ -5,7 +5,8 @@ export const withRequestLogs = async (server: FastifyInstance) => {
   server.addHook("onRequest", async (request, reply) => {
     if (
       !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json")
+      !request.routerPath?.includes("json") &&
+      request.method !== "OPTIONS"
     ) {
       logger({
         service: "server",
@@ -29,13 +30,14 @@ export const withRequestLogs = async (server: FastifyInstance) => {
     if (
       !request.routerPath?.includes("static") &&
       !request.routerPath?.includes("json") &&
-      !request.routerPath?.includes("/backend-wallet/import")
+      !request.routerPath?.includes("/backend-wallet/import") &&
+      request.method !== "OPTIONS"
     ) {
       if (request.body && Object.keys(request.body).length > 0) {
         logger({
           service: "server",
           level: "info",
-          message: `Request body`,
+          message: `Request body - ${request.method} - ${request.routerPath}`,
           data: request.body,
         });
       }
@@ -44,7 +46,7 @@ export const withRequestLogs = async (server: FastifyInstance) => {
         logger({
           service: "server",
           level: "info",
-          message: `Request params`,
+          message: `Request params - ${request.method}`,
           data: request.params,
         });
       }
@@ -53,7 +55,7 @@ export const withRequestLogs = async (server: FastifyInstance) => {
         logger({
           service: "server",
           level: "info",
-          message: `Request querystring`,
+          message: `Request querystring - ${request.method} - ${request.routerPath}`,
           data: request.query,
         });
       }
@@ -63,7 +65,8 @@ export const withRequestLogs = async (server: FastifyInstance) => {
   server.addHook("onResponse", (request, reply, done) => {
     if (
       !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json")
+      !request.routerPath?.includes("json") &&
+      request.method !== "OPTIONS"
     ) {
       logger({
         service: "server",

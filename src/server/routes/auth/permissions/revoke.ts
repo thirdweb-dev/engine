@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { deletePermissions } from "../../../../db/permissions/deletePermissions";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
   walletAddress: Type.String(),
@@ -27,6 +28,7 @@ export async function revokePermissions(fastify: FastifyInstance) {
       operationId: "revoke",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },
