@@ -9,6 +9,7 @@ import {
 } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -31,6 +32,7 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/erc721/claim-conditions/update",
@@ -43,6 +45,7 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -50,6 +53,7 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { claimConditionInput, index } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -84,7 +88,12 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
         index,
         sanitizedClaimConditionInput,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "erc721" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc721",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

@@ -1,4 +1,8 @@
-import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
+import type {
+  DeployTransaction,
+  Transaction,
+  TransactionError,
+} from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
@@ -13,6 +17,7 @@ interface QueueTxParams {
   // TODO: These shouldn't be in here
   deployedContractAddress?: string;
   deployedContractType?: string;
+  simulateTx?: boolean;
 }
 
 // TODO: Simulation should be done before this function
@@ -23,6 +28,7 @@ export const queueTx = async ({
   extension,
   deployedContractAddress,
   deployedContractType,
+  simulateTx = false,
 }: QueueTxParams) => {
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
   const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
@@ -54,6 +60,17 @@ export const queueTx = async ({
 
     return queueId;
   } else {
+    try {
+      if (!deployedContractAddress && simulateTx) {
+        await tx.simulate();
+      }
+    } catch (err: any) {
+      const errorMessage =
+        (err as TransactionError)?.reason || (err as any).message || err;
+      throw new Error(
+        `Transaction simulation failed with reason: ${errorMessage}`,
+      );
+    }
     const fromAddress = await tx.getSignerAddress();
     const toAddress = tx.getTarget();
 

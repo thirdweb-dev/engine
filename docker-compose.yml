@@ -7,6 +7,14 @@ services:
       - db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 2G
+        reservations:
+          cpus: "2"
+          memory: 2G
 
   pgadmin:
     container_name: pgadmin4_container

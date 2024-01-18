@@ -5,6 +5,7 @@ import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import {
   marketplaceV3ContractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
@@ -30,6 +31,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/marketplace/:chain/:contractAddress/english-auctions/buyout-auction",
@@ -40,6 +42,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
       operationId: "buyoutAuction",
       params: requestSchema,
       body: requestBodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -47,6 +50,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -67,6 +71,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({

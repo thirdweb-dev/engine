@@ -9,6 +9,7 @@ import {
 } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -32,6 +33,7 @@ export async function erc1155SetClaimCondition(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/erc1155/claim-conditions/set",
@@ -44,6 +46,7 @@ export async function erc1155SetClaimCondition(fastify: FastifyInstance) {
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -51,6 +54,7 @@ export async function erc1155SetClaimCondition(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { tokenId, claimConditionInputs, resetClaimEligibilityForAll } =
         request.body;
       const walletAddress = request.headers[
@@ -85,7 +89,12 @@ export async function erc1155SetClaimCondition(fastify: FastifyInstance) {
         sanitizedClaimConditionInputs,
         resetClaimEligibilityForAll,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc1155",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
