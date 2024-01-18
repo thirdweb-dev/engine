@@ -27,10 +27,12 @@ export const contractParamSchema = Type.Object({
 });
 
 export const requestQuerystringSchema = Type.Object({
-  simulateTx: Type.Boolean({
-    description: "Simulate the transaction on-chain without executing",
-    default: false,
-  }),
+  simulateTx: Type.Optional(
+    Type.Boolean({
+      description: "Simulate the transaction on-chain without executing",
+      default: false,
+    }),
+  ),
 });
 
 export const prebuiltDeployParamSchema = Type.Object({
