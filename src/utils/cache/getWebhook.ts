@@ -12,10 +12,8 @@ export const getWebhook = async (
 ): Promise<SanitizedWebHooksSchema[]> => {
   const cacheKey = eventType;
 
-  if (retrieveFromCache) {
-    if (webhookCache.has(cacheKey) && webhookCache.get(cacheKey)) {
-      return webhookCache.get(cacheKey) as SanitizedWebHooksSchema[];
-    }
+  if (retrieveFromCache && webhookCache.has(cacheKey)) {
+    return webhookCache.get(cacheKey) as SanitizedWebHooksSchema[];
   }
 
   const webhookConfig = await getAllWebhooks();
