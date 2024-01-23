@@ -301,7 +301,7 @@ export const withAuth = async (server: FastifyInstance) => {
       }
 
       const authWebhooks = await getWebhook(WebhooksEventTypes.AUTH);
-      if (authWebhooks && authWebhooks.length > 0) {
+      if (authWebhooks.length > 0) {
         const authResponses = await Promise.all(
           authWebhooks.map((webhook) =>
             sendWebhookRequest(webhook, {
