@@ -10,6 +10,7 @@ jest.mock("../utils/cache/getConfig");
 jest.mock("@thirdweb-dev/chains");
 
 const mockGetConfig = getConfig as jest.MockedFunction<typeof getConfig>;
+
 const mockGetChainByChainIdAsync =
   getChainByChainIdAsync as jest.MockedFunction<typeof getChainByChainIdAsync>;
 const mockGetChainBySlugAsync = getChainBySlugAsync as jest.MockedFunction<
@@ -20,6 +21,60 @@ describe("getChainIdFromChain", () => {
   beforeEach(() => {
     // Clear all mock calls before each test
     jest.clearAllMocks();
+  });
+
+  it("should return the chainId from chainOverrides if it exists by slug", async () => {
+    // @ts-ignore
+    mockGetConfig.mockResolvedValueOnce({
+      chainOverrides: JSON.stringify([
+        {
+          slug: "Polygon",
+          chainId: 137,
+        },
+      ]),
+    });
+
+    const result = await getChainIdFromChain("Polygon");
+
+    expect(result).toBe(137);
+    expect(getChainByChainIdAsync).not.toHaveBeenCalled();
+    expect(getChainBySlugAsync).not.toHaveBeenCalled();
+  });
+
+  it("should return the chainId from chainOverrides if it exists by slug, case-insensitive", async () => {
+    // @ts-ignore
+    mockGetConfig.mockResolvedValueOnce({
+      chainOverrides: JSON.stringify([
+        {
+          slug: "Polygon",
+          chainId: 137,
+        },
+      ]),
+    });
+
+    const result = await getChainIdFromChain("polygon");
+
+    expect(result).toBe(137);
+    expect(getChainByChainIdAsync).not.toHaveBeenCalled();
+    expect(getChainBySlugAsync).not.toHaveBeenCalled();
+  });
+
+  it("should return the chainId from chainOverrides if it exists by ID", async () => {
+    // @ts-ignore
+    mockGetConfig.mockResolvedValueOnce({
+      chainOverrides: JSON.stringify([
+        {
+          slug: "Polygon",
+          chainId: 137,
+        },
+      ]),
+    });
+
+    const result = await getChainIdFromChain("137");
+
+    expect(result).toBe(137);
+    expect(getChainByChainIdAsync).not.toHaveBeenCalled();
+    expect(getChainBySlugAsync).not.toHaveBeenCalled();
   });
 
   it("should return the chainId from chainOverrides if it exists", async () => {
@@ -45,14 +100,14 @@ describe("getChainIdFromChain", () => {
     mockGetConfig.mockResolvedValueOnce({});
     // @ts-ignore
     mockGetChainByChainIdAsync.mockResolvedValueOnce({
-      name: "Mumbai",
-      chainId: 80001,
+      name: "Polygon",
+      chainId: 137,
     });
 
-    const result = await getChainIdFromChain("80001");
+    const result = await getChainIdFromChain("137");
 
-    expect(result).toBe(80001);
-    expect(getChainByChainIdAsync).toHaveBeenCalledWith(80001);
+    expect(result).toBe(137);
+    expect(getChainByChainIdAsync).toHaveBeenCalledWith(137);
     expect(getChainBySlugAsync).not.toHaveBeenCalled();
   });
 
@@ -61,13 +116,14 @@ describe("getChainIdFromChain", () => {
     mockGetConfig.mockResolvedValueOnce({});
     // @ts-ignore
     mockGetChainBySlugAsync.mockResolvedValueOnce({
+      name: "Polygon",
       chainId: 137,
     });
 
     const result = await getChainIdFromChain("Polygon");
 
     expect(result).toBe(137);
-    expect(getChainBySlugAsync).toHaveBeenCalledWith("Polygon");
+    expect(getChainBySlugAsync).toHaveBeenCalledWith("polygon");
     expect(getChainByChainIdAsync).not.toHaveBeenCalled();
   });
 
