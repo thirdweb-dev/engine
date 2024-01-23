@@ -143,7 +143,14 @@ export const fastifyCors = async (
 ) => {
   const config = await getConfig();
 
-  const originArray = config.accessControlAllowOrigin.split(",") as string[];
+  const corsListConfig = config.accessControlAllowOrigin.split(",");
+  /**
+   * @deprecated
+   * Future versions will remove this env var.
+   */
+  const corsListEnv = process.env.ACCESS_CONTROL_ALLOW_ORIGIN?.split(",") ?? [];
+  const originArray = [...corsListConfig, ...corsListEnv];
+
   opts.origin = originArray.map(sanitizeOrigin);
 
   let hideOptionsRoute = true;
