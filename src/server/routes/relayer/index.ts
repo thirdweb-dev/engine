@@ -6,6 +6,7 @@ import {
   ERC20PermitAbi,
   ERC2771ContextAbi,
   ForwarderAbi,
+  ForwarderAbiEIP712ChainlessDomain,
   NativeMetaTransaction,
 } from "../../../constants/relayer";
 import { getRelayerById } from "../../../db/relayer/getRelayerById";
@@ -30,6 +31,7 @@ const BodySchema = Type.Union([
       gas: Type.String(),
       nonce: Type.String(),
       data: Type.String(),
+      chainid: Type.Optional(Type.String()),
     }),
     signature: Type.String(),
     forwarderAddress: Type.String(),
@@ -252,9 +254,14 @@ export async function relayTransaction(fastify: FastifyInstance) {
         return;
       }
 
+      const isForwarderEIP712ChainlessDomain = !!request.chainid;
+      const forwarderAbi = isForwarderEIP712ChainlessDomain
+        ? ForwarderAbiEIP712ChainlessDomain
+        : ForwarderAbi;
+
       const forwarder = await sdk.getContractFromAbi(
         forwarderAddress,
-        ForwarderAbi,
+        forwarderAbi,
       );
 
       const valid = await forwarder.call("verify", [
