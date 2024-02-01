@@ -15,7 +15,7 @@ import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
 import { WalletBalanceWebhookSchema } from "../../schema/webhooks";
 import {
-  TransactionStatusEnum,
+  TransactionStatus,
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import {
@@ -34,13 +34,13 @@ type SentTxStatus =
   | {
       transactionHash: string;
       sentAt: Date;
-      status: TransactionStatusEnum.Submitted;
+      status: TransactionStatus.Sent;
       queueId: string;
       res: ethers.providers.TransactionResponse | null;
       sentAtBlockNumber: number;
     }
   | {
-      status: TransactionStatusEnum.Errored;
+      status: TransactionStatus.Errored;
       queueId: string;
       errorMessage: string;
     };
@@ -71,11 +71,13 @@ export const processTx = async () => {
         if (txs.length < config.minTxsToProcess) {
           return;
         }
+
+        // TODO: This should be sent when the transaction is queued, not when it's picked up...
         // Send Queued Webhook
         await sendWebhooks(
           txs.map((tx) => ({
             queueId: tx.queueId!,
-            status: TransactionStatusEnum.Queued,
+            status: TransactionStatus.Queued,
           })),
         );
 
@@ -98,14 +100,6 @@ export const processTx = async () => {
             level: "info",
             queueId: tx.queueId,
             message: `Processing`,
-          });
-
-          await updateTx({
-            pgtx,
-            queueId: tx.queueId!,
-            data: {
-              status: TransactionStatusEnum.Processed,
-            },
           });
 
           if (tx.accountAddress && tx.signerAddress) {
@@ -159,12 +153,17 @@ export const processTx = async () => {
             });
 
             // For each wallet address, check the nonce in database and the mempool
-            const [walletBalance, mempoolNonceData, gasOverrides] =
-              await Promise.all([
-                sdk.wallet.balance(),
-                sdk.wallet.getNonce("pending"),
-                getDefaultGasOverrides(provider),
-              ]);
+            const [
+              walletBalance,
+              mempoolNonceData,
+              blockchainNonceData,
+              gasOverrides,
+            ] = await Promise.all([
+              sdk.wallet.balance(),
+              sdk.wallet.getNonce("pending"),
+              sdk.wallet.getNonce("latest"),
+              getDefaultGasOverrides(provider),
+            ]);
 
             // Wallet balance webhook
             if (
@@ -201,11 +200,19 @@ export const processTx = async () => {
               });
             }
 
-            // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
+            // Always resync database nonce with mempool nonce
             let startNonce: BigNumber;
             const mempoolNonce = BigNumber.from(mempoolNonceData);
+            const blockchainNonce = BigNumber.from(blockchainNonceData);
+            const mempoolCount = mempoolNonce.sub(blockchainNonce);
+
+            // TODO: Set maximum transactions in mempool configuration
+            if (mempoolCount.gt(20)) {
+              return;
+            }
+
             const dbNonce = BigNumber.from(dbNonceData?.nonce || 0);
-            if (mempoolNonce.gt(dbNonce)) {
+            if (!mempoolNonce.eq(dbNonce)) {
               await updateWalletNonce({
                 pgtx,
                 chainId,
@@ -312,7 +319,14 @@ export const processTx = async () => {
                   data: rpcResponse,
                 });
 
-                if (!rpcResponse.error && !!rpcResponse.result) {
+                if (
+                  (!rpcResponse.error && !!rpcResponse.result) ||
+                  // already known RPC error indicates that the exact transaction (same hash) is already in mempool
+                  (typeof rpcResponse.error?.message === "string" &&
+                    (rpcResponse.error.message as string)
+                      .toLowerCase()
+                      .includes("already known"))
+                ) {
                   // Success (continue to next transaction)
                   nonceIncrement++;
                   txIndex++;
@@ -325,7 +339,7 @@ export const processTx = async () => {
                   });
                   sendWebhookForQueueIds.push({
                     queueId: tx.queueId!,
-                    status: TransactionStatusEnum.Submitted,
+                    status: TransactionStatus.Sent,
                   });
                 } else if (
                   typeof rpcResponse.error?.message === "string" &&
@@ -347,7 +361,7 @@ export const processTx = async () => {
                   });
                   sendWebhookForQueueIds.push({
                     queueId: tx.queueId!,
-                    status: TransactionStatusEnum.Errored,
+                    status: TransactionStatus.Errored,
                   });
                 }
               } catch (err: any) {
@@ -355,7 +369,7 @@ export const processTx = async () => {
                 txIndex++;
                 sendWebhookForQueueIds.push({
                   queueId: tx.queueId!,
-                  status: TransactionStatusEnum.Errored,
+                  status: TransactionStatus.Errored,
                 });
 
                 logger({
@@ -370,7 +384,7 @@ export const processTx = async () => {
                   pgtx,
                   queueId: tx.queueId!,
                   data: {
-                    status: TransactionStatusEnum.Errored,
+                    status: TransactionStatus.Errored,
                     errorMessage:
                       err?.message ||
                       err?.toString() ||
@@ -406,7 +420,7 @@ export const processTx = async () => {
                   return {
                     sentAt,
                     transactionHash: txHash,
-                    status: TransactionStatusEnum.Submitted,
+                    status: TransactionStatus.Sent,
                     queueId: queueId,
                     res: txRes,
                     sentAtBlockNumber: await provider.getBlockNumber(),
@@ -421,7 +435,7 @@ export const processTx = async () => {
                   });
 
                   return {
-                    status: TransactionStatusEnum.Errored,
+                    status: TransactionStatus.Errored,
                     queueId: queueId,
                     errorMessage:
                       res.error?.message ||
@@ -436,25 +450,25 @@ export const processTx = async () => {
             await Promise.all(
               txStatuses.map(async (tx) => {
                 switch (tx.status) {
-                  case TransactionStatusEnum.Submitted:
+                  case TransactionStatus.Sent:
                     await updateTx({
                       pgtx,
                       queueId: tx.queueId,
                       data: {
                         sentAt: tx.sentAt,
-                        status: TransactionStatusEnum.Submitted,
+                        status: TransactionStatus.Sent,
                         transactionHash: tx.transactionHash,
                         res: tx.res,
                         sentAtBlockNumber: await provider.getBlockNumber(),
                       },
                     });
                     break;
-                  case TransactionStatusEnum.Errored:
+                  case TransactionStatus.Errored:
                     await updateTx({
                       pgtx,
                       queueId: tx.queueId,
                       data: {
-                        status: TransactionStatusEnum.Errored,
+                        status: TransactionStatus.Errored,
                         errorMessage: tx.errorMessage,
                       },
                     });
@@ -476,14 +490,14 @@ export const processTx = async () => {
                 // Add to Webhook Queue to send updates
                 sendWebhookForQueueIds.push({
                   queueId: tx.queueId!,
-                  status: TransactionStatusEnum.Errored,
+                  status: TransactionStatus.Errored,
                 });
 
                 await updateTx({
                   pgtx,
                   queueId: tx.queueId!,
                   data: {
-                    status: TransactionStatusEnum.Errored,
+                    status: TransactionStatus.Errored,
                     errorMessage: `[Worker] [Error] Failed to process batch of transactions for wallet - ${
                       err || err?.message
                     }`,
@@ -525,13 +539,13 @@ export const processTx = async () => {
               queueId: tx.queueId!,
               data: {
                 sentAt: new Date(),
-                status: TransactionStatusEnum.UserOpSent,
+                status: TransactionStatus.UserOpSent,
                 userOpHash,
               },
             });
             sendWebhookForQueueIds.push({
               queueId: tx.queueId!,
-              status: TransactionStatusEnum.UserOpSent,
+              status: TransactionStatus.UserOpSent,
             });
           } catch (err: any) {
             logger({
@@ -546,7 +560,7 @@ export const processTx = async () => {
               pgtx,
               queueId: tx.queueId!,
               data: {
-                status: TransactionStatusEnum.Errored,
+                status: TransactionStatus.Errored,
                 errorMessage:
                   err?.message ||
                   err?.toString() ||
@@ -555,7 +569,7 @@ export const processTx = async () => {
             });
             sendWebhookForQueueIds.push({
               queueId: tx.queueId!,
-              status: TransactionStatusEnum.Errored,
+              status: TransactionStatus.Errored,
             });
           }
         });

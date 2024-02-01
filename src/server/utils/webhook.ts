@@ -7,7 +7,7 @@ import {
 } from "../../schema/webhooks";
 import { getWebhook } from "../../utils/cache/getWebhook";
 import { logger } from "../../utils/logger";
-import { TransactionStatusEnum } from "../schemas/transaction";
+import { TransactionStatus } from "../schemas/transaction";
 
 let balanceNotificationLastSentAt = -1;
 
@@ -84,7 +84,7 @@ export const sendWebhookRequest = async (
 
 export interface WebhookData {
   queueId: string;
-  status: TransactionStatusEnum;
+  status: TransactionStatus;
 }
 
 export const sendWebhooks = async (webhooks: WebhookData[]) => {
@@ -106,17 +106,17 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
 
   for (const webhook of webhooksWithTxs) {
     const webhookStatus =
-      webhook.status === TransactionStatusEnum.Queued
+      webhook.status === TransactionStatus.Queued
         ? WebhooksEventTypes.QUEUED_TX
-        : webhook.status === TransactionStatusEnum.Submitted
+        : webhook.status === TransactionStatus.Sent
         ? WebhooksEventTypes.SENT_TX
-        : webhook.status === TransactionStatusEnum.Retried
+        : webhook.status === TransactionStatus.Retried
         ? WebhooksEventTypes.RETRIED_TX
-        : webhook.status === TransactionStatusEnum.Mined
+        : webhook.status === TransactionStatus.Mined
         ? WebhooksEventTypes.MINED_TX
-        : webhook.status === TransactionStatusEnum.Errored
+        : webhook.status === TransactionStatus.Errored
         ? WebhooksEventTypes.ERRORED_TX
-        : webhook.status === TransactionStatusEnum.Cancelled
+        : webhook.status === TransactionStatus.Cancelled
         ? WebhooksEventTypes.CANCELLED_TX
         : undefined;
 

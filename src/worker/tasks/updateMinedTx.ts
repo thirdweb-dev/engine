@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import { prisma } from "../../db/client";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { WebhookData, sendWebhooks } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
@@ -85,7 +85,7 @@ export const updateMinedTx = async () => {
               pgtx,
               queueId: txWithReceipt.tx.id,
               data: {
-                status: TransactionStatusEnum.Mined,
+                status: TransactionStatus.Mined,
                 minedAt: txWithReceipt.minedAt,
                 blockNumber: txWithReceipt.receipt.blockNumber,
                 onChainTxStatus: txWithReceipt.receipt.status,
@@ -109,7 +109,7 @@ export const updateMinedTx = async () => {
 
             sendWebhookForQueueIds.push({
               queueId: txWithReceipt.tx.id,
-              status: TransactionStatusEnum.Mined,
+              status: TransactionStatus.Mined,
             });
           }),
         );
@@ -121,7 +121,7 @@ export const updateMinedTx = async () => {
               pgtx,
               queueId: tx.id,
               data: {
-                status: TransactionStatusEnum.Errored,
+                status: TransactionStatus.Errored,
                 errorMessage: "Transaction timed out.",
               },
             });
@@ -135,7 +135,7 @@ export const updateMinedTx = async () => {
 
             sendWebhookForQueueIds.push({
               queueId: tx.id,
-              status: TransactionStatusEnum.Errored,
+              status: TransactionStatus.Errored,
             });
           }),
         );
