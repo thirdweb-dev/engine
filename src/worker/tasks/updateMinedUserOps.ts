@@ -3,7 +3,7 @@ import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src
 import { prisma } from "../../db/client";
 import { getSentUserOps } from "../../db/transactions/getSentUserOps";
 import { updateTx } from "../../db/transactions/updateTx";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { WebhookData, sendWebhooks } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
@@ -78,7 +78,7 @@ export const updateMinedUserOps = async () => {
               pgtx,
               queueId: userOp!.id,
               data: {
-                status: TransactionStatusEnum.Mined,
+                status: TransactionStatus.Mined,
                 minedAt: userOp!.minedAt,
                 blockNumber: userOp!.blockNumber,
                 onChainTxStatus: userOp!.onChainTxStatus,
@@ -99,7 +99,7 @@ export const updateMinedUserOps = async () => {
             });
             sendWebhookForQueueIds.push({
               queueId: userOp!.id,
-              status: TransactionStatusEnum.Mined,
+              status: TransactionStatus.Mined,
             });
           }),
         );

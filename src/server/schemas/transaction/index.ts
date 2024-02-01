@@ -190,11 +190,9 @@ export const transactionResponseSchema = Type.Object({
   onChainTxStatus: Type.Union([Type.Number(), Type.Null()]),
 });
 
-export enum TransactionStatusEnum {
-  Processed = "processed",
+export enum TransactionStatus {
   Queued = "queued",
-  // TODO: Switch to sent
-  Submitted = "sent",
+  Sent = "sent",
   UserOpSent = "user-op-sent",
   Errored = "errored",
   Mined = "mined",

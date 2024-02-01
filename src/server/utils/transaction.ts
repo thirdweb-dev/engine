@@ -6,7 +6,7 @@ import { getTxById } from "../../db/transactions/getTxById";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getSdk } from "../../utils/cache/getSdk";
 import { createCustomError } from "../middleware/error";
-import { TransactionStatusEnum } from "../schemas/transaction";
+import { TransactionStatus } from "../schemas/transaction";
 
 interface CancelTransactionAndUpdateParams {
   queueId: string;
@@ -28,36 +28,35 @@ export const cancelTransactionAndUpdate = async ({
 
   if (txData.signerAddress && txData.accountAddress) {
     switch (txData.status) {
-      case TransactionStatusEnum.Errored:
+      case TransactionStatus.Errored:
         throw createCustomError(
           `Cannot cancel user operation because it already errored`,
           StatusCodes.BAD_REQUEST,
           "TransactionErrored",
         );
-      case TransactionStatusEnum.Cancelled:
+      case TransactionStatus.Cancelled:
         throw createCustomError(
           `User operation was already cancelled`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyCancelled",
         );
-      case TransactionStatusEnum.Mined:
+      case TransactionStatus.Mined:
         throw createCustomError(
           `Cannot cancel user operation because it was already mined`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyMined",
         );
-      case TransactionStatusEnum.Submitted:
-      case TransactionStatusEnum.Processed:
+      case TransactionStatus.Sent:
         throw createCustomError(
           `Cannot cancel user operation because it was already processed.`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadySubmitted",
         );
-      case TransactionStatusEnum.Queued:
+      case TransactionStatus.Queued:
         await updateTx({
           queueId,
           data: {
-            status: TransactionStatusEnum.Cancelled,
+            status: TransactionStatus.Cancelled,
           },
         });
         message = "Transaction cancelled on-database successfully.";
@@ -65,38 +64,37 @@ export const cancelTransactionAndUpdate = async ({
     }
   } else {
     switch (txData.status) {
-      case TransactionStatusEnum.Errored:
+      case TransactionStatus.Errored:
         error = createCustomError(
           `Cannot cancel errored transaction with queueId ${queueId}. Error: ${txData.errorMessage}`,
           StatusCodes.BAD_REQUEST,
           "TransactionErrored",
         );
         break;
-      case TransactionStatusEnum.Cancelled:
+      case TransactionStatus.Cancelled:
         error = createCustomError(
           `Transaction already cancelled with queueId ${queueId}`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyCancelled",
         );
         break;
-      case TransactionStatusEnum.Queued:
+      case TransactionStatus.Queued:
         await updateTx({
           queueId,
           data: {
-            status: TransactionStatusEnum.Cancelled,
+            status: TransactionStatus.Cancelled,
           },
         });
         message = "Transaction cancelled on-database successfully.";
         break;
-      case TransactionStatusEnum.Mined:
+      case TransactionStatus.Mined:
         error = createCustomError(
           `Transaction already mined with queueId ${queueId}`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyMined",
         );
         break;
-      case TransactionStatusEnum.Processed:
-      case TransactionStatusEnum.Submitted: {
+      case TransactionStatus.Sent: {
         const sdk = await getSdk({
           chainId: parseInt(txData.chainId!),
           walletAddress: txData.fromAddress!,
@@ -126,12 +124,12 @@ export const cancelTransactionAndUpdate = async ({
           ).mul(2),
         });
 
-        message = "Cancellation Transaction sent on chain successfully.";
+        message = "Cancellation transaction sent on chain successfully.";
 
         await updateTx({
           queueId,
           data: {
-            status: TransactionStatusEnum.Cancelled,
+            status: TransactionStatus.Cancelled,
           },
         });
         break;
