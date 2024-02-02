@@ -21,6 +21,7 @@ export async function healthCheck(fastify: FastifyInstance) {
     method: "GET",
     url: "/system/health",
     schema: {
+      hide: true,
       summary: "Check health",
       description: "Check the system health of Engine",
       tags: ["System"],
@@ -40,7 +41,7 @@ export async function healthCheck(fastify: FastifyInstance) {
 
       res.status(StatusCodes.OK).send({
         status: "OK",
-        engineVersion: process.env.ENGINE_VERSION || undefined,
+        engineVersion: process.env.ENGINE_VERSION,
       });
     },
   });

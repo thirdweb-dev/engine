@@ -171,7 +171,7 @@ export const withAuth = async (server: FastifyInstance) => {
     if (
       req.url === "/favicon.ico" ||
       req.url === "/" ||
-      req.url === "/health" ||
+      req.url === "/system/health" ||
       req.url === "/static" ||
       req.url === "/json" ||
       req.url.startsWith("/auth/payload") ||
