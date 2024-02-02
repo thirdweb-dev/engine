@@ -23,6 +23,7 @@ export async function queueStatus(fastify: FastifyInstance) {
     method: "GET",
     url: "/system/queue",
     schema: {
+      hide: true,
       summary: "Check queue status",
       description: "Check the status of the queue",
       tags: ["System"],

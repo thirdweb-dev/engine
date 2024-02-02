@@ -221,6 +221,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(marketplaceV3Routes);
 
   // System
+  // These should be hidden by default
   await fastify.register(home);
   await fastify.register(healthCheck);
   await fastify.register(queueStatus);
