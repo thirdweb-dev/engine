@@ -13,6 +13,7 @@ export async function home(fastify: FastifyInstance) {
     method: "GET",
     url: "/",
     schema: {
+      hide: true,
       summary: "/",
       description: "Instructions to manage your Engine",
       tags: ["System"],
