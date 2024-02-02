@@ -473,6 +473,12 @@ export const processTx = async () => {
                   error: err,
                 });
 
+                // Add to Webhook Queue to send updates
+                sendWebhookForQueueIds.push({
+                  queueId: tx.queueId!,
+                  status: TransactionStatusEnum.Errored,
+                });
+
                 await updateTx({
                   pgtx,
                   queueId: tx.queueId!,

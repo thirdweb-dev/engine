@@ -5,6 +5,7 @@ import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -27,6 +28,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
     Body: Static<typeof BodySchema>;
   }>({
     method: "POST",
@@ -39,6 +41,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       headers: walletAuthSchema,
       params: contractParamSchema,
       body: BodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -46,6 +49,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { walletAddress } = request.body;
       const backendWalletAddress = request.headers[
         "x-backend-wallet-address"
@@ -63,7 +67,12 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       const tx = await contract.account.revokeAdminPermissions.prepare(
         walletAddress,
       );
-      const queueId = await queueTx({ tx, chainId, extension: "account" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "account",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

@@ -8,6 +8,7 @@ import { getContract } from "../../../../../../utils/cache/getContract";
 import { signature1155OutputSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -35,6 +36,7 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/erc1155/signature/mint",
@@ -46,6 +48,7 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -53,6 +56,7 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { payload, signature } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -78,7 +82,12 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
         signature,
       };
       const tx = await contract.erc1155.signature.mint.prepare(signedPayload);
-      const queueId = await queueTx({ tx, chainId, extension: "erc1155" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc1155",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

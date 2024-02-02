@@ -6,6 +6,7 @@ import { getContract } from "../../../../../../utils/cache/getContract";
 import { SessionSchema } from "../../../../../schemas/account";
 import {
   contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -29,6 +30,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof BodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/account/sessions/create",
@@ -40,6 +42,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
       params: contractParamSchema,
       headers: walletAuthSchema,
       body: BodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -47,6 +50,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { signerAddress, ...permissions } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -71,7 +75,12 @@ export const grantSession = async (fastify: FastifyInstance) => {
             permissions.nativeTokenLimitPerTransaction,
         },
       );
-      const queueId = await queueTx({ tx, chainId, extension: "account" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "account",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

@@ -6,6 +6,7 @@ import { getContract } from "../../../../../utils/cache/getContract";
 import { RoyaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
@@ -31,6 +32,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/royalties/set-default-royalty-info",
@@ -42,6 +44,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -49,6 +52,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { seller_fee_basis_points, fee_recipient } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -66,7 +70,12 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
         seller_fee_basis_points,
         fee_recipient,
       });
-      const queueId = await queueTx({ tx, chainId, extension: "none" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "none",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

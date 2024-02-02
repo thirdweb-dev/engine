@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updatePermissions } from "../../../../db/permissions/updatePermissions";
 import { PermissionsSchema } from "../../../schemas/auth";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
   walletAddress: Type.String(),
@@ -30,6 +31,7 @@ export async function grantPermissions(fastify: FastifyInstance) {
       operationId: "grant",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

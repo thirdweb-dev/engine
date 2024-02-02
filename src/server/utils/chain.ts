@@ -1,65 +1,60 @@
 import { Static } from "@sinclair/typebox";
-import { allChains, getChainByChainId } from "@thirdweb-dev/chains";
+import {
+  getChainByChainIdAsync,
+  getChainBySlugAsync,
+} from "@thirdweb-dev/chains";
 import { getConfig } from "../../utils/cache/getConfig";
 import { networkResponseSchema } from "../../utils/cache/getSdk";
+import { logger } from "../../utils/logger";
 
-const ChainNameToChainId = {
-  ...allChains.reduce((acc, chain) => {
-    acc[chain.slug] = chain.chainId;
-    return acc;
-  }, {} as Record<string, number>),
-} as Record<string, number>;
-
-// TODO: We should use a universal name - probably chain in the routes
-export const getChainIdFromChain = async (chain: string): Promise<number> => {
-  let chainId: number | undefined = undefined;
-  let chainData: Static<typeof networkResponseSchema> | undefined = undefined;
-
-  // If we detect a valid chain name, use the corresponding chain id
-  if (chain in ChainNameToChainId) {
-    chainId = ChainNameToChainId[chain as keyof typeof ChainNameToChainId];
-  }
+/**
+ * Given a valid chain name ('Polygon') or ID ('137'), return the numeric chain ID.
+ */
+export const getChainIdFromChain = async (input: string): Promise<number> => {
+  const inputSlug = input.toLowerCase();
+  // inputId may be NaN if a slug is provided ('Polygon').
+  const inputId = parseInt(input);
 
   const config = await getConfig();
 
-  // If we're passed a valid chain id directly, then use it
-  if (!isNaN(parseInt(chain))) {
-    const unknownChainId = parseInt(chain);
+  // Check if the chain ID exists in chainOverrides first.
+  if (config.chainOverrides) {
     try {
-      // If the chain id is for a supported chain, use the chain id
-      if (getChainByChainId(unknownChainId)) {
-        chainId = unknownChainId;
-      }
-    } catch {
-      if (!chainId) {
-        if (config?.chainOverrides) {
-          const parsedChainOverrides = JSON.parse(config.chainOverrides);
-          chainData = parsedChainOverrides.find(
-            (chainData: Static<typeof networkResponseSchema>) =>
-              chainData.chainId === unknownChainId,
-          );
+      const parsedChainOverrides: Static<typeof networkResponseSchema>[] =
+        JSON.parse(config.chainOverrides);
+
+      for (const chainData of parsedChainOverrides) {
+        if (
+          inputSlug === chainData.slug.toLowerCase() ||
+          inputId === chainData.chainId
+        ) {
+          return chainData.chainId;
         }
       }
-      // If the chain id is unsupported, getChainByChainId will throw
+    } catch (e) {
+      logger({
+        service: "server",
+        level: "error",
+        message: `Failed parsing chainOverrides: ${e}`,
+      });
+    }
+  }
+
+  if (!isNaN(inputId)) {
+    // Fetch by chain ID.
+    const chainData = await getChainByChainIdAsync(inputId);
+    if (chainData) {
+      return chainData.chainId;
     }
   } else {
-    if (config?.chainOverrides) {
-      const parsedChainOverrides = JSON.parse(config.chainOverrides);
-      chainData = parsedChainOverrides.find(
-        (chainData: Static<typeof networkResponseSchema>) =>
-          chainData.slug === chain,
-      );
+    // Fetch by chain name.
+    const chainData = await getChainBySlugAsync(inputSlug);
+    if (chainData) {
+      return chainData.chainId;
     }
   }
 
-  if (chainData) {
-    chainId = chainData.chainId;
-  }
-
-  if (!chainId) {
-    // TODO: Custom error messages
-    throw new Error(`Invalid chain ${chain}, please use a different value.`);
-  }
-
-  return chainId;
+  throw new Error(
+    `Invalid chain. Please confirm this is a valid chain: https://thirdweb.com/${input}`,
+  );
 };

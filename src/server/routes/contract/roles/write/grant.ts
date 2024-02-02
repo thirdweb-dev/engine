@@ -5,6 +5,7 @@ import { queueTx } from "../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../utils/cache/getContract";
 import {
   contractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
@@ -30,6 +31,7 @@ export async function grantRole(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/roles/grant",
@@ -41,6 +43,7 @@ export async function grantRole(fastify: FastifyInstance) {
       headers: walletAuthSchema,
       params: requestSchema,
       body: requestBodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -48,6 +51,7 @@ export async function grantRole(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { role, address } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -62,7 +66,12 @@ export async function grantRole(fastify: FastifyInstance) {
       });
 
       const tx = await contract.roles.grant.prepare(role, address);
-      const queueId = await queueTx({ tx, chainId, extension: "roles" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "roles",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

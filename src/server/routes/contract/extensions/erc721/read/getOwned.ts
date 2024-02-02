@@ -73,6 +73,14 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
+      // Check if the wallet has any tokens before querying getOwned
+      const balance = await contract.erc721.balanceOf(walletAddress);
+      if (balance.eq(0)) {
+        reply.status(StatusCodes.OK).send({
+          result: [],
+        });
+        return;
+      }
       const result = await contract.erc721.getOwned(walletAddress);
       reply.status(StatusCodes.OK).send({
         result,

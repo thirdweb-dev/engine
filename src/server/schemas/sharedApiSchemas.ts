@@ -13,7 +13,7 @@ export const baseReplyErrorSchema = Type.Object({
 });
 
 /**
- * Basic schema for Contract Request Parameters
+ * Basic schema for Request Parameters
  */
 export const contractParamSchema = Type.Object({
   chain: Type.String({
@@ -24,6 +24,15 @@ export const contractParamSchema = Type.Object({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
     description: "Contract address on the chain",
   }),
+});
+
+export const requestQuerystringSchema = Type.Object({
+  simulateTx: Type.Optional(
+    Type.Boolean({
+      description: "Simulate the transaction on-chain without executing",
+      default: false,
+    }),
+  ),
 });
 
 export const prebuiltDeployParamSchema = Type.Object({

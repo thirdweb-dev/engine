@@ -1,5 +1,4 @@
-import { WebhooksEventTypes } from "../schema/webhooks";
-import { getWebhook } from "../utils/cache/getWebhook";
+import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { bundlerUserOpListener } from "./listeners/bundleUserOpListener";
 import {
   newConfigurationListener,
@@ -9,7 +8,6 @@ import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
 import { retryTxListener } from "./listeners/retryTxListener";
-import { updateTxListener } from "./listeners/updateTxListener";
 import {
   newWebhooksListener,
   updatedWebhooksListener,
@@ -18,9 +16,6 @@ import {
 const worker = async () => {
   // Listen for queued transactions to process
   await queuedTxListener();
-
-  // Listen for transaction updates to send webhooks
-  await updateTxListener();
 
   // Poll for transactions stuck in mempool to retry
   await retryTxListener();
@@ -42,9 +37,8 @@ const worker = async () => {
   await newWebhooksListener();
   await updatedWebhooksListener();
 
-  for (const eventType of Object.values(WebhooksEventTypes)) {
-    await getWebhook(eventType, false);
-  }
+  // Rest Cache Cron
+  await clearCacheCron("worker");
 };
 
 worker();

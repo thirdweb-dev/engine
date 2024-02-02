@@ -5,6 +5,7 @@ import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   erc20ContractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -48,6 +49,7 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/contract/:chain/:contractAddress/erc20/mint-batch-to",
@@ -59,6 +61,7 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
       params: requestSchema,
       body: requestBodySchema,
       headers: walletAuthSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -66,6 +69,7 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { data } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -80,7 +84,12 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
       });
 
       const tx = await contract.erc20.mintBatchTo.prepare(data);
-      const queueId = await queueTx({ tx, chainId, extension: "erc20" });
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc20",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

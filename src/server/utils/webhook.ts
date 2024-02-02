@@ -122,7 +122,7 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
 
     const webhookConfigs = await Promise.all([
       ...((await getWebhook(WebhooksEventTypes.ALL_TX)) || []),
-      ...(webhookStatus ? (await getWebhook(webhookStatus)) || [] : []),
+      ...(webhookStatus ? await getWebhook(webhookStatus) : []),
     ]);
 
     await Promise.all(
@@ -161,11 +161,11 @@ export const sendBalanceWebhook = async (
       return;
     }
 
-    const webhookConfig = await getWebhook(
+    const webhooks = await getWebhook(
       WebhooksEventTypes.BACKEND_WALLET_BALANCE,
     );
 
-    if (!webhookConfig) {
+    if (webhooks.length === 0) {
       logger({
         service: "server",
         level: "debug",
@@ -175,7 +175,7 @@ export const sendBalanceWebhook = async (
       return;
     }
 
-    webhookConfig.map(async (config) => {
+    webhooks.map(async (config) => {
       if (!config || !config.active) {
         logger({
           service: "server",

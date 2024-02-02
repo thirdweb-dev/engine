@@ -36,7 +36,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
     logger({
       service: "server",
       level: "error",
-      message: `Encountered unhandled server error`,
+      message: `Encountered server error`,
       error,
     });
 

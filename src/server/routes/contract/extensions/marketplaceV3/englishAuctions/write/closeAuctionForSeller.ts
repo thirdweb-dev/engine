@@ -5,6 +5,7 @@ import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import {
   marketplaceV3ContractParamSchema,
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
@@ -32,6 +33,7 @@ export async function englishAuctionsCloseAuctionForSeller(
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/marketplace/:chain/:contractAddress/english-auctions/close-auction-for-seller",
@@ -44,6 +46,7 @@ You must also call closeAuctionForBidder to execute the sale for the buyer, mean
       operationId: "closeAuctionForSeller",
       params: requestSchema,
       body: requestBodySchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -51,6 +54,7 @@ You must also call closeAuctionForBidder to execute the sale for the buyer, mean
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const { simulateTx } = request.query;
       const { listingId } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
@@ -71,6 +75,7 @@ You must also call closeAuctionForBidder to execute the sale for the buyer, mean
       const queueId = await queueTx({
         tx,
         chainId,
+        simulateTx,
         extension: "marketplace-v3-english-auctions",
       });
       reply.status(StatusCodes.OK).send({

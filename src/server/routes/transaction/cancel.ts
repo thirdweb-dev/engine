@@ -66,15 +66,9 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { queueId } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
 
       const { message, transactionHash } = await cancelTransactionAndUpdate({
         queueId,
-        walletAddress,
-        accountAddress,
       });
 
       return reply.status(StatusCodes.OK).send({

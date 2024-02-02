@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
   id: Type.String(),
@@ -27,6 +28,7 @@ export async function revokeRelayer(fastify: FastifyInstance) {
       operationId: "revoke",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

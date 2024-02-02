@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getWallet } from "../../../utils/cache/getWallet";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../schemas/wallet";
 
 const BodySchema = Type.Object({
@@ -27,6 +28,7 @@ export async function signMessage(fastify: FastifyInstance) {
       body: BodySchema,
       headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

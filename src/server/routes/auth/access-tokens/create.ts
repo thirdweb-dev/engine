@@ -7,6 +7,7 @@ import { updateConfiguration } from "../../../../db/configuration/updateConfigur
 import { createToken } from "../../../../db/tokens/createToken";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { env } from "../../../../utils/env";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { AccessTokenSchema } from "./getAll";
 
 const BodySchema = Type.Object({
@@ -36,6 +37,7 @@ export async function createAccessToken(fastify: FastifyInstance) {
       operationId: "create",
       body: BodySchema,
       response: {
+        ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },

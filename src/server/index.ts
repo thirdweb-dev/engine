@@ -4,14 +4,17 @@ import * as fs from "fs";
 import path from "path";
 import { URL } from "url";
 import { deleteAllWalletNonces } from "../db/wallets/deleteAllWalletNonces";
+import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
+import { updateTxListener } from "./listerners/updateTxListener";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
 import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
+import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
 
@@ -48,9 +51,12 @@ const main = async () => {
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
+  server.decorateRequest("corsPreflightEnabled", false);
+
   await withCors(server);
   await withRequestLogs(server);
   await withErrorHandler(server);
+  await withWebSocket(server);
   await withAuth(server);
   await withExpress(server);
   await withOpenApi(server);
@@ -85,6 +91,8 @@ const main = async () => {
   });
 
   writeOpenApiToFile(server);
+  await updateTxListener();
+  await clearCacheCron("server");
 };
 
 main();
