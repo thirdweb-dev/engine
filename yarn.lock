@@ -3637,12 +3637,12 @@
     zod "^3.22.3"
 
 "@thirdweb-dev/service-utils@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.4.2.tgz#bb22fcb38349bf4c5879cbfc105902d3cc32413a"
-  integrity sha512-ag68/7/Qad0gezAVTi0uDla6fqtEI5iFuEO3E1eN9OVoYFCzm3wtvfhqgpuY6W/6hVYVRjZnaN2N4BmQIJAyew==
+  version "0.4.14"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.4.14.tgz#18c9befbc4793b3fdf9bbb3964f7b77709f5c72a"
+  integrity sha512-ej8DbT7ufchxvzuSBupupzpclz22L8uxXOHbG/fEhkqzTiPTVc/h5UpvTGH7wvfdq+mfLAr+SE1WMGiUr0ITTw==
   dependencies:
     aws4fetch "^1.0.17"
-    zod "^3.20.2"
+    zod "^3.22.3"
 
 "@thirdweb-dev/storage@2.0.4":
   version "2.0.4"
@@ -12553,7 +12553,7 @@ zod-to-json-schema@^3.17.1:
   resolved "https://registry.yarnpkg.com/zod-to-json-schema/-/zod-to-json-schema-3.22.4.tgz#f8cc691f6043e9084375e85fb1f76ebafe253d70"
   integrity sha512-2Ed5dJ+n/O3cU383xSY28cuVi0BCQhF8nYqWU5paEpl7fVdqdAmiLdqLyfblbNdfOFwFfi/mqU4O1pwc60iBhQ==
 
-zod@^3.20.2, zod@^3.21.4:
+zod@^3.21.4:
   version "3.21.4"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.21.4.tgz#10882231d992519f0a10b5dd58a38c9dabbb64db"
   integrity sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==

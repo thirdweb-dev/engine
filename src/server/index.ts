@@ -7,6 +7,7 @@ import { deleteAllWalletNonces } from "../db/wallets/deleteAllWalletNonces";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
+import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listerners/updateTxListener";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
@@ -14,7 +15,6 @@ import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
-import { withUsageReporting } from "./middleware/usage";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
@@ -62,7 +62,7 @@ const main = async () => {
   await withExpress(server);
   await withOpenApi(server);
   await withRoutes(server);
-  await withUsageReporting(server);
+  await withServerUsageReporting(server);
 
   await server.ready();
 

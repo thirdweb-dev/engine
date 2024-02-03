@@ -1,13 +1,13 @@
 import crypto from "crypto";
-import { getTxByIds } from "../../db/transactions/getTxByIds";
+import { getTxByIds } from "../db/transactions/getTxByIds";
 import {
   SanitizedWebHooksSchema,
   WalletBalanceWebhookSchema,
   WebhooksEventTypes,
-} from "../../schema/webhooks";
-import { getWebhook } from "../../utils/cache/getWebhook";
-import { logger } from "../../utils/logger";
-import { TransactionStatusEnum } from "../schemas/transaction";
+} from "../schema/webhooks";
+import { TransactionStatusEnum } from "../server/schemas/transaction";
+import { getWebhook } from "./cache/getWebhook";
+import { logger } from "./logger";
 
 let balanceNotificationLastSentAt = -1;
 

@@ -18,15 +18,20 @@ import {
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
-import {
-  WebhookData,
-  sendBalanceWebhook,
-  sendWebhooks,
-} from "../../server/utils/webhook";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
+import {
+  ReportUsageParams,
+  UsageEventTxActionEnum,
+  reportUsage,
+} from "../../utils/usage";
+import {
+  WebhookData,
+  sendBalanceWebhook,
+  sendWebhooks,
+} from "../../utils/webhook";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawalValue } from "../utils/withdraw";
 
@@ -43,6 +48,12 @@ type SentTxStatus =
       status: TransactionStatusEnum.Errored;
       queueId: string;
       errorMessage: string;
+      txRequest: {
+        from?: string;
+        to?: string;
+        value?: string;
+        chainId?: string;
+      };
     };
 
 type RpcResponseData = {
@@ -56,6 +67,7 @@ export const processTx = async () => {
   try {
     // 0. Initialize queueIds to send webhook
     const sendWebhookForQueueIds: WebhookData[] = [];
+    const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
@@ -76,6 +88,19 @@ export const processTx = async () => {
           txs.map((tx) => ({
             queueId: tx.queueId!,
             status: TransactionStatusEnum.Queued,
+          })),
+        );
+
+        await reportUsage(
+          txs.map((tx) => ({
+            input: {
+              chainId: tx.chainId || undefined,
+              fromAddress: tx.fromAddress || undefined,
+              toAddress: tx.toAddress || undefined,
+              value: tx.value || undefined,
+              transactionHash: tx.transactionHash || undefined,
+            },
+            action: UsageEventTxActionEnum.QueueTx,
           })),
         );
 
@@ -357,6 +382,15 @@ export const processTx = async () => {
                   queueId: tx.queueId!,
                   status: TransactionStatusEnum.Errored,
                 });
+                reportUsageForQueueIds.push({
+                  input: {
+                    fromAddress: tx.fromAddress || undefined,
+                    toAddress: tx.toAddress || undefined,
+                    value: tx.value || undefined,
+                    chainId: tx.chainId || undefined,
+                  },
+                  action: UsageEventTxActionEnum.NotSentTx,
+                });
 
                 logger({
                   service: "worker",
@@ -427,6 +461,12 @@ export const processTx = async () => {
                       res.error?.message ||
                       res.error?.toString() ||
                       `Failed to handle transaction`,
+                    txRequest: {
+                      from: tx.from,
+                      to: tx.to,
+                      value: tx.value?.toString(),
+                      chainId: tx.chainId?.toString(),
+                    },
                   };
                 }
               }),
@@ -448,6 +488,16 @@ export const processTx = async () => {
                         sentAtBlockNumber: await provider.getBlockNumber(),
                       },
                     });
+                    reportUsageForQueueIds.push({
+                      input: {
+                        fromAddress: tx.res?.from,
+                        toAddress: tx.res?.to,
+                        value: tx.res?.value?.toString(),
+                        chainId: tx.res?.chainId?.toString(),
+                        transactionHash: tx.transactionHash,
+                      },
+                      action: UsageEventTxActionEnum.SentTx,
+                    });
                     break;
                   case TransactionStatusEnum.Errored:
                     await updateTx({
@@ -457,6 +507,15 @@ export const processTx = async () => {
                         status: TransactionStatusEnum.Errored,
                         errorMessage: tx.errorMessage,
                       },
+                    });
+                    reportUsageForQueueIds.push({
+                      input: {
+                        fromAddress: tx.txRequest.from,
+                        toAddress: tx.txRequest.to,
+                        value: tx.txRequest.value?.toString(),
+                        chainId: tx.txRequest.chainId?.toString(),
+                      },
+                      action: UsageEventTxActionEnum.NotSentTx,
                     });
                     break;
                 }
@@ -477,6 +536,16 @@ export const processTx = async () => {
                 sendWebhookForQueueIds.push({
                   queueId: tx.queueId!,
                   status: TransactionStatusEnum.Errored,
+                });
+
+                reportUsageForQueueIds.push({
+                  input: {
+                    fromAddress: tx.fromAddress || undefined,
+                    toAddress: tx.toAddress || undefined,
+                    value: tx.value || undefined,
+                    chainId: tx.chainId || undefined,
+                  },
+                  action: UsageEventTxActionEnum.NotSentTx,
                 });
 
                 await updateTx({
@@ -533,6 +602,16 @@ export const processTx = async () => {
               queueId: tx.queueId!,
               status: TransactionStatusEnum.UserOpSent,
             });
+            reportUsageForQueueIds.push({
+              input: {
+                fromAddress: tx.accountAddress || undefined,
+                toAddress: tx.toAddress || undefined,
+                value: tx.value || undefined,
+                chainId: tx.chainId || undefined,
+                userOpHash,
+              },
+              action: UsageEventTxActionEnum.SentTx,
+            });
           } catch (err: any) {
             logger({
               service: "worker",
@@ -557,6 +636,16 @@ export const processTx = async () => {
               queueId: tx.queueId!,
               status: TransactionStatusEnum.Errored,
             });
+            reportUsageForQueueIds.push({
+              input: {
+                fromAddress: tx.accountAddress || undefined,
+                toAddress: tx.toAddress || undefined,
+                value: tx.value || undefined,
+                chainId: tx.chainId || undefined,
+                // userOpHash,
+              },
+              action: UsageEventTxActionEnum.NotSentTx,
+            });
           }
         });
 
@@ -570,6 +659,7 @@ export const processTx = async () => {
     );
 
     await sendWebhooks(sendWebhookForQueueIds);
+    await reportUsage(reportUsageForQueueIds);
   } catch (err: any) {
     logger({
       service: "worker",
