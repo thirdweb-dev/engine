@@ -53,23 +53,6 @@ export const bundleUserOps = async () => {
           backendWalletAddress, // beneficiary
         ]);
 
-        try {
-          const gasLimit = await tx.estimateGasLimit();
-          logger({
-            service: "worker",
-            level: "info",
-            message: `Estimated gas limit for user ops tx ${gasLimit}`,
-          });
-        } catch (err) {
-          // TODO: Need to catch op index
-          logger({
-            service: "worker",
-            level: "error",
-            message: "Encountered error while simulating user operations",
-            error: err,
-          });
-        }
-
         await queueTx({
           pgtx,
           chainId: parseInt(chainId),

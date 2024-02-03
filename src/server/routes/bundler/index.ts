@@ -119,7 +119,11 @@ export async function bundler(fastify: FastifyInstance) {
       );
 
       try {
-        await entrypoint.call("simulateValidation", [userOp]);
+        const tx = entrypoint.prepare("handleOps", [
+          [userOp],
+          bundler.backendWalletAddress,
+        ]);
+        await tx.estimateGasLimit();
       } catch (err: any) {
         if (err instanceof TransactionError) {
           return res.status(400).send({
