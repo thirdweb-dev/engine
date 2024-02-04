@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Static } from "@sinclair/typebox";
 import {
   StaticJsonRpcBatchProvider,
@@ -43,6 +44,8 @@ type SentTxStatus =
       queueId: string;
       res: ethers.providers.TransactionResponse | null;
       sentAtBlockNumber: number;
+      functionName?: string;
+      extension?: string;
     }
   | {
       status: TransactionStatusEnum.Errored;
@@ -54,6 +57,8 @@ type SentTxStatus =
         value?: string;
         chainId?: string;
       };
+      functionName?: string;
+      extension?: string;
     };
 
 type RpcResponseData = {
@@ -61,6 +66,8 @@ type RpcResponseData = {
   tx: ethers.providers.TransactionRequest;
   res: RpcResponse;
   sentAt: Date;
+  functionName?: string;
+  extension?: string;
 };
 
 export const processTx = async () => {
@@ -99,6 +106,8 @@ export const processTx = async () => {
               toAddress: tx.toAddress || undefined,
               value: tx.value || undefined,
               transactionHash: tx.transactionHash || undefined,
+              functionName: tx.functionName || undefined,
+              extension: tx.extension || undefined,
             },
             action: UsageEventTxActionEnum.QueueTx,
           })),
@@ -369,6 +378,8 @@ export const processTx = async () => {
                     tx: txRequest,
                     res: rpcResponse,
                     sentAt: new Date(),
+                    functionName: tx.functionName || undefined,
+                    extension: tx.extension || undefined,
                   });
                   sendWebhookForQueueIds.push({
                     queueId: tx.queueId!,
@@ -388,6 +399,8 @@ export const processTx = async () => {
                     toAddress: tx.toAddress || undefined,
                     value: tx.value || undefined,
                     chainId: tx.chainId || undefined,
+                    functionName: tx.functionName || undefined,
+                    extension: tx.extension || undefined,
                   },
                   action: UsageEventTxActionEnum.NotSentTx,
                 });
@@ -495,6 +508,8 @@ export const processTx = async () => {
                         value: tx.res?.value?.toString(),
                         chainId: tx.res?.chainId?.toString(),
                         transactionHash: tx.transactionHash,
+                        functionName: tx.functionName || undefined,
+                        extension: tx.extension || undefined,
                       },
                       action: UsageEventTxActionEnum.SentTx,
                     });
@@ -514,6 +529,8 @@ export const processTx = async () => {
                         toAddress: tx.txRequest.to,
                         value: tx.txRequest.value?.toString(),
                         chainId: tx.txRequest.chainId?.toString(),
+                        functionName: tx.functionName || undefined,
+                        extension: tx.extension || undefined,
                       },
                       action: UsageEventTxActionEnum.NotSentTx,
                     });
@@ -544,6 +561,8 @@ export const processTx = async () => {
                     toAddress: tx.toAddress || undefined,
                     value: tx.value || undefined,
                     chainId: tx.chainId || undefined,
+                    functionName: tx.functionName || undefined,
+                    extension: tx.extension || undefined,
                   },
                   action: UsageEventTxActionEnum.NotSentTx,
                 });
@@ -609,6 +628,8 @@ export const processTx = async () => {
                 value: tx.value || undefined,
                 chainId: tx.chainId || undefined,
                 userOpHash,
+                functionName: tx.functionName || undefined,
+                extension: tx.extension || undefined,
               },
               action: UsageEventTxActionEnum.SentTx,
             });
@@ -642,7 +663,8 @@ export const processTx = async () => {
                 toAddress: tx.toAddress || undefined,
                 value: tx.value || undefined,
                 chainId: tx.chainId || undefined,
-                // userOpHash,
+                functionName: tx.functionName || undefined,
+                extension: tx.extension || undefined,
               },
               action: UsageEventTxActionEnum.NotSentTx,
             });

@@ -28,6 +28,8 @@ export interface ReportUsageParams {
     transactionHash?: string;
     onChainTxStatus?: number;
     userOpHash?: string;
+    functionName?: string;
+    extension?: string;
   };
   error?: TransactionErrorInfo;
 }
@@ -138,6 +140,8 @@ export const reportUsage = async (usageParams: ReportUsageParams[]) => {
               ? "EXECUTION_REVERTED"
               : undefined
             : item.error?.reason || undefined,
+          functionName: item.input.functionName || undefined,
+          extension: item.input.extension || undefined,
         };
 
         logger({

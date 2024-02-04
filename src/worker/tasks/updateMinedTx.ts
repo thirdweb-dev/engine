@@ -126,6 +126,8 @@ export const updateMinedTx = async () => {
                 chainId: txWithReceipt.tx.chainId || undefined,
                 transactionHash: txWithReceipt.tx.transactionHash || undefined,
                 onChainTxStatus: txWithReceipt.receipt.status,
+                functionName: txWithReceipt.tx.functionName || undefined,
+                extension: txWithReceipt.tx.extension || undefined,
               },
               action: UsageEventTxActionEnum.MineTx,
             });

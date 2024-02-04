@@ -115,6 +115,8 @@ export const updateMinedUserOps = async () => {
                 chainId: userOp!.chainId || undefined,
                 userOpHash: userOp!.userOpHash || undefined,
                 onChainTxStatus: userOp!.onChainTxStatus,
+                functionName: userOp!.functionName || undefined,
+                extension: userOp!.extension || undefined,
               },
               action: UsageEventTxActionEnum.MineTx,
             });
