@@ -96,11 +96,13 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
         walletAddress,
+        accountAddress,
       });
 
       const payload = checkAndReturnNFTSignaturePayload<
