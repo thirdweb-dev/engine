@@ -35,8 +35,4 @@ export const initWorker = async () => {
 
   // Rest Cache Cron
   await clearCacheCron("worker");
-
-  setTimeout(() => {
-    process.exit(1);
-  }, 5_000);
 };
