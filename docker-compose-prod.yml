@@ -4,4 +4,4 @@ services:
     build:
       context: .
       target: prod
-    image: thirdweb/engine:0.1.0
+    image: thirdweb/engine:prod-local
