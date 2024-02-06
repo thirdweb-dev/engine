@@ -12,7 +12,7 @@ import {
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
 
-const worker = async () => {
+export const initWorker = async () => {
   // Listen for queued transactions to process
   await queuedTxListener();
 
@@ -36,5 +36,3 @@ const worker = async () => {
   // Rest Cache Cron
   await clearCacheCron("worker");
 };
-
-worker();
