@@ -7,6 +7,7 @@ import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
+import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
 
 export const retryTx = async () => {
   try {
@@ -19,6 +20,7 @@ export const retryTx = async () => {
         }
 
         const config = await getConfig();
+        const reportUsageForQueueIds: ReportUsageParams[] = [];
         const sdk = await getSdk({
           chainId: parseInt(tx.chainId!),
           walletAddress: tx.fromAddress!,
@@ -107,6 +109,21 @@ export const retryTx = async () => {
             },
           });
 
+          reportUsageForQueueIds.push({
+            input: {
+              fromAddress: tx.fromAddress || undefined,
+              toAddress: tx.toAddress || undefined,
+              value: tx.value || undefined,
+              chainId: tx.chainId || undefined,
+              functionName: tx.functionName || undefined,
+              extension: tx.extension || undefined,
+              retryCount: tx.retryCount || 0,
+            },
+            action: UsageEventTxActionEnum.NotSentTx,
+          });
+
+          await reportUsage(reportUsageForQueueIds);
+
           return;
         }
 
@@ -122,6 +139,21 @@ export const retryTx = async () => {
             transactionHash: res.hash,
           },
         });
+
+        reportUsageForQueueIds.push({
+          input: {
+            fromAddress: tx.fromAddress || undefined,
+            toAddress: tx.toAddress || undefined,
+            value: tx.value || undefined,
+            chainId: tx.chainId || undefined,
+            functionName: tx.functionName || undefined,
+            extension: tx.extension || undefined,
+            retryCount: tx.retryCount || 0,
+          },
+          action: UsageEventTxActionEnum.SentTx,
+        });
+
+        await reportUsage(reportUsageForQueueIds);
 
         logger({
           service: "worker",
