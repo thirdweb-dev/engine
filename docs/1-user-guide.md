@@ -123,7 +123,7 @@ POSTGRES_CONNECTION_URL=postgres://postgres:postgres@localhost:5432/postgres?ssl
 ```
 
 4. Run: `yarn install`
-5. Run: `yarn dev:server & yarn dev:worker`
+5. Run: `yarn dev:run`
 
 The API defaults to `http://localhost:3005`
 

@@ -39,20 +39,12 @@ RUN apk del build-dependencies
 ##############################
 ##############################
 
-FROM base AS local_server
+FROM base AS local
 
 EXPOSE 3005
-
 ENV NODE_ENV="local"
-CMD [ "sh", "-c","yarn prisma:setup:dev && yarn dev:server" ]
 
-##############################
-##############################
-
-FROM base AS local_worker
-
-ENV NODE_ENV="local"
-CMD [ "sh", "-c", "yarn prisma:setup:dev && yarn dev:worker" ]
+CMD [ "sh", "-c","yarn prisma:setup:dev && yarn dev" ]
 
 ##############################
 ##############################
@@ -61,8 +53,7 @@ CMD [ "sh", "-c", "yarn prisma:setup:dev && yarn dev:worker" ]
 FROM node:18.15.0-alpine AS prod-dependencies
 
 # Install build dependencies
-RUN apk add --no-cache g++ make py3-pip openssl
-
+RUN apk add --no-cache g++ make py3-pip
 WORKDIR /app
 
 # Copy package.json and yarn.lock files
@@ -70,29 +61,16 @@ COPY package*.json yarn*.lock ./
 
 # Copy the entire project directory
 COPY . .
-
 COPY --from=base /app/node_modules ./node_modules
 
 # Build the project
-RUN yarn build
-RUN yarn copy-files
-
-RUN rm -rf node_modules
-
-# Install production dependencies only
-RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000
-
-# Generate SSL certificates
-WORKDIR /app/dist/https
-
-RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
-    -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
-    -passout pass:thirdweb-engine
-
-RUN chmod 600 key.pem cert.pem
+RUN yarn build && \
+    yarn copy-files && \
+    rm -rf node_modules && \
+    yarn install --production=true --frozen-lockfile --network-timeout 1000000
 
 # Clean up build dependencies
-RUN apk del g++ make py3-pip openssl
+RUN apk del g++ make py3-pip
 
 ##############################
 ##############################
@@ -109,9 +87,7 @@ RUN apk add --no-cache tini
 
 # Set the working directory
 WORKDIR /app
-
 ENV NODE_ENV="production"
-
 EXPOSE 3005
 
 # Copy package.json and yarn.lock files
@@ -123,7 +99,7 @@ RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/prisma/sc
 # Copy only production dependencies from the prod-dependencies stage
 COPY --from=prod-dependencies /app/node_modules ./node_modules
 COPY --from=prod-dependencies /app/dist ./dist
-COPY --from=prod-dependencies /app/dist/https ./dist/https
+COPY --from=base /app/src/https ./dist/https
 
 # Add the node_modules/.bin directory to the PATH
 ENV PATH /app/node_modules/.bin:$PATH

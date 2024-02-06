@@ -9,6 +9,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check Disk Space Before Build
+        run: df -h
+
+      - name: Docker Prune
+        run: docker system prune -af
+
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -33,3 +39,6 @@ jobs:
             thirdweb/engine:latest
           build-args: |
             ENGINE_VERSION=${{ github.ref_name }}
+
+      - name: Check Disk Space After Build
+        run: df -h
