@@ -16,7 +16,7 @@ const defaultOptions: LoggerOptions = {
 
 const pino = Pino(defaultOptions);
 
-interface LoggerParams {
+export interface LoggerParams {
   service: (typeof env)["LOG_SERVICES"][0];
   level: (typeof env)["LOG_LEVEL"];
   message: string;

@@ -1,5 +1,9 @@
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import {
+  handleUncaughtExceptions,
+  handleUncaughtRejections,
+} from "../utils/errorHandler";
+import {
   newConfigurationListener,
   updatedConfigurationListener,
 } from "./listeners/configListener";
@@ -35,6 +39,8 @@ const worker = async () => {
 
   // Rest Cache Cron
   await clearCacheCron("worker");
+  handleUncaughtExceptions("worker");
+  handleUncaughtRejections("worker");
 };
 
 worker();
