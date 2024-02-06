@@ -11,6 +11,7 @@ import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
+import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { checkAndReturnERC20SignaturePayload } from "../../../../../utils/validator";
 
@@ -47,6 +48,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
       operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletAuthSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -67,11 +69,13 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
         walletAddress,
+        accountAddress,
       });
 
       const payload = checkAndReturnERC20SignaturePayload<
