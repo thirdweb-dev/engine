@@ -24,6 +24,11 @@ export const contractParamSchema = Type.Object({
     examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
     description: "Contract address on the chain",
   }),
+  abi: Type.Optional(
+    Type.String({
+      description: "Optional ABI of the contract",
+    }),
+  ),
 });
 
 export const requestQuerystringSchema = Type.Object({

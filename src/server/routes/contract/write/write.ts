@@ -69,7 +69,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain, contractAddress, abi } = request.params;
       const { simulateTx } = request.query;
       const { functionName, args, txOverrides } = request.body;
       const walletAddress = request.headers[
@@ -82,6 +82,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         contractAddress,
         walletAddress,
         accountAddress,
+        abi,
       });
 
       const tx = await contract.prepare(functionName, args, txOverrides);
