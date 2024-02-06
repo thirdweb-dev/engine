@@ -28,7 +28,7 @@ interface HttpsObject {
   };
 }
 
-const main = async () => {
+export const initServer = async () => {
   // Reset any server state that is safe to reset.
   // This allows the server to start in a predictable state.
   await deleteAllWalletNonces({});
@@ -94,5 +94,3 @@ const main = async () => {
   await updateTxListener();
   await clearCacheCron("server");
 };
-
-main();
