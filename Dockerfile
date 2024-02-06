@@ -52,10 +52,12 @@ FROM base AS prod-dependencies
 WORKDIR /app
 
 # Build the project
-RUN yarn build && \
+RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip && \
+    yarn build && \
     yarn copy-files && \
     rm -rf node_modules && \
-    yarn install --production=true --frozen-lockfile --network-timeout 1000000
+    yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
+    apk del build-dependencies
 
 ##############################
 ##############################
