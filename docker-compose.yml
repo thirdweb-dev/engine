@@ -28,11 +28,11 @@ services:
     volumes:
       - pgadmin:/var/lib/pgadmin
 
-  engine-api:
+  engine:
     build:
       dockerfile: Dockerfile
       context: .
-      target: local_server
+      target: local
     env_file:
       - .env
     ports:
@@ -48,27 +48,6 @@ services:
     # - ./:/app
     # - node_modules:/app/node_modules
 
-  engine-worker:
-    build:
-      dockerfile: Dockerfile
-      context: .
-      target: local_worker
-    env_file:
-      - .env
-    ports:
-      - 3006:3006
-    depends_on:
-      - db
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 1024M
-    # volumes:
-    # - ./:/app
-    # - node_modules:/app/node_modules
-
 volumes:
-  # node_modules:
   db_data:
   pgadmin:
