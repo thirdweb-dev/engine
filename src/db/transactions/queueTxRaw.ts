@@ -45,21 +45,20 @@ export const queueTxRaw = async ({
   try {
     if (simulateTx) {
       const sdk = await getSdk({ pgtx, chainId: parseInt(tx.chainId) })
-      // const simulationResult = await sdk.getProvider().call({
-      //   to: `${tx.toAddress}`,
-      //   from: `${tx.fromAddress}`,
-      //   data: `${tx.data}`,
-      //   value: `${tx.value}`,
-      // });
-      // console.log({ simulationResult })
+      const simulationResult = await sdk.getProvider().call({
+        to: `${tx.toAddress}`,
+        from: `${tx.fromAddress}`,
+        data: `${tx.data}`,
+        value: `${tx.value}`,
+      });
 
-      // if (simulationResult) {
-      //   const decoded = ethers.utils.defaultAbiCoder.decode(
-      //     ["string"],
-      //     ethers.utils.hexDataSlice(simulationResult, 4)
-      //   );
-      //   throw new Error(decoded)
-      // }
+      if (simulationResult) {
+        const decoded = ethers.utils.defaultAbiCoder.decode(
+          ["string"],
+          ethers.utils.hexDataSlice(simulationResult, 4)
+        );
+        throw new Error(decoded[0])
+      }
     }
   } catch (err: any) {
     const errorMessage =
