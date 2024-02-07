@@ -54,6 +54,7 @@ export const queueTx = async ({
       signerAddress,
       accountAddress,
       target,
+      simulateTx
     });
 
     return queueId;

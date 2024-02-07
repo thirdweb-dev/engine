@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
 import {
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
@@ -40,6 +41,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
     Params: Static<typeof ParamsSchema>;
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/backend-wallet/:chain/send-transaction",
@@ -59,6 +61,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain } = request.params;
       const { toAddress, data, value } = request.body;
+      const { simulateTx } = request.query
       const fromAddress = request.headers["x-backend-wallet-address"] as string;
       const chainId = await getChainIdFromChain(chain);
 
@@ -68,6 +71,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
         toAddress,
         data,
         value,
+        simulateTx: simulateTx,
       });
 
       reply.status(StatusCodes.OK).send({
