@@ -2,7 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
-import { ThirdwebSDK, TransactionError } from "@thirdweb-dev/sdk";
+import { TransactionError } from "@thirdweb-dev/sdk";
 import { getSdk } from "../../utils/cache/getSdk";
 
 type QueueTxRawParams = Omit<
