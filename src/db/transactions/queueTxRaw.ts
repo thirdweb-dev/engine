@@ -2,25 +2,31 @@ import type { Prisma } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
+import { ThirdwebSDK, TransactionError } from "@thirdweb-dev/sdk";
+import { getSdk } from "../../utils/cache/getSdk";
 
 type QueueTxRawParams = Omit<
   Prisma.TransactionsCreateInput,
   "fromAddress" | "signerAddress"
 > & {
   pgtx?: PrismaTransaction;
+  simulateTx?: boolean;
 } & (
     | {
-        fromAddress: string;
-        signerAddress?: never;
-      }
+      fromAddress: string;
+      signerAddress?: never;
+    }
     | {
-        fromAddress?: never;
-        signerAddress: string;
-      }
+      fromAddress?: never;
+      signerAddress: string;
+    }
   );
 
-// TODO: Simulation should be moved to this function
-export const queueTxRaw = async ({ pgtx, ...tx }: QueueTxRawParams) => {
+export const queueTxRaw = async ({
+  simulateTx = false,
+  pgtx,
+  ...tx
+}: QueueTxRawParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   const walletDetails = await getWalletDetails({
@@ -30,11 +36,32 @@ export const queueTxRaw = async ({ pgtx, ...tx }: QueueTxRawParams) => {
 
   if (!walletDetails) {
     throw new Error(
-      `No backend wallet found with address ${
-        tx.fromAddress || tx.signerAddress
+      `No backend wallet found with address ${tx.fromAddress || tx.signerAddress
       }`,
     );
   }
+
+  try {
+    if (simulateTx) {
+      const sdk = await getSdk({ pgtx, chainId: parseInt(tx.chainId) })
+      const simulationResult = await sdk.getProvider().call({
+        to: `${tx.toAddress}`,
+        from: `${tx.fromAddress}`,
+        data: `${tx.data}`,
+        value: `${tx.value}`,
+      });
+      if (simulationResult) {
+        throw new Error(simulationResult)
+      }
+    }
+  } catch (err: any) {
+    const errorMessage =
+      (err as TransactionError)?.reason || (err as any).message || err;
+    throw new Error(
+      `Transaction simulation failed with reason: ${errorMessage}`,
+    );
+  }
+
 
   return prisma.transactions.create({
     data: {
