@@ -51,8 +51,7 @@ export const queueTxRaw = async ({
         data: `${tx.data}`,
         value: `${tx.value}`,
       });
-
-      if (simulationResult) {
+      if (simulationResult.length > 2) { // '0x' is the success result value
         const decoded = ethers.utils.defaultAbiCoder.decode(
           ["string"],
           ethers.utils.hexDataSlice(simulationResult, 4)
