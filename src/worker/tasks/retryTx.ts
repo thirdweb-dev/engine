@@ -117,7 +117,7 @@ export const retryTx = async () => {
               chainId: tx.chainId || undefined,
               functionName: tx.functionName || undefined,
               extension: tx.extension || undefined,
-              retryCount: tx.retryCount || 0,
+              retryCount: tx.retryCount + 1 || 0,
             },
             action: UsageEventTxActionEnum.NotSentTx,
           });
@@ -148,7 +148,7 @@ export const retryTx = async () => {
             chainId: tx.chainId || undefined,
             functionName: tx.functionName || undefined,
             extension: tx.extension || undefined,
-            retryCount: tx.retryCount || 0,
+            retryCount: tx.retryCount + 1 || 0,
           },
           action: UsageEventTxActionEnum.SentTx,
         });
