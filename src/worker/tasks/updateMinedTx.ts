@@ -26,7 +26,7 @@ export const updateMinedTx = async () => {
           return;
         }
 
-        const droppedTxs: Transactions[] = [];
+        const droppedTxs: (Transactions & { provider?: string })[] = [];
 
         const txsWithReceipts = (
           await Promise.all(
@@ -36,6 +36,8 @@ export const updateMinedTx = async () => {
                 await sdk
                   .getProvider()
                   .getTransactionReceipt(tx.transactionHash!);
+              const provider =
+                sdk.getProvider() as ethers.providers.JsonRpcProvider;
 
               if (!receipt) {
                 // This tx is not yet mined or was dropped.
@@ -45,7 +47,7 @@ export const updateMinedTx = async () => {
                 const sentAt = new Date(tx.sentAt!);
                 const ageInMilliseconds = Date.now() - sentAt.getTime();
                 if (ageInMilliseconds > 1000 * 60 * 60 * 1) {
-                  droppedTxs.push(tx);
+                  droppedTxs.push({ provider: provider.connection.url, ...tx });
                 }
                 return;
               }
@@ -71,6 +73,7 @@ export const updateMinedTx = async () => {
                 receipt,
                 response,
                 minedAt,
+                provider: provider.connection.url,
               };
             }),
           )
@@ -82,6 +85,7 @@ export const updateMinedTx = async () => {
           receipt: ethers.providers.TransactionReceipt;
           response: ethers.providers.TransactionResponse;
           minedAt: Date;
+          provider: string;
         }[];
 
         // Update mined transactions.
@@ -128,6 +132,7 @@ export const updateMinedTx = async () => {
                 onChainTxStatus: txWithReceipt.receipt.status,
                 functionName: txWithReceipt.tx.functionName || undefined,
                 extension: txWithReceipt.tx.extension || undefined,
+                provider: txWithReceipt.provider || undefined,
               },
               action: UsageEventTxActionEnum.MineTx,
             });
@@ -165,6 +170,7 @@ export const updateMinedTx = async () => {
                 value: tx.value || undefined,
                 chainId: tx.chainId || undefined,
                 transactionHash: tx.transactionHash || undefined,
+                provider: tx.provider || undefined,
               },
               action: UsageEventTxActionEnum.CancelTx,
             });

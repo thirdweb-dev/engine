@@ -73,6 +73,7 @@ export const updateMinedUserOps = async () => {
                 gasLimit: tx.gasLimit.toString(),
                 maxFeePerGas: tx.maxFeePerGas?.toString(),
                 maxPriorityFeePerGas: tx.maxPriorityFeePerGas?.toString(),
+                provider: signer.httpRpcClient.bundlerUrl,
               };
             }),
           )
@@ -117,6 +118,7 @@ export const updateMinedUserOps = async () => {
                 onChainTxStatus: userOp!.onChainTxStatus,
                 functionName: userOp!.functionName || undefined,
                 extension: userOp!.extension || undefined,
+                provider: userOp!.provider || undefined,
               },
               action: UsageEventTxActionEnum.MineTx,
             });

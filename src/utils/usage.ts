@@ -30,6 +30,9 @@ export interface ReportUsageParams {
     userOpHash?: string;
     functionName?: string;
     extension?: string;
+    retryCount?: number;
+    provider?: string;
+    transactionValue?: string;
   };
   error?: TransactionErrorInfo;
 }
@@ -40,12 +43,12 @@ const EngineRequestParams = Type.Object({
 });
 
 export enum UsageEventTxActionEnum {
-  MineTx = "mine-tx",
-  NotSentTx = "not-sent-tx",
-  QueueTx = "queue-tx",
-  SentTx = "sent-tx",
-  CancelTx = "cancel-tx",
-  APIRequest = "api-request",
+  MineTx = "mine_tx",
+  NotSendTx = "not_send_tx",
+  QueueTx = "queue_tx",
+  SendTx = "send_tx",
+  CancelTx = "cancel_tx",
+  APIRequest = "api_request",
 }
 
 interface UsageEventSchema extends Omit<UsageEvent, "action"> {
@@ -83,6 +86,11 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       const chainId = requestParams?.chain
         ? await getChainIdFromChain(requestParams.chain)
         : "";
+
+      if (reply.request.routerPath === "" || !reply.request.routerPath) {
+        return;
+      }
+
       const requestBody: UsageEventSchema = {
         source: "engine",
         action: UsageEventTxActionEnum.APIRequest,
@@ -142,15 +150,9 @@ export const reportUsage = async (usageParams: ReportUsageParams[]) => {
             : item.error?.reason || undefined,
           functionName: item.input.functionName || undefined,
           extension: item.input.extension || undefined,
+          retryCount: item.input.retryCount || undefined,
+          provider: item.input.provider || undefined,
         };
-
-        logger({
-          service: "worker",
-          level: "debug",
-          message: `[reportUsage] Reporting usage: ${JSON.stringify(
-            requestBody,
-          )}`,
-        });
 
         await fetch(env.CLIENT_ANALYTICS_URL, {
           method: "POST",

@@ -1,4 +1,7 @@
-import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
+import {
+  StaticJsonRpcBatchProvider,
+  getDefaultGasOverrides,
+} from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { prisma } from "../../db/client";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
@@ -7,7 +10,11 @@ import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
-import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
+import {
+  ReportUsageParams,
+  UsageEventTxActionEnum,
+  reportUsage,
+} from "../../utils/usage";
 
 export const retryTx = async () => {
   try {
@@ -25,6 +32,7 @@ export const retryTx = async () => {
           chainId: parseInt(tx.chainId!),
           walletAddress: tx.fromAddress!,
         });
+        const provider = sdk.getProvider() as StaticJsonRpcBatchProvider;
 
         const blockNumber = await sdk.getProvider().getBlockNumber();
         // Only retry if more than the elapsed blocks before retry has passed.
@@ -118,8 +126,9 @@ export const retryTx = async () => {
               functionName: tx.functionName || undefined,
               extension: tx.extension || undefined,
               retryCount: tx.retryCount + 1 || 0,
+              provider: provider.connection.url || undefined,
             },
-            action: UsageEventTxActionEnum.NotSentTx,
+            action: UsageEventTxActionEnum.NotSendTx,
           });
 
           await reportUsage(reportUsageForQueueIds);
@@ -148,9 +157,11 @@ export const retryTx = async () => {
             chainId: tx.chainId || undefined,
             functionName: tx.functionName || undefined,
             extension: tx.extension || undefined,
-            retryCount: tx.retryCount + 1 || 0,
+            retryCount: tx.retryCount + 1,
+            transactionHash: res.hash || undefined,
+            provider: provider.connection.url || undefined,
           },
-          action: UsageEventTxActionEnum.SentTx,
+          action: UsageEventTxActionEnum.SendTx,
         });
 
         await reportUsage(reportUsageForQueueIds);
