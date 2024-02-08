@@ -1,4 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
+import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getWallet } from "../../../utils/cache/getWallet";
@@ -7,6 +8,7 @@ import { walletAuthSchema } from "../../schemas/wallet";
 
 const BodySchema = Type.Object({
   message: Type.String(),
+  isBytes: Type.Optional(Type.Boolean()),
 });
 
 const ReplySchema = Type.Object({
@@ -33,7 +35,7 @@ export async function signMessage(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { message } = req.body;
+      const { message, isBytes } = req.body;
       const walletAddress = req.headers["x-backend-wallet-address"] as string;
 
       const wallet = await getWallet({
@@ -42,7 +44,15 @@ export async function signMessage(fastify: FastifyInstance) {
       });
 
       const signer = await wallet.getSigner();
-      const signedMessage = await signer.signMessage(message);
+
+      let signedMessage;
+      if (isBytes) {
+        signedMessage = await signer.signMessage(
+          ethers.utils.arrayify(message),
+        );
+      } else {
+        signedMessage = await signer.signMessage(message);
+      }
 
       res.status(200).send({
         result: signedMessage,
