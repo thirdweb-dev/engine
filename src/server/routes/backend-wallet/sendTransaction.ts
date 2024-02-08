@@ -53,6 +53,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       params: ParamsSchema,
       body: requestBodySchema,
       headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -61,7 +62,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain } = request.params;
       const { toAddress, data, value } = request.body;
-      const { simulateTx } = request.query
+      const { simulateTx } = request.query;
       const fromAddress = request.headers["x-backend-wallet-address"] as string;
       const chainId = await getChainIdFromChain(chain);
 

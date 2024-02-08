@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
+import { simulateTx } from "../../server/utils/simulateTx";
 import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
-import { simulateTx } from "../../server/utils/simulateTx";
 
 type QueueTxRawParams = Omit<
   Prisma.TransactionsCreateInput,
@@ -12,13 +12,13 @@ type QueueTxRawParams = Omit<
   simulateTx?: boolean;
 } & (
     | {
-      fromAddress: string;
-      signerAddress?: never;
-    }
+        fromAddress: string;
+        signerAddress?: never;
+      }
     | {
-      fromAddress?: never;
-      signerAddress: string;
-    }
+        fromAddress?: never;
+        signerAddress: string;
+      }
   );
 
 export const queueTxRaw = async ({
@@ -35,13 +35,14 @@ export const queueTxRaw = async ({
 
   if (!walletDetails) {
     throw new Error(
-      `No backend wallet found with address ${tx.fromAddress || tx.signerAddress
+      `No backend wallet found with address ${
+        tx.fromAddress || tx.signerAddress
       }`,
     );
   }
 
   if (shouldSimulate) {
-    await simulateTx({ txRaw: tx })
+    await simulateTx({ txRaw: tx });
   }
 
   return prisma.transactions.create({
