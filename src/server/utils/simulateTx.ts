@@ -1,6 +1,11 @@
+import {
+  DeployTransaction,
+  Transaction,
+  TransactionError,
+} from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { getSdk } from "../../utils/cache/getSdk";
-import { DeployTransaction, Transaction, TransactionError } from "@thirdweb-dev/sdk";
+import { createCustomError } from "../middleware/error";
 
 type SimulateTxRawParams = {
   chainId: string;
@@ -8,29 +13,30 @@ type SimulateTxRawParams = {
   fromAddress?: string | null;
   data?: string | null;
   value?: any;
-}
+};
 
 const simulateTxRaw = async (args: SimulateTxRawParams) => {
-  const sdk = await getSdk({ chainId: parseInt(args.chainId) })
+  const sdk = await getSdk({ chainId: parseInt(args.chainId) });
   const simulateResult = await sdk.getProvider().call({
     to: `${args.toAddress}`,
     from: `${args.fromAddress}`,
     data: `${args.data}`,
     value: `${args.value}`,
   });
-  if (simulateResult.length > 2) { // '0x' is the success result value
+  if (simulateResult.length > 2) {
+    // '0x' is the success result value
     const decoded = ethers.utils.defaultAbiCoder.decode(
       ["string"],
-      ethers.utils.hexDataSlice(simulateResult, 4)
+      ethers.utils.hexDataSlice(simulateResult, 4),
     );
-    throw new Error(decoded[0])
+    throw new Error(decoded[0]);
   }
-}
+};
 
 export type SimulateTxParams = {
   tx?: Transaction<any> | DeployTransaction;
-  txRaw?: SimulateTxRawParams
-}
+  txRaw?: SimulateTxRawParams;
+};
 
 export const simulateTx = async ({ tx, txRaw }: SimulateTxParams) => {
   try {
@@ -44,8 +50,10 @@ export const simulateTx = async ({ tx, txRaw }: SimulateTxParams) => {
   } catch (err) {
     const errorMessage =
       (err as TransactionError)?.reason || (err as any).message || err;
-    throw new Error(
-      `Transaction simulate failed with reason: ${errorMessage}`,
+    throw createCustomError(
+      `Transaction simulation failed with reason: ${errorMessage}`,
+      400,
+      "BAD_REQUEST",
     );
   }
-}
+};
