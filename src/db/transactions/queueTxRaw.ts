@@ -1,5 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
+import { simulateTx } from "../../server/utils/simulateTx";
 import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
@@ -8,6 +9,7 @@ type QueueTxRawParams = Omit<
   "fromAddress" | "signerAddress"
 > & {
   pgtx?: PrismaTransaction;
+  simulateTx?: boolean;
 } & (
     | {
         fromAddress: string;
@@ -19,8 +21,11 @@ type QueueTxRawParams = Omit<
       }
   );
 
-// TODO: Simulation should be moved to this function
-export const queueTxRaw = async ({ pgtx, ...tx }: QueueTxRawParams) => {
+export const queueTxRaw = async ({
+  simulateTx: shouldSimulate,
+  pgtx,
+  ...tx
+}: QueueTxRawParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   const walletDetails = await getWalletDetails({
@@ -34,6 +39,10 @@ export const queueTxRaw = async ({ pgtx, ...tx }: QueueTxRawParams) => {
         tx.fromAddress || tx.signerAddress
       }`,
     );
+  }
+
+  if (shouldSimulate) {
+    await simulateTx({ txRaw: tx });
   }
 
   return prisma.transactions.create({
