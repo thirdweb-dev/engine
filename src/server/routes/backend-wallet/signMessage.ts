@@ -8,7 +8,7 @@ import { walletAuthSchema } from "../../schemas/wallet";
 
 const BodySchema = Type.Object({
   message: Type.String(),
-  asBytes: Type.Optional(Type.Boolean()),
+  isBytes: Type.Optional(Type.Boolean()),
 });
 
 const ReplySchema = Type.Object({
@@ -35,7 +35,7 @@ export async function signMessage(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { message, asBytes } = req.body;
+      const { message, isBytes } = req.body;
       const walletAddress = req.headers["x-backend-wallet-address"] as string;
 
       const wallet = await getWallet({
@@ -46,7 +46,7 @@ export async function signMessage(fastify: FastifyInstance) {
       const signer = await wallet.getSigner();
 
       let signedMessage;
-      if (asBytes) {
+      if (isBytes) {
         signedMessage = await signer.signMessage(
           ethers.utils.arrayify(message),
         );
