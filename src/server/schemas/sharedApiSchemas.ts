@@ -155,6 +155,14 @@ export const transactionWritesResponseSchema = Type.Object({
   }),
 });
 
+export const simulateResponseSchema = Type.Object({
+  result: Type.Object({
+    success: Type.Boolean({
+      description: "Simulation Success",
+    }),
+  }),
+});
+
 transactionWritesResponseSchema.example = {
   result: {
     queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",

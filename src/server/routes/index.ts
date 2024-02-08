@@ -110,6 +110,7 @@ import { queueStatus } from "./system/queue";
 import { checkGroupStatus } from "./transaction/group";
 import { sendSignedTransaction } from "./transaction/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
+import { simulateTransaction } from "./backend-wallet/simulateTransaction";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -127,6 +128,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllTransactions);
   await fastify.register(resetBackendWalletNonces);
   await fastify.register(getBackendWalletNonce);
+  await fastify.register(simulateTransaction);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);
