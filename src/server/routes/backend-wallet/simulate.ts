@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { simulationResponseSchema, standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { simulateResponseSchema, standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../schemas/wallet";
 import { SimulateTxParams, simulateTx } from "../../utils/simulateTx";
 import { getChainIdFromChain } from "../../utils/chain";
@@ -12,7 +12,7 @@ const ParamsSchema = Type.Object({
   chain: Type.String(),
 });
 
-const simulationRequestBodySchema = Type.Object({
+const simulateRequestBodySchema = Type.Object({
   contractAddress: Type.String({
     description: "Address of the contract",
   }),
@@ -44,7 +44,7 @@ const simulationRequestBodySchema = Type.Object({
 });
 
 // Adding example for Swagger File
-simulationRequestBodySchema.examples = [
+simulateRequestBodySchema.examples = [
   {
     functionName: "transferFrom",
     args: [
@@ -59,8 +59,8 @@ simulationRequestBodySchema.examples = [
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
-    Body: Static<typeof simulationRequestBodySchema>;
-    Reply: Static<typeof simulationResponseSchema>;
+    Body: Static<typeof simulateRequestBodySchema>;
+    Reply: Static<typeof simulateResponseSchema>;
   }>({
     method: "POST",
     url: "/backend-wallet/:chain/simulate",
@@ -70,11 +70,11 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Backend Wallet"],
       operationId: "simulateTransaction",
       params: ParamsSchema,
-      body: simulationRequestBodySchema,
+      body: simulateRequestBodySchema,
       headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: simulationResponseSchema,
+        [StatusCodes.OK]: simulateResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -87,8 +87,8 @@ export async function writeToContract(fastify: FastifyInstance) {
       const accountAddress = request.headers["x-account-address"] as string;
       const chainId = await getChainIdFromChain(chain);
 
-      // Get decoded tx simulation args
-      let simulationArgs: SimulateTxParams;
+      // Get decoded tx simulate args
+      let simulateArgs: SimulateTxParams;
       if (functionName && args) {
         const contract = await getContract({
           chainId,
@@ -97,11 +97,11 @@ export async function writeToContract(fastify: FastifyInstance) {
           accountAddress,
         });
         const tx = contract.prepare(functionName, args, { value: value ?? '0' });
-        simulationArgs = { tx }
+        simulateArgs = { tx }
       }
-      // Get raw tx simulation args
+      // Get raw tx simulate args
       else {
-        simulationArgs = {
+        simulateArgs = {
           txRaw: {
             chainId: chainId.toString(),
             fromAddress: walletAddress,
@@ -113,7 +113,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       }
 
       // Simulate raw tx
-      await simulateTx(simulationArgs);
+      await simulateTx(simulateArgs);
 
       // Return success 
       reply.status(StatusCodes.OK).send({
