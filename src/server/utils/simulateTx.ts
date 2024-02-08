@@ -12,16 +12,16 @@ type SimulateTxRawParams = {
 
 const simulateTxRaw = async (args: SimulateTxRawParams) => {
   const sdk = await getSdk({ chainId: parseInt(args.chainId) })
-  const simulationResult = await sdk.getProvider().call({
+  const simulateResult = await sdk.getProvider().call({
     to: `${args.toAddress}`,
     from: `${args.fromAddress}`,
     data: `${args.data}`,
     value: `${args.value}`,
   });
-  if (simulationResult.length > 2) { // '0x' is the success result value
+  if (simulateResult.length > 2) { // '0x' is the success result value
     const decoded = ethers.utils.defaultAbiCoder.decode(
       ["string"],
-      ethers.utils.hexDataSlice(simulationResult, 4)
+      ethers.utils.hexDataSlice(simulateResult, 4)
     );
     throw new Error(decoded[0])
   }
@@ -45,7 +45,7 @@ export const simulateTx = async ({ tx, txRaw }: SimulateTxParams) => {
     const errorMessage =
       (err as TransactionError)?.reason || (err as any).message || err;
     throw new Error(
-      `Transaction simulation failed with reason: ${errorMessage}`,
+      `Transaction simulate failed with reason: ${errorMessage}`,
     );
   }
 }

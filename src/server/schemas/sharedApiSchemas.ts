@@ -155,7 +155,7 @@ export const transactionWritesResponseSchema = Type.Object({
   }),
 });
 
-export const simulationResponseSchema = Type.Object({
+export const simulateResponseSchema = Type.Object({
   result: Type.Object({
     success: Type.Boolean({
       description: "Simulation Success",
