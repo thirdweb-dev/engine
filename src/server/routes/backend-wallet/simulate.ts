@@ -16,12 +16,10 @@ const simulationRequestBodySchema = Type.Object({
   contractAddress: Type.String({
     description: "Address of the contract",
   }),
-  value: Type.Optional(
-    Type.String({
-      examples: ["0"],
-      description: "Native Currency Value",
-    }),
-  ),
+  value: Type.String({
+    examples: ["0"],
+    description: "Native Currency Value",
+  }),
   // Decoded transaction args
   functionName: Type.Optional(Type.String({
     description: "Name of the function to call on Contract",
@@ -67,10 +65,10 @@ export async function writeToContract(fastify: FastifyInstance) {
     method: "POST",
     url: "/backend-wallet/:chain/simulate",
     schema: {
-      summary: "Send a transaction",
-      description: "Send a transaction with transaction parameters",
+      summary: "Simulate a transaction",
+      description: "Simulate a transaction with transaction parameters",
       tags: ["Backend Wallet"],
-      operationId: "sendTransaction",
+      operationId: "simulateTransaction",
       params: ParamsSchema,
       body: simulationRequestBodySchema,
       headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
@@ -82,7 +80,7 @@ export async function writeToContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       // Destruct core params
       const { chain } = request.params;
-      const { contractAddress, functionName, args, value, data } = request.body;
+      const { contractAddress, value, functionName, args, data } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
@@ -98,7 +96,7 @@ export async function writeToContract(fastify: FastifyInstance) {
           walletAddress,
           accountAddress,
         });
-        const tx = await contract.prepare(functionName, args, { value: value ?? '0' });
+        const tx = contract.prepare(functionName, args, { value: value ?? '0' });
         simulationArgs = { tx }
       }
       // Get raw tx simulation args
