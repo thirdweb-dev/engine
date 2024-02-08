@@ -41,7 +41,7 @@ export const queueTxRaw = async ({
   }
 
   if (shouldSimulate) {
-    await simulateTx({ txRaw: tx, pgtx })
+    await simulateTx({ txRaw: tx })
   }
 
   return prisma.transactions.create({
