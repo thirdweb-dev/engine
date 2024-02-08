@@ -46,6 +46,7 @@ export const simulateTx = async ({ tx, txRaw }: SimulateTxParams) => {
       (err as TransactionError)?.reason || (err as any).message || err;
     throw new Error(
       `Transaction simulate failed with reason: ${errorMessage}`,
+      { cause: err }
     );
   }
 }
