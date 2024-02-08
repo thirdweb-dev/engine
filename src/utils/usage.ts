@@ -110,7 +110,12 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
         body: JSON.stringify(requestBody),
       });
     } catch (e) {
-      console.error("Publishing to usage tracker queue:", e);
+      logger({
+        service: "server",
+        level: "error",
+        message: `Error: `,
+        error: e,
+      });
     }
   });
 };
@@ -167,7 +172,7 @@ export const reportUsage = async (usageParams: ReportUsageParams[]) => {
         logger({
           service: "worker",
           level: "error",
-          message: `[reportUsage] Error:`,
+          message: `Error:`,
           error: e,
         });
       }
@@ -176,7 +181,7 @@ export const reportUsage = async (usageParams: ReportUsageParams[]) => {
     logger({
       service: "worker",
       level: "error",
-      message: `[reportUsage] Error:`,
+      message: `Error:`,
       error,
     });
   }
