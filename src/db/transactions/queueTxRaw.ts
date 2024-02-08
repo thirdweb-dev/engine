@@ -2,9 +2,7 @@ import type { Prisma } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
-import { TransactionError } from "@thirdweb-dev/sdk";
-import { getSdk } from "../../utils/cache/getSdk";
-import { ethers } from "ethers";
+import { simulateTx } from "../../server/utils/simulateTx";
 
 type QueueTxRawParams = Omit<
   Prisma.TransactionsCreateInput,
@@ -24,7 +22,7 @@ type QueueTxRawParams = Omit<
   );
 
 export const queueTxRaw = async ({
-  simulateTx = false,
+  simulateTx: shouldSimulate,
   pgtx,
   ...tx
 }: QueueTxRawParams) => {
@@ -42,31 +40,9 @@ export const queueTxRaw = async ({
     );
   }
 
-  try {
-    if (simulateTx) {
-      const sdk = await getSdk({ pgtx, chainId: parseInt(tx.chainId) })
-      const simulationResult = await sdk.getProvider().call({
-        to: `${tx.toAddress}`,
-        from: `${tx.fromAddress}`,
-        data: `${tx.data}`,
-        value: `${tx.value}`,
-      });
-      if (simulationResult.length > 2) { // '0x' is the success result value
-        const decoded = ethers.utils.defaultAbiCoder.decode(
-          ["string"],
-          ethers.utils.hexDataSlice(simulationResult, 4)
-        );
-        throw new Error(decoded[0])
-      }
-    }
-  } catch (err: any) {
-    const errorMessage =
-      (err as TransactionError)?.reason || (err as any).message || err;
-    throw new Error(
-      `Transaction simulation failed with reason: ${errorMessage}`,
-    );
+  if (shouldSimulate) {
+    await simulateTx({ txRaw: tx, pgtx })
   }
-
 
   return prisma.transactions.create({
     data: {
