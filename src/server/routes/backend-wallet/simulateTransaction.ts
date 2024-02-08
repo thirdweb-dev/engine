@@ -56,14 +56,14 @@ simulateRequestBodySchema.examples = [
 ];
 
 // LOGIC
-export async function writeToContract(fastify: FastifyInstance) {
+export async function simulateTransaction(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
     Body: Static<typeof simulateRequestBodySchema>;
     Reply: Static<typeof simulateResponseSchema>;
   }>({
     method: "POST",
-    url: "/backend-wallet/:chain/simulate",
+    url: "/backend-wallet/:chain/simulate-transaction",
     schema: {
       summary: "Simulate a transaction",
       description: "Simulate a transaction with transaction parameters",
