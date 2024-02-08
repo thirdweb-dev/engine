@@ -90,7 +90,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const chainId = await getChainIdFromChain(chain);
 
       // Get decoded tx simulation args
-      let simulationArgs: SimulateTxParams | null = null;
+      let simulationArgs: SimulateTxParams;
       if (functionName && args) {
         const contract = await getContract({
           chainId,
