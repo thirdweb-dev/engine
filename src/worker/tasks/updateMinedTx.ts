@@ -133,6 +133,9 @@ export const updateMinedTx = async () => {
                 functionName: txWithReceipt.tx.functionName || undefined,
                 extension: txWithReceipt.tx.extension || undefined,
                 provider: txWithReceipt.provider || undefined,
+                msSinceSend:
+                  txWithReceipt.minedAt.getTime() -
+                  txWithReceipt.tx.sentAt!.getTime(),
               },
               action: UsageEventTxActionEnum.MineTx,
             });
@@ -171,6 +174,7 @@ export const updateMinedTx = async () => {
                 chainId: tx.chainId || undefined,
                 transactionHash: tx.transactionHash || undefined,
                 provider: tx.provider || undefined,
+                msSinceSend: Date.now() - tx.sentAt!.getTime(),
               },
               action: UsageEventTxActionEnum.CancelTx,
             });

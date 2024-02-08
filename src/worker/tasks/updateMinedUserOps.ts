@@ -119,6 +119,8 @@ export const updateMinedUserOps = async () => {
                 functionName: userOp!.functionName || undefined,
                 extension: userOp!.extension || undefined,
                 provider: userOp!.provider || undefined,
+                msSinceSend:
+                  userOp!.minedAt.getTime() - userOp!.sentAt!.getTime(),
               },
               action: UsageEventTxActionEnum.MineTx,
             });

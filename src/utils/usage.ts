@@ -33,6 +33,8 @@ export interface ReportUsageParams {
     retryCount?: number;
     provider?: string;
     transactionValue?: string;
+    msSinceQueue?: number;
+    msSinceSend?: number;
   };
   error?: TransactionErrorInfo;
 }
@@ -152,6 +154,8 @@ export const reportUsage = async (usageParams: ReportUsageParams[]) => {
           extension: item.input.extension || undefined,
           retryCount: item.input.retryCount || undefined,
           provider: item.input.provider || undefined,
+          msSinceSend: item.input.msSinceSend || undefined,
+          msSinceQueue: item.input.msSinceQueue || undefined,
         };
 
         await fetch(env.CLIENT_ANALYTICS_URL, {

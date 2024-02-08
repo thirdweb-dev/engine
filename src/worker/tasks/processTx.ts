@@ -46,6 +46,7 @@ type SentTxStatus =
       sentAtBlockNumber: number;
       functionName?: string;
       extension?: string;
+      queuedAt?: number;
     }
   | {
       status: TransactionStatusEnum.Errored;
@@ -59,6 +60,7 @@ type SentTxStatus =
       };
       functionName?: string;
       extension?: string;
+      queuedAt?: number;
     };
 
 type RpcResponseData = {
@@ -68,6 +70,7 @@ type RpcResponseData = {
   sentAt: Date;
   functionName?: string;
   extension?: string;
+  queuedAt?: number;
 };
 
 export const processTx = async () => {
@@ -358,6 +361,7 @@ export const processTx = async () => {
                     sentAt: new Date(),
                     functionName: tx.functionName || undefined,
                     extension: tx.extension || undefined,
+                    queuedAt: new Date(tx.queuedAt!).getTime(),
                   });
                   sendWebhookForQueueIds.push({
                     queueId: tx.queueId!,
@@ -404,6 +408,8 @@ export const processTx = async () => {
                     functionName: tx.functionName || undefined,
                     extension: tx.extension || undefined,
                     provider: provider.connection.url || undefined,
+                    msSinceQueue:
+                      new Date().getTime() - new Date(tx.queuedAt!).getTime(),
                   },
                   action: UsageEventTxActionEnum.NotSendTx,
                 });
@@ -447,6 +453,7 @@ export const processTx = async () => {
                   sentAt,
                   functionName,
                   extension,
+                  queuedAt,
                 }) => {
                   if (res.result) {
                     const txHash = res.result;
@@ -470,6 +477,7 @@ export const processTx = async () => {
                       functionName,
                       extension,
                       sentAtBlockNumber: await provider.getBlockNumber(),
+                      queuedAt,
                     };
                   } else {
                     logger({
@@ -495,6 +503,7 @@ export const processTx = async () => {
                       },
                       functionName,
                       extension,
+                      queuedAt,
                     };
                   }
                 },
@@ -528,6 +537,7 @@ export const processTx = async () => {
                         extension: tx.extension || undefined,
                         provider: provider.connection.url || undefined,
                         transactionValue: tx.res?.value?.toString(),
+                        msSinceQueue: new Date().getTime() - tx.queuedAt!,
                       },
                       action: UsageEventTxActionEnum.SendTx,
                     });
@@ -550,6 +560,7 @@ export const processTx = async () => {
                         functionName: tx.functionName || undefined,
                         extension: tx.extension || undefined,
                         provider: provider.connection.url || undefined,
+                        msSinceQueue: new Date().getTime() - tx.queuedAt!,
                       },
                       action: UsageEventTxActionEnum.NotSendTx,
                     });
@@ -582,6 +593,8 @@ export const processTx = async () => {
                     chainId: tx.chainId || undefined,
                     functionName: tx.functionName || undefined,
                     extension: tx.extension || undefined,
+                    msSinceQueue:
+                      new Date().getTime() - new Date(tx.queuedAt!).getTime(),
                   },
                   action: UsageEventTxActionEnum.NotSendTx,
                 });
@@ -650,6 +663,8 @@ export const processTx = async () => {
                 functionName: tx.functionName || undefined,
                 extension: tx.extension || undefined,
                 provider: signer.httpRpcClient.bundlerUrl || undefined,
+                msSinceQueue:
+                  new Date().getTime() - new Date(tx.queuedAt!).getTime(),
               },
               action: UsageEventTxActionEnum.SendTx,
             });
@@ -685,6 +700,8 @@ export const processTx = async () => {
                 chainId: tx.chainId || undefined,
                 functionName: tx.functionName || undefined,
                 extension: tx.extension || undefined,
+                msSinceQueue:
+                  new Date().getTime() - new Date(tx.queuedAt!).getTime(),
               },
               action: UsageEventTxActionEnum.NotSendTx,
             });
