@@ -66,7 +66,7 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc20.balanceOf(wallet_address);
+      const returnData = await contract.call("balanceOf", [wallet_address]);
       reply.status(StatusCodes.OK).send({
         result: {
           name: returnData.name,

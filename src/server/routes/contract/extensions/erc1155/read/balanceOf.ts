@@ -63,10 +63,10 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc1155.balanceOf(
+      const returnData = await contract.call("balanceOf", [
         walletAddress,
         tokenId,
-      );
+      ]);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
       });
