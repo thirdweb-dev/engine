@@ -12,13 +12,13 @@ type QueueTxRawParams = Omit<
   simulateTx?: boolean;
 } & (
     | {
-        fromAddress: string;
-        signerAddress?: never;
-      }
+      fromAddress: string;
+      signerAddress?: never;
+    }
     | {
-        fromAddress?: never;
-        signerAddress: string;
-      }
+      fromAddress?: never;
+      signerAddress: string;
+    }
   );
 
 export const queueTxRaw = async ({
@@ -35,14 +35,9 @@ export const queueTxRaw = async ({
 
   if (!walletDetails) {
     throw new Error(
-      `No backend wallet found with address ${
-        tx.fromAddress || tx.signerAddress
+      `No backend wallet found with address ${tx.fromAddress || tx.signerAddress
       }`,
     );
-  }
-
-  if (shouldSimulate) {
-    await simulateTx({ txRaw: tx });
   }
 
   return prisma.transactions.create({

@@ -7,6 +7,7 @@ import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
 import { PrismaTransaction } from "../../schema/prisma";
 import { queueTxRaw } from "./queueTxRaw";
+import { simulateTx } from "../../server/utils/simulateTx";
 
 interface QueueTxParams {
   pgtx?: PrismaTransaction;
@@ -26,7 +27,7 @@ export const queueTx = async ({
   extension,
   deployedContractAddress,
   deployedContractType,
-  simulateTx,
+  simulateTx: shouldSimulate,
 }: QueueTxParams) => {
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
   const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
@@ -41,6 +42,10 @@ export const queueTx = async ({
     value: BigNumber.from(await tx.getValue()).toHexString(),
   };
 
+  if (shouldSimulate) {
+    await simulateTx({ tx });
+  }
+
   if (isUserOp) {
     const signerAddress = await (
       tx.getSigner as ERC4337EthersSigner
@@ -54,7 +59,7 @@ export const queueTx = async ({
       signerAddress,
       accountAddress,
       target,
-      simulateTx
+      simulateTx: shouldSimulate
     });
 
     return queueId;
@@ -67,7 +72,7 @@ export const queueTx = async ({
       ...txData,
       fromAddress,
       toAddress,
-      simulateTx
+      simulateTx: shouldSimulate
     });
 
     return queueId;
