@@ -49,7 +49,7 @@ export async function erc721TotalCount(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc721.totalCount();
+      const returnData = await contract.call("totalCount", []);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
       });
