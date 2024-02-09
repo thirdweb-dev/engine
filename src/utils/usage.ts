@@ -1,14 +1,11 @@
 import { Static, Type } from "@sinclair/typebox";
 import { TransactionErrorInfo } from "@thirdweb-dev/sdk";
 import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
-import {
-  deriveClientIdFromSecretKeyHash,
-  hashSecretKey,
-} from "@thirdweb-dev/service-utils/node";
 import { FastifyInstance } from "fastify";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
+import { deriveClientId } from "./api-keys";
 import { env } from "./env";
 import { logger } from "./logger";
 
@@ -69,21 +66,19 @@ const createHeaderForRequest = (input: CreateHeaderForRequestParams) => {
 export const withServerUsageReporting = (server: FastifyInstance) => {
   server.addHook("onResponse", async (request, reply) => {
     try {
-      const secretKey = env.THIRDWEB_API_SECRET_KEY;
-      if (!secretKey) {
-        throw new Error("No secret key found for usage reporting.");
+      // If the CLIENT_ANALYTICS_URL is not set, then we don't want to report usage
+      if (env.CLIENT_ANALYTICS_URL === "") {
+        return;
       }
+
+      const derivedClientId = deriveClientId(env.THIRDWEB_API_SECRET_KEY);
+      const headers = createHeaderForRequest({
+        clientId: derivedClientId,
+      });
 
       const requestParams = request?.params as Static<
         typeof EngineRequestParams
       >;
-      // hash the secret key
-      const secretKeyHash = hashSecretKey(secretKey);
-      // derive the client id from the secret key hash
-      const derivedClientId = deriveClientIdFromSecretKeyHash(secretKeyHash);
-      const headers = createHeaderForRequest({
-        clientId: derivedClientId,
-      });
 
       const chainId = requestParams?.chain
         ? await getChainIdFromChain(requestParams.chain)
@@ -102,6 +97,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
         walletAddress: requestParams.walletAddress || undefined,
         contractAddress: requestParams.contractAddress || undefined,
         httpStatusCode: reply.statusCode,
+        msTotalDuration: Math.ceil(reply.getResponseTime()),
       };
 
       await fetch(env.CLIENT_ANALYTICS_URL, {
@@ -124,15 +120,12 @@ export const reportUsage = async (usageParams: ReportUsageParams[]) => {
   try {
     usageParams.map(async (item) => {
       try {
-        const secretKey = env.THIRDWEB_API_SECRET_KEY;
-        if (!secretKey) {
-          throw new Error("No secret key found for usage reporting.");
+        // If the CLIENT_ANALYTICS_URL is not set, then we don't want to report usage
+        if (env.CLIENT_ANALYTICS_URL === "") {
+          return;
         }
 
-        // hash the secret key
-        const secretKeyHash = hashSecretKey(secretKey);
-        // derive the client id from the secret key hash
-        const derivedClientId = deriveClientIdFromSecretKeyHash(secretKeyHash);
+        const derivedClientId = deriveClientId(env.THIRDWEB_API_SECRET_KEY);
         const headers = createHeaderForRequest({
           clientId: derivedClientId,
         });
