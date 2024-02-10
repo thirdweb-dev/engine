@@ -3573,6 +3573,29 @@
     buffer-reverse "^1.0.1"
     treeify "^1.1.0"
 
+"@thirdweb-dev/sdk@0.0.0-dev-d3311a1-20240210064223":
+  version "0.0.0-dev-d3311a1-20240210064223"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-0.0.0-dev-d3311a1-20240210064223.tgz#7187bbb24938795048d1e141ee7185857f59acd3"
+  integrity sha512-zTzyhwruhCy+y4bZNaKcN6E21UetzOjuIWcgTGBHmp1ePzckg/KlCU3GMUnJM+ETyeMivIkLALImUvWBHoW2tA==
+  dependencies:
+    "@thirdweb-dev/chains" "0.1.72"
+    "@thirdweb-dev/contracts-js" "1.3.16"
+    "@thirdweb-dev/crypto" "0.2.0"
+    "@thirdweb-dev/generated-abis" "0.0.1"
+    "@thirdweb-dev/merkletree" "0.2.0"
+    "@thirdweb-dev/storage" "2.0.9"
+    abitype "^0.2.5"
+    bn.js "^5.2.1"
+    bs58 "^5.0.0"
+    buffer "^6.0.3"
+    eventemitter3 "^5.0.1"
+    fast-deep-equal "^3.1.3"
+    tiny-invariant "^1.2.0"
+    tweetnacl "^1.0.3"
+    uuid "^9.0.1"
+    yaml "^2.3.1"
+    zod "^3.22.3"
+
 "@thirdweb-dev/sdk@4.0.13":
   version "4.0.13"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.13.tgz#8e960271d019bfdcce553c8665b5dd2874d27f83"
@@ -3606,29 +3629,6 @@
     "@thirdweb-dev/generated-abis" "0.0.1"
     "@thirdweb-dev/merkletree" "0.2.0"
     "@thirdweb-dev/storage" "2.0.8"
-    abitype "^0.2.5"
-    bn.js "^5.2.1"
-    bs58 "^5.0.0"
-    buffer "^6.0.3"
-    eventemitter3 "^5.0.1"
-    fast-deep-equal "^3.1.3"
-    tiny-invariant "^1.2.0"
-    tweetnacl "^1.0.3"
-    uuid "^9.0.1"
-    yaml "^2.3.1"
-    zod "^3.22.3"
-
-"@thirdweb-dev/sdk@4.0.36-nightly-0f9a7b25-20240210054847":
-  version "4.0.36-nightly-0f9a7b25-20240210054847"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.36-nightly-0f9a7b25-20240210054847.tgz#73d34ccd3281676b71fb4c9b9e5588583ab90695"
-  integrity sha512-Es2lEZT07+gS5+tBPuQwp0pb4xo2jkrz6jZ0TTnbX+9X8/R9d5dLBHZ7aGEwyC/XwS5AMlAWBnw3Pxho12eyKw==
-  dependencies:
-    "@thirdweb-dev/chains" "0.1.72"
-    "@thirdweb-dev/contracts-js" "1.3.16"
-    "@thirdweb-dev/crypto" "0.2.0"
-    "@thirdweb-dev/generated-abis" "0.0.1"
-    "@thirdweb-dev/merkletree" "0.2.0"
-    "@thirdweb-dev/storage" "2.0.9"
     abitype "^0.2.5"
     bn.js "^5.2.1"
     bs58 "^5.0.0"
