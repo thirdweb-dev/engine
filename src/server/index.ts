@@ -18,6 +18,10 @@ import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
 
+// The server timeout in milliseconds.
+// Source: https://fastify.dev/docs/latest/Reference/Server/#connectiontimeout
+const SERVER_CONNECTION_TIMEOUT = 60_000;
+
 const __dirname = new URL(".", import.meta.url).pathname;
 
 interface HttpsObject {
@@ -47,6 +51,7 @@ export const initServer = async () => {
 
   // Start the server with middleware.
   const server: FastifyInstance = fastify({
+    connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
