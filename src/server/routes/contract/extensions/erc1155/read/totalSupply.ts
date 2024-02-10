@@ -58,7 +58,7 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await contract.call("totalSupply", [tokenId]);
+      const returnData = await contract.erc1155.totalSupply(tokenId);
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
       });

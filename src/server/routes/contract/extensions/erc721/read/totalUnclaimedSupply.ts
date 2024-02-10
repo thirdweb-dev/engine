@@ -42,7 +42,7 @@ export async function erc721TotalUnclaimedSupply(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await contract.call("totalUnclaimedSupply", []);
+      const returnData = await contract.erc721.totalUnclaimedSupply();
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
       });
