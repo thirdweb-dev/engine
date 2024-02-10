@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
-import { simulateTx } from "../../server/utils/simulateTx";
 import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
@@ -22,7 +21,6 @@ type QueueTxRawParams = Omit<
   );
 
 export const queueTxRaw = async ({
-  simulateTx: shouldSimulate,
   pgtx,
   ...tx
 }: QueueTxRawParams) => {
