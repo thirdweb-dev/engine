@@ -78,8 +78,9 @@ export const updatedConfigurationListener = async (): Promise<void> => {
         level: "info",
         message: `Updated configuration data`,
       });
-      clearCache();
       await getConfig(false);
+      clearCache();
+
       await queuedTxListener();
       await minedTxListener();
       await retryTxListener();
