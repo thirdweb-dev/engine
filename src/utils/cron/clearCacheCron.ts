@@ -18,6 +18,6 @@ export const clearCacheCron = async (
   }
 
   task = cron.schedule(config.clearCacheCronSchedule, async () => {
-    await clearCache(service);
+    await clearCache();
   });
 };
