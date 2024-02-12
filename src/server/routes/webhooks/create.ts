@@ -4,6 +4,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
+import { webhookCache } from "../../../utils/cache/getWebhook";
 import { isLocalhost } from "../../../utils/url";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
@@ -111,6 +112,7 @@ export async function createWebhook(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const config = await insertWebhook({ ...req.body });
+      webhookCache.clear();
       res.status(200).send({
         result: {
           ...config,
