@@ -1,3 +1,4 @@
+import { updatedConfigurationListener } from "./listeners/configListener";
 import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
@@ -18,7 +19,7 @@ export const initWorker = async () => {
 
   // Listen for new & updated configuration data
   // await newConfigurationListener();
-  // await updatedConfigurationListener();
+  await updatedConfigurationListener();
 
   // Listen for new & updated webhooks data
   // await newWebhooksListener();
