@@ -23,7 +23,6 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
     method: "POST",
     url: "/configuration/cache",
     schema: {
-      hide: true,
       summary: "Update cache configuration",
       description: "Update the engine configuration for cache",
       tags: ["Configuration"],

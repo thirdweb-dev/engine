@@ -1,12 +1,9 @@
 import cron from "node-cron";
 import { clearCache } from "../cache/clearCache";
 import { getConfig } from "../cache/getConfig";
-import { env } from "../env";
 
 let task: cron.ScheduledTask;
-export const clearCacheCron = async (
-  service: (typeof env)["LOG_SERVICES"][0],
-) => {
+export const clearCacheCron = async () => {
   const config = await getConfig();
 
   if (!config.clearCacheCronSchedule) {
