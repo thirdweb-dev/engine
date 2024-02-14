@@ -3522,6 +3522,11 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.70.tgz#b3a83314146753c494be3ca59a832df05f366e6b"
   integrity sha512-VP+JE70wNpbFa0rnKifTxxCXZwbKROf54z7qclxfb9tT1SY0/aIhVee0PYSxPXMd82NTkFkEidGFWS7TbYoldg==
 
+"@thirdweb-dev/chains@0.1.73-nightly-fa637c2e3-20240214074441":
+  version "0.1.73-nightly-fa637c2e3-20240214074441"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.73-nightly-fa637c2e3-20240214074441.tgz#525e429030014ca6598d687d58b79b8940a9d302"
+  integrity sha512-auxe2eGXKDFYxkktGZLcDo4ZOOXZU3xgh1KijSUR540p1Vpmv3srEKlJbOr/2oJW4OSOn70OQ6rXy7Ej/N0XWQ==
+
 "@thirdweb-dev/contracts-js@1.3.16":
   version "1.3.16"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/contracts-js/-/contracts-js-1.3.16.tgz#264727b40b0f320c01eefcb4295e89c9e9947002"
@@ -3613,12 +3618,12 @@
     yaml "^2.3.1"
     zod "^3.22.3"
 
-"@thirdweb-dev/sdk@4.0.33":
-  version "4.0.33"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.33.tgz#f48e0feeb4756fb0b9741c8e08e8194292777f89"
-  integrity sha512-sR4xq/oJN/HR7FJDRG2NBOz6FZlX1/7bHMuvz/3sZ15uoBqrPMqashSTvo7PFq2noDPJY5XXOni/MTv0iGDSLQ==
+"@thirdweb-dev/sdk@4.0.36-nightly-fa637c2e3-20240214074441":
+  version "4.0.36-nightly-fa637c2e3-20240214074441"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.36-nightly-fa637c2e3-20240214074441.tgz#569f101cf34241018925ba6f08a7e47bb833bda3"
+  integrity sha512-FRZT0MUQZOcyXsEj8jzTezdGhS2t/4oUx6VnKXYFJM1M4N7DX42xnAd4qIv7V+TTQ9sYjuzcji1zGKKQJdu9Ew==
   dependencies:
-    "@thirdweb-dev/chains" "0.1.70"
+    "@thirdweb-dev/chains" "0.1.73-nightly-fa637c2e3-20240214074441"
     "@thirdweb-dev/contracts-js" "1.3.16"
     "@thirdweb-dev/crypto" "0.2.0"
     "@thirdweb-dev/generated-abis" "0.0.1"
@@ -3636,10 +3641,10 @@
     yaml "^2.3.1"
     zod "^3.22.3"
 
-"@thirdweb-dev/service-utils@0.4.17-nightly-537e5e06-20240209005454":
-  version "0.4.17-nightly-537e5e06-20240209005454"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.4.17-nightly-537e5e06-20240209005454.tgz#f0e28984fe56d76185846ca8956dc0223aca6824"
-  integrity sha512-FWFjrSbjtfy6x30O6bjLwS3c+YzUIyuSE2kaN/SVGfzOvjqFVSl4bnGOv1RZcjez0y9Uh6V5aJpsSv5tGpUYrA==
+"@thirdweb-dev/service-utils@0.4.17":
+  version "0.4.17"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.4.17.tgz#d73371230a40bd3053dd0f66e9f6445e5fd47356"
+  integrity sha512-Hfj2Ewh93AnQl7AmBIhA1sz3wSM6XfU6K+BAgff0b36QaSvLzaVleK9M7n5/6SSR2U9RUUR+FzH72ZMyhaLSOw==
   dependencies:
     aws4fetch "^1.0.17"
     zod "^3.22.3"

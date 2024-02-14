@@ -112,6 +112,10 @@ export const getSdk = async ({
     sdk = new ThirdwebSDK(chain!, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
       supportedChains: config.chainOverrides ? RPC_OVERRIDES : undefined,
+      rpcBatchSettings: {
+        sizeLimit: env.SDK_BATCH_SIZE_LIMIT,
+        timeLimit: env.SDK_BATCH_TIME_LIMIT,
+      },
     });
   } else {
     const wallet = await getWallet({
@@ -123,6 +127,10 @@ export const getSdk = async ({
     sdk = await ThirdwebSDK.fromWallet(wallet, chainId, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
       supportedChains: config.chainOverrides ? RPC_OVERRIDES : undefined,
+      rpcBatchSettings: {
+        sizeLimit: env.SDK_BATCH_SIZE_LIMIT,
+        timeLimit: env.SDK_BATCH_TIME_LIMIT,
+      },
     });
   }
 
