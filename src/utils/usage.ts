@@ -106,12 +106,12 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
         body: JSON.stringify(requestBody),
       });
     } catch (e) {
-      logger({
-        service: "server",
-        level: "error",
-        message: `Error: `,
-        error: e,
-      });
+      // logger({
+      //   service: "server",
+      //   level: "error",
+      //   message: `Error: `,
+      //   error: e,
+      // });
     }
   });
 };
@@ -162,12 +162,12 @@ export const reportUsage = async (usageParams: ReportUsageParams[]) => {
           body: JSON.stringify(requestBody),
         });
       } catch (e) {
-        logger({
-          service: "worker",
-          level: "error",
-          message: `Error:`,
-          error: e,
-        });
+        // logger({
+        //   service: "worker",
+        //   level: "error",
+        //   message: `Error:`,
+        //   error: e,
+        // });
       }
     });
   } catch (error) {
