@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { logger } from "../../utils/logger";
 
 export const withRequestLogs = async (server: FastifyInstance) => {
   server.addHook("onRequest", async (request, reply) => {
@@ -61,23 +62,23 @@ export const withRequestLogs = async (server: FastifyInstance) => {
   //   }
   // });
 
-  // server.addHook("onResponse", (request, reply, done) => {
-  //   if (
-  //     !request.routerPath?.includes("static") &&
-  //     !request.routerPath?.includes("json") &&
-  //     request.method !== "OPTIONS"
-  //   ) {
-  //     logger({
-  //       service: "server",
-  //       level: "info",
-  //       message: `Request completed - ${request.method} - ${
-  //         reply.request.routerPath
-  //       } - status code: ${reply.statusCode} - Response time: ${reply
-  //         .getResponseTime()
-  //         .toFixed(2)}ms`,
-  //     });
-  //   }
+  server.addHook("onResponse", (request, reply, done) => {
+    if (
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json") &&
+      request.method !== "OPTIONS"
+    ) {
+      logger({
+        service: "server",
+        level: "info",
+        message: `Request completed - ${request.method} - ${
+          reply.request.routerPath
+        } - status code: ${reply.statusCode} - Response time: ${reply
+          .getResponseTime()
+          .toFixed(2)}ms`,
+      });
+    }
 
-  //   done();
-  // });
+    done();
+  });
 };
