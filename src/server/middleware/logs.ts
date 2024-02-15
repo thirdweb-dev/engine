@@ -1,19 +1,18 @@
 import { FastifyInstance } from "fastify";
-import { logger } from "../../utils/logger";
 
 export const withRequestLogs = async (server: FastifyInstance) => {
   server.addHook("onRequest", async (request, reply) => {
-    if (
-      !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json") &&
-      request.method !== "OPTIONS"
-    ) {
-      logger({
-        service: "server",
-        level: "info",
-        message: `Request received - ${request.method} - ${request.routerPath}`,
-      });
-    }
+    // if (
+    //   !request.routerPath?.includes("static") &&
+    //   !request.routerPath?.includes("json") &&
+    //   request.method !== "OPTIONS"
+    // ) {
+    //   logger({
+    //     service: "server",
+    //     level: "info",
+    //     message: `Request received - ${request.method} - ${request.routerPath}`,
+    //   });
+    // }
 
     if (process.env.NODE_ENV === "production") {
       if (request.routerPath?.includes("static")) {
@@ -26,59 +25,59 @@ export const withRequestLogs = async (server: FastifyInstance) => {
     }
   });
 
-  server.addHook("preHandler", async (request, reply) => {
-    if (
-      !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json") &&
-      !request.routerPath?.includes("/backend-wallet/import") &&
-      request.method !== "OPTIONS"
-    ) {
-      if (request.body && Object.keys(request.body).length > 0) {
-        logger({
-          service: "server",
-          level: "info",
-          message: `Request body - ${request.method} - ${request.routerPath}`,
-          data: request.body,
-        });
-      }
+  // server.addHook("preHandler", async (request, reply) => {
+  //   if (
+  //     !request.routerPath?.includes("static") &&
+  //     !request.routerPath?.includes("json") &&
+  //     !request.routerPath?.includes("/backend-wallet/import") &&
+  //     request.method !== "OPTIONS"
+  //   ) {
+  //     if (request.body && Object.keys(request.body).length > 0) {
+  //       logger({
+  //         service: "server",
+  //         level: "info",
+  //         message: `Request body - ${request.method} - ${request.routerPath}`,
+  //         data: request.body,
+  //       });
+  //     }
 
-      if (request.params && Object.keys(request.params).length > 0) {
-        logger({
-          service: "server",
-          level: "info",
-          message: `Request params - ${request.method}`,
-          data: request.params,
-        });
-      }
+  //     if (request.params && Object.keys(request.params).length > 0) {
+  //       logger({
+  //         service: "server",
+  //         level: "info",
+  //         message: `Request params - ${request.method}`,
+  //         data: request.params,
+  //       });
+  //     }
 
-      if (request.query && Object.keys(request.query).length > 0) {
-        logger({
-          service: "server",
-          level: "info",
-          message: `Request querystring - ${request.method} - ${request.routerPath}`,
-          data: request.query,
-        });
-      }
-    }
-  });
+  //     if (request.query && Object.keys(request.query).length > 0) {
+  //       logger({
+  //         service: "server",
+  //         level: "info",
+  //         message: `Request querystring - ${request.method} - ${request.routerPath}`,
+  //         data: request.query,
+  //       });
+  //     }
+  //   }
+  // });
 
-  server.addHook("onResponse", (request, reply, done) => {
-    if (
-      !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json") &&
-      request.method !== "OPTIONS"
-    ) {
-      logger({
-        service: "server",
-        level: "info",
-        message: `Request completed - ${request.method} - ${
-          reply.request.routerPath
-        } - status code: ${reply.statusCode} - Response time: ${reply
-          .getResponseTime()
-          .toFixed(2)}ms`,
-      });
-    }
+  // server.addHook("onResponse", (request, reply, done) => {
+  //   if (
+  //     !request.routerPath?.includes("static") &&
+  //     !request.routerPath?.includes("json") &&
+  //     request.method !== "OPTIONS"
+  //   ) {
+  //     logger({
+  //       service: "server",
+  //       level: "info",
+  //       message: `Request completed - ${request.method} - ${
+  //         reply.request.routerPath
+  //       } - status code: ${reply.statusCode} - Response time: ${reply
+  //         .getResponseTime()
+  //         .toFixed(2)}ms`,
+  //     });
+  //   }
 
-    done();
-  });
+  //   done();
+  // });
 };
