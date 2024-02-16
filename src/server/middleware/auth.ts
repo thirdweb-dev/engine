@@ -229,43 +229,47 @@ const onRequest = async ({
     return { isAuthed: false };
   }
 
-  const jwt = getJWT(req);
-  if (jwt) {
-    // Auth via access token
-    // Allow a request that provides a non-revoked access token for an owner/admin.
-    const token = await getAccessToken({ jwt });
-    if (token && token.revokedAt === null) {
-      const user = await getUser(req);
-      if (
-        user?.session?.permissions === Permission.Owner ||
-        user?.session?.permissions === Permission.Admin
-      ) {
-        return { isAuthed: true, user };
+  try {
+    const jwt = getJWT(req);
+    if (jwt) {
+      // Auth via access token
+      // Allow a request that provides a non-revoked access token for an owner/admin.
+      const token = await getAccessToken({ jwt });
+      if (token && token.revokedAt === null) {
+        const user = await getUser(req);
+        if (
+          user?.session?.permissions === Permission.Owner ||
+          user?.session?.permissions === Permission.Admin
+        ) {
+          return { isAuthed: true, user };
+        }
       }
-    }
 
-    // Auth via dashboard
-    // Allow a request that provides a dashboard JWT.
-    const user =
-      (await authWithApiServer(jwt, "thirdweb.com")) ||
-      (await authWithApiServer(jwt, "thirdweb-dev.com"));
-    if (user) {
-      const res = await getPermissions({ walletAddress: user.address });
-      if (
-        res?.permissions === Permission.Owner ||
-        res?.permissions === Permission.Admin
-      ) {
-        return {
-          isAuthed: true,
-          user: {
-            address: user.address,
-            session: {
-              permissions: res.permissions,
+      // Auth via dashboard
+      // Allow a request that provides a dashboard JWT.
+      const user =
+        (await authWithApiServer(jwt, "thirdweb.com")) ||
+        (await authWithApiServer(jwt, "thirdweb-dev.com"));
+      if (user) {
+        const res = await getPermissions({ walletAddress: user.address });
+        if (
+          res?.permissions === Permission.Owner ||
+          res?.permissions === Permission.Admin
+        ) {
+          return {
+            isAuthed: true,
+            user: {
+              address: user.address,
+              session: {
+                permissions: res.permissions,
+              },
             },
-          },
-        };
+          };
+        }
       }
     }
+  } catch {
+    // This throws if no JWT is provided. Continue to check other auth mechanisms.
   }
 
   // Auth via thirdweb secret key
