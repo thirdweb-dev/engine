@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-export const ReplySchema = Type.Object({
+const ReplySchema = Type.Object({
   result: Type.Object({
     minTxsToProcess: Type.Number(),
     maxTxsToProcess: Type.Number(),
