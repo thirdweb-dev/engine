@@ -7,6 +7,7 @@ import { deleteAllWalletNonces } from "../db/wallets/deleteAllWalletNonces";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
+import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listerners/updateTxListener";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
@@ -66,6 +67,7 @@ export const initServer = async () => {
   await withExpress(server);
   await withOpenApi(server);
   await withRoutes(server);
+  await withServerUsageReporting(server);
 
   await server.ready();
 

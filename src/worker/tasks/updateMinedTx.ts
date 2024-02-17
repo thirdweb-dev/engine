@@ -5,13 +5,19 @@ import { prisma } from "../../db/client";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
-import { WebhookData, sendWebhooks } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
+import {
+  ReportUsageParams,
+  UsageEventTxActionEnum,
+  reportUsage,
+} from "../../utils/usage";
+import { WebhookData, sendWebhooks } from "../../utils/webhook";
 
 export const updateMinedTx = async () => {
   try {
     const sendWebhookForQueueIds: WebhookData[] = [];
+    const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         const txs = await getSentTxs({ pgtx });
@@ -20,7 +26,7 @@ export const updateMinedTx = async () => {
           return;
         }
 
-        const droppedTxs: Transactions[] = [];
+        const droppedTxs: (Transactions & { provider?: string })[] = [];
 
         const txsWithReceipts = (
           await Promise.all(
@@ -30,6 +36,8 @@ export const updateMinedTx = async () => {
                 await sdk
                   .getProvider()
                   .getTransactionReceipt(tx.transactionHash!);
+              const provider =
+                sdk.getProvider() as ethers.providers.JsonRpcProvider;
 
               if (!receipt) {
                 // This tx is not yet mined or was dropped.
@@ -39,7 +47,7 @@ export const updateMinedTx = async () => {
                 const sentAt = new Date(tx.sentAt!);
                 const ageInMilliseconds = Date.now() - sentAt.getTime();
                 if (ageInMilliseconds > 1000 * 60 * 60 * 1) {
-                  droppedTxs.push(tx);
+                  droppedTxs.push({ provider: provider.connection.url, ...tx });
                 }
                 return;
               }
@@ -65,6 +73,7 @@ export const updateMinedTx = async () => {
                 receipt,
                 response,
                 minedAt,
+                provider: provider.connection.url,
               };
             }),
           )
@@ -76,6 +85,7 @@ export const updateMinedTx = async () => {
           receipt: ethers.providers.TransactionReceipt;
           response: ethers.providers.TransactionResponse;
           minedAt: Date;
+          provider: string;
         }[];
 
         // Update mined transactions.
@@ -111,6 +121,24 @@ export const updateMinedTx = async () => {
               queueId: txWithReceipt.tx.id,
               status: TransactionStatusEnum.Mined,
             });
+
+            reportUsageForQueueIds.push({
+              input: {
+                fromAddress: txWithReceipt.tx.fromAddress || undefined,
+                toAddress: txWithReceipt.tx.toAddress || undefined,
+                value: txWithReceipt.tx.value || undefined,
+                chainId: txWithReceipt.tx.chainId || undefined,
+                transactionHash: txWithReceipt.tx.transactionHash || undefined,
+                onChainTxStatus: txWithReceipt.receipt.status,
+                functionName: txWithReceipt.tx.functionName || undefined,
+                extension: txWithReceipt.tx.extension || undefined,
+                provider: txWithReceipt.provider || undefined,
+                msSinceSend:
+                  txWithReceipt.minedAt.getTime() -
+                  txWithReceipt.tx.sentAt!.getTime(),
+              },
+              action: UsageEventTxActionEnum.MineTx,
+            });
           }),
         );
 
@@ -137,6 +165,19 @@ export const updateMinedTx = async () => {
               queueId: tx.id,
               status: TransactionStatusEnum.Errored,
             });
+
+            reportUsageForQueueIds.push({
+              input: {
+                fromAddress: tx.fromAddress || undefined,
+                toAddress: tx.toAddress || undefined,
+                value: tx.value || undefined,
+                chainId: tx.chainId || undefined,
+                transactionHash: tx.transactionHash || undefined,
+                provider: tx.provider || undefined,
+                msSinceSend: Date.now() - tx.sentAt!.getTime(),
+              },
+              action: UsageEventTxActionEnum.CancelTx,
+            });
           }),
         );
       },
@@ -146,6 +187,7 @@ export const updateMinedTx = async () => {
     );
 
     await sendWebhooks(sendWebhookForQueueIds);
+    reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({
       service: "worker",

@@ -71,6 +71,9 @@ export const env = createEnv({
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
     PRUNE_TRANSACTIONS: boolSchema("true"),
+    CLIENT_ANALYTICS_URL: z
+      .union([UrlSchema, z.literal("")])
+      .default("https://c.thirdweb.com/event"),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
   },
@@ -90,6 +93,7 @@ export const env = createEnv({
     ENABLE_HTTPS: process.env.ENABLE_HTTPS,
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
     PRUNE_TRANSACTIONS: process.env.PRUNE_TRANSACTIONS,
+    CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
   },

@@ -4,13 +4,19 @@ import { prisma } from "../../db/client";
 import { getSentUserOps } from "../../db/transactions/getSentUserOps";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
-import { WebhookData, sendWebhooks } from "../../server/utils/webhook";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
+import {
+  ReportUsageParams,
+  UsageEventTxActionEnum,
+  reportUsage,
+} from "../../utils/usage";
+import { WebhookData, sendWebhooks } from "../../utils/webhook";
 
 export const updateMinedUserOps = async () => {
   try {
     const sendWebhookForQueueIds: WebhookData[] = [];
+    const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         const userOps = await getSentUserOps({ pgtx });
@@ -67,6 +73,7 @@ export const updateMinedUserOps = async () => {
                 gasLimit: tx.gasLimit.toString(),
                 maxFeePerGas: tx.maxFeePerGas?.toString(),
                 maxPriorityFeePerGas: tx.maxPriorityFeePerGas?.toString(),
+                provider: signer.httpRpcClient.bundlerUrl,
               };
             }),
           )
@@ -101,6 +108,22 @@ export const updateMinedUserOps = async () => {
               queueId: userOp!.id,
               status: TransactionStatusEnum.Mined,
             });
+            reportUsageForQueueIds.push({
+              input: {
+                fromAddress: userOp!.fromAddress || undefined,
+                toAddress: userOp!.toAddress || undefined,
+                value: userOp!.value || undefined,
+                chainId: userOp!.chainId || undefined,
+                userOpHash: userOp!.userOpHash || undefined,
+                onChainTxStatus: userOp!.onChainTxStatus,
+                functionName: userOp!.functionName || undefined,
+                extension: userOp!.extension || undefined,
+                provider: userOp!.provider || undefined,
+                msSinceSend:
+                  userOp!.minedAt.getTime() - userOp!.sentAt!.getTime(),
+              },
+              action: UsageEventTxActionEnum.MineTx,
+            });
           }),
         );
       },
@@ -110,6 +133,7 @@ export const updateMinedUserOps = async () => {
     );
 
     await sendWebhooks(sendWebhookForQueueIds);
+    reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({
       service: "worker",

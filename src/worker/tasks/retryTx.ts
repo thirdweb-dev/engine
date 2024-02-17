@@ -1,4 +1,7 @@
-import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
+import {
+  StaticJsonRpcBatchProvider,
+  getDefaultGasOverrides,
+} from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { prisma } from "../../db/client";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
@@ -7,6 +10,11 @@ import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
+import {
+  ReportUsageParams,
+  UsageEventTxActionEnum,
+  reportUsage,
+} from "../../utils/usage";
 
 export const retryTx = async () => {
   try {
@@ -19,10 +27,12 @@ export const retryTx = async () => {
         }
 
         const config = await getConfig();
+        const reportUsageForQueueIds: ReportUsageParams[] = [];
         const sdk = await getSdk({
           chainId: parseInt(tx.chainId!),
           walletAddress: tx.fromAddress!,
         });
+        const provider = sdk.getProvider() as StaticJsonRpcBatchProvider;
 
         const blockNumber = await sdk.getProvider().getBlockNumber();
         // Only retry if more than the elapsed blocks before retry has passed.
@@ -107,6 +117,22 @@ export const retryTx = async () => {
             },
           });
 
+          reportUsageForQueueIds.push({
+            input: {
+              fromAddress: tx.fromAddress || undefined,
+              toAddress: tx.toAddress || undefined,
+              value: tx.value || undefined,
+              chainId: tx.chainId || undefined,
+              functionName: tx.functionName || undefined,
+              extension: tx.extension || undefined,
+              retryCount: tx.retryCount + 1 || 0,
+              provider: provider.connection.url || undefined,
+            },
+            action: UsageEventTxActionEnum.NotSendTx,
+          });
+
+          reportUsage(reportUsageForQueueIds);
+
           return;
         }
 
@@ -122,6 +148,23 @@ export const retryTx = async () => {
             transactionHash: res.hash,
           },
         });
+
+        reportUsageForQueueIds.push({
+          input: {
+            fromAddress: tx.fromAddress || undefined,
+            toAddress: tx.toAddress || undefined,
+            value: tx.value || undefined,
+            chainId: tx.chainId || undefined,
+            functionName: tx.functionName || undefined,
+            extension: tx.extension || undefined,
+            retryCount: tx.retryCount + 1,
+            transactionHash: res.hash || undefined,
+            provider: provider.connection.url || undefined,
+          },
+          action: UsageEventTxActionEnum.SendTx,
+        });
+
+        reportUsage(reportUsageForQueueIds);
 
         logger({
           service: "worker",

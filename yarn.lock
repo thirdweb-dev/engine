@@ -3522,10 +3522,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.70.tgz#b3a83314146753c494be3ca59a832df05f366e6b"
   integrity sha512-VP+JE70wNpbFa0rnKifTxxCXZwbKROf54z7qclxfb9tT1SY0/aIhVee0PYSxPXMd82NTkFkEidGFWS7TbYoldg==
 
-"@thirdweb-dev/chains@0.1.72":
-  version "0.1.72"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.72.tgz#ff3a54a1ba6d7cbf3814d84345c1106678a8e2ab"
-  integrity sha512-IAq66KT8HgsmP85p0ykpUZNCwSGubmadlgvCG5We8sgOFBlerX/CuFZwHh9szVbptLX6yDAg6ueN5WwgLOGyHg==
+"@thirdweb-dev/chains@0.1.73-nightly-fa637c2e3-20240214074441":
+  version "0.1.73-nightly-fa637c2e3-20240214074441"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.73-nightly-fa637c2e3-20240214074441.tgz#525e429030014ca6598d687d58b79b8940a9d302"
+  integrity sha512-auxe2eGXKDFYxkktGZLcDo4ZOOXZU3xgh1KijSUR540p1Vpmv3srEKlJbOr/2oJW4OSOn70OQ6rXy7Ej/N0XWQ==
 
 "@thirdweb-dev/contracts-js@1.3.16":
   version "1.3.16"
@@ -3573,29 +3573,6 @@
     buffer-reverse "^1.0.1"
     treeify "^1.1.0"
 
-"@thirdweb-dev/sdk@0.0.0-dev-d3311a1-20240210064223":
-  version "0.0.0-dev-d3311a1-20240210064223"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-0.0.0-dev-d3311a1-20240210064223.tgz#7187bbb24938795048d1e141ee7185857f59acd3"
-  integrity sha512-zTzyhwruhCy+y4bZNaKcN6E21UetzOjuIWcgTGBHmp1ePzckg/KlCU3GMUnJM+ETyeMivIkLALImUvWBHoW2tA==
-  dependencies:
-    "@thirdweb-dev/chains" "0.1.72"
-    "@thirdweb-dev/contracts-js" "1.3.16"
-    "@thirdweb-dev/crypto" "0.2.0"
-    "@thirdweb-dev/generated-abis" "0.0.1"
-    "@thirdweb-dev/merkletree" "0.2.0"
-    "@thirdweb-dev/storage" "2.0.9"
-    abitype "^0.2.5"
-    bn.js "^5.2.1"
-    bs58 "^5.0.0"
-    buffer "^6.0.3"
-    eventemitter3 "^5.0.1"
-    fast-deep-equal "^3.1.3"
-    tiny-invariant "^1.2.0"
-    tweetnacl "^1.0.3"
-    uuid "^9.0.1"
-    yaml "^2.3.1"
-    zod "^3.22.3"
-
 "@thirdweb-dev/sdk@4.0.13":
   version "4.0.13"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.13.tgz#8e960271d019bfdcce553c8665b5dd2874d27f83"
@@ -3641,13 +3618,36 @@
     yaml "^2.3.1"
     zod "^3.22.3"
 
-"@thirdweb-dev/service-utils@^0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.4.2.tgz#bb22fcb38349bf4c5879cbfc105902d3cc32413a"
-  integrity sha512-ag68/7/Qad0gezAVTi0uDla6fqtEI5iFuEO3E1eN9OVoYFCzm3wtvfhqgpuY6W/6hVYVRjZnaN2N4BmQIJAyew==
+"@thirdweb-dev/sdk@4.0.36-nightly-fa637c2e3-20240214074441":
+  version "4.0.36-nightly-fa637c2e3-20240214074441"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.36-nightly-fa637c2e3-20240214074441.tgz#569f101cf34241018925ba6f08a7e47bb833bda3"
+  integrity sha512-FRZT0MUQZOcyXsEj8jzTezdGhS2t/4oUx6VnKXYFJM1M4N7DX42xnAd4qIv7V+TTQ9sYjuzcji1zGKKQJdu9Ew==
+  dependencies:
+    "@thirdweb-dev/chains" "0.1.73-nightly-fa637c2e3-20240214074441"
+    "@thirdweb-dev/contracts-js" "1.3.16"
+    "@thirdweb-dev/crypto" "0.2.0"
+    "@thirdweb-dev/generated-abis" "0.0.1"
+    "@thirdweb-dev/merkletree" "0.2.0"
+    "@thirdweb-dev/storage" "2.0.9"
+    abitype "^0.2.5"
+    bn.js "^5.2.1"
+    bs58 "^5.0.0"
+    buffer "^6.0.3"
+    eventemitter3 "^5.0.1"
+    fast-deep-equal "^3.1.3"
+    tiny-invariant "^1.2.0"
+    tweetnacl "^1.0.3"
+    uuid "^9.0.1"
+    yaml "^2.3.1"
+    zod "^3.22.3"
+
+"@thirdweb-dev/service-utils@0.4.17":
+  version "0.4.17"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.4.17.tgz#d73371230a40bd3053dd0f66e9f6445e5fd47356"
+  integrity sha512-Hfj2Ewh93AnQl7AmBIhA1sz3wSM6XfU6K+BAgff0b36QaSvLzaVleK9M7n5/6SSR2U9RUUR+FzH72ZMyhaLSOw==
   dependencies:
     aws4fetch "^1.0.17"
-    zod "^3.20.2"
+    zod "^3.22.3"
 
 "@thirdweb-dev/storage@2.0.4":
   version "2.0.4"
@@ -12558,7 +12558,7 @@ zod-to-json-schema@^3.17.1:
   resolved "https://registry.yarnpkg.com/zod-to-json-schema/-/zod-to-json-schema-3.22.4.tgz#f8cc691f6043e9084375e85fb1f76ebafe253d70"
   integrity sha512-2Ed5dJ+n/O3cU383xSY28cuVi0BCQhF8nYqWU5paEpl7fVdqdAmiLdqLyfblbNdfOFwFfi/mqU4O1pwc60iBhQ==
 
-zod@^3.20.2, zod@^3.21.4:
+zod@^3.21.4:
   version "3.21.4"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.21.4.tgz#10882231d992519f0a10b5dd58a38c9dabbb64db"
   integrity sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==

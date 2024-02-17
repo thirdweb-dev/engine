@@ -18,8 +18,8 @@ import { getConfig } from "../../utils/cache/getConfig";
 import { getWebhook } from "../../utils/cache/getWebhook";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
+import { sendWebhookRequest } from "../../utils/webhook";
 import { Permission } from "../schemas/auth";
-import { sendWebhookRequest } from "../utils/webhook";
 
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };

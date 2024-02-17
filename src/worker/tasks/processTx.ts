@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Static } from "@sinclair/typebox";
 import {
   StaticJsonRpcBatchProvider,
@@ -18,15 +19,20 @@ import {
   TransactionStatusEnum,
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
-import {
-  WebhookData,
-  sendBalanceWebhook,
-  sendWebhooks,
-} from "../../server/utils/webhook";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
+import {
+  ReportUsageParams,
+  UsageEventTxActionEnum,
+  reportUsage,
+} from "../../utils/usage";
+import {
+  WebhookData,
+  sendBalanceWebhook,
+  sendWebhooks,
+} from "../../utils/webhook";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawalValue } from "../utils/withdraw";
 
@@ -38,11 +44,23 @@ type SentTxStatus =
       queueId: string;
       res: ethers.providers.TransactionResponse | null;
       sentAtBlockNumber: number;
+      functionName?: string;
+      extension?: string;
+      queuedAt?: number;
     }
   | {
       status: TransactionStatusEnum.Errored;
       queueId: string;
       errorMessage: string;
+      txRequest: {
+        from?: string;
+        to?: string;
+        value?: string;
+        chainId?: string;
+      };
+      functionName?: string;
+      extension?: string;
+      queuedAt?: number;
     };
 
 type RpcResponseData = {
@@ -50,12 +68,16 @@ type RpcResponseData = {
   tx: ethers.providers.TransactionRequest;
   res: RpcResponse;
   sentAt: Date;
+  functionName?: string;
+  extension?: string;
+  queuedAt?: number;
 };
 
 export const processTx = async () => {
   try {
     // 0. Initialize queueIds to send webhook
     const sendWebhookForQueueIds: WebhookData[] = [];
+    const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
@@ -76,6 +98,21 @@ export const processTx = async () => {
           txs.map((tx) => ({
             queueId: tx.queueId!,
             status: TransactionStatusEnum.Queued,
+          })),
+        );
+
+        reportUsage(
+          txs.map((tx) => ({
+            input: {
+              chainId: tx.chainId || undefined,
+              fromAddress: tx.fromAddress || undefined,
+              toAddress: tx.toAddress || undefined,
+              value: tx.value || undefined,
+              transactionHash: tx.transactionHash || undefined,
+              functionName: tx.functionName || undefined,
+              extension: tx.extension || undefined,
+            },
+            action: UsageEventTxActionEnum.QueueTx,
           })),
         );
 
@@ -322,6 +359,9 @@ export const processTx = async () => {
                     tx: txRequest,
                     res: rpcResponse,
                     sentAt: new Date(),
+                    functionName: tx.functionName || undefined,
+                    extension: tx.extension || undefined,
+                    queuedAt: new Date(tx.queuedAt!).getTime(),
                   });
                   sendWebhookForQueueIds.push({
                     queueId: tx.queueId!,
@@ -344,6 +384,8 @@ export const processTx = async () => {
                     tx: txRequest,
                     res: rpcResponse,
                     sentAt: new Date(),
+                    functionName: tx.functionName || undefined,
+                    extension: tx.extension || undefined,
                   });
                   sendWebhookForQueueIds.push({
                     queueId: tx.queueId!,
@@ -356,6 +398,20 @@ export const processTx = async () => {
                 sendWebhookForQueueIds.push({
                   queueId: tx.queueId!,
                   status: TransactionStatusEnum.Errored,
+                });
+                reportUsageForQueueIds.push({
+                  input: {
+                    fromAddress: tx.fromAddress || undefined,
+                    toAddress: tx.toAddress || undefined,
+                    value: tx.value || undefined,
+                    chainId: tx.chainId || undefined,
+                    functionName: tx.functionName || undefined,
+                    extension: tx.extension || undefined,
+                    provider: provider.connection.url || undefined,
+                    msSinceQueue:
+                      new Date().getTime() - new Date(tx.queuedAt!).getTime(),
+                  },
+                  action: UsageEventTxActionEnum.NotSendTx,
                 });
 
                 logger({
@@ -389,47 +445,69 @@ export const processTx = async () => {
 
             // Update transaction records with updated data
             const txStatuses: SentTxStatus[] = await Promise.all(
-              rpcResponses.map(async ({ queueId, tx, res, sentAt }) => {
-                if (res.result) {
-                  const txHash = res.result;
-                  const txRes = (await provider.getTransaction(
-                    txHash,
-                  )) as ethers.providers.TransactionResponse | null;
+              rpcResponses.map(
+                async ({
+                  queueId,
+                  tx,
+                  res,
+                  sentAt,
+                  functionName,
+                  extension,
+                  queuedAt,
+                }) => {
+                  if (res.result) {
+                    const txHash = res.result;
+                    const txRes = (await provider.getTransaction(
+                      txHash,
+                    )) as ethers.providers.TransactionResponse | null;
 
-                  logger({
-                    service: "worker",
-                    level: "info",
-                    queueId,
-                    message: `Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
-                  });
+                    logger({
+                      service: "worker",
+                      level: "info",
+                      queueId,
+                      message: `Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
+                    });
 
-                  return {
-                    sentAt,
-                    transactionHash: txHash,
-                    status: TransactionStatusEnum.Submitted,
-                    queueId: queueId,
-                    res: txRes,
-                    sentAtBlockNumber: await provider.getBlockNumber(),
-                  };
-                } else {
-                  logger({
-                    service: "worker",
-                    level: "warn",
-                    queueId,
-                    message: `Received error from RPC`,
-                    error: res.error,
-                  });
+                    return {
+                      sentAt,
+                      transactionHash: txHash,
+                      status: TransactionStatusEnum.Submitted,
+                      queueId: queueId,
+                      res: txRes,
+                      functionName,
+                      extension,
+                      sentAtBlockNumber: await provider.getBlockNumber(),
+                      queuedAt,
+                    };
+                  } else {
+                    logger({
+                      service: "worker",
+                      level: "warn",
+                      queueId,
+                      message: `Received error from RPC`,
+                      error: res.error,
+                    });
 
-                  return {
-                    status: TransactionStatusEnum.Errored,
-                    queueId: queueId,
-                    errorMessage:
-                      res.error?.message ||
-                      res.error?.toString() ||
-                      `Failed to handle transaction`,
-                  };
-                }
-              }),
+                    return {
+                      status: TransactionStatusEnum.Errored,
+                      queueId: queueId,
+                      errorMessage:
+                        res.error?.message ||
+                        res.error?.toString() ||
+                        `Failed to handle transaction`,
+                      txRequest: {
+                        from: tx.from,
+                        to: tx.to,
+                        value: tx.value?.toString(),
+                        chainId: tx.chainId?.toString(),
+                      },
+                      functionName,
+                      extension,
+                      queuedAt,
+                    };
+                  }
+                },
+              ),
             );
 
             // - After sending transactions, update database for each transaction
@@ -448,6 +526,21 @@ export const processTx = async () => {
                         sentAtBlockNumber: await provider.getBlockNumber(),
                       },
                     });
+                    reportUsageForQueueIds.push({
+                      input: {
+                        fromAddress: tx.res?.from,
+                        toAddress: tx.res?.to,
+                        value: tx.res?.value?.toString(),
+                        chainId: tx.res?.chainId?.toString(),
+                        transactionHash: tx.transactionHash,
+                        functionName: tx.functionName || undefined,
+                        extension: tx.extension || undefined,
+                        provider: provider.connection.url || undefined,
+                        transactionValue: tx.res?.value?.toString(),
+                        msSinceQueue: new Date().getTime() - tx.queuedAt!,
+                      },
+                      action: UsageEventTxActionEnum.SendTx,
+                    });
                     break;
                   case TransactionStatusEnum.Errored:
                     await updateTx({
@@ -457,6 +550,19 @@ export const processTx = async () => {
                         status: TransactionStatusEnum.Errored,
                         errorMessage: tx.errorMessage,
                       },
+                    });
+                    reportUsageForQueueIds.push({
+                      input: {
+                        fromAddress: tx.txRequest.from,
+                        toAddress: tx.txRequest.to,
+                        value: tx.txRequest.value?.toString(),
+                        chainId: tx.txRequest.chainId?.toString(),
+                        functionName: tx.functionName || undefined,
+                        extension: tx.extension || undefined,
+                        provider: provider.connection.url || undefined,
+                        msSinceQueue: new Date().getTime() - tx.queuedAt!,
+                      },
+                      action: UsageEventTxActionEnum.NotSendTx,
                     });
                     break;
                 }
@@ -477,6 +583,20 @@ export const processTx = async () => {
                 sendWebhookForQueueIds.push({
                   queueId: tx.queueId!,
                   status: TransactionStatusEnum.Errored,
+                });
+
+                reportUsageForQueueIds.push({
+                  input: {
+                    fromAddress: tx.fromAddress || undefined,
+                    toAddress: tx.toAddress || undefined,
+                    value: tx.value || undefined,
+                    chainId: tx.chainId || undefined,
+                    functionName: tx.functionName || undefined,
+                    extension: tx.extension || undefined,
+                    msSinceQueue:
+                      new Date().getTime() - new Date(tx.queuedAt!).getTime(),
+                  },
+                  action: UsageEventTxActionEnum.NotSendTx,
                 });
 
                 await updateTx({
@@ -533,6 +653,21 @@ export const processTx = async () => {
               queueId: tx.queueId!,
               status: TransactionStatusEnum.UserOpSent,
             });
+            reportUsageForQueueIds.push({
+              input: {
+                fromAddress: tx.accountAddress || undefined,
+                toAddress: tx.toAddress || undefined,
+                value: tx.value || undefined,
+                chainId: tx.chainId || undefined,
+                userOpHash,
+                functionName: tx.functionName || undefined,
+                extension: tx.extension || undefined,
+                provider: signer.httpRpcClient.bundlerUrl || undefined,
+                msSinceQueue:
+                  new Date().getTime() - new Date(tx.queuedAt!).getTime(),
+              },
+              action: UsageEventTxActionEnum.SendTx,
+            });
           } catch (err: any) {
             logger({
               service: "worker",
@@ -557,6 +692,19 @@ export const processTx = async () => {
               queueId: tx.queueId!,
               status: TransactionStatusEnum.Errored,
             });
+            reportUsageForQueueIds.push({
+              input: {
+                fromAddress: tx.accountAddress || undefined,
+                toAddress: tx.toAddress || undefined,
+                value: tx.value || undefined,
+                chainId: tx.chainId || undefined,
+                functionName: tx.functionName || undefined,
+                extension: tx.extension || undefined,
+                msSinceQueue:
+                  new Date().getTime() - new Date(tx.queuedAt!).getTime(),
+              },
+              action: UsageEventTxActionEnum.NotSendTx,
+            });
           }
         });
 
@@ -570,6 +718,7 @@ export const processTx = async () => {
     );
 
     await sendWebhooks(sendWebhookForQueueIds);
+    reportUsage(reportUsageForQueueIds);
   } catch (err: any) {
     logger({
       service: "worker",
