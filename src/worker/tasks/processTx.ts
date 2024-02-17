@@ -101,7 +101,7 @@ export const processTx = async () => {
           })),
         );
 
-        await reportUsage(
+        reportUsage(
           txs.map((tx) => ({
             input: {
               chainId: tx.chainId || undefined,
@@ -718,7 +718,7 @@ export const processTx = async () => {
     );
 
     await sendWebhooks(sendWebhookForQueueIds);
-    await reportUsage(reportUsageForQueueIds);
+    reportUsage(reportUsageForQueueIds);
   } catch (err: any) {
     logger({
       service: "worker",

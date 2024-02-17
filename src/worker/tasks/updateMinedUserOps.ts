@@ -133,7 +133,7 @@ export const updateMinedUserOps = async () => {
     );
 
     await sendWebhooks(sendWebhookForQueueIds);
-    await reportUsage(reportUsageForQueueIds);
+    reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({
       service: "worker",

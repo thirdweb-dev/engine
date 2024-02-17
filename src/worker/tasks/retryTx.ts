@@ -131,7 +131,7 @@ export const retryTx = async () => {
             action: UsageEventTxActionEnum.NotSendTx,
           });
 
-          await reportUsage(reportUsageForQueueIds);
+          reportUsage(reportUsageForQueueIds);
 
           return;
         }
@@ -164,7 +164,7 @@ export const retryTx = async () => {
           action: UsageEventTxActionEnum.SendTx,
         });
 
-        await reportUsage(reportUsageForQueueIds);
+        reportUsage(reportUsageForQueueIds);
 
         logger({
           service: "worker",

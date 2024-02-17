@@ -100,23 +100,16 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
         msTotalDuration: Math.ceil(reply.getResponseTime()),
       };
 
-      await fetch(env.CLIENT_ANALYTICS_URL, {
+      fetch(env.CLIENT_ANALYTICS_URL, {
         method: "POST",
         headers,
         body: JSON.stringify(requestBody),
       });
-    } catch (e) {
-      // logger({
-      //   service: "server",
-      //   level: "error",
-      //   message: `Error: `,
-      //   error: e,
-      // });
-    }
+    } catch (e) {}
   });
 };
 
-export const reportUsage = async (usageParams: ReportUsageParams[]) => {
+export const reportUsage = (usageParams: ReportUsageParams[]) => {
   try {
     usageParams.map(async (item) => {
       try {
@@ -156,19 +149,12 @@ export const reportUsage = async (usageParams: ReportUsageParams[]) => {
           msSinceQueue: item.input.msSinceQueue || undefined,
         };
 
-        await fetch(env.CLIENT_ANALYTICS_URL, {
+        fetch(env.CLIENT_ANALYTICS_URL, {
           method: "POST",
           headers,
           body: JSON.stringify(requestBody),
         });
-      } catch (e) {
-        // logger({
-        //   service: "worker",
-        //   level: "error",
-        //   message: `Error:`,
-        //   error: e,
-        // });
-      }
+      } catch (e) {}
     });
   } catch (error) {
     logger({
