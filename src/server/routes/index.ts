@@ -85,6 +85,7 @@ import { grantPermissions } from "./auth/permissions/grant";
 import { revokePermissions } from "./auth/permissions/revoke";
 import { signMessage } from "./backend-wallet/signMessage";
 import { signTransaction } from "./backend-wallet/signTransaction";
+import { signTypedData } from "./backend-wallet/signTypedData";
 import { getAuthConfiguration } from "./configuration/auth/get";
 import { updateAuthConfiguration } from "./configuration/auth/update";
 
@@ -102,6 +103,7 @@ import { revokeRelayer } from "./relayer/revoke";
 import { getAllTransactions } from "./backend-wallet/getTransactions";
 import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
+import { simulateTransaction } from "./backend-wallet/simulateTransaction";
 import { withdraw } from "./backend-wallet/withdraw";
 import { home } from "./home";
 import { updateRelayer } from "./relayer/update";
@@ -110,7 +112,6 @@ import { queueStatus } from "./system/queue";
 import { checkGroupStatus } from "./transaction/group";
 import { sendSignedTransaction } from "./transaction/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
-import { simulateTransaction } from "./backend-wallet/simulateTransaction";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -125,6 +126,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(sendTransactionBatch);
   await fastify.register(signTransaction);
   await fastify.register(signMessage);
+  await fastify.register(signTypedData);
   await fastify.register(getAllTransactions);
   await fastify.register(resetBackendWalletNonces);
   await fastify.register(getBackendWalletNonce);
