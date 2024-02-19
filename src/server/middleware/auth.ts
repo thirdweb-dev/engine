@@ -9,6 +9,7 @@ import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { utils } from "ethers";
 import { FastifyInstance } from "fastify";
 import { FastifyRequest } from "fastify/types/request";
+import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
 import { revokeToken } from "../../db/tokens/revokeToken";
@@ -166,7 +167,7 @@ export const withAuth = async (server: FastifyInstance) => {
   });
 };
 
-const onRequest = async ({
+export const onRequest = async ({
   req,
   getUser,
 }: {
@@ -193,15 +194,12 @@ const onRequest = async ({
     return { isAuthed: true };
   }
 
-  if (
-    req.method === "POST" &&
-    req.url.startsWith("/relayer/") &&
-    !req.url.startsWith("/relayer/create") &&
-    !req.url.startsWith("/relayer/revoke") &&
-    !req.url.startsWith("/relayer/update")
-  ) {
-    // Relayer endpoints handle their own authentication.
-    return { isAuthed: true };
+  if (req.method === "POST" && req.url.startsWith("/relayer/")) {
+    const relayerId = req.url.slice("/relayer/".length);
+    if (uuidValidate(relayerId)) {
+      // The "relay transaction" endpoint handles its own authentication.
+      return { isAuthed: true };
+    }
   }
 
   // Handle websocket request: auth via access token
