@@ -1,11 +1,11 @@
 import { knex } from "../../db/client";
 import { getTxById } from "../../db/transactions/getTxById";
-import { subscriptionsData } from "../../server/schemas/websocket";
+import { logger } from "../../utils/logger";
+import { subscriptionsData } from "../schemas/websocket";
 import {
   formatSocketMessage,
   getStatusMessageAndConnectionStatus,
-} from "../../server/utils/websocket";
-import { logger } from "../../utils/logger";
+} from "../utils/websocket";
 
 export const updateTxListener = async (): Promise<void> => {
   logger({
