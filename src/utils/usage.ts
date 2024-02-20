@@ -84,7 +84,11 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
         ? await getChainIdFromChain(requestParams.chain)
         : "";
 
-      if (reply.request.routerPath === "" || !reply.request.routerPath) {
+      if (
+        reply.request.routerPath === "" ||
+        !reply.request.routerPath ||
+        reply.request.routerPath === "/"
+      ) {
         return;
       }
 
