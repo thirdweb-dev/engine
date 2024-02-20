@@ -8,7 +8,7 @@ import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
 import { withServerUsageReporting } from "../utils/usage";
-import { updateTxListener } from "./listerners/updateTxListener";
+import { updateTxListener } from "./listeners/updateTxListener";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
 import { withErrorHandler } from "./middleware/error";
