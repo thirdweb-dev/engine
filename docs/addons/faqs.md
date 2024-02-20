@@ -11,7 +11,7 @@ _`tx_overrides` is an optional parameter that can be passed in the body of write
 
 ### How to set the RPC URLs?
 
-_Use the end-point, `/configuration/chains` to SET the chain-override details for a particular chain. Chain details update are picked in the subsequent SDK calls. Check the [example file](../chain-overrides.example.json) for the format for using the `chain-override`._
+_Use the end-point, `/configuration/chains` to SET the chain-override details for a particular chain. Chain details update are picked in the subsequent SDK calls. Check the [example file](../chain-overrides.example.json) for the format `chain-override`._
 
 ### Cannot connect to the Postgres DB?
 
