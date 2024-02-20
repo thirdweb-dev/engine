@@ -11,7 +11,7 @@ _`tx_overrides` is an optional parameter that can be passed in the body of write
 
 ### How to set the RPC URLs?
 
-_Set the `CHAIN_OVERRIDES` environment variable to the path of the JSON file or URL (file hosted somewhere on the internet) containing the RPC URLs. The default value is `./chain-overrides.json`. Check the [example file](../chain-overrides.example.json) for the format._
+_Use the end-point, `/configuration/chains` to SET the chain-override details for a particular RPC. Chain/RPC details are updated in the subsequent SDK calls. Check the [example file](../chain-overrides.example.json) for the format._
 
 ### Cannot connect to the Postgres DB?
 
