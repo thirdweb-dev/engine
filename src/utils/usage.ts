@@ -57,9 +57,10 @@ interface UsageEventSchema extends Omit<UsageEvent, "action"> {
 const URLS_LIST_TO_NOT_REPORT_USAGE = new Set([
   "/",
   "/favicon.ico",
-  "/",
   "/system/health",
   "/json",
+  "/static",
+  "",
 ]);
 
 const createHeaderForRequest = (input: CreateHeaderForRequestParams) => {
