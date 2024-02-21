@@ -5,10 +5,10 @@ import { getPermissions } from "../db/permissions/getPermissions";
 import { WebhooksEventTypes } from "../schema/webhooks";
 import { onRequest } from "../server/middleware/auth";
 import { Permission } from "../server/schemas/auth";
-import { sendWebhookRequest } from "../server/utils/webhook";
 import { getAccessToken } from "../utils/cache/accessToken";
 import { getAuthWallet } from "../utils/cache/authWallet";
 import { getWebhook } from "../utils/cache/getWebhook";
+import { sendWebhookRequest } from "../utils/webhook";
 
 jest.mock("../utils/cache/accessToken");
 const mockGetAccessToken = getAccessToken as jest.MockedFunction<
