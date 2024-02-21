@@ -4,7 +4,6 @@ import { updateMinedTx } from "../tasks/updateMinedTx";
 import { updateMinedUserOps } from "../tasks/updateMinedUserOps";
 
 let task: cron.ScheduledTask;
-let minedTxStarted = false;
 export const minedTxListener = async () => {
   const config = await getConfig();
 
