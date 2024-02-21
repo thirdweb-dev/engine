@@ -73,11 +73,8 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       if (env.CLIENT_ANALYTICS_URL === "") {
         return;
       }
-      const isUsageReportingAllowed = URLS_LIST_TO_NOT_REPORT_USAGE.has(
-        reply.request.routerPath,
-      );
 
-      if (isUsageReportingAllowed) {
+      if (URLS_LIST_TO_NOT_REPORT_USAGE.has(reply.request.routerPath)) {
         return;
       }
 
