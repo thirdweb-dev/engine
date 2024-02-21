@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateToken } from "../../../../db/tokens/updateToken";
+import { accessTokenCache } from "../../../../utils/cache/accessToken";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
@@ -36,6 +37,8 @@ export async function updateAccessToken(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const { id, label } = req.body;
       await updateToken({ id, label });
+
+      accessTokenCache.clear();
 
       res.status(200).send({
         result: {
