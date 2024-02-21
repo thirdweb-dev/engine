@@ -2,10 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { TransactionErrorInfo } from "@thirdweb-dev/sdk";
 import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import { FastifyInstance } from "fastify";
-import {
-  URLS_LIST_TO_NOT_REPORT_USAGE,
-  contractParamSchema,
-} from "../server/schemas/sharedApiSchemas";
+import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
 import { deriveClientId } from "./api-keys";
@@ -56,6 +53,14 @@ export enum UsageEventTxActionEnum {
 interface UsageEventSchema extends Omit<UsageEvent, "action"> {
   action: UsageEventTxActionEnum;
 }
+
+const URLS_LIST_TO_NOT_REPORT_USAGE = new Set([
+  "/",
+  "/favicon.ico",
+  "/",
+  "/system/health",
+  "/json",
+]);
 
 const createHeaderForRequest = (input: CreateHeaderForRequestParams) => {
   return {

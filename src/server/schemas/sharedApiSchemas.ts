@@ -330,11 +330,3 @@ export const walletDetailsSchema = Type.Object({
     Type.Null(),
   ]),
 });
-
-export const URLS_LIST_TO_NOT_REPORT_USAGE = new Set([
-  "/",
-  "/favicon.ico",
-  "/",
-  "/system/health",
-  "/json",
-]);
