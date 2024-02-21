@@ -162,7 +162,7 @@ export const withAuth = async (server: FastifyInstance) => {
     return res.status(401).send({
       error: "Unauthorized",
       message:
-        "Please provide a valid access token. Docs: https://portal.thirdweb.com/engine/features/permissions",
+        "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/permissions",
     });
   });
 };
@@ -181,7 +181,6 @@ export const onRequest = async ({
     req.url === "/favicon.ico" ||
     req.url === "/" ||
     req.url === "/system/health" ||
-    req.url === "/static" ||
     req.url === "/json" ||
     req.url.startsWith("/auth/payload") ||
     req.url.startsWith("/auth/login") ||
@@ -212,6 +211,8 @@ export const onRequest = async ({
 
     const token = await getAccessToken({ jwt });
     if (token && token.revokedAt === null) {
+      // Set as a header for `getUsers` to parse the token.
+      req.headers.authorization = `Bearer ${jwt}`;
       const user = await getUser(req);
       if (
         user?.session?.permissions === Permission.Owner ||
@@ -247,7 +248,7 @@ export const onRequest = async ({
       // Allow a request that provides a dashboard JWT.
       const user =
         (await authWithApiServer(jwt, "thirdweb.com")) ||
-        (await authWithApiServer(jwt, "thirdweb-dev.com"));
+        (await authWithApiServer(jwt, "thirdweb-preview.com"));
       if (user) {
         const res = await getPermissions({ walletAddress: user.address });
         if (
