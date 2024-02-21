@@ -80,7 +80,10 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
         return;
       }
 
-      if (URLS_LIST_TO_NOT_REPORT_USAGE.has(reply.request.routerPath)) {
+      if (
+        URLS_LIST_TO_NOT_REPORT_USAGE.has(reply.request.routerPath) ||
+        reply.request.method === "OPTIONS"
+      ) {
         return;
       }
 
