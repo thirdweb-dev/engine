@@ -54,6 +54,14 @@ interface UsageEventSchema extends Omit<UsageEvent, "action"> {
   action: UsageEventTxActionEnum;
 }
 
+const URLS_LIST_TO_NOT_REPORT_USAGE = new Set([
+  "/",
+  "/favicon.ico",
+  "/",
+  "/system/health",
+  "/json",
+]);
+
 const createHeaderForRequest = (input: CreateHeaderForRequestParams) => {
   return {
     "Content-Type": "application/json",
@@ -71,6 +79,10 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
         return;
       }
 
+      if (URLS_LIST_TO_NOT_REPORT_USAGE.has(reply.request.routerPath)) {
+        return;
+      }
+
       const derivedClientId = deriveClientId(env.THIRDWEB_API_SECRET_KEY);
       const headers = createHeaderForRequest({
         clientId: derivedClientId,
@@ -83,10 +95,6 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       const chainId = requestParams?.chain
         ? await getChainIdFromChain(requestParams.chain)
         : "";
-
-      if (reply.request.routerPath === "" || !reply.request.routerPath) {
-        return;
-      }
 
       const requestBody: UsageEventSchema = {
         source: "engine",
