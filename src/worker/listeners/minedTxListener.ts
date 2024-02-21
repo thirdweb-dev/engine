@@ -1,6 +1,5 @@
 import cron from "node-cron";
 import { getConfig } from "../../utils/cache/getConfig";
-import { logger } from "../../utils/logger";
 import { updateMinedTx } from "../tasks/updateMinedTx";
 import { updateMinedUserOps } from "../tasks/updateMinedUserOps";
 
@@ -18,17 +17,7 @@ export const minedTxListener = async () => {
   }
 
   task = cron.schedule(config.minedTxListenerCronSchedule, async () => {
-    if (!minedTxStarted) {
-      minedTxStarted = true;
-      await updateMinedTx();
-      await updateMinedUserOps();
-      minedTxStarted = false;
-    } else {
-      logger({
-        service: "worker",
-        level: "warn",
-        message: "Mined tx listener already running, skipping",
-      });
-    }
+    await updateMinedTx();
+    await updateMinedUserOps();
   });
 };
