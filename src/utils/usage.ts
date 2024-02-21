@@ -8,6 +8,7 @@ import { getChainIdFromChain } from "../server/utils/chain";
 import { deriveClientId } from "./api-keys";
 import { env } from "./env";
 import { logger } from "./logger";
+import { reportUsageForUrl } from "./urls";
 
 type CreateHeaderForRequestParams = {
   clientId: string;
@@ -84,11 +85,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
         ? await getChainIdFromChain(requestParams.chain)
         : "";
 
-      if (
-        reply.request.routerPath === "" ||
-        !reply.request.routerPath ||
-        reply.request.routerPath === "/"
-      ) {
+      if (!reportUsageForUrl(reply.request.routerPath)) {
         return;
       }
 
