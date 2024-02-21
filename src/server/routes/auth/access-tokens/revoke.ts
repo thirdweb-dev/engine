@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { revokeToken } from "../../../../db/tokens/revokeToken";
+import { accessTokenCache } from "../../../../utils/cache/accessToken";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
@@ -34,6 +35,8 @@ export async function revokeAccessToken(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       await revokeToken({ id: req.body.id });
+
+      accessTokenCache.clear();
 
       res.status(200).send({
         result: {
