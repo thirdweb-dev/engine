@@ -18,7 +18,6 @@ import { getConfig } from "../../utils/cache/getConfig";
 import { getWebhook } from "../../utils/cache/getWebhook";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
-import { checkIfAllowed } from "../../utils/urls";
 import { sendWebhookRequest } from "../../utils/webhook";
 import { Permission } from "../schemas/auth";
 
@@ -170,7 +169,11 @@ export const withAuth = async (server: FastifyInstance) => {
   // Add auth validation middleware to check for authenticated requests
   server.addHook("onRequest", async (req, res) => {
     if (
-      checkIfAllowed(req.url) ||
+      req.url === "/favicon.ico" ||
+      req.url === "/" ||
+      req.url === "/system/health" ||
+      req.url === "/static" ||
+      req.url === "/json" ||
       req.url.startsWith("/auth/payload") ||
       req.url.startsWith("/auth/login") ||
       req.url.startsWith("/auth/user") ||

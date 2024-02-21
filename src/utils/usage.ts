@@ -2,13 +2,15 @@ import { Static, Type } from "@sinclair/typebox";
 import { TransactionErrorInfo } from "@thirdweb-dev/sdk";
 import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import { FastifyInstance } from "fastify";
-import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
+import {
+  URLS_LIST_TO_NOT_REPORT_USAGE,
+  contractParamSchema,
+} from "../server/schemas/sharedApiSchemas";
 import { walletParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
 import { deriveClientId } from "./api-keys";
 import { env } from "./env";
 import { logger } from "./logger";
-import { reportUsageForUrl } from "./urls";
 
 type CreateHeaderForRequestParams = {
   clientId: string;
@@ -71,6 +73,13 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       if (env.CLIENT_ANALYTICS_URL === "") {
         return;
       }
+      const isUsageReportingAllowed = URLS_LIST_TO_NOT_REPORT_USAGE.has(
+        reply.request.routerPath,
+      );
+
+      if (isUsageReportingAllowed) {
+        return;
+      }
 
       const derivedClientId = deriveClientId(env.THIRDWEB_API_SECRET_KEY);
       const headers = createHeaderForRequest({
@@ -84,10 +93,6 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       const chainId = requestParams?.chain
         ? await getChainIdFromChain(requestParams.chain)
         : "";
-
-      if (!reportUsageForUrl(reply.request.routerPath)) {
-        return;
-      }
 
       const requestBody: UsageEventSchema = {
         source: "engine",
