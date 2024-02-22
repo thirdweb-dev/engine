@@ -40,7 +40,7 @@ export const responseBodySchema = Type.Object({
 
 responseBodySchema.example = {
   result: {
-    qeueuId: "a20ed4ce-301d-4251-a7af-86bd88f6c015",
+    queueId: "a20ed4ce-301d-4251-a7af-86bd88f6c015",
     status: "success",
   },
 };
@@ -54,8 +54,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     url: "/transaction/cancel",
     schema: {
       summary: "Cancel transaction",
-      description:
-        "Attempt to cancel a transaction by sending a null transaction with a higher gas setting. This transaction is not guaranteed to be cancelled.",
+      description: "Cancel a transaction that is not yet mined or errored.",
       tags: ["Transaction"],
       operationId: "cancel",
       body: requestBodySchema,

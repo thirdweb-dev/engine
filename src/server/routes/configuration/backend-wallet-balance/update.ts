@@ -37,7 +37,7 @@ export async function updateBackendWalletBalanceConfiguration(
       await updateConfiguration({ ...req.body });
       const config = await getConfig(false);
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           minWalletBalance: config.minWalletBalance,
         },

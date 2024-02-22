@@ -1,4 +1,4 @@
-import { Transactions } from "@prisma/client";
+import { Prisma } from ".prisma/client";
 import { Static } from "@sinclair/typebox";
 import { ContractExtension } from "../../schema/extension";
 import { PrismaTransaction } from "../../schema/prisma";
@@ -9,11 +9,14 @@ import {
 import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 interface GetAllTxsParams {
   pgtx?: PrismaTransaction;
   page: number;
   limit: number;
-  filter?: TransactionStatusEnum;
+  status?: TransactionStatusEnum;
+  fromQueuedAt?: Date;
   extensions?: ContractExtension[];
 }
 
@@ -26,72 +29,74 @@ export const getAllTxs = async ({
   pgtx,
   page,
   limit,
-  filter,
+  status,
+  fromQueuedAt = new Date(Date.now() - ONE_DAY_IN_MS),
   extensions,
 }: GetAllTxsParams): Promise<GetAllTxsResponse> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  // TODO: To bring this back for Paid feature
-  // let filterBy:
-  //   | "queuedAt"
-  //   | "sentAt"
-  //   | "processedAt"
-  //   | "minedAt"
-  //   | "errorMessage"
-  //   | undefined;
+  let filterQuery: Prisma.TransactionsWhereInput | undefined;
+  switch (status) {
+    case TransactionStatusEnum.Queued:
+      // Not processed yet, no error.
+      filterQuery = {
+        processedAt: null,
+        errorMessage: null,
+      };
+      break;
+    case TransactionStatusEnum.Processed:
+      // Processed but not sent, no error.
+      filterQuery = {
+        processedAt: { not: null },
+        sentAt: null,
+        errorMessage: null,
+      };
+      break;
+    case TransactionStatusEnum.Submitted:
+      // Submitted but not mined, no error.
+      filterQuery = {
+        sentAt: { not: null },
+        minedAt: null,
+        errorMessage: null,
+      };
+      break;
+    case TransactionStatusEnum.Mined:
+      // Mined, no error.
+      filterQuery = {
+        minedAt: { not: null },
+        errorMessage: null,
+      };
+      break;
+    case TransactionStatusEnum.Errored:
+      // Has error.
+      filterQuery = {
+        errorMessage: { not: null },
+      };
+      break;
+  }
 
-  // if (filter === TransactionStatusEnum.Queued) {
-  //   filterBy = "queuedAt";
-  // } else if (filter === TransactionStatusEnum.Submitted) {
-  //   filterBy = "sentAt";
-  // } else if (filter === TransactionStatusEnum.Processed) {
-  //   filterBy = "processedAt";
-  // } else if (filter === TransactionStatusEnum.Mined) {
-  //   filterBy = "minedAt";
-  // } else if (filter === TransactionStatusEnum.Errored) {
-  //   filterBy = "errorMessage";
-  // }
+  let extensionsQuery: Prisma.TransactionsWhereInput | undefined;
+  if (extensions) {
+    extensionsQuery = {
+      extension: { in: extensions },
+    };
+  }
 
-  const filterQuery = {
-    //   ...(filterBy
-    //     ? {
-    //         [filterBy]: {
-    //           not: null,
-    //         },
-    //       }
-    //     : {}),
-    ...(extensions
-      ? {
-          extension: {
-            in: extensions,
-          },
-        }
-      : {}),
-  };
-
-  // TODO: Cleaning should be handled by zod
-  const totalCountPromise: Promise<number> = prisma.transactions.count({
+  const totalCountPromise = prisma.transactions.count({
     where: {
       ...filterQuery,
-      queuedAt: {
-        gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      },
+      ...extensionsQuery,
+      queuedAt: { gte: fromQueuedAt },
     },
   });
 
-  // TODO: Cleaning should be handled by zod
-  const txsPromise: Promise<Transactions[]> = prisma.transactions.findMany({
+  const txsPromise = prisma.transactions.findMany({
     where: {
       ...filterQuery,
-      queuedAt: {
-        gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      },
+      ...extensionsQuery,
+      queuedAt: { gte: fromQueuedAt },
     },
-    orderBy: [
-      {
-        queuedAt: "desc",
-      },
-    ],
+    orderBy: [{ queuedAt: "desc" }],
     skip: (page - 1) * limit,
     take: limit,
   });

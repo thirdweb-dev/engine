@@ -35,7 +35,7 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const accessTokens = await getAccessTokens();
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: accessTokens.map((token) => ({
           ...token,
           createdAt: token.createdAt.toISOString(),

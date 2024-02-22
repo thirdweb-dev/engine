@@ -127,7 +127,7 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
       }
 
       const config = await getConfig(false);
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: config.walletConfiguration,
       });
     },

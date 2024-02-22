@@ -35,7 +35,7 @@ export async function updateAuthConfiguration(fastify: FastifyInstance) {
 
       const config = await getConfig(false);
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           domain: config.authDomain,
         },

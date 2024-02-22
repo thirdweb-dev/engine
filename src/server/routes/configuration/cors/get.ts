@@ -27,7 +27,7 @@ export async function getCorsConfiguration(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const config = await getConfig(false);
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: config.accessControlAllowOrigin.split(","),
       });
     },

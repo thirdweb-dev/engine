@@ -36,7 +36,7 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const webhooksData = await getAllWebhooks();
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: webhooksData,
       });
     },

@@ -111,7 +111,7 @@ export async function createWebhook(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const config = await insertWebhook({ ...req.body });
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           ...config,
         },

@@ -47,7 +47,7 @@ export async function sendSignedTransaction(fastify: FastifyInstance) {
 
       const txRes = await sdk.getProvider().sendTransaction(signedTransaction);
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           transactionHash: txRes.hash,
         },

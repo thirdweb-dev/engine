@@ -54,7 +54,7 @@ export async function signMessage(fastify: FastifyInstance) {
         signedMessage = await signer.signMessage(message);
       }
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: signedMessage,
       });
     },

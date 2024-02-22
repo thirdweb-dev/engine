@@ -42,7 +42,7 @@ export async function grantPermissions(fastify: FastifyInstance) {
         permissions,
         label,
       });
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

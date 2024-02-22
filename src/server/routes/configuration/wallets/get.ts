@@ -45,7 +45,7 @@ export async function getWalletsConfiguration(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const config = await getConfig();
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: config.walletConfiguration,
       });
     },

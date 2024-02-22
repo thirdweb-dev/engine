@@ -68,7 +68,7 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
 
       const config = await getConfig(false);
       sdkCache.clear();
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: config.chainOverrides,
       });
     },

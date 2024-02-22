@@ -44,7 +44,7 @@ export async function signTypedData(fastify: FastifyInstance) {
       const signer = (await wallet.getSigner()) as unknown as TypedDataSigner;
       const result = await signer._signTypedData(domain, types, value);
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: result,
       });
     },

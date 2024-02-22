@@ -4,30 +4,37 @@ import { StatusCodes } from "http-status-codes";
 import { getAllTxs } from "../../../db/transactions/getAllTxs";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import {
+  TransactionStatusEnum,
+  transactionResponseSchema,
+} from "../../schemas/transaction";
+
+const ONE_DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 // INPUT
 const requestQuerySchema = Type.Object({
-  page: Type.String({
-    description:
-      "This parameter allows the user to specify the page number for pagination purposes",
-    examples: ["1"],
-    default: "1",
+  page: Type.Integer({
+    description: "The page number for paginated results",
+    examples: [1],
+    default: 1,
+    minimum: 1,
   }),
-  limit: Type.String({
-    description:
-      "This parameter defines the maximum number of transaction request data to return per page.",
-    examples: ["10"],
-    default: "10",
+  limit: Type.Integer({
+    description: "The number of transactions to return per page.",
+    examples: [10],
+    default: 10,
+    minimum: 1,
   }),
-  // filter: Type.Optional(
-  //   Type.Union([Type.Enum(TransactionStatusEnum), Type.Literal("all")], {
-  //     description:
-  //       "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
-  //     examples: ["all", "submitted", "processed", "errored", "mined", "queued"],
-  //     default: "all",
-  //   }),
-  // ),
+  status: Type.Optional(
+    Type.Enum(TransactionStatusEnum, {
+      description:
+        "Filters transactions by status. Defaults to returning all transactions.",
+      examples: Object.values(TransactionStatusEnum),
+    }),
+  ),
+  fromQueuedAt: Type.Optional(
+    Type.Unsafe<string>({ type: "string", format: "date-time" }),
+  ),
 });
 
 // OUTPUT
@@ -88,34 +95,38 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { page, limit } = request.query;
+      const {
+        page,
+        limit,
+        status,
+        fromQueuedAt: fromQueuedAtString,
+      } = request.query;
 
-      if (isNaN(parseInt(page, 10))) {
-        const customError = createCustomError(
-          "Page must be a number",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-        throw customError;
-      } else if (isNaN(parseInt(limit, 10))) {
-        const customError = createCustomError(
-          "Limit must be a number",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-        throw customError;
+      let fromQueuedAt: Date | undefined;
+      if (fromQueuedAtString) {
+        fromQueuedAt = new Date(fromQueuedAtString);
+        const diffMs = new Date().getTime() - fromQueuedAt.getTime();
+        if (diffMs > ONE_DAY_IN_MS) {
+          throw createCustomError(
+            "fromQueuedAt date must be within 24 hours",
+            StatusCodes.BAD_REQUEST,
+            "BAD_REQUEST",
+          );
+        }
       }
-      const txsData = await getAllTxs({
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
-        // filter: filter && filter !== "all" ? filter : undefined,
+
+      const { transactions, totalCount } = await getAllTxs({
+        page,
+        limit,
+        status,
+        fromQueuedAt,
         extensions: ["deploy-prebuilt", "deploy-published"],
       });
 
       reply.status(StatusCodes.OK).send({
         result: {
-          transactions: txsData.transactions,
-          totalCount: txsData.totalCount,
+          transactions,
+          totalCount,
         },
       });
     },
