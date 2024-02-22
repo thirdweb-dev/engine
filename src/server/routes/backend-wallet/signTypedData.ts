@@ -10,7 +10,6 @@ const BodySchema = Type.Object({
   domain: Type.Object({}, { additionalProperties: true }),
   types: Type.Object({}, { additionalProperties: true }),
   value: Type.Object({}, { additionalProperties: true }),
-  isBytes: Type.Optional(Type.Boolean()),
 });
 
 const ReplySchema = Type.Object({
@@ -37,7 +36,7 @@ export async function signTypedData(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { domain, value, types, isBytes } = req.body;
+      const { domain, value, types } = req.body;
       const walletAddress = req.headers["x-backend-wallet-address"] as string;
 
       const wallet = await getWallet({ chainId: 1, walletAddress });
