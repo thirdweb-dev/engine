@@ -1,4 +1,3 @@
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import { Transactions } from "@prisma/client";
 import { getBlock } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
@@ -22,7 +21,6 @@ export const updateMinedTx = async () => {
     await prisma.$transaction(
       async (pgtx) => {
         const txs = await getSentTxs({ pgtx });
-
         if (txs.length === 0) {
           return;
         }
@@ -33,12 +31,11 @@ export const updateMinedTx = async () => {
           await Promise.all(
             txs.map(async (tx) => {
               const sdk = await getSdk({ chainId: parseInt(tx.chainId!) });
-              const receipt: ethers.providers.TransactionReceipt | undefined =
-                await sdk
-                  .getProvider()
-                  .getTransactionReceipt(tx.transactionHash!);
               const provider =
                 sdk.getProvider() as ethers.providers.JsonRpcProvider;
+
+              const receipt: ethers.providers.TransactionReceipt | undefined =
+                await provider.getTransactionReceipt(tx.transactionHash!);
 
               if (!receipt) {
                 // This tx is not yet mined or was dropped.
@@ -53,26 +50,26 @@ export const updateMinedTx = async () => {
                 return;
               }
 
-              const response = (await sdk
-                .getProvider()
-                .getTransaction(
-                  tx.transactionHash!,
-                )) as ethers.providers.TransactionResponse | null;
+              const response = (await provider.getTransaction(
+                tx.transactionHash!,
+              )) as ethers.providers.TransactionResponse | null;
 
-              // Get the timestamp when the transaction was mined
+              // Get the timestamp when the transaction was mined. Fall back to curent time.
               const block = await getBlock({
                 block: receipt.blockNumber,
-                network: sdk.getProvider(),
+                network: provider,
               });
               if (!block) {
-                throw `Block not found. txHash=${
-                  tx.transactionHash
-                } blockNumber=${receipt.blockNumber} provider=${
-                  (sdk.getProvider() as StaticJsonRpcProvider).connection.url
-                }`;
+                logger({
+                  service: "worker",
+                  level: "warn",
+                  queueId: tx.id,
+                  message: `Block not found (provider=${provider.connection.url}).`,
+                });
               }
-
-              const minedAt = new Date(block.timestamp * 1000);
+              const minedAt = block
+                ? new Date(block.timestamp * 1000)
+                : new Date();
 
               return {
                 tx,
