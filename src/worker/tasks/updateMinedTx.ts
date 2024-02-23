@@ -1,3 +1,4 @@
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import { Transactions } from "@prisma/client";
 import { getBlock } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
@@ -59,14 +60,19 @@ export const updateMinedTx = async () => {
                 )) as ethers.providers.TransactionResponse | null;
 
               // Get the timestamp when the transaction was mined
-              const minedAt = new Date(
-                (
-                  await getBlock({
-                    block: receipt.blockNumber,
-                    network: sdk.getProvider(),
-                  })
-                ).timestamp * 1000,
-              );
+              const block = await getBlock({
+                block: receipt.blockNumber,
+                network: sdk.getProvider(),
+              });
+              if (!block) {
+                throw `Block not found. txHash=${
+                  tx.transactionHash
+                } blockNumber=${receipt.blockNumber} provider=${
+                  (sdk.getProvider() as StaticJsonRpcProvider).connection.url
+                }`;
+              }
+
+              const minedAt = new Date(block.timestamp * 1000);
 
               return {
                 tx,
