@@ -66,6 +66,7 @@
     "pino": "^8.15.1",
     "pino-pretty": "^10.0.0",
     "prisma": "^5.2.0",
+    "thirdweb": "^1.0.0-alpha-70ef334bd29912d2549eeaa69db5a2ccbf33fbba-20240223021408",
     "uuidv4": "^6.2.13",
     "viem": "^1.14.0",
     "zod": "^3.21.4"
