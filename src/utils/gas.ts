@@ -24,7 +24,7 @@ export const getGasSettingsForRetry = async (
       parseFloat(tx.gasPrice!) * 1.1,
     );
     return {
-      gasPrice: BigNumber.from(newGasPrice),
+      gasPrice: BigNumber.from(Math.ceil(newGasPrice)),
     };
   }
 
@@ -46,7 +46,7 @@ export const getGasSettingsForRetry = async (
   }
 
   return {
-    maxFeePerGas: BigNumber.from(newMaxFeePerGas),
-    maxPriorityFeePerGas: BigNumber.from(newMaxPriorityFeePerGas),
+    maxFeePerGas: BigNumber.from(Math.ceil(newMaxFeePerGas)),
+    maxPriorityFeePerGas: BigNumber.from(Math.ceil(newMaxPriorityFeePerGas)),
   };
 };
