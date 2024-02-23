@@ -21,7 +21,6 @@ export const updateMinedTx = async () => {
     await prisma.$transaction(
       async (pgtx) => {
         const txs = await getSentTxs({ pgtx });
-
         if (txs.length === 0) {
           return;
         }
@@ -32,12 +31,11 @@ export const updateMinedTx = async () => {
           await Promise.all(
             txs.map(async (tx) => {
               const sdk = await getSdk({ chainId: parseInt(tx.chainId!) });
-              const receipt: ethers.providers.TransactionReceipt | undefined =
-                await sdk
-                  .getProvider()
-                  .getTransactionReceipt(tx.transactionHash!);
               const provider =
                 sdk.getProvider() as ethers.providers.JsonRpcProvider;
+
+              const receipt: ethers.providers.TransactionReceipt | undefined =
+                await provider.getTransactionReceipt(tx.transactionHash!);
 
               if (!receipt) {
                 // This tx is not yet mined or was dropped.
@@ -52,21 +50,26 @@ export const updateMinedTx = async () => {
                 return;
               }
 
-              const response = (await sdk
-                .getProvider()
-                .getTransaction(
-                  tx.transactionHash!,
-                )) as ethers.providers.TransactionResponse | null;
+              const response = (await provider.getTransaction(
+                tx.transactionHash!,
+              )) as ethers.providers.TransactionResponse | null;
 
-              // Get the timestamp when the transaction was mined
-              const minedAt = new Date(
-                (
-                  await getBlock({
-                    block: receipt.blockNumber,
-                    network: sdk.getProvider(),
-                  })
-                ).timestamp * 1000,
-              );
+              // Get the timestamp when the transaction was mined. Fall back to curent time.
+              const block = await getBlock({
+                block: receipt.blockNumber,
+                network: provider,
+              });
+              if (!block) {
+                logger({
+                  service: "worker",
+                  level: "info",
+                  queueId: tx.id,
+                  message: `Block not found (provider=${provider.connection.url}).`,
+                });
+              }
+              const minedAt = block
+                ? new Date(block.timestamp * 1000)
+                : new Date();
 
               return {
                 tx,
