@@ -18,35 +18,36 @@ export const getGasSettingsForRetry = async (
 
   // Handle legacy gas format.
   if (gasPrice) {
-    const newGasPrice = Math.max(
-      gasPrice.toNumber() * 2,
-      // Gas settings must be 10% higher than a previous attempt.
-      parseFloat(tx.gasPrice!) * 1.1,
-    );
+    const newGasPrice = gasPrice.mul(2);
+    // Gas settings must be 10% higher than a previous attempt.
+    const minGasPrice = BigNumber.from(tx.gasPrice!).mul(110).div(100);
+
     return {
-      gasPrice: BigNumber.from(Math.ceil(newGasPrice)),
+      gasPrice: newGasPrice.gt(minGasPrice) ? newGasPrice : minGasPrice,
     };
   }
 
   // Handle EIP 1559 gas format.
-  // Gas settings must be 10% higher than a previous attempt.
-  let newMaxFeePerGas = Math.max(
-    maxFeePerGas.toNumber() * 2,
-    parseFloat(tx.maxFeePerGas!) * 1.1,
-  );
-  let newMaxPriorityFeePerGas = Math.max(
-    maxPriorityFeePerGas.toNumber() * 2,
-    parseFloat(tx.maxPriorityFeePerGas!) * 1.1,
-  );
-
-  // If manually retried, override with provided gas settings.
+  let newMaxFeePerGas = maxFeePerGas.mul(2);
+  let newMaxPriorityFeePerGas = maxPriorityFeePerGas.mul(2);
   if (tx.retryGasValues) {
-    newMaxFeePerGas = parseInt(tx.retryMaxFeePerGas!);
-    newMaxPriorityFeePerGas = parseInt(tx.maxPriorityFeePerGas!);
+    // If this tx is manually retried, override with provided gas settings.
+    newMaxFeePerGas = BigNumber.from(tx.retryMaxFeePerGas!);
+    newMaxPriorityFeePerGas = BigNumber.from(tx.maxPriorityFeePerGas!);
   }
 
+  // Gas settings muset be 10% higher than a previous attempt.
+  const minMaxFeePerGas = BigNumber.from(tx.maxFeePerGas!).mul(110).div(100);
+  const minMaxPriorityFeePerGas = BigNumber.from(tx.maxPriorityFeePerGas!)
+    .mul(110)
+    .div(100);
+
   return {
-    maxFeePerGas: BigNumber.from(Math.ceil(newMaxFeePerGas)),
-    maxPriorityFeePerGas: BigNumber.from(Math.ceil(newMaxPriorityFeePerGas)),
+    maxFeePerGas: newMaxFeePerGas.gt(minMaxFeePerGas)
+      ? newMaxFeePerGas
+      : minMaxFeePerGas,
+    maxPriorityFeePerGas: newMaxPriorityFeePerGas.gt(minMaxPriorityFeePerGas)
+      ? newMaxPriorityFeePerGas
+      : minMaxPriorityFeePerGas,
   };
 };
