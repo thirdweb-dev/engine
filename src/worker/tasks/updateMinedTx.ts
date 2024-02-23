@@ -62,7 +62,7 @@ export const updateMinedTx = async () => {
               if (!block) {
                 logger({
                   service: "worker",
-                  level: "info",
+                  level: "warn",
                   queueId: tx.id,
                   message: `Block not found (provider=${provider.connection.url}).`,
                 });
