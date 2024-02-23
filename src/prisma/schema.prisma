@@ -176,3 +176,54 @@ model Relayers {
 
   @@map("relayers")
 }
+
+model IndexedContracts {
+  chainId            Int  
+  contractAddress    String
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  // Relations
+  contractLogs       ContractLogs[]
+  chainIndexer       ChainIndexers @relation(fields: [chainId], references: [chainId])
+
+  @@id([chainId, contractAddress])
+}
+
+model ContractLogs {
+  chainId            Int
+  blockNumber        Int
+  contractAddress    String
+  transactionHash    String
+  topic0             String?
+  topic1             String?
+  topic2             String?
+  topic3             String?
+  data               String
+  decodedLog         Json
+  timestamp          DateTime
+  transactionIndex   Int
+  logIndex           Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  // relation
+  indexedContract    IndexedContracts @relation(fields: [chainId, contractAddress], references: [chainId, contractAddress])
+
+  @@id([transactionHash, logIndex])
+}
+
+model ChainIndexers {
+  chainId            Int       @id
+  lastIndexedBlock   Int
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  // relations
+  indexedContracts   IndexedContracts[]
+}
