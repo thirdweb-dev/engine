@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deriveClientId } from "../../../utils/api-keys";
+import { thirdwebClientId } from "../../../utils/api-keys";
 import { env } from "../../../utils/env";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../utils/chain";
@@ -104,7 +104,7 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-client-id": deriveClientId(env.THIRDWEB_API_SECRET_KEY),
+          "x-client-id": thirdwebClientId,
           "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
         },
         body: JSON.stringify({
