@@ -183,7 +183,6 @@ model IndexedContracts {
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-  deletedAt          DateTime?
 
   // Relations
   contractLogs       ContractLogs[]
@@ -208,7 +207,6 @@ model ContractLogs {
   logIndex           Int
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-  deletedAt          DateTime?
 
   // relation
   indexedContract    IndexedContracts @relation(fields: [chainId, contractAddress], references: [chainId, contractAddress])
@@ -222,7 +220,6 @@ model ChainIndexers {
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-  deletedAt          DateTime?
 
   // relations
   indexedContracts   IndexedContracts[]
