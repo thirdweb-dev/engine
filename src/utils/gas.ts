@@ -1,6 +1,7 @@
 import type { Transactions } from ".prisma/client";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, providers } from "ethers";
+import { maxBN } from "./bigNumber";
 
 /**
  *
@@ -23,17 +24,18 @@ export const getGasSettingsForRetry = async (
     const minGasPrice = BigNumber.from(tx.gasPrice!).mul(110).div(100);
 
     return {
-      gasPrice: newGasPrice.gt(minGasPrice) ? newGasPrice : minGasPrice,
+      gasPrice: maxBN(newGasPrice, minGasPrice),
     };
   }
 
   // Handle EIP 1559 gas format.
   let newMaxFeePerGas = maxFeePerGas.mul(2);
   let newMaxPriorityFeePerGas = maxPriorityFeePerGas.mul(2);
+
   if (tx.retryGasValues) {
     // If this tx is manually retried, override with provided gas settings.
     newMaxFeePerGas = BigNumber.from(tx.retryMaxFeePerGas!);
-    newMaxPriorityFeePerGas = BigNumber.from(tx.maxPriorityFeePerGas!);
+    newMaxPriorityFeePerGas = BigNumber.from(tx.retryMaxPriorityFeePerGas!);
   }
 
   // Gas settings muset be 10% higher than a previous attempt.
@@ -43,11 +45,10 @@ export const getGasSettingsForRetry = async (
     .div(100);
 
   return {
-    maxFeePerGas: newMaxFeePerGas.gt(minMaxFeePerGas)
-      ? newMaxFeePerGas
-      : minMaxFeePerGas,
-    maxPriorityFeePerGas: newMaxPriorityFeePerGas.gt(minMaxPriorityFeePerGas)
-      ? newMaxPriorityFeePerGas
-      : minMaxPriorityFeePerGas,
+    maxFeePerGas: maxBN(newMaxFeePerGas, minMaxFeePerGas),
+    maxPriorityFeePerGas: maxBN(
+      newMaxPriorityFeePerGas,
+      minMaxPriorityFeePerGas,
+    ),
   };
 };
