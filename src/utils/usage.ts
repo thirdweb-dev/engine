@@ -164,7 +164,7 @@ export const reportUsage = (usageParams: ReportUsageParams[]) => {
         service: "worker",
         level: "error",
         message: `Error:`,
-        error,
+        error: e,
       });
     }
   });
