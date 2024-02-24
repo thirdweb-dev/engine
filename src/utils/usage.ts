@@ -5,7 +5,7 @@ import { FastifyInstance } from "fastify";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
-import { deriveClientId } from "./api-keys";
+import { thirdwebClientId } from "./api-keys";
 import { env } from "./env";
 import { logger } from "./logger";
 
@@ -86,9 +86,8 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       return;
     }
 
-    const derivedClientId = deriveClientId(env.THIRDWEB_API_SECRET_KEY);
     const headers = createHeaderForRequest({
-      clientId: derivedClientId,
+      clientId: thirdwebClientId,
     });
 
     const requestParams = request?.params as Static<typeof EngineRequestParams>;
@@ -100,7 +99,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
     const requestBody: UsageEventSchema = {
       source: "engine",
       action: UsageEventTxActionEnum.APIRequest,
-      clientId: derivedClientId,
+      clientId: thirdwebClientId,
       pathname: reply.request.routerPath,
       chainId: chainId || undefined,
       walletAddress: requestParams.walletAddress || undefined,
@@ -113,7 +112,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       method: "POST",
       headers,
       body: JSON.stringify(requestBody),
-    }).catch(); // Catch uncaught exceptions since this fetch call is non-blocking.
+    }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
   });
 };
 
@@ -125,9 +124,8 @@ export const reportUsage = (usageParams: ReportUsageParams[]) => {
 
   usageParams.map(async (item) => {
     try {
-      const derivedClientId = deriveClientId(env.THIRDWEB_API_SECRET_KEY);
       const headers = createHeaderForRequest({
-        clientId: derivedClientId,
+        clientId: thirdwebClientId,
       });
 
       const chainId = item.input.chainId
@@ -136,7 +134,7 @@ export const reportUsage = (usageParams: ReportUsageParams[]) => {
       const requestBody: UsageEventSchema = {
         source: "engine",
         action: item.action,
-        clientId: derivedClientId,
+        clientId: thirdwebClientId,
         chainId,
         walletAddress: item.input.fromAddress || undefined,
         contractAddress: item.input.toAddress || undefined,
@@ -160,7 +158,7 @@ export const reportUsage = (usageParams: ReportUsageParams[]) => {
         method: "POST",
         headers,
         body: JSON.stringify(requestBody),
-      }).catch(); // Catch uncaught exceptions since this fetch call is non-blocking.
+      }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
     } catch (e) {
       logger({
         service: "worker",
