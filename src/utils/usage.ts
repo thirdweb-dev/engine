@@ -118,7 +118,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
 };
 
 export const reportUsage = (usageParams: ReportUsageParams[]) => {
-  // If the CLIENT_ANALYTICS_URL is not set, then we don't want to report usage
+  // Skip reporting if CLIENT_ANALYTICS_URL is not set.
   if (env.CLIENT_ANALYTICS_URL === "") {
     return;
   }
