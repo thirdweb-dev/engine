@@ -63,6 +63,12 @@ export const removeChainIndexer = async (chainId: number) => {
     return;
   }
 
+  logger({
+    service: "worker",
+    level: "info",
+    message: `Removing chain indexer for chainId: ${chainId}`,
+  });
+
   task.stop();
   delete INDEXER_REGISTRY[chainId];
 };
