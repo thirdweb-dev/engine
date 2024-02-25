@@ -23,6 +23,8 @@ model Configuration {
   maxFeePerGasForRetries             String  @map("maxFeePerGasForRetries")
   maxPriorityFeePerGasForRetries     String  @map("maxPriorityFeePerGasForRetries")
   maxRetriesPerTx                    Int     @map("maxRetriesPerTx")
+  // Contract Indexer Updates
+  indexerListenerCronSchedule        String? @map("indexerListenerCronSchedule")
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")
   awsSecretAccessKey                 String? @map("awsSecretAccessKey")

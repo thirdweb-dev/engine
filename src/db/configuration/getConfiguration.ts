@@ -178,6 +178,7 @@ export const getConfiguration = async (): Promise<Config> => {
         minedTxListenerCronSchedule: "*/5 * * * * *",
         maxTxsToUpdate: 50,
         retryTxListenerCronSchedule: "*/30 * * * * *",
+        indexerListenerCronSchedule: "*/5 * * * * *",
         minEllapsedBlocksBeforeRetry: 15,
         maxFeePerGasForRetries: "55000000000",
         maxPriorityFeePerGasForRetries: "55000000000",
