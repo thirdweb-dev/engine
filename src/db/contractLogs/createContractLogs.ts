@@ -1,6 +1,6 @@
 import { prisma } from "../client";
 
-interface ContractLogEntry {
+export interface ContractLogEntry {
   chainId: number;
   blockNumber: number;
   contractAddress: string;
@@ -10,7 +10,8 @@ interface ContractLogEntry {
   topic2?: string;
   topic3?: string;
   data: string;
-  decodedLog: any; // Assuming JSON object for decodedLog
+  decodedLog?: any; // Assuming JSON object for decodedLog
+  eventName?: string;
   timestamp: Date;
   transactionIndex: number;
   logIndex: number;
