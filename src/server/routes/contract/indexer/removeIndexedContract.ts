@@ -24,7 +24,7 @@ responseSchema.example = {
   },
 };
 
-export async function removeIndexedContract(fastify: FastifyInstance) {
+export async function removeIndexedContractRoute(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;

@@ -113,6 +113,16 @@ import { checkGroupStatus } from "./transaction/group";
 import { sendSignedTransaction } from "./transaction/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
 
+// Indexer
+import { addIndexedContractRoute } from "./contract/indexer/addIndexedContract";
+import { clearContractLogsRoute } from "./contract/indexer/clearContractLogs";
+import { getAllContractsRoute } from "./contract/indexer/getAllContracts";
+import { getContractLogsRoute } from "./contract/indexer/getContractLogs";
+import { getIndexedBlocksRoute } from "./contract/indexer/getIndexedBlocks";
+import { getLogsRoute } from "./contract/indexer/getLogs";
+import { removeIndexedContractRoute } from "./contract/indexer/removeIndexedContract";
+import { testGetLogsRoute } from "./contract/indexer/testIndexLogs";
+
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
   await fastify.register(createBackendWallet);
@@ -229,4 +239,14 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(home);
   await fastify.register(healthCheck);
   await fastify.register(queueStatus);
+
+  // Indexer
+  await fastify.register(addIndexedContractRoute);
+  await fastify.register(clearContractLogsRoute);
+  await fastify.register(getAllContractsRoute);
+  await fastify.register(getContractLogsRoute);
+  await fastify.register(getIndexedBlocksRoute);
+  await fastify.register(getLogsRoute);
+  await fastify.register(removeIndexedContractRoute);
+  await fastify.register(testGetLogsRoute);
 };
