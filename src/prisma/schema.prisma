@@ -25,6 +25,7 @@ model Configuration {
   maxRetriesPerTx                    Int     @map("maxRetriesPerTx")
   // Contract Indexer Updates
   indexerListenerCronSchedule        String? @map("indexerListenerCronSchedule")
+  maxBlocksToIndex                   Int     @map("maxBlocksToIndex")
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")
   awsSecretAccessKey                 String? @map("awsSecretAccessKey")
@@ -191,6 +192,9 @@ model IndexedContracts {
   chainIndexer       ChainIndexers @relation(fields: [chainId], references: [chainId])
 
   @@id([chainId, contractAddress])
+
+  // optimize distinct lookups
+  @@index([chainId])
 }
 
 model ContractLogs {
@@ -203,7 +207,8 @@ model ContractLogs {
   topic2             String?
   topic3             String?
   data               String
-  decodedLog         Json
+  eventName          String?
+  decodedLog         Json?
   timestamp          DateTime
   transactionIndex   Int
   logIndex           Int
