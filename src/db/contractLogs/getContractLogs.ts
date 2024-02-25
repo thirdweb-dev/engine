@@ -45,6 +45,45 @@ export const getContractLogsByBlockAndTopics = async ({
   });
 };
 
+interface GetLogsParams {
+  fromBlock: number;
+  toBlock?: number;
+  topics?: string[];
+}
+
+export const getLogsByBlockAndTopics = async ({
+  fromBlock,
+  toBlock,
+  topics,
+}: GetLogsParams) => {
+  const whereClause = {
+    blockNumber: {
+      gte: fromBlock,
+    },
+  } as any;
+
+  if (toBlock) {
+    whereClause.AND = {
+      blockNumber: {
+        lte: toBlock,
+      },
+    };
+  }
+
+  if (topics && topics.length) {
+    whereClause.OR = [
+      { topic0: { in: topics } },
+      { topic1: { in: topics } },
+      { topic2: { in: topics } },
+      { topic3: { in: topics } },
+    ];
+  }
+
+  return await prisma.contractLogs.findMany({
+    where: whereClause,
+  });
+};
+
 export const getMinMaxBlockNumber = async (
   chainId: number,
   contractAddress: string,
