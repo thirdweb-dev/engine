@@ -40,7 +40,7 @@ responseSchema.example = {
   },
 };
 
-export async function getLogs(fastify: FastifyInstance) {
+export async function getLogsRoute(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;

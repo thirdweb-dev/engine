@@ -29,7 +29,7 @@ responseSchema.example = {
   },
 };
 
-export async function getIndexedBlocks(fastify: FastifyInstance) {
+export async function getIndexedBlocksRoute(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;

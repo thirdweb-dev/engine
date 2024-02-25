@@ -30,7 +30,7 @@ responseSchema.example = {
   },
 };
 
-export async function getAllContracts(fastify: FastifyInstance) {
+export async function getAllContractsRoute(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
