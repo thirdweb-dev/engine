@@ -77,7 +77,9 @@ export const getSdk = async ({
   let chain: NetworkInput | undefined = undefined;
   try {
     chain = await getChainByChainIdAsync(chainId);
-  } catch (error) {}
+  } catch (error) {
+    console.log("failed to get the chain");
+  }
 
   if (CHAIN_OVERRIDES) {
     if (JsonSchema.safeParse(CHAIN_OVERRIDES).success) {
