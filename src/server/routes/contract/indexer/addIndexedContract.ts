@@ -53,10 +53,14 @@ export async function addIndexedContractRoute(fastify: FastifyInstance) {
 
       // if not currently indexed, upsert the latest block number
       if (!indexedChainIds.includes(chainId)) {
-        const sdk = await getSdk({ chainId });
-        const provider = sdk.getProvider();
-        const currentBlockNumber = await provider.getBlockNumber();
-        await upsertChainIndexer({ chainId, currentBlockNumber });
+        try {
+          const sdk = await getSdk({ chainId });
+          const provider = sdk.getProvider();
+          const currentBlockNumber = await provider.getBlockNumber();
+          await upsertChainIndexer({ chainId, currentBlockNumber });
+        } catch (error) {
+          // this is fine, must be already locked, so don't need to update current block as this will be recent
+        }
       }
 
       // upsert indexed contract, this will be picked up
