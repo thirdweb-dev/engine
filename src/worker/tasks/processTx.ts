@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Static } from "@sinclair/typebox";
+import { Transactions } from ".prisma/client";
 import {
   StaticJsonRpcBatchProvider,
   getDefaultGasOverrides,
@@ -15,13 +15,11 @@ import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
 import { WalletBalanceWebhookSchema } from "../../schema/webhooks";
-import {
-  TransactionStatusEnum,
-  transactionResponseSchema,
-} from "../../server/schemas/transaction";
+import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { env } from "../../utils/env";
+import { parseTxError } from "../../utils/errors";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
@@ -96,7 +94,7 @@ export const processTx = async () => {
         // Send Queued Webhook
         await sendWebhooks(
           txs.map((tx) => ({
-            queueId: tx.queueId!,
+            queueId: tx.id,
             status: TransactionStatusEnum.Queued,
           })),
         );
@@ -116,15 +114,15 @@ export const processTx = async () => {
           })),
         );
 
-        // 2. Iterate through all filtering cancelled trandsactions, and sorting transactions and user operations
-        const txsToSend = [];
+        // 2. Iterate through all filtering cancelled transactions, and sorting transactions and user operations
+        const txsToSend: Transactions[] = [];
         const userOpsToSend = [];
         for (const tx of txs) {
           if (tx.cancelledAt) {
             logger({
               service: "worker",
               level: "info",
-              queueId: tx.queueId,
+              queueId: tx.id,
               message: `Cancelled`,
             });
             continue;
@@ -133,13 +131,13 @@ export const processTx = async () => {
           logger({
             service: "worker",
             level: "info",
-            queueId: tx.queueId,
+            queueId: tx.id,
             message: `Processing`,
           });
 
           await updateTx({
             pgtx,
-            queueId: tx.queueId!,
+            queueId: tx.id,
             data: {
               status: TransactionStatusEnum.Processed,
             },
@@ -152,17 +150,16 @@ export const processTx = async () => {
           }
         }
 
-        // 3. Group transactions to be batched by sender address & chain id
-        const txsByWallet = txsToSend.reduce((acc, curr) => {
-          const key = `${curr.fromAddress}-${curr.chainId}`;
-          if (key in acc) {
-            acc[key].push(curr);
+        // 3. Group transactions to be batched by sender address and chain.
+        const txsByWallet: Record<string, Transactions[]> = {};
+        txsToSend.forEach((tx) => {
+          const key = `${tx.fromAddress}-${tx.chainId}`;
+          if (key in txsByWallet) {
+            txsByWallet[key].push(tx);
           } else {
-            acc[key] = [curr];
+            txsByWallet[key] = [tx];
           }
-
-          return acc;
-        }, {} as Record<string, Static<typeof transactionResponseSchema>[]>);
+        });
 
         // 4. Sending transaction batches in parallel by unique wallet address and chain id
         const sentTxs = Object.keys(txsByWallet).map(async (key) => {
@@ -230,14 +227,6 @@ export const processTx = async () => {
               });
             }
 
-            if (!dbNonceData) {
-              logger({
-                service: "worker",
-                level: "error",
-                message: `Could not find nonce for wallet ${walletAddress} on chain ${chainId}`,
-              });
-            }
-
             // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
             let startNonce: BigNumber;
             const mempoolNonce = BigNumber.from(mempoolNonceData);
@@ -288,7 +277,7 @@ export const processTx = async () => {
                 logger({
                   service: "worker",
                   level: "debug",
-                  queueId: tx.queueId,
+                  queueId: tx.id,
                   message: `Populated`,
                   data: {
                     nonce: txRequest.nonce?.toString(),
@@ -322,7 +311,7 @@ export const processTx = async () => {
                 logger({
                   service: "worker",
                   level: "debug",
-                  queueId: tx.queueId,
+                  queueId: tx.id,
                   message: `Sending to ${provider.connection.url}`,
                   data: rpcRequest,
                 });
@@ -344,7 +333,7 @@ export const processTx = async () => {
                 logger({
                   service: "worker",
                   level: "debug",
-                  queueId: tx.queueId,
+                  queueId: tx.id,
                   message: `Received response`,
                   data: rpcResponse,
                 });
@@ -355,7 +344,7 @@ export const processTx = async () => {
                   txIndex++;
 
                   rpcResponses.push({
-                    queueId: tx.queueId!,
+                    queueId: tx.id,
                     tx: txRequest,
                     res: rpcResponse,
                     sentAt: new Date(),
@@ -364,7 +353,7 @@ export const processTx = async () => {
                     queuedAt: new Date(tx.queuedAt!).getTime(),
                   });
                   sendWebhookForQueueIds.push({
-                    queueId: tx.queueId!,
+                    queueId: tx.id,
                     status: TransactionStatusEnum.Submitted,
                   });
                 } else if (
@@ -380,7 +369,7 @@ export const processTx = async () => {
                   txIndex++;
 
                   rpcResponses.push({
-                    queueId: tx.queueId!,
+                    queueId: tx.id,
                     tx: txRequest,
                     res: rpcResponse,
                     sentAt: new Date(),
@@ -388,7 +377,7 @@ export const processTx = async () => {
                     extension: tx.extension || undefined,
                   });
                   sendWebhookForQueueIds.push({
-                    queueId: tx.queueId!,
+                    queueId: tx.id,
                     status: TransactionStatusEnum.Errored,
                   });
                 }
@@ -396,7 +385,7 @@ export const processTx = async () => {
                 // Error (continue to next transaction)
                 txIndex++;
                 sendWebhookForQueueIds.push({
-                  queueId: tx.queueId!,
+                  queueId: tx.id,
                   status: TransactionStatusEnum.Errored,
                 });
                 reportUsageForQueueIds.push({
@@ -417,19 +406,18 @@ export const processTx = async () => {
                 logger({
                   service: "worker",
                   level: "warn",
-                  queueId: tx.queueId,
+                  queueId: tx.id,
                   message: `Failed to send`,
                   error: err,
                 });
 
                 await updateTx({
                   pgtx,
-                  queueId: tx.queueId!,
+                  queueId: tx.id,
                   data: {
                     status: TransactionStatusEnum.Errored,
                     errorMessage:
-                      err?.message ||
-                      err?.toString() ||
+                      (await parseTxError(tx, err)) ??
                       `Failed to handle transaction`,
                   },
                 });
@@ -642,7 +630,7 @@ export const processTx = async () => {
             // TODO: Need to update with other user op data
             await updateTx({
               pgtx,
-              queueId: tx.queueId!,
+              queueId: tx.id,
               data: {
                 sentAt: new Date(),
                 status: TransactionStatusEnum.UserOpSent,
@@ -650,7 +638,7 @@ export const processTx = async () => {
               },
             });
             sendWebhookForQueueIds.push({
-              queueId: tx.queueId!,
+              queueId: tx.id,
               status: TransactionStatusEnum.UserOpSent,
             });
             reportUsageForQueueIds.push({
@@ -672,14 +660,14 @@ export const processTx = async () => {
             logger({
               service: "worker",
               level: "warn",
-              queueId: tx.queueId,
+              queueId: tx.id,
               message: `Failed to send`,
               error: err,
             });
 
             await updateTx({
               pgtx,
-              queueId: tx.queueId!,
+              queueId: tx.id,
               data: {
                 status: TransactionStatusEnum.Errored,
                 errorMessage:
@@ -689,7 +677,7 @@ export const processTx = async () => {
               },
             });
             sendWebhookForQueueIds.push({
-              queueId: tx.queueId!,
+              queueId: tx.id,
               status: TransactionStatusEnum.Errored,
             });
             reportUsageForQueueIds.push({

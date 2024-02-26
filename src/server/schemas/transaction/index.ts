@@ -3,174 +3,177 @@ import { Type } from "@sinclair/typebox";
 export const transactionResponseSchema = Type.Object({
   queueId: Type.Union([
     Type.String({
-      description: "Request Identifier",
+      description: "The identifier for a queued transaction",
     }),
     Type.Null(),
   ]),
   chainId: Type.Union([
     Type.String({
-      description: "Chain ID where the transaction was submitted",
+      description: "The chain where the transaction was submited",
     }),
     Type.Null(),
   ]),
   fromAddress: Type.Union([
     Type.String({
-      description: "Wallet Address used for the transaction",
+      description: "The wallet address that submitted the transaction",
     }),
     Type.Null(),
   ]),
   toAddress: Type.Union([
     Type.String({
-      description: "Contract Address used for the transaction",
+      description: "The contract address called by transaction",
     }),
     Type.Null(),
   ]),
   data: Type.Union([
     Type.String({
-      description: "Encoded Input Data",
+      description: "The encoded data in the transaction",
     }),
     Type.Null(),
   ]),
   extension: Type.Union([
     Type.String({
-      description: "ThirdWeb Extension type",
+      description: "The thirdweb extension type",
     }),
     Type.Null(),
   ]),
   value: Type.Union([
     Type.String({
-      description: "Value for the transaction",
+      description: "The amount of native coin sent",
     }),
     Type.Null(),
   ]),
   nonce: Type.Union([
     Type.Number({
-      description: "The nonce of the transaction",
+      description: "The nonce of the sending wallet",
     }),
     Type.Null(),
   ]),
   gasLimit: Type.Union([
     Type.String({
-      description: "Gas Limit used for the transaction",
+      description: "The maximum gas units used for the transaction",
     }),
     Type.Null(),
   ]),
   gasPrice: Type.Union([
     Type.String({
-      description: "Gas Price used for the transaction",
+      description: "The gas price value used (legacy)",
     }),
     Type.Null(),
   ]),
   maxFeePerGas: Type.Union([
     Type.String({
-      description: "Max Fee Per Gas used for the transaction",
+      description: "The max fee per gas unit used (EIP 1559)",
     }),
     Type.Null(),
   ]),
   maxPriorityFeePerGas: Type.Union([
     Type.String({
-      description: "Max Priority Fee Per Gas used for the transaction",
+      description: "The max priority fee per gas used (EIP 1559)",
     }),
     Type.Null(),
   ]),
   transactionType: Type.Union([
     Type.Number({
-      description: "Transaction Type",
+      description: "The EVM transaction type",
     }),
     Type.Null(),
   ]),
   transactionHash: Type.Union([
     Type.String({
-      description: "Submitted Transaction Hash",
+      description: "The hash where to track onchain status",
     }),
     Type.Null(),
   ]),
   queuedAt: Type.Union([
     Type.String({
-      description: "Transaction Queue Request Timestamp",
+      description: "The time when the transaction was enqueued to Engine",
     }),
     Type.Null(),
   ]),
   processedAt: Type.Union([
     Type.String({
       description:
-        "Transaction Processed Timestamp (happens right before submission timestamp)",
+        "The time when Engine processed the transaction from the queue",
     }),
     Type.Null(),
   ]),
   sentAt: Type.Union([
     Type.String({
-      description: "Transaction Submission Timestamp",
+      description:
+        "The time when the transaction is submitted to an RPC provider",
     }),
     Type.Null(),
   ]),
   minedAt: Type.Union([
     Type.String({
-      description: "Transaction Mined Status Update Timestamp",
+      description: "The time when the transaction is mined onchain",
     }),
     Type.Null(),
   ]),
   cancelledAt: Type.Union([
     Type.String({
-      description: "Transaction Cancelled Status Update Timestamp",
+      description: "The time when a transaction is canceled",
     }),
     Type.Null(),
   ]),
   deployedContractAddress: Type.Union([
     Type.String({
-      description: "Deployed Contract Address",
+      description: "The contract address for a deployed contract",
     }),
     Type.Null(),
   ]),
   deployedContractType: Type.Union([
     Type.String({
-      description: "Deployed Contract Type",
+      description: "The type of contract deployed",
     }),
     Type.Null(),
   ]),
   errorMessage: Type.Union([
     Type.String({
-      description: "Error Message",
+      description:
+        "The error that occurred while enqueuing, processing, or submitting the transaction",
     }),
     Type.Null(),
   ]),
   sentAtBlockNumber: Type.Union([
     Type.Number({
-      description: "The block Number where the transaction was sent",
+      description: "The block number when the transaction was submitted",
     }),
     Type.Null(),
   ]),
   blockNumber: Type.Union([
     Type.Number({
-      description: "Block Number where the transaction was mined",
+      description: "The block number when the transaction was mined onchain",
     }),
     Type.Null(),
   ]),
   status: Type.Union([
     Type.String({
-      description: "Status of the transaction",
+      description: "The current status of the transaction",
       examples: ["processed", "queued", "sent", "errored", "mined"],
     }),
     Type.Null(),
   ]),
   retryCount: Type.Number({
-    description: "Number of times the transaction was retried.",
+    description: "The number of retry attempts for the transaction",
   }),
   retryGasValues: Type.Union([
     Type.Boolean({
-      description: "Whether the transaction should be retried.",
+      description:
+        "Indicates whether the transaction should use provided gas values for retries",
     }),
     Type.Null(),
   ]),
   retryMaxFeePerGas: Type.Union([
     Type.String({
-      description: "Retry max fee per gas used for the transaction",
+      description: "The max fee per gas used to use for a retry attempt",
     }),
     Type.Null(),
   ]),
   retryMaxPriorityFeePerGas: Type.Union([
     Type.String({
-      description: "Retry max priority fee per gas used for the transaction",
+      description: "The max priority fee per gas to use for a retry attempt",
     }),
     Type.Null(),
   ]),

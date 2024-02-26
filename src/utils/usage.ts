@@ -5,9 +5,9 @@ import { FastifyInstance } from "fastify";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
-import { thirdwebClientId } from "./api-keys";
 import { env } from "./env";
 import { logger } from "./logger";
+import { thirdwebClientId } from "./sdk";
 
 type CreateHeaderForRequestParams = {
   clientId: string;
