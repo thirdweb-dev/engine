@@ -187,10 +187,6 @@ model IndexedContracts {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  // Relations
-  contractLogs       ContractLogs[]
-  chainIndexer       ChainIndexers @relation(fields: [chainId], references: [chainId])
-
   @@id([chainId, contractAddress])
 
   // optimize distinct lookups
@@ -215,9 +211,6 @@ model ContractLogs {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
-  // relation
-  indexedContract    IndexedContracts @relation(fields: [chainId, contractAddress], references: [chainId, contractAddress])
-
   @@id([transactionHash, logIndex])
 }
 
@@ -227,7 +220,4 @@ model ChainIndexers {
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
-
-  // relations
-  indexedContracts   IndexedContracts[]
 }
