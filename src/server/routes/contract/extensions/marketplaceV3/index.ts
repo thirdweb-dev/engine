@@ -7,6 +7,7 @@ import { directListingsIsBuyerApprovedForListing } from "./directListings/read/i
 import { directListingsIsCurrencyApprovedForListing } from "./directListings/read/isCurrencyApprovedForListing";
 import { directListingsApproveBuyerForReservedListing } from "./directListings/write/approveBuyerForReservedListing";
 import { directListingsBuyFromListing } from "./directListings/write/buyFromListing";
+import { directListingsCancelListing } from "./directListings/write/cancelListing";
 import { directListingsCreateListing } from "./directListings/write/createListing";
 import { directListingsRevokeBuyerApprovalForReservedListing } from "./directListings/write/revokeBuyerApprovalForReservedListing";
 import { directListingsRevokeCurrencyApprovalForListing } from "./directListings/write/revokeCurrencyApprovalForListing";
@@ -28,7 +29,6 @@ import { englishAuctionsCreateAuction } from "./englishAuctions/write/createAuct
 import { englishAuctionsExecuteSale } from "./englishAuctions/write/executeSale";
 import { englishAuctionsMakeBid } from "./englishAuctions/write/makeBid";
 
-import { directListingsCancelListing } from "./directListings/write/cancelListing";
 import { englishAuctionsGetWinner } from "./englishAuctions/read/getWinner";
 import { offersGetAll } from "./offers/read/getAll";
 import { offersGetAllValid } from "./offers/read/getAllValid";
