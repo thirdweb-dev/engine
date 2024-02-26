@@ -9,17 +9,17 @@ ALTER TABLE "configuration" ADD COLUMN     "indexerListenerCronSchedule" TEXT,
 ADD COLUMN     "maxBlocksToIndex" INTEGER NOT NULL;
 
 -- CreateTable
-CREATE TABLE "IndexedContracts" (
+CREATE TABLE "contract_subscriptions" (
     "chainId" INTEGER NOT NULL,
     "contractAddress" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "IndexedContracts_pkey" PRIMARY KEY ("chainId","contractAddress")
+    CONSTRAINT "contract_subscriptions_pkey" PRIMARY KEY ("chainId","contractAddress")
 );
 
 -- CreateTable
-CREATE TABLE "ContractLogs" (
+CREATE TABLE "contract_events" (
     "chainId" INTEGER NOT NULL,
     "blockNumber" INTEGER NOT NULL,
     "contractAddress" TEXT NOT NULL,
@@ -37,18 +37,18 @@ CREATE TABLE "ContractLogs" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "ContractLogs_pkey" PRIMARY KEY ("transactionHash","logIndex")
+    CONSTRAINT "contract_events_pkey" PRIMARY KEY ("transactionHash","logIndex")
 );
 
 -- CreateTable
-CREATE TABLE "ChainIndexers" (
+CREATE TABLE "chain_indexers" (
     "chainId" INTEGER NOT NULL,
     "lastIndexedBlock" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "ChainIndexers_pkey" PRIMARY KEY ("chainId")
+    CONSTRAINT "chain_indexers_pkey" PRIMARY KEY ("chainId")
 );
 
 -- CreateIndex
-CREATE INDEX "IndexedContracts_chainId_idx" ON "IndexedContracts"("chainId");
+CREATE INDEX "contract_subscriptions_chainId_idx" ON "contract_subscriptions"("chainId");

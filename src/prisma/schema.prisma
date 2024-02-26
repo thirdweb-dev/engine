@@ -180,7 +180,7 @@ model Relayers {
   @@map("relayers")
 }
 
-model IndexedContracts {
+model ContractSubscriptions {
   chainId            Int  
   contractAddress    String
 
@@ -191,9 +191,11 @@ model IndexedContracts {
 
   // optimize distinct lookups
   @@index([chainId])
+
+  @@map("contract_subscriptions")
 }
 
-model ContractLogs {
+model ContractEvents {
   chainId            Int
   blockNumber        Int
   contractAddress    String
@@ -212,6 +214,8 @@ model ContractLogs {
   updatedAt          DateTime @updatedAt
 
   @@id([transactionHash, logIndex])
+
+  @@map("contract_events")
 }
 
 model ChainIndexers {
@@ -220,4 +224,6 @@ model ChainIndexers {
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+
+  @@map("chain_indexers")
 }
