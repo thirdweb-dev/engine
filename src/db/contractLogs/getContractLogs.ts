@@ -46,17 +46,20 @@ export const getContractLogsByBlockAndTopics = async ({
 };
 
 interface GetLogsParams {
+  chainId: number;
   fromBlock: number;
   toBlock?: number;
   topics?: string[];
 }
 
 export const getLogsByBlockAndTopics = async ({
+  chainId,
   fromBlock,
   toBlock,
   topics,
 }: GetLogsParams) => {
   const whereClause = {
+    chainId: chainId,
     blockNumber: {
       gte: fromBlock,
     },

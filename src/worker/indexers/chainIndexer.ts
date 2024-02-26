@@ -26,42 +26,43 @@ export interface GetIndexedContractsLogsParams {
  * @param params
  * @returns ethers.Logs[]
  */
-const ethGetLogs = async (params: GetIndexedContractsLogsParams) => {
-  // Alchemy is wayyy more reliable, faster and supports this
-  /*
-    const provider = new ethers.providers.AlchemyProvider(
-      "mainnet",
-      "XtKklSIX8j93iiMXjtTkXVEAs8QpnP8_",
-    );
-
-    const input = {
-      fromBlock: ethers.utils.hexlify(params.fromBlock),
-      toBlock: ethers.utils.hexlify(params.toBlock),
-      address: params.contractAddresses,
-    };
-
-    const logs = await provider.send("eth_getLogs", [input]);
-  */
-
+export const ethGetLogs = async (params: GetIndexedContractsLogsParams) => {
+  /* this should use log filter: address: [...contractAddresses] when thirdweb supports */
   const sdk = await getSdk({ chainId: params.chainId });
   const provider = sdk.getProvider();
 
-  console.log(
-    `Getting Logs: fromBlock: ${params.fromBlock} toBlock: ${params.toBlock}`,
-  );
+  logger({
+    service: "worker",
+    level: "debug",
+    message: `Starting log fetch - ChainIndexer: ${params.chainId}`,
+  });
+
+  const startTime = performance.now();
+
   const logs = await Promise.all(
     params.contractAddresses.map(async (contractAddress) => {
       const logFilter = {
         address: contractAddress,
-        fromBlock: params.fromBlock,
-        toBlock: params.toBlock,
+        fromBlock: ethers.utils.hexlify(params.fromBlock),
+        toBlock: ethers.utils.hexlify(params.toBlock),
       };
+
       const logs = await provider.getLogs(logFilter);
       return logs;
     }),
   );
-  console.log("received logs: ", logs.length);
-  return logs.flat();
+  const flatLogs = logs.flat();
+
+  const endTime = performance.now();
+  const timeTaken = (endTime - startTime).toFixed(2);
+
+  logger({
+    service: "worker",
+    level: "debug",
+    message: `Completed log fetch - ChainIndexer: ${params.chainId}, received ${flatLogs.length} logs in blocks ${params.fromBlock}-${params.toBlock}, time taken: ${timeTaken} ms`,
+  });
+
+  return flatLogs;
 };
 
 export const getIndexedContractsLogs = async (
@@ -74,9 +75,17 @@ export const getIndexedContractsLogs = async (
   const logs = await ethGetLogs(params);
 
   // cache the contracts and abi
-  const contractAddressesWithLogs = logs.map((log) => log.address);
+  const startContractsTime = performance.now();
+  logger({
+    service: "worker",
+    level: "debug",
+    message: `Starting to get contracts - ChainIndexer: ${params.chainId}`,
+  });
+  const uniqueContractAddresses = [
+    ...new Set<string>(logs.map((log) => log.address)),
+  ];
   const contracts = await Promise.all(
-    contractAddressesWithLogs.map(async (address) => {
+    uniqueContractAddresses.map(async (address) => {
       const contract = await getContract({
         chainId: params.chainId,
         contractAddress: address,
@@ -88,9 +97,25 @@ export const getIndexedContractsLogs = async (
     acc[val.contractAddress] = val.contract;
     return acc;
   }, {} as Record<string, SmartContract<ethers.BaseContract>>);
+  const endContractsTime = performance.now();
+  logger({
+    service: "worker",
+    level: "debug",
+    message: `Finished getting contracts - ChainIndexer: ${
+      params.chainId
+    }, Time taken: ${(endContractsTime - startContractsTime).toFixed(2)} ms`,
+  });
 
   // cache the blocks and their timestamps
-  const uniqueBlockNumbers = [...new Set(logs.map((log) => log.blockNumber))];
+  const startBlocksTime = performance.now();
+  logger({
+    service: "worker",
+    level: "debug",
+    message: `Starting to get blocks - ChainIndexer: ${params.chainId}`,
+  });
+  const uniqueBlockNumbers = [
+    ...new Set<number>(logs.map((log) => log.blockNumber)),
+  ];
   const blockDetails = await Promise.all(
     uniqueBlockNumbers.map(async (blockNumber) => ({
       blockNumber,
@@ -101,6 +126,14 @@ export const getIndexedContractsLogs = async (
     acc[blockNumber] = details;
     return acc;
   }, {} as Record<number, ethers.providers.Block>);
+  const endBlocksTime = performance.now();
+  logger({
+    service: "worker",
+    level: "debug",
+    message: `Finished getting blocks - ChainIndexer: ${
+      params.chainId
+    }, Time taken: ${(endBlocksTime - startBlocksTime).toFixed(2)} ms`,
+  });
 
   // format the logs to ContractLogEntries
   const formattedLogs = logs.map((log) => {
@@ -189,6 +222,14 @@ export const createChainIndexerTask = async (chainId: number) => {
             toBlockNumber = lastIndexedBlock + 1 + config.maxBlocksToIndex;
           }
 
+          logger({
+            service: "worker",
+            level: "debug",
+            message: `Indexing blocks: [${
+              lastIndexedBlock + 1
+            }, ${toBlockNumber}] - ChainIndexer: ${chainId}`,
+          });
+
           // get contracts to index
           const indexedContracts = await getIndexedContracts(chainId);
           const indexedContractAddresses = indexedContracts.map(
@@ -203,18 +244,26 @@ export const createChainIndexerTask = async (chainId: number) => {
             contractAddresses: indexedContractAddresses,
           });
 
-          console.log("logs:", logs);
-
           // update the logs
           if (logs.length > 0) {
-            await bulkInsertContractLogs(logs);
+            await bulkInsertContractLogs({ logs, pgtx });
           }
 
           // update the block number
-          await upsertChainIndexer({
-            chainId,
-            currentBlockNumber: toBlockNumber,
-          });
+          try {
+            await upsertChainIndexer({
+              pgtx,
+              chainId,
+              currentBlockNumber: toBlockNumber,
+            });
+          } catch (error) {
+            logger({
+              service: "worker",
+              level: "error",
+              message: `Failed to update latest block number - Chain Indexer: ${chainId}`,
+              error: error,
+            });
+          }
         },
         {
           timeout: 5 * 60000, // 3 minutes timeout

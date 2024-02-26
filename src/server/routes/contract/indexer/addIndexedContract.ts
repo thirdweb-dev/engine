@@ -51,7 +51,6 @@ export async function addIndexedContractRoute(fastify: FastifyInstance) {
       const chainId = await getChainIdFromChain(chain);
       const indexedChainIds = await getIndexedContractsUniqueChainIds();
 
-      console.log("Got indexed chains");
       // if not currently indexed, upsert the latest block number
       if (!indexedChainIds.includes(chainId)) {
         const sdk = await getSdk({ chainId });

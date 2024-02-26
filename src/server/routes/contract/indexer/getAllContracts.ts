@@ -1,16 +1,14 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  contractParamSchema,
-  standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+import { getAllIndexedContracts } from "../../../../db/indexedContracts/getIndexedContract";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const responseSchema = Type.Object({
   result: Type.Object({
     contracts: Type.Array(
       Type.Object({
-        chain: Type.String(),
+        chainId: Type.Number(),
         contractAddress: Type.String(),
       }),
     ),
@@ -32,28 +30,31 @@ responseSchema.example = {
 
 export async function getAllContractsRoute(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/indexer/getAllContracts",
+    url: "/contract/indexer/getAll",
     schema: {
       summary: "Get all indexed contracts",
       description: "Get all indexed contracts",
       tags: ["Contract", "Index"],
       operationId: "read",
-      params: contractParamSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
-      // query all contracts
+      const allIndexedContracts = await getAllIndexedContracts();
+
+      const contracts = allIndexedContracts.map((val) => ({
+        chainId: val.chainId,
+        contractAddress: val.contractAddress,
+      }));
 
       reply.status(StatusCodes.OK).send({
         result: {
-          contracts: [],
+          contracts,
           status: "success",
         },
       });

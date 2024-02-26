@@ -16,10 +16,9 @@ export const addChainIndexer = async (chainId: number) => {
   }
 
   let processStarted = false;
-  console.log("Getting the block Time");
+
   const blockTimeSeconds = await getBlockTimeSeconds(chainId);
   const handler = await createChainIndexerTask(chainId);
-  console.log("creating indexer");
 
   const cronSchedule = createScheduleSeconds(blockTimeSeconds);
 
@@ -43,7 +42,7 @@ export const addChainIndexer = async (chainId: number) => {
       logger({
         service: "worker",
         level: "warn",
-        message: `processIndex: ${chainId} already running, skipping`,
+        message: `ChainIndexer: ${chainId} process already running, skipping`,
       });
     }
   });
