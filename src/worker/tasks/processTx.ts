@@ -3,7 +3,6 @@ import { Transactions } from ".prisma/client";
 import {
   StaticJsonRpcBatchProvider,
   getDefaultGasOverrides,
-  toEther,
 } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
@@ -274,26 +273,6 @@ export const processTx = async () => {
                   ...gasOverrides,
                 });
 
-                logger({
-                  service: "worker",
-                  level: "debug",
-                  queueId: tx.id,
-                  message: `Populated`,
-                  data: {
-                    nonce: txRequest.nonce?.toString(),
-                    gasLimit: txRequest.gasLimit?.toString(),
-                    gasPrice: txRequest.gasPrice
-                      ? toEther(txRequest.gasPrice)
-                      : undefined,
-                    maxFeePerGas: txRequest.maxFeePerGas
-                      ? toEther(txRequest.maxFeePerGas)
-                      : undefined,
-                    maxPriorityFeePerGas: txRequest.maxPriorityFeePerGas
-                      ? toEther(txRequest.maxPriorityFeePerGas)
-                      : undefined,
-                  },
-                });
-
                 // TODO: We need to target specific cases
                 // Bump gas limit to avoid occasional out of gas errors
                 txRequest.gasLimit = txRequest.gasLimit
@@ -418,7 +397,7 @@ export const processTx = async () => {
                     status: TransactionStatusEnum.Errored,
                     errorMessage:
                       (await parseTxError(tx, err)) ??
-                      `Failed to handle transaction`,
+                      "Unexpected error sending transaction.",
                   },
                 });
               }

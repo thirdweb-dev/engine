@@ -6,6 +6,7 @@ import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
+import { parseTxError } from "../../utils/errors";
 import { getGasSettingsForRetry } from "../../utils/gas";
 import { logger } from "../../utils/logger";
 import {
@@ -98,9 +99,8 @@ export const retryTx = async () => {
             data: {
               status: TransactionStatusEnum.Errored,
               errorMessage:
-                err?.message ||
-                err?.toString() ||
-                `Failed to handle transaction`,
+                (await parseTxError(tx, err)) ??
+                "Unexpected error sending transaction.",
             },
           });
 
