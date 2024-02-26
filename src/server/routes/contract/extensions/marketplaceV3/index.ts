@@ -28,6 +28,7 @@ import { englishAuctionsCreateAuction } from "./englishAuctions/write/createAuct
 import { englishAuctionsExecuteSale } from "./englishAuctions/write/executeSale";
 import { englishAuctionsMakeBid } from "./englishAuctions/write/makeBid";
 
+import { directListingsCancelListing } from "./directListings/write/cancelListing";
 import { englishAuctionsGetWinner } from "./englishAuctions/read/getWinner";
 import { offersGetAll } from "./offers/read/getAll";
 import { offersGetAllValid } from "./offers/read/getAllValid";
@@ -74,6 +75,7 @@ export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
   await fastify.register(directListingsApproveBuyerForReservedListing);
   await fastify.register(directListingsRevokeBuyerApprovalForReservedListing);
   await fastify.register(directListingsRevokeCurrencyApprovalForListing);
+  await fastify.register(directListingsCancelListing);
 
   // English Auctions
   await fastify.register(englishAuctionsBuyoutAuction);
