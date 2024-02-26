@@ -19,7 +19,7 @@ CREATE TABLE "contract_subscriptions" (
 );
 
 -- CreateTable
-CREATE TABLE "contract_events" (
+CREATE TABLE "contract_event_logs" (
     "chainId" INTEGER NOT NULL,
     "blockNumber" INTEGER NOT NULL,
     "contractAddress" TEXT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE "contract_events" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "contract_events_pkey" PRIMARY KEY ("transactionHash","logIndex")
+    CONSTRAINT "contract_event_logs_pkey" PRIMARY KEY ("transactionHash","logIndex")
 );
 
 -- CreateTable

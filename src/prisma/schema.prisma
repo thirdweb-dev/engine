@@ -195,7 +195,7 @@ model ContractSubscriptions {
   @@map("contract_subscriptions")
 }
 
-model ContractEvents {
+model ContractEventLogs {
   chainId            Int
   blockNumber        Int
   contractAddress    String
@@ -215,7 +215,7 @@ model ContractEvents {
 
   @@id([transactionHash, logIndex])
 
-  @@map("contract_events")
+  @@map("contract_event_logs")
 }
 
 model ChainIndexers {
