@@ -20,8 +20,8 @@ export const parseTxError = async (
 
   if ((err as EthersError)?.code === ethers.errors.INSUFFICIENT_FUNDS) {
     const chain = await getChainByChainIdAsync(parseInt(tx.chainId));
-    return `Insufficient ${
-      chain.nativeCurrency.symbol
+    return `Insufficient ${chain.nativeCurrency.symbol} on ${
+      chain.name
     } in backend wallet ${tx.fromAddress!}.`;
   }
 
