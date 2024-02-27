@@ -152,7 +152,7 @@ export const getSubscribedContractsLogs = async (
         decodedLog = parsedLog.eventFragment.inputs.reduce((acc, input) => {
           acc[input.name] = {
             type: input.type,
-            value: parsedLog.args[input.name],
+            value: parsedLog.args[input.name].toString(),
           };
           return acc;
         }, {} as Record<string, { type: string; value: string }>);
