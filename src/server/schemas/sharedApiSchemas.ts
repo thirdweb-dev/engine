@@ -64,7 +64,7 @@ export const publishedDeployParamSchema = Type.Object({
 /**
  * Basic schema for all Response Body
  */
-const replyBodySchema = Type.Object({
+export const replyBodySchema = Type.Object({
   result: Type.Optional(
     Type.Union([
       Type.Number(),
