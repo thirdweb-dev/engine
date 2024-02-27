@@ -1,20 +1,19 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  getEventLogsByBlockTimestamp,
-  getEventLogsByCreationTimestamp,
-} from "../../../../db/contractEventLogs/getContractEventLogs";
+import { getContractEventLogsByBlockAndTopics } from "../../../../db/contractEventLogs/getContractEventLogs";
+import { isContractSubscribed } from "../../../../db/contractSubscriptions/getContractSubscriptions";
 import { createCustomError } from "../../../middleware/error";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import {
+  contractParamSchema,
+  standardResponseSchema,
+} from "../../../schemas/sharedApiSchemas";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestQuerySchema = Type.Object({
-  contractAddresses: Type.Optional(Type.Array(Type.String())),
+  fromBlock: Type.Number(),
+  toBlock: Type.Optional(Type.Number()),
   topics: Type.Optional(Type.Array(Type.String())),
-  fromCreationTimestamp: Type.Optional(Type.Number()),
-  toCreationTimestamp: Type.Optional(Type.Number()),
-  fromBlockTimestamp: Type.Optional(Type.Number()),
-  toBlockTimestamp: Type.Optional(Type.Number()),
 });
 
 const responseSchema = Type.Object({
@@ -47,82 +46,56 @@ responseSchema.example = {
   },
 };
 
-export async function getEventLogs(fastify: FastifyInstance) {
+export async function getContractEventLogs(fastify: FastifyInstance) {
   fastify.route<{
+    Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/contract/events/get-logs",
+    url: "/contract/:chain/:contractAddress/events/get-logs",
     schema: {
       summary: "Get contract event logs",
       description: "Get event logs for a subscribed contract",
       tags: ["Contract", "Index"],
       operationId: "read",
+      params: contractParamSchema,
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
-    preValidation: async (request) => {
-      const {
-        fromCreationTimestamp,
-        toCreationTimestamp,
-        fromBlockTimestamp,
-        toBlockTimestamp,
-      } = request.query;
-
-      const hasCreatedTimestamps =
-        fromCreationTimestamp !== undefined ||
-        toCreationTimestamp !== undefined;
-      const hasBlockTimestamps =
-        fromBlockTimestamp !== undefined || toBlockTimestamp !== undefined;
-
-      if (hasCreatedTimestamps == hasBlockTimestamps) {
-        throw createCustomError(
-          "Either blockTimestamp or createdTimestamp should be defined",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-      }
-    },
     handler: async (request, reply) => {
-      const {
-        fromCreationTimestamp,
-        toCreationTimestamp,
-        fromBlockTimestamp,
-        toBlockTimestamp,
-        contractAddresses,
-        topics,
-      } = request.query;
+      const { chain, contractAddress } = request.params;
+      const { fromBlock, toBlock, topics } = request.query;
 
-      const standardizedContractAddresses = contractAddresses?.map((val) =>
-        val.toLowerCase(),
-      );
+      const standardizedContractAddress = contractAddress.toLowerCase();
 
-      let resultLogs;
-      if (fromCreationTimestamp) {
-        resultLogs = await getEventLogsByCreationTimestamp({
-          fromCreationTimestamp,
-          toCreationTimestamp,
-          contractAddresses: standardizedContractAddresses,
-          topics,
-        });
-      } else if (fromBlockTimestamp) {
-        resultLogs = await getEventLogsByBlockTimestamp({
-          fromBlockTimestamp,
-          toBlockTimestamp,
-          contractAddresses: standardizedContractAddresses,
-          topics,
-        });
-      } else {
+      const chainId = await getChainIdFromChain(chain);
+
+      // check if subscribed, if not tell user to subscribe
+      const isSubscribed = await isContractSubscribed({
+        chainId,
+        contractAddress: standardizedContractAddress,
+      });
+
+      if (!isSubscribed) {
+        const subcriptionUrl = `/contract/${chain}/${contractAddress}/events/subscribe`;
         throw createCustomError(
-          "Either blockTimestamp or createdTimestamp should be defined",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
+          `Contract is not subscribed to! To subscribe, please use ${subcriptionUrl}`,
+          StatusCodes.NOT_FOUND,
+          "NOT_FOUND",
         );
       }
+
+      const resultLogs = await getContractEventLogsByBlockAndTopics({
+        chainId,
+        contractAddress: standardizedContractAddress,
+        fromBlock,
+        toBlock,
+        topics,
+      });
 
       const logs = resultLogs.map((log) => {
         const topics: string[] = [];

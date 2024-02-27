@@ -115,6 +115,7 @@ import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
 
 // Indexer
 import { addContractSubscription } from "./contract/events/addContractSubscription";
+import { getContractEventLogs } from "./contract/events/getContractEventLogs";
 import { getContractIndexedBlockRange } from "./contract/events/getContractIndexedBlockRange";
 import { getContractSubscriptions } from "./contract/events/getContractSubscriptions";
 import { getEventLogs } from "./contract/events/getEventLogs";
@@ -240,6 +241,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   // Indexer
   await fastify.register(addContractSubscription);
   await fastify.register(getContractSubscriptions);
+  await fastify.register(getContractEventLogs);
   await fastify.register(getEventLogs);
   await fastify.register(getContractIndexedBlockRange);
   await fastify.register(removeContractSubscription);

@@ -20,67 +20,103 @@ export const getContractEventLogsByBlockAndTopics = async ({
     contractAddress,
     blockNumber: {
       gte: fromBlock,
+      ...(toBlock ? { lte: toBlock } : {}),
     },
-  } as any;
-
-  if (toBlock) {
-    whereClause.AND = {
-      blockNumber: {
-        lte: toBlock,
-      },
-    };
-  }
-
-  if (topics && topics.length) {
-    whereClause.OR = [
-      { topic0: { in: topics } },
-      { topic1: { in: topics } },
-      { topic2: { in: topics } },
-      { topic3: { in: topics } },
-    ];
-  }
+    ...(topics && topics.length > 0
+      ? {
+          OR: [
+            { topic0: { in: topics } },
+            { topic1: { in: topics } },
+            { topic2: { in: topics } },
+            { topic3: { in: topics } },
+          ],
+        }
+      : {}),
+  };
 
   return await prisma.contractEventLogs.findMany({
     where: whereClause,
   });
 };
 
-interface GetEventLogsParams {
-  chainId: number;
-  fromBlock: number;
-  toBlock?: number;
+interface GetEventLogsByBlockTimestampParams {
+  fromBlockTimestamp: number;
+  toBlockTimestamp?: number;
+  contractAddresses?: string[];
   topics?: string[];
 }
 
-export const getChainIdEventLogsByBlockAndTopics = async ({
-  chainId,
-  fromBlock,
-  toBlock,
+export const getEventLogsByBlockTimestamp = async ({
+  fromBlockTimestamp,
+  toBlockTimestamp,
+  contractAddresses,
   topics,
-}: GetEventLogsParams) => {
+}: GetEventLogsByBlockTimestampParams) => {
+  const fromBlockDate = new Date(fromBlockTimestamp);
+  const toBlockDate = toBlockTimestamp ? new Date(toBlockTimestamp) : undefined;
+
   const whereClause = {
-    chainId: chainId,
-    blockNumber: {
-      gte: fromBlock,
+    timestamp: {
+      gte: fromBlockDate,
+      ...(toBlockDate && { lte: toBlockDate }),
     },
-  } as any;
+    ...(contractAddresses && contractAddresses.length > 0
+      ? { contractAddress: { in: contractAddresses } }
+      : {}),
+    ...(topics && topics.length > 0
+      ? {
+          OR: [
+            { topic0: { in: topics } },
+            { topic1: { in: topics } },
+            { topic2: { in: topics } },
+            { topic3: { in: topics } },
+          ],
+        }
+      : {}),
+  };
 
-  if (toBlock) {
-    whereClause.AND = {
-      blockNumber: {
-        lte: toBlock,
-      },
-    };
-  }
+  return await prisma.contractEventLogs.findMany({
+    where: whereClause,
+  });
+};
 
-  if (topics && topics.length) {
-    whereClause.OR = [
-      { topic0: { in: topics } },
-      { topic1: { in: topics } },
-      { topic2: { in: topics } },
-      { topic3: { in: topics } },
-    ];
-  }
+interface GetEventLogsByCreationTimestampParams {
+  fromCreationTimestamp: number;
+  toCreationTimestamp?: number;
+  contractAddresses?: string[];
+  topics?: string[];
+}
+
+export const getEventLogsByCreationTimestamp = async ({
+  fromCreationTimestamp,
+  toCreationTimestamp,
+  contractAddresses,
+  topics,
+}: GetEventLogsByCreationTimestampParams) => {
+  const fromCreationDate = new Date(fromCreationTimestamp);
+  const toCreationDate = toCreationTimestamp
+    ? new Date(toCreationTimestamp)
+    : undefined;
+
+  const whereClause = {
+    createdAt: {
+      gte: fromCreationDate,
+      ...(toCreationDate && { lte: toCreationDate }),
+    },
+    ...(contractAddresses && contractAddresses.length > 0
+      ? { contractAddress: { in: contractAddresses } }
+      : {}),
+    ...(topics && topics.length > 0
+      ? {
+          OR: [
+            { topic0: { in: topics } },
+            { topic1: { in: topics } },
+            { topic2: { in: topics } },
+            { topic3: { in: topics } },
+          ],
+        }
+      : {}),
+  };
 
   return await prisma.contractEventLogs.findMany({
     where: whereClause,
