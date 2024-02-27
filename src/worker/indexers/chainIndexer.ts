@@ -171,7 +171,7 @@ export const getSubscribedContractsLogs = async (
     return {
       chainId: params.chainId,
       blockNumber: log.blockNumber,
-      contractAddress: log.address,
+      contractAddress: log.address.toLowerCase(), // ensure common address handling across
       transactionHash: log.transactionHash,
       topic0: log.topics[0],
       topic1: log.topics[1],

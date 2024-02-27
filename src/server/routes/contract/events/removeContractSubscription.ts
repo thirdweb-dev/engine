@@ -46,29 +46,29 @@ export async function removeContractSubscription(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-
+      const standardizedContractAddress = contractAddress.toLowerCase();
       const chainId = await getChainIdFromChain(chain);
 
       await deleteContractSubscription({
         chainId,
-        contractAddress,
+        contractAddress: standardizedContractAddress,
       });
 
       const deletedLogs = await deleteContractEventLogs({
         chainId,
-        contractAddress,
+        contractAddress: standardizedContractAddress,
       });
 
       logger({
         service: "server",
         level: "info",
-        message: `[Events] Removed Subscription: chainId: ${chainId}, contractAddress: ${contractAddress}, deleted ${deletedLogs.count} logs`,
+        message: `[Events] Removed Subscription: chainId: ${chainId}, contractAddress: ${standardizedContractAddress}, deleted ${deletedLogs.count} logs`,
       });
 
       reply.status(StatusCodes.OK).send({
         result: {
           chain,
-          contractAddress,
+          contractAddress: standardizedContractAddress,
           status: "success",
         },
       });

@@ -49,6 +49,8 @@ export async function addContractSubscription(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
 
+      const standardizedContractAddress = contractAddress.toLowerCase();
+
       const chainId = await getChainIdFromChain(chain);
       const subscribedChainIds = await getContractSubscriptionsUniqueChainIds();
 
@@ -65,18 +67,21 @@ export async function addContractSubscription(fastify: FastifyInstance) {
       }
 
       // upsert indexed contract, this will be picked up
-      await upsertContractSubscription({ chainId, contractAddress });
+      await upsertContractSubscription({
+        chainId,
+        contractAddress: standardizedContractAddress,
+      });
 
       logger({
         service: "server",
         level: "info",
-        message: `[Events] Added Subscription: chainId: ${chainId}, contractAddress: ${contractAddress}`,
+        message: `[Events] Added Subscription: chainId: ${chainId}, contractAddress: ${standardizedContractAddress}`,
       });
 
       reply.status(StatusCodes.OK).send({
         result: {
           chain,
-          contractAddress,
+          contractAddress: standardizedContractAddress,
           status: "success",
         },
       });

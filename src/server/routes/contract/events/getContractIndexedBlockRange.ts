@@ -49,6 +49,7 @@ export async function getContractIndexedBlockRange(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
+      const standardizedContractAddress = contractAddress.toLowerCase();
 
       const chainId = await getChainIdFromChain(chain);
 
@@ -59,7 +60,7 @@ export async function getContractIndexedBlockRange(fastify: FastifyInstance) {
 
       if (!result.fromBlock || !result.toBlock) {
         const error = createCustomError(
-          `No logs found for chainId: ${chainId}, contractAddress: ${contractAddress}`,
+          `No logs found for chainId: ${chainId}, contractAddress: ${standardizedContractAddress}`,
           StatusCodes.NOT_FOUND,
           "LOG_NOT_FOUND",
         );
@@ -69,7 +70,7 @@ export async function getContractIndexedBlockRange(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           chain,
-          contractAddress,
+          contractAddress: standardizedContractAddress,
           fromBlock: result.fromBlock,
           toBlock: result.toBlock,
           status: "success",

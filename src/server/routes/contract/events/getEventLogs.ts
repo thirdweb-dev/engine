@@ -68,11 +68,13 @@ export async function getEventLogs(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { fromBlock, toBlock, topics } = request.query;
 
+      const standardizedContractAddress = contractAddress.toLowerCase();
+
       const chainId = await getChainIdFromChain(chain);
 
       const resultLogs = await getContractEventLogsByBlockAndTopics({
         chainId,
-        contractAddress,
+        contractAddress: standardizedContractAddress,
         fromBlock,
         toBlock,
         topics,
