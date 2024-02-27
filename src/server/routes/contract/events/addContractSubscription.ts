@@ -5,6 +5,7 @@ import { upsertChainIndexer } from "../../../../db/chainIndexers/upsertChainInde
 import { upsertContractSubscription } from "../../../../db/contractSubscriptions/createContractSubscription";
 import { getContractSubscriptionsUniqueChainIds } from "../../../../db/contractSubscriptions/getContractSubscriptions";
 import { getSdk } from "../../../../utils/cache/getSdk";
+import { logger } from "../../../../utils/logger";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -65,6 +66,12 @@ export async function addContractSubscription(fastify: FastifyInstance) {
 
       // upsert indexed contract, this will be picked up
       await upsertContractSubscription({ chainId, contractAddress });
+
+      logger({
+        service: "server",
+        level: "info",
+        message: `[Events] Added Subscription: chainId: ${chainId}, contractAddress: ${contractAddress}`,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
