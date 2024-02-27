@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteContractEventLogs } from "../../../../db/contractEventLogs/deleteContractLogs";
+import { deleteContractEventLogs } from "../../../../db/contractEventLogs/deleteContractEventLogs";
 import {
   contractParamSchema,
   standardResponseSchema,
