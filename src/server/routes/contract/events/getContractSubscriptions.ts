@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllIndexedContracts } from "../../../../db/indexedContracts/getIndexedContract";
+import { getAllContractSubscriptions } from "../../../../db/contractSubscriptions/getContractSubscriptions";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const responseSchema = Type.Object({
@@ -28,15 +28,15 @@ responseSchema.example = {
   },
 };
 
-export async function getAllContractsRoute(fastify: FastifyInstance) {
+export async function getContractSubscriptions(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/indexer/getAll",
+    url: "/contract/events/get-subscriptions",
     schema: {
-      summary: "Get all indexed contracts",
-      description: "Get all indexed contracts",
+      summary: "Get all subscribed contracts",
+      description: "Get all subscribed contracts",
       tags: ["Contract", "Index"],
       operationId: "read",
       response: {
@@ -45,9 +45,9 @@ export async function getAllContractsRoute(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const allIndexedContracts = await getAllIndexedContracts();
+      const contractSubscriptions = await getAllContractSubscriptions();
 
-      const contracts = allIndexedContracts.map((val) => ({
+      const contracts = contractSubscriptions.map((val) => ({
         chainId: val.chainId,
         contractAddress: val.contractAddress,
       }));

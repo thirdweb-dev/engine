@@ -8,7 +8,7 @@ interface GetContractLogsParams {
   topics?: string[];
 }
 
-export const getContractLogsByBlockAndTopics = async ({
+export const getContractEventLogsByBlockAndTopics = async ({
   chainId,
   contractAddress,
   fromBlock,
@@ -40,24 +40,24 @@ export const getContractLogsByBlockAndTopics = async ({
     ];
   }
 
-  return await prisma.contractLogs.findMany({
+  return await prisma.contractEventLogs.findMany({
     where: whereClause,
   });
 };
 
-interface GetLogsParams {
+interface GetEventLogsParams {
   chainId: number;
   fromBlock: number;
   toBlock?: number;
   topics?: string[];
 }
 
-export const getLogsByBlockAndTopics = async ({
+export const getChainIdEventLogsByBlockAndTopics = async ({
   chainId,
   fromBlock,
   toBlock,
   topics,
-}: GetLogsParams) => {
+}: GetEventLogsParams) => {
   const whereClause = {
     chainId: chainId,
     blockNumber: {
@@ -82,16 +82,21 @@ export const getLogsByBlockAndTopics = async ({
     ];
   }
 
-  return await prisma.contractLogs.findMany({
+  return await prisma.contractEventLogs.findMany({
     where: whereClause,
   });
 };
 
-export const getMinMaxBlockNumber = async (
-  chainId: number,
-  contractAddress: string,
-) => {
-  const result = await prisma.contractLogs.aggregate({
+export interface GetContractEventLogsIndexedBlockRangeParams {
+  chainId: number;
+  contractAddress: string;
+}
+
+export const getContractEventLogsIndexedBlockRange = async ({
+  chainId,
+  contractAddress,
+}: GetContractEventLogsIndexedBlockRangeParams) => {
+  const result = await prisma.contractEventLogs.aggregate({
     where: {
       chainId,
       contractAddress,
@@ -105,7 +110,7 @@ export const getMinMaxBlockNumber = async (
   });
 
   return {
-    minBlockNumber: result._min.blockNumber,
-    maxBlockNumber: result._max.blockNumber,
+    fromBlock: result._min.blockNumber,
+    toBlock: result._max.blockNumber,
   };
 };

@@ -1,7 +1,7 @@
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
-export interface ContractLogEntry {
+export interface ContractEventLogEntry {
   chainId: number;
   blockNumber: number;
   contractAddress: string;
@@ -20,15 +20,15 @@ export interface ContractLogEntry {
 
 export interface BulkInsertContractLogsParams {
   pgtx?: PrismaTransaction;
-  logs: ContractLogEntry[];
+  logs: ContractEventLogEntry[];
 }
 
-export const bulkInsertContractLogs = async ({
+export const bulkInsertContractEventLogs = async ({
   pgtx,
   logs,
 }: BulkInsertContractLogsParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
-  return await prisma.contractLogs.createMany({
+  return await prisma.contractEventLogs.createMany({
     data: logs,
     skipDuplicates: true,
   });

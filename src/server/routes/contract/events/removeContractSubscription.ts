@@ -1,8 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getMinMaxBlockNumber } from "../../../../db/contractLogs/getContractLogs";
-import { createCustomError } from "../../../middleware/error";
+import { deleteContractSubscription } from "../../../../db/contractSubscriptions/deleteContractSubscription";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -13,8 +12,6 @@ const responseSchema = Type.Object({
   result: Type.Object({
     chain: Type.String(),
     contractAddress: Type.String(),
-    firstIndexedBlock: Type.Number(),
-    lastIndexedBlock: Type.Number(),
     status: Type.String(),
   }),
 });
@@ -23,24 +20,22 @@ responseSchema.example = {
   result: {
     chain: "ethereum",
     contractAddress: "0x....",
-    firstIndexedBlock: 100,
-    lastIndexedBlock: 200,
     status: "success",
   },
 };
 
-export async function getIndexedBlocksRoute(fastify: FastifyInstance) {
+export async function removeContractSubscription(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
-    method: "GET",
-    url: "/contract/:chain/:contractAddress/indexer/getIndexedBlocks",
+    method: "POST",
+    url: "/contract/:chain/:contractAddress/events/unsubscribe",
     schema: {
-      summary: "Gets the indexed blocks for the contract",
-      description: "Gets the indexed blocks for the contract",
+      summary: "Unsubscribe from contract events",
+      description: "Unsubscribe from contract events",
       tags: ["Contract", "Index"],
-      operationId: "read",
+      operationId: "write",
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,
@@ -52,23 +47,15 @@ export async function getIndexedBlocksRoute(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      const result = await getMinMaxBlockNumber(chainId, contractAddress);
-
-      if (!result.minBlockNumber || !result.maxBlockNumber) {
-        const error = createCustomError(
-          `No logs found for chainId: ${chainId}, contractAddress: ${contractAddress}`,
-          StatusCodes.NOT_FOUND,
-          "LOG_NOT_FOUND",
-        );
-        throw error;
-      }
+      await deleteContractSubscription({
+        chainId,
+        contractAddress,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
           chain,
           contractAddress,
-          firstIndexedBlock: result.minBlockNumber,
-          lastIndexedBlock: result.maxBlockNumber,
           status: "success",
         },
       });

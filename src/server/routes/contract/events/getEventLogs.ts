@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractLogsByBlockAndTopics } from "../../../../db/contractLogs/getContractLogs";
+import { getContractEventLogsByBlockAndTopics } from "../../../../db/contractEventLogs/getContractEventLogs";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -44,7 +44,7 @@ responseSchema.example = {
   },
 };
 
-export async function getContractLogsRoute(fastify: FastifyInstance) {
+export async function getEventLogs(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
@@ -53,8 +53,8 @@ export async function getContractLogsRoute(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contractAddress/indexer/getLogs",
     schema: {
-      summary: "Get contract logs",
-      description: "Get logs for an indexed contract",
+      summary: "Get contract event logs",
+      description: "Get event logs for a subscribed contract",
       tags: ["Contract", "Index"],
       operationId: "read",
       params: contractParamSchema,
@@ -70,7 +70,7 @@ export async function getContractLogsRoute(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      const results = await getContractLogsByBlockAndTopics({
+      const resultLogs = await getContractEventLogsByBlockAndTopics({
         chainId,
         contractAddress,
         fromBlock,
@@ -78,7 +78,7 @@ export async function getContractLogsRoute(fastify: FastifyInstance) {
         topics,
       });
 
-      const logs = results.map((log) => {
+      const logs = resultLogs.map((log) => {
         const topics: string[] = [];
         [log.topic0, log.topic1, log.topic2, log.topic3].forEach((val) => {
           if (val) {

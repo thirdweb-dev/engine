@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteIndexedContract } from "../../../../db/indexedContracts/deleteIndexedContract";
+import { deleteContractEventLogs } from "../../../../db/contractEventLogs/deleteContractLogs";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -12,6 +12,7 @@ const responseSchema = Type.Object({
   result: Type.Object({
     chain: Type.String(),
     contractAddress: Type.String(),
+    rows: Type.Number(),
     status: Type.String(),
   }),
 });
@@ -20,20 +21,21 @@ responseSchema.example = {
   result: {
     chain: "ethereum",
     contractAddress: "0x....",
+    row: 100,
     status: "success",
   },
 };
 
-export async function removeIndexedContractRoute(fastify: FastifyInstance) {
+export async function clearContractEventLogs(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contractAddress/indexer/delete",
+    url: "/contract/:chain/:contractAddress/events/clear",
     schema: {
-      summary: "Stop contract indexing",
-      description: "Stop indexing a contract",
+      summary: "Clears saved contract logs",
+      description: "Clears saved contract logs for a subscribed contract",
       tags: ["Contract", "Index"],
       operationId: "write",
       params: contractParamSchema,
@@ -47,15 +49,16 @@ export async function removeIndexedContractRoute(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      await deleteIndexedContract({
+      const deletedLogs = await deleteContractEventLogs({
         chainId,
         contractAddress,
       });
 
-      reply.status(StatusCodes.OK).send({
+      await reply.status(StatusCodes.OK).send({
         result: {
           chain,
           contractAddress,
+          rows: deletedLogs.count,
           status: "success",
         },
       });

@@ -18,7 +18,7 @@ export const getBlockForIndexing = async ({
     SELECT
       "lastIndexedBlock"
     FROM
-      "ChainIndexers"
+      "chain_indexers"
     WHERE
       "chainId"=${chainId}
     FOR UPDATE NOWAIT

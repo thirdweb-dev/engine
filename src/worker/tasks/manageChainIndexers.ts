@@ -1,4 +1,4 @@
-import { getIndexedContractsUniqueChainIds } from "../../db/indexedContracts/getIndexedContract";
+import { getContractSubscriptionsUniqueChainIds } from "../../db/contractSubscriptions/getContractSubscriptions";
 import {
   INDEXER_REGISTRY,
   addChainIndexer,
@@ -6,9 +6,9 @@ import {
 } from "../indexers/chainIndexerRegistry";
 
 export const manageChainIndexers = async () => {
-  const chainIds = await getIndexedContractsUniqueChainIds();
+  const chainIdsToIndex = await getContractSubscriptionsUniqueChainIds();
 
-  for (const chainId of chainIds) {
+  for (const chainId of chainIdsToIndex) {
     if (!(chainId in INDEXER_REGISTRY)) {
       await addChainIndexer(chainId);
     }
@@ -16,7 +16,7 @@ export const manageChainIndexers = async () => {
 
   for (const chainId in INDEXER_REGISTRY) {
     const chainIdNum = parseInt(chainId);
-    if (!chainIds.includes(chainIdNum)) {
+    if (!chainIdsToIndex.includes(chainIdNum)) {
       await removeChainIndexer(chainIdNum);
     }
   }

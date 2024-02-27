@@ -2,8 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { upsertChainIndexer } from "../../../../db/chainIndexers/upsertChainIndexer";
-import { upsertIndexedContract } from "../../../../db/indexedContracts/createIndexedContract";
-import { getIndexedContractsUniqueChainIds } from "../../../../db/indexedContracts/getIndexedContract";
+import { upsertContractSubscription } from "../../../../db/contractSubscriptions/createContractSubscription";
+import { getContractSubscriptionsUniqueChainIds } from "../../../../db/contractSubscriptions/getContractSubscriptions";
 import { getSdk } from "../../../../utils/cache/getSdk";
 import {
   contractParamSchema,
@@ -27,16 +27,16 @@ responseSchema.example = {
   },
 };
 
-export async function addIndexedContractRoute(fastify: FastifyInstance) {
+export async function addContractSubscription(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contractAddress/indexer/create",
+    url: "/contract/:chain/:contractAddress/events/subscribe",
     schema: {
-      summary: "Start contract indexing",
-      description: "Start indexing a contract",
+      summary: "Subscribe to contract events",
+      description: "Subscribe to contract events",
       tags: ["Contract", "Index"],
       operationId: "write",
       params: contractParamSchema,
@@ -49,10 +49,10 @@ export async function addIndexedContractRoute(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
 
       const chainId = await getChainIdFromChain(chain);
-      const indexedChainIds = await getIndexedContractsUniqueChainIds();
+      const subscribedChainIds = await getContractSubscriptionsUniqueChainIds();
 
       // if not currently indexed, upsert the latest block number
-      if (!indexedChainIds.includes(chainId)) {
+      if (!subscribedChainIds.includes(chainId)) {
         try {
           const sdk = await getSdk({ chainId });
           const provider = sdk.getProvider();
@@ -64,7 +64,7 @@ export async function addIndexedContractRoute(fastify: FastifyInstance) {
       }
 
       // upsert indexed contract, this will be picked up
-      await upsertIndexedContract({ chainId, contractAddress });
+      await upsertContractSubscription({ chainId, contractAddress });
 
       reply.status(StatusCodes.OK).send({
         result: {

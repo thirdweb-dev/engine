@@ -4,16 +4,16 @@ import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
 import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";
 import { prisma } from "../../db/client";
 import {
-  bulkInsertContractLogs,
-  type ContractLogEntry,
-} from "../../db/contractLogs/createContractLogs";
-import { getIndexedContracts } from "../../db/indexedContracts/getIndexedContract";
+  bulkInsertContractEventLogs,
+  type ContractEventLogEntry,
+} from "../../db/contractEventLogs/createContractEventLogs";
+import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 
-export interface GetIndexedContractsLogsParams {
+export interface GetSubscribedContractsLogsParams {
   chainId: number;
   contractAddresses: string[];
   fromBlock: number;
@@ -26,7 +26,7 @@ export interface GetIndexedContractsLogsParams {
  * @param params
  * @returns ethers.Logs[]
  */
-export const ethGetLogs = async (params: GetIndexedContractsLogsParams) => {
+export const ethGetLogs = async (params: GetSubscribedContractsLogsParams) => {
   /* this should use log filter: address: [...contractAddresses] when thirdweb supports */
   const sdk = await getSdk({ chainId: params.chainId });
   const provider = sdk.getProvider();
@@ -65,8 +65,8 @@ export const ethGetLogs = async (params: GetIndexedContractsLogsParams) => {
   return flatLogs;
 };
 
-export const getIndexedContractsLogs = async (
-  params: GetIndexedContractsLogsParams,
+export const getSubscribedContractsLogs = async (
+  params: GetSubscribedContractsLogsParams,
 ) => {
   const sdk = await getSdk({ chainId: params.chainId });
   const provider = sdk.getProvider();
@@ -183,7 +183,7 @@ export const getIndexedContractsLogs = async (
       timestamp: new Date(block.timestamp * 1000), // ethers timestamp is s, Date uses ms
       transactionIndex: log.transactionIndex,
       logIndex: log.logIndex,
-    } as ContractLogEntry;
+    } as ContractEventLogEntry;
   });
 
   return formattedLogs;
@@ -231,22 +231,24 @@ export const createChainIndexerTask = async (chainId: number) => {
           });
 
           // get contracts to index
-          const indexedContracts = await getIndexedContracts(chainId);
-          const indexedContractAddresses = indexedContracts.map(
-            (indexedContract) => indexedContract.contractAddress,
+          const subscribedContracts = await getContractSubscriptionsByChainId(
+            chainId,
+          );
+          const subscribedContractAddresses = subscribedContracts.map(
+            (subscribedContract) => subscribedContract.contractAddress,
           );
 
           // get all logs for the contracts
-          const logs = await getIndexedContractsLogs({
+          const logs = await getSubscribedContractsLogs({
             chainId,
             fromBlock: lastIndexedBlock + 1,
             toBlock: toBlockNumber,
-            contractAddresses: indexedContractAddresses,
+            contractAddresses: subscribedContractAddresses,
           });
 
           // update the logs
           if (logs.length > 0) {
-            await bulkInsertContractLogs({ logs, pgtx });
+            await bulkInsertContractEventLogs({ logs, pgtx });
           }
 
           // update the block number

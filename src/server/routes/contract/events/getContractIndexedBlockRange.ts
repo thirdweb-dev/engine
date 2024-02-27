@@ -1,7 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteContractLogs } from "../../../../db/contractLogs/deleteContractLogs";
+import { getContractEventLogsIndexedBlockRange } from "../../../../db/contractEventLogs/getContractEventLogs";
+import { createCustomError } from "../../../middleware/error";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -12,7 +13,8 @@ const responseSchema = Type.Object({
   result: Type.Object({
     chain: Type.String(),
     contractAddress: Type.String(),
-    rows: Type.Number(),
+    fromBlock: Type.Number(),
+    toBlock: Type.Number(),
     status: Type.String(),
   }),
 });
@@ -21,23 +23,24 @@ responseSchema.example = {
   result: {
     chain: "ethereum",
     contractAddress: "0x....",
-    row: 100,
+    fromBlock: 100,
+    toBlock: 200,
     status: "success",
   },
 };
 
-export async function clearContractLogsRoute(fastify: FastifyInstance) {
+export async function getContractIndexedBlockRange(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
-    method: "POST",
-    url: "/contract/:chain/:contractAddress/indexer/deleteLogs",
+    method: "GET",
+    url: "/contract/:chain/:contractAddress/events/get-indexed-blocks",
     schema: {
-      summary: "Delete indexed contract logs",
-      description: "Deletes the logs indexed for the contract",
+      summary: "Get indexed block range",
+      description: "Gets the subscribed contract's indexed block range",
       tags: ["Contract", "Index"],
-      operationId: "write",
+      operationId: "read",
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,
@@ -49,16 +52,26 @@ export async function clearContractLogsRoute(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      const deletedLogs = await deleteContractLogs({
+      const result = await getContractEventLogsIndexedBlockRange({
         chainId,
         contractAddress,
       });
 
-      await reply.status(StatusCodes.OK).send({
+      if (!result.fromBlock || !result.toBlock) {
+        const error = createCustomError(
+          `No logs found for chainId: ${chainId}, contractAddress: ${contractAddress}`,
+          StatusCodes.NOT_FOUND,
+          "LOG_NOT_FOUND",
+        );
+        throw error;
+      }
+
+      reply.status(StatusCodes.OK).send({
         result: {
           chain,
           contractAddress,
-          rows: deletedLogs.count,
+          fromBlock: result.fromBlock,
+          toBlock: result.toBlock,
           status: "success",
         },
       });

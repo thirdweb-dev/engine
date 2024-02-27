@@ -114,12 +114,12 @@ import { sendSignedTransaction } from "./transaction/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
 
 // Indexer
-import { addIndexedContractRoute } from "./contract/indexer/addIndexedContract";
-import { clearContractLogsRoute } from "./contract/indexer/clearContractLogs";
-import { getAllContractsRoute } from "./contract/indexer/getAllContracts";
-import { getContractLogsRoute } from "./contract/indexer/getContractLogs";
-import { getIndexedBlocksRoute } from "./contract/indexer/getIndexedBlocks";
-import { removeIndexedContractRoute } from "./contract/indexer/removeIndexedContract";
+import { addContractSubscription } from "./contract/events/addContractSubscription";
+import { clearContractEventLogs } from "./contract/events/clearContractEventLogs";
+import { getContractIndexedBlockRange } from "./contract/events/getContractIndexedBlockRange";
+import { getContractSubscriptions } from "./contract/events/getContractSubscriptions";
+import { getEventLogs } from "./contract/events/getEventLogs";
+import { removeContractSubscription } from "./contract/events/removeContractSubscription";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -239,10 +239,10 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(queueStatus);
 
   // Indexer
-  await fastify.register(addIndexedContractRoute);
-  await fastify.register(clearContractLogsRoute);
-  await fastify.register(getAllContractsRoute);
-  await fastify.register(getContractLogsRoute);
-  await fastify.register(getIndexedBlocksRoute);
-  await fastify.register(removeIndexedContractRoute);
+  await fastify.register(addContractSubscription);
+  await fastify.register(clearContractEventLogs);
+  await fastify.register(getContractSubscriptions);
+  await fastify.register(getEventLogs);
+  await fastify.register(getContractIndexedBlockRange);
+  await fastify.register(removeContractSubscription);
 };

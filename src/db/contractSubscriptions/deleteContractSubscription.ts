@@ -1,15 +1,15 @@
 import { prisma } from "../client";
 
-interface DeleteIndexedContractParams {
+interface RemoveContractSubscriptionParams {
   chainId: number;
   contractAddress: string;
 }
 
-export const deleteIndexedContract = async ({
+export const deleteContractSubscription = async ({
   chainId,
   contractAddress,
-}: DeleteIndexedContractParams) => {
-  return prisma.indexedContracts.delete({
+}: RemoveContractSubscriptionParams) => {
+  return prisma.contractSubscriptions.delete({
     where: {
       chainId_contractAddress: {
         chainId,
