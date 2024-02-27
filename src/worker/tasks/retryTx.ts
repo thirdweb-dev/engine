@@ -1,7 +1,4 @@
-import {
-  StaticJsonRpcBatchProvider,
-  getDefaultGasOverrides,
-} from "@thirdweb-dev/sdk";
+import { StaticJsonRpcBatchProvider } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { prisma } from "../../db/client";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
@@ -9,6 +6,7 @@ import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
+import { getGasSettingsForRetry } from "../../utils/gas";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
@@ -20,7 +18,6 @@ export const retryTx = async () => {
   try {
     await prisma.$transaction(
       async (pgtx) => {
-        // Get one transaction to retry at a time
         const tx = await getTxToRetry({ pgtx });
         if (!tx) {
           return;
@@ -33,45 +30,38 @@ export const retryTx = async () => {
           walletAddress: tx.fromAddress!,
         });
         const provider = sdk.getProvider() as StaticJsonRpcBatchProvider;
-
         const blockNumber = await sdk.getProvider().getBlockNumber();
-        // Only retry if more than the elapsed blocks before retry has passed.
+
         if (
           blockNumber - tx.sentAtBlockNumber! <=
           config.minEllapsedBlocksBeforeRetry
         ) {
+          // Return if too few blocks have passed since submitted. Try again later.
           return;
         }
 
-        const receipt = await sdk
-          .getProvider()
-          .getTransactionReceipt(tx.transactionHash!);
-
-        // If the transaction is mined, update the DB.
+        const receipt = await provider.getTransactionReceipt(
+          tx.transactionHash!,
+        );
         if (receipt) {
+          // Return if the tx is already mined.
           return;
         }
 
-        // TODO: We should still retry anyway
-        const gasOverrides = await getDefaultGasOverrides(sdk.getProvider());
-
-        if (tx.retryGasValues) {
-          // If a retry has been triggered manually
-          tx.maxFeePerGas = tx.retryMaxFeePerGas!;
-          tx.maxPriorityFeePerGas = tx.maxPriorityFeePerGas!;
-        } else if (
+        const gasOverrides = await getGasSettingsForRetry(tx, provider);
+        if (
           gasOverrides.maxFeePerGas?.gt(config.maxFeePerGasForRetries) ||
           gasOverrides.maxPriorityFeePerGas?.gt(
             config.maxPriorityFeePerGasForRetries,
           )
         ) {
+          // Return if gas settings exceed configured limits. Try again later.
           logger({
             service: "worker",
             level: "warn",
             queueId: tx.id,
             message: `${tx.chainId} chain gas price is higher than maximum threshold.`,
           });
-
           return;
         }
 
@@ -92,9 +82,6 @@ export const retryTx = async () => {
             nonce: tx.nonce!,
             value: tx.value!,
             ...gasOverrides,
-            gasPrice: gasOverrides.gasPrice?.mul(2),
-            maxFeePerGas: gasOverrides.maxFeePerGas?.mul(2),
-            maxPriorityFeePerGas: gasOverrides.maxPriorityFeePerGas?.mul(2),
           });
         } catch (err: any) {
           logger({
@@ -170,7 +157,7 @@ export const retryTx = async () => {
           service: "worker",
           level: "info",
           queueId: tx.id,
-          message: `Retried with hash ${res.hash} for Nonce ${res.nonce}`,
+          message: `Retried with hash ${res.hash} for nonce ${res.nonce}`,
         });
       },
       {
