@@ -1,7 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { deleteContractEventLogs } from "../../../../db/contractEventLogs/deleteContractEventLogs";
 import { deleteContractSubscription } from "../../../../db/contractSubscriptions/deleteContractSubscription";
+import { logger } from "../../../../utils/logger";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -50,6 +52,17 @@ export async function removeContractSubscription(fastify: FastifyInstance) {
       await deleteContractSubscription({
         chainId,
         contractAddress,
+      });
+
+      const deletedLogs = await deleteContractEventLogs({
+        chainId,
+        contractAddress,
+      });
+
+      logger({
+        service: "server",
+        level: "info",
+        message: `[Events] Removed Subscription: chainId: ${chainId}, contractAddress: ${contractAddress}, deleted ${deletedLogs.count} logs`,
       });
 
       reply.status(StatusCodes.OK).send({
