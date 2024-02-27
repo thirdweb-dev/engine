@@ -2,6 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractEventLogsByBlockAndTopics } from "../../../../db/contractEventLogs/getContractEventLogs";
+import { isContractSubscribed } from "../../../../db/contractSubscriptions/getContractSubscriptions";
+import { createCustomError } from "../../../middleware/error";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -51,7 +53,7 @@ export async function getEventLogs(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contractAddress/indexer/getLogs",
+    url: "/contract/:chain/:contractAddress/events/get-logs",
     schema: {
       summary: "Get contract event logs",
       description: "Get event logs for a subscribed contract",
@@ -71,6 +73,21 @@ export async function getEventLogs(fastify: FastifyInstance) {
       const standardizedContractAddress = contractAddress.toLowerCase();
 
       const chainId = await getChainIdFromChain(chain);
+
+      // check if subscribed, if not tell user to subscribe
+      const isSubscribed = await isContractSubscribed({
+        chainId,
+        contractAddress: standardizedContractAddress,
+      });
+
+      if (!isSubscribed) {
+        const subcriptionUrl = `/contract/${chain}/${contractAddress}/events/subscribe`;
+        throw createCustomError(
+          `Contract is not subscribed to! To subscribe, please use ${subcriptionUrl}`,
+          StatusCodes.NOT_FOUND,
+          "NOT_FOUND",
+        );
+      }
 
       const resultLogs = await getContractEventLogsByBlockAndTopics({
         chainId,
