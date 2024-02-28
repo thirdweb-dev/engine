@@ -71,6 +71,8 @@ const replyBodySchema = Type.Object({
       Type.String(),
       Type.Object({}),
       Type.Array(Type.Any()),
+      Type.Boolean(),
+      Type.Tuple([Type.Any(), Type.Any()]),
     ]),
   ),
 });

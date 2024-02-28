@@ -1,4 +1,3 @@
-import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { chainIndexerListener } from "./listeners/chainIndexerListener";
 import {
   newConfigurationListener,
@@ -33,9 +32,6 @@ export const initWorker = async () => {
   // Listen for new & updated webhooks data
   await newWebhooksListener();
   await updatedWebhooksListener();
-
-  // Rest Cache Cron
-  await clearCacheCron("worker");
 
   await chainIndexerListener();
 };
