@@ -21,7 +21,7 @@ export const getBlockTimeSeconds = async (chainId: number) => {
     const blocks = [];
 
     for (let i = 0; i < BLOCKS_TO_ESTIMATE; i++) {
-      const block = await provider.getBlock(latestBlockNumber - 1);
+      const block = await provider.getBlock(latestBlockNumber - i - 1);
       blocks.push(block);
     }
 
