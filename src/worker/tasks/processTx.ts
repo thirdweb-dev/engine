@@ -125,204 +125,273 @@ export const processTx = async () => {
             parseInt(key.split("-")[1]),
           ];
 
-          try {
-            const sdk = await getSdk({
-              pgtx,
-              chainId,
-              walletAddress,
-            });
+          const sdk = await getSdk({
+            pgtx,
+            chainId,
+            walletAddress,
+          });
 
-            const [signer, provider] = await Promise.all([
-              sdk.getSigner(),
-              sdk.getProvider() as StaticJsonRpcBatchProvider,
+          const [signer, provider] = await Promise.all([
+            sdk.getSigner(),
+            sdk.getProvider() as StaticJsonRpcBatchProvider,
+          ]);
+          if (!signer || !provider) {
+            return;
+          }
+
+          // Important: We need to block this worker until the nonce lock is acquired
+          const dbNonceData = await getWalletNonce({
+            pgtx,
+            chainId,
+            address: walletAddress,
+          });
+
+          // For each wallet address, check the nonce in database and the mempool
+          const [walletBalance, mempoolNonceData, gasOverrides] =
+            await Promise.all([
+              sdk.wallet.balance(),
+              sdk.wallet.getNonce("pending"),
+              getDefaultGasOverrides(provider),
             ]);
-            if (!signer || !provider) {
-              return;
-            }
 
-            // Important: We need to block this worker until the nonce lock is acquired
-            const dbNonceData = await getWalletNonce({
+          // TODO: Move to be async.
+          // Wallet balance webhook
+          if (
+            BigNumber.from(walletBalance.value).lte(
+              BigNumber.from(config.minWalletBalance),
+            )
+          ) {
+            const message =
+              "Wallet balance is below minimum threshold. Please top up your wallet.";
+            const walletBalanceData: WalletBalanceWebhookSchema = {
+              walletAddress,
+              minimumBalance: ethers.utils.formatEther(config.minWalletBalance),
+              currentBalance: walletBalance.displayValue,
+              chainId,
+              message,
+            };
+
+            await sendBalanceWebhook(walletBalanceData);
+
+            logger({
+              service: "worker",
+              level: "warn",
+              message: `[${walletAddress}] ${message}`,
+            });
+          }
+
+          // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
+          let startNonce: BigNumber;
+          const mempoolNonce = BigNumber.from(mempoolNonceData);
+          const dbNonce = BigNumber.from(dbNonceData?.nonce || 0);
+          if (mempoolNonce.gt(dbNonce)) {
+            await updateWalletNonce({
               pgtx,
               chainId,
               address: walletAddress,
+              nonce: mempoolNonce.toNumber(),
             });
 
-            // For each wallet address, check the nonce in database and the mempool
-            const [walletBalance, mempoolNonceData, gasOverrides] =
-              await Promise.all([
-                sdk.wallet.balance(),
-                sdk.wallet.getNonce("pending"),
-                getDefaultGasOverrides(provider),
-              ]);
+            startNonce = mempoolNonce;
+          } else {
+            startNonce = dbNonce;
+          }
 
-            // TODO: Move to be async.
-            // Wallet balance webhook
-            if (
-              BigNumber.from(walletBalance.value).lte(
-                BigNumber.from(config.minWalletBalance),
-              )
-            ) {
-              const message =
-                "Wallet balance is below minimum threshold. Please top up your wallet.";
-              const walletBalanceData: WalletBalanceWebhookSchema = {
-                walletAddress,
-                minimumBalance: ethers.utils.formatEther(
-                  config.minWalletBalance,
-                ),
-                currentBalance: walletBalance.displayValue,
-                chainId,
-                message,
+          const rpcResponses: RpcResponseData[] = [];
+
+          let txIndex = 0;
+          let nonceIncrement = 0;
+
+          while (txIndex < txsToSend.length) {
+            const nonce = startNonce.add(nonceIncrement);
+            const tx = txsToSend[txIndex];
+
+            try {
+              let value = BigNumber.from(tx.value ?? 0);
+              if (tx.extension === "withdraw") {
+                value = await getWithdrawalValue({
+                  provider,
+                  chainId,
+                  fromAddress: tx.fromAddress!,
+                  toAddress: tx.toAddress!,
+                  gasOverrides,
+                });
+              }
+
+              const txRequest = await signer.populateTransaction({
+                to: tx.toAddress!,
+                from: tx.fromAddress!,
+                data: tx.data!,
+                value,
+                nonce,
+                ...gasOverrides,
+              });
+
+              // TODO: We need to target specific cases
+              // Bump gas limit to avoid occasional out of gas errors
+              txRequest.gasLimit = txRequest.gasLimit
+                ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
+                : undefined;
+
+              const signature = await signer.signTransaction(txRequest);
+              const rpcRequest = {
+                id: 0,
+                jsonrpc: "2.0",
+                method: "eth_sendRawTransaction",
+                params: [signature],
               };
 
-              await sendBalanceWebhook(walletBalanceData);
-
-              logger({
-                service: "worker",
-                level: "warn",
-                message: `[${walletAddress}] ${message}`,
+              const res = await fetch(provider.connection.url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...(provider.connection.url.includes("rpc.thirdweb.com")
+                    ? {
+                        "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+                      }
+                    : {}),
+                },
+                body: JSON.stringify(rpcRequest),
               });
-            }
+              const rpcResponse = (await res.json()) as RpcResponse;
 
-            // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
-            let startNonce: BigNumber;
-            const mempoolNonce = BigNumber.from(mempoolNonceData);
-            const dbNonce = BigNumber.from(dbNonceData?.nonce || 0);
-            if (mempoolNonce.gt(dbNonce)) {
-              await updateWalletNonce({
-                pgtx,
-                chainId,
-                address: walletAddress,
-                nonce: mempoolNonce.toNumber(),
-              });
+              if (!rpcResponse.error && !!rpcResponse.result) {
+                // Success (continue to next transaction)
+                nonceIncrement++;
+                txIndex++;
 
-              startNonce = mempoolNonce;
-            } else {
-              startNonce = dbNonce;
-            }
-
-            const rpcResponses: RpcResponseData[] = [];
-
-            let txIndex = 0;
-            let nonceIncrement = 0;
-
-            while (txIndex < txsToSend.length) {
-              const nonce = startNonce.add(nonceIncrement);
-              const tx = txsToSend[txIndex];
-
-              try {
-                let value = BigNumber.from(tx.value ?? 0);
-                if (tx.extension === "withdraw") {
-                  value = await getWithdrawalValue({
-                    provider,
-                    chainId,
-                    fromAddress: tx.fromAddress!,
-                    toAddress: tx.toAddress!,
-                    gasOverrides,
-                  });
-                }
-
-                const txRequest = await signer.populateTransaction({
-                  to: tx.toAddress!,
-                  from: tx.fromAddress!,
-                  data: tx.data!,
-                  value,
-                  nonce,
-                  ...gasOverrides,
+                rpcResponses.push({
+                  tx,
+                  txRequest,
+                  rpcResponse,
                 });
-
-                // TODO: We need to target specific cases
-                // Bump gas limit to avoid occasional out of gas errors
-                txRequest.gasLimit = txRequest.gasLimit
-                  ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
-                  : undefined;
-
-                const signature = await signer.signTransaction(txRequest);
-                const rpcRequest = {
-                  id: 0,
-                  jsonrpc: "2.0",
-                  method: "eth_sendRawTransaction",
-                  params: [signature],
-                };
-
-                logger({
-                  service: "worker",
-                  level: "debug",
+                sendWebhookForQueueIds.push({
                   queueId: tx.id,
-                  message: `Sending to ${provider.connection.url}`,
-                  data: rpcRequest,
+                  status: TransactionStatusEnum.Submitted,
                 });
-
-                const res = await fetch(provider.connection.url, {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    ...(provider.connection.url.includes("rpc.thirdweb.com")
-                      ? {
-                          "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
-                        }
-                      : {}),
-                  },
-                  body: JSON.stringify(rpcRequest),
-                });
-                const rpcResponse = (await res.json()) as RpcResponse;
-
-                logger({
-                  service: "worker",
-                  level: "debug",
-                  queueId: tx.id,
-                  message: `Received response`,
-                  data: rpcResponse,
-                });
-
-                if (!rpcResponse.error && !!rpcResponse.result) {
-                  // Success (continue to next transaction)
-                  nonceIncrement++;
-                  txIndex++;
-
-                  rpcResponses.push({
-                    tx,
-                    txRequest,
-                    rpcResponse,
-                  });
-                  sendWebhookForQueueIds.push({
-                    queueId: tx.id,
-                    status: TransactionStatusEnum.Submitted,
-                  });
-                } else if (
-                  typeof rpcResponse.error?.message === "string" &&
-                  (rpcResponse.error.message as string)
-                    .toLowerCase()
-                    .includes("nonce too low")
-                ) {
-                  // Nonce too low. Retry with a higher nonce.
-                  nonceIncrement++;
-                } else {
-                  // Error. Continue to the next transaction.
-                  txIndex++;
-
-                  rpcResponses.push({
-                    tx,
-                    txRequest,
-                    rpcResponse,
-                  });
-                  sendWebhookForQueueIds.push({
-                    queueId: tx.id,
-                    status: TransactionStatusEnum.Errored,
-                  });
-                }
-              } catch (err: any) {
+              } else if (
+                typeof rpcResponse.error?.message === "string" &&
+                (rpcResponse.error.message as string)
+                  .toLowerCase()
+                  .includes("nonce too low")
+              ) {
+                // Nonce too low. Retry with a higher nonce.
+                nonceIncrement++;
+              } else {
                 // Error. Continue to the next transaction.
                 txIndex++;
+
+                rpcResponses.push({
+                  tx,
+                  txRequest,
+                  rpcResponse,
+                });
                 sendWebhookForQueueIds.push({
                   queueId: tx.id,
                   status: TransactionStatusEnum.Errored,
                 });
+              }
+            } catch (err: any) {
+              // Error. Continue to the next transaction.
+              txIndex++;
+
+              sendWebhookForQueueIds.push({
+                queueId: tx.id,
+                status: TransactionStatusEnum.Errored,
+              });
+              reportUsageForQueueIds.push({
+                input: {
+                  fromAddress: tx.fromAddress || undefined,
+                  toAddress: tx.toAddress || undefined,
+                  value: tx.value || undefined,
+                  chainId: tx.chainId || undefined,
+                  functionName: tx.functionName || undefined,
+                  extension: tx.extension || undefined,
+                  provider: provider.connection.url || undefined,
+                  msSinceQueue: msSince(tx.queuedAt),
+                },
+                action: UsageEventTxActionEnum.NotSendTx,
+              });
+
+              logger({
+                service: "worker",
+                level: "warn",
+                queueId: tx.id,
+                message: `Failed to send`,
+                error: err,
+              });
+
+              await updateTx({
+                pgtx,
+                queueId: tx.id,
+                data: {
+                  status: TransactionStatusEnum.Errored,
+                  errorMessage: await parseTxError(tx, err),
+                },
+              });
+            }
+          }
+
+          await updateWalletNonce({
+            pgtx,
+            address: walletAddress,
+            chainId,
+            nonce: startNonce.add(nonceIncrement).toNumber(),
+          });
+
+          // Update DB state in parallel.
+          await Promise.all(
+            rpcResponses.map(async ({ tx, txRequest, rpcResponse }) => {
+              if (rpcResponse.result) {
+                // Transaction was successful.
+                const transactionHash = rpcResponse.result;
+                const txResponse = (await provider.getTransaction(
+                  transactionHash,
+                )) as ethers.providers.TransactionResponse | null;
+
+                await updateTx({
+                  pgtx,
+                  queueId: tx.id,
+                  data: {
+                    status: TransactionStatusEnum.Submitted,
+                    transactionHash,
+                    res: txResponse,
+                    sentAt: new Date(),
+                    sentAtBlockNumber:
+                      txResponse?.blockNumber ??
+                      (await provider.getBlockNumber()),
+                  },
+                });
                 reportUsageForQueueIds.push({
                   input: {
-                    fromAddress: tx.fromAddress || undefined,
-                    toAddress: tx.toAddress || undefined,
-                    value: tx.value || undefined,
-                    chainId: tx.chainId || undefined,
+                    fromAddress: txRequest.from,
+                    toAddress: txRequest.to,
+                    value: (txRequest.value ?? 0).toString(),
+                    chainId: tx.chainId,
+                    transactionHash,
+                    functionName: tx.functionName || undefined,
+                    extension: tx.extension || undefined,
+                    provider: provider.connection.url || undefined,
+                    msSinceQueue: msSince(tx.queuedAt),
+                  },
+                  action: UsageEventTxActionEnum.SendTx,
+                });
+              } else {
+                // Transaction failed.
+                await updateTx({
+                  pgtx,
+                  queueId: tx.id,
+                  data: {
+                    status: TransactionStatusEnum.Errored,
+                    errorMessage: await parseTxError(tx, rpcResponse.error),
+                  },
+                });
+                reportUsageForQueueIds.push({
+                  input: {
+                    fromAddress: txRequest.from,
+                    toAddress: txRequest.to,
+                    value: (txRequest.value ?? 0).toString(),
+                    chainId: tx.chainId,
                     functionName: tx.functionName || undefined,
                     extension: tx.extension || undefined,
                     provider: provider.connection.url || undefined,
@@ -330,140 +399,12 @@ export const processTx = async () => {
                   },
                   action: UsageEventTxActionEnum.NotSendTx,
                 });
-
-                logger({
-                  service: "worker",
-                  level: "warn",
-                  queueId: tx.id,
-                  message: `Failed to send`,
-                  error: err,
-                });
-
-                await updateTx({
-                  pgtx,
-                  queueId: tx.id,
-                  data: {
-                    status: TransactionStatusEnum.Errored,
-                    errorMessage: await parseTxError(tx, err),
-                  },
-                });
               }
-            }
-
-            await updateWalletNonce({
-              pgtx,
-              address: walletAddress,
-              chainId,
-              nonce: startNonce.add(nonceIncrement).toNumber(),
-            });
-
-            // - After sending transactions, update database for each transaction
-            await Promise.all(
-              rpcResponses.map(async ({ tx, txRequest, rpcResponse }) => {
-                if (rpcResponse.result) {
-                  // Transaction was successful.
-                  const transactionHash = rpcResponse.result;
-                  const txResponse = (await provider.getTransaction(
-                    transactionHash,
-                  )) as ethers.providers.TransactionResponse | null;
-
-                  await updateTx({
-                    pgtx,
-                    queueId: tx.id,
-                    data: {
-                      status: TransactionStatusEnum.Submitted,
-                      transactionHash,
-                      res: txResponse,
-                      sentAt: new Date(),
-                      sentAtBlockNumber:
-                        txResponse?.blockNumber ??
-                        (await provider.getBlockNumber()),
-                    },
-                  });
-                  reportUsageForQueueIds.push({
-                    input: {
-                      fromAddress: txRequest.from,
-                      toAddress: txRequest.to,
-                      value: (txRequest.value ?? 0).toString(),
-                      chainId: tx.chainId,
-                      transactionHash,
-                      functionName: tx.functionName || undefined,
-                      extension: tx.extension || undefined,
-                      provider: provider.connection.url || undefined,
-                      msSinceQueue: msSince(tx.queuedAt),
-                    },
-                    action: UsageEventTxActionEnum.SendTx,
-                  });
-                } else {
-                  // Transaction failed.
-                  await updateTx({
-                    pgtx,
-                    queueId: tx.id,
-                    data: {
-                      status: TransactionStatusEnum.Errored,
-                      errorMessage: await parseTxError(tx, rpcResponse.error),
-                    },
-                  });
-                  reportUsageForQueueIds.push({
-                    input: {
-                      fromAddress: txRequest.from,
-                      toAddress: txRequest.to,
-                      value: (txRequest.value ?? 0).toString(),
-                      chainId: tx.chainId,
-                      functionName: tx.functionName || undefined,
-                      extension: tx.extension || undefined,
-                      provider: provider.connection.url || undefined,
-                      msSinceQueue: msSince(tx.queuedAt),
-                    },
-                    action: UsageEventTxActionEnum.NotSendTx,
-                  });
-                }
-              }),
-            );
-          } catch (err: any) {
-            await Promise.all(
-              txsToSend.map(async (tx) => {
-                logger({
-                  service: "worker",
-                  level: "error",
-                  queueId: tx.id,
-                  message: `Failed to process batch of transactions for wallet '${walletAddress}' on chain '${chainId}'`,
-                  error: err,
-                });
-
-                // Add to Webhook Queue to send updates
-                sendWebhookForQueueIds.push({
-                  queueId: tx.id,
-                  status: TransactionStatusEnum.Errored,
-                });
-
-                reportUsageForQueueIds.push({
-                  input: {
-                    fromAddress: tx.fromAddress || undefined,
-                    toAddress: tx.toAddress || undefined,
-                    value: tx.value || undefined,
-                    chainId: tx.chainId || undefined,
-                    functionName: tx.functionName || undefined,
-                    extension: tx.extension || undefined,
-                    msSinceQueue: msSince(tx.queuedAt),
-                  },
-                  action: UsageEventTxActionEnum.NotSendTx,
-                });
-
-                await updateTx({
-                  pgtx,
-                  queueId: tx.id,
-                  data: {
-                    status: TransactionStatusEnum.Errored,
-                    errorMessage: await parseTxError(tx, err),
-                  },
-                });
-              }),
-            );
-          }
+            }),
+          );
         });
 
-        // 5. Send all user operations in parallel with multi-dimensional nonce
+        // 5. Send all user operations in parallel.
         const sentUserOps = userOpsToSend.map(async (tx) => {
           try {
             const signer = (
@@ -555,9 +496,8 @@ export const processTx = async () => {
         await Promise.all([...sentTxs, ...sentUserOps]);
       },
       {
-        // Maximum 3 minutes to send the batch of transactions.
         // TODO: Should be dynamic with the batch size.
-        timeout: 5 * 60000,
+        timeout: 5 * 60_000,
       },
     );
 
