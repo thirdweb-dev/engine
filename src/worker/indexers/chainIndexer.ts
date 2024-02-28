@@ -29,14 +29,6 @@ export const ethGetLogs = async (params: GetSubscribedContractsLogsParams) => {
   const sdk = await getSdk({ chainId: params.chainId });
   const provider = sdk.getProvider();
 
-  logger({
-    service: "worker",
-    level: "debug",
-    message: `Starting log fetch - ChainIndexer: ${params.chainId}`,
-  });
-
-  const startTime = performance.now();
-
   const logs = await Promise.all(
     params.contractAddresses.map(async (contractAddress) => {
       const logFilter = {
@@ -51,15 +43,6 @@ export const ethGetLogs = async (params: GetSubscribedContractsLogsParams) => {
   );
   const flatLogs = logs.flat();
 
-  const endTime = performance.now();
-  const timeTaken = (endTime - startTime).toFixed(2);
-
-  logger({
-    service: "worker",
-    level: "debug",
-    message: `Completed log fetch - ChainIndexer: ${params.chainId}, received ${flatLogs.length} logs in blocks ${params.fromBlock}-${params.toBlock}, time taken: ${timeTaken} ms`,
-  });
-
   return flatLogs;
 };
 
@@ -73,7 +56,6 @@ export const getSubscribedContractsLogs = async (
   const logs = await ethGetLogs(params);
 
   // cache the contracts and abi
-  const startContractsTime = performance.now();
   logger({
     service: "worker",
     level: "debug",
@@ -95,17 +77,8 @@ export const getSubscribedContractsLogs = async (
     acc[val.contractAddress] = val.contract;
     return acc;
   }, {} as Record<string, SmartContract<ethers.BaseContract>>);
-  const endContractsTime = performance.now();
-  logger({
-    service: "worker",
-    level: "debug",
-    message: `Finished getting contracts - ChainIndexer: ${
-      params.chainId
-    }, Time taken: ${(endContractsTime - startContractsTime).toFixed(2)} ms`,
-  });
 
   // cache the blocks and their timestamps
-  const startBlocksTime = performance.now();
   logger({
     service: "worker",
     level: "debug",
@@ -124,14 +97,6 @@ export const getSubscribedContractsLogs = async (
     acc[blockNumber] = details;
     return acc;
   }, {} as Record<number, ethers.providers.Block>);
-  const endBlocksTime = performance.now();
-  logger({
-    service: "worker",
-    level: "debug",
-    message: `Finished getting blocks - ChainIndexer: ${
-      params.chainId
-    }, Time taken: ${(endBlocksTime - startBlocksTime).toFixed(2)} ms`,
-  });
 
   // format the logs to ContractLogEntries
   const formattedLogs = logs.map((log) => {
