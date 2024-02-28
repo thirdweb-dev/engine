@@ -186,6 +186,7 @@ model ContractSubscriptions {
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
 
   @@id([chainId, contractAddress])
 

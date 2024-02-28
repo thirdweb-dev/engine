@@ -9,12 +9,15 @@ export const deleteContractSubscription = async ({
   chainId,
   contractAddress,
 }: RemoveContractSubscriptionParams) => {
-  return prisma.contractSubscriptions.delete({
+  return prisma.contractSubscriptions.update({
     where: {
       chainId_contractAddress: {
         chainId,
         contractAddress,
       },
+    },
+    data: {
+      deletedAt: new Date(),
     },
   });
 };

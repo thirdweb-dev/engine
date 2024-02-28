@@ -15,6 +15,7 @@ export const isContractSubscribed = async ({
         chainId,
         contractAddress,
       },
+      deletedAt: null,
     },
   });
 
@@ -26,12 +27,17 @@ export const getContractSubscriptionsByChainId = async (chainId: number) => {
   return await prisma.contractSubscriptions.findMany({
     where: {
       chainId,
+      deletedAt: null,
     },
   });
 };
 
 export const getAllContractSubscriptions = async () => {
-  return await prisma.contractSubscriptions.findMany();
+  return await prisma.contractSubscriptions.findMany({
+    where: {
+      deletedAt: null,
+    },
+  });
 };
 
 export const getContractSubscriptionsUniqueChainIds = async () => {
@@ -39,6 +45,9 @@ export const getContractSubscriptionsUniqueChainIds = async () => {
     distinct: ["chainId"],
     select: {
       chainId: true,
+    },
+    where: {
+      deletedAt: null,
     },
   });
 
