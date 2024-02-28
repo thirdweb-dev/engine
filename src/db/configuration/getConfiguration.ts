@@ -207,6 +207,10 @@ export const getConfiguration = async (): Promise<Config> => {
     config = await updateConfiguration({
       accessControlAllowOrigin: mandatoryAllowedCorsUrls.join(","),
     });
+  } else if (!config.indexerListenerCronSchedule) {
+    config = await updateConfiguration({
+      indexerListenerCronSchedule: "*/5 * * * * *",
+    });
   }
 
   return withWalletConfig(config);
