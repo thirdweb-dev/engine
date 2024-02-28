@@ -8,14 +8,20 @@ import {
 import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const requestQuerySchema = Type.Object({
-  contractAddresses: Type.Optional(Type.Array(Type.String())),
-  topics: Type.Optional(Type.Array(Type.String())),
-  fromCreationTimestamp: Type.Optional(Type.Number()),
-  toCreationTimestamp: Type.Optional(Type.Number()),
-  fromBlockTimestamp: Type.Optional(Type.Number()),
-  toBlockTimestamp: Type.Optional(Type.Number()),
-});
+const requestQuerySchema = Type.Union([
+  Type.Object({
+    contractAddresses: Type.Optional(Type.Array(Type.String())),
+    topics: Type.Optional(Type.Array(Type.String())),
+    fromCreationTimestamp: Type.Number(),
+    toCreationTimestamp: Type.Optional(Type.Number()),
+  }),
+  Type.Object({
+    contractAddresses: Type.Optional(Type.Array(Type.String())),
+    topics: Type.Optional(Type.Array(Type.String())),
+    fromBlockTimestamp: Type.Number(),
+    toBlockTimestamp: Type.Optional(Type.Number()),
+  }),
+]);
 
 const responseSchema = Type.Object({
   result: Type.Object({
@@ -66,56 +72,33 @@ export async function getEventLogs(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseSchema,
       },
     },
-    preValidation: async (request) => {
-      const {
-        fromCreationTimestamp,
-        toCreationTimestamp,
-        fromBlockTimestamp,
-        toBlockTimestamp,
-      } = request.query;
-
-      const hasCreatedTimestamps =
-        fromCreationTimestamp !== undefined ||
-        toCreationTimestamp !== undefined;
-      const hasBlockTimestamps =
-        fromBlockTimestamp !== undefined || toBlockTimestamp !== undefined;
-
-      if (hasCreatedTimestamps == hasBlockTimestamps) {
-        throw createCustomError(
-          "Either blockTimestamp or createdTimestamp should be defined",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-      }
-    },
     handler: async (request, reply) => {
-      const {
-        fromCreationTimestamp,
-        toCreationTimestamp,
-        fromBlockTimestamp,
-        toBlockTimestamp,
-        contractAddresses,
-        topics,
-      } = request.query;
+      const query = request.query;
 
-      const standardizedContractAddresses = contractAddresses?.map((val) =>
-        val.toLowerCase(),
+      const standardizedContractAddresses = query.contractAddresses?.map(
+        (val) => val.toLowerCase(),
       );
 
       let resultLogs;
-      if (fromCreationTimestamp) {
+      if (
+        "fromCreationTimestamp" in query &&
+        query.fromCreationTimestamp !== undefined
+      ) {
         resultLogs = await getEventLogsByCreationTimestamp({
-          fromCreationTimestamp,
-          toCreationTimestamp,
+          fromCreationTimestamp: query.fromCreationTimestamp,
+          toCreationTimestamp: query.toCreationTimestamp,
           contractAddresses: standardizedContractAddresses,
-          topics,
+          topics: query.topics,
         });
-      } else if (fromBlockTimestamp) {
+      } else if (
+        "fromBlockTimestamp" in query &&
+        query.fromBlockTimestamp !== undefined
+      ) {
         resultLogs = await getEventLogsByBlockTimestamp({
-          fromBlockTimestamp,
-          toBlockTimestamp,
+          fromBlockTimestamp: query.fromBlockTimestamp,
+          toBlockTimestamp: query.toBlockTimestamp,
           contractAddresses: standardizedContractAddresses,
-          topics,
+          topics: query.topics,
         });
       } else {
         throw createCustomError(
