@@ -55,7 +55,7 @@ export async function getContractIndexedBlockRange(fastify: FastifyInstance) {
 
       const result = await getContractEventLogsIndexedBlockRange({
         chainId,
-        contractAddress,
+        contractAddress: standardizedContractAddress,
       });
 
       if (!result.fromBlock || !result.toBlock) {
