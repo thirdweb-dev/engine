@@ -3,7 +3,6 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { deleteContractEventLogs } from "../../../../db/contractEventLogs/deleteContractEventLogs";
 import { deleteContractSubscription } from "../../../../db/contractSubscriptions/deleteContractSubscription";
-import { logger } from "../../../../utils/logger";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -54,15 +53,9 @@ export async function removeContractSubscription(fastify: FastifyInstance) {
         contractAddress: standardizedContractAddress,
       });
 
-      const deletedLogs = await deleteContractEventLogs({
+      await deleteContractEventLogs({
         chainId,
         contractAddress: standardizedContractAddress,
-      });
-
-      logger({
-        service: "server",
-        level: "info",
-        message: `[Events] Removed Subscription: chainId: ${chainId}, contractAddress: ${standardizedContractAddress}, deleted ${deletedLogs.count} logs`,
       });
 
       reply.status(StatusCodes.OK).send({
