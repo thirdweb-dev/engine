@@ -98,9 +98,7 @@ export const retryTx = async () => {
             queueId: tx.id,
             data: {
               status: TransactionStatusEnum.Errored,
-              errorMessage:
-                (await parseTxError(tx, err)) ??
-                "Unexpected error sending transaction.",
+              errorMessage: await parseTxError(tx, err),
             },
           });
 

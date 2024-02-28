@@ -34,21 +34,6 @@ import {
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawalValue } from "../utils/withdraw";
 
-type SentTxStatus =
-  | {
-      status: TransactionStatusEnum.Submitted;
-      tx: Transactions;
-      transactionHash: string;
-      sentAt: Date;
-      sentAtBlock: number;
-      rpcResponse: ethers.providers.TransactionResponse | null;
-    }
-  | {
-      status: TransactionStatusEnum.Errored;
-      tx: Transactions;
-      errorMessage: string;
-    };
-
 type RpcResponseData = {
   tx: Transactions;
   txRequest: ethers.providers.TransactionRequest;
@@ -97,7 +82,7 @@ export const processTx = async () => {
 
         // 2. Update and sort transactions and user operations.
         const txsToSend: Transactions[] = [];
-        const userOpsToSend = [];
+        const userOpsToSend: Transactions[] = [];
         for (const tx of txs) {
           logger({
             service: "worker",
@@ -390,7 +375,9 @@ export const processTx = async () => {
                       transactionHash,
                       res: txResponse,
                       sentAt: new Date(),
-                      sentAtBlockNumber: await provider.getBlockNumber(),
+                      sentAtBlockNumber:
+                        txResponse?.blockNumber ??
+                        (await provider.getBlockNumber()),
                     },
                   });
                   reportUsageForQueueIds.push({
@@ -468,9 +455,7 @@ export const processTx = async () => {
                   queueId: tx.id,
                   data: {
                     status: TransactionStatusEnum.Errored,
-                    errorMessage: `[Worker] [Error] Failed to process batch of transactions for wallet - ${
-                      err || err?.message
-                    }`,
+                    errorMessage: await parseTxError(tx, err),
                   },
                 });
               }),
@@ -545,10 +530,7 @@ export const processTx = async () => {
               queueId: tx.id,
               data: {
                 status: TransactionStatusEnum.Errored,
-                errorMessage:
-                  err?.message ||
-                  err?.toString() ||
-                  `Failed to handle transaction`,
+                errorMessage: await parseTxError(tx, err),
               },
             });
             sendWebhookForQueueIds.push({
