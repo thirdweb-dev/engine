@@ -187,14 +187,6 @@ export const createChainIndexerTask = async (chainId: number) => {
             toBlockNumber = lastIndexedBlock + 1 + config.maxBlocksToIndex;
           }
 
-          logger({
-            service: "worker",
-            level: "debug",
-            message: `Indexing blocks: [${
-              lastIndexedBlock + 1
-            }, ${toBlockNumber}] - ChainIndexer: ${chainId}`,
-          });
-
           // get contracts to index
           const subscribedContracts = await getContractSubscriptionsByChainId(
             chainId,
