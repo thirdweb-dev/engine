@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Transactions } from ".prisma/client";
+import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import {
   StaticJsonRpcBatchProvider,
+  UserWallet,
   getDefaultGasOverrides,
 } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
@@ -147,38 +149,10 @@ export const processTx = async () => {
           });
 
           // For each wallet address, check the nonce in database and the mempool
-          const [walletBalance, mempoolNonceData, gasOverrides] =
-            await Promise.all([
-              sdk.wallet.balance(),
-              sdk.wallet.getNonce("pending"),
-              getDefaultGasOverrides(provider),
-            ]);
-
-          // TODO: Move to be async.
-          // Wallet balance webhook
-          if (
-            BigNumber.from(walletBalance.value).lte(
-              BigNumber.from(config.minWalletBalance),
-            )
-          ) {
-            const message =
-              "Wallet balance is below minimum threshold. Please top up your wallet.";
-            const walletBalanceData: WalletBalanceWebhookSchema = {
-              walletAddress,
-              minimumBalance: ethers.utils.formatEther(config.minWalletBalance),
-              currentBalance: walletBalance.displayValue,
-              chainId,
-              message,
-            };
-
-            await sendBalanceWebhook(walletBalanceData);
-
-            logger({
-              service: "worker",
-              level: "warn",
-              message: `[${walletAddress}] ${message}`,
-            });
-          }
+          const [mempoolNonceData, gasOverrides] = await Promise.all([
+            sdk.wallet.getNonce("pending"),
+            getDefaultGasOverrides(provider),
+          ]);
 
           // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
           let startNonce: BigNumber;
@@ -198,7 +172,6 @@ export const processTx = async () => {
           }
 
           const rpcResponses: RpcResponseData[] = [];
-
           let txIndex = 0;
           let nonceIncrement = 0;
 
@@ -402,6 +375,9 @@ export const processTx = async () => {
               }
             }),
           );
+
+          // Async: check if this wallet has low gas funds.
+          alertOnBackendWalletLowBalance(sdk.wallet);
         });
 
         // 5. Send all user operations in parallel.
@@ -511,4 +487,29 @@ export const processTx = async () => {
       error: err,
     });
   }
+};
+
+const alertOnBackendWalletLowBalance = async (wallet: UserWallet) => {
+  try {
+    const balance = await wallet.balance();
+    const config = await getConfig();
+    const chain = await getChainByChainIdAsync(await wallet.getChainId());
+    const address = await wallet.getAddress();
+
+    if (BigNumber.from(balance.value).lte(config.minWalletBalance)) {
+      const minBalanceDisplay = ethers.utils.formatEther(
+        config.minWalletBalance,
+      );
+
+      const walletBalanceData: WalletBalanceWebhookSchema = {
+        walletAddress: address,
+        minimumBalance: minBalanceDisplay,
+        currentBalance: balance.displayValue,
+        chainId: chain.chainId,
+        message: `Backend wallet ${address} has below ${minBalanceDisplay} ${chain.nativeCurrency.symbol}.`,
+      };
+
+      await sendBalanceWebhook(walletBalanceData);
+    }
+  } catch (e) {}
 };
