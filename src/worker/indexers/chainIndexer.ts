@@ -1,4 +1,3 @@
-import { ContractEventLogs } from "@prisma/client";
 import { SmartContract } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
@@ -56,11 +55,6 @@ export const getSubscribedContractsLogs = async (
   const logs = await ethGetLogs(params);
 
   // cache the contracts and abi
-  logger({
-    service: "worker",
-    level: "debug",
-    message: `Starting to get contracts - ChainIndexer: ${params.chainId}`,
-  });
   const uniqueContractAddresses = [
     ...new Set<string>(logs.map((log) => log.address)),
   ];
@@ -79,11 +73,6 @@ export const getSubscribedContractsLogs = async (
   }, {} as Record<string, SmartContract<ethers.BaseContract>>);
 
   // cache the blocks and their timestamps
-  logger({
-    service: "worker",
-    level: "debug",
-    message: `Starting to get blocks - ChainIndexer: ${params.chainId}`,
-  });
   const uniqueBlockNumbers = [
     ...new Set<number>(logs.map((log) => log.blockNumber)),
   ];
@@ -146,8 +135,6 @@ export const getSubscribedContractsLogs = async (
       timestamp: new Date(block.timestamp * 1000), // ethers timestamp is s, Date uses ms
       transactionIndex: log.transactionIndex,
       logIndex: log.logIndex,
-    } as Omit<ContractEventLogs, "createdAt" | "updatedAt" | "decodedLog"> & {
-      decodedLog?: any;
     };
   });
 
