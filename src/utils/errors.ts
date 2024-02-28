@@ -13,9 +13,9 @@ interface EthersError {
 export const parseTxError = async (
   tx: Transactions,
   err: any,
-): Promise<string | null> => {
+): Promise<string> => {
   if (!err) {
-    return null;
+    return "Unexpected error.";
   }
 
   if ((err as EthersError)?.code === ethers.errors.INSUFFICIENT_FUNDS) {

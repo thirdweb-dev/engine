@@ -29,7 +29,6 @@ export interface ReportUsageParams {
     extension?: string;
     retryCount?: number;
     provider?: string;
-    transactionValue?: string;
     msSinceQueue?: number;
     msSinceSend?: number;
   };

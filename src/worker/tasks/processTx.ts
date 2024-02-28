@@ -17,6 +17,7 @@ import { WalletBalanceWebhookSchema } from "../../schema/webhooks";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
+import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { parseTxError } from "../../utils/errors";
 import { logger } from "../../utils/logger";
@@ -35,44 +36,29 @@ import { getWithdrawalValue } from "../utils/withdraw";
 
 type SentTxStatus =
   | {
+      status: TransactionStatusEnum.Submitted;
+      tx: Transactions;
       transactionHash: string;
       sentAt: Date;
-      status: TransactionStatusEnum.Submitted;
-      queueId: string;
-      res: ethers.providers.TransactionResponse | null;
-      sentAtBlockNumber: number;
-      functionName?: string;
-      extension?: string;
-      queuedAt?: number;
+      sentAtBlock: number;
+      rpcResponse: ethers.providers.TransactionResponse | null;
     }
   | {
       status: TransactionStatusEnum.Errored;
-      queueId: string;
+      tx: Transactions;
       errorMessage: string;
-      txRequest: {
-        from?: string;
-        to?: string;
-        value?: string;
-        chainId?: string;
-      };
-      functionName?: string;
-      extension?: string;
-      queuedAt?: number;
     };
 
 type RpcResponseData = {
-  queueId: string;
-  tx: ethers.providers.TransactionRequest;
-  res: RpcResponse;
-  sentAt: Date;
-  functionName?: string;
-  extension?: string;
-  queuedAt?: number;
+  tx: Transactions;
+  txRequest: ethers.providers.TransactionRequest;
+  rpcResponse: RpcResponse;
 };
 
 export const processTx = async () => {
   try {
-    // 0. Initialize queueIds to send webhook
+    const config = await getConfig();
+
     const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
@@ -86,11 +72,7 @@ export const processTx = async () => {
           message: `Received ${txs.length} transactions to process`,
         });
 
-        const config = await getConfig();
-        if (txs.length < config.minTxsToProcess) {
-          return;
-        }
-        // Send Queued Webhook
+        // Send queued webhook.
         await sendWebhooks(
           txs.map((tx) => ({
             queueId: tx.id,
@@ -113,20 +95,10 @@ export const processTx = async () => {
           })),
         );
 
-        // 2. Iterate through all filtering cancelled transactions, and sorting transactions and user operations
+        // 2. Update and sort transactions and user operations.
         const txsToSend: Transactions[] = [];
         const userOpsToSend = [];
         for (const tx of txs) {
-          if (tx.cancelledAt) {
-            logger({
-              service: "worker",
-              level: "info",
-              queueId: tx.id,
-              message: `Cancelled`,
-            });
-            continue;
-          }
-
           logger({
             service: "worker",
             level: "info",
@@ -149,7 +121,7 @@ export const processTx = async () => {
           }
         }
 
-        // 3. Group transactions to be batched by sender address and chain.
+        // 3. Group transactions by wallet address and chain.
         const txsByWallet: Record<string, Transactions[]> = {};
         txsToSend.forEach((tx) => {
           const key = `${tx.fromAddress}-${tx.chainId}`;
@@ -160,7 +132,7 @@ export const processTx = async () => {
           }
         });
 
-        // 4. Sending transaction batches in parallel by unique wallet address and chain id
+        // 4. Send transaction batches in parallel.
         const sentTxs = Object.keys(txsByWallet).map(async (key) => {
           const txsToSend = txsByWallet[key];
           const [walletAddress, chainId] = [
@@ -179,7 +151,6 @@ export const processTx = async () => {
               sdk.getSigner(),
               sdk.getProvider() as StaticJsonRpcBatchProvider,
             ]);
-
             if (!signer || !provider) {
               return;
             }
@@ -199,6 +170,7 @@ export const processTx = async () => {
                 getDefaultGasOverrides(provider),
               ]);
 
+            // TODO: Move to be async.
             // Wallet balance webhook
             if (
               BigNumber.from(walletBalance.value).lte(
@@ -253,7 +225,7 @@ export const processTx = async () => {
               const tx = txsToSend[txIndex];
 
               try {
-                let value: ethers.BigNumberish = tx.value!;
+                let value = BigNumber.from(tx.value ?? 0);
                 if (tx.extension === "withdraw") {
                   value = await getWithdrawalValue({
                     provider,
@@ -323,13 +295,9 @@ export const processTx = async () => {
                   txIndex++;
 
                   rpcResponses.push({
-                    queueId: tx.id,
-                    tx: txRequest,
-                    res: rpcResponse,
-                    sentAt: new Date(),
-                    functionName: tx.functionName || undefined,
-                    extension: tx.extension || undefined,
-                    queuedAt: new Date(tx.queuedAt!).getTime(),
+                    tx,
+                    txRequest,
+                    rpcResponse,
                   });
                   sendWebhookForQueueIds.push({
                     queueId: tx.id,
@@ -341,19 +309,16 @@ export const processTx = async () => {
                     .toLowerCase()
                     .includes("nonce too low")
                 ) {
-                  // Nonce too low (retry same transaction with higher nonce)
+                  // Nonce too low. Retry with a higher nonce.
                   nonceIncrement++;
                 } else {
-                  // Error (continue to next transaction)
+                  // Error. Continue to the next transaction.
                   txIndex++;
 
                   rpcResponses.push({
-                    queueId: tx.id,
-                    tx: txRequest,
-                    res: rpcResponse,
-                    sentAt: new Date(),
-                    functionName: tx.functionName || undefined,
-                    extension: tx.extension || undefined,
+                    tx,
+                    txRequest,
+                    rpcResponse,
                   });
                   sendWebhookForQueueIds.push({
                     queueId: tx.id,
@@ -361,7 +326,7 @@ export const processTx = async () => {
                   });
                 }
               } catch (err: any) {
-                // Error (continue to next transaction)
+                // Error. Continue to the next transaction.
                 txIndex++;
                 sendWebhookForQueueIds.push({
                   queueId: tx.id,
@@ -376,8 +341,7 @@ export const processTx = async () => {
                     functionName: tx.functionName || undefined,
                     extension: tx.extension || undefined,
                     provider: provider.connection.url || undefined,
-                    msSinceQueue:
-                      new Date().getTime() - new Date(tx.queuedAt!).getTime(),
+                    msSinceQueue: msSince(tx.queuedAt),
                   },
                   action: UsageEventTxActionEnum.NotSendTx,
                 });
@@ -395,9 +359,7 @@ export const processTx = async () => {
                   queueId: tx.id,
                   data: {
                     status: TransactionStatusEnum.Errored,
-                    errorMessage:
-                      (await parseTxError(tx, err)) ??
-                      "Unexpected error sending transaction.",
+                    errorMessage: await parseTxError(tx, err),
                   },
                 });
               }
@@ -410,128 +372,64 @@ export const processTx = async () => {
               nonce: startNonce.add(nonceIncrement).toNumber(),
             });
 
-            // Update transaction records with updated data
-            const txStatuses: SentTxStatus[] = await Promise.all(
-              rpcResponses.map(
-                async ({
-                  queueId,
-                  tx,
-                  res,
-                  sentAt,
-                  functionName,
-                  extension,
-                  queuedAt,
-                }) => {
-                  if (res.result) {
-                    const txHash = res.result;
-                    const txRes = (await provider.getTransaction(
-                      txHash,
-                    )) as ethers.providers.TransactionResponse | null;
-
-                    logger({
-                      service: "worker",
-                      level: "info",
-                      queueId,
-                      message: `Sent transaction with hash '${txHash}' and nonce '${tx.nonce}'`,
-                    });
-
-                    return {
-                      sentAt,
-                      transactionHash: txHash,
-                      status: TransactionStatusEnum.Submitted,
-                      queueId: queueId,
-                      res: txRes,
-                      functionName,
-                      extension,
-                      sentAtBlockNumber: await provider.getBlockNumber(),
-                      queuedAt,
-                    };
-                  } else {
-                    logger({
-                      service: "worker",
-                      level: "warn",
-                      queueId,
-                      message: `Received error from RPC`,
-                      error: res.error,
-                    });
-
-                    return {
-                      status: TransactionStatusEnum.Errored,
-                      queueId: queueId,
-                      errorMessage:
-                        res.error?.message ||
-                        res.error?.toString() ||
-                        `Failed to handle transaction`,
-                      txRequest: {
-                        from: tx.from,
-                        to: tx.to,
-                        value: tx.value?.toString(),
-                        chainId: tx.chainId?.toString(),
-                      },
-                      functionName,
-                      extension,
-                      queuedAt,
-                    };
-                  }
-                },
-              ),
-            );
-
             // - After sending transactions, update database for each transaction
             await Promise.all(
-              txStatuses.map(async (tx) => {
-                switch (tx.status) {
-                  case TransactionStatusEnum.Submitted:
-                    await updateTx({
-                      pgtx,
-                      queueId: tx.queueId,
-                      data: {
-                        sentAt: tx.sentAt,
-                        status: TransactionStatusEnum.Submitted,
-                        transactionHash: tx.transactionHash,
-                        res: tx.res,
-                        sentAtBlockNumber: await provider.getBlockNumber(),
-                      },
-                    });
-                    reportUsageForQueueIds.push({
-                      input: {
-                        fromAddress: tx.res?.from,
-                        toAddress: tx.res?.to,
-                        value: tx.res?.value?.toString(),
-                        chainId: tx.res?.chainId?.toString(),
-                        transactionHash: tx.transactionHash,
-                        functionName: tx.functionName || undefined,
-                        extension: tx.extension || undefined,
-                        provider: provider.connection.url || undefined,
-                        transactionValue: tx.res?.value?.toString(),
-                        msSinceQueue: new Date().getTime() - tx.queuedAt!,
-                      },
-                      action: UsageEventTxActionEnum.SendTx,
-                    });
-                    break;
-                  case TransactionStatusEnum.Errored:
-                    await updateTx({
-                      pgtx,
-                      queueId: tx.queueId,
-                      data: {
-                        status: TransactionStatusEnum.Errored,
-                        errorMessage: tx.errorMessage,
-                      },
-                    });
-                    reportUsageForQueueIds.push({
-                      input: {
-                        fromAddress: tx.txRequest.from,
-                        toAddress: tx.txRequest.to,
-                        value: tx.txRequest.value?.toString(),
-                        chainId: tx.txRequest.chainId?.toString(),
-                        functionName: tx.functionName || undefined,
-                        extension: tx.extension || undefined,
-                        provider: provider.connection.url || undefined,
-                        msSinceQueue: new Date().getTime() - tx.queuedAt!,
-                      },
-                      action: UsageEventTxActionEnum.NotSendTx,
-                    });
-                    break;
+              rpcResponses.map(async ({ tx, txRequest, rpcResponse }) => {
+                if (rpcResponse.result) {
+                  // Transaction was successful.
+                  const transactionHash = rpcResponse.result;
+                  const txResponse = (await provider.getTransaction(
+                    transactionHash,
+                  )) as ethers.providers.TransactionResponse | null;
+
+                  await updateTx({
+                    pgtx,
+                    queueId: tx.id,
+                    data: {
+                      status: TransactionStatusEnum.Submitted,
+                      transactionHash,
+                      res: txResponse,
+                      sentAt: new Date(),
+                      sentAtBlockNumber: await provider.getBlockNumber(),
+                    },
+                  });
+                  reportUsageForQueueIds.push({
+                    input: {
+                      fromAddress: txRequest.from,
+                      toAddress: txRequest.to,
+                      value: (txRequest.value ?? 0).toString(),
+                      chainId: tx.chainId,
+                      transactionHash,
+                      functionName: tx.functionName || undefined,
+                      extension: tx.extension || undefined,
+                      provider: provider.connection.url || undefined,
+                      msSinceQueue: msSince(tx.queuedAt),
+                    },
+                    action: UsageEventTxActionEnum.SendTx,
+                  });
+                } else {
+                  // Transaction failed.
+                  await updateTx({
+                    pgtx,
+                    queueId: tx.id,
+                    data: {
+                      status: TransactionStatusEnum.Errored,
+                      errorMessage: await parseTxError(tx, rpcResponse.error),
+                    },
+                  });
+                  reportUsageForQueueIds.push({
+                    input: {
+                      fromAddress: txRequest.from,
+                      toAddress: txRequest.to,
+                      value: (txRequest.value ?? 0).toString(),
+                      chainId: tx.chainId,
+                      functionName: tx.functionName || undefined,
+                      extension: tx.extension || undefined,
+                      provider: provider.connection.url || undefined,
+                      msSinceQueue: msSince(tx.queuedAt),
+                    },
+                    action: UsageEventTxActionEnum.NotSendTx,
+                  });
                 }
               }),
             );
@@ -560,8 +458,7 @@ export const processTx = async () => {
                     chainId: tx.chainId || undefined,
                     functionName: tx.functionName || undefined,
                     extension: tx.extension || undefined,
-                    msSinceQueue:
-                      new Date().getTime() - new Date(tx.queuedAt!).getTime(),
+                    msSinceQueue: msSince(tx.queuedAt),
                   },
                   action: UsageEventTxActionEnum.NotSendTx,
                 });
@@ -630,8 +527,7 @@ export const processTx = async () => {
                 functionName: tx.functionName || undefined,
                 extension: tx.extension || undefined,
                 provider: signer.httpRpcClient.bundlerUrl || undefined,
-                msSinceQueue:
-                  new Date().getTime() - new Date(tx.queuedAt!).getTime(),
+                msSinceQueue: msSince(tx.queuedAt),
               },
               action: UsageEventTxActionEnum.SendTx,
             });
@@ -667,8 +563,7 @@ export const processTx = async () => {
                 chainId: tx.chainId || undefined,
                 functionName: tx.functionName || undefined,
                 extension: tx.extension || undefined,
-                msSinceQueue:
-                  new Date().getTime() - new Date(tx.queuedAt!).getTime(),
+                msSinceQueue: msSince(tx.queuedAt),
               },
               action: UsageEventTxActionEnum.NotSendTx,
             });
