@@ -1,12 +1,6 @@
-/*
-  Warnings:
-
-  - Added the required column `maxBlocksToIndex` to the `configuration` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- AlterTable
 ALTER TABLE "configuration" ADD COLUMN     "indexerListenerCronSchedule" TEXT,
-ADD COLUMN     "maxBlocksToIndex" INTEGER NOT NULL;
+ADD COLUMN     "maxBlocksToIndex" INTEGER NOT NULL DEFAULT 5;
 
 -- CreateTable
 CREATE TABLE "contract_subscriptions" (
@@ -14,6 +8,7 @@ CREATE TABLE "contract_subscriptions" (
     "contractAddress" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "contract_subscriptions_pkey" PRIMARY KEY ("chainId","contractAddress")
 );
@@ -52,3 +47,24 @@ CREATE TABLE "chain_indexers" (
 
 -- CreateIndex
 CREATE INDEX "contract_subscriptions_chainId_idx" ON "contract_subscriptions"("chainId");
+
+-- CreateIndex
+CREATE INDEX "contract_event_logs_timestamp_idx" ON "contract_event_logs"("timestamp");
+
+-- CreateIndex
+CREATE INDEX "contract_event_logs_blockNumber_idx" ON "contract_event_logs"("blockNumber");
+
+-- CreateIndex
+CREATE INDEX "contract_event_logs_contractAddress_idx" ON "contract_event_logs"("contractAddress");
+
+-- CreateIndex
+CREATE INDEX "contract_event_logs_topic0_idx" ON "contract_event_logs"("topic0");
+
+-- CreateIndex
+CREATE INDEX "contract_event_logs_topic1_idx" ON "contract_event_logs"("topic1");
+
+-- CreateIndex
+CREATE INDEX "contract_event_logs_topic2_idx" ON "contract_event_logs"("topic2");
+
+-- CreateIndex
+CREATE INDEX "contract_event_logs_topic3_idx" ON "contract_event_logs"("topic3");
