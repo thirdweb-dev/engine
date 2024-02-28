@@ -4,13 +4,14 @@ ADD COLUMN     "maxBlocksToIndex" INTEGER NOT NULL DEFAULT 5;
 
 -- CreateTable
 CREATE TABLE "contract_subscriptions" (
+    "id" TEXT NOT NULL,
     "chainId" INTEGER NOT NULL,
     "contractAddress" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
 
-    CONSTRAINT "contract_subscriptions_pkey" PRIMARY KEY ("chainId","contractAddress")
+    CONSTRAINT "contract_subscriptions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable

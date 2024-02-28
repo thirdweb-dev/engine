@@ -9,12 +9,11 @@ export const deleteContractSubscription = async ({
   chainId,
   contractAddress,
 }: RemoveContractSubscriptionParams) => {
-  return prisma.contractSubscriptions.update({
+  return prisma.contractSubscriptions.updateMany({
     where: {
-      chainId_contractAddress: {
-        chainId,
-        contractAddress,
-      },
+      chainId,
+      contractAddress,
+      deletedAt: null,
     },
     data: {
       deletedAt: new Date(),

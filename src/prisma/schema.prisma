@@ -181,14 +181,13 @@ model Relayers {
 }
 
 model ContractSubscriptions {
+  id                 String  @id @default(uuid()) @map("id")
   chainId            Int  
   contractAddress    String
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   deletedAt          DateTime?
-
-  @@id([chainId, contractAddress])
 
   // optimize distinct lookups
   @@index([chainId])

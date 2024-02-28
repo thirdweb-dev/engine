@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { upsertChainIndexer } from "../../../../db/chainIndexers/upsertChainIndexer";
-import { upsertContractSubscription } from "../../../../db/contractSubscriptions/createContractSubscription";
+import { createContractSubscription } from "../../../../db/contractSubscriptions/createContractSubscription";
 import { getContractSubscriptionsUniqueChainIds } from "../../../../db/contractSubscriptions/getContractSubscriptions";
 import { getSdk } from "../../../../utils/cache/getSdk";
 import {
@@ -66,7 +66,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
       }
 
       // upsert indexed contract, this will be picked up
-      await upsertContractSubscription({
+      await createContractSubscription({
         chainId,
         contractAddress: standardizedContractAddress,
       });

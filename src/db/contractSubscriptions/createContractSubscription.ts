@@ -1,25 +1,15 @@
 import { prisma } from "../client";
 
-interface UpsertContractSubscriptionParams {
+interface CreateContractSubscriptionParams {
   chainId: number;
   contractAddress: string;
 }
 
-export const upsertContractSubscription = async ({
+export const createContractSubscription = async ({
   chainId,
   contractAddress,
-}: UpsertContractSubscriptionParams) => {
-  return prisma.contractSubscriptions.upsert({
-    where: {
-      chainId_contractAddress: {
-        chainId,
-        contractAddress,
-      },
-    },
-    update: {
-      chainId,
-      contractAddress,
-    },
-    create: { chainId, contractAddress },
+}: CreateContractSubscriptionParams) => {
+  return prisma.contractSubscriptions.create({
+    data: { chainId, contractAddress },
   });
 };
