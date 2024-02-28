@@ -47,6 +47,9 @@ responseSchema.example = {
   },
 };
 
+// TODO: throw this into config
+const MAX_ALLOWED_QUERY_BLOCKS = 100;
+
 export async function getContractEventLogs(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
@@ -70,6 +73,22 @@ export async function getContractEventLogs(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { fromBlock, toBlock, topics } = request.query;
+
+      if (toBlock && toBlock < fromBlock) {
+        throw createCustomError(
+          "toBlock cannot be less than fromBlock",
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
+      }
+
+      if (toBlock && toBlock - fromBlock > MAX_ALLOWED_QUERY_BLOCKS) {
+        throw createCustomError(
+          `cannot query more than ${MAX_ALLOWED_QUERY_BLOCKS}`,
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
+      }
 
       const standardizedContractAddress = contractAddress.toLowerCase();
 
