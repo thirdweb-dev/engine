@@ -25,7 +25,7 @@ model Configuration {
   maxRetriesPerTx                    Int     @map("maxRetriesPerTx")
   // Contract Indexer Updates
   indexerListenerCronSchedule        String? @map("indexerListenerCronSchedule")
-  maxBlocksToIndex                   Int     @map("maxBlocksToIndex")
+  maxBlocksToIndex                   Int     @default(5) @map("maxBlocksToIndex")
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")
   awsSecretAccessKey                 String? @map("awsSecretAccessKey")
