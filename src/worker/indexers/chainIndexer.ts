@@ -181,7 +181,9 @@ export const getSubscribedContractsLogs = async (
       timestamp: new Date(block.timestamp * 1000), // ethers timestamp is s, Date uses ms
       transactionIndex: log.transactionIndex,
       logIndex: log.logIndex,
-    } as Omit<ContractEventLogs, "createdAt" | "updatedAt">;
+    } as Omit<ContractEventLogs, "createdAt" | "updatedAt" | "decodedLog"> & {
+      decodedLog?: any;
+    };
   });
 
   return formattedLogs;

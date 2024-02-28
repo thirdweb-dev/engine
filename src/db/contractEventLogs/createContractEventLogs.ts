@@ -4,7 +4,8 @@ import { getPrismaWithPostgresTx } from "../client";
 
 export interface BulkInsertContractLogsParams {
   pgtx?: PrismaTransaction;
-  logs: Omit<ContractEventLogs, "createdAt" | "updatedAt">[];
+  logs: Omit<ContractEventLogs, "createdAt" | "updatedAt" | "decodedLog"> &
+    { decodedLog?: any }[];
 }
 
 export const bulkInsertContractEventLogs = async ({
