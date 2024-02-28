@@ -1,12 +1,10 @@
+import { ContractEventLogs } from "@prisma/client";
 import { SmartContract } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
 import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";
 import { prisma } from "../../db/client";
-import {
-  bulkInsertContractEventLogs,
-  type ContractEventLogEntry,
-} from "../../db/contractEventLogs/createContractEventLogs";
+import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getContract } from "../../utils/cache/getContract";
@@ -183,7 +181,7 @@ export const getSubscribedContractsLogs = async (
       timestamp: new Date(block.timestamp * 1000), // ethers timestamp is s, Date uses ms
       transactionIndex: log.transactionIndex,
       logIndex: log.logIndex,
-    } as ContractEventLogEntry;
+    } as Omit<ContractEventLogs, "createdAt" | "updatedAt">;
   });
 
   return formattedLogs;

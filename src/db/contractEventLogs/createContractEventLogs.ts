@@ -1,26 +1,10 @@
+import { ContractEventLogs } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
-export interface ContractEventLogEntry {
-  chainId: number;
-  blockNumber: number;
-  contractAddress: string;
-  transactionHash: string;
-  topic0?: string;
-  topic1?: string;
-  topic2?: string;
-  topic3?: string;
-  data: string;
-  decodedLog?: any; // Assuming JSON object for decodedLog
-  eventName?: string;
-  timestamp: Date;
-  transactionIndex: number;
-  logIndex: number;
-}
-
 export interface BulkInsertContractLogsParams {
   pgtx?: PrismaTransaction;
-  logs: ContractEventLogEntry[];
+  logs: Omit<ContractEventLogs, "createdAt" | "updatedAt">[];
 }
 
 export const bulkInsertContractEventLogs = async ({
