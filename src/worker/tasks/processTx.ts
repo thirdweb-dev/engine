@@ -330,9 +330,7 @@ export const processTx = async () => {
                     transactionHash,
                     res: txResponse,
                     sentAt: new Date(),
-                    sentAtBlockNumber:
-                      txResponse?.blockNumber ??
-                      (await provider.getBlockNumber()),
+                    sentAtBlockNumber: await provider.getBlockNumber(),
                   },
                 });
                 reportUsageForQueueIds.push({
