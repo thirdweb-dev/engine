@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { getBlockTimeSeconds } from "../../utils/indexer/getBlockTime";
 import { logger } from "../../utils/logger";
-import { createChainIndexerTask } from "./chainIndexer";
+import { createChainIndexerTask } from "../tasks/chainIndexer";
 
 export const INDEXER_REGISTRY = {} as Record<number, cron.ScheduledTask>;
 
