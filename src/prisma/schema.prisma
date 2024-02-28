@@ -217,6 +217,14 @@ model ContractEventLogs {
   @@id([transactionHash, logIndex])
 
   @@map("contract_event_logs")
+
+  @@index([timestamp])
+  @@index([blockNumber])
+  @@index([contractAddress])
+  @@index([topic0])
+  @@index([topic1])
+  @@index([topic2])
+  @@index([topic3])
 }
 
 model ChainIndexers {
