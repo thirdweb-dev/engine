@@ -1,5 +1,6 @@
 -- AlterTable
-ALTER TABLE "configuration" ADD COLUMN     "indexerListenerCronSchedule" TEXT,
+ALTER TABLE "configuration" ADD COLUMN     "cursorDelaySeconds" INTEGER NOT NULL DEFAULT 2,
+ADD COLUMN     "indexerListenerCronSchedule" TEXT,
 ADD COLUMN     "maxBlocksToIndex" INTEGER NOT NULL DEFAULT 5;
 
 -- CreateTable
