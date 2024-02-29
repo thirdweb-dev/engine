@@ -178,8 +178,8 @@ export const getConfiguration = async (): Promise<Config> => {
         maxTxsToProcess: 30,
         minedTxListenerCronSchedule: "*/5 * * * * *",
         maxTxsToUpdate: 50,
-        retryTxListenerCronSchedule: "*/30 * * * * *",
-        minEllapsedBlocksBeforeRetry: 15,
+        retryTxListenerCronSchedule: "*/10 * * * * *",
+        minEllapsedBlocksBeforeRetry: 4,
         maxFeePerGasForRetries: ethers.utils
           .parseUnits("1000", "gwei")
           .toString(),
