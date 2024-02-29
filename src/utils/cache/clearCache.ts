@@ -1,6 +1,7 @@
 import { env } from "../env";
 import { accessTokenCache } from "./accessToken";
 import { configCache } from "./getConfig";
+import { definedChainCache } from "./getContractV5";
 import { sdkCache } from "./getSdk";
 import { walletsCache } from "./getWallet";
 import { webhookCache } from "./getWebhook";
@@ -13,4 +14,5 @@ export const clearCache = async (
   sdkCache.clear();
   walletsCache.clear();
   accessTokenCache.clear();
+  definedChainCache.clear();
 };

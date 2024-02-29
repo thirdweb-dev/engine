@@ -1,12 +1,8 @@
 import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  defineChain,
-  readContract as readContractSDK,
-  resolveMethod,
-} from "thirdweb";
-import { getContractUsingNew } from "../../../../utils/cache/getContractNew";
+import { readContract, resolveMethod } from "thirdweb";
+import { getContractV5 } from "../../../../utils/cache/getContractV5";
 import { readRequestQuerySchema, readSchema } from "../../../schemas/contract";
 import {
   partialRouteSchema,
@@ -14,7 +10,7 @@ import {
 } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
-export async function readContract(fastify: FastifyInstance) {
+export async function readContractAPI(fastify: FastifyInstance) {
   fastify.route<readSchema>({
     method: "GET",
     url: "/contract/:chain/:contractAddress/read",
@@ -31,13 +27,12 @@ export async function readContract(fastify: FastifyInstance) {
       const { functionName, args } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
-      const definedChain = defineChain(chainId);
-      const contract = await getContractUsingNew({
-        chain: definedChain,
+      const contract = await getContractV5({
+        chainId,
         contractAddress,
       });
 
-      const returnData = await readContractSDK({
+      const returnData = await readContract({
         contract: contract,
         method: resolveMethod(functionName),
         params: args ? args.split(",") : [],

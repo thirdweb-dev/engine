@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 import { getContractExtensions } from "./contract/metadata/extensions";
-import { readContract } from "./contract/read/read";
+import { readContractAPI } from "./contract/read/read";
 import { writeToContract } from "./contract/write/write";
 
 // Transactions
@@ -178,7 +178,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(relayTransaction);
 
   // Generic
-  await fastify.register(readContract);
+  await fastify.register(readContractAPI);
   await fastify.register(writeToContract);
 
   // Contract Events

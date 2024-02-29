@@ -378,3 +378,40 @@ signature1155OutputSchema.examples = [
       "0x674414eb46d1be3fb8f703b51049aa857b27c70c72293f054ed211be0efb843841bcd86b1245c321b20e50e2a9bebb555e70246d84778d5e76668db2f102c6401b",
   },
 ];
+
+//////////////////////
+//   SDK V5 Types   //
+//////////////////////
+export const v5NFTMetadata = Type.Union([
+  Type.Object({
+    id: Type.String(),
+    uri: Type.String(),
+    name: Type.Optional(Type.String()),
+    description: Type.Optional(Type.String()),
+    image: Type.Optional(Type.String()),
+    animation_url: Type.Optional(Type.String()),
+    external_url: Type.Optional(Type.String()),
+    background_color: Type.Optional(Type.String()),
+    properties: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
+    attributes: Type.Optional(Type.Record(Type.String(), Type.Unknown())),
+  }),
+  Type.Record(Type.String(), Type.Unknown()),
+]);
+
+export const v5NFT = Type.Union([
+  Type.Object({
+    metadata: v5NFTMetadata,
+    owner: Type.Union([Type.String(), Type.Null()]),
+    id: Type.String(),
+    tokenURI: Type.String(),
+    type: Type.Literal("ERC721"),
+  }),
+  Type.Object({
+    metadata: v5NFTMetadata,
+    owner: Type.Union([Type.String(), Type.Null()]),
+    id: Type.String(),
+    tokenURI: Type.String(),
+    type: Type.Literal("ERC1155"),
+    supply: Type.String(),
+  }),
+]);

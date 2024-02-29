@@ -1,14 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
-import { nftSchema } from "../../../../../schemas/nft";
+import { getNFT } from "thirdweb/extensions/erc721";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
+import { v5NFT } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-
+import { convertBigIntToString } from "../../../../../utils/convertor";
 // INPUT
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
@@ -20,7 +21,7 @@ const querystringSchema = Type.Object({
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: nftSchema,
+  result: v5NFT,
 });
 
 responseSchema.example = [
@@ -65,11 +66,16 @@ export async function erc721Get(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { tokenId } = request.query;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const result = await contract.erc721.get(tokenId);
+      const nftData = await getNFT({
+        contract,
+        tokenId: BigInt(tokenId),
+        includeOwner: true,
+      });
+      const result = convertBigIntToString(nftData) as Static<typeof v5NFT>;
       reply.status(StatusCodes.OK).send({
         result,
       });
