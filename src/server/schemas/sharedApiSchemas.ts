@@ -332,3 +332,19 @@ export const walletDetailsSchema = Type.Object({
     Type.Null(),
   ]),
 });
+
+export const eventLogsSchema = Type.Array(
+  Type.Object({
+    chainId: Type.Number(),
+    contractAddress: Type.String(),
+    blockNumber: Type.Number(),
+    transactionHash: Type.String(),
+    topics: Type.Array(Type.String()),
+    data: Type.String(),
+    eventName: Type.Optional(Type.String()),
+    decodedLog: Type.Any(),
+    timestamp: Type.Number(),
+    transactionIndex: Type.Number(),
+    logIndex: Type.Number(),
+  }),
+);

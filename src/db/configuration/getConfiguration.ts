@@ -181,6 +181,7 @@ export const getConfiguration = async (): Promise<Config> => {
         retryTxListenerCronSchedule: "*/30 * * * * *",
         indexerListenerCronSchedule: "*/5 * * * * *",
         maxBlocksToIndex: 5,
+        cursorDelaySeconds: 2,
         minEllapsedBlocksBeforeRetry: 15,
         maxFeePerGasForRetries: ethers.utils
           .parseUnits("1000", "gwei")

@@ -80,32 +80,73 @@ export const getEventLogsByBlockTimestamp = async ({
   });
 };
 
-interface GetEventLogsByCreationTimestampParams {
-  fromCreationTimestamp: number;
-  toCreationTimestamp?: number;
+interface GetEventLogsByCursorParams {
+  cursor?: {
+    createdAt: Date;
+    chainId: number;
+    blockNumber: number;
+    transactionIndex: number;
+    logIndex: number;
+  };
+  limit?: number;
   contractAddresses?: string[];
   topics?: string[];
+  maxCreatedAt?: Date;
 }
 
-export const getEventLogsByCreationTimestamp = async ({
-  fromCreationTimestamp,
-  toCreationTimestamp,
+export const getEventLogsByCursor = async ({
+  cursor,
+  limit = 100,
   contractAddresses,
   topics,
-}: GetEventLogsByCreationTimestampParams) => {
-  const fromCreationDate = new Date(fromCreationTimestamp);
-  const toCreationDate = toCreationTimestamp
-    ? new Date(toCreationTimestamp)
-    : undefined;
-
+  maxCreatedAt,
+}: GetEventLogsByCursorParams) => {
   const whereClause = {
-    createdAt: {
-      gte: fromCreationDate,
-      ...(toCreationDate && { lte: toCreationDate }),
-    },
-    ...(contractAddresses && contractAddresses.length > 0
-      ? { contractAddress: { in: contractAddresses } }
-      : {}),
+    AND: [
+      ...(contractAddresses && contractAddresses.length > 0
+        ? [{ contractAddress: { in: contractAddresses } }]
+        : []),
+      ...(cursor
+        ? [
+            {
+              OR: [
+                { createdAt: { gt: cursor.createdAt } },
+                {
+                  createdAt: { equals: cursor.createdAt },
+                  chainId: { gt: cursor.chainId },
+                },
+                {
+                  createdAt: { equals: cursor.createdAt },
+                  chainId: { equals: cursor.chainId },
+                  blockNumber: { gt: cursor.blockNumber },
+                },
+                {
+                  createdAt: { equals: cursor.createdAt },
+                  chainId: { equals: cursor.chainId },
+                  blockNumber: { equals: cursor.blockNumber },
+                  transactionIndex: { gt: cursor.transactionIndex },
+                },
+                {
+                  createdAt: { equals: cursor.createdAt },
+                  chainId: { equals: cursor.chainId },
+                  blockNumber: { equals: cursor.blockNumber },
+                  transactionIndex: { equals: cursor.transactionIndex },
+                  logIndex: { gt: cursor.logIndex },
+                },
+              ],
+            },
+          ]
+        : []),
+      ...(maxCreatedAt
+        ? [
+            {
+              createdAt: {
+                lte: maxCreatedAt,
+              },
+            },
+          ]
+        : []),
+    ],
     ...(topics && topics.length > 0
       ? {
           OR: [
@@ -118,9 +159,19 @@ export const getEventLogsByCreationTimestamp = async ({
       : {}),
   };
 
-  return await prisma.contractEventLogs.findMany({
+  const logs = await prisma.contractEventLogs.findMany({
     where: whereClause,
+    orderBy: [
+      { createdAt: "asc" },
+      { chainId: "asc" },
+      { blockNumber: "asc" },
+      { transactionIndex: "asc" },
+      { logIndex: "asc" },
+    ],
+    take: limit,
   });
+
+  return logs;
 };
 
 export interface GetContractEventLogsIndexedBlockRangeParams {

@@ -118,7 +118,8 @@ import { addContractSubscription } from "./contract/events/addContractSubscripti
 import { getContractEventLogs } from "./contract/events/getContractEventLogs";
 import { getContractIndexedBlockRange } from "./contract/events/getContractIndexedBlockRange";
 import { getContractSubscriptions } from "./contract/events/getContractSubscriptions";
-import { getEventLogs } from "./contract/events/getEventLogs";
+import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
+import { pageEventLogs } from "./contract/events/paginateEventLogs";
 import { removeContractSubscription } from "./contract/events/removeContractSubscription";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
@@ -238,11 +239,12 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(healthCheck);
   await fastify.register(queueStatus);
 
-  // Indexer
+  // Event Logs
   await fastify.register(addContractSubscription);
   await fastify.register(getContractSubscriptions);
   await fastify.register(getContractEventLogs);
   await fastify.register(getEventLogs);
   await fastify.register(getContractIndexedBlockRange);
   await fastify.register(removeContractSubscription);
+  await fastify.register(pageEventLogs);
 };
