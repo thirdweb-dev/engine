@@ -50,21 +50,21 @@ export const retryTx = async () => {
         }
 
         const gasOverrides = await getGasSettingsForRetry(tx, provider);
-        if (
-          gasOverrides.maxFeePerGas?.gt(config.maxFeePerGasForRetries) ||
-          gasOverrides.maxPriorityFeePerGas?.gt(
-            config.maxPriorityFeePerGasForRetries,
-          )
-        ) {
-          // Return if gas settings exceed configured limits. Try again later.
-          logger({
-            service: "worker",
-            level: "warn",
-            queueId: tx.id,
-            message: `${tx.chainId} chain gas price is higher than maximum threshold.`,
-          });
-          return;
-        }
+        // if (
+        //   gasOverrides.maxFeePerGas?.gt(config.maxFeePerGasForRetries) ||
+        //   gasOverrides.maxPriorityFeePerGas?.gt(
+        //     config.maxPriorityFeePerGasForRetries,
+        //   )
+        // ) {
+        //   // Return if gas settings exceed configured limits. Try again later.
+        //   logger({
+        //     service: "worker",
+        //     level: "warn",
+        //     queueId: tx.id,
+        //     message: `${tx.chainId} chain gas price is higher than maximum threshold.`,
+        //   });
+        //   return;
+        // }
 
         logger({
           service: "worker",
