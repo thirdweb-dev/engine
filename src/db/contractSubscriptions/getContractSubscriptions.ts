@@ -9,17 +9,15 @@ export const isContractSubscribed = async ({
   chainId,
   contractAddress,
 }: GetContractSubscriptionsParams) => {
-  const subscribedContract = await prisma.contractSubscriptions.findUnique({
+  const subscribedContract = await prisma.contractSubscriptions.findMany({
     where: {
-      chainId_contractAddress: {
-        chainId,
-        contractAddress,
-      },
+      chainId,
+      contractAddress,
       deletedAt: null,
     },
   });
 
-  if (!subscribedContract) return false;
+  if (subscribedContract.length === 0) return false;
   else return true;
 };
 
