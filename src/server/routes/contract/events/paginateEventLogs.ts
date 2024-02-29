@@ -61,6 +61,7 @@ export async function pageEventLogs(fastify: FastifyInstance) {
         val.toLowerCase(),
       );
 
+      // add lag behind to account for clock skew, concurrent writes, etc
       const config = await getConfiguration();
       const maxCreatedAt = new Date(
         Date.now() - config.cursorDelaySeconds * 1000,
