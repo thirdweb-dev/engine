@@ -1,4 +1,5 @@
 import { execSync } from "child_process";
+import { ethers } from "ethers";
 import { prisma } from "../db/client";
 
 const main = async () => {
@@ -28,6 +29,23 @@ const main = async () => {
   }
 
   execSync(`yarn prisma generate --schema ${schema}`, { stdio: "inherit" });
+
+  // Update Configuration for Old Engine instances running
+  await prisma.configuration.update({
+    where: {
+      id: "default",
+    },
+    data: {
+      retryTxListenerCronSchedule: "*/10 * * * * *",
+      minEllapsedBlocksBeforeRetry: 4,
+      maxFeePerGasForRetries: ethers.utils
+        .parseUnits("1000", "gwei")
+        .toString(),
+      maxPriorityFeePerGasForRetries: ethers.utils
+        .parseUnits("1000", "gwei")
+        .toString(),
+    },
+  });
 };
 
 main();

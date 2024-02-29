@@ -318,9 +318,37 @@ export const processTx = async () => {
               if (rpcResponse.result) {
                 // Transaction was successful.
                 const transactionHash = rpcResponse.result;
-                const txResponse = (await provider.getTransaction(
-                  transactionHash,
-                )) as ethers.providers.TransactionResponse | null;
+                let txResponse: ethers.providers.TransactionResponse | null =
+                  null;
+                let sentAtBlockNumber: number | null = null;
+                let tries = 0;
+                const triesLimit = 3; // Ideally 1 should be enough, but we are adding a few more to be safe.
+                try {
+                  // try to get the transaction until success or limit of tries
+                  while (
+                    !txResponse &&
+                    tries < triesLimit &&
+                    !sentAtBlockNumber
+                  ) {
+                    [txResponse, sentAtBlockNumber] = await Promise.all([
+                      provider.getTransaction(transactionHash),
+                      provider.getBlockNumber(),
+                    ]);
+                    tries++;
+                    await sleep(50);
+                  }
+                } catch (e) {
+                  // do nothing
+                } finally {
+                  // final try to get the information from provider
+                  await sleep(50);
+                  if (!txResponse) {
+                    txResponse = await provider.getTransaction(transactionHash);
+                  }
+                  if (!sentAtBlockNumber) {
+                    sentAtBlockNumber = await provider.getBlockNumber();
+                  }
+                }
 
                 await updateTx({
                   pgtx,
@@ -330,7 +358,7 @@ export const processTx = async () => {
                     transactionHash,
                     res: txResponse,
                     sentAt: new Date(),
-                    sentAtBlockNumber: await provider.getBlockNumber(),
+                    sentAtBlockNumber: sentAtBlockNumber!,
                   },
                 });
                 reportUsageForQueueIds.push({
@@ -511,3 +539,5 @@ const alertOnBackendWalletLowBalance = async (wallet: UserWallet) => {
     }
   } catch (e) {}
 };
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
