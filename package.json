@@ -46,6 +46,8 @@
     "@thirdweb-dev/sdk": "4.0.36-nightly-fa637c2e3-20240214074441",
     "@thirdweb-dev/service-utils": "0.4.17",
     "@thirdweb-dev/wallets": "^2.1.5",
+    "@types/base-64": "^1.0.2",
+    "base-64": "^1.0.0",
     "body-parser": "^1.20.2",
     "cookie": "^0.5.0",
     "cookie-parser": "^1.4.6",
