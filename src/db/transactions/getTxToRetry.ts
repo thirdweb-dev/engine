@@ -29,6 +29,7 @@ WHERE
   AND "transactionHash" IS NOT NULL
   AND "retryCount" < ${config.maxRetriesPerTx}
 ORDER BY
+  "sentAt",
   "nonce"
 ASC
 LIMIT
