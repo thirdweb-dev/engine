@@ -1,5 +1,10 @@
 import { Transactions } from ".prisma/client";
-import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
+import {
+  createThirdwebClient,
+  defineChain,
+  prepareTransaction,
+  simulateTransaction,
+} from "thirdweb";
 
 interface EthersError {
   reason: string;
@@ -9,6 +14,10 @@ interface EthersError {
   transaction: any;
 }
 
+const client = createThirdwebClient({
+  secretKey: process.env.THIRDWEB_SECRET_KEY!,
+});
+
 export const parseTxError = async (
   tx: Transactions,
   err: any,
@@ -16,12 +25,26 @@ export const parseTxError = async (
   if (!err) {
     return "Unexpected error.";
   }
+  const chain = await defineChain(Number(tx.chainId));
 
   if (err.message.includes("insufficient funds")) {
-    const chain = await getChainByChainIdAsync(parseInt(tx.chainId));
-    return `Insufficient ${chain.nativeCurrency.symbol} on ${
+    return `Insufficient ${chain?.nativeCurrency?.symbol} on ${
       chain.name
     } in backend wallet ${tx.fromAddress!}.`;
+  }
+
+  const transaction = prepareTransaction({
+    to: tx.toAddress!,
+    value: BigInt(tx.value!),
+    data: tx.data! as `0x${string}`,
+    chain,
+    client,
+  });
+
+  const simResult = await simulateTransaction({ transaction });
+
+  if ("message" in simResult) {
+    return simResult.message;
   }
 
   if ("message" in err) {
