@@ -60,7 +60,7 @@ export const retryTx = async () => {
             service: "worker",
             level: "warn",
             queueId: tx.id,
-            message: `${tx.chainId} chain gas price is higher than maximum threshold.`,
+            message: `${tx.chainId} chain gas price is higher than maximum threshold MaxFeePerGas: ${config.maxFeePerGasForRetries}, MaxPriorityFeePerGas: ${config.maxPriorityFeePerGasForRetries}`,
           });
           return;
         }
