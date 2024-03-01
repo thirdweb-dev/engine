@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getNFT } from "thirdweb/extensions/erc721";
 import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
-import { v5NFT } from "../../../../../schemas/nft";
+import { v5NFTSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -21,7 +21,7 @@ const querystringSchema = Type.Object({
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: v5NFT,
+  result: v5NFTSchema,
 });
 
 responseSchema.example = [
@@ -75,7 +75,9 @@ export async function erc721Get(fastify: FastifyInstance) {
         tokenId: BigInt(tokenId),
         includeOwner: true,
       });
-      const result = convertBigIntToString(nftData) as Static<typeof v5NFT>;
+      const result = convertBigIntToString(nftData) as Static<
+        typeof v5NFTSchema
+      >;
       reply.status(StatusCodes.OK).send({
         result,
       });

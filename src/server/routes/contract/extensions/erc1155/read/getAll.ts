@@ -1,13 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
-import { nftSchema } from "../../../../../schemas/nft";
+import { getNFTs } from "thirdweb/extensions/erc1155";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
+import { v5NFTSchema } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
+import { convertBigIntToString } from "../../../../../utils/convertor";
 
 // INPUT
 const requestSchema = erc1155ContractParamSchema;
@@ -28,7 +30,7 @@ const querystringSchema = Type.Object({
 
 // OUPUT
 const responseSchema = Type.Object({
-  result: Type.Array(nftSchema),
+  result: Type.Array(v5NFTSchema),
 });
 
 responseSchema.examples = [
@@ -77,14 +79,19 @@ export async function erc1155GetAll(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { start, count } = request.query;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const result = await contract.erc1155.getAll({
+      const nftData = await getNFTs({
+        contract,
         start,
         count,
       });
+      const result = nftData.map(
+        (nft) => convertBigIntToString(nft) as Static<typeof v5NFTSchema>,
+      );
+
       reply.status(StatusCodes.OK).send({
         result,
       });

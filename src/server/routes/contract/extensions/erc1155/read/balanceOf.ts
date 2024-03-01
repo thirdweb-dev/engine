@@ -2,7 +2,8 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { balanceOf } from "thirdweb/extensions/erc1155";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -59,16 +60,18 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { walletAddress, tokenId } = request.query;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc1155.balanceOf(
-        walletAddress,
-        tokenId,
-      );
+
+      const balance = await balanceOf({
+        contract,
+        address: walletAddress,
+        tokenId: BigInt(tokenId),
+      });
       reply.status(StatusCodes.OK).send({
-        result: returnData.toString(),
+        result: balance.toString(),
       });
     },
   });

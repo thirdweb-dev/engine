@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
-import { readContract } from "thirdweb";
+import { balanceOf } from "thirdweb/extensions/erc721";
 import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import {
   erc721ContractParamSchema,
@@ -60,10 +60,9 @@ export async function erc721BalanceOf(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      const balance = await readContract({
-        contract: contract,
-        method: "function balanceOf(address) view returns (uint256)",
-        params: [walletAddress],
+      const balance = await balanceOf({
+        contract,
+        address: walletAddress,
       });
 
       reply.status(StatusCodes.OK).send({

@@ -382,7 +382,7 @@ signature1155OutputSchema.examples = [
 //////////////////////
 //   SDK V5 Types   //
 //////////////////////
-export const v5NFTMetadata = Type.Union([
+export const v5NFTMetadataSchema = Type.Union([
   Type.Object({
     id: Type.String(),
     uri: Type.String(),
@@ -398,16 +398,16 @@ export const v5NFTMetadata = Type.Union([
   Type.Record(Type.String(), Type.Unknown()),
 ]);
 
-export const v5NFT = Type.Union([
+export const v5NFTSchema = Type.Union([
   Type.Object({
-    metadata: v5NFTMetadata,
+    metadata: v5NFTMetadataSchema,
     owner: Type.Union([Type.String(), Type.Null()]),
     id: Type.String(),
     tokenURI: Type.String(),
     type: Type.Literal("ERC721"),
   }),
   Type.Object({
-    metadata: v5NFTMetadata,
+    metadata: v5NFTMetadataSchema,
     owner: Type.Union([Type.String(), Type.Null()]),
     id: Type.String(),
     tokenURI: Type.String(),
