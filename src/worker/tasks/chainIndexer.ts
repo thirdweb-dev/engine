@@ -180,7 +180,7 @@ export const createChainIndexerTask = async (chainId: number) => {
           );
           const subscribedContractAddresses = [
             ...new Set<string>(
-              ...subscribedContracts.map(
+              subscribedContracts.map(
                 (subscribedContract) => subscribedContract.contractAddress,
               ),
             ),
