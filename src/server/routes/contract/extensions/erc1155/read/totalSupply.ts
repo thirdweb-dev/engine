@@ -1,7 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { totalSupply } from "thirdweb/extensions/erc1155";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -54,11 +55,14 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { tokenId } = request.query;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc1155.totalSupply(tokenId);
+      const returnData = await totalSupply({
+        contract,
+        tokenId: BigInt(tokenId),
+      });
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),
       });
