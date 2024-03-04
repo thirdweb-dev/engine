@@ -178,9 +178,13 @@ export const createChainIndexerTask = async (chainId: number) => {
           const subscribedContracts = await getContractSubscriptionsByChainId(
             chainId,
           );
-          const subscribedContractAddresses = subscribedContracts.map(
-            (subscribedContract) => subscribedContract.contractAddress,
-          );
+          const subscribedContractAddresses = [
+            ...new Set<string>(
+              ...subscribedContracts.map(
+                (subscribedContract) => subscribedContract.contractAddress,
+              ),
+            ),
+          ];
 
           // get all logs for the contracts
           const logs = await getSubscribedContractsLogs({
