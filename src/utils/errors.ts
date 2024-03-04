@@ -5,6 +5,7 @@ import {
   prepareTransaction,
   simulateTransaction,
 } from "thirdweb";
+import { env } from "./env";
 
 interface EthersError {
   reason: string;
@@ -15,7 +16,7 @@ interface EthersError {
 }
 
 const client = createThirdwebClient({
-  secretKey: process.env.THIRDWEB_SECRET_KEY!,
+  secretKey: env.THIRDWEB_API_SECRET_KEY,
 });
 
 export const parseTxError = async (
