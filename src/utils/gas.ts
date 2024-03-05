@@ -3,6 +3,10 @@ import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, providers } from "ethers";
 import { maxBN } from "./bigNumber";
 
+type gasOverridesReturnType = Awaited<
+  ReturnType<typeof getDefaultGasOverrides>
+>;
+
 /**
  *
  * @param tx
@@ -12,43 +16,60 @@ import { maxBN } from "./bigNumber";
 export const getGasSettingsForRetry = async (
   tx: Transactions,
   provider: providers.StaticJsonRpcProvider,
-): ReturnType<typeof getDefaultGasOverrides> => {
-  // Default: get gas settings from chain.
-  const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } =
-    await getDefaultGasOverrides(provider);
+): Promise<gasOverridesReturnType> => {
+  // Default: Use 2x gas settings from chain.
+  const defaultGasOverrides = multiplyGasOverrides(
+    await getDefaultGasOverrides(provider),
+    2,
+  );
 
   // Handle legacy gas format.
-  if (gasPrice) {
-    const newGasPrice = gasPrice.mul(2);
+  if (defaultGasOverrides.gasPrice) {
     // Gas settings must be 10% higher than a previous attempt.
-    const minGasPrice = BigNumber.from(tx.gasPrice!).mul(110).div(100);
-
     return {
-      gasPrice: maxBN(newGasPrice, minGasPrice),
+      gasPrice: maxBN(
+        defaultGasOverrides.gasPrice,
+        BigNumber.from(tx.gasPrice!).mul(110).div(100),
+      ),
     };
   }
 
   // Handle EIP 1559 gas format.
-  let newMaxFeePerGas = maxFeePerGas.mul(2);
-  let newMaxPriorityFeePerGas = maxPriorityFeePerGas.mul(2);
-
   if (tx.retryGasValues) {
     // If this tx is manually retried, override with provided gas settings.
-    newMaxFeePerGas = BigNumber.from(tx.retryMaxFeePerGas!);
-    newMaxPriorityFeePerGas = BigNumber.from(tx.retryMaxPriorityFeePerGas!);
+    defaultGasOverrides.maxFeePerGas = BigNumber.from(tx.retryMaxFeePerGas!);
+    defaultGasOverrides.maxPriorityFeePerGas = BigNumber.from(
+      tx.retryMaxPriorityFeePerGas!,
+    );
   }
 
-  // Gas settings muset be 10% higher than a previous attempt.
-  const minMaxFeePerGas = BigNumber.from(tx.maxFeePerGas!).mul(110).div(100);
-  const minMaxPriorityFeePerGas = BigNumber.from(tx.maxPriorityFeePerGas!)
-    .mul(110)
-    .div(100);
-
+  // Gas settings must be 10% higher than a previous attempt.
   return {
-    maxFeePerGas: maxBN(newMaxFeePerGas, minMaxFeePerGas),
+    maxFeePerGas: maxBN(
+      defaultGasOverrides.maxFeePerGas,
+      BigNumber.from(tx.maxFeePerGas!).mul(110).div(100),
+    ),
     maxPriorityFeePerGas: maxBN(
-      newMaxPriorityFeePerGas,
-      minMaxPriorityFeePerGas,
+      defaultGasOverrides.maxPriorityFeePerGas,
+      BigNumber.from(tx.maxPriorityFeePerGas!).mul(110).div(100),
     ),
   };
+};
+
+export const multiplyGasOverrides = (
+  gasOverrides: gasOverridesReturnType,
+  mul: number,
+): gasOverridesReturnType => {
+  const mulBN = Number.isInteger(mul)
+    ? BigNumber.from(mul)
+    : BigNumber.from(mul * 10_000).div(10_000);
+
+  return gasOverrides.gasPrice
+    ? {
+        gasPrice: gasOverrides.gasPrice.mul(mulBN),
+      }
+    : {
+        maxFeePerGas: gasOverrides.maxFeePerGas.mul(mulBN),
+        maxPriorityFeePerGas: gasOverrides.maxPriorityFeePerGas.mul(mulBN),
+      };
 };

@@ -1,11 +1,11 @@
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
 import { StatusCodes } from "http-status-codes";
 import { getTxById } from "../../db/transactions/getTxById";
 import { updateTx } from "../../db/transactions/updateTx";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getSdk } from "../../utils/cache/getSdk";
+import { multiplyGasOverrides } from "../../utils/gas";
 import { createCustomError } from "../middleware/error";
 import { TransactionStatusEnum } from "../schemas/transaction";
 
@@ -70,14 +70,14 @@ export const cancelTransactionAndUpdate = async ({
     switch (txData.status) {
       case TransactionStatusEnum.Errored:
         error = createCustomError(
-          `Cannot cancel errored transaction with queueId ${queueId}. Error: ${txData.errorMessage}`,
+          `Transaction has already errored: ${txData.errorMessage}`,
           StatusCodes.BAD_REQUEST,
           "TransactionErrored",
         );
         break;
       case TransactionStatusEnum.Cancelled:
         error = createCustomError(
-          `Transaction already cancelled with queueId ${queueId}`,
+          "Transaction is already cancelled.",
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyCancelled",
         );
@@ -90,11 +90,11 @@ export const cancelTransactionAndUpdate = async ({
             status: TransactionStatusEnum.Cancelled,
           },
         });
-        message = "Transaction cancelled on-database successfully.";
+        message = "Transaction cancelled successfully.";
         break;
       case TransactionStatusEnum.Mined:
         error = createCustomError(
-          `Transaction already mined with queueId ${queueId}`,
+          "Transaction already mined.",
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyMined",
         );
@@ -109,10 +109,8 @@ export const cancelTransactionAndUpdate = async ({
         const txReceipt = await sdk
           .getProvider()
           .getTransactionReceipt(txData.transactionHash!);
-
         if (txReceipt) {
-          message =
-            "Transaction already mined. Cannot cancel transaction on-chain.";
+          message = "Transaction already mined.";
           break;
         }
 
@@ -123,14 +121,10 @@ export const cancelTransactionAndUpdate = async ({
           data: "0x",
           value: "0x00",
           nonce: txData.nonce!,
-          ...gasOverrides,
-          maxFeePerGas: BigNumber.from(gasOverrides.maxFeePerGas).mul(2),
-          maxPriorityFeePerGas: BigNumber.from(
-            gasOverrides.maxPriorityFeePerGas,
-          ).mul(2),
+          ...multiplyGasOverrides(gasOverrides, 2),
         });
 
-        message = "Cancellation Transaction sent on chain successfully.";
+        message = "Transaction cancelled successfully.";
 
         await updateTx({
           queueId,
