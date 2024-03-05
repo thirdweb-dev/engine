@@ -4,18 +4,21 @@ import { BigNumber } from "ethers";
 import { StatusCodes } from "http-status-codes";
 import { getTxById } from "../../db/transactions/getTxById";
 import { updateTx } from "../../db/transactions/updateTx";
+import { PrismaTransaction } from "../../schema/prisma";
 import { getSdk } from "../../utils/cache/getSdk";
 import { createCustomError } from "../middleware/error";
 import { TransactionStatusEnum } from "../schemas/transaction";
 
 interface CancelTransactionAndUpdateParams {
   queueId: string;
+  pgtx?: PrismaTransaction;
 }
 
 export const cancelTransactionAndUpdate = async ({
   queueId,
+  pgtx,
 }: CancelTransactionAndUpdateParams) => {
-  const txData = await getTxById({ queueId });
+  const txData = await getTxById({ queueId, pgtx });
   if (!txData) {
     return {
       message: `Transaction ${queueId} not found.`,
@@ -82,6 +85,7 @@ export const cancelTransactionAndUpdate = async ({
       case TransactionStatusEnum.Queued:
         await updateTx({
           queueId,
+          pgtx,
           data: {
             status: TransactionStatusEnum.Cancelled,
           },
@@ -130,6 +134,7 @@ export const cancelTransactionAndUpdate = async ({
 
         await updateTx({
           queueId,
+          pgtx,
           data: {
             status: TransactionStatusEnum.Cancelled,
           },

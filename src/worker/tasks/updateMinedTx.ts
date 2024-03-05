@@ -50,6 +50,25 @@ export const updateMinedTx = async () => {
                 if (ageInMilliseconds > MEMPOOL_DURATION_TIMEOUT_MS) {
                   await cancelTransactionAndUpdate({
                     queueId: tx.id,
+                    pgtx,
+                  });
+
+                  sendWebhookForQueueIds.push({
+                    queueId: tx.id,
+                    status: TransactionStatusEnum.Cancelled,
+                  });
+
+                  reportUsageForQueueIds.push({
+                    input: {
+                      fromAddress: tx.fromAddress || undefined,
+                      toAddress: tx.toAddress || undefined,
+                      value: tx.value || undefined,
+                      chainId: tx.chainId || undefined,
+                      transactionHash: tx.transactionHash || undefined,
+                      provider: provider.connection.url || undefined,
+                      msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                    },
+                    action: UsageEventTxActionEnum.CancelTx,
                   });
                 }
                 return;
@@ -146,45 +165,6 @@ export const updateMinedTx = async () => {
                   txWithReceipt.tx.sentAt!.getTime(),
               },
               action: UsageEventTxActionEnum.MineTx,
-            });
-          }),
-        );
-
-        // Update dropped txs.
-        await Promise.all(
-          droppedTxs.map(async (tx) => {
-            await updateTx({
-              pgtx,
-              queueId: tx.id,
-              data: {
-                status: TransactionStatusEnum.Errored,
-                errorMessage: "Transaction timed out.",
-              },
-            });
-
-            logger({
-              service: "worker",
-              level: "info",
-              queueId: tx.id,
-              message: "Update dropped tx.",
-            });
-
-            sendWebhookForQueueIds.push({
-              queueId: tx.id,
-              status: TransactionStatusEnum.Errored,
-            });
-
-            reportUsageForQueueIds.push({
-              input: {
-                fromAddress: tx.fromAddress || undefined,
-                toAddress: tx.toAddress || undefined,
-                value: tx.value || undefined,
-                chainId: tx.chainId || undefined,
-                transactionHash: tx.transactionHash || undefined,
-                provider: tx.provider || undefined,
-                msSinceSend: Date.now() - tx.sentAt!.getTime(),
-              },
-              action: UsageEventTxActionEnum.CancelTx,
             });
           }),
         );
