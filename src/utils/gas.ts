@@ -60,16 +60,18 @@ export const multiplyGasOverrides = (
   gasOverrides: gasOverridesReturnType,
   mul: number,
 ): gasOverridesReturnType => {
-  const mulBN = Number.isInteger(mul)
-    ? BigNumber.from(mul)
-    : BigNumber.from(mul * 10_000).div(10_000);
-
   return gasOverrides.gasPrice
     ? {
-        gasPrice: gasOverrides.gasPrice.mul(mulBN),
+        gasPrice: multiplyBN(gasOverrides.gasPrice, mul),
       }
     : {
-        maxFeePerGas: gasOverrides.maxFeePerGas.mul(mulBN),
-        maxPriorityFeePerGas: gasOverrides.maxPriorityFeePerGas.mul(mulBN),
+        maxFeePerGas: multiplyBN(gasOverrides.maxFeePerGas, mul),
+        maxPriorityFeePerGas: multiplyBN(
+          gasOverrides.maxPriorityFeePerGas,
+          mul,
+        ),
       };
 };
+
+const multiplyBN = (n: BigNumber, mul: number): BigNumber =>
+  Number.isInteger(mul) ? n.mul(mul) : n.mul(mul * 10_000).div(10_000);
