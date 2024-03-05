@@ -178,13 +178,13 @@ export const getConfiguration = async (): Promise<Config> => {
         maxTxsToProcess: 30,
         minedTxListenerCronSchedule: "*/5 * * * * *",
         maxTxsToUpdate: 50,
-        retryTxListenerCronSchedule: "*/30 * * * * *",
-        minEllapsedBlocksBeforeRetry: 15,
+        retryTxListenerCronSchedule: "*/15 * * * * *",
+        minEllapsedBlocksBeforeRetry: 12,
         maxFeePerGasForRetries: ethers.utils
-          .parseUnits("1000", "gwei")
+          .parseUnits("10000", "gwei")
           .toString(),
         maxPriorityFeePerGasForRetries: ethers.utils
-          .parseUnits("1000", "gwei")
+          .parseUnits("10000", "gwei")
           .toString(),
         maxRetriesPerTx: 3,
         authDomain: "thirdweb.com",
