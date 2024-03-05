@@ -61,7 +61,7 @@ export const retryTx = async () => {
             service: "worker",
             level: "warn",
             queueId: tx.id,
-            message: `${tx.chainId} chain gas price is higher than maximum threshold.`,
+            message: `${tx.chainId} chain gas price is higher than maximum threshold MaxFeePerGas: ${config.maxFeePerGasForRetries}, MaxPriorityFeePerGas: ${config.maxPriorityFeePerGasForRetries}`,
           });
           return;
         }
@@ -73,17 +73,17 @@ export const retryTx = async () => {
           message: `Retrying with nonce ${tx.nonce}`,
         });
 
-        const sentAt = new Date();
         let res: ethers.providers.TransactionResponse;
+        const txRequest = {
+          to: tx.toAddress!,
+          from: tx.fromAddress!,
+          data: tx.data!,
+          nonce: tx.nonce!,
+          value: tx.value!,
+          ...gasOverrides,
+        };
         try {
-          res = await sdk.getSigner()!.sendTransaction({
-            to: tx.toAddress!,
-            from: tx.fromAddress!,
-            data: tx.data!,
-            nonce: tx.nonce!,
-            value: tx.value!,
-            ...gasOverrides,
-          });
+          res = await sdk.getSigner()!.sendTransaction(txRequest);
         } catch (err: any) {
           logger({
             service: "worker",
@@ -125,9 +125,9 @@ export const retryTx = async () => {
           pgtx,
           queueId: tx.id,
           data: {
-            sentAt,
+            sentAt: new Date(),
             status: TransactionStatusEnum.Submitted,
-            res,
+            res: txRequest,
             sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
             retryCount: tx.retryCount + 1,
             transactionHash: res.hash,
