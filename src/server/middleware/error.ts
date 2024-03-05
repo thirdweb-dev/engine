@@ -59,7 +59,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
       });
     } else {
       // Handle non-custom errors
-      reply.status(500).send({
+      reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
         error: {
           statusCode: 500,
           code: "INTERNAL_SERVER_ERROR",

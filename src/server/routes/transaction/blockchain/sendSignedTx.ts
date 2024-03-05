@@ -1,9 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSdk } from "../../../utils/cache/getSdk";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { getChainIdFromChain } from "../../utils/chain";
+import { getSdk } from "../../../../utils/cache/getSdk";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 const ParamsSchema = Type.Object({
   chain: Type.String(),

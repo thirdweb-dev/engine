@@ -6,6 +6,7 @@ import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
+import { parseTxError } from "../../utils/errors";
 import { getGasSettingsForRetry } from "../../utils/gas";
 import { logger } from "../../utils/logger";
 import {
@@ -58,15 +59,16 @@ export const retryTx = async () => {
 
         const gasOverrides = await getGasSettingsForRetry(tx, provider);
         let res: ethers.providers.TransactionResponse;
+        const txRequest = {
+          to: tx.toAddress!,
+          from: tx.fromAddress!,
+          data: tx.data!,
+          nonce: tx.nonce!,
+          value: tx.value!,
+          ...gasOverrides,
+        };
         try {
-          res = await sdk.getSigner()!.sendTransaction({
-            to: tx.toAddress!,
-            from: tx.fromAddress!,
-            data: tx.data!,
-            nonce: tx.nonce!,
-            value: tx.value!,
-            ...gasOverrides,
-          });
+          res = await sdk.getSigner()!.sendTransaction(txRequest);
         } catch (err: any) {
           logger({
             service: "worker",
@@ -81,10 +83,7 @@ export const retryTx = async () => {
             queueId: tx.id,
             data: {
               status: TransactionStatusEnum.Errored,
-              errorMessage:
-                err?.message ||
-                err?.toString() ||
-                `Failed to handle transaction`,
+              errorMessage: await parseTxError(tx, err),
             },
           });
 
@@ -113,7 +112,7 @@ export const retryTx = async () => {
           data: {
             sentAt: new Date(),
             status: TransactionStatusEnum.Submitted,
-            res,
+            res: txRequest,
             sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
             retryCount: tx.retryCount + 1,
             transactionHash: res.hash,
