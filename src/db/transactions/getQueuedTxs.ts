@@ -1,17 +1,14 @@
 import { Transactions } from "@prisma/client";
-import { Static } from "@sinclair/typebox";
 import { PrismaTransaction } from "../../schema/prisma";
-import { transactionResponseSchema } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getPrismaWithPostgresTx } from "../client";
-import { cleanTxs } from "./cleanTxs";
 
 interface GetQueuedTxsParams {
   pgtx?: PrismaTransaction;
 }
 
 export const getQueuedTxs = async ({ pgtx }: GetQueuedTxsParams = {}): Promise<
-  Static<typeof transactionResponseSchema>[]
+  Transactions[]
 > => {
   const prisma = getPrismaWithPostgresTx(pgtx);
   const config = await getConfig();
@@ -35,5 +32,5 @@ export const getQueuedTxs = async ({ pgtx }: GetQueuedTxsParams = {}): Promise<
   FOR UPDATE SKIP LOCKED
   `;
 
-  return cleanTxs(txs);
+  return txs;
 };
