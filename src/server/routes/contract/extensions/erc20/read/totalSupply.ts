@@ -1,13 +1,15 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { totalSupply } from "thirdweb/extensions/erc20";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
+import { convertBigIntToString } from "../../../../../utils/convertor";
 
 // INPUT
 const requestSchema = erc20ContractParamSchema;
@@ -52,18 +54,17 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc20.totalSupply();
+      const returnData = await totalSupply({
+        contract,
+      });
+
       reply.status(StatusCodes.OK).send({
         result: {
-          value: returnData.value.toString(),
-          symbol: returnData.symbol,
-          name: returnData.name,
-          decimals: returnData.decimals.toString(),
-          displayValue: returnData.displayValue,
+          value: convertBigIntToString(returnData),
         },
       });
     },

@@ -1,16 +1,18 @@
 import { Static, Type } from "@sinclair/typebox";
 
-export const erc20MetadataSchema = Type.Object({
-  name: Type.String(),
-  symbol: Type.String(),
-  decimals: Type.String(),
-  value: Type.String({
-    description: "Value in wei",
+export const erc20MetadataSchema = Type.Partial(
+  Type.Object({
+    name: Type.String(),
+    symbol: Type.String(),
+    decimals: Type.String(),
+    value: Type.String({
+      description: "Value in wei",
+    }),
+    displayValue: Type.String({
+      description: "Value in tokens",
+    }),
   }),
-  displayValue: Type.String({
-    description: "Value in tokens",
-  }),
-});
+);
 
 export const signature20InputSchema = Type.Object({
   to: Type.String({

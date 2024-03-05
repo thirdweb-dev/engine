@@ -2,14 +2,14 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { allowance } from "thirdweb/extensions/erc20";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const querystringSchema = Type.Object({
@@ -64,21 +64,22 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { spenderWallet, ownerWallet } = request.query;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const returnData: any = await contract.erc20.allowanceOf(
-        ownerWallet ? ownerWallet : "",
-        spenderWallet ? spenderWallet : "",
-      );
+      const returnData = await allowance({
+        contract,
+        owner: ownerWallet,
+        spender: spenderWallet,
+      });
       reply.status(StatusCodes.OK).send({
         result: {
-          name: returnData.name,
-          symbol: returnData.symbol,
-          decimals: returnData.decimals.toString(),
-          displayValue: returnData.displayValue,
-          value: returnData.value.toString(),
+          // name: returnData.name,
+          // symbol: returnData.symbol,
+          // decimals: returnData.decimals.toString(),
+          // displayValue: returnData.displayValue,
+          value: returnData.toString(),
         },
       });
     },

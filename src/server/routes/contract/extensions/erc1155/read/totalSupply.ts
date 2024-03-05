@@ -61,7 +61,7 @@ export async function erc1155TotalSupply(fastify: FastifyInstance) {
       });
       const returnData = await totalSupply({
         contract,
-        tokenId: BigInt(tokenId),
+        id: BigInt(tokenId),
       });
       reply.status(StatusCodes.OK).send({
         result: returnData.toString(),

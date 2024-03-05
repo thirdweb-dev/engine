@@ -67,8 +67,8 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
 
       const balance = await balanceOf({
         contract,
-        address: walletAddress,
-        tokenId: BigInt(tokenId),
+        owner: walletAddress,
+        id: BigInt(tokenId),
       });
       reply.status(StatusCodes.OK).send({
         result: balance.toString(),

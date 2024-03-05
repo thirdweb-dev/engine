@@ -2,13 +2,15 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { balanceOf } from "thirdweb/extensions/erc20";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
+import { convertBigIntToString } from "../../../../../utils/convertor";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
@@ -27,11 +29,7 @@ const responseSchema = Type.Object({
 responseSchema.example = [
   {
     result: {
-      name: "ERC20",
-      symbol: "",
-      decimals: "18",
       value: "7799999999615999974",
-      displayValue: "7.799999999615999974",
     },
   },
 ];
@@ -62,18 +60,18 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { wallet_address } = request.query;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc20.balanceOf(wallet_address);
+      const returnData = await balanceOf({
+        contract,
+        address: wallet_address,
+      });
+      // const returnData = await contract.erc20.balanceOf(wallet_address);
       reply.status(StatusCodes.OK).send({
         result: {
-          name: returnData.name,
-          symbol: returnData.symbol,
-          decimals: returnData.decimals.toString(),
-          displayValue: returnData.displayValue,
-          value: returnData.value.toString(),
+          value: convertBigIntToString(returnData),
         },
       });
     },
