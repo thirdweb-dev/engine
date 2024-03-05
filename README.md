@@ -60,7 +60,7 @@ Learn more: [Getting Started](https://portal.thirdweb.com/engine/getting-started
 
 ## Self Host
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/EASlyJ?referralCode=fQRD5i)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/EASlyJ)
 
 ## Contributing
 
