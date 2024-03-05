@@ -12498,10 +12498,10 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==
 
-thirdweb@^1.0.0-beta-18642062760960430a3760610edda49f9f3f308f-20240229175442:
-  version "1.0.0-beta-18642062760960430a3760610edda49f9f3f308f-20240229175442"
-  resolved "https://registry.yarnpkg.com/thirdweb/-/thirdweb-1.0.0-beta-18642062760960430a3760610edda49f9f3f308f-20240229175442.tgz#884c7fcd3d52217b4e9fd4c24140c8a81d839251"
-  integrity sha512-yxZnbD/3lJYIvoKYRO5ML+YcHeaZ+P/d7ISeucwWq7mVIm9+AjLRa/3PC0dTkWvih6GKAKPGtkDn9fKdSxlJUg==
+thirdweb@^1.0.0-beta-5a395a9ceeb7c4a0ed8ba71385596f8ffeaea125-20240305193415:
+  version "1.0.0-beta-5a395a9ceeb7c4a0ed8ba71385596f8ffeaea125-20240305193415"
+  resolved "https://registry.yarnpkg.com/thirdweb/-/thirdweb-1.0.0-beta-5a395a9ceeb7c4a0ed8ba71385596f8ffeaea125-20240305193415.tgz#dfb084302f88a141ed1c2c9f670096eaa5b99f07"
+  integrity sha512-jSWZ01aq6RbAIWHdR2o/gKxHlhE9PTizjqGcCG6LjraTMccunLCYAozxqlO9Xi5WomixeaHSA9YMZ9IdDRGexw==
   dependencies:
     "@coinbase/wallet-sdk" "3.7.2"
     "@emotion/react" "11.11.3"
