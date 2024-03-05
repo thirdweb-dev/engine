@@ -2,10 +2,10 @@ import { Static, Type } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { thirdwebClientId } from "../../../utils/api-keys";
-import { env } from "../../../utils/env";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { getChainIdFromChain } from "../../utils/chain";
+import { thirdwebClientId } from "../../../../utils/api-keys";
+import { env } from "../../../../utils/env";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 const UserOp = Type.Object({
   sender: Type.String(),
