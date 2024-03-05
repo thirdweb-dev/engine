@@ -44,14 +44,16 @@ type RpcResponseData = {
 
 export const processTx = async () => {
   try {
-    const config = await getConfig();
-
     const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
         const txs = await getQueuedTxs({ pgtx });
+
+        if (txs.length === 0) {
+          return;
+        }
 
         logger({
           service: "worker",
@@ -133,11 +135,9 @@ export const processTx = async () => {
             walletAddress,
           });
 
-          const [signer, provider] = await Promise.all([
-            sdk.getSigner(),
-            sdk.getProvider() as StaticJsonRpcBatchProvider,
-          ]);
-          if (!signer || !provider) {
+          const signer = sdk.getSigner();
+          const provider = sdk.getProvider() as StaticJsonRpcBatchProvider;
+          if (!signer) {
             return;
           }
 
@@ -149,12 +149,14 @@ export const processTx = async () => {
           });
 
           // For each wallet address, check the nonce in database and the mempool
-          const [mempoolNonceData, gasOverrides] = await Promise.all([
-            sdk.wallet.getNonce("pending"),
-            getDefaultGasOverrides(provider),
-          ]);
+          const [mempoolNonceData, gasOverrides, sentAtBlockNumber] =
+            await Promise.all([
+              sdk.wallet.getNonce("pending"),
+              getDefaultGasOverrides(provider),
+              await provider.getBlockNumber(),
+            ]);
 
-          // - Take the larger of the nonces, and update database nonce to mepool value if mempool is greater
+          // - Take the larger of the nonces, and update database nonce to mempool value if mempool is greater
           let startNonce: BigNumber;
           const mempoolNonce = BigNumber.from(mempoolNonceData);
           const dbNonce = BigNumber.from(dbNonceData?.nonce || 0);
@@ -318,45 +320,13 @@ export const processTx = async () => {
               if (rpcResponse.result) {
                 // Transaction was successful.
                 const transactionHash = rpcResponse.result;
-                let txResponse: ethers.providers.TransactionResponse | null =
-                  null;
-                let sentAtBlockNumber: number | null = null;
-                let tries = 0;
-                const triesLimit = 3; // Ideally 1 should be enough, but we are adding a few more to be safe.
-                try {
-                  // try to get the transaction until success or limit of tries
-                  while (
-                    !txResponse &&
-                    tries < triesLimit &&
-                    !sentAtBlockNumber
-                  ) {
-                    [txResponse, sentAtBlockNumber] = await Promise.all([
-                      provider.getTransaction(transactionHash),
-                      provider.getBlockNumber(),
-                    ]);
-                    tries++;
-                    await sleep(50);
-                  }
-                } catch (e) {
-                  // do nothing
-                } finally {
-                  // final try to get the information from provider
-                  await sleep(50);
-                  if (!txResponse) {
-                    txResponse = await provider.getTransaction(transactionHash);
-                  }
-                  if (!sentAtBlockNumber) {
-                    sentAtBlockNumber = await provider.getBlockNumber();
-                  }
-                }
-
                 await updateTx({
                   pgtx,
                   queueId: tx.id,
                   data: {
                     status: TransactionStatusEnum.Submitted,
                     transactionHash,
-                    res: txResponse,
+                    res: txRequest,
                     sentAt: new Date(),
                     sentAtBlockNumber: sentAtBlockNumber!,
                   },
@@ -539,5 +509,3 @@ const alertOnBackendWalletLowBalance = async (wallet: UserWallet) => {
     }
   } catch (e) {}
 };
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
