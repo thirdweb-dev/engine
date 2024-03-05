@@ -26,11 +26,14 @@ export const getGasSettingsForRetry = async (
   // Handle legacy gas format.
   if (defaultGasOverrides.gasPrice) {
     // Gas settings must be 10% higher than a previous attempt.
+    const minGasOverrides = multiplyGasOverrides(
+      {
+        gasPrice: BigNumber.from(tx.gasPrice),
+      },
+      1.1,
+    );
     return {
-      gasPrice: maxBN(
-        defaultGasOverrides.gasPrice,
-        BigNumber.from(tx.gasPrice!).mul(110).div(100),
-      ),
+      gasPrice: maxBN(defaultGasOverrides.gasPrice, minGasOverrides.gasPrice),
     };
   }
 
@@ -44,33 +47,38 @@ export const getGasSettingsForRetry = async (
   }
 
   // Gas settings must be 10% higher than a previous attempt.
+  const minGasOverrides = multiplyGasOverrides(
+    {
+      maxFeePerGas: BigNumber.from(tx.maxFeePerGas!),
+      maxPriorityFeePerGas: BigNumber.from(tx.maxPriorityFeePerGas!),
+    },
+    1.1,
+  );
   return {
     maxFeePerGas: maxBN(
       defaultGasOverrides.maxFeePerGas,
-      BigNumber.from(tx.maxFeePerGas!).mul(110).div(100),
+      minGasOverrides.maxFeePerGas,
     ),
     maxPriorityFeePerGas: maxBN(
       defaultGasOverrides.maxPriorityFeePerGas,
-      BigNumber.from(tx.maxPriorityFeePerGas!).mul(110).div(100),
+      minGasOverrides.maxPriorityFeePerGas,
     ),
   };
 };
 
-export const multiplyGasOverrides = (
-  gasOverrides: gasOverridesReturnType,
+export const multiplyGasOverrides = <T extends gasOverridesReturnType>(
+  gasOverrides: T,
   mul: number,
-): gasOverridesReturnType => {
-  return gasOverrides.gasPrice
-    ? {
-        gasPrice: multiplyBN(gasOverrides.gasPrice, mul),
-      }
-    : {
-        maxFeePerGas: multiplyBN(gasOverrides.maxFeePerGas, mul),
-        maxPriorityFeePerGas: multiplyBN(
-          gasOverrides.maxPriorityFeePerGas,
-          mul,
-        ),
-      };
+): T => {
+  if (gasOverrides.gasPrice) {
+    return {
+      gasPrice: multiplyBN(gasOverrides.gasPrice, mul),
+    } as T;
+  }
+  return {
+    maxFeePerGas: multiplyBN(gasOverrides.maxFeePerGas, mul),
+    maxPriorityFeePerGas: multiplyBN(gasOverrides.maxPriorityFeePerGas, mul),
+  } as T;
 };
 
 const multiplyBN = (n: BigNumber, mul: number): BigNumber =>
