@@ -1,5 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
-import { allChains, minimizeChain } from "@thirdweb-dev/chains";
+import {
+  getChainByChainIdAsync,
+  getChainBySlugAsync,
+  minimizeChain,
+} from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../middleware/error";
@@ -55,15 +59,10 @@ export async function getChainData(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain } = request.query;
 
-      const chainData = allChains.find((chainData) => {
-        if (
-          chainData.name === chain ||
-          chainData.chainId === Number(chain) ||
-          chainData.slug === chain
-        ) {
-          return chain;
-        }
-      });
+      let chainData = await getChainBySlugAsync(chain);
+      if (!chainData) {
+        chainData = await getChainByChainIdAsync(parseInt(chain));
+      }
 
       if (!chainData) {
         const error = createCustomError(

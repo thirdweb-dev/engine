@@ -109,9 +109,11 @@ import { home } from "./home";
 import { updateRelayer } from "./relayer/update";
 import { healthCheck } from "./system/health";
 import { queueStatus } from "./system/queue";
+import { getTxHashReceipt } from "./transaction/blockchain/getTxReceipt";
+import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
+import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
+import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { checkGroupStatus } from "./transaction/group";
-import { sendSignedTransaction } from "./transaction/sendSignedTx";
-import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
 
 // Indexer
 import { addContractSubscription } from "./contract/events/addContractSubscription";
@@ -224,6 +226,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(cancelTransaction);
   await fastify.register(sendSignedTransaction);
   await fastify.register(sendSignedUserOp);
+  await fastify.register(getTxHashReceipt);
+  await fastify.register(getUserOpReceipt);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);
