@@ -1,6 +1,28 @@
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
+interface GetLastIndexedBlockParams {
+  chainId: number;
+  pgtx?: PrismaTransaction;
+}
+
+export const getLastIndexedBlock = async ({
+  chainId,
+  pgtx,
+}: GetLastIndexedBlockParams) => {
+  const prisma = getPrismaWithPostgresTx(pgtx);
+
+  const indexedChain = await prisma.chainIndexers.findUnique({
+    where: {
+      chainId,
+    },
+  });
+
+  if (indexedChain) {
+    return indexedChain.lastIndexedBlock;
+  }
+};
+
 interface GetBlockForIndexingParams {
   chainId: number;
   pgtx?: PrismaTransaction;

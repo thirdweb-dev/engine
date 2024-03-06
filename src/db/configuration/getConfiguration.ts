@@ -180,7 +180,7 @@ export const getConfiguration = async (): Promise<Config> => {
         maxTxsToUpdate: 50,
         retryTxListenerCronSchedule: "*/30 * * * * *",
         indexerListenerCronSchedule: "*/5 * * * * *",
-        maxBlocksToIndex: 5,
+        maxBlocksToIndex: 25,
         cursorDelaySeconds: 2,
         minEllapsedBlocksBeforeRetry: 15,
         maxFeePerGasForRetries: ethers.utils

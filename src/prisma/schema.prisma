@@ -25,7 +25,7 @@ model Configuration {
   maxRetriesPerTx                    Int     @map("maxRetriesPerTx")
   // Contract Indexer Updates
   indexerListenerCronSchedule        String? @map("indexerListenerCronSchedule")
-  maxBlocksToIndex                   Int     @default(5) @map("maxBlocksToIndex")
+  maxBlocksToIndex                   Int     @default(25) @map("maxBlocksToIndex")
   cursorDelaySeconds                 Int     @default(2) @map("cursorDelaySeconds")
 
   // AWS
