@@ -92,9 +92,11 @@ export const initServer = async () => {
   logger({
     service: "server",
     level: "info",
-    message: `Listening on ${env.ENABLE_HTTPS ? "https://" : "http://"}${
-      env.HOST
-    }:${env.PORT}`,
+    message: `Listening on ${
+      env.ENABLE_HTTPS ? "https://" : "http://"
+    }localhost:${
+      env.PORT
+    }. Manage your Engine from https://thirdweb.com/dashboard/engine.`,
   });
 
   writeOpenApiToFile(server);

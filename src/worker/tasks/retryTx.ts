@@ -21,6 +21,7 @@ export const retryTx = async () => {
       async (pgtx) => {
         const tx = await getTxToRetry({ pgtx });
         if (!tx) {
+          // Nothing to retry.
           return;
         }
 
@@ -49,23 +50,6 @@ export const retryTx = async () => {
           return;
         }
 
-        const gasOverrides = await getGasSettingsForRetry(tx, provider);
-        if (
-          gasOverrides.maxFeePerGas?.gt(config.maxFeePerGasForRetries) ||
-          gasOverrides.maxPriorityFeePerGas?.gt(
-            config.maxPriorityFeePerGasForRetries,
-          )
-        ) {
-          // Return if gas settings exceed configured limits. Try again later.
-          logger({
-            service: "worker",
-            level: "warn",
-            queueId: tx.id,
-            message: `${tx.chainId} chain gas price is higher than maximum threshold MaxFeePerGas: ${config.maxFeePerGasForRetries}, MaxPriorityFeePerGas: ${config.maxPriorityFeePerGasForRetries}`,
-          });
-          return;
-        }
-
         logger({
           service: "worker",
           level: "info",
@@ -73,6 +57,7 @@ export const retryTx = async () => {
           message: `Retrying with nonce ${tx.nonce}`,
         });
 
+        const gasOverrides = await getGasSettingsForRetry(tx, provider);
         let res: ethers.providers.TransactionResponse;
         const txRequest = {
           to: tx.toAddress!,
