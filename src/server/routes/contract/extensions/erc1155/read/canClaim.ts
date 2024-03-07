@@ -26,7 +26,7 @@ const requestQueryString = Type.Object({
   ),
 });
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Boolean(),
 });
