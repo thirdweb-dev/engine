@@ -1,7 +1,7 @@
 import { Transactions } from ".prisma/client";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
-import { getGasSettingsForRetry } from "../utils/gas";
+import { getGasSettingsForRetry, multiplyGasOverrides } from "../utils/gas";
 
 jest.mock("@thirdweb-dev/sdk");
 const mockGetDefaultGasOverrides =
@@ -137,5 +137,38 @@ describe("getGasSettingsForRetry", () => {
       maxFeePerGas: BigNumber.from(550),
       maxPriorityFeePerGas: BigNumber.from(110),
     });
+  });
+});
+
+describe("multiplyGasOverrides", () => {
+  const gasOverridesLegacy = {
+    gasPrice: BigNumber.from(100),
+  };
+  const gasOverridesEip1155 = {
+    maxFeePerGas: BigNumber.from(50),
+    maxPriorityFeePerGas: BigNumber.from(10),
+  };
+
+  it("should multiply gasPrice by given factor", () => {
+    const result = multiplyGasOverrides(gasOverridesLegacy, 2);
+    expect(result.gasPrice).toEqual(BigNumber.from(200));
+  });
+
+  it("should multiply maxFeePerGas and maxPriorityFeePerGas by given factor", () => {
+    const result = multiplyGasOverrides(gasOverridesEip1155, 3);
+    expect(result.maxFeePerGas).toEqual(BigNumber.from(150));
+    expect(result.maxPriorityFeePerGas).toEqual(BigNumber.from(30));
+  });
+
+  it("should handle non-integer multiplication factor", () => {
+    const result = multiplyGasOverrides(gasOverridesEip1155, 1.5);
+    expect(result.maxFeePerGas).toEqual(BigNumber.from(75));
+    expect(result.maxPriorityFeePerGas).toEqual(BigNumber.from(15));
+  });
+
+  it("should handle multiplication by zero", () => {
+    const result = multiplyGasOverrides(gasOverridesEip1155, 0);
+    expect(result.maxFeePerGas).toEqual(BigNumber.from(0));
+    expect(result.maxPriorityFeePerGas).toEqual(BigNumber.from(0));
   });
 });

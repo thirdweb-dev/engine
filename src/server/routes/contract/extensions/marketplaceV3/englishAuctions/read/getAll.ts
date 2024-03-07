@@ -15,7 +15,7 @@ import { formatEnglishAuctionResult } from "../../../../../../utils/marketplaceV
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Omit(marketplaceFilterSchema, ["offeror"]);
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Array(englishAuctionOutputSchema),
 });

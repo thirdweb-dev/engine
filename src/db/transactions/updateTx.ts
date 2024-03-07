@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { PrismaTransaction } from "../../schema/prisma";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
@@ -24,7 +24,7 @@ type UpdateTxData =
       status: TransactionStatusEnum.Submitted;
       sentAt: Date;
       transactionHash: string;
-      res: ethers.providers.TransactionResponse | null;
+      res: ethers.providers.TransactionRequest;
       sentAtBlockNumber: number;
       retryCount?: number;
     }
@@ -90,7 +90,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           transactionHash: data.transactionHash,
           sentAtBlockNumber: data.sentAtBlockNumber,
           retryCount: data.retryCount,
-          nonce: data.res?.nonce,
+          nonce: BigNumber.from(data.res.nonce).toNumber(),
           transactionType: data.res?.type || undefined,
           gasPrice: data.res?.gasPrice?.toString(),
           gasLimit: data.res?.gasLimit?.toString(),
