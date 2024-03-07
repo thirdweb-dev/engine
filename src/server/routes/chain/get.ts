@@ -1,11 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import {
+  Chain,
   getChainByChainIdAsync,
   getChainBySlugAsync,
   minimizeChain,
 } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getConfig } from "../../../utils/cache/getConfig";
 import { createCustomError } from "../../middleware/error";
 import {
   chainRequestQuerystringSchema,
@@ -13,7 +15,7 @@ import {
 } from "../../schemas/chain";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: chainResponseSchema,
 });
@@ -58,10 +60,20 @@ export async function getChainData(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.query;
+      const config = await getConfig();
 
-      let chainData = await getChainBySlugAsync(chain);
+      let chainData: Chain | null = null;
+      if (config.chainOverrides) {
+        chainData = JSON.parse(config.chainOverrides).find(
+          (dt: Chain) => dt.slug === chain || dt.chainId === parseInt(chain),
+        );
+      }
+
       if (!chainData) {
-        chainData = await getChainByChainIdAsync(parseInt(chain));
+        chainData = await getChainBySlugAsync(chain);
+        if (!chainData) {
+          chainData = await getChainByChainIdAsync(parseInt(chain));
+        }
       }
 
       if (!chainData) {

@@ -15,7 +15,7 @@ import { formatDirectListingV3Result } from "../../../../../../utils/marketplace
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Omit(marketplaceFilterSchema, ["offeror"]);
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Array(directListingV3OutputSchema),
 });
