@@ -153,7 +153,7 @@ export const processTx = async () => {
             await Promise.all([
               sdk.wallet.getNonce("pending"),
               getDefaultGasOverrides(provider),
-              await provider.getBlockNumber(),
+              provider.getBlockNumber(),
             ]);
 
           // - Take the larger of the nonces, and update database nonce to mempool value if mempool is greater

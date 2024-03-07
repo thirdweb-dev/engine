@@ -11,7 +11,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = erc1155ContractParamSchema;
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
 });

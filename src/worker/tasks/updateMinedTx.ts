@@ -5,6 +5,7 @@ import { prisma } from "../../db/client";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { cancelTransactionAndUpdate } from "../../server/utils/transaction";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 import {
@@ -13,6 +14,8 @@ import {
   reportUsage,
 } from "../../utils/usage";
 import { WebhookData, sendWebhooks } from "../../utils/webhook";
+
+const MEMPOOL_DURATION_TIMEOUT_MS = 1000 * 60 * 60;
 
 export const updateMinedTx = async () => {
   try {
@@ -40,12 +43,33 @@ export const updateMinedTx = async () => {
               if (!receipt) {
                 // This tx is not yet mined or was dropped.
 
-                // If the tx was submitted over 1 hour ago, assume it is dropped.
+                // Cancel transactions submitted over 1 hour ago.
                 // @TODO: move duration to config
                 const sentAt = new Date(tx.sentAt!);
                 const ageInMilliseconds = Date.now() - sentAt.getTime();
-                if (ageInMilliseconds > 1000 * 60 * 60 * 1) {
-                  droppedTxs.push({ provider: provider.connection.url, ...tx });
+                if (ageInMilliseconds > MEMPOOL_DURATION_TIMEOUT_MS) {
+                  await cancelTransactionAndUpdate({
+                    queueId: tx.id,
+                    pgtx,
+                  });
+
+                  sendWebhookForQueueIds.push({
+                    queueId: tx.id,
+                    status: TransactionStatusEnum.Cancelled,
+                  });
+
+                  reportUsageForQueueIds.push({
+                    input: {
+                      fromAddress: tx.fromAddress || undefined,
+                      toAddress: tx.toAddress || undefined,
+                      value: tx.value || undefined,
+                      chainId: tx.chainId || undefined,
+                      transactionHash: tx.transactionHash || undefined,
+                      provider: provider.connection.url || undefined,
+                      msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                    },
+                    action: UsageEventTxActionEnum.CancelTx,
+                  });
                 }
                 return;
               }
@@ -141,45 +165,6 @@ export const updateMinedTx = async () => {
                   txWithReceipt.tx.sentAt!.getTime(),
               },
               action: UsageEventTxActionEnum.MineTx,
-            });
-          }),
-        );
-
-        // Update dropped txs.
-        await Promise.all(
-          droppedTxs.map(async (tx) => {
-            await updateTx({
-              pgtx,
-              queueId: tx.id,
-              data: {
-                status: TransactionStatusEnum.Errored,
-                errorMessage: "Transaction timed out.",
-              },
-            });
-
-            logger({
-              service: "worker",
-              level: "info",
-              queueId: tx.id,
-              message: "Update dropped tx.",
-            });
-
-            sendWebhookForQueueIds.push({
-              queueId: tx.id,
-              status: TransactionStatusEnum.Errored,
-            });
-
-            reportUsageForQueueIds.push({
-              input: {
-                fromAddress: tx.fromAddress || undefined,
-                toAddress: tx.toAddress || undefined,
-                value: tx.value || undefined,
-                chainId: tx.chainId || undefined,
-                transactionHash: tx.transactionHash || undefined,
-                provider: tx.provider || undefined,
-                msSinceSend: Date.now() - tx.sentAt!.getTime(),
-              },
-              action: UsageEventTxActionEnum.CancelTx,
             });
           }),
         );

@@ -23,40 +23,10 @@ const requestSchema = Type.Object({
 
 // OUTPUT
 export const responseBodySchema = Type.Object({
-  result: Type.Union([
-    Type.Partial(
-      Type.Object({
-        userOpHash: Type.String(),
-        sender: Type.String(),
-        nonce: Type.String(),
-        actualGasCost: Type.String(),
-        actualGasUsed: Type.String(),
-        success: Type.Boolean(),
-        paymaster: Type.String(),
-        logs: Type.Array(Type.Any()),
-        receipt: Type.Partial(
-          Type.Object({
-            type: Type.String(),
-            status: Type.String(),
-            cumulativeGasUsed: Type.String(),
-            logsBloom: Type.String(),
-            logs: Type.Array(Type.Any()),
-            transactionHash: Type.String(),
-            from: Type.String(),
-            to: Type.String(),
-            contractAddress: Type.Union([Type.String(), Type.Null()]),
-            gasUsed: Type.String(),
-            effectiveGasPrice: Type.String(),
-            blockHash: Type.String(),
-            blockNumber: Type.String(),
-            transactionIndex: Type.Number(),
-            blobGasUsed: Type.String(),
-          }),
-        ),
-      }),
-    ),
-    Type.Null(),
-  ]),
+  // TODO: Use Type.Any() instead of strict typing.
+  // UserOp receipts from different providers/chains may not have a consistent response,
+  // so Engine would prefer to return _any_ result than fail due to strict typing errors.
+  result: Type.Union([Type.Any(), Type.Null()]),
 });
 
 responseBodySchema.example = {

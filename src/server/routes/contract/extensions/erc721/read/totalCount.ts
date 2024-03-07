@@ -12,7 +12,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Optional(Type.String()),
 });

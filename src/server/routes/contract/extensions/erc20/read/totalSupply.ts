@@ -14,7 +14,7 @@ import { convertBigIntToString } from "../../../../../utils/convertor";
 // INPUT
 const requestSchema = erc20ContractParamSchema;
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: erc20MetadataSchema,
 });
