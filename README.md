@@ -58,6 +58,10 @@ Learn more: [Getting Started](https://portal.thirdweb.com/engine/getting-started
 
 > **Production:** Deploy Postgres and Engine to your cloud provider. Consider creating [KMS backend wallets](https://portal.thirdweb.com/engine/backend-wallets).
 
+## Self Host
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/EASlyJ)
+
 ## Contributing
 
 We welcome external contributions! See [how to contribute to thirdweb repos]. Please try to follow the existing code style and conventions.
