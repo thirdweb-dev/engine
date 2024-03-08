@@ -59,6 +59,7 @@
     "fastify-plugin": "^4.5.0",
     "http-status-codes": "^2.2.0",
     "knex": "^2.4.2",
+    "mnemonist": "^0.39.8",
     "node-cron": "^3.0.2",
     "pg": "^8.11.0",
     "pino": "^8.15.1",
