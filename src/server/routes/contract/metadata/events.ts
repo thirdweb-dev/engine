@@ -1,8 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
-import { abiEventSchema } from "../../../schemas/contract";
+import { resolveContractAbi } from "thirdweb/contract";
+import { Abi } from "viem";
+import { getContractV5 } from "../../../../utils/cache/getContractV5";
+import { AbiEventSchemaV5 } from "../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -13,46 +15,54 @@ const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Array(abiEventSchema),
+  result: Type.Array(AbiEventSchemaV5),
 });
 
 responseSchema.example = {
   result: [
     {
-      name: "Approval",
+      type: "event",
+      anonymous: false,
       inputs: [
         {
+          indexed: true,
+          internalType: "address",
+          name: "account",
           type: "address",
-          name: "owner",
         },
         {
+          indexed: true,
+          internalType: "address",
+          name: "operator",
           type: "address",
+        },
+        {
+          indexed: false,
+          internalType: "bool",
           name: "approved",
-        },
-        {
-          type: "uint256",
-          name: "tokenId",
+          type: "bool",
         },
       ],
-      outputs: [],
+      name: "ApprovalForAll",
     },
     {
-      name: "ApprovalForAll",
+      type: "event",
+      anonymous: false,
       inputs: [
         {
+          indexed: true,
+          internalType: "address",
+          name: "newRoyaltyRecipient",
           type: "address",
-          name: "owner",
         },
         {
-          type: "address",
-          name: "operator",
-        },
-        {
-          type: "bool",
-          name: "approved",
+          indexed: false,
+          internalType: "uint256",
+          name: "newRoyaltyBps",
+          type: "uint256",
         },
       ],
-      outputs: [],
+      name: "DefaultRoyalty",
     },
   ],
 };
@@ -79,12 +89,15 @@ export async function extractEvents(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
+      const abi: Abi = await resolveContractAbi(contract);
 
-      let returnData = await contract.publishedMetadata.extractEvents();
+      const returnData = abi.filter((item) => item.type === "event") as Static<
+        typeof AbiEventSchemaV5
+      >[];
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

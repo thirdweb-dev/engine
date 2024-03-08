@@ -75,10 +75,6 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
       });
       reply.status(StatusCodes.OK).send({
         result: {
-          // name: returnData.name,
-          // symbol: returnData.symbol,
-          // decimals: returnData.decimals.toString(),
-          // displayValue: returnData.displayValue,
           value: returnData.toString(),
         },
       });

@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
-import { balanceOf } from "thirdweb/extensions/erc20";
+import { getBalance } from "thirdweb/extensions/erc20";
 import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
@@ -64,15 +64,12 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await balanceOf({
+      const returnData = await getBalance({
         contract,
         address: wallet_address,
       });
-      // const returnData = await contract.erc20.balanceOf(wallet_address);
       reply.status(StatusCodes.OK).send({
-        result: {
-          value: convertBigIntToString(returnData),
-        },
+        result: convertBigIntToString(returnData),
       });
     },
   });

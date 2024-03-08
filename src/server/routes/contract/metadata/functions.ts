@@ -1,8 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
+import { Abi } from "@thirdweb-dev/sdk";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
-import { abiFunctionSchema } from "../../../schemas/contract";
+import { resolveContractAbi } from "thirdweb/contract";
+import { getContractV5 } from "../../../../utils/cache/getContractV5";
+import { AbiFunctionSchemaV5 } from "../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -13,7 +15,7 @@ const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Array(abiFunctionSchema),
+  result: Type.Array(AbiFunctionSchemaV5),
 });
 
 responseSchema.example = {
@@ -32,9 +34,6 @@ responseSchema.example = {
           name: "",
         },
       ],
-      comment: "See {IERC721-balanceOf}.",
-      signature:
-        'contract.call("balanceOf", owner: string): Promise<BigNumber>',
       stateMutability: "view",
     },
     {
@@ -46,9 +45,6 @@ responseSchema.example = {
         },
       ],
       outputs: [],
-      comment: "Burns `tokenId`. See {ERC721-_burn}.",
-      signature:
-        'contract.call("burn", tokenId: BigNumberish): Promise<TransactionResult>',
       stateMutability: "nonpayable",
     },
   ],
@@ -76,12 +72,15 @@ export async function extractFunctions(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
+      const abi: Abi = await resolveContractAbi(contract);
 
-      let returnData = await contract.publishedMetadata.extractFunctions();
+      const returnData = abi.filter(
+        (item) => item.type === "function",
+      ) as Static<typeof AbiFunctionSchemaV5>[];
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

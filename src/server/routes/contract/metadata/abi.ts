@@ -1,19 +1,19 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
-import { abiSchema } from "../../../schemas/contract";
+import { resolveContractAbi } from "thirdweb/contract";
+import { getContractV5 } from "../../../../utils/cache/getContractV5";
+import { AbiSchemaV5 } from "../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
-
 const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Array(abiSchema),
+  result: Type.Array(AbiSchemaV5),
 });
 
 responseSchema.example = {
@@ -79,15 +79,13 @@ export async function getABI(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-
-      let returnData = contract.abi;
-
+      const abi = await resolveContractAbi(contract);
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        result: abi,
       });
     },
   });

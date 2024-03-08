@@ -64,7 +64,7 @@ export async function getContractExtensions(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = getAllDetectedExtensionNames(contract.abi);
+      const returnData = getAllDetectedExtensionNames(contract.abi);
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

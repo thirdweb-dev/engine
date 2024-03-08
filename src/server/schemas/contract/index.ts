@@ -34,6 +34,7 @@ const abiTypeSchema = Type.Object({
       }),
     ),
   ),
+  indexed: Type.Optional(Type.Boolean()),
 });
 
 export const abiFunctionSchema = Type.Object({
@@ -102,3 +103,74 @@ export const RoyaltySchema = Type.Object({
     description: "The wallet address that will receive the royalty fees.",
   }),
 });
+
+////////////////////////
+// ABI V5
+////////////////////////
+
+export const AbiStateMutabilityV5 = Type.Union([
+  Type.Literal("pure"),
+  Type.Literal("view"),
+  Type.Literal("nonpayable"),
+  Type.Literal("payable"),
+]);
+
+export const AbiFunctionSchemaV5 = Type.Object({
+  type: Type.String({ default: "function" }),
+  constant: Type.Optional(Type.Boolean()),
+  gas: Type.Optional(Type.Number()),
+  inputs: Type.Optional(Type.Array(Type.Any())),
+  name: Type.String(),
+  outputs: Type.Optional(Type.Array(abiTypeSchema)),
+  payable: Type.Optional(Type.Boolean()),
+  stateMutability: AbiStateMutabilityV5,
+});
+
+export const AbiFallBackSchemaV5 = Type.Object({
+  type: Type.Literal("fallback"),
+  inputs: Type.Optional(Type.Array(Type.Any())),
+  payable: Type.Optional(Type.Boolean()),
+  stateMutability: Type.Extract(
+    AbiStateMutabilityV5,
+    Type.Literal("payable"),
+    Type.Literal("nonpayable"),
+  ),
+});
+
+export const AbiEventSchemaV5 = Type.Object({
+  type: Type.String({ default: "event" }),
+  anonymous: Type.Optional(Type.Boolean()),
+  inputs: Type.Union([Type.Array(Type.Any()), Type.String()]),
+  name: Type.String(),
+});
+
+export const AbiReceiveSchemaV5 = Type.Object({
+  type: Type.Literal("receive"),
+  stateMutability: Type.Extract(AbiStateMutabilityV5, Type.Literal("payable")),
+});
+
+export const AbiErrorSchemaV5 = Type.Object({
+  type: Type.Literal("error"),
+  name: Type.String(),
+  inputs: Type.Union([Type.Array(abiTypeSchema), Type.String(), Type.Any()]),
+});
+
+export const AbiConstructorSchemaV5 = Type.Object({
+  type: Type.Literal("constructor"),
+  inputs: Type.Union([Type.Array(abiTypeSchema), Type.String(), Type.Any()]),
+  payable: Type.Optional(Type.Boolean()),
+  stateMutability: Type.Extract(
+    AbiStateMutabilityV5,
+    Type.Literal("payable"),
+    Type.Literal("nonpayable"),
+  ),
+});
+
+export const AbiSchemaV5 = Type.Union([
+  AbiFunctionSchemaV5,
+  AbiFallBackSchemaV5,
+  AbiEventSchemaV5,
+  AbiReceiveSchemaV5,
+  AbiErrorSchemaV5,
+  AbiConstructorSchemaV5,
+]);

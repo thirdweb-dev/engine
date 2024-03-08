@@ -2,7 +2,8 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { isApprovedForAll } from "thirdweb/extensions/erc721";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -24,7 +25,7 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Optional(Type.Boolean()),
+  result: Type.Boolean(),
 });
 
 responseSchema.example = {
@@ -57,14 +58,15 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { ownerWallet, operator } = request.query;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const returnData: any = await contract.erc721.isApproved(
-        ownerWallet,
+      const returnData = await isApprovedForAll({
+        contract,
+        owner: ownerWallet,
         operator,
-      );
+      });
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

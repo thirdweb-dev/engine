@@ -1,4 +1,4 @@
-import { Chain, defineChain, getContract } from "thirdweb";
+import { ContractOptions, defineChain, getContract } from "thirdweb";
 import { client } from "./getClient";
 
 interface GetContractParams {
@@ -6,24 +6,21 @@ interface GetContractParams {
   contractAddress: string;
 }
 
-export const definedChainCache = new Map<number, Chain>(); // This is a cache
+// export const definedChainCache = new Map<number, Chain>(); // This is a cache
+export const contractCache = new Map<string, ContractOptions<[]>>(); // This is a cache
 
 // Using new v5 SDK
-export const getContractV5 = async ({
+export const getContractV5 = ({
   chainId,
   contractAddress,
 }: GetContractParams) => {
-  const cachedChainData = definedChainCache.get(chainId);
-
-  if (cachedChainData) {
-    return getContract({
-      client,
-      address: contractAddress,
-      chain: cachedChainData,
-    });
-  }
   const definedChain = defineChain(chainId);
-  definedChainCache.set(chainId, definedChain);
+  const cacheKey = `${definedChain.id}-${contractAddress}`;
+  const cachedContractData = contractCache.get(cacheKey);
+
+  if (cachedContractData) {
+    return cachedContractData;
+  }
 
   // get a contract
   return getContract({
