@@ -58,25 +58,87 @@ const responseSchema = Type.Object({
 
 responseSchema.example = {
   result: {
-    payload: {
-      uri: "ipfs://QmP1i29T534877ptz8bazU1eYiYLzQ1GRK4cnZWngsz9ud/0",
+    mintPayload: {
       to: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      royaltyRecipient: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      quantity: "1",
-      royaltyBps: "0",
+      price: "0",
+      currencyAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      mintStartTime: "1704664293",
+      mintEndTime: "1751925093",
+      uid: "0x3732346162373763346432663433333462383134353662343761373166636239",
       primarySaleRecipient: "0x0000000000000000000000000000000000000000",
-      uid: "0x3862386334363135326230303461303939626136653361643131343836373563",
       metadata: {
-        name: "test tokenII",
+        name: "test token",
         description: "test token",
       },
-      currencyAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      price: "0",
-      mintStartTime: "1686169938",
-      mintEndTime: "2001529938",
+      royaltyRecipient: "0x0000000000000000000000000000000000000000",
+      royaltyBps: "0",
+      quantity: "1",
+      uri: "ipfs://Qmaf55psrmeckXZ6yo4DTL7fUYeMR4t6XArY5NgMrKN9VA/0",
     },
-    signature:
-      "0xe6f2e29f32f7da65385effa2ed4f39b8d3caf08b025eb0004fd4695b42ee145f2c7afdf2764f0097c9ed5d88b50e97c4c638f91289408fa7d7a0834cd707c4a41b",
+    typedDataPayload: {
+      domain: {
+        name: "TokenERC721",
+        version: "1",
+        chainId: 84532,
+        verifyingContract: "0x9ca57B9341dCB029a5b11163C9a47FB65BA6F4c3",
+      },
+      types: {
+        MintRequest: [
+          {
+            name: "to",
+            type: "address",
+          },
+          {
+            name: "royaltyRecipient",
+            type: "address",
+          },
+          {
+            name: "royaltyBps",
+            type: "uint256",
+          },
+          {
+            name: "primarySaleRecipient",
+            type: "address",
+          },
+          {
+            name: "uri",
+            type: "string",
+          },
+          {
+            name: "price",
+            type: "uint256",
+          },
+          {
+            name: "currency",
+            type: "address",
+          },
+          {
+            name: "validityStartTimestamp",
+            type: "uint128",
+          },
+          {
+            name: "validityEndTimestamp",
+            type: "uint128",
+          },
+          {
+            name: "uid",
+            type: "bytes32",
+          },
+        ],
+      },
+      message: {
+        to: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+        royaltyRecipient: "0x0000000000000000000000000000000000000000",
+        royaltyBps: "0",
+        primarySaleRecipient: "0x0000000000000000000000000000000000000000",
+        price: "0",
+        uri: "ipfs://Qmaf55psrmeckXZ6yo4DTL7fUYeMR4t6XArY5NgMrKN9VA/0",
+        currency: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        validityEndTimestamp: "1751925093",
+        validityStartTimestamp: "1704664293",
+        uid: "0x3732346162373763346432663433333462383134353662343761373166636239",
+      },
+    },
   },
 };
 
