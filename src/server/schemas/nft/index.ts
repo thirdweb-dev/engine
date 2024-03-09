@@ -379,7 +379,7 @@ signature1155OutputSchema.examples = [
   },
 ];
 
-export const amexSignature721InputSchema = Type.Object({
+export const newSignature721InputSchema = Type.Object({
   to: Type.String({
     description:
       "The wallet address that can use this signature to mint tokens. This is to prevent another wallet from intercepting the signature and using it to mint tokens for themselves.",
@@ -452,8 +452,8 @@ export const amexSignature721InputSchema = Type.Object({
   }),
 });
 
-export type amexErcNFTResponseType = Omit<
-  Omit<Static<typeof amexSignature721InputSchema>, "mintStartTime">,
+export type newErcNFTResponseType = Omit<
+  Omit<Static<typeof newSignature721InputSchema>, "mintStartTime">,
   "mintEndTime"
 > & {
   mintStartTime: number | Date | undefined;

@@ -18,8 +18,8 @@ import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
-  amexErcNFTResponseType,
-  amexSignature721InputSchema,
+  newErcNFTResponseType,
+  newSignature721InputSchema,
 } from "../../../../../schemas/nft";
 import {
   erc721ContractParamSchema,
@@ -31,7 +31,7 @@ import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validato
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
 const requestBodySchema = Type.Object({
-  ...amexSignature721InputSchema.properties,
+  ...newSignature721InputSchema.properties,
 });
 
 // OUTPUT
@@ -118,8 +118,8 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
       });
 
       const payload = checkAndReturnNFTSignaturePayload<
-        Static<typeof amexSignature721InputSchema>,
-        amexErcNFTResponseType
+        Static<typeof newSignature721InputSchema>,
+        newErcNFTResponseType
       >({
         to,
         currencyAddress,
