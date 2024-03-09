@@ -6,20 +6,25 @@ import type {
 import {
   MintRequest721,
   MintRequest721withQuantity,
+  NFTMetadataOrUri,
   PayloadWithUri721withQuantity,
   Signature721WithQuantityInput,
   SmartContract,
   detectFeatures,
   isExtensionEnabled,
 } from "@thirdweb-dev/sdk";
+import { ThirdwebStorage } from "@thirdweb-dev/storage";
+import BN from "bn.js";
 import ethers, { BigNumber, utils } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
+import { z } from "zod";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { env } from "../../../../../../utils/env";
 import {
-  newErcNFTResponseType,
-  newSignature721InputSchema,
+  ercNFTResponseType,
+  signature721InputSchema,
 } from "../../../../../schemas/nft";
 import {
   erc721ContractParamSchema,
@@ -31,21 +36,23 @@ import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validato
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
 const requestBodySchema = Type.Object({
-  ...newSignature721InputSchema.properties,
+  ...signature721InputSchema.properties,
 });
 
 // OUTPUT
 const responseSchema = Type.Object({
   result: Type.Object({
     mintPayload: Type.Any(),
-    domain: Type.Object({
-      name: Type.String(),
-      version: Type.String(),
-      chainId: Type.Number(),
-      verifyingContract: Type.String(),
+    typedDataPayload: Type.Object({
+      domain: Type.Object({
+        name: Type.String(),
+        version: Type.String(),
+        chainId: Type.Number(),
+        verifyingContract: Type.String(),
+      }),
+      types: Type.Any(),
+      message: Type.Any(),
     }),
-    types: Type.Any(),
-    message: Type.Any(),
   }),
 });
 
@@ -108,7 +115,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         royaltyBps,
         royaltyRecipient,
         uid,
-        uri,
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
@@ -116,10 +122,13 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
+      const storage = new ThirdwebStorage({
+        secretKey: env.THIRDWEB_API_SECRET_KEY,
+      });
 
       const payload = checkAndReturnNFTSignaturePayload<
-        Static<typeof newSignature721InputSchema>,
-        newErcNFTResponseType
+        Static<typeof signature721InputSchema>,
+        ercNFTResponseType
       >({
         to,
         currencyAddress,
@@ -132,9 +141,9 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         royaltyBps,
         royaltyRecipient,
         uid,
-        uri,
       });
 
+      const uri = await uploadOrExtractURI(metadata, storage);
       // Build the payload to be provided to the signature mint endpoint.
       const parsed = await Signature721WithQuantityInput.parseAsync(payload);
       const mintPayload = {
@@ -197,9 +206,11 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
             mintStartTime: mintPayload.mintStartTime.toString(),
             quantity: mintPayload.quantity.toString(),
           },
-          domain,
-          types,
-          message: sanitizedMessage,
+          typedDataPayload: {
+            domain,
+            types,
+            message: sanitizedMessage,
+          },
         },
       });
     },
@@ -258,3 +269,82 @@ const mapLegacyPayloadToContractStruct = (
     uid: mintRequest.uid,
   } as ITokenERC721.MintRequestStructOutput;
 };
+
+const uploadOrExtractURI = async (
+  metadata: NFTMetadataOrUri,
+  storage: ThirdwebStorage,
+): Promise<string> => {
+  if (typeof metadata === "string") {
+    return metadata;
+  } else {
+    return await storage.upload(CommonNFTInput.parse(metadata));
+  }
+};
+
+const FileOrBufferUnionSchema = (() => z.instanceof(Buffer) as z.ZodTypeAny)();
+
+const FileOrBufferSchema = (() =>
+  z.union([
+    FileOrBufferUnionSchema,
+    z.object({
+      data: z.union([FileOrBufferUnionSchema, z.string()]),
+      name: z.string(),
+    }),
+  ]))();
+
+const FileOrBufferOrStringSchema = (() =>
+  z.union([FileOrBufferSchema, z.string()]))();
+
+const HexColor = (() =>
+  z.union([
+    z.string().regex(/^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color"),
+    z
+      .string()
+      .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color")
+      .transform((val) => val.replace("#", "")),
+    z.string().length(0),
+  ]))();
+
+const BigNumberTransformSchema = (() =>
+  z
+    .union([
+      z.bigint(),
+      z.custom<BigNumber>((data) => {
+        return BigNumber.isBigNumber(data);
+      }),
+      z.custom<BN>((data) => {
+        return BN.isBN(data);
+      }),
+    ])
+    .transform((arg) => {
+      if (BN.isBN(arg)) {
+        return new BN(arg).toString();
+      }
+      return BigNumber.from(arg).toString();
+    }))();
+
+const PropertiesInput = (() =>
+  z.object({}).catchall(z.union([BigNumberTransformSchema, z.unknown()])))();
+
+const OptionalPropertiesInput = (() =>
+  z
+    .union([z.array(PropertiesInput), PropertiesInput])
+    .optional()
+    .nullable())();
+
+const BasicNFTInput = (() =>
+  z.object({
+    name: z.union([z.string(), z.number()]).optional().nullable(),
+    description: z.string().nullable().optional().nullable(),
+    image: FileOrBufferOrStringSchema.nullable().optional(),
+
+    animation_url: FileOrBufferOrStringSchema.optional().nullable(),
+  }))();
+
+const CommonNFTInput = (() =>
+  BasicNFTInput.extend({
+    external_url: FileOrBufferOrStringSchema.nullable().optional(),
+    background_color: HexColor.optional().nullable(),
+    properties: OptionalPropertiesInput,
+    attributes: OptionalPropertiesInput,
+  }).catchall(z.union([BigNumberTransformSchema, z.unknown()])))();
