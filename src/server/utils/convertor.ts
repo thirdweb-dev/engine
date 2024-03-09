@@ -13,3 +13,16 @@ export const bigNumberReplacer = (value: any): string => {
   }
   return value;
 };
+
+export const convertBigNumberToString = (obj: any): any => {
+  console.log("convertBigNumberToString", obj);
+  for (let key in obj) {
+    if (obj[key].type === "BigNumber") {
+      obj[key] = obj[key].toString();
+    }
+    if (typeof obj[key] === "object") {
+      convertBigNumberToString(obj[key]);
+    }
+  }
+  return obj;
+};
