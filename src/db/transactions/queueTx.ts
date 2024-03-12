@@ -1,11 +1,11 @@
-import type {
-  DeployTransaction,
-  Transaction,
-} from "@thirdweb-dev/sdk";
+import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { BigNumber } from "ethers";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
 import type { ContractExtension } from "../../schema/extension";
 import { PrismaTransaction } from "../../schema/prisma";
+import { rawRequestQueue } from "../client";
 import { queueTxRaw } from "./queueTxRaw";
 
 interface QueueTxParams {
@@ -18,6 +18,28 @@ interface QueueTxParams {
   deployedContractType?: string;
   simulateTx?: boolean;
 }
+
+const RedisTxQueueParams = (() =>
+  z.object({
+    functionName: z
+      .string()
+      .describe("Name of the function to call on Contract"),
+    args: z.array(
+      z.union([
+        z.string().describe("Arguments for the function. Comma Separated"),
+        z.tuple([z.string(), z.string()]),
+        z.object({}),
+        z.array(z.any()),
+        z.any(),
+      ]),
+    ),
+    chain: z.string().describe("Chain ID or name"),
+    contractAddress: z.string().describe("Contract address on the chain"),
+    walletAddress: z.string().describe("Wallet address"),
+    accountAddress: z.string().optional(),
+    extension: z.string(),
+  }))();
+export type RedisTxInput = z.input<typeof RedisTxQueueParams>;
 
 export const queueTx = async ({
   pgtx,
@@ -54,7 +76,7 @@ export const queueTx = async ({
       signerAddress,
       accountAddress,
       target,
-      simulateTx
+      simulateTx,
     });
 
     return queueId;
@@ -67,9 +89,18 @@ export const queueTx = async ({
       ...txData,
       fromAddress,
       toAddress,
-      simulateTx
+      simulateTx,
     });
 
     return queueId;
   }
+};
+
+export const queueTxToRedis = async (tx: RedisTxInput): Promise<string> => {
+  const uuid = uuidv4();
+  rawRequestQueue.add(uuid, { ...tx, uuid });
+
+  const redisClient = await rawRequestQueue.client;
+  await redisClient.hmset(uuid, tx);
+  return uuid;
 };

@@ -1,8 +1,10 @@
 import { Configuration } from "@prisma/client";
+import { getRedis } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { WalletType } from "../../schema/wallet";
+import { logger } from "../logger";
 
-const cacheKey = "config";
+const cacheKey = "engineConfig";
 interface Config
   extends Omit<
     Configuration,
@@ -35,16 +37,11 @@ interface Config
       };
 }
 
-export const configCache = new Map<string, Config>();
-
 export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
-  if (
-    configCache.has(cacheKey) &&
-    configCache.get(cacheKey) &&
-    retrieveFromCache
-  ) {
-    const config = configCache.get(cacheKey) as Config;
+  const redisClient = await getRedis();
+  const config = JSON.parse((await redisClient.get(cacheKey)) as string);
 
+  if (config && retrieveFromCache) {
     if (config.authDomain && config.authWalletEncryptedJson) {
       return config;
     }
@@ -52,6 +49,16 @@ export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
 
   const configData = await getConfiguration();
 
-  configCache.set(cacheKey, configData);
+  redisClient.set(cacheKey, JSON.stringify(configData));
   return configData;
+};
+
+export const clearConfigCache = async (): Promise<void> => {
+  logger({
+    level: "info",
+    message: "Clearing config cache",
+    service: "cache",
+  });
+  const redisClient = await getRedis();
+  redisClient.del(cacheKey);
 };

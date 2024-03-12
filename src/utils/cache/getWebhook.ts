@@ -1,19 +1,21 @@
+import { getRedis } from "../../db/client";
 import { getAllWebhooks } from "../../db/webhooks/getAllWebhooks";
 import {
   SanitizedWebHooksSchema,
   WebhooksEventTypes,
 } from "../../schema/webhooks";
-
-export const webhookCache = new Map<string, SanitizedWebHooksSchema[]>();
+import { logger } from "../logger";
 
 export const getWebhook = async (
   eventType: WebhooksEventTypes,
   retrieveFromCache = true,
 ): Promise<SanitizedWebHooksSchema[]> => {
-  const cacheKey = eventType;
-
-  if (retrieveFromCache && webhookCache.has(cacheKey)) {
-    return webhookCache.get(cacheKey) as SanitizedWebHooksSchema[];
+  const cacheKey = `webhook-${eventType}`;
+  const redisClient = await getRedis();
+  const cachedWebhooks = await redisClient.hmget(cacheKey);
+  console.log(cachedWebhooks, cacheKey);
+  if (retrieveFromCache && !cachedWebhooks) {
+    return JSON.parse(cachedWebhooks);
   }
 
   const webhookConfig = await getAllWebhooks();
@@ -24,6 +26,16 @@ export const getWebhook = async (
     }
   });
 
-  webhookCache.set(cacheKey, eventTypeWebhookDetails);
+  redisClient.hmset(cacheKey, JSON.stringify(eventTypeWebhookDetails));
   return eventTypeWebhookDetails;
+};
+
+export const clearWebhookCache = async (): Promise<void> => {
+  logger({
+    level: "info",
+    message: "Clearing webhook cache",
+    service: "cache",
+  });
+  const redisClient = await getRedis();
+  redisClient.del("webhook-*");
 };

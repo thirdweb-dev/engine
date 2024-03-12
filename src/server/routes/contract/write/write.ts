@@ -1,8 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../db/transactions/queueTx";
-import { getContract } from "../../../../utils/cache/getContract";
+import {
+  RedisTxInput,
+  queueTxToRedis,
+} from "../../../../db/transactions/queueTx";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -11,7 +13,6 @@ import {
 } from "../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
@@ -76,22 +77,18 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-backend-wallet-address"
       ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
-      const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
+
+      const rawRequestData: RedisTxInput = {
+        functionName,
+        chain,
+        args,
         contractAddress,
         walletAddress,
         accountAddress,
-      });
-
-      const tx = await contract.prepare(functionName, args, txOverrides);
-
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
         extension: "none",
-      });
+      };
+
+      const queueId = await queueTxToRedis(rawRequestData);
 
       reply.status(StatusCodes.OK).send({
         result: {

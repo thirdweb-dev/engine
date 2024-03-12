@@ -4,16 +4,17 @@ import {
 } from "./listeners/configListener";
 import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
-import { queuedTxListener } from "./listeners/queuedTxListener";
 import { retryTxListener } from "./listeners/retryTxListener";
 import {
   newWebhooksListener,
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
+import { processRawRequest } from "./tasks/processRawRequest";
+import { processWebhook } from "./tasks/processWebhook";
 
 export const initWorker = async () => {
   // Listen for queued transactions to process
-  await queuedTxListener();
+  // await queuedTxListener();
 
   // Poll for transactions stuck in mempool to retry
   await retryTxListener();
@@ -31,4 +32,6 @@ export const initWorker = async () => {
   // Listen for new & updated webhooks data
   await newWebhooksListener();
   await updatedWebhooksListener();
+  await processRawRequest();
+  await processWebhook();
 };

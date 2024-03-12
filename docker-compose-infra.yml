@@ -32,6 +32,15 @@ services:
     volumes:
       - pgadmin:/var/lib/pgadmin
 
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   psql_db:
   pgadmin:
+  redis_data:

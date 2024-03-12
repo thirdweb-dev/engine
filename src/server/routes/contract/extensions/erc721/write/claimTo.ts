@@ -1,8 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import {
+  RedisTxInput,
+  queueTxToRedis,
+} from "../../../../../../db/transactions/queueTx";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -11,7 +13,6 @@ import {
 } from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
-import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -63,21 +64,18 @@ export async function erc721claimTo(fastify: FastifyInstance) {
         "x-backend-wallet-address"
       ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
-      const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
+
+      const rawRequestData: RedisTxInput = {
+        functionName: "claimTo",
+        chain,
+        args: [receiver, quantity],
         contractAddress,
         walletAddress,
         accountAddress,
-      });
-
-      const tx = await contract.erc721.claimTo.prepare(receiver, quantity);
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
         extension: "erc721",
-      });
+      };
+
+      const queueId = await queueTxToRedis(rawRequestData);
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

@@ -1,5 +1,5 @@
 import { knex } from "../../db/client";
-import { webhookCache } from "../../utils/cache/getWebhook";
+import { clearWebhookCache } from "../../utils/cache/getWebhook";
 import { logger } from "../../utils/logger";
 
 export const newWebhooksListener = async (): Promise<void> => {
@@ -23,7 +23,7 @@ export const newWebhooksListener = async (): Promise<void> => {
         message: `Received new webhooks data`,
       });
       // Update Webhooks Data
-      webhookCache.clear();
+      await clearWebhookCache();
     },
   );
 
@@ -79,7 +79,7 @@ export const updatedWebhooksListener = async (): Promise<void> => {
         level: "info",
         message: `Received updated webhooks data`,
       });
-      webhookCache.clear();
+      await clearWebhookCache();
     },
   );
 
