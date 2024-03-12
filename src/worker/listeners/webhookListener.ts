@@ -17,11 +17,6 @@ export const newWebhooksListener = async (): Promise<void> => {
   connection.on(
     "notification",
     async (msg: { channel: string; payload: string }) => {
-      logger({
-        service: "worker",
-        level: "info",
-        message: `Received new webhooks data`,
-      });
       // Update Webhooks Data
       await clearWebhookCache();
     },
@@ -74,11 +69,6 @@ export const updatedWebhooksListener = async (): Promise<void> => {
     "notification",
     async (msg: { channel: string; payload: string }) => {
       // Update Configs Data
-      logger({
-        service: "worker",
-        level: "info",
-        message: `Received updated webhooks data`,
-      });
       await clearWebhookCache();
     },
   );

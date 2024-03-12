@@ -4,7 +4,6 @@ import {
   SanitizedWebHooksSchema,
   WebhooksEventTypes,
 } from "../../schema/webhooks";
-import { logger } from "../logger";
 
 export const getWebhook = async (
   eventType: WebhooksEventTypes,
@@ -31,11 +30,6 @@ export const getWebhook = async (
 };
 
 export const clearWebhookCache = async (): Promise<void> => {
-  logger({
-    level: "info",
-    message: "Clearing webhook cache",
-    service: "cache",
-  });
   const redisClient = await getRedis();
   redisClient.del("webhook-*");
 };

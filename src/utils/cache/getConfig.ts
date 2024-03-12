@@ -2,7 +2,6 @@ import { Configuration } from "@prisma/client";
 import { getRedis } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { WalletType } from "../../schema/wallet";
-import { logger } from "../logger";
 
 const cacheKey = "engineConfig";
 interface Config
@@ -54,11 +53,6 @@ export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
 };
 
 export const clearConfigCache = async (): Promise<void> => {
-  logger({
-    level: "info",
-    message: "Clearing config cache",
-    service: "cache",
-  });
   const redisClient = await getRedis();
   redisClient.del(cacheKey);
 };
