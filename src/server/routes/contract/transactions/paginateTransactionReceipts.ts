@@ -151,6 +151,8 @@ export async function pageTransactionReceipts(fastify: FastifyInstance) {
           transactionHash: txRcpt.transactionHash,
           blockHash: txRcpt.blockHash,
           timestamp: txRcpt.timestamp.getTime(),
+          data: txRcpt.data,
+          value: txRcpt.value,
 
           to: txRcpt.to,
           from: txRcpt.from,

@@ -87,7 +87,8 @@ export async function getContractTransactionReceiptsByTimestamp(
           transactionHash: txRcpt.transactionHash,
           blockHash: txRcpt.blockHash,
           timestamp: txRcpt.timestamp.getTime(),
-
+          data: txRcpt.data,
+          value: txRcpt.value,
           to: txRcpt.to,
           from: txRcpt.from,
           transactionIndex: txRcpt.transactionIndex,

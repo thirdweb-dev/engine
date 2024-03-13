@@ -357,6 +357,8 @@ export const transactionReceiptsSchema = Type.Array(
     transactionHash: Type.String(),
     blockHash: Type.String(),
     timestamp: Type.Number(),
+    data: Type.String(),
+    value: Type.String(),
 
     to: Type.String(),
     from: Type.String(),
