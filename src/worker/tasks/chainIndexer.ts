@@ -272,7 +272,7 @@ export const createChainIndexerTask = async (chainId: number) => {
                 transactionIndex: receipt.transactionIndex,
                 gasUsed: receipt.gasUsed.toString(),
                 effectiveGasPrice: receipt.effectiveGasPrice.toString(),
-                status: receipt.status || 1, // requires post-byzantium
+                status: receipt.status ?? 1, // requires post-byzantium
               };
             },
           );
