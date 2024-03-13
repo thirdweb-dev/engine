@@ -123,6 +123,9 @@ import { addContractSubscription } from "./contract/subscriptions/addContractSub
 import { getContractIndexedBlockRange } from "./contract/subscriptions/getContractIndexedBlockRange";
 import { getContractSubscriptions } from "./contract/subscriptions/getContractSubscriptions";
 import { removeContractSubscription } from "./contract/subscriptions/removeContractSubscription";
+import { getContractTransactionReceipts } from "./contract/transactions/getTransactionReceipts";
+import { getContractTransactionReceiptsByTimestamp } from "./contract/transactions/getTransactionReceiptsByTimestamp";
+import { pageTransactionReceipts } from "./contract/transactions/paginateTransactionReceipts";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -243,12 +246,19 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(healthCheck);
   await fastify.register(queueStatus);
 
-  // Event Logs
+  // Contract Subscriptions
   await fastify.register(addContractSubscription);
   await fastify.register(getContractSubscriptions);
-  await fastify.register(getContractEventLogs);
-  await fastify.register(getEventLogs);
   await fastify.register(getContractIndexedBlockRange);
   await fastify.register(removeContractSubscription);
+
+  // Contract Transactions
+  await fastify.register(getContractTransactionReceipts);
+  await fastify.register(getContractTransactionReceiptsByTimestamp);
+  await fastify.register(pageTransactionReceipts);
+
+  // Contract Event Logs
+  await fastify.register(getContractEventLogs);
+  await fastify.register(getEventLogs);
   await fastify.register(pageEventLogs);
 };
