@@ -124,8 +124,6 @@ export async function pageEventLogs(fastify: FastifyInstance) {
           }
 
           cursorObj = validationResult.data;
-
-          console.log(cursorObj);
         }
       } catch (error) {
         throw createCustomError(
@@ -175,7 +173,6 @@ export async function pageEventLogs(fastify: FastifyInstance) {
           lastLog.logIndex
         }`;
 
-        console.log(cursorString);
         newCursor = base64.encode(cursorString);
       }
 
