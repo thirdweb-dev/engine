@@ -12,7 +12,8 @@ interface ContractTransactionReceiptEntry {
   to: string;
   from: string;
   transactionIndex: number;
-
+  value: string;
+  data: string;
   gasUsed: string;
   effectiveGasPrice: string;
   status: number;
@@ -20,16 +21,16 @@ interface ContractTransactionReceiptEntry {
 
 export interface BulkInsertContractLogsParams {
   pgtx?: PrismaTransaction;
-  receipts: ContractTransactionReceiptEntry[];
+  txReceipts: ContractTransactionReceiptEntry[];
 }
 
 export const bulkInsertContractTransactionReceipts = async ({
   pgtx,
-  receipts,
+  txReceipts,
 }: BulkInsertContractLogsParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
   return await prisma.contractTransactionReceipts.createMany({
-    data: receipts,
+    data: txReceipts,
     skipDuplicates: true,
   });
 };

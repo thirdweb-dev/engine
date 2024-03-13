@@ -58,13 +58,16 @@ export const getBlocksAndTransactions = async ({
   const provider = sdk.getProvider();
 
   const blocks: BlockWithTransactions[] = [];
-  const transactionReceipts: ethers.providers.TransactionReceipt[] = [];
+  const transactionsWithReceipt: {
+    receipt: ethers.providers.TransactionReceipt;
+    transaction: ethers.Transaction;
+  }[] = [];
 
   for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
     const block = await provider.getBlockWithTransactions(blockNumber);
     blocks.push(block);
 
-    const blockTransactions = await Promise.all(
+    const blockTransactionsWithReceipt = await Promise.all(
       block.transactions
         .filter(
           (transaction) =>
@@ -75,14 +78,14 @@ export const getBlocksAndTransactions = async ({
           const receipt = await provider.getTransactionReceipt(
             transaction.hash,
           );
-          return receipt;
+          return { transaction, receipt };
         }),
     );
 
-    transactionReceipts.push(...blockTransactions);
+    transactionsWithReceipt.push(...blockTransactionsWithReceipt);
   }
 
-  return { blocks, transactionReceipts };
+  return { blocks, transactionsWithReceipt };
 };
 
 export const getSubscribedContractsLogs = async (
@@ -239,7 +242,7 @@ export const createChainIndexerTask = async (chainId: number) => {
             await bulkInsertContractEventLogs({ logs, pgtx });
           }
 
-          const { blocks, transactionReceipts } =
+          const { blocks, transactionsWithReceipt } =
             await getBlocksAndTransactions({
               chainId,
               fromBlock: lastIndexedBlock + 1,
@@ -252,27 +255,31 @@ export const createChainIndexerTask = async (chainId: number) => {
             return acc;
           }, {} as Record<number, BlockWithTransactions>);
 
-          const receipts = transactionReceipts.map((rcpt) => {
-            return {
-              chainId: chainId,
-              blockNumber: rcpt.blockNumber,
-              contractAddress: rcpt.to.toLowerCase(),
-              contractId: getContractId(chainId, rcpt.to.toLowerCase()),
-              transactionHash: rcpt.transactionHash.toLowerCase(),
-              blockHash: rcpt.blockHash.toLowerCase(),
-              timestamp: new Date(blockLookup[rcpt.blockNumber].timestamp),
-              to: rcpt.to.toLowerCase(),
-              from: rcpt.from.toLowerCase(),
-              transactionIndex: rcpt.transactionIndex,
-              gasUsed: rcpt.gasUsed.toString(),
-              effectiveGasPrice: rcpt.effectiveGasPrice.toString(),
-              status: rcpt.status || 1, // requires post-byzantium
-            };
-          });
+          const txReceipts = transactionsWithReceipt.map(
+            ({ receipt, transaction }) => {
+              return {
+                chainId: chainId,
+                blockNumber: receipt.blockNumber,
+                contractAddress: receipt.to.toLowerCase(),
+                contractId: getContractId(chainId, receipt.to.toLowerCase()),
+                transactionHash: receipt.transactionHash.toLowerCase(),
+                blockHash: receipt.blockHash.toLowerCase(),
+                timestamp: new Date(blockLookup[receipt.blockNumber].timestamp),
+                to: receipt.to.toLowerCase(),
+                from: receipt.from.toLowerCase(),
+                value: transaction.value.toString(),
+                data: transaction.data,
+                transactionIndex: receipt.transactionIndex,
+                gasUsed: receipt.gasUsed.toString(),
+                effectiveGasPrice: receipt.effectiveGasPrice.toString(),
+                status: receipt.status || 1, // requires post-byzantium
+              };
+            },
+          );
 
-          if (receipts.length > 0) {
+          if (txReceipts.length > 0) {
             await bulkInsertContractTransactionReceipts({
-              receipts: receipts,
+              txReceipts: txReceipts,
               pgtx,
             });
           }
