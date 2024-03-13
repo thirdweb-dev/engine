@@ -37,8 +37,8 @@ export async function getContractSubscriptions(fastify: FastifyInstance) {
     schema: {
       summary: "Get all subscribed contracts",
       description: "Get all subscribed contracts",
-      tags: ["Contract", "Index"],
-      operationId: "read",
+      tags: ["Contract-Events"],
+      operationId: "getContractSubscriptions",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

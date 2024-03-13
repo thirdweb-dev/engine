@@ -37,10 +37,10 @@ export async function getContractIndexedBlockRange(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/:chain/:contractAddress/events/get-indexed-blocks",
     schema: {
-      summary: "Get indexed block range",
+      summary: "Get subscribed contract indexed block range",
       description: "Gets the subscribed contract's indexed block range",
-      tags: ["Contract", "Index"],
-      operationId: "read",
+      tags: ["Contract-Events", "Contract-Transactions"],
+      operationId: "getContractIndexedBlockRange",
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,

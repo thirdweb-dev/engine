@@ -29,10 +29,10 @@ export async function getContractSubscriptions(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/events/get-last-block",
     schema: {
-      summary: "Get latest indexed block",
-      description: "Get latest indexed block",
-      tags: ["Contract", "Index"],
-      operationId: "read",
+      summary: "Get subscribed contract latest indexed block",
+      description: "Get latest indexed block for a subscribed contract",
+      tags: ["Contract-Events"],
+      operationId: "getContractSubscriptions",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

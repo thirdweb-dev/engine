@@ -29,10 +29,10 @@ export async function getEventLogs(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/events/get-logs",
     schema: {
-      summary: "Get contract event logs",
+      summary: "Get subscribed contract event logs",
       description: "Get event logs for a subscribed contract",
-      tags: ["Contract", "Index"],
-      operationId: "read",
+      tags: ["Contract-Events"],
+      operationId: "getEventLogs",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,

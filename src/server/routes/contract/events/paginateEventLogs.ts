@@ -44,10 +44,10 @@ export async function pageEventLogs(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/events/paginate-logs",
     schema: {
-      summary: "Get contract event logs",
-      description: "Get event logs for a subscribed contract",
-      tags: ["Contract", "Index"],
-      operationId: "read",
+      summary: "Get contract paginated event logs for subscribed contract",
+      description: "Get contract paginated event logs for subscribed contract",
+      tags: ["Contract-Events"],
+      operationId: "pageEventLogs",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,
