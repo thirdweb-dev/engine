@@ -21,6 +21,40 @@ const responseSchema = Type.Object({
   }),
 });
 
+responseSchema.example = {
+  result: {
+    logs: [
+      {
+        chainId: 1,
+        contractAddress: "0x....",
+        blockNumber: 1,
+        transactionHash: "0x...",
+        topics: ["0x..."],
+        data: "0x...",
+        eventName: "TransferFrom",
+        decodedLog: {
+          from: {
+            type: "address",
+            value: "0x...",
+          },
+          to: {
+            type: "address",
+            value: "0x...",
+          },
+          value: {
+            type: "uint256",
+            value: "1000",
+          },
+        },
+        timestamp: 100,
+        transactionIndex: 1,
+        logIndex: 1,
+      },
+    ],
+    status: "success",
+  },
+};
+
 export async function getEventLogs(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
