@@ -245,6 +245,9 @@ model ContractTransactionReceipts {
   effectiveGasPrice  String             
   status             Int
 
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
   @@unique([chainId, transactionHash])
 
   @@index([contractId, timestamp])
