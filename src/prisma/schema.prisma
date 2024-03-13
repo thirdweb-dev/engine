@@ -236,9 +236,11 @@ model ContractTransactionReceipts {
   transactionHash    String 
   blockHash          String
   timestamp          DateTime
+  data               String
   
   to                 String
   from               String
+  value              String
   transactionIndex   Int
 
   gasUsed            String
