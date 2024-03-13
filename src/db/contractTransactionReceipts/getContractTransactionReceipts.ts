@@ -51,7 +51,7 @@ export const getTransactionReceiptsByBlockTimestamp = async ({
       : {}),
   };
 
-  return await prisma.contractEventLogs.findMany({
+  return await prisma.contractTransactionReceipts.findMany({
     where: whereClause,
   });
 };
