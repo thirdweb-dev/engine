@@ -4,11 +4,11 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { z } from "zod";
 import { getConfiguration } from "../../../../db/configuration/getConfiguration";
-import { getEventLogsByCursor } from "../../../../db/contractEventLogs/getContractEventLogs";
+import { getTransactionReceiptsByCursor } from "../../../../db/contractTransactionReceipts/getContractTransactionReceipts";
 import { createCustomError } from "../../../middleware/error";
 import {
-  eventLogsSchema,
   standardResponseSchema,
+  transactionReceiptsSchema,
 } from "../../../schemas/sharedApiSchemas";
 
 /* Consider moving all cursor logic inside db file */
@@ -16,14 +16,13 @@ import {
 const requestQuerySchema = Type.Object({
   cursor: Type.Optional(Type.String()),
   pageSize: Type.Optional(Type.Number()),
-  topics: Type.Optional(Type.Array(Type.String())),
   contractAddresses: Type.Optional(Type.Array(Type.String())),
 });
 
 const responseSchema = Type.Object({
   result: Type.Object({
     cursor: Type.Optional(Type.String()),
-    logs: eventLogsSchema,
+    receipts: transactionReceiptsSchema,
     status: Type.String(),
   }),
 });
@@ -31,32 +30,22 @@ const responseSchema = Type.Object({
 responseSchema.example = {
   result: {
     cursor: "abcd-xyz",
-    logs: [
+    receipts: [
       {
         chainId: 1,
-        contractAddress: "0x....",
-        blockNumber: 1,
+        blockNumber: 100,
+        contractAddress: "0x...",
         transactionHash: "0x...",
-        topics: ["0x..."],
-        data: "0x...",
-        eventName: "TransferFrom",
-        decodedLog: {
-          from: {
-            type: "address",
-            value: "0x...",
-          },
-          to: {
-            type: "address",
-            value: "0x...",
-          },
-          value: {
-            type: "uint256",
-            value: "1000",
-          },
-        },
+        blockHash: "0x...",
         timestamp: 100,
+
+        to: "0x...",
+        from: "0x...",
         transactionIndex: 1,
-        logIndex: 1,
+
+        gasUsed: "1000",
+        effectiveGasPrice: "1000",
+        status: 1,
       },
     ],
     status: "success",
@@ -68,21 +57,22 @@ const CursorSchema = z.object({
   chainId: z.number(),
   blockNumber: z.number(),
   transactionIndex: z.number(),
-  logIndex: z.number(),
 });
 
-export async function pageEventLogs(fastify: FastifyInstance) {
+export async function pageTransactionReceipts(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
   }>({
     method: "GET",
-    url: "/contract/events/paginate-logs",
+    url: "/contract/transactions/paginate-receipts",
     schema: {
-      summary: "Get contract paginated event logs for subscribed contract",
-      description: "Get contract paginated event logs for subscribed contract",
-      tags: ["Contract-Events"],
-      operationId: "pageEventLogs",
+      summary:
+        "Get contract paginated transaction receipts for subscribed contract",
+      description:
+        "Get contract paginated transaction receipts for subscribed contract",
+      tags: ["Contract-Transactions"],
+      operationId: "pageTransactionReceipts",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,
@@ -90,7 +80,7 @@ export async function pageEventLogs(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { cursor, pageSize, topics, contractAddresses } = request.query;
+      const { cursor, pageSize, contractAddresses } = request.query;
 
       const standardizedContractAddresses = contractAddresses?.map((val) =>
         val.toLowerCase(),
@@ -109,14 +99,13 @@ export async function pageEventLogs(fastify: FastifyInstance) {
           const parsedCursor = decodedCursor
             .split("-")
             .map((val) => parseInt(val));
-          const [createdAt, chainId, blockNumber, transactionIndex, logIndex] =
+          const [createdAt, chainId, blockNumber, transactionIndex] =
             parsedCursor;
           const validationResult = CursorSchema.safeParse({
             createdAt,
             chainId,
             blockNumber,
             transactionIndex,
-            logIndex,
           });
 
           if (!validationResult.success) {
@@ -133,58 +122,52 @@ export async function pageEventLogs(fastify: FastifyInstance) {
         );
       }
 
-      const resultLogs = await getEventLogsByCursor({
+      const resultTransactionReceipts = await getTransactionReceiptsByCursor({
         cursor: cursorObj,
         limit: pageSize,
-        topics,
         contractAddresses: standardizedContractAddresses,
         maxCreatedAt,
       });
-
-      const logs = resultLogs.map((log) => {
-        const topics: string[] = [];
-        [log.topic0, log.topic1, log.topic2, log.topic3].forEach((val) => {
-          if (val) {
-            topics.push(val);
-          }
-        });
-
-        return {
-          chainId: log.chainId,
-          contractAddress: log.contractAddress,
-          blockNumber: log.blockNumber,
-          transactionHash: log.transactionHash,
-          topics,
-          data: log.data,
-          eventName: log.eventName ?? undefined,
-          decodedLog: log.decodedLog,
-          timestamp: log.timestamp.getTime(),
-          transactionIndex: log.transactionIndex,
-          logIndex: log.logIndex,
-        };
-      });
-
-      let newCursor = cursor;
-      if (resultLogs.length > 0) {
-        const lastLog = resultLogs[resultLogs.length - 1];
-        const cursorString = `${lastLog.createdAt.getTime()}-${
-          lastLog.chainId
-        }-${lastLog.blockNumber}-${lastLog.transactionIndex}-${
-          lastLog.logIndex
-        }`;
-
-        newCursor = base64.encode(cursorString);
-      }
 
       /* cursor rules */
       // if new logs returned, return new cursor
       // if no new logs and no cursor return null (original cursor)
       // if no new logs and cursor return original cursor
+      let newCursor = cursor;
+      if (resultTransactionReceipts.length > 0) {
+        const lastReceipt =
+          resultTransactionReceipts[resultTransactionReceipts.length - 1];
+        const cursorString = `${lastReceipt.createdAt.getTime()}-${
+          lastReceipt.chainId
+        }-${lastReceipt.blockNumber}-${lastReceipt.transactionIndex}`;
+        newCursor = base64.encode(cursorString);
+      }
+
+      const transactionReceipts = resultTransactionReceipts.map((txRcpt) => {
+        return {
+          chainId: txRcpt.chainId,
+          blockNumber: txRcpt.blockNumber,
+          contractAddress: txRcpt.contractAddress,
+          transactionHash: txRcpt.transactionHash,
+          blockHash: txRcpt.blockHash,
+          timestamp: txRcpt.timestamp.getTime(),
+          data: txRcpt.data,
+          value: txRcpt.value,
+
+          to: txRcpt.to,
+          from: txRcpt.from,
+          transactionIndex: txRcpt.transactionIndex,
+
+          gasUsed: txRcpt.gasUsed,
+          effectiveGasPrice: txRcpt.effectiveGasPrice,
+          status: txRcpt.status,
+        };
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
           cursor: newCursor,
-          logs,
+          receipts: transactionReceipts,
           status: "success",
         },
       });

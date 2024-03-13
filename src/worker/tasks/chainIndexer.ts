@@ -1,3 +1,4 @@
+import { BlockWithTransactions } from "@ethersproject/abstract-provider";
 import { SmartContract } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
@@ -5,10 +6,12 @@ import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";
 import { prisma } from "../../db/client";
 import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
+import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
+import { getContractId } from "../utils/contractId";
 
 export interface GetSubscribedContractsLogsParams {
   chainId: number;
@@ -43,6 +46,46 @@ export const ethGetLogs = async (params: GetSubscribedContractsLogsParams) => {
   const flatLogs = logs.flat();
 
   return flatLogs;
+};
+
+export const getBlocksAndTransactions = async ({
+  chainId,
+  fromBlock,
+  toBlock,
+  contractAddresses,
+}: GetSubscribedContractsLogsParams) => {
+  const sdk = await getSdk({ chainId: chainId });
+  const provider = sdk.getProvider();
+
+  const blocks: BlockWithTransactions[] = [];
+  const transactionsWithReceipt: {
+    receipt: ethers.providers.TransactionReceipt;
+    transaction: ethers.Transaction;
+  }[] = [];
+
+  for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
+    const block = await provider.getBlockWithTransactions(blockNumber);
+    blocks.push(block);
+
+    const blockTransactionsWithReceipt = await Promise.all(
+      block.transactions
+        .filter(
+          (transaction) =>
+            transaction.to &&
+            contractAddresses.includes(transaction.to.toLowerCase()),
+        )
+        .map(async (transaction) => {
+          const receipt = await provider.getTransactionReceipt(
+            transaction.hash,
+          );
+          return { transaction, receipt };
+        }),
+    );
+
+    transactionsWithReceipt.push(...blockTransactionsWithReceipt);
+  }
+
+  return { blocks, transactionsWithReceipt };
 };
 
 export const getSubscribedContractsLogs = async (
@@ -197,6 +240,48 @@ export const createChainIndexerTask = async (chainId: number) => {
           // update the logs
           if (logs.length > 0) {
             await bulkInsertContractEventLogs({ logs, pgtx });
+          }
+
+          const { blocks, transactionsWithReceipt } =
+            await getBlocksAndTransactions({
+              chainId,
+              fromBlock: lastIndexedBlock + 1,
+              toBlock: toBlockNumber,
+              contractAddresses: subscribedContractAddresses,
+            });
+
+          const blockLookup = blocks.reduce((acc, curr) => {
+            acc[curr.number] = curr;
+            return acc;
+          }, {} as Record<number, BlockWithTransactions>);
+
+          const txReceipts = transactionsWithReceipt.map(
+            ({ receipt, transaction }) => {
+              return {
+                chainId: chainId,
+                blockNumber: receipt.blockNumber,
+                contractAddress: receipt.to.toLowerCase(),
+                contractId: getContractId(chainId, receipt.to.toLowerCase()),
+                transactionHash: receipt.transactionHash.toLowerCase(),
+                blockHash: receipt.blockHash.toLowerCase(),
+                timestamp: new Date(blockLookup[receipt.blockNumber].timestamp),
+                to: receipt.to.toLowerCase(),
+                from: receipt.from.toLowerCase(),
+                value: transaction.value.toString(),
+                data: transaction.data,
+                transactionIndex: receipt.transactionIndex,
+                gasUsed: receipt.gasUsed.toString(),
+                effectiveGasPrice: receipt.effectiveGasPrice.toString(),
+                status: receipt.status ?? 1, // requires post-byzantium
+              };
+            },
+          );
+
+          if (txReceipts.length > 0) {
+            await bulkInsertContractTransactionReceipts({
+              txReceipts: txReceipts,
+              pgtx,
+            });
           }
 
           // update the block number

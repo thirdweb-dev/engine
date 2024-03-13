@@ -228,6 +228,36 @@ model ContractEventLogs {
   @@index([topic3])
 }
 
+model ContractTransactionReceipts {
+  chainId            Int
+  blockNumber        Int
+  contractAddress    String
+  contractId         String // ${chainId}:${contractAddress}
+  transactionHash    String 
+  blockHash          String
+  timestamp          DateTime
+  data               String
+  
+  to                 String
+  from               String
+  value              String
+  transactionIndex   Int
+
+  gasUsed            String
+  effectiveGasPrice  String             
+  status             Int
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([chainId, transactionHash])
+
+  @@index([contractId, timestamp])
+  @@index([contractId, blockNumber])
+
+  @@map("contract_transaction_receipts")
+}
+
 model ChainIndexers {
   chainId            Int       @id
   lastIndexedBlock   Int
