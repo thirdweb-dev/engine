@@ -31,11 +31,11 @@ export async function removeContractSubscription(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contractAddress/events/unsubscribe",
+    url: "/contract/:chain/:contractAddress/unsubscribe",
     schema: {
       summary: "Unsubscribe from contract events",
       description: "Unsubscribe from contract events",
-      tags: ["Contract-Events"],
+      tags: ["Contract-Subscriptions"],
       operationId: "removeContractSubscription",
       params: contractParamSchema,
       response: {

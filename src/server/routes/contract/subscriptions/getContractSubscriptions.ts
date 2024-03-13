@@ -33,11 +33,11 @@ export async function getContractSubscriptions(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/events/get-subscriptions",
+    url: "/contract/get-subscriptions",
     schema: {
       summary: "Get all subscribed contracts",
       description: "Get all subscribed contracts",
-      tags: ["Contract-Events"],
+      tags: ["Contract-Subscriptions"],
       operationId: "getContractSubscriptions",
       response: {
         ...standardResponseSchema,
