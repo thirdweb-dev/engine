@@ -116,13 +116,13 @@ import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { checkGroupStatus } from "./transaction/group";
 
 // Indexer
-import { addContractSubscription } from "./contract/events/addContractSubscription";
 import { getContractEventLogs } from "./contract/events/getContractEventLogs";
-import { getContractIndexedBlockRange } from "./contract/events/getContractIndexedBlockRange";
-import { getContractSubscriptions } from "./contract/events/getContractSubscriptions";
 import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
 import { pageEventLogs } from "./contract/events/paginateEventLogs";
-import { removeContractSubscription } from "./contract/events/removeContractSubscription";
+import { addContractSubscription } from "./contract/subscriptions/addContractSubscription";
+import { getContractIndexedBlockRange } from "./contract/subscriptions/getContractIndexedBlockRange";
+import { getContractSubscriptions } from "./contract/subscriptions/getContractSubscriptions";
+import { removeContractSubscription } from "./contract/subscriptions/removeContractSubscription";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
