@@ -1,11 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
-import base64 from "base-64";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { z } from "zod";
 import { getConfiguration } from "../../../../db/configuration/getConfiguration";
 import { getTransactionReceiptsByCursor } from "../../../../db/contractTransactionReceipts/getContractTransactionReceipts";
-import { createCustomError } from "../../../middleware/error";
 import {
   standardResponseSchema,
   transactionReceiptsSchema,
@@ -52,13 +49,6 @@ responseSchema.example = {
   },
 };
 
-const CursorSchema = z.object({
-  createdAt: z.number().transform((s) => new Date(s)),
-  chainId: z.number(),
-  blockNumber: z.number(),
-  transactionIndex: z.number(),
-});
-
 export async function pageTransactionReceipts(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
@@ -92,75 +82,20 @@ export async function pageTransactionReceipts(fastify: FastifyInstance) {
         Date.now() - config.cursorDelaySeconds * 1000,
       );
 
-      let cursorObj;
-      try {
-        if (cursor) {
-          const decodedCursor = base64.decode(cursor);
-          const parsedCursor = decodedCursor
-            .split("-")
-            .map((val) => parseInt(val));
-          const [createdAt, chainId, blockNumber, transactionIndex] =
-            parsedCursor;
-          const validationResult = CursorSchema.safeParse({
-            createdAt,
-            chainId,
-            blockNumber,
-            transactionIndex,
-          });
-
-          if (!validationResult.success) {
-            throw new Error("Invalid cursor format");
-          }
-
-          cursorObj = validationResult.data;
-        }
-      } catch (error) {
-        throw createCustomError(
-          "Invalid cursor",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-      }
-
-      const resultTransactionReceipts = await getTransactionReceiptsByCursor({
-        cursor: cursorObj,
+      const {
+        cursor: newCursor,
+        transactionReceipts: resultTransactionReceipts,
+      } = await getTransactionReceiptsByCursor({
+        cursor,
         limit: pageSize,
         contractAddresses: standardizedContractAddresses,
         maxCreatedAt,
       });
 
-      /* cursor rules */
-      // if new logs returned, return new cursor
-      // if no new logs and no cursor return null (original cursor)
-      // if no new logs and cursor return original cursor
-      let newCursor = cursor;
-      if (resultTransactionReceipts.length > 0) {
-        const lastReceipt =
-          resultTransactionReceipts[resultTransactionReceipts.length - 1];
-        const cursorString = `${lastReceipt.createdAt.getTime()}-${
-          lastReceipt.chainId
-        }-${lastReceipt.blockNumber}-${lastReceipt.transactionIndex}`;
-        newCursor = base64.encode(cursorString);
-      }
-
       const transactionReceipts = resultTransactionReceipts.map((txRcpt) => {
         return {
-          chainId: txRcpt.chainId,
-          blockNumber: txRcpt.blockNumber,
-          contractAddress: txRcpt.contractAddress,
-          transactionHash: txRcpt.transactionHash,
-          blockHash: txRcpt.blockHash,
+          ...txRcpt,
           timestamp: txRcpt.timestamp.getTime(),
-          data: txRcpt.data,
-          value: txRcpt.value,
-
-          to: txRcpt.to,
-          from: txRcpt.from,
-          transactionIndex: txRcpt.transactionIndex,
-
-          gasUsed: txRcpt.gasUsed,
-          effectiveGasPrice: txRcpt.effectiveGasPrice,
-          status: txRcpt.status,
         };
       });
 

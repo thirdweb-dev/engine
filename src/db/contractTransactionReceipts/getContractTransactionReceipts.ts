@@ -1,3 +1,5 @@
+import base64 from "base-64";
+import { z } from "zod";
 import { prisma } from "../client";
 
 interface GetContractTransactionReceiptsParams {
@@ -57,16 +59,27 @@ export const getTransactionReceiptsByBlockTimestamp = async ({
 };
 
 interface GetContractTransactionReceiptsByCursorParams {
+  cursor?: string;
+  limit?: number;
+  contractAddresses?: string[];
+  maxCreatedAt?: Date;
+}
+
+/*
   cursor?: {
     createdAt: Date;
     chainId: number;
     blockNumber: number;
     transactionIndex: number;
   };
-  limit?: number;
-  contractAddresses?: string[];
-  maxCreatedAt?: Date;
-}
+*/
+
+const CursorSchema = z.object({
+  createdAt: z.number().transform((s) => new Date(s)),
+  chainId: z.number(),
+  blockNumber: z.number(),
+  transactionIndex: z.number(),
+});
 
 export const getTransactionReceiptsByCursor = async ({
   cursor,
@@ -74,30 +87,49 @@ export const getTransactionReceiptsByCursor = async ({
   contractAddresses,
   maxCreatedAt,
 }: GetContractTransactionReceiptsByCursorParams) => {
+  let cursorObj: z.infer<typeof CursorSchema> | null = null;
+  if (cursor) {
+    const decodedCursor = base64.decode(cursor);
+    const parsedCursor = decodedCursor.split("-").map((val) => parseInt(val));
+    const [createdAt, chainId, blockNumber, transactionIndex] = parsedCursor;
+    const validationResult = CursorSchema.safeParse({
+      createdAt,
+      chainId,
+      blockNumber,
+      transactionIndex,
+    });
+
+    if (!validationResult.success) {
+      throw new Error("Invalid cursor format");
+    }
+
+    cursorObj = validationResult.data;
+  }
+
   const whereClause = {
     AND: [
       ...(contractAddresses && contractAddresses.length > 0
         ? [{ contractAddress: { in: contractAddresses } }]
         : []),
-      ...(cursor
+      ...(cursorObj
         ? [
             {
               OR: [
-                { createdAt: { gt: cursor.createdAt } },
+                { createdAt: { gt: cursorObj.createdAt } },
                 {
-                  createdAt: { equals: cursor.createdAt },
-                  chainId: { gt: cursor.chainId },
+                  createdAt: { equals: cursorObj.createdAt },
+                  chainId: { gt: cursorObj.chainId },
                 },
                 {
-                  createdAt: { equals: cursor.createdAt },
-                  chainId: { equals: cursor.chainId },
-                  blockNumber: { gt: cursor.blockNumber },
+                  createdAt: { equals: cursorObj.createdAt },
+                  chainId: { equals: cursorObj.chainId },
+                  blockNumber: { gt: cursorObj.blockNumber },
                 },
                 {
-                  createdAt: { equals: cursor.createdAt },
-                  chainId: { equals: cursor.chainId },
-                  blockNumber: { gt: cursor.blockNumber },
-                  transactionIndex: { gt: cursor.transactionIndex },
+                  createdAt: { equals: cursorObj.createdAt },
+                  chainId: { equals: cursorObj.chainId },
+                  blockNumber: { gt: cursorObj.blockNumber },
+                  transactionIndex: { gt: cursorObj.transactionIndex },
                 },
               ],
             },
@@ -115,16 +147,31 @@ export const getTransactionReceiptsByCursor = async ({
     ],
   };
 
-  const logs = await prisma.contractTransactionReceipts.findMany({
-    where: whereClause,
-    orderBy: [
-      { createdAt: "asc" },
-      { chainId: "asc" },
-      { blockNumber: "asc" },
-      { transactionIndex: "asc" },
-    ],
-    take: limit,
-  });
+  const transactionReceipts = await prisma.contractTransactionReceipts.findMany(
+    {
+      where: whereClause,
+      orderBy: [
+        { createdAt: "asc" },
+        { chainId: "asc" },
+        { blockNumber: "asc" },
+        { transactionIndex: "asc" },
+      ],
+      take: limit,
+    },
+  );
 
-  return logs;
+  /* cursor rules */
+  // if new logs returned, return new cursor
+  // if no new logs and no cursor return null (original cursor)
+  // if no new logs and cursor return original cursor
+  let newCursor = cursor;
+  if (transactionReceipts.length > 0) {
+    const lastReceipt = transactionReceipts[transactionReceipts.length - 1];
+    const cursorString = `${lastReceipt.createdAt.getTime()}-${
+      lastReceipt.chainId
+    }-${lastReceipt.blockNumber}-${lastReceipt.transactionIndex}`;
+    newCursor = base64.encode(cursorString);
+  }
+
+  return { cursor: newCursor, transactionReceipts };
 };

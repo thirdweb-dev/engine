@@ -1,3 +1,5 @@
+import base64 from "base-64";
+import { z } from "zod";
 import { prisma } from "../client";
 
 interface GetContractLogsParams {
@@ -81,6 +83,14 @@ export const getEventLogsByBlockTimestamp = async ({
 };
 
 interface GetEventLogsByCursorParams {
+  cursor?: string;
+  limit?: number;
+  contractAddresses?: string[];
+  topics?: string[];
+  maxCreatedAt?: Date;
+}
+
+/*
   cursor?: {
     createdAt: Date;
     chainId: number;
@@ -88,11 +98,15 @@ interface GetEventLogsByCursorParams {
     transactionIndex: number;
     logIndex: number;
   };
-  limit?: number;
-  contractAddresses?: string[];
-  topics?: string[];
-  maxCreatedAt?: Date;
-}
+  */
+
+const CursorSchema = z.object({
+  createdAt: z.number().transform((s) => new Date(s)),
+  chainId: z.number(),
+  blockNumber: z.number(),
+  transactionIndex: z.number(),
+  logIndex: z.number(),
+});
 
 export const getEventLogsByCursor = async ({
   cursor,
@@ -101,37 +115,58 @@ export const getEventLogsByCursor = async ({
   topics,
   maxCreatedAt,
 }: GetEventLogsByCursorParams) => {
+  let cursorObj: z.infer<typeof CursorSchema> | null = null;
+  if (cursor) {
+    const decodedCursor = base64.decode(cursor);
+    const parsedCursor = decodedCursor.split("-").map((val) => parseInt(val));
+    const [createdAt, chainId, blockNumber, transactionIndex, logIndex] =
+      parsedCursor;
+    const validationResult = CursorSchema.safeParse({
+      createdAt,
+      chainId,
+      blockNumber,
+      transactionIndex,
+      logIndex,
+    });
+
+    if (!validationResult.success) {
+      throw new Error("Invalid cursor format");
+    }
+
+    cursorObj = validationResult.data;
+  }
+
   const whereClause = {
     AND: [
       ...(contractAddresses && contractAddresses.length > 0
         ? [{ contractAddress: { in: contractAddresses } }]
         : []),
-      ...(cursor
+      ...(cursorObj
         ? [
             {
               OR: [
-                { createdAt: { gt: cursor.createdAt } },
+                { createdAt: { gt: cursorObj.createdAt } },
                 {
-                  createdAt: { equals: cursor.createdAt },
-                  chainId: { gt: cursor.chainId },
+                  createdAt: { equals: cursorObj.createdAt },
+                  chainId: { gt: cursorObj.chainId },
                 },
                 {
-                  createdAt: { equals: cursor.createdAt },
-                  chainId: { equals: cursor.chainId },
-                  blockNumber: { gt: cursor.blockNumber },
+                  createdAt: { equals: cursorObj.createdAt },
+                  chainId: { equals: cursorObj.chainId },
+                  blockNumber: { gt: cursorObj.blockNumber },
                 },
                 {
-                  createdAt: { equals: cursor.createdAt },
-                  chainId: { equals: cursor.chainId },
-                  blockNumber: { equals: cursor.blockNumber },
-                  transactionIndex: { gt: cursor.transactionIndex },
+                  createdAt: { equals: cursorObj.createdAt },
+                  chainId: { equals: cursorObj.chainId },
+                  blockNumber: { equals: cursorObj.blockNumber },
+                  transactionIndex: { gt: cursorObj.transactionIndex },
                 },
                 {
-                  createdAt: { equals: cursor.createdAt },
-                  chainId: { equals: cursor.chainId },
-                  blockNumber: { equals: cursor.blockNumber },
-                  transactionIndex: { equals: cursor.transactionIndex },
-                  logIndex: { gt: cursor.logIndex },
+                  createdAt: { equals: cursorObj.createdAt },
+                  chainId: { equals: cursorObj.chainId },
+                  blockNumber: { equals: cursorObj.blockNumber },
+                  transactionIndex: { equals: cursorObj.transactionIndex },
+                  logIndex: { gt: cursorObj.logIndex },
                 },
               ],
             },
@@ -171,7 +206,21 @@ export const getEventLogsByCursor = async ({
     take: limit,
   });
 
-  return logs;
+  /* cursor rules */
+  // if new logs returned, return new cursor
+  // if no new logs and no cursor return null (original cursor)
+  // if no new logs and cursor return original cursor
+  let newCursor = cursor;
+  if (logs.length > 0) {
+    const lastLog = logs[logs.length - 1];
+    const cursorString = `${lastLog.createdAt.getTime()}-${lastLog.chainId}-${
+      lastLog.blockNumber
+    }-${lastLog.transactionIndex}-${lastLog.logIndex}`;
+
+    newCursor = base64.encode(cursorString);
+  }
+
+  return { cursor: newCursor, logs };
 };
 
 export interface GetContractEventLogsIndexedBlockRangeParams {
