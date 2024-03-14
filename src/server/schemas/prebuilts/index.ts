@@ -67,7 +67,7 @@ export const voteSettingsInputSchema = Type.Object({
 });
 
 export const commonPrimarySaleSchema = Type.Object({
-  primary_sale_recipient: Type.String(),
+  primary_sale_recipient: Type.Optional(Type.String()),
 });
 
 export const commonPlatformFeeSchema = Type.Object({
