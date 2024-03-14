@@ -35,9 +35,7 @@ import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validato
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
-const requestBodySchema = Type.Object({
-  ...signature721InputSchema.properties,
-});
+const requestBodySchema = Type.Omit(signature721InputSchema, ["uid"]);
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -215,7 +213,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         quantity,
         royaltyBps,
         royaltyRecipient,
-        uid,
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
@@ -241,7 +238,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         quantity,
         royaltyBps,
         royaltyRecipient,
-        uid,
       });
 
       const uri = await uploadOrExtractURI(metadata, storage);
