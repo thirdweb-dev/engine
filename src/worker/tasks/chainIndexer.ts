@@ -160,7 +160,11 @@ export const getSubscribedContractsLogs = async (
           return acc;
         }, {} as Record<string, { type: string; value: string }>);
       } catch (error) {
-        // remove warning for non-decoded logs
+        logger({
+          service: "worker",
+          level: "warn",
+          message: `Failed to decode log: chainId: ${params.chainId}, contractAddress ${contractAddress}`,
+        });
       }
     }
 
