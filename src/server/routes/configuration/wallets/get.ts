@@ -35,7 +35,7 @@ export async function getWalletsConfiguration(fastify: FastifyInstance) {
     url: "/configuration/wallets",
     schema: {
       summary: "Get wallets configuration",
-      description: "Get the engine configuration for wallets",
+      description: "Get wallets configuration",
       tags: ["Configuration"],
       operationId: "getWalletsConfiguration",
       response: {

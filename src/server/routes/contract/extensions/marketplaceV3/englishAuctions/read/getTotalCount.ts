@@ -11,7 +11,7 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.String(),
 });

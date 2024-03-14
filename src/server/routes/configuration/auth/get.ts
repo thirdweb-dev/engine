@@ -18,7 +18,7 @@ export async function getAuthConfiguration(fastify: FastifyInstance) {
     url: "/configuration/auth",
     schema: {
       summary: "Get auth configuration",
-      description: "Get the engine configuration for auth",
+      description: "Get auth configuration",
       tags: ["Configuration"],
       operationId: "getAuthConfiguration",
       response: {

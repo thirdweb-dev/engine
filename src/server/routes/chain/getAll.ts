@@ -1,11 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
-import { allChains, minimizeChain } from "@thirdweb-dev/chains";
+import { Chain, fetchChains, minimizeChain } from "@thirdweb-dev/chains";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getConfig } from "../../../utils/cache/getConfig";
 import { chainResponseSchema } from "../../schemas/chain";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Array(chainResponseSchema),
 });
@@ -63,13 +64,34 @@ export async function getAllChainData(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const chain = allChains.map((chain) => {
+      const allChainsData = await fetchChains();
+      const config = await getConfig();
+
+      let chain = (allChainsData ?? ([] as Chain[])).map((chain) => {
         const minimizeChainData = minimizeChain(chain);
         if (chain.rpc.length === 0) {
           return { ...minimizeChainData, rpc: [""] };
         }
         return { ...minimizeChainData, rpc: [minimizeChainData.rpc[0]] };
       });
+
+      let chainOverrides: typeof chain = [];
+
+      if (config.chainOverrides) {
+        chainOverrides = (JSON.parse(config.chainOverrides) as Chain[]).map(
+          (overrideChain) => {
+            const shortName = overrideChain.shortName
+              ? overrideChain.shortName
+              : "";
+            const rpc =
+              overrideChain.rpc.length === 0 ? [""] : [overrideChain.rpc[0]];
+            return { ...overrideChain, shortName, rpc };
+          },
+        );
+      }
+
+      // Concatenate chain and chainOverrides
+      chain = chain.concat(chainOverrides);
 
       reply.status(StatusCodes.OK).send({
         result: chain,

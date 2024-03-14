@@ -18,7 +18,7 @@ const querystringSchema = Type.Object({
   }),
 });
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Array(nftSchema),
 });
