@@ -1042,6 +1042,11 @@
   resolved "https://registry.yarnpkg.com/@eth-optimism/contracts-bedrock/-/contracts-bedrock-0.16.2.tgz#065ad561c3c8b942e4e0dd3d0ea6ed7e00a0f8f0"
   integrity sha512-a2+f7soDbrd6jV74U02EpyMwQt2iZeDZ4c2ZwgkObcxXUZLZQ2ELt/VRFBf8TIL3wYcBOGpUa1aXAE2oHQ7oRA==
 
+"@eth-optimism/contracts-bedrock@0.17.1":
+  version "0.17.1"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/contracts-bedrock/-/contracts-bedrock-0.17.1.tgz#729b1dc53ec23d02ea9e68181f994955129f7415"
+  integrity sha512-Hc5peN5PM8kzl9dzqSD5jv6ED3QliO1DF0dXLRJxfrXR7/rmEeyuAYESUwUM0gdJZjkwRYiS5m230BI6bQmnlw==
+
 "@eth-optimism/contracts@0.6.0":
   version "0.6.0"
   resolved "https://registry.yarnpkg.com/@eth-optimism/contracts/-/contracts-0.6.0.tgz#15ae76222a9b4d958a550cafb1960923af613a31"
@@ -1101,6 +1106,19 @@
     chai "^4.3.9"
     ethers "^5.7.2"
     node-fetch "^2.6.7"
+
+"@eth-optimism/sdk@3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@eth-optimism/sdk/-/sdk-3.2.2.tgz#732c2d6fde96a25303b3c5b39b3b3ed1f913d9aa"
+  integrity sha512-P8YXAlh2lun0KZlwrw4FqmK4kNIoOOzI816XXhfkW3nMVADGRAru3TKSM74MgmEuyGiHrA9EoPRq1WLqUX4B0w==
+  dependencies:
+    "@eth-optimism/contracts" "0.6.0"
+    "@eth-optimism/contracts-bedrock" "0.17.1"
+    "@eth-optimism/core-utils" "0.13.1"
+    lodash "^4.17.21"
+    merkletreejs "^0.3.11"
+    rlp "^2.2.7"
+    semver "^7.6.0"
 
 "@eth-optimism/sdk@^3.1.6":
   version "3.1.6"
@@ -4017,10 +4035,10 @@
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.67.tgz#e34a684c47f71187225e92beaf27d2477e3880bf"
   integrity sha512-mQ4P737lXNopB/WQgKq+t6LbsmxhKNNLgtPAiP9z3EoUlBTgDHWYRHi7DWNGqKhImV6ARr37pyp00ROe6TeEMg==
 
-"@thirdweb-dev/chains@0.1.73-nightly-fa637c2e3-20240214074441":
-  version "0.1.73-nightly-fa637c2e3-20240214074441"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.73-nightly-fa637c2e3-20240214074441.tgz#525e429030014ca6598d687d58b79b8940a9d302"
-  integrity sha512-auxe2eGXKDFYxkktGZLcDo4ZOOXZU3xgh1KijSUR540p1Vpmv3srEKlJbOr/2oJW4OSOn70OQ6rXy7Ej/N0XWQ==
+"@thirdweb-dev/chains@0.1.79-nightly-3e7f9cb94-20240314012159":
+  version "0.1.79-nightly-3e7f9cb94-20240314012159"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/chains/-/chains-0.1.79-nightly-3e7f9cb94-20240314012159.tgz#062e24cdb4248d2f33e0353db76620b6b805bae1"
+  integrity sha512-eHxlR/Lgj4eewseBiOT9ftYSsGHh8UzJMgYaoKLPikfih/U1VJZ3sHf90jVBQlkfELyUFN8yepesumIUUetaHw==
 
 "@thirdweb-dev/chains@^0.1.77":
   version "0.1.77"
@@ -4053,6 +4071,14 @@
     "@noble/hashes" "^1.3.2"
     js-sha3 "^0.9.2"
 
+"@thirdweb-dev/crypto@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/crypto/-/crypto-0.2.1.tgz#7643c91c9d87e4d51a77163b87f6bff547e9506c"
+  integrity sha512-SYEkdtdhTOAcgGklqPrKgyIftA2x0WBTtpAEyJBTLCL1z+2IKvExWZyZn3Mx2cZ8skO3iAfGzC4Si2ORWBcS2g==
+  dependencies:
+    "@noble/hashes" "^1.3.2"
+    js-sha3 "^0.9.2"
+
 "@thirdweb-dev/dynamic-contracts@^1.1.2":
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/dynamic-contracts/-/dynamic-contracts-1.1.4.tgz#f14de117bad647d0f32073325627f4b31963446f"
@@ -4069,6 +4095,16 @@
   integrity sha512-4KoH2EOCWKiaHfhDO5Tnf1HjeCXKVfLt31y0kcSG5C0gCldnhm7i1fGUB8e0hW3trfyPQAuSgyP67Ep3UwzClg==
   dependencies:
     "@thirdweb-dev/crypto" "0.2.0"
+    buffer "^6.0.3"
+    buffer-reverse "^1.0.1"
+    treeify "^1.1.0"
+
+"@thirdweb-dev/merkletree@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/merkletree/-/merkletree-0.2.1.tgz#1604e238a921fe520520e18b63312ca049376707"
+  integrity sha512-NQEo+KlwQFWr0z4+OlD5WJ9GZEFOrVufvjG2zcn2eylFZacJq5GvRz04Yan9eMR844M7LNx5godA5B7DAinqKg==
+  dependencies:
+    "@thirdweb-dev/crypto" "0.2.1"
     buffer "^6.0.3"
     buffer-reverse "^1.0.1"
     treeify "^1.1.0"
@@ -4118,17 +4154,18 @@
     yaml "^2.3.1"
     zod "^3.22.3"
 
-"@thirdweb-dev/sdk@4.0.36-nightly-fa637c2e3-20240214074441":
-  version "4.0.36-nightly-fa637c2e3-20240214074441"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.36-nightly-fa637c2e3-20240214074441.tgz#569f101cf34241018925ba6f08a7e47bb833bda3"
-  integrity sha512-FRZT0MUQZOcyXsEj8jzTezdGhS2t/4oUx6VnKXYFJM1M4N7DX42xnAd4qIv7V+TTQ9sYjuzcji1zGKKQJdu9Ew==
+"@thirdweb-dev/sdk@^4.0.46-nightly-3e7f9cb94-20240314012159":
+  version "4.0.46-nightly-3e7f9cb94-20240314012159"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/sdk/-/sdk-4.0.46-nightly-3e7f9cb94-20240314012159.tgz#76561b140c4b25300ca662fb8fdb8289deb6439d"
+  integrity sha512-H/meyNKS/hYjLym3rUqPy/yGwVgj8bO7UzHlGLVAvirCwIQPy/H6hkUJdtzHK+O+0Y9Qn2hRyZrZo1fy0FVAYA==
   dependencies:
-    "@thirdweb-dev/chains" "0.1.73-nightly-fa637c2e3-20240214074441"
+    "@eth-optimism/sdk" "3.2.2"
+    "@thirdweb-dev/chains" "0.1.79-nightly-3e7f9cb94-20240314012159"
     "@thirdweb-dev/contracts-js" "1.3.16"
-    "@thirdweb-dev/crypto" "0.2.0"
+    "@thirdweb-dev/crypto" "0.2.1"
     "@thirdweb-dev/generated-abis" "0.0.1"
-    "@thirdweb-dev/merkletree" "0.2.0"
-    "@thirdweb-dev/storage" "2.0.9"
+    "@thirdweb-dev/merkletree" "0.2.1"
+    "@thirdweb-dev/storage" "2.0.10"
     abitype "^0.2.5"
     bn.js "^5.2.1"
     bs58 "^5.0.0"
@@ -4138,7 +4175,7 @@
     tiny-invariant "^1.2.0"
     tweetnacl "^1.0.3"
     uuid "^9.0.1"
-    yaml "^2.3.1"
+    yaml "^2.3.4"
     zod "^3.22.3"
 
 "@thirdweb-dev/service-utils@0.4.17":
@@ -4148,6 +4185,16 @@
   dependencies:
     aws4fetch "^1.0.17"
     zod "^3.22.3"
+
+"@thirdweb-dev/storage@2.0.10":
+  version "2.0.10"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-2.0.10.tgz#d9e06692b0cb37b3ff2480a6f3ec1133edf5e852"
+  integrity sha512-i7JrggQzlU97bHdGQ6cOhx1ojYUFyFsfc5MLT47pfCQxeFlUtGmWYNZ09mPPQoCgyoxFNJm5I5QLhnMrNMJtIQ==
+  dependencies:
+    "@thirdweb-dev/crypto" "0.2.1"
+    cid-tool "^3.0.0"
+    form-data "^4.0.0"
+    uuid "^9.0.1"
 
 "@thirdweb-dev/storage@2.0.4":
   version "2.0.4"
@@ -4162,16 +4209,6 @@
   version "2.0.8"
   resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-2.0.8.tgz#ffc4014d46b575d08af2f69ef360d95497773d52"
   integrity sha512-h1+3px/01jxM3Ob4fDB+11Jm9r5rEPk8NLrcuKRCRZYxfsThaINpIvmuAkvKlVR2kVvYGKTGbmPVydjNBmPkbA==
-  dependencies:
-    "@thirdweb-dev/crypto" "0.2.0"
-    cid-tool "^3.0.0"
-    form-data "^4.0.0"
-    uuid "^9.0.1"
-
-"@thirdweb-dev/storage@2.0.9":
-  version "2.0.9"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/storage/-/storage-2.0.9.tgz#cbf739c9b843471d09ec024e09cd3dd0b67a732f"
-  integrity sha512-KpttP1g0YBLv1NKqAr4xe9Pqey++tGBzgPbLzvBqNLXYa6BAuxtb01eTeWDsyLIx+WAWy0COBhqDQd4YNRawyQ==
   dependencies:
     "@thirdweb-dev/crypto" "0.2.0"
     cid-tool "^3.0.0"
@@ -12002,6 +12039,13 @@ semver@^7.1.2, semver@^7.3.2, semver@^7.3.7, semver@^7.3.8, semver@^7.5.3, semve
   dependencies:
     lru-cache "^6.0.0"
 
+semver@^7.6.0:
+  version "7.6.0"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-7.6.0.tgz#1a46a4db4bffcccd97b743b5005c8325f23d4e2d"
+  integrity sha512-EnwXhrlwXMk9gKu5/flx5sv/an57AkRplG3hTK68W7FRDN+k+OWBj65M7719OkA82XLBxrcX0KSHj+X5COhOVg==
+  dependencies:
+    lru-cache "^6.0.0"
+
 semver@~7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
@@ -13788,6 +13832,11 @@ yaml@^2.2.2, yaml@^2.3.1:
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.3.1.tgz#02fe0975d23cd441242aa7204e09fc28ac2ac33b"
   integrity sha512-2eHWfjaoXgTBC2jNM1LRef62VQa0umtvRiDSk6HSzW7RvS5YtkabJrwYLLEKWBc8a5U2PTSCs+dJjUTJdlHsWQ==
+
+yaml@^2.3.4:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.4.1.tgz#2e57e0b5e995292c25c75d2658f0664765210eed"
+  integrity sha512-pIXzoImaqmfOrL7teGUBt/T7ZDnyeGBWyXQBvOVhLkWLN37GXv8NMLK406UY6dS51JfcQHsmcW5cJ441bHg6Lg==
 
 yargs-parser@20.2.4:
   version "20.2.4"

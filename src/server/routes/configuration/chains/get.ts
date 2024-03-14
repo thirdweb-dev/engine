@@ -16,7 +16,7 @@ export async function getChainsConfiguration(fastify: FastifyInstance) {
     url: "/configuration/chains",
     schema: {
       summary: "Get chain overrides configuration",
-      description: "Get the engine configuration for chain overrides",
+      description: "Get chain overrides configuration",
       tags: ["Configuration"],
       operationId: "getChainsConfiguration",
       response: {

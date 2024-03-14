@@ -82,7 +82,7 @@ export const englishAuctionOutputSchema = Type.Object({
     }),
   ),
   id: Type.String({
-    description: "The id of the listing.",
+    description: "The listing ID.",
   }),
   minimumBidAmount: Type.Optional(
     Type.String({
