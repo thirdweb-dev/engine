@@ -24,8 +24,8 @@ export async function signTypedData(fastify: FastifyInstance) {
     method: "POST",
     url: "/backend-wallet/sign-typed-data",
     schema: {
-      summary: "Sign a EIP-712 message",
-      description: "Send a EIP-712 message",
+      summary: "Sign an EIP-712 message",
+      description: 'Send an EIP-712 message ("typed data")',
       tags: ["Backend Wallet"],
       operationId: "signTypedData",
       body: BodySchema,

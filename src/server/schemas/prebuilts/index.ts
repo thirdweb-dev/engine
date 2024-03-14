@@ -9,6 +9,7 @@ export const commonContractSchema = Type.Object({
   image: Type.Optional(Type.String()),
   external_link: Type.Optional(Type.String()),
   app_uri: Type.Optional(Type.String()),
+  defaultAdmin: Type.Optional(Type.String()),
 });
 
 export const splitRecipientInputSchema = Type.Object({
