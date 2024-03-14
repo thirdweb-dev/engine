@@ -213,11 +213,6 @@ const indexContractEvents = async ({
 
   // update the logs
   if (logs.length > 0) {
-    logger({
-      service: "worker",
-      level: "info",
-      message: `ChainId: ${chainId} indexed: ${logs.length} logs`,
-    });
     await bulkInsertContractEventLogs({ logs, pgtx });
   }
 };
@@ -262,11 +257,6 @@ const indexTransactionReceipts = async ({
   });
 
   if (txReceipts.length > 0) {
-    logger({
-      service: "worker",
-      level: "info",
-      message: `ChainId: ${chainId} indexed: ${txReceipts.length} receipts`,
-    });
     await bulkInsertContractTransactionReceipts({
       txReceipts: txReceipts,
       pgtx,
