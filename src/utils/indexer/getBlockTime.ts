@@ -7,7 +7,7 @@ const KNOWN_BLOCKTIME_SECONDS = {
 } as Record<number, number>;
 
 const DEFAULT_BLOCKTIME_SECONDS = 10;
-const BLOCKS_TO_ESTIMATE = 10;
+const BLOCKS_TO_ESTIMATE = 100;
 
 export const getBlockTimeSeconds = async (chainId: number) => {
   if (KNOWN_BLOCKTIME_SECONDS[chainId]) {
@@ -18,19 +18,24 @@ export const getBlockTimeSeconds = async (chainId: number) => {
   const provider = sdk.getProvider();
   try {
     const latestBlockNumber = await provider.getBlockNumber();
-    const blocks = [];
+    const blockNumbers = Array.from(
+      { length: BLOCKS_TO_ESTIMATE },
+      (_, i) => latestBlockNumber - i - 1,
+    );
 
-    for (let i = 0; i < BLOCKS_TO_ESTIMATE; i++) {
-      const block = await provider.getBlock(latestBlockNumber - i - 1);
-      blocks.push(block);
-    }
+    const blocks = await Promise.all(
+      blockNumbers.map(async (blockNumber) => {
+        const block = await provider.getBlock(blockNumber);
+        return block;
+      }),
+    );
 
     let totalTimeDiff = 0;
     for (let i = 0; i < blocks.length - 1; i++) {
       totalTimeDiff += blocks[i].timestamp - blocks[i + 1].timestamp;
     }
-    const averageBlockTime = totalTimeDiff / (blocks.length - 1);
 
+    const averageBlockTime = totalTimeDiff / (blocks.length - 1);
     return averageBlockTime;
   } catch (error) {
     logger({
