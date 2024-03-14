@@ -52,6 +52,7 @@ const responseSchema = Type.Object({
       }),
       types: Type.Any(),
       message: Type.Any(),
+      primaryType: Type.String(),
     }),
   }),
 });
@@ -247,7 +248,27 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
           chainId,
           verifyingContract: contractAddress,
         };
-        types = { MintRequest: MintRequest721withQuantity };
+        types = {
+          MintRequest: MintRequest721withQuantity,
+          EIP712Domain: [
+            {
+              name: "name",
+              type: "string",
+            },
+            {
+              name: "version",
+              type: "string",
+            },
+            {
+              name: "chainId",
+              type: "uint256",
+            },
+            {
+              name: "verifyingContract",
+              type: "address",
+            },
+          ],
+        };
         message = mapPayloadToContractStruct(mintPayload);
         sanitizedMessage = {
           ...message,
@@ -272,6 +293,7 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
             domain,
             types,
             message: sanitizedMessage,
+            primaryType: "MintRequest",
           },
         },
       });
