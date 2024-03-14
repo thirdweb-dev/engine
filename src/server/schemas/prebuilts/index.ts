@@ -9,6 +9,7 @@ export const commonContractSchema = Type.Object({
   image: Type.Optional(Type.String()),
   external_link: Type.Optional(Type.String()),
   app_uri: Type.Optional(Type.String()),
+  defaultAdmin: Type.Optional(Type.String()),
 });
 
 export const splitRecipientInputSchema = Type.Object({
@@ -66,7 +67,7 @@ export const voteSettingsInputSchema = Type.Object({
 });
 
 export const commonPrimarySaleSchema = Type.Object({
-  primary_sale_recipient: Type.String(),
+  primary_sale_recipient: Type.Optional(Type.String()),
 });
 
 export const commonPlatformFeeSchema = Type.Object({

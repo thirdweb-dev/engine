@@ -10,6 +10,7 @@ import { erc721GetClaimerProofs } from "./read/getClaimerProofs";
 import { erc721GetOwned } from "./read/getOwned";
 import { erc721IsApproved } from "./read/isApproved";
 import { erc721SignatureGenerate } from "./read/signatureGenerate";
+import { erc721SignaturePrepare } from "./read/signaturePrepare";
 import { erc721TotalClaimedSupply } from "./read/totalClaimedSupply";
 import { erc721TotalCount } from "./read/totalCount";
 import { erc721TotalUnclaimedSupply } from "./read/totalUnclaimedSupply";
@@ -56,4 +57,5 @@ export const erc721Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc721SignatureMint);
   await fastify.register(erc721SetClaimConditions);
   await fastify.register(erc721UpdateClaimConditions);
+  await fastify.register(erc721SignaturePrepare);
 };
