@@ -15,7 +15,7 @@ import {
 } from "@thirdweb-dev/sdk";
 import { ThirdwebStorage } from "@thirdweb-dev/storage";
 import BN from "bn.js";
-import ethers, { BigNumber, utils } from "ethers";
+import ethers, { BigNumber, TypedDataField, utils } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { v4 as uuid } from "uuid";
@@ -35,9 +35,7 @@ import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validato
 
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
-const requestBodySchema = Type.Object({
-  ...signature721InputSchema.properties,
-});
+const requestBodySchema = Type.Omit(signature721InputSchema, ["uid"]);
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -52,37 +50,75 @@ const responseSchema = Type.Object({
       }),
       types: Type.Any(),
       message: Type.Any(),
+      primaryType: Type.String(),
     }),
   }),
 });
 
+const EIP721DomainTypes = [
+  {
+    name: "name",
+    type: "string",
+  },
+  {
+    name: "version",
+    type: "string",
+  },
+  {
+    name: "chainId",
+    type: "uint256",
+  },
+  {
+    name: "verifyingContract",
+    type: "address",
+  },
+];
+
 responseSchema.example = {
   result: {
     mintPayload: {
-      to: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+      to: "0x...",
       price: "0",
-      currencyAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      currencyAddress: "0x...",
       mintStartTime: "1704664293",
       mintEndTime: "1751925093",
-      uid: "0x3732346162373763346432663433333462383134353662343761373166636239",
-      primarySaleRecipient: "0x0000000000000000000000000000000000000000",
+      uid: "0x...",
+      primarySaleRecipient: "0x...",
       metadata: {
         name: "test token",
         description: "test token",
       },
-      royaltyRecipient: "0x0000000000000000000000000000000000000000",
+      royaltyRecipient: "0x...",
       royaltyBps: "0",
       quantity: "1",
-      uri: "ipfs://Qmaf55psrmeckXZ6yo4DTL7fUYeMR4t6XArY5NgMrKN9VA/0",
+      uri: "ipfs://...",
     },
     typedDataPayload: {
       domain: {
         name: "TokenERC721",
         version: "1",
         chainId: 84532,
-        verifyingContract: "0x9ca57B9341dCB029a5b11163C9a47FB65BA6F4c3",
+        verifyingContract: "0x...",
       },
       types: {
+        EIP712Domain: [
+          {
+            name: "name",
+            type: "string",
+          },
+          {
+            name: "version",
+            type: "string",
+          },
+          {
+            name: "chainId",
+            type: "uint256",
+          },
+          {
+            name: "verifyingContract",
+            type: "address",
+          },
+        ],
         MintRequest: [
           {
             name: "to",
@@ -127,17 +163,18 @@ responseSchema.example = {
         ],
       },
       message: {
-        to: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-        royaltyRecipient: "0x0000000000000000000000000000000000000000",
+        to: "0x...",
+        royaltyRecipient: "0x...",
         royaltyBps: "0",
-        primarySaleRecipient: "0x0000000000000000000000000000000000000000",
+        primarySaleRecipient: "0x...",
         price: "0",
-        uri: "ipfs://Qmaf55psrmeckXZ6yo4DTL7fUYeMR4t6XArY5NgMrKN9VA/0",
-        currency: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        uri: "ipfs://...",
+        currency: "0x...",
         validityEndTimestamp: "1751925093",
         validityStartTimestamp: "1704664293",
-        uid: "0x3732346162373763346432663433333462383134353662343761373166636239",
+        uid: "0x...",
       },
+      primaryType: "MintRequest",
     },
   },
 };
@@ -176,7 +213,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         quantity,
         royaltyBps,
         royaltyRecipient,
-        uid,
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
@@ -202,7 +238,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         quantity,
         royaltyBps,
         royaltyRecipient,
-        uid,
       });
 
       const uri = await uploadOrExtractURI(metadata, storage);
@@ -219,7 +254,10 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
 
       // Build the data fields needed to be signed by a minter wallet.
       let domain;
-      let types;
+
+      let types: Record<string, Array<TypedDataField>> = {
+        EIP712Domain: EIP721DomainTypes,
+      };
       let message:
         | ISignatureMintERC721.MintRequestStructOutput
         | ITokenERC721.MintRequestStructOutput;
@@ -231,7 +269,10 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
           chainId,
           verifyingContract: contractAddress,
         };
-        types = { MintRequest: MintRequest721 };
+        types = {
+          ...types,
+          MintRequest: MintRequest721,
+        };
         message = mapLegacyPayloadToContractStruct(mintPayload);
         sanitizedMessage = {
           ...message,
@@ -247,7 +288,10 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
           chainId,
           verifyingContract: contractAddress,
         };
-        types = { MintRequest: MintRequest721withQuantity };
+        types = {
+          ...types,
+          MintRequest: MintRequest721withQuantity,
+        };
         message = mapPayloadToContractStruct(mintPayload);
         sanitizedMessage = {
           ...message,
@@ -272,6 +316,7 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
             domain,
             types,
             message: sanitizedMessage,
+            primaryType: "MintRequest",
           },
         },
       });
