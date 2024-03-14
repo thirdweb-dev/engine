@@ -41,12 +41,21 @@ export const addChainIndexer = async (chainId: number) => {
   const task = cron.schedule(cronSchedule, async () => {
     if (!processStarted) {
       processStarted = true;
+      const startTime = performance.now();
+
       try {
         await handler();
       } catch (error) {
         // do nothing
       } finally {
         processStarted = false;
+        const endTime = performance.now();
+        const executionTime = endTime - startTime;
+        logger({
+          service: "worker",
+          level: "info",
+          message: `Indexing completed for chainId: ${chainId}. Execution time: ${executionTime} ms`,
+        });
       }
     }
   });

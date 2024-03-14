@@ -17,7 +17,7 @@ export interface GetSubscribedContractsLogsParams {
   chainId: number;
   contractAddresses: string[];
   fromBlock: number;
-  toBlock: number;
+  toBlock: number; // note: getLogs is inclusive
 }
 
 /**
@@ -57,33 +57,41 @@ export const getBlocksAndTransactions = async ({
   const sdk = await getSdk({ chainId: chainId });
   const provider = sdk.getProvider();
 
-  const blocks: BlockWithTransactions[] = [];
+  const blockNumbers = Array.from(
+    { length: toBlock - fromBlock + 1 },
+    (_, index) => fromBlock + index,
+  );
+
+  const blocksWithTransactionsAndReceipts = await Promise.all(
+    blockNumbers.map(async (blockNumber) => {
+      const block = await provider.getBlockWithTransactions(blockNumber);
+      const blockTransactionsWithReceipt = await Promise.all(
+        block.transactions
+          .filter(
+            (transaction) =>
+              transaction.to &&
+              contractAddresses.includes(transaction.to.toLowerCase()),
+          )
+          .map(async (transaction) => {
+            const receipt = await provider.getTransactionReceipt(
+              transaction.hash,
+            );
+            return { transaction, receipt };
+          }),
+      );
+      return { block, blockTransactionsWithReceipt };
+    }),
+  );
+
+  const blocks: BlockWithTransactions[] = blocksWithTransactionsAndReceipts.map(
+    ({ block }) => block,
+  );
   const transactionsWithReceipt: {
     receipt: ethers.providers.TransactionReceipt;
     transaction: ethers.Transaction;
-  }[] = [];
-
-  for (let blockNumber = fromBlock; blockNumber <= toBlock; blockNumber++) {
-    const block = await provider.getBlockWithTransactions(blockNumber);
-    blocks.push(block);
-
-    const blockTransactionsWithReceipt = await Promise.all(
-      block.transactions
-        .filter(
-          (transaction) =>
-            transaction.to &&
-            contractAddresses.includes(transaction.to.toLowerCase()),
-        )
-        .map(async (transaction) => {
-          const receipt = await provider.getTransactionReceipt(
-            transaction.hash,
-          );
-          return { transaction, receipt };
-        }),
-    );
-
-    transactionsWithReceipt.push(...blockTransactionsWithReceipt);
-  }
+  }[] = blocksWithTransactionsAndReceipts.flatMap(
+    ({ blockTransactionsWithReceipt }) => blockTransactionsWithReceipt,
+  );
 
   return { blocks, transactionsWithReceipt };
 };
@@ -152,11 +160,7 @@ export const getSubscribedContractsLogs = async (
           return acc;
         }, {} as Record<string, { type: string; value: string }>);
       } catch (error) {
-        logger({
-          service: "worker",
-          level: "warn",
-          message: `Failed to decode log: chainId: ${params.chainId}, contractAddress ${contractAddress}`,
-        });
+        // remove warning for non-decoded logs
       }
     }
 
@@ -188,7 +192,7 @@ interface IndexFnParams {
   pgtx: PrismaTransaction;
   chainId: number;
   fromBlockNumber: number;
-  toBlockNumber: number;
+  toBlockNumber: number; // INCLUSIVE
   subscribedContractAddresses: string[];
 }
 
@@ -209,6 +213,11 @@ const indexContractEvents = async ({
 
   // update the logs
   if (logs.length > 0) {
+    logger({
+      service: "worker",
+      level: "info",
+      message: `ChainId: ${chainId} indexed: ${logs.length} logs`,
+    });
     await bulkInsertContractEventLogs({ logs, pgtx });
   }
 };
@@ -253,6 +262,11 @@ const indexTransactionReceipts = async ({
   });
 
   if (txReceipts.length > 0) {
+    logger({
+      service: "worker",
+      level: "info",
+      message: `ChainId: ${chainId} indexed: ${txReceipts.length} receipts`,
+    });
     await bulkInsertContractTransactionReceipts({
       txReceipts: txReceipts,
       pgtx,
@@ -325,7 +339,7 @@ export const createChainIndexerTask = async (
             await upsertChainIndexer({
               pgtx,
               chainId,
-              currentBlockNumber: toBlockNumber,
+              currentBlockNumber: toBlockNumber, // last indexed block
             });
           } catch (error) {
             logger({
