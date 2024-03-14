@@ -38,12 +38,6 @@ export const addChainIndexer = async (chainId: number) => {
       } finally {
         processStarted = false;
       }
-    } else {
-      logger({
-        service: "worker",
-        level: "warn",
-        message: `ChainIndexer: ${chainId} process already running, skipping`,
-      });
     }
   });
 
