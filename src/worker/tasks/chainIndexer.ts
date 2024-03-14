@@ -8,7 +8,6 @@ import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createCo
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
 import { PrismaTransaction } from "../../schema/prisma";
-import { getConfig } from "../../utils/cache/getConfig";
 import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
@@ -261,7 +260,10 @@ const indexTransactionReceipts = async ({
   }
 };
 
-export const createChainIndexerTask = async (chainId: number) => {
+export const createChainIndexerTask = async (
+  chainId: number,
+  maxBlocksToIndex: number,
+) => {
   const chainIndexerTask = async () => {
     try {
       await prisma.$transaction(
@@ -275,7 +277,6 @@ export const createChainIndexerTask = async (chainId: number) => {
           }
 
           const sdk = await getSdk({ chainId });
-          const config = await getConfig();
 
           const provider = sdk.getProvider();
           const currentBlockNumber = await provider.getBlockNumber();
@@ -287,11 +288,8 @@ export const createChainIndexerTask = async (chainId: number) => {
 
           // limit max block numbers
           let toBlockNumber = currentBlockNumber;
-          if (
-            currentBlockNumber - (lastIndexedBlock + 1) >
-            config.maxBlocksToIndex
-          ) {
-            toBlockNumber = lastIndexedBlock + 1 + config.maxBlocksToIndex;
+          if (currentBlockNumber - (lastIndexedBlock + 1) > maxBlocksToIndex) {
+            toBlockNumber = lastIndexedBlock + 1 + maxBlocksToIndex;
           }
 
           const subscribedContracts = await getContractSubscriptionsByChainId(

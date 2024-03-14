@@ -1,4 +1,5 @@
 import cron from "node-cron";
+import { getConfig } from "../../utils/cache/getConfig";
 import { getBlockTimeSeconds } from "../../utils/indexer/getBlockTime";
 import { logger } from "../../utils/logger";
 import { createChainIndexerTask } from "../tasks/chainIndexer";
@@ -16,16 +17,25 @@ export const addChainIndexer = async (chainId: number) => {
   }
 
   let processStarted = false;
-
+  const config = await getConfig();
   const blockTimeSeconds = await getBlockTimeSeconds(chainId);
-  const handler = await createChainIndexerTask(chainId);
 
-  const cronSchedule = createScheduleSeconds(blockTimeSeconds);
+  const blocksIn5Seconds = Math.round((1 / blockTimeSeconds) * 5);
+  const maxBlocksToIndex = Math.max(
+    config.maxBlocksToIndex,
+    blocksIn5Seconds * 4,
+  );
+
+  const handler = await createChainIndexerTask(chainId, maxBlocksToIndex);
+
+  const cronSchedule = createScheduleSeconds(
+    Math.max(Math.round(blockTimeSeconds), 1),
+  );
 
   logger({
     service: "worker",
     level: "info",
-    message: `Indexing contracts on chainId: ${chainId} with schedule: ${cronSchedule}`,
+    message: `Indexing contracts on chainId: ${chainId} with schedule: ${cronSchedule}, max blocks to index: ${maxBlocksToIndex}`,
   });
 
   const task = cron.schedule(cronSchedule, async () => {
