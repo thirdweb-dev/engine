@@ -7,6 +7,7 @@ import { prisma } from "../../db/client";
 import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
+import { PrismaTransaction } from "../../schema/prisma";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
@@ -184,6 +185,82 @@ export const getSubscribedContractsLogs = async (
   return formattedLogs;
 };
 
+interface IndexFnParams {
+  pgtx: PrismaTransaction;
+  chainId: number;
+  fromBlockNumber: number;
+  toBlockNumber: number;
+  subscribedContractAddresses: string[];
+}
+
+const indexContractEvents = async ({
+  pgtx,
+  chainId,
+  fromBlockNumber,
+  toBlockNumber,
+  subscribedContractAddresses,
+}: IndexFnParams) => {
+  // get all logs for the contracts
+  const logs = await getSubscribedContractsLogs({
+    chainId,
+    fromBlock: fromBlockNumber,
+    toBlock: toBlockNumber,
+    contractAddresses: subscribedContractAddresses,
+  });
+
+  // update the logs
+  if (logs.length > 0) {
+    await bulkInsertContractEventLogs({ logs, pgtx });
+  }
+};
+
+const indexTransactionReceipts = async ({
+  pgtx,
+  chainId,
+  fromBlockNumber,
+  toBlockNumber,
+  subscribedContractAddresses,
+}: IndexFnParams) => {
+  const { blocks, transactionsWithReceipt } = await getBlocksAndTransactions({
+    chainId,
+    fromBlock: fromBlockNumber,
+    toBlock: toBlockNumber,
+    contractAddresses: subscribedContractAddresses,
+  });
+
+  const blockLookup = blocks.reduce((acc, curr) => {
+    acc[curr.number] = curr;
+    return acc;
+  }, {} as Record<number, BlockWithTransactions>);
+
+  const txReceipts = transactionsWithReceipt.map(({ receipt, transaction }) => {
+    return {
+      chainId: chainId,
+      blockNumber: receipt.blockNumber,
+      contractAddress: receipt.to.toLowerCase(),
+      contractId: getContractId(chainId, receipt.to.toLowerCase()),
+      transactionHash: receipt.transactionHash.toLowerCase(),
+      blockHash: receipt.blockHash.toLowerCase(),
+      timestamp: new Date(blockLookup[receipt.blockNumber].timestamp),
+      to: receipt.to.toLowerCase(),
+      from: receipt.from.toLowerCase(),
+      value: transaction.value.toString(),
+      data: transaction.data,
+      transactionIndex: receipt.transactionIndex,
+      gasUsed: receipt.gasUsed.toString(),
+      effectiveGasPrice: receipt.effectiveGasPrice.toString(),
+      status: receipt.status ?? 1, // requires post-byzantium
+    };
+  });
+
+  if (txReceipts.length > 0) {
+    await bulkInsertContractTransactionReceipts({
+      txReceipts: txReceipts,
+      pgtx,
+    });
+  }
+};
+
 export const createChainIndexerTask = async (chainId: number) => {
   const chainIndexerTask = async () => {
     try {
@@ -217,7 +294,6 @@ export const createChainIndexerTask = async (chainId: number) => {
             toBlockNumber = lastIndexedBlock + 1 + config.maxBlocksToIndex;
           }
 
-          // get contracts to index
           const subscribedContracts = await getContractSubscriptionsByChainId(
             chainId,
           );
@@ -229,60 +305,22 @@ export const createChainIndexerTask = async (chainId: number) => {
             ),
           ];
 
-          // get all logs for the contracts
-          const logs = await getSubscribedContractsLogs({
-            chainId,
-            fromBlock: lastIndexedBlock + 1,
-            toBlock: toBlockNumber,
-            contractAddresses: subscribedContractAddresses,
-          });
-
-          // update the logs
-          if (logs.length > 0) {
-            await bulkInsertContractEventLogs({ logs, pgtx });
-          }
-
-          const { blocks, transactionsWithReceipt } =
-            await getBlocksAndTransactions({
-              chainId,
-              fromBlock: lastIndexedBlock + 1,
-              toBlock: toBlockNumber,
-              contractAddresses: subscribedContractAddresses,
-            });
-
-          const blockLookup = blocks.reduce((acc, curr) => {
-            acc[curr.number] = curr;
-            return acc;
-          }, {} as Record<number, BlockWithTransactions>);
-
-          const txReceipts = transactionsWithReceipt.map(
-            ({ receipt, transaction }) => {
-              return {
-                chainId: chainId,
-                blockNumber: receipt.blockNumber,
-                contractAddress: receipt.to.toLowerCase(),
-                contractId: getContractId(chainId, receipt.to.toLowerCase()),
-                transactionHash: receipt.transactionHash.toLowerCase(),
-                blockHash: receipt.blockHash.toLowerCase(),
-                timestamp: new Date(blockLookup[receipt.blockNumber].timestamp),
-                to: receipt.to.toLowerCase(),
-                from: receipt.from.toLowerCase(),
-                value: transaction.value.toString(),
-                data: transaction.data,
-                transactionIndex: receipt.transactionIndex,
-                gasUsed: receipt.gasUsed.toString(),
-                effectiveGasPrice: receipt.effectiveGasPrice.toString(),
-                status: receipt.status ?? 1, // requires post-byzantium
-              };
-            },
-          );
-
-          if (txReceipts.length > 0) {
-            await bulkInsertContractTransactionReceipts({
-              txReceipts: txReceipts,
+          await Promise.all([
+            indexContractEvents({
               pgtx,
-            });
-          }
+              chainId,
+              fromBlockNumber: lastIndexedBlock + 1,
+              toBlockNumber,
+              subscribedContractAddresses,
+            }),
+            indexTransactionReceipts({
+              pgtx,
+              chainId,
+              fromBlockNumber: lastIndexedBlock + 1,
+              toBlockNumber,
+              subscribedContractAddresses,
+            }),
+          ]);
 
           // update the block number
           try {
