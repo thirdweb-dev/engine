@@ -1,3 +1,4 @@
+import { chainIndexerListener } from "./listeners/chainIndexerListener";
 import {
   newConfigurationListener,
   updatedConfigurationListener,
@@ -31,4 +32,6 @@ export const initWorker = async () => {
   // Listen for new & updated webhooks data
   await newWebhooksListener();
   await updatedWebhooksListener();
+
+  await chainIndexerListener();
 };
