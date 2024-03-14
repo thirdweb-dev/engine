@@ -57,7 +57,7 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
     url: "/configuration/wallets",
     schema: {
       summary: "Update wallets configuration",
-      description: "Update the engine configuration for wallets",
+      description: "Update wallets configuration",
       tags: ["Configuration"],
       operationId: "updateWalletsConfiguration",
       body: BodySchema,

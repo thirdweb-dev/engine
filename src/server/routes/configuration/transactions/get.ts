@@ -27,7 +27,7 @@ export async function getTransactionConfiguration(fastify: FastifyInstance) {
     url: "/configuration/transactions",
     schema: {
       summary: "Get transaction processing configuration",
-      description: "Get the engine configuration for processing transactions",
+      description: "Get transactions processing configuration",
       tags: ["Configuration"],
       operationId: "getTransactionConfiguration",
       response: {

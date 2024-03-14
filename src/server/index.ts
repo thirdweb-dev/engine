@@ -89,14 +89,18 @@ export const initServer = async () => {
     },
   );
 
+  const url = `${env.ENABLE_HTTPS ? "https://" : "http://"}localhost:${
+    env.PORT
+  }`;
+
   logger({
     service: "server",
     level: "info",
-    message: `Listening on ${
-      env.ENABLE_HTTPS ? "https://" : "http://"
-    }localhost:${
+    message: `Engine server is listening on port ${
       env.PORT
-    }. Manage your Engine from https://thirdweb.com/dashboard/engine.`,
+    }. Add to your dashboard: https://thirdweb.com/dashboard/engine?importUrl=${encodeURIComponent(
+      url,
+    )}.`,
   });
 
   writeOpenApiToFile(server);

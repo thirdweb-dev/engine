@@ -19,7 +19,7 @@ export async function updateAuthConfiguration(fastify: FastifyInstance) {
     url: "/configuration/auth",
     schema: {
       summary: "Update auth configuration",
-      description: "Update the engine configuration for auth",
+      description: "Update auth configuration",
       tags: ["Configuration"],
       operationId: "updateAuthConfiguration",
       body: BodySchema,

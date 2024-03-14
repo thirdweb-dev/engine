@@ -23,6 +23,11 @@ model Configuration {
   maxFeePerGasForRetries             String  @map("maxFeePerGasForRetries")
   maxPriorityFeePerGasForRetries     String  @map("maxPriorityFeePerGasForRetries")
   maxRetriesPerTx                    Int     @map("maxRetriesPerTx")
+  // Contract Indexer Updates
+  indexerListenerCronSchedule        String? @map("indexerListenerCronSchedule")
+  maxBlocksToIndex                   Int     @default(25) @map("maxBlocksToIndex")
+  cursorDelaySeconds                 Int     @default(2) @map("cursorDelaySeconds")
+
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")
   awsSecretAccessKey                 String? @map("awsSecretAccessKey")
@@ -175,4 +180,90 @@ model Relayers {
   allowedForwarders    String? @map("allowedForwarders")
 
   @@map("relayers")
+}
+
+model ContractSubscriptions {
+  id                 String  @id @default(uuid()) @map("id")
+  chainId            Int  
+  contractAddress    String
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  deletedAt          DateTime?
+
+  // optimize distinct lookups
+  @@index([chainId])
+
+  @@map("contract_subscriptions")
+}
+
+model ContractEventLogs {
+  chainId            Int
+  blockNumber        Int
+  contractAddress    String
+  transactionHash    String
+  topic0             String?
+  topic1             String?
+  topic2             String?
+  topic3             String?
+  data               String
+  eventName          String?
+  decodedLog         Json?
+  timestamp          DateTime
+  transactionIndex   Int
+  logIndex           Int
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@id([transactionHash, logIndex])
+
+  @@map("contract_event_logs")
+
+  @@index([timestamp])
+  @@index([blockNumber])
+  @@index([contractAddress])
+  @@index([topic0])
+  @@index([topic1])
+  @@index([topic2])
+  @@index([topic3])
+}
+
+model ContractTransactionReceipts {
+  chainId            Int
+  blockNumber        Int
+  contractAddress    String
+  contractId         String // ${chainId}:${contractAddress}
+  transactionHash    String 
+  blockHash          String
+  timestamp          DateTime
+  data               String
+  
+  to                 String
+  from               String
+  value              String
+  transactionIndex   Int
+
+  gasUsed            String
+  effectiveGasPrice  String             
+  status             Int
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([chainId, transactionHash])
+
+  @@index([contractId, timestamp])
+  @@index([contractId, blockNumber])
+
+  @@map("contract_transaction_receipts")
+}
+
+model ChainIndexers {
+  chainId            Int       @id
+  lastIndexedBlock   Int
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("chain_indexers")
 }

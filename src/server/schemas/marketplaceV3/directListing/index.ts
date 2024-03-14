@@ -71,7 +71,7 @@ export const directListingV3OutputSchema = Type.Object({
     }),
   ),
   id: Type.String({
-    description: "The id of the listing.",
+    description: "The listing ID.",
   }),
   currencyValuePerToken: Type.Optional(currencyValueSchema),
   asset: Type.Optional(nftMetadataSchema),
