@@ -241,7 +241,7 @@ const indexTransactionReceipts = async ({
       contractId: getContractId(chainId, receipt.to.toLowerCase()),
       transactionHash: receipt.transactionHash.toLowerCase(),
       blockHash: receipt.blockHash.toLowerCase(),
-      timestamp: new Date(blockLookup[receipt.blockNumber].timestamp),
+      timestamp: new Date(blockLookup[receipt.blockNumber].timestamp * 1000),
       to: receipt.to.toLowerCase(),
       from: receipt.from.toLowerCase(),
       value: transaction.value.toString(),
