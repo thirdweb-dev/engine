@@ -45,7 +45,7 @@
     "@thirdweb-dev/chains": "^0.1.77",
     "@thirdweb-dev/sdk": "^4.0.46-nightly-3e7f9cb94-20240314012159",
     "@thirdweb-dev/service-utils": "0.4.17",
-    "@thirdweb-dev/wallets": "^2.1.5",
+    "@thirdweb-dev/wallets": "^2.4.21",
     "@types/base-64": "^1.0.2",
     "base-64": "^1.0.0",
     "body-parser": "^1.20.2",
