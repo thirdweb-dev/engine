@@ -27,6 +27,7 @@ import { erc1155SignatureMint } from "./write/signatureMint";
 import { erc1155transfer } from "./write/transfer";
 import { erc1155transferFrom } from "./write/transferFrom";
 import { erc1155UpdateClaimConditions } from "./write/updateClaimConditions";
+import { erc1155UpdateTokeneMetadata } from "./write/updateTokenMetadata";
 
 export const erc1155Routes = async (fastify: FastifyInstance) => {
   // GET
@@ -60,4 +61,5 @@ export const erc1155Routes = async (fastify: FastifyInstance) => {
   await fastify.register(erc1155SetClaimCondition);
   await fastify.register(erc1155SetBatchClaimConditions);
   await fastify.register(erc1155UpdateClaimConditions);
+  await fastify.register(erc1155UpdateTokeneMetadata);
 };
