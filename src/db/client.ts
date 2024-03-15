@@ -88,23 +88,23 @@ export const shutdownRedisClient = async () => {
 };
 
 // Graceful shutdown handling for the process
-process.on("SIGINT", async () => {
-  // Handle other graceful shutdown logic here, if necessary
-  await shutdownRedisClient();
-  await prisma.$disconnect();
-  await knex.destroy();
-  // Exit the process after all shutdown tasks are complete
-  process.exit(0);
-});
+// process.on("SIGINT", async () => {
+//   // Handle other graceful shutdown logic here, if necessary
+//   await shutdownRedisClient();
+//   await prisma.$disconnect();
+//   await knex.destroy();
+//   // Exit the process after all shutdown tasks are complete
+//   process.exit(0);
+// });
 
-process.on("SIGTERM", async () => {
-  // Handle other graceful shutdown logic here, if necessary
-  await shutdownRedisClient();
-  await prisma.$disconnect();
-  await knex.destroy();
-  // Exit the process after all shutdown tasks are complete
-  process.exit(0);
-});
+// process.on("SIGTERM", async () => {
+//   // Handle other graceful shutdown logic here, if necessary
+//   await shutdownRedisClient();
+//   await prisma.$disconnect();
+//   await knex.destroy();
+//   // Exit the process after all shutdown tasks are complete
+//   process.exit(0);
+// });
 
 // Initialize BullMQ
 export const bullMQConnection = {
