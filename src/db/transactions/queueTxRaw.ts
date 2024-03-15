@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { simulateTx } from "../../server/utils/simulateTx";
 import { reportUsage, UsageEventTxActionEnum } from "../../utils/usage";
 import { sendWebhooks } from "../../utils/webhook";
@@ -63,7 +63,7 @@ export const queueTxRaw = async ({
   sendWebhooks([
     {
       queueId: insertedData.id,
-      status: TransactionStatusEnum.Queued,
+      status: TransactionStatus.Queued,
     },
   ]).catch((err) => {});
 

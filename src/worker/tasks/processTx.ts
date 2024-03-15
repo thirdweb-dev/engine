@@ -16,7 +16,7 @@ import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
 import { WalletBalanceWebhookSchema } from "../../schema/webhooks";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { msSince } from "../../utils/date";
@@ -61,7 +61,7 @@ export const processTx = async () => {
           message: `Received ${txs.length} transactions to process`,
         });
 
-        // 2. Update and sort transactions and user operations.
+        // 2. Sort transactions and user operations.
         const txsToSend: Transactions[] = [];
         const userOpsToSend: Transactions[] = [];
         for (const tx of txs) {
@@ -70,14 +70,6 @@ export const processTx = async () => {
             level: "info",
             queueId: tx.id,
             message: `Processing`,
-          });
-
-          await updateTx({
-            pgtx,
-            queueId: tx.id,
-            data: {
-              status: TransactionStatusEnum.Processed,
-            },
           });
 
           if (tx.accountAddress && tx.signerAddress) {
@@ -219,7 +211,7 @@ export const processTx = async () => {
                 });
                 sendWebhookForQueueIds.push({
                   queueId: tx.id,
-                  status: TransactionStatusEnum.Submitted,
+                  status: TransactionStatus.Sent,
                 });
               } else if (
                 typeof rpcResponse.error?.message === "string" &&
@@ -240,7 +232,7 @@ export const processTx = async () => {
                 });
                 sendWebhookForQueueIds.push({
                   queueId: tx.id,
-                  status: TransactionStatusEnum.Errored,
+                  status: TransactionStatus.Errored,
                 });
               }
             } catch (err: any) {
@@ -249,7 +241,7 @@ export const processTx = async () => {
 
               sendWebhookForQueueIds.push({
                 queueId: tx.id,
-                status: TransactionStatusEnum.Errored,
+                status: TransactionStatus.Errored,
               });
               reportUsageForQueueIds.push({
                 input: {
@@ -277,7 +269,7 @@ export const processTx = async () => {
                 pgtx,
                 queueId: tx.id,
                 data: {
-                  status: TransactionStatusEnum.Errored,
+                  status: TransactionStatus.Errored,
                   errorMessage: await parseTxError(tx, err),
                 },
               });
@@ -301,7 +293,7 @@ export const processTx = async () => {
                   pgtx,
                   queueId: tx.id,
                   data: {
-                    status: TransactionStatusEnum.Submitted,
+                    status: TransactionStatus.Sent,
                     transactionHash,
                     res: txRequest,
                     sentAt: new Date(),
@@ -328,7 +320,7 @@ export const processTx = async () => {
                   pgtx,
                   queueId: tx.id,
                   data: {
-                    status: TransactionStatusEnum.Errored,
+                    status: TransactionStatus.Errored,
                     errorMessage: await parseTxError(tx, rpcResponse.error),
                   },
                 });
@@ -388,13 +380,13 @@ export const processTx = async () => {
               queueId: tx.id,
               data: {
                 sentAt: new Date(),
-                status: TransactionStatusEnum.UserOpSent,
+                status: TransactionStatus.UserOpSent,
                 userOpHash,
               },
             });
             sendWebhookForQueueIds.push({
               queueId: tx.id,
-              status: TransactionStatusEnum.UserOpSent,
+              status: TransactionStatus.UserOpSent,
             });
             reportUsageForQueueIds.push({
               input: {
@@ -423,13 +415,13 @@ export const processTx = async () => {
               pgtx,
               queueId: tx.id,
               data: {
-                status: TransactionStatusEnum.Errored,
+                status: TransactionStatus.Errored,
                 errorMessage: await parseTxError(tx, err),
               },
             });
             sendWebhookForQueueIds.push({
               queueId: tx.id,
-              status: TransactionStatusEnum.Errored,
+              status: TransactionStatus.Errored,
             });
             reportUsageForQueueIds.push({
               input: {

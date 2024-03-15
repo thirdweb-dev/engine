@@ -3,7 +3,7 @@ import { Static } from "@sinclair/typebox";
 import { ContractExtension } from "../../schema/extension";
 import { PrismaTransaction } from "../../schema/prisma";
 import {
-  TransactionStatusEnum,
+  TransactionStatus,
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
@@ -13,7 +13,7 @@ interface GetAllTxsParams {
   pgtx?: PrismaTransaction;
   page: number;
   limit: number;
-  filter?: TransactionStatusEnum;
+  filter?: TransactionStatus;
   extensions?: ContractExtension[];
 }
 
