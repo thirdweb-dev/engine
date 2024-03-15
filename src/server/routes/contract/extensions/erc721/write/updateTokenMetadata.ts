@@ -16,12 +16,14 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  tokenId: Type.String(),
+  tokenId: Type.String({
+    description: "Token ID to update metadata",
+  }),
   metadata: nftMetadataInputSchema,
 });
 
 // LOGIC
-export async function erc721UpdateTokeneMetadata(fastify: FastifyInstance) {
+export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
