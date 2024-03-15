@@ -34,7 +34,6 @@ export const updateMinedUserOps = async () => {
                 walletAddress: userOp.signerAddress!,
                 accountAddress: userOp.accountAddress!,
               });
-
               const signer = sdk.getSigner() as ERC4337EthersSigner;
 
               const txHash = await signer.smartAccountAPI.getUserOpReceipt(
