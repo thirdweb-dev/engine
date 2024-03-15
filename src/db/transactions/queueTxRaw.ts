@@ -1,6 +1,9 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaTransaction } from "../../schema/prisma";
+import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { simulateTx } from "../../server/utils/simulateTx";
+import { reportUsage, UsageEventTxActionEnum } from "../../utils/usage";
+import { sendWebhooks } from "../../utils/webhook";
 import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
@@ -45,7 +48,7 @@ export const queueTxRaw = async ({
     await simulateTx({ txRaw: tx });
   }
 
-  return prisma.transactions.create({
+  const insertedData = await prisma.transactions.create({
     data: {
       ...tx,
       fromAddress: tx.fromAddress?.toLowerCase(),
@@ -55,4 +58,29 @@ export const queueTxRaw = async ({
       accountAddress: tx.accountAddress?.toLowerCase(),
     },
   });
+
+  // Send queued webhook.
+  sendWebhooks([
+    {
+      queueId: insertedData.id,
+      status: TransactionStatusEnum.Queued,
+    },
+  ]).catch((err) => {});
+
+  reportUsage([
+    {
+      input: {
+        chainId: tx.chainId || undefined,
+        fromAddress: tx.fromAddress || undefined,
+        toAddress: tx.toAddress || undefined,
+        value: tx.value || undefined,
+        transactionHash: tx.transactionHash || undefined,
+        functionName: tx.functionName || undefined,
+        extension: tx.extension || undefined,
+      },
+      action: UsageEventTxActionEnum.QueueTx,
+    },
+  ]);
+
+  return insertedData;
 };

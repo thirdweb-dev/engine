@@ -61,29 +61,6 @@ export const processTx = async () => {
           message: `Received ${txs.length} transactions to process`,
         });
 
-        // Send queued webhook.
-        await sendWebhooks(
-          txs.map((tx) => ({
-            queueId: tx.id,
-            status: TransactionStatusEnum.Queued,
-          })),
-        );
-
-        reportUsage(
-          txs.map((tx) => ({
-            input: {
-              chainId: tx.chainId || undefined,
-              fromAddress: tx.fromAddress || undefined,
-              toAddress: tx.toAddress || undefined,
-              value: tx.value || undefined,
-              transactionHash: tx.transactionHash || undefined,
-              functionName: tx.functionName || undefined,
-              extension: tx.extension || undefined,
-            },
-            action: UsageEventTxActionEnum.QueueTx,
-          })),
-        );
-
         // 2. Update and sort transactions and user operations.
         const txsToSend: Transactions[] = [];
         const userOpsToSend: Transactions[] = [];
