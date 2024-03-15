@@ -379,22 +379,26 @@ export const processTx = async () => {
         // 5. Send all user operations in parallel.
         const sentUserOps = userOpsToSend.map(async (tx) => {
           try {
-            const signer = (
-              await getSdk({
-                pgtx,
-                chainId: parseInt(tx.chainId!),
-                walletAddress: tx.signerAddress!,
-                accountAddress: tx.accountAddress!,
-              })
-            ).getSigner() as ERC4337EthersSigner;
+            const sdk = await getSdk({
+              pgtx,
+              chainId: parseInt(tx.chainId!),
+              walletAddress: tx.signerAddress!,
+              accountAddress: tx.accountAddress!,
+            });
+            const signer = sdk.getSigner() as ERC4337EthersSigner;
 
             const nonce = randomNonce();
-            const userOp = await signer.smartAccountAPI.createSignedUserOp({
-              target: tx.target || "",
-              data: tx.data || "0x",
-              value: tx.value ? BigNumber.from(tx.value) : undefined,
-              nonce,
-            });
+            const unsignedOp =
+              await signer.smartAccountAPI.createUnsignedUserOp(
+                signer.httpRpcClient,
+                {
+                  target: tx.target || "",
+                  data: tx.data || "0x",
+                  value: tx.value ? BigNumber.from(tx.value) : undefined,
+                  nonce,
+                },
+              );
+            const userOp = await signer.smartAccountAPI.signUserOp(unsignedOp);
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
             );
