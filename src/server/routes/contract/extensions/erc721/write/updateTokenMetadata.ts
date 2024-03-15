@@ -31,7 +31,7 @@ export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contractAddress/erc721/metadata/update",
+    url: "/contract/:chain/:contractAddress/erc721/token/update",
     schema: {
       summary: "Update token metadata",
       description: "Update the metadata for an ERC721 token.",
