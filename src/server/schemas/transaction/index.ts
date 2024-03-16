@@ -188,6 +188,7 @@ export const transactionResponseSchema = Type.Object({
   functionName: Type.Union([Type.String(), Type.Null()]),
   functionArgs: Type.Union([Type.String(), Type.Null()]),
   onChainTxStatus: Type.Union([Type.Number(), Type.Null()]),
+  customMetadata: Type.Union([Type.String(), Type.Null()]),
 });
 
 export enum TransactionStatusEnum {
