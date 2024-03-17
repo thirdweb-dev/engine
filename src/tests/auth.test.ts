@@ -1,10 +1,10 @@
-import { authenticateJWT } from "@thirdweb-dev/auth";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { FastifyRequest } from "fastify/types/request";
 import { getPermissions } from "../db/permissions/getPermissions";
 import { WebhooksEventTypes } from "../schema/webhooks";
 import { onRequest } from "../server/middleware/auth";
 import { Permission } from "../server/schemas/auth";
+import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../utils/auth";
 import { getAccessToken } from "../utils/cache/accessToken";
 import { getAuthWallet } from "../utils/cache/authWallet";
 import { getWebhook } from "../utils/cache/getWebhook";
@@ -13,11 +13,6 @@ import { sendWebhookRequest } from "../utils/webhook";
 jest.mock("../utils/cache/accessToken");
 const mockGetAccessToken = getAccessToken as jest.MockedFunction<
   typeof getAccessToken
->;
-
-jest.mock("@thirdweb-dev/auth");
-const mockAuthenticateJWT = authenticateJWT as jest.MockedFunction<
-  typeof authenticateJWT
 >;
 
 jest.mock("../db/permissions/getPermissions");
@@ -32,11 +27,15 @@ const mockGetAuthWallet = getAuthWallet as jest.MockedFunction<
 
 jest.mock("../utils/cache/getWebhook");
 const mockGetWebhook = getWebhook as jest.MockedFunction<typeof getWebhook>;
+mockGetWebhook.mockResolvedValue([]);
 
-jest.mock("../server/utils/webhook");
+jest.mock("../utils/webhook");
 const mockSendWebhookRequest = sendWebhookRequest as jest.MockedFunction<
   typeof sendWebhookRequest
 >;
+
+jest.mock("../utils/auth");
+const mockHandleSiwe = handleSiwe as jest.MockedFunction<typeof handleSiwe>;
 
 describe("Static paths", () => {
   beforeEach(() => {
@@ -48,7 +47,7 @@ describe("Static paths", () => {
   it("Static paths are authed", async () => {
     const pathsToTest = [
       "/",
-      "/system/heath",
+      "/system/health",
       "/json",
       "/transaction/status/my-queue-id",
     ];
@@ -354,6 +353,53 @@ describe("Access tokens", () => {
   });
 });
 
+describe("Admin wallet-signed JWT", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  const mockGetUser = jest.fn();
+  mockGetAccessToken.mockResolvedValue(null);
+
+  it("Valid admin wallet JWT", async () => {
+    // Mock non-dashboard JWTs.
+    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
+      if (issuer !== THIRDWEB_DASHBOARD_ISSUER) {
+        return { address: "0x0000000000000000000000000123" };
+      }
+      return null;
+    });
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: "Bearer my-admin-wallet-jwt" },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeTruthy();
+    expect(result.user).not.toBeNull();
+  });
+
+  it("Invalid admin wallet JWT is not authed", async () => {
+    // Mock non-dashboard JWTs.
+    mockHandleSiwe.mockResolvedValue(null);
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: "Bearer my-access-token" },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+  });
+});
+
 describe("Dashboard JWT", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -363,8 +409,12 @@ describe("Dashboard JWT", () => {
   mockGetAccessToken.mockResolvedValue(null);
 
   it("Valid dashboard JWT with admin permission is authed", async () => {
-    mockAuthenticateJWT.mockResolvedValue({
-      address: "0x0000000000000000000000000123",
+    // Mock dashboard JWTs.
+    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
+      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
+        return { address: "0x0000000000000000000000000123" };
+      }
+      return null;
     });
 
     mockGetPermissions.mockResolvedValue({
@@ -387,8 +437,12 @@ describe("Dashboard JWT", () => {
   });
 
   it("Valid dashboard JWT with non-admin permission is not authed", async () => {
-    mockAuthenticateJWT.mockResolvedValue({
-      address: "0x0000000000000000000000000123",
+    // Mock dashboard JWTs.
+    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
+      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
+        return { address: "0x0000000000000000000000000123" };
+      }
+      return null;
     });
 
     mockGetPermissions.mockResolvedValue({
@@ -409,12 +463,32 @@ describe("Dashboard JWT", () => {
     expect(result.isAuthed).toBeFalsy();
   });
 
-  it("Invalid dashboard JWT is not authed", async () => {
-    mockAuthenticateJWT.mockResolvedValue({
-      address: "0x0000000000000000000000000123",
+  it("Dashboard JWT for an unknown user is not authed", async () => {
+    // Mock dashboard JWTs.
+    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
+      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
+        return { address: "0x0000000000000000000000000123" };
+      }
+      return null;
     });
 
     mockGetPermissions.mockResolvedValue(null);
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: "Bearer my-access-token" },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+  });
+
+  it("Invalid dashboard JWT is not authed", async () => {
+    // Mock dashboard JWTs.
+    mockHandleSiwe.mockResolvedValue(null);
 
     const req: FastifyRequest = {
       method: "POST",
