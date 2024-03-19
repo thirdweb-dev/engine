@@ -1,10 +1,12 @@
+import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getTxById } from "../../../db/transactions/getTxById";
+import { prisma } from "../../../db/client";
 import { updateTx } from "../../../db/transactions/updateTx";
 import { getSdk } from "../../../utils/cache/getSdk";
 import { msSince } from "../../../utils/date";
+import { parseTxError } from "../../../utils/errors";
 import { UsageEventTxActionEnum, reportUsage } from "../../../utils/usage";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -60,7 +62,11 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         "x-backend-wallet-address"
       ] as string;
 
-      const tx = await getTxById({ queueId });
+      const tx = await prisma.transactions.findUnique({
+        where: {
+          id: queueId,
+        },
+      });
       if (!tx) {
         throw createCustomError(
           `Transaction not found with queueId ${queueId}`,
@@ -74,7 +80,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         // Not yet sent.
         !tx.sentAt ||
         // Missing expected values.
-        !tx.queueId ||
+        !tx.id ||
         !tx.queuedAt ||
         !tx.chainId ||
         !tx.toAddress ||
@@ -108,7 +114,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
 
       const blockNumber = await sdk.getProvider().getBlockNumber();
 
-      // Send transaction.
+      // Send transaction and get the transaction hash.
       const txRequest = {
         to: tx.toAddress,
         from: tx.fromAddress,
@@ -118,15 +124,26 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         maxFeePerGas: maxFeePerGas ?? tx.maxFeePerGas,
         maxPriorityFeePerGas: maxPriorityFeePerGas ?? tx.maxPriorityFeePerGas,
       };
-      const txResponse = await signer.sendTransaction(txRequest);
-      if (!txResponse) {
-        throw "Missing transaction response.";
+
+      let txResponse: TransactionResponse;
+      try {
+        txResponse = await signer.sendTransaction(txRequest);
+        if (!txResponse) {
+          throw "Missing transaction response.";
+        }
+      } catch (e) {
+        const errorMessage = await parseTxError(tx, e);
+        throw createCustomError(
+          errorMessage,
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_RETRY_FAILED",
+        );
       }
       const transactionHash = txResponse.hash;
 
       // Update DB.
       await updateTx({
-        queueId: tx.queueId,
+        queueId: tx.id,
         data: {
           status: TransactionStatusEnum.Submitted,
           transactionHash,
