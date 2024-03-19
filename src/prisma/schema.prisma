@@ -26,7 +26,7 @@ model Configuration {
   // Contract Indexer Updates
   indexerListenerCronSchedule        String? @map("indexerListenerCronSchedule")
   maxBlocksToIndex                   Int     @default(25) @map("maxBlocksToIndex")
-  cursorDelaySeconds                 Int     @default(2) @map("cursorDelaySeconds")
+  cursorDelayMs                      Int     @default(1000) @map("cursorDelayMs")
 
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")
