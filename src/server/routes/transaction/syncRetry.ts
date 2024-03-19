@@ -31,9 +31,8 @@ export const responseBodySchema = Type.Object({
 
 responseBodySchema.example = {
   result: {
-    message:
-      "Transaction gas values updated for queueId: a20ed4ce-301d-4251-a7af-86bd88f6c015",
-    status: "success",
+    transactionHash:
+      "0xc3b437073c164c33f95065fb325e9bc419f306cb39ae8b4ca233f33efaa74ead",
   },
 };
 
