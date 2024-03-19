@@ -12,14 +12,12 @@ export const txOverridesForWriteRequest = Type.Object({
     }),
   ),
   customMetadata: Type.Optional(
-    Type.String({
+    Type.Object(Type.String(), {
       examples: [
-        "my-product-sku",
-        '{"sku":"abc123","userId":"6623c9e7-7d83-41a4-945a-652c7f6243ed"}',
-        "0xd45b6f6bbb5289472696c3ba7e781c8efd5d3a413637834bc6539ac22e255af2",
+        { sku: "abc123", userId: "6623c9e7-7d83-41a4-945a-652c7f6243ed" },
       ],
       description:
-        "Metadata that will be returned in a webhook. To pass multiple fields, serialize or encrypt your metadata object.",
+        "Metadata that will be returned in a webhook. The value must be a string type.",
     }),
   ),
 });

@@ -29,6 +29,7 @@ export const cleanTxs = (
         : tx.processedAt
         ? "processed"
         : "queued",
+      customMetadata: tx.customMetadata ? JSON.parse(tx.customMetadata) : null,
     };
   });
 };

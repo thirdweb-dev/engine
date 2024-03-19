@@ -56,6 +56,9 @@ export const queueTxRaw = async ({
       target: tx.target?.toLowerCase(),
       signerAddress: tx.signerAddress?.toLowerCase(),
       accountAddress: tx.accountAddress?.toLowerCase(),
+      customMetadata: tx.customMetadata
+        ? JSON.stringify(tx.customMetadata)
+        : undefined,
     },
   });
 

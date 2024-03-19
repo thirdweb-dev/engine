@@ -188,7 +188,7 @@ export const transactionResponseSchema = Type.Object({
   functionName: Type.Union([Type.String(), Type.Null()]),
   functionArgs: Type.Union([Type.String(), Type.Null()]),
   onChainTxStatus: Type.Union([Type.Number(), Type.Null()]),
-  customMetadata: Type.Union([Type.String(), Type.Null()]),
+  customMetadata: Type.Union([Type.Object(Type.String()), Type.Null()]),
 });
 
 export enum TransactionStatusEnum {
@@ -201,42 +201,4 @@ export enum TransactionStatusEnum {
   Mined = "mined",
   Cancelled = "cancelled",
   Retried = "retried",
-}
-
-export interface TransactionSchema {
-  identifier?: string;
-  walletAddress?: string;
-  contractAddress?: string;
-  chainId?: string;
-  extension?: string;
-  rawFunctionName?: string;
-  rawFunctionArgs?: string;
-  txProcessed?: boolean;
-  txSubmitted?: boolean;
-  txErrored?: boolean;
-  txMined?: boolean;
-  encodedInputData?: string;
-  txType?: number;
-  gasPrice?: string;
-  gasLimit?: string;
-  maxPriorityFeePerGas?: string;
-  maxFeePerGas?: string;
-  txHash?: string;
-  status?: string;
-  createdTimestamp?: Date;
-  txSubmittedTimestamp?: Date;
-  txProcessedTimestamp?: Date;
-  submittedTxNonce?: number;
-  deployedContractAddress?: string;
-  contractType?: string;
-  txValue?: string;
-  errorMessage?: string;
-  txMinedTimestamp?: Date;
-  blockNumber?: number;
-  toAddress?: string;
-  txSubmittedAtBlockNumber?: number;
-  numberOfRetries?: number;
-  overrideGasValuesForTx?: boolean;
-  overrideMaxFeePerGas?: string;
-  overrideMaxPriorityFeePerGas?: string;
 }
