@@ -18,8 +18,8 @@ const requestBodySchema = Type.Object({
     description: "Transaction queue ID",
     examples: ["9eb88b00-f04f-409b-9df7-7dcc9003bc35"],
   }),
-  maxFeePerGas: Type.String(),
-  maxPriorityFeePerGas: Type.String(),
+  maxFeePerGas: Type.Optional(Type.String()),
+  maxPriorityFeePerGas: Type.Optional(Type.String()),
 });
 
 // OUTPUT
