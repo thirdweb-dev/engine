@@ -12,7 +12,7 @@ export const txOverridesForWriteRequest = Type.Object({
     }),
   ),
   customMetadata: Type.Optional(
-    Type.Object(Type.String(), {
+    Type.Record(Type.String(), Type.String(), {
       examples: [
         { sku: "abc123", userId: "6623c9e7-7d83-41a4-945a-652c7f6243ed" },
       ],
