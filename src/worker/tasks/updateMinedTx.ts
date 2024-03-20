@@ -96,7 +96,7 @@ export const updateMinedTx = async () => {
                         provider: provider.connection.url || undefined,
                         msSinceSend: Date.now() - tx.sentAt!.getTime(),
                       },
-                      action: UsageEventTxActionEnum.NotSendTx,
+                      action: UsageEventTxActionEnum.ErrorTx,
                     });
                   }
                 }
