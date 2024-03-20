@@ -1,10 +1,9 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 import { PrismaTransaction } from "../../schema/prisma";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { simulateTx } from "../../server/utils/simulateTx";
 import { reportUsage, UsageEventTxActionEnum } from "../../utils/usage";
-import { sendWebhooks } from "../../utils/webhook";
-import { getPrismaWithPostgresTx } from "../client";
+import { ingestRequestQueue } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
 type QueueTxRawParams = Omit<
@@ -29,7 +28,7 @@ export const queueTxRaw = async ({
   pgtx,
   ...tx
 }: QueueTxRawParams) => {
-  const prisma = getPrismaWithPostgresTx(pgtx);
+  const queueId = uuidv4();
 
   const walletDetails = await getWalletDetails({
     pgtx,
@@ -48,25 +47,7 @@ export const queueTxRaw = async ({
     await simulateTx({ txRaw: tx });
   }
 
-  const insertedData = await prisma.transactions.create({
-    data: {
-      ...tx,
-      fromAddress: tx.fromAddress?.toLowerCase(),
-      toAddress: tx.toAddress?.toLowerCase(),
-      target: tx.target?.toLowerCase(),
-      signerAddress: tx.signerAddress?.toLowerCase(),
-      accountAddress: tx.accountAddress?.toLowerCase(),
-    },
-  });
-
   // Send queued webhook.
-  sendWebhooks([
-    {
-      queueId: insertedData.id,
-      status: TransactionStatusEnum.Queued,
-    },
-  ]).catch((err) => {});
-
   reportUsage([
     {
       input: {
@@ -82,5 +63,9 @@ export const queueTxRaw = async ({
     },
   ]);
 
-  return insertedData;
+  ingestRequestQueue.add(queueId, { ...tx, id: queueId });
+
+  const redisClient = await ingestRequestQueue.client;
+  await redisClient.hmset(queueId, tx);
+  return { id: queueId };
 };

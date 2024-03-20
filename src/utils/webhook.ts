@@ -50,7 +50,7 @@ export const createWebhookRequestHeaders = async (
 
 export const sendWebhookRequest = async (
   webhookConfig: SanitizedWebHooksSchema,
-  body: Record<string, any>,
+  body: Record<string, any | null>,
 ): Promise<boolean> => {
   try {
     const headers = await createWebhookRequestHeaders(webhookConfig, body);
@@ -83,12 +83,12 @@ export const sendWebhookRequest = async (
 };
 
 export interface WebhookData {
-  queueId: string;
+  id: string;
   status: TransactionStatusEnum;
 }
 
 export const sendWebhooks = async (webhooks: WebhookData[]) => {
-  const queueIds = webhooks.map((webhook) => webhook.queueId);
+  const queueIds = webhooks.map((webhook) => webhook.id);
   const txs = await getTxByIds({ queueIds });
   if (!txs || txs.length === 0) {
     return;
@@ -96,7 +96,7 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
 
   const webhooksWithTxs = webhooks
     .map((webhook) => {
-      const tx = txs.find((tx) => tx.queueId === webhook.queueId);
+      const tx = txs.find((tx) => tx.queueId === webhook.id);
       return {
         ...webhook,
         tx,

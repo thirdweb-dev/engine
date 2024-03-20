@@ -1,27 +1,40 @@
-import { Webhooks } from "@prisma/client";
-import { SanitizedWebHooksSchema } from "../../schema/webhooks";
-import { prisma } from "../client";
+import { SanitizedWebHooksSchema, Webhook } from "../../schema/webhooks";
+import { getRedisClient } from "../client";
 
 export const getAllWebhooks = async (): Promise<SanitizedWebHooksSchema[]> => {
-  let webhooks = await prisma.webhooks.findMany({
-    orderBy: {
-      id: "asc",
-    },
-  });
+  const redisClient = await getRedisClient();
+  const cachedWebhookIds = await redisClient.keys("webhook:*");
 
-  return sanitizeData(webhooks);
+  if (cachedWebhookIds.length === 0) {
+    return [];
+  }
+  const cachedWebhooks: Webhook[] = [];
+  await Promise.all(
+    cachedWebhookIds.map(async (id) => {
+      const webhook = (await redisClient.hgetall(id)) as unknown as Webhook;
+      if (!webhook.revokedAt) {
+        cachedWebhooks.push(webhook);
+      }
+    }),
+  );
+
+  return sanitizeData(cachedWebhooks);
 };
 
-const sanitizeData = (data: Webhooks[]): SanitizedWebHooksSchema[] => {
+const sanitizeData = (data: Webhook[]): SanitizedWebHooksSchema[] => {
   return data.map((webhook) => {
     return {
-      url: webhook.url,
-      name: webhook.name,
-      eventType: webhook.eventType,
+      ...webhook,
+      name: webhook.name || null,
       secret: webhook.secret ? webhook.secret : undefined,
-      createdAt: webhook.createdAt.toISOString(),
       active: webhook.revokedAt ? false : true,
-      id: webhook.id,
+      createdAt: new Date(webhook.createdAt).toISOString(),
+      updatedAt: webhook.updatedAt
+        ? new Date(webhook.updatedAt).toISOString()
+        : null,
+      revokedAt: webhook.revokedAt
+        ? new Date(webhook.revokedAt).toISOString()
+        : null,
     };
   });
 };

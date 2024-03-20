@@ -1,6 +1,6 @@
 import { getBlock } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
-import { prisma } from "../../db/client";
+import { prisma, webhookQueue } from "../../db/client";
 import { getSentUserOps } from "../../db/transactions/getSentUserOps";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
@@ -11,7 +11,7 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData, sendWebhooks } from "../../utils/webhook";
+import { WebhookData } from "../../utils/webhook";
 
 export const updateMinedUserOps = async () => {
   try {
@@ -104,7 +104,7 @@ export const updateMinedUserOps = async () => {
               message: `Updated with receipt`,
             });
             sendWebhookForQueueIds.push({
-              queueId: userOp!.id,
+              id: userOp!.id,
               status: TransactionStatusEnum.Mined,
             });
             reportUsageForQueueIds.push({
@@ -131,7 +131,9 @@ export const updateMinedUserOps = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
+    sendWebhookForQueueIds.forEach((webhookData) => {
+      webhookQueue.add("webhookQueue", webhookData, { delay: 1000 });
+    });
     reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({

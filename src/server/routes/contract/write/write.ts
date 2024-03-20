@@ -5,6 +5,7 @@ import {
   RedisTxInput,
   queueTxToRedis,
 } from "../../../../db/transactions/queueTx";
+import { getContract } from "../../../../utils/cache/getContract";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -13,6 +14,7 @@ import {
 } from "../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
@@ -78,17 +80,31 @@ export async function writeToContract(fastify: FastifyInstance) {
       ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
 
-      const rawRequestData: RedisTxInput = {
-        functionName,
-        chain,
-        args,
+      const chainId = await getChainIdFromChain(chain);
+      const contract = await getContract({
+        chainId,
         contractAddress,
         walletAddress,
         accountAddress,
-        extension: "none",
+      });
+
+      const tx = await contract.prepare(functionName, args, txOverrides);
+
+      const queueRequestData: RedisTxInput = {
+        rawRequest: {
+          functionName,
+          chainId,
+          args,
+          contractAddress,
+          walletAddress,
+          accountAddress,
+          extension: "none",
+        },
+        preparedTx: tx,
+        shouldSimulate: simulateTx,
       };
 
-      const queueId = await queueTxToRedis(rawRequestData);
+      const queueId = await queueTxToRedis(queueRequestData);
 
       reply.status(StatusCodes.OK).send({
         result: {

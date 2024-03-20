@@ -1,9 +1,9 @@
 import { Configuration } from "@prisma/client";
-import { getRedis } from "../../db/client";
+import { getRedisClient } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { WalletType } from "../../schema/wallet";
 
-const cacheKey = "engineConfig";
+const cacheKey = "engineConfig:";
 interface Config
   extends Omit<
     Configuration,
@@ -37,7 +37,7 @@ interface Config
 }
 
 export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
-  const redisClient = await getRedis();
+  const redisClient = await getRedisClient();
   const config = JSON.parse((await redisClient.get(cacheKey)) as string);
 
   if (config && retrieveFromCache) {
@@ -53,6 +53,6 @@ export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
 };
 
 export const clearConfigCache = async (): Promise<void> => {
-  const redisClient = await getRedis();
+  const redisClient = await getRedisClient();
   redisClient.del(cacheKey);
 };

@@ -1,8 +1,7 @@
 import { Job, Worker } from "bullmq";
-import { bullMQConnection } from "../../db/client";
-import { RedisTxInput } from "../../db/transactions/queueTx";
-import { WebhooksEventTypes } from "../../schema/webhooks";
-import { getWebhook } from "../../utils/cache/getWebhook";
+import { bullMQConnection, prisma } from "../../db/client";
+import { cleanTxs } from "../../db/transactions/cleanTxs";
+import { getAllWebhooks } from "../../db/webhooks/getAllWebhooks";
 import { logger } from "../../utils/logger";
 import { sendWebhookRequest } from "../../utils/webhook";
 
@@ -11,43 +10,51 @@ export const processWebhook = async () => {
   const myWorker = new Worker(
     "webhookQueue",
     async (job: Job) => {
-      const rawRequest = job.data as RedisTxInput;
       logger({
         level: "info",
         message: `[processWebhook] Webhook job ${job.id} ${JSON.stringify(
-          rawRequest,
+          job.data,
         )}`,
         service: "worker",
       });
-      const webhookConfigs = await Promise.all([
-        ...((await getWebhook(WebhooksEventTypes.ALL_TX)) || []),
-      ]);
+      const webhookConfigs = await getAllWebhooks();
+      console.log("::Debug Log:: QueueId", job.data.id);
 
-      logger({
-        level: "info",
-        message: `[processWebhook] Webhook job ${job.id} ${JSON.stringify(
-          webhookConfigs,
-        )}`,
-        service: "worker",
+      const rawRequest = await prisma.transactions.findUnique({
+        where: {
+          id: job.data.id,
+        },
       });
-      await Promise.all(
-        webhookConfigs.map(async (webhookConfig) => {
-          if (!webhookConfig.active) {
-            logger({
-              service: "worker",
-              level: "info",
-              message: "No webhook set or active, skipping webhook send",
-            });
 
-            return;
-          }
+      if (rawRequest !== null && rawRequest !== undefined) {
+        const cleanedTx = cleanTxs([rawRequest])[0];
 
-          await sendWebhookRequest(
-            webhookConfig,
-            rawRequest as Record<string, any>,
-          );
-        }),
-      );
+        logger({
+          level: "info",
+          message: `[processWebhook] Webhook job ${job.id} ${JSON.stringify(
+            webhookConfigs,
+          )}`,
+          service: "worker",
+        });
+
+        await Promise.all(
+          webhookConfigs.map(async (webhookConfig) => {
+            if (!webhookConfig.active) {
+              logger({
+                service: "worker",
+                level: "info",
+                message: "No webhook set or active, skipping webhook send",
+              });
+
+              return;
+            }
+
+            if (rawRequest !== null && rawRequest !== undefined) {
+              await sendWebhookRequest(webhookConfig, cleanedTx);
+            }
+          }),
+        );
+      }
     },
     bullMQConnection,
   );

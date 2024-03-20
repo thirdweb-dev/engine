@@ -1,19 +1,16 @@
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../server/middleware/error";
-import { prisma } from "../client";
+import { getRedisClient } from "../client";
 
-interface RevokeWebhooksParams {
-  id: number;
-}
+type RevokeWebhooksParams = {
+  id: string;
+};
 
 export const markWebhookAsRevoked = async ({ id }: RevokeWebhooksParams) => {
   const currentTimestamp = new Date();
+  const redisClient = await getRedisClient();
 
-  const exists = await prisma.webhooks.findUnique({
-    where: {
-      id,
-    },
-  });
+  const exists = await redisClient.hgetall(`webhook:${id}`);
 
   if (!exists)
     throw createCustomError(
@@ -22,13 +19,10 @@ export const markWebhookAsRevoked = async ({ id }: RevokeWebhooksParams) => {
       "BAD_REQUEST",
     );
 
-  return prisma.webhooks.update({
-    where: {
-      id,
-    },
-    data: {
-      revokedAt: currentTimestamp,
-      updatedAt: currentTimestamp,
-    },
+  await redisClient.hset("webhook:" + id, {
+    revokedAt: currentTimestamp,
+    updatedAt: currentTimestamp,
   });
+
+  // await clearWebhookCache();
 };

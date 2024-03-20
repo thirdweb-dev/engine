@@ -5,6 +5,7 @@ import {
   RedisTxInput,
   queueTxToRedis,
 } from "../../../../../../db/transactions/queueTx";
+import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -13,6 +14,7 @@ import {
 } from "../../../../../schemas/sharedApiSchemas";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
 import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -65,17 +67,31 @@ export async function erc721claimTo(fastify: FastifyInstance) {
       ] as string;
       const accountAddress = request.headers["x-account-address"] as string;
 
-      const rawRequestData: RedisTxInput = {
-        functionName: "claimTo",
-        chain,
-        args: [receiver, quantity],
+      const chainId = await getChainIdFromChain(chain);
+      const contract = await getContract({
+        chainId,
         contractAddress,
         walletAddress,
         accountAddress,
-        extension: "erc721",
+      });
+
+      const tx = await contract.erc721.claimTo.prepare(receiver, quantity);
+
+      const queueRequestData: RedisTxInput = {
+        rawRequest: {
+          functionName: tx.getMethod(),
+          chainId,
+          args: tx.getArgs(),
+          contractAddress,
+          walletAddress,
+          accountAddress,
+          extension: "erc721",
+        },
+        shouldSimulate: simulateTx,
+        preparedTx: tx,
       };
 
-      const queueId = await queueTxToRedis(rawRequestData);
+      const queueId = await queueTxToRedis(queueRequestData);
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

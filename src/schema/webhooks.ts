@@ -17,7 +17,7 @@ export interface SanitizedWebHooksSchema {
   secret?: string;
   createdAt: string;
   active: boolean;
-  id: number;
+  id: string;
 }
 
 export interface WalletBalanceWebhookSchema {
@@ -27,3 +27,14 @@ export interface WalletBalanceWebhookSchema {
   chainId: number;
   message: string;
 }
+
+export type Webhook = {
+  id: string;
+  name: string | null;
+  url: string;
+  secret: string;
+  eventType: string;
+  createdAt: Date;
+  updatedAt: Date | null;
+  revokedAt: Date | null;
+};

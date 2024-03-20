@@ -39,7 +39,7 @@ export const isDatabaseHealthy = async (): Promise<boolean> => {
 
 // Initialize the Redis client with your Redis server configuration
 // Update these configurations based on your Redis setup
-export const getRedis = async (): Promise<Redis> => {
+export const getRedisClient = async (): Promise<Redis> => {
   if (!isRedisReady) {
     redisClient = new Redis(env.REDIS_URL, {
       maxRetriesPerRequest: null,
@@ -108,11 +108,14 @@ export const shutdownRedisClient = async () => {
 
 // Initialize BullMQ
 export const bullMQConnection = {
-  connection: await getRedis(),
+  connection: await getRedisClient(),
   maxRetriesPerRequest: 3, // TODO: have an env var
 };
 
-// Create a Raw Request Queue
-export const rawRequestQueue = new Queue("rawRequestQueue", bullMQConnection);
+// Create a Ingest Request Queue : API Request -> Bullmq Redis Queue
+export const ingestRequestQueue = new Queue(
+  "ingestRequestQueue",
+  bullMQConnection,
+);
 
 export const webhookQueue = new Queue("webhookQueue", bullMQConnection);

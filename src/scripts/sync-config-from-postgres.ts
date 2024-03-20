@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { getRedis } from "../db/client";
+import { getRedisClient } from "../db/client";
 import { getAllWebhooks } from "../db/webhooks/getAllWebhooks";
 import { getConfig } from "../utils/cache/getConfig";
 import { env } from "../utils/env";
@@ -14,7 +14,7 @@ export const initSyncConfigFromPostgres = async () => {
     message: "Syncing config from Postgres to Redis",
     service: "cache",
   });
-  const redisClient = await getRedis();
+  const redisClient = await getRedisClient();
 
   // Postgres DB Data
   const config = await getConfig();

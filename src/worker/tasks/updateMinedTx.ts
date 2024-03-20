@@ -1,7 +1,7 @@
 import { Transactions } from "@prisma/client";
 import { getBlock } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
-import { prisma } from "../../db/client";
+import { prisma, webhookQueue } from "../../db/client";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
@@ -13,7 +13,7 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData, sendWebhooks } from "../../utils/webhook";
+import { WebhookData } from "../../utils/webhook";
 
 const MEMPOOL_DURATION_TIMEOUT_MS = 1000 * 60 * 60;
 
@@ -54,7 +54,7 @@ export const updateMinedTx = async () => {
                   });
 
                   sendWebhookForQueueIds.push({
-                    queueId: tx.id,
+                    id: tx.id,
                     status: TransactionStatusEnum.Cancelled,
                   });
 
@@ -145,7 +145,7 @@ export const updateMinedTx = async () => {
             });
 
             sendWebhookForQueueIds.push({
-              queueId: txWithReceipt.tx.id,
+              id: txWithReceipt.tx.id,
               status: TransactionStatusEnum.Mined,
             });
 
@@ -174,7 +174,9 @@ export const updateMinedTx = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
+    sendWebhookForQueueIds.forEach((webhookData) => {
+      webhookQueue.add("webhookQueue", webhookData, { delay: 1000 });
+    });
     reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({

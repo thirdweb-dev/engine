@@ -10,7 +10,7 @@ import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
 import { RpcResponse } from "viem/_types/utils/rpc";
-import { prisma } from "../../db/client";
+import { prisma, webhookQueue } from "../../db/client";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
@@ -28,11 +28,7 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import {
-  WebhookData,
-  sendBalanceWebhook,
-  sendWebhooks,
-} from "../../utils/webhook";
+import { WebhookData, sendBalanceWebhook } from "../../utils/webhook";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawalValue } from "../utils/withdraw";
 
@@ -218,7 +214,7 @@ export const processTx = async () => {
                   rpcResponse,
                 });
                 sendWebhookForQueueIds.push({
-                  queueId: tx.id,
+                  id: tx.id,
                   status: TransactionStatusEnum.Submitted,
                 });
               } else if (
@@ -239,7 +235,7 @@ export const processTx = async () => {
                   rpcResponse,
                 });
                 sendWebhookForQueueIds.push({
-                  queueId: tx.id,
+                  id: tx.id,
                   status: TransactionStatusEnum.Errored,
                 });
               }
@@ -248,7 +244,7 @@ export const processTx = async () => {
               txIndex++;
 
               sendWebhookForQueueIds.push({
-                queueId: tx.id,
+                id: tx.id,
                 status: TransactionStatusEnum.Errored,
               });
               reportUsageForQueueIds.push({
@@ -393,7 +389,7 @@ export const processTx = async () => {
               },
             });
             sendWebhookForQueueIds.push({
-              queueId: tx.id,
+              id: tx.id,
               status: TransactionStatusEnum.UserOpSent,
             });
             reportUsageForQueueIds.push({
@@ -428,7 +424,7 @@ export const processTx = async () => {
               },
             });
             sendWebhookForQueueIds.push({
-              queueId: tx.id,
+              id: tx.id,
               status: TransactionStatusEnum.Errored,
             });
             reportUsageForQueueIds.push({
@@ -454,7 +450,10 @@ export const processTx = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
+    sendWebhookForQueueIds.forEach((webhookData) => {
+      webhookQueue.add("webhookQueue", webhookData, { delay: 1000 });
+    });
+
     reportUsage(reportUsageForQueueIds);
   } catch (err: any) {
     logger({
