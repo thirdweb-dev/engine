@@ -22,7 +22,7 @@ export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
     AND "minedAt" IS NULL
     AND "errorMessage" IS NULL
     AND "retryCount" < ${config.maxTxsToUpdate}
-    ORDER BY "sentAt" ASC
+    ORDER BY "nonce" ASC
     LIMIT ${config.maxTxsToUpdate}
     FOR UPDATE SKIP LOCKED
   `;
