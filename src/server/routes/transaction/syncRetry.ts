@@ -57,9 +57,6 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { queueId, maxFeePerGas, maxPriorityFeePerGas } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
 
       const tx = await prisma.transactions.findUnique({
         where: {
@@ -100,7 +97,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
       // Get signer.
       const sdk = await getSdk({
         chainId: Number(tx.chainId),
-        walletAddress,
+        walletAddress: tx.fromAddress,
       });
       const signer = sdk.getSigner();
       if (!signer) {
