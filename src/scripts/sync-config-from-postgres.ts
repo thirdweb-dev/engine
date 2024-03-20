@@ -1,6 +1,5 @@
 import { createHash } from "crypto";
 import { getRedisClient } from "../db/client";
-import { getAllWebhooks } from "../db/webhooks/getAllWebhooks";
 import { getConfig } from "../utils/cache/getConfig";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
@@ -18,16 +17,11 @@ export const initSyncConfigFromPostgres = async () => {
 
   // Postgres DB Data
   const config = await getConfig();
-  const webhooks = await getAllWebhooks();
-
   let engineConfigCacheData = await redisClient.get(engineConfigCacheKey);
-  let engineWebhookCacheData = await redisClient.get(engineWebhookCacheKey);
 
-  if (!engineConfigCacheData || !engineWebhookCacheData) {
+  if (!engineConfigCacheData) {
     await redisClient.set(engineConfigCacheKey, JSON.stringify(config));
-    await redisClient.set(engineWebhookCacheKey, JSON.stringify(webhooks));
     engineConfigCacheData = JSON.stringify(config);
-    engineWebhookCacheData = JSON.stringify(webhooks);
     return;
   }
 
@@ -35,17 +29,9 @@ export const initSyncConfigFromPostgres = async () => {
     config,
     JSON.parse(engineConfigCacheData),
   );
-  const isWebhookDataChanged = compareData(
-    webhooks,
-    JSON.parse(engineWebhookCacheData),
-  );
 
   if (isConfigDataChanged) {
     await redisClient.set(engineConfigCacheKey, JSON.stringify(config));
-  }
-
-  if (isWebhookDataChanged) {
-    await redisClient.set(engineWebhookCacheKey, JSON.stringify(webhooks));
   }
 };
 
@@ -68,7 +54,7 @@ const compareData = (dataA: object, dataB: object): boolean => {
   );
 
   if (redisCacheHash !== dbCacheHash) {
-    return false;
+    return true;
   }
-  return true;
+  return false;
 };

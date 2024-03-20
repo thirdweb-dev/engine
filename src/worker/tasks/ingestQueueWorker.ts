@@ -1,11 +1,12 @@
 import { Job, Worker } from "bullmq";
 import { bullMQConnection, prisma, webhookQueue } from "../../db/client";
 import { RedisTxInput } from "../../db/transactions/queueTx";
+import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
 // Worker processing logic
 export const startIngestQueueWorker = async () => {
-  const myWorker = new Worker(
+  const ingestRequestWorker = new Worker(
     "ingestRequestQueue",
     async (job: Job) => {
       const rawRequest = job.data as RedisTxInput;
@@ -30,18 +31,21 @@ export const startIngestQueueWorker = async () => {
 
       webhookQueue.add("webhookQueue", insertedData, { delay: 1000 });
     },
-    bullMQConnection,
+    {
+      concurrency: env.INGEST_WORKER_CONCURRENCY,
+      connection: bullMQConnection,
+    },
   );
 
-  myWorker.on("completed", (job: Job) => {
+  ingestRequestWorker.on("completed", (job: Job) => {
     logger({
-      level: "info",
+      level: "debug",
       message: `[startIngestQueueWorker] Job ${job.id} has completed!`,
       service: "worker",
     });
   });
 
-  myWorker.on(
+  ingestRequestWorker.on(
     "failed",
     (job: Job<any, any, string> | undefined, err: Error) => {
       if (job) {

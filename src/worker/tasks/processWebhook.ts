@@ -7,18 +7,10 @@ import { sendWebhookRequest } from "../../utils/webhook";
 
 // Worker processing logic
 export const processWebhook = async () => {
-  const myWorker = new Worker(
+  const webhookWorker = new Worker(
     "webhookQueue",
     async (job: Job) => {
-      logger({
-        level: "info",
-        message: `[processWebhook] Webhook job ${job.id} ${JSON.stringify(
-          job.data,
-        )}`,
-        service: "worker",
-      });
       const webhookConfigs = await getAllWebhooks();
-      console.log("::Debug Log:: QueueId", job.data.id);
 
       const rawRequest = await prisma.transactions.findUnique({
         where: {
@@ -30,7 +22,7 @@ export const processWebhook = async () => {
         const cleanedTx = cleanTxs([rawRequest])[0];
 
         logger({
-          level: "info",
+          level: "debug",
           message: `[processWebhook] Webhook job ${job.id} ${JSON.stringify(
             webhookConfigs,
           )}`,
@@ -59,15 +51,15 @@ export const processWebhook = async () => {
     bullMQConnection,
   );
 
-  myWorker.on("completed", (job: Job) => {
+  webhookWorker.on("completed", (job: Job) => {
     logger({
-      level: "info",
+      level: "debug",
       message: `[processWebhook] Webhook job ${job.id} has completed!`,
       service: "worker",
     });
   });
 
-  myWorker.on(
+  webhookWorker.on(
     "failed",
     (job: Job<any, any, string> | undefined, err: Error) => {
       if (job) {

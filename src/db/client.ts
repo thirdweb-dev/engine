@@ -77,39 +77,11 @@ export const getRedisClient = async (): Promise<Redis> => {
 
   return redisClient;
 };
-// Function to gracefully shutdown the Redis client
-export const shutdownRedisClient = async () => {
-  try {
-    await redisClient.quit();
-    console.log("Redis client disconnected successfully.");
-  } catch (error) {
-    console.error("Error disconnecting Redis client:", error);
-  }
-};
-
-// Graceful shutdown handling for the process
-// process.on("SIGINT", async () => {
-//   // Handle other graceful shutdown logic here, if necessary
-//   await shutdownRedisClient();
-//   await prisma.$disconnect();
-//   await knex.destroy();
-//   // Exit the process after all shutdown tasks are complete
-//   process.exit(0);
-// });
-
-// process.on("SIGTERM", async () => {
-//   // Handle other graceful shutdown logic here, if necessary
-//   await shutdownRedisClient();
-//   await prisma.$disconnect();
-//   await knex.destroy();
-//   // Exit the process after all shutdown tasks are complete
-//   process.exit(0);
-// });
 
 // Initialize BullMQ
 export const bullMQConnection = {
   connection: await getRedisClient(),
-  maxRetriesPerRequest: 3, // TODO: have an env var
+  maxRetriesPerRequest: null,
 };
 
 // Create a Ingest Request Queue : API Request -> Bullmq Redis Queue
@@ -118,4 +90,5 @@ export const ingestRequestQueue = new Queue(
   bullMQConnection,
 );
 
+// Create a Webhook Queue
 export const webhookQueue = new Queue("webhookQueue", bullMQConnection);
