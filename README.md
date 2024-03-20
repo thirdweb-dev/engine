@@ -8,17 +8,25 @@
 <h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> Engine</h1>
 
 <p align="center">
+    <a href="https://hub.docker.com/r/thirdweb/engine">
+        <img alt="Latest Docker version" src="https://img.shields.io/docker/v/thirdweb/engine?sort=semver&label=docker&logo=docker"/>
+    </a>
     <a href="https://discord.gg/thirdweb">
-        <img alt="Join our Discord!" src="https://img.shields.io/discord/834227967404146718.svg?color=7289da&label=discord&logo=discord&style=flat"/>
+        <img alt="Join the thirdweb Discord" src="https://img.shields.io/discord/834227967404146718.svg?color=7289da&label=discord&logo=discord&style=flat"/>
     </a>
 </p>
 
-Engine is a backend HTTP server that calls smart contracts with your managed backend wallets.
+Engine is an open-source, backend HTTP server that provides a production-ready interface to read, write, and deploy contracts on the blockchain.
 
-[**Read the documentation**](https://portal.thirdweb.com/engine) for features, setup, configuration, guides, and references.
+<p align="center">
+    <img src="./docs/images/engine-overview.webp" alt="Overview" width="400">
+</p>
 
-<!-- Source: https://whimsical.com/engine-architecture-2G6rXEvUM2HFmVwKxPWyzS -->
-<img src="./docs/images/overview.png" alt="Overview" width="820">
+## Quick links
+
+- [Documentation](https://portal.thirdweb.com/engine)
+- [Self-host instructions](https://portal.thirdweb.com/engine/self-host)
+- [Get Engine hosted by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted)
 
 ## Features
 
@@ -30,41 +38,23 @@ Engine is a backend HTTP server that calls smart contracts with your managed bac
 - Wallet and contract webhooks
 - And [much more!](https://portal.thirdweb.com/engine)
 
-## Quickstart
+## Get Engine
 
-1. Install [Docker](https://docs.docker.com/get-docker/).
-1. Run Postgres.
-   ```bash
-   docker run -p 5432:5432 -e POSTGRES_PASSWORD=postgres -d postgres
-   ```
-1. Run Engine.
-   ```bash
-   docker run \
-     -e ENCRYPTION_PASSWORD="<encryption_password>" \
-     -e THIRDWEB_API_SECRET_KEY="<thirdweb_secret_key>" \
-     -e ADMIN_WALLET_ADDRESS="<admin_wallet_address>" \
-     -e POSTGRES_CONNECTION_URL="postgresql://postgres:postgres@host.docker.internal:5432/postgres?sslmode=disable" \
-     -e ENABLE_HTTPS=true \
-     -p 3005:3005 \
-     --pull=always \
-     --cpus="0.5" \
-     thirdweb/engine:latest
-   ```
-1. Navigate to the [Engine dashboard](https://thirdweb.com/dashboard/engine).
-   - CORS error? Load https://localhost:3005 in your browser first.
-1. Create or import a [local wallet](https://portal.thirdweb.com/engine/backend-wallets).
+### Self-host
 
-Learn more: [Getting Started](https://portal.thirdweb.com/engine/getting-started)
+Host Engine on your own instructure for free. [View self-host instructions](https://portal.thirdweb.com/engine/self-host).
 
-> **Production:** Deploy Postgres and Engine to your cloud provider. Consider creating [KMS backend wallets](https://portal.thirdweb.com/engine/backend-wallets).
+Other deployment options:
 
-## Self Host
+- [Deploy on Railway](https://railway.app/template/EASlyJ)
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/EASlyJ)
+### Cloud-host
+
+[Get Engine hosted and managed by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted).
 
 ## Contributing
 
-We welcome external contributions! See [how to contribute to thirdweb repos]. Please try to follow the existing code style and conventions.
+We welcome contributions! See [How to contribute](./contributing.md).
 
 ## Get in touch
 

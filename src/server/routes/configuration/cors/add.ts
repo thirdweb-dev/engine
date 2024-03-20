@@ -31,8 +31,8 @@ export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
     method: "POST",
     url: "/configuration/cors",
     schema: {
-      summary: "Add Url to CORS configuration",
-      description: "Add Url to CORS configuration",
+      summary: "Add a CORS URL",
+      description: "Add a URL to allow client-side calls to Engine",
       tags: ["Configuration"],
       operationId: "addUrlToCorsConfiguration",
       body: BodySchema,

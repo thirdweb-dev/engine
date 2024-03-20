@@ -16,7 +16,7 @@ export async function getCorsConfiguration(fastify: FastifyInstance) {
     url: "/configuration/cors",
     schema: {
       summary: "Get CORS configuration",
-      description: "Get the engine configuration for CORS",
+      description: "Get CORS configuration",
       tags: ["Configuration"],
       operationId: "getCorsConfiguration",
       response: {

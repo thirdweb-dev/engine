@@ -9,6 +9,9 @@ interface GetTxByIdParams {
   pgtx?: PrismaTransaction;
 }
 
+/**
+ * @deprecated - Call prisma directly.
+ */
 export const getTxById = async ({
   pgtx,
   queueId,

@@ -25,7 +25,7 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
     url: "/configuration/cache",
     schema: {
       summary: "Update cache configuration",
-      description: "Update the engine configuration for cache",
+      description: "Update cache configuration",
       tags: ["Configuration"],
       operationId: "updateCacheConfiguration",
       body: BodySchema,

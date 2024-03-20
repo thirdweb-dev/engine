@@ -41,8 +41,7 @@ export async function updateTransactionConfiguration(fastify: FastifyInstance) {
     url: "/configuration/transactions",
     schema: {
       summary: "Update transaction processing configuration",
-      description:
-        "Update the engine configuration for processing transactions",
+      description: "Update transaction processing configuration",
       tags: ["Configuration"],
       operationId: "updateTransactionConfiguration",
       body: BodySchema,

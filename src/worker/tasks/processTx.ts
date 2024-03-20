@@ -61,29 +61,6 @@ export const processTx = async () => {
           message: `Received ${txs.length} transactions to process`,
         });
 
-        // Send queued webhook.
-        await sendWebhooks(
-          txs.map((tx) => ({
-            queueId: tx.id,
-            status: TransactionStatusEnum.Queued,
-          })),
-        );
-
-        reportUsage(
-          txs.map((tx) => ({
-            input: {
-              chainId: tx.chainId || undefined,
-              fromAddress: tx.fromAddress || undefined,
-              toAddress: tx.toAddress || undefined,
-              value: tx.value || undefined,
-              transactionHash: tx.transactionHash || undefined,
-              functionName: tx.functionName || undefined,
-              extension: tx.extension || undefined,
-            },
-            action: UsageEventTxActionEnum.QueueTx,
-          })),
-        );
-
         // 2. Update and sort transactions and user operations.
         const txsToSend: Transactions[] = [];
         const userOpsToSend: Transactions[] = [];
@@ -379,22 +356,26 @@ export const processTx = async () => {
         // 5. Send all user operations in parallel.
         const sentUserOps = userOpsToSend.map(async (tx) => {
           try {
-            const signer = (
-              await getSdk({
-                pgtx,
-                chainId: parseInt(tx.chainId!),
-                walletAddress: tx.signerAddress!,
-                accountAddress: tx.accountAddress!,
-              })
-            ).getSigner() as ERC4337EthersSigner;
+            const sdk = await getSdk({
+              pgtx,
+              chainId: parseInt(tx.chainId!),
+              walletAddress: tx.signerAddress!,
+              accountAddress: tx.accountAddress!,
+            });
+            const signer = sdk.getSigner() as ERC4337EthersSigner;
 
             const nonce = randomNonce();
-            const userOp = await signer.smartAccountAPI.createSignedUserOp({
-              target: tx.target || "",
-              data: tx.data || "0x",
-              value: tx.value ? BigNumber.from(tx.value) : undefined,
-              nonce,
-            });
+            const unsignedOp =
+              await signer.smartAccountAPI.createUnsignedUserOp(
+                signer.httpRpcClient,
+                {
+                  target: tx.target || "",
+                  data: tx.data || "0x",
+                  value: tx.value ? BigNumber.from(tx.value) : undefined,
+                  nonce,
+                },
+              );
+            const userOp = await signer.smartAccountAPI.signUserOp(unsignedOp);
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
             );

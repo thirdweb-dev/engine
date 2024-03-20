@@ -6,7 +6,7 @@ export const txOverridesForWriteRequest = Type.Object({
       value: Type.Optional(
         Type.String({
           examples: ["0"],
-          description: "Native Currency Value",
+          description: "Amount of native currency to send",
         }),
       ),
     }),

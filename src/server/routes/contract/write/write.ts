@@ -17,12 +17,12 @@ import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 // INPUT
 const writeRequestBodySchema = Type.Object({
   functionName: Type.String({
-    description: "Name of the function to call on Contract",
+    description: "The function to call on the contract",
   }),
   args: Type.Array(
     Type.Union([
       Type.String({
-        description: "Arguments for the function. Comma Separated",
+        description: "The arguments to call on the function",
       }),
       Type.Tuple([Type.String(), Type.String()]),
       Type.Object({}),
