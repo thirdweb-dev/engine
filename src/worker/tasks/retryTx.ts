@@ -98,7 +98,7 @@ export const retryTx = async () => {
               retryCount: tx.retryCount + 1 || 0,
               provider: provider.connection.url || undefined,
             },
-            action: UsageEventTxActionEnum.NotSendTx,
+            action: UsageEventTxActionEnum.ErrorTx,
           });
 
           reportUsage(reportUsageForQueueIds);

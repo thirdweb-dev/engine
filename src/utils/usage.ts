@@ -47,6 +47,7 @@ export enum UsageEventTxActionEnum {
   SendTx = "send_tx",
   CancelTx = "cancel_tx",
   APIRequest = "api_request",
+  ErrorTx = "error_tx",
 }
 
 interface UsageEventSchema extends Omit<UsageEvent, "action"> {
