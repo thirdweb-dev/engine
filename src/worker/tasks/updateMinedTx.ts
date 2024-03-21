@@ -28,11 +28,11 @@ export const updateMinedTx = async () => {
           return;
         }
 
-        const droppedTxs: (Transactions & { provider?: string })[] = [];
-
         const txsWithReceipts = (
           await Promise.all(
             txs.map(async (tx) => {
+              console.log("[DEBUG] tx", tx);
+
               const sdk = await getSdk({ chainId: parseInt(tx.chainId!) });
               const provider =
                 sdk.getProvider() as ethers.providers.JsonRpcProvider;
