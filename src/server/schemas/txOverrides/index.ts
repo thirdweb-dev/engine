@@ -11,4 +11,13 @@ export const txOverridesForWriteRequest = Type.Object({
       ),
     }),
   ),
+  customMetadata: Type.Optional(
+    Type.Record(Type.String(), Type.String(), {
+      examples: [
+        { sku: "abc123", userId: "6623c9e7-7d83-41a4-945a-652c7f6243ed" },
+      ],
+      description:
+        "Metadata that will be returned in a webhook. The value must be a string type.",
+    }),
+  ),
 });

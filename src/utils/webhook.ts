@@ -3,6 +3,7 @@ import { getTxByIds } from "../db/transactions/getTxByIds";
 import {
   SanitizedWebHooksSchema,
   WalletBalanceWebhookSchema,
+  WebhookBody,
   WebhooksEventTypes,
 } from "../schema/webhooks";
 import { TransactionStatusEnum } from "../server/schemas/transaction";
@@ -50,33 +51,25 @@ export const createWebhookRequestHeaders = async (
 
 export const sendWebhookRequest = async (
   webhookConfig: SanitizedWebHooksSchema,
-  body: Record<string, any>,
+  body: WebhookBody,
 ): Promise<boolean> => {
   try {
     const headers = await createWebhookRequestHeaders(webhookConfig, body);
-    const response = await fetch(webhookConfig?.url, {
+    const resp = await fetch(webhookConfig.url, {
       method: "POST",
       headers: headers,
       body: JSON.stringify(body),
     });
-
-    if (!response.ok) {
-      logger({
-        service: "server",
-        level: "error",
-        message: `[sendWebhook] Webhook request error: ${response.status} ${response.statusText}`,
-      });
-
-      return false;
+    if (!resp.ok) {
+      throw `Received status ${resp.status}: ${await resp.text()}`;
     }
-
     return true;
-  } catch (error) {
+  } catch (e) {
     logger({
       service: "server",
       level: "error",
-      message: `[sendWebhook] Webhook request error: ${error}`,
-      error,
+      message: `[sendWebhook] Webhook request error: ${e}`,
+      error: e,
     });
     return false;
   }
@@ -133,14 +126,10 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
             level: "debug",
             message: "No webhook set or active, skipping webhook send",
           });
-
           return;
         }
 
-        await sendWebhookRequest(
-          webhookConfig,
-          webhook.tx as Record<string, any>,
-        );
+        await sendWebhookRequest(webhookConfig, webhook.tx!);
       }),
     );
   }

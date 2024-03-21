@@ -14,8 +14,8 @@ import {
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { txOverridesForWriteRequest } from "../../../schemas/txOverrides";
 import { walletAuthSchema } from "../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUTS
