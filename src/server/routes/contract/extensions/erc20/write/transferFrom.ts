@@ -9,8 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
+import { txOverrides } from "../../../../../schemas/txOverrides";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -25,7 +25,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The amount of tokens you want to send",
   }),
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 // Example for the Request Body

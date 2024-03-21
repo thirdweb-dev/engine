@@ -8,25 +8,25 @@ generator client {
 }
 
 model Configuration {
-  id                                 String  @id @default("default") @map("id")
+  id                             String  @id @default("default") @map("id")
   // Chains
-  chainOverrides                     String? @map("chainOverrides")
+  chainOverrides                 String? @map("chainOverrides")
   // Tx Processing
-  minTxsToProcess                    Int     @map("minTxsToProcess")
-  maxTxsToProcess                    Int     @map("maxTxsToProcess")
+  minTxsToProcess                Int     @map("minTxsToProcess")
+  maxTxsToProcess                Int     @map("maxTxsToProcess")
   // Tx Updates
-  minedTxListenerCronSchedule        String? @map("minedTxsCronSchedule")
-  maxTxsToUpdate                     Int     @map("maxTxsToUpdate")
+  minedTxListenerCronSchedule    String? @map("minedTxsCronSchedule")
+  maxTxsToUpdate                 Int     @map("maxTxsToUpdate")
   // Tx Retries
-  retryTxListenerCronSchedule        String? @map("retryTxsCronSchedule")
-  minEllapsedBlocksBeforeRetry       Int     @map("minEllapsedBlocksBeforeRetry")
-  maxFeePerGasForRetries             String  @map("maxFeePerGasForRetries")
-  maxPriorityFeePerGasForRetries     String  @map("maxPriorityFeePerGasForRetries")
-  maxRetriesPerTx                    Int     @map("maxRetriesPerTx")
+  retryTxListenerCronSchedule    String? @map("retryTxsCronSchedule")
+  minEllapsedBlocksBeforeRetry   Int     @map("minEllapsedBlocksBeforeRetry")
+  maxFeePerGasForRetries         String  @map("maxFeePerGasForRetries")
+  maxPriorityFeePerGasForRetries String  @map("maxPriorityFeePerGasForRetries")
+  maxRetriesPerTx                Int     @map("maxRetriesPerTx")
   // Contract Indexer Updates
-  indexerListenerCronSchedule        String? @map("indexerListenerCronSchedule")
-  maxBlocksToIndex                   Int     @default(25) @map("maxBlocksToIndex")
-  cursorDelaySeconds                 Int     @default(2) @map("cursorDelaySeconds")
+  indexerListenerCronSchedule    String? @map("indexerListenerCronSchedule")
+  maxBlocksToIndex               Int     @default(25) @map("maxBlocksToIndex")
+  cursorDelaySeconds             Int     @default(2) @map("cursorDelaySeconds")
 
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")
@@ -103,6 +103,7 @@ model WalletNonce {
 
 model Transactions {
   id                        String    @id @default(uuid()) @map("id")
+  idempotencyKey            String    @unique @default(uuid()) @map("idempotencyKey")
   groupId                   String?   @map("groupId")
   chainId                   String    @map("chainId")
   // Shared
@@ -183,42 +184,38 @@ model Relayers {
 }
 
 model ContractSubscriptions {
-  id                 String  @id @default(uuid()) @map("id")
-  chainId            Int  
-  contractAddress    String
+  id              String @id @default(uuid()) @map("id")
+  chainId         Int
+  contractAddress String
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  deletedAt          DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   // optimize distinct lookups
   @@index([chainId])
-
   @@map("contract_subscriptions")
 }
 
 model ContractEventLogs {
-  chainId            Int
-  blockNumber        Int
-  contractAddress    String
-  transactionHash    String
-  topic0             String?
-  topic1             String?
-  topic2             String?
-  topic3             String?
-  data               String
-  eventName          String?
-  decodedLog         Json?
-  timestamp          DateTime
-  transactionIndex   Int
-  logIndex           Int
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  chainId          Int
+  blockNumber      Int
+  contractAddress  String
+  transactionHash  String
+  topic0           String?
+  topic1           String?
+  topic2           String?
+  topic3           String?
+  data             String
+  eventName        String?
+  decodedLog       Json?
+  timestamp        DateTime
+  transactionIndex Int
+  logIndex         Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@id([transactionHash, logIndex])
-
-  @@map("contract_event_logs")
-
   @@index([timestamp])
   @@index([blockNumber])
   @@index([contractAddress])
@@ -226,44 +223,43 @@ model ContractEventLogs {
   @@index([topic1])
   @@index([topic2])
   @@index([topic3])
+  @@map("contract_event_logs")
 }
 
 model ContractTransactionReceipts {
-  chainId            Int
-  blockNumber        Int
-  contractAddress    String
-  contractId         String // ${chainId}:${contractAddress}
-  transactionHash    String 
-  blockHash          String
-  timestamp          DateTime
-  data               String
-  
-  to                 String
-  from               String
-  value              String
-  transactionIndex   Int
+  chainId         Int
+  blockNumber     Int
+  contractAddress String
+  contractId      String // ${chainId}:${contractAddress}
+  transactionHash String
+  blockHash       String
+  timestamp       DateTime
+  data            String
 
-  gasUsed            String
-  effectiveGasPrice  String             
-  status             Int
+  to               String
+  from             String
+  value            String
+  transactionIndex Int
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  gasUsed           String
+  effectiveGasPrice String
+  status            Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([chainId, transactionHash])
-
   @@index([contractId, timestamp])
   @@index([contractId, blockNumber])
-
   @@map("contract_transaction_receipts")
 }
 
 model ChainIndexers {
-  chainId            Int       @id
-  lastIndexedBlock   Int
+  chainId          Int @id
+  lastIndexedBlock Int
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("chain_indexers")
 }

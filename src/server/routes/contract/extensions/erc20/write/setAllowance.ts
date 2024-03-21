@@ -9,8 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
+import { txOverrides } from "../../../../../schemas/txOverrides";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The number of tokens to give as allowance",
   }),
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 requestBodySchema.examples = [

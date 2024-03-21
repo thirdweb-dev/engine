@@ -11,8 +11,8 @@ import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
+import { txOverrides } from "../../../../../schemas/txOverrides";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
@@ -20,7 +20,7 @@ import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validato
 const requestSchema = erc721ContractParamSchema;
 const requestBodySchema = Type.Object({
   ...signature721InputSchema.properties,
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 // OUTPUT

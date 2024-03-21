@@ -10,15 +10,15 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
+import { txOverrides } from "../../../../../schemas/txOverrides";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   metadatas: Type.Array(nftOrInputSchema),
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 requestBodySchema.examples = [

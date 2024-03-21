@@ -10,8 +10,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
+import { txOverrides } from "../../../../../schemas/txOverrides";
 import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -21,7 +21,7 @@ const requestBodySchema = Type.Object({
     description: "Address of the wallet to mint the NFT to",
   }),
   metadatas: Type.Array(nftOrInputSchema),
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 requestBodySchema.examples = [

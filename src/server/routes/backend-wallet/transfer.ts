@@ -16,6 +16,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
+import { txOverrides } from "../../schemas/txOverrides";
 import { walletAuthSchema, walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -32,6 +33,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The amount of tokens to transfer",
   }),
+  ...txOverrides.properties,
 });
 
 export async function transfer(fastify: FastifyInstance) {
@@ -60,12 +62,10 @@ export async function transfer(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { to, amount, currencyAddress } = request.body;
+      const { to, amount, currencyAddress, idempotencyKey } = request.body;
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
-      let queueId: string | null = null;
-
       // TODO: Bring Smart Wallet back
       // const accountAddress = request.headers["x-account-address"] as string;
       const { simulateTx } = request.query;
@@ -78,6 +78,7 @@ export async function transfer(fastify: FastifyInstance) {
         currencyAddress,
       );
 
+      let queueId: string | null = null;
       if (isNativeToken(currencyAddress)) {
         const walletAddress = await sdk.getSigner()?.getAddress();
         if (!walletAddress) throw new Error("No wallet address");
@@ -108,6 +109,8 @@ export async function transfer(fastify: FastifyInstance) {
           toAddress: params.toAddress,
           value: params.value,
           data: "0x",
+          simulateTx,
+          idempotencyKey,
         }));
       } else {
         const contract = await getContract({
@@ -128,6 +131,7 @@ export async function transfer(fastify: FastifyInstance) {
           chainId,
           extension: "erc20",
           simulateTx,
+          idempotencyKey,
         });
       }
 

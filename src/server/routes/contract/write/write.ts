@@ -9,8 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
+import { txOverrides } from "../../../schemas/txOverrides";
 import { walletAuthSchema } from "../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
@@ -29,7 +29,7 @@ const writeRequestBodySchema = Type.Object({
       Type.Any(),
     ]),
   ),
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 // Adding example for Swagger File
