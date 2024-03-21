@@ -7,6 +7,7 @@ import {
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { FastifyInstance } from "fastify";
 import { FastifyRequest } from "fastify/types/request";
+import jsonwebtoken from "jsonwebtoken";
 import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
@@ -283,18 +284,46 @@ const handleAccessTokenJwt = async (
  * @async
  */
 const handleAdminWalletJwt = async (jwt: string): Promise<AuthResponse> => {
-  const user = await handleSiwe(jwt, "thirdweb.com", env.ADMIN_WALLET_ADDRESS);
-  if (user) {
+  const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmHMzoiM9ZnitQQe7ntPz
+VrFlfGWW4OuVIVD1YkCPM1D+XFhCIiN4b2F1WoAXvqlUInW3YPVVBXssu80VVjWH
+AxRCY2VgIv8EKQB+jiIsyteGB533bhp7OO9uuVraXFq67dV7LDmjehM7cOLZluIx
+/XAiO68ZvqT7LD3L2HxIrx/8gHXn58ICNCEiNSo54HbYR1kbO0iVvHraB2s3High
+hNiljzsojqSe6wQXzvjaWLUjmHCSjBi9EVZPIkUl5BSmWw9oAhLioVTsdONge+X1
+laKXcNmLj6GOGhsLKVs67MFqF+WO03ZCdDce3KmGrHwsXrAy20rK6cIfI43DFnNB
+iQIDAQAB
+-----END PUBLIC KEY-----` as const;
+  try {
+    const payload = jsonwebtoken.verify(jwt, PUBLIC_KEY, {
+      algorithm: "RS256",
+    });
+    console.log("[DEBUG] payload", payload);
+
     return {
       isAuthed: true,
       user: {
-        address: user.address,
+        address: THIRDWEB_DASHBOARD_ISSUER,
         session: {
           permissions: Permission.Owner,
         },
       },
     };
+  } catch (e) {
+    // Invalid signature.
   }
+
+  // const user = await handleSiwe(jwt, "thirdweb.com", env.ADMIN_WALLET_ADDRESS);
+  // if (user) {
+  //   return {
+  //     isAuthed: true,
+  //     user: {
+  //       address: user.address,
+  //       session: {
+  //         permissions: Permission.Owner,
+  //       },
+  //     },
+  //   };
+  // }
 
   return { isAuthed: false };
 };

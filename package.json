@@ -61,6 +61,7 @@
     "fastify": "^4.15.0",
     "fastify-plugin": "^4.5.0",
     "http-status-codes": "^2.2.0",
+    "jsonwebtoken": "^9.0.2",
     "knex": "^2.4.2",
     "node-cron": "^3.0.2",
     "p-queue": "^7.3.4",

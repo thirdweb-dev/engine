@@ -7,9 +7,12 @@ interface GetTokenParams {
 
 export const getToken = async ({ jwt }: GetTokenParams) => {
   const { payload } = parseJWT(jwt);
-  return prisma.tokens.findUnique({
-    where: {
-      id: payload.jti,
-    },
-  });
+  if (payload.jti) {
+    return prisma.tokens.findUnique({
+      where: {
+        id: payload.jti,
+      },
+    });
+  }
+  return null;
 };
