@@ -65,7 +65,8 @@ export const queueTxRaw = async ({
 
   ingestRequestQueue.add(queueId, { ...tx, id: queueId });
 
-  const redisClient = await ingestRequestQueue.client;
-  await redisClient.hmset(queueId, tx);
+  // TODO: To bring ths back in the next iteration
+  // const redisClient = await ingestRequestQueue.client;
+  // await redisClient.hmset(queueId, tx);
   return { id: queueId };
 };

@@ -1,10 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  RedisTxInput,
-  queueTxToRedis,
-} from "../../../../../../db/transactions/queueTx";
+import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
 import {
@@ -79,20 +76,12 @@ export async function erc721mintTo(fastify: FastifyInstance) {
 
       const tx = await contract.erc721.mintTo.prepare(receiver, metadata);
 
-      const queueRequestData: RedisTxInput = {
-        rawRequest: {
-          functionName: tx.getMethod(),
-          chainId,
-          args: tx.getArgs(),
-          contractAddress: tx.getTarget(),
-          walletAddress: await tx.getSignerAddress(),
-          extension: "erc721",
-        },
-        shouldSimulate: simulateTx,
-        preparedTx: tx,
-      };
-
-      const queueId = await queueTxToRedis(queueRequestData);
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc721",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

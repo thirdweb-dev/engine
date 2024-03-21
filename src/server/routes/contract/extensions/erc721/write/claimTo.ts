@@ -1,10 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  RedisTxInput,
-  queueTxToRedis,
-} from "../../../../../../db/transactions/queueTx";
+import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   contractParamSchema,
@@ -77,21 +74,12 @@ export async function erc721claimTo(fastify: FastifyInstance) {
 
       const tx = await contract.erc721.claimTo.prepare(receiver, quantity);
 
-      const queueRequestData: RedisTxInput = {
-        rawRequest: {
-          functionName: tx.getMethod(),
-          chainId,
-          args: tx.getArgs(),
-          contractAddress,
-          walletAddress,
-          accountAddress,
-          extension: "erc721",
-        },
-        shouldSimulate: simulateTx,
-        preparedTx: tx,
-      };
-
-      const queueId = await queueTxToRedis(queueRequestData);
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "erc721",
+      });
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

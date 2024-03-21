@@ -1,6 +1,5 @@
 import { Job, Worker } from "bullmq";
 import { bullMQConnection, prisma, webhookQueue } from "../../db/client";
-import { RedisTxInput } from "../../db/transactions/queueTx";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
@@ -9,13 +8,12 @@ export const startIngestQueueWorker = async () => {
   const ingestRequestWorker = new Worker(
     "ingestRequestQueue",
     async (job: Job) => {
-      const rawRequest = job.data as RedisTxInput;
+      const tx = job.data;
       logger({
         level: "info",
-        message: `Processing job ${job.id} ${JSON.stringify(rawRequest)}`,
+        message: `Processing job ${job.id} ${JSON.stringify(tx)}`,
         service: "worker",
       });
-      const tx = job.data;
 
       const insertedData = await prisma.transactions.create({
         data: {

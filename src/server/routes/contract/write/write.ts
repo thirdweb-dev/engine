@@ -1,10 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  RedisTxInput,
-  queueTxToRedis,
-} from "../../../../db/transactions/queueTx";
+import { queueTx } from "../../../../db/transactions/queueTx";
 import { getContract } from "../../../../utils/cache/getContract";
 import {
   contractParamSchema,
@@ -90,21 +87,12 @@ export async function writeToContract(fastify: FastifyInstance) {
 
       const tx = await contract.prepare(functionName, args, txOverrides);
 
-      const queueRequestData: RedisTxInput = {
-        rawRequest: {
-          functionName,
-          chainId,
-          args,
-          contractAddress,
-          walletAddress,
-          accountAddress,
-          extension: "none",
-        },
-        preparedTx: tx,
-        shouldSimulate: simulateTx,
-      };
-
-      const queueId = await queueTxToRedis(queueRequestData);
+      const queueId = await queueTx({
+        tx,
+        chainId,
+        simulateTx,
+        extension: "none",
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
