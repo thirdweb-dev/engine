@@ -10,7 +10,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverrides } from "../../../../../schemas/txOverrides";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -50,7 +50,7 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
       operationId: "burnFrom",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -61,10 +61,12 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { holderAddress, amount } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -72,14 +74,16 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
       const tx = await contract.erc20.burnFrom.prepare(holderAddress, amount);
+
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "erc20",
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

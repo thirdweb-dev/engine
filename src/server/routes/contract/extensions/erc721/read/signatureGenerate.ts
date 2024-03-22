@@ -12,7 +12,7 @@ import {
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverrides } from "../../../../../schemas/txOverrides";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
@@ -72,7 +72,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

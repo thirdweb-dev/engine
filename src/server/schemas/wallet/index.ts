@@ -1,12 +1,18 @@
 import { Type } from "@sinclair/typebox";
 
-export const walletAuthSchema = Type.Object({
+export const walletHeaderSchema = Type.Object({
   "x-backend-wallet-address": Type.String({
     description: "Backend wallet address",
   }),
   "x-account-address": Type.Optional(
     Type.String({
       description: "Smart account address",
+    }),
+  ),
+  "x-idempotency-key": Type.Optional(
+    Type.String({
+      description:
+        "A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours.",
     }),
   ),
 });

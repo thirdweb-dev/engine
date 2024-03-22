@@ -8,7 +8,7 @@ import {
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverrides } from "../../schemas/txOverrides";
-import { walletAuthSchema } from "../../schemas/wallet";
+import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
@@ -61,7 +61,7 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
       operationId: "deployPrebuilt",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       hide: true,
       response: {
         ...standardResponseSchema,
@@ -72,13 +72,13 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
       const { chain, contractType } = request.params;
       const { contractMetadata, version } = request.body;
       const chainId = await getChainIdFromChain(chain);
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });
-
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
         contractType,
         contractMetadata,
@@ -90,7 +90,9 @@ export async function deployPrebuilt(fastify: FastifyInstance) {
         tx,
         chainId,
         extension: "deploy-prebuilt",
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         deployedAddress,
         queueId,

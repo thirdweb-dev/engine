@@ -9,7 +9,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -42,7 +42,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       description: "Cancel a valid offer made by the caller wallet.",
       tags: ["Marketplace-Offers"],
       operationId: "cancelOffer",
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -55,10 +55,12 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { offerId } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -66,7 +68,6 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
       const tx = await contract.offers.cancelOffer.prepare(offerId);
 
       const queueId = await queueTx({
@@ -74,7 +75,9 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
         chainId,
         simulateTx,
         extension: "marketplace-v3-offers",
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

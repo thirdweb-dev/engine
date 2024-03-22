@@ -64,16 +64,13 @@ export const queueTxRaw = async ({
 
   let txRow: Transactions;
   if (idempotencyKey) {
-    // Upsert the tx.
+    // Upsert the tx (insert if not exists).
     txRow = await prisma.transactions.upsert({
-      // Assert the idempotency key already exists.
       where: { idempotencyKey },
-      // Insert the row with this idempotencyKey.
       create: {
         ...insertData,
         idempotencyKey,
       },
-      // Don't update the row if re-sending the same tx.
       update: {},
     });
   } else {
@@ -81,7 +78,7 @@ export const queueTxRaw = async ({
     txRow = await prisma.transactions.create({
       data: {
         ...insertData,
-        // Fall back to the queueId to ensure uniqueness.
+        // Use queueId to ensure uniqueness.
         idempotencyKey: insertData.id,
       },
     });

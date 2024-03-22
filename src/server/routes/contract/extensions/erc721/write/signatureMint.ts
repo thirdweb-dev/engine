@@ -13,7 +13,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverrides } from "../../../../../schemas/txOverrides";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -64,7 +64,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
       operationId: "signatureMint",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -75,10 +75,12 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { payload, signature } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -86,7 +88,6 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
       const signedPayload: SignedPayload721WithQuantitySignature = {
         payload: {
           ...payload,
@@ -98,12 +99,15 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
         signature,
       };
       const tx = await contract.erc721.signature.mint.prepare(signedPayload);
+
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "erc721",
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

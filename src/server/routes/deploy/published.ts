@@ -8,7 +8,7 @@ import {
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverrides } from "../../schemas/txOverrides";
-import { walletAuthSchema } from "../../schemas/wallet";
+import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
@@ -53,7 +53,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       operationId: "deployPublished",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -63,10 +63,11 @@ export async function deployPublished(fastify: FastifyInstance) {
       const { chain, publisher, contractName } = request.params;
       const { constructorParams, version } = request.body;
       const chainId = await getChainIdFromChain(chain);
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });
       const tx = await sdk.deployer.deployPublishedContract.prepare(
@@ -83,7 +84,9 @@ export async function deployPublished(fastify: FastifyInstance) {
         extension: "deploy-published",
         deployedContractAddress: deployedAddress,
         deployedContractType: contractName,
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         deployedAddress,
         queueId,

@@ -9,7 +9,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -48,7 +48,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
         "Revoke approval for a buyer to purchase a reserved listing.",
       tags: ["Marketplace-DirectListings"],
       operationId: "revokeBuyerApprovalForReservedListing",
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -61,10 +61,12 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { listingId, buyerAddress } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -72,7 +74,6 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
         walletAddress,
         accountAddress,
       });
-
       const tx =
         await contract.directListings.revokeBuyerApprovalForReservedListing.prepare(
           listingId,
@@ -84,7 +85,9 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
         chainId,
         simulateTx,
         extension: "marketplace-v3-direct-listings",
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

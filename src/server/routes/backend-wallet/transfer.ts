@@ -17,7 +17,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverrides } from "../../schemas/txOverrides";
-import { walletAuthSchema, walletParamSchema } from "../../schemas/wallet";
+import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
@@ -53,7 +53,7 @@ export async function transfer(fastify: FastifyInstance) {
       operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
-      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -62,12 +62,11 @@ export async function transfer(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { to, amount, currencyAddress, idempotencyKey } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      // TODO: Bring Smart Wallet back
-      // const accountAddress = request.headers["x-account-address"] as string;
+      const { to, amount, currencyAddress } = request.body;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const { simulateTx } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const sdk = await getSdk({ chainId, walletAddress });

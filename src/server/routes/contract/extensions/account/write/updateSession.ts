@@ -9,7 +9,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = Type.Object({
@@ -42,7 +42,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
       tags: ["Account"],
       operationId: "updateSession",
       params: contractParamSchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       body: BodySchema,
       querystring: requestQuerystringSchema,
       response: {
@@ -54,10 +54,11 @@ export const updateSession = async (fastify: FastifyInstance) => {
       const { chain, contractAddress } = request.params;
       const { signerAddress, ...permissions } = request.body;
       const { simulateTx } = request.query;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -86,6 +87,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
         chainId,
         simulateTx,
         extension: "account",
+        idempotencyKey,
       });
 
       reply.status(StatusCodes.OK).send({
