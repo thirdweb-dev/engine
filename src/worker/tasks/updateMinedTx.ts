@@ -44,23 +44,47 @@ export const updateMinedTx = async () => {
                 const sentAt = new Date(tx.sentAt!);
                 const ageInMilliseconds = Date.now() - sentAt.getTime();
                 if (ageInMilliseconds > MEMPOOL_DURATION_TIMEOUT_MS) {
-                  await cancelTransactionAndUpdate({
-                    queueId: tx.id,
-                    pgtx,
-                  });
+                  try {
+                    await cancelTransactionAndUpdate({
+                      queueId: tx.id,
+                      pgtx,
+                    });
 
-                  reportUsageForQueueIds.push({
-                    input: {
-                      fromAddress: tx.fromAddress || undefined,
-                      toAddress: tx.toAddress || undefined,
-                      value: tx.value || undefined,
-                      chainId: tx.chainId || undefined,
-                      transactionHash: tx.transactionHash || undefined,
-                      provider: provider.connection.url || undefined,
-                      msSinceSend: Date.now() - tx.sentAt!.getTime(),
-                    },
-                    action: UsageEventTxActionEnum.CancelTx,
-                  });
+                    reportUsageForQueueIds.push({
+                      input: {
+                        fromAddress: tx.fromAddress || undefined,
+                        toAddress: tx.toAddress || undefined,
+                        value: tx.value || undefined,
+                        chainId: tx.chainId || undefined,
+                        transactionHash: tx.transactionHash || undefined,
+                        provider: provider.connection.url || undefined,
+                        msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                      },
+                      action: UsageEventTxActionEnum.CancelTx,
+                    });
+                  } catch (error) {
+                    await updateTx({
+                      pgtx,
+                      queueId: tx.id,
+                      data: {
+                        status: TransactionStatusEnum.Errored,
+                        errorMessage: "Transaction timed out.",
+                      },
+                    });
+
+                    reportUsageForQueueIds.push({
+                      input: {
+                        fromAddress: tx.fromAddress || undefined,
+                        toAddress: tx.toAddress || undefined,
+                        value: tx.value || undefined,
+                        chainId: tx.chainId || undefined,
+                        transactionHash: tx.transactionHash || undefined,
+                        provider: provider.connection.url || undefined,
+                        msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                      },
+                      action: UsageEventTxActionEnum.ErrorTx,
+                    });
+                  }
                 }
                 return;
               }
