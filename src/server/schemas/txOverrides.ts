@@ -11,11 +11,4 @@ export const txOverrides = Type.Object({
       ),
     }),
   ),
-  idempotencyKey: Type.Optional(
-    Type.String({
-      description:
-        "A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours.",
-      examples: ["your-app-internal-id"],
-    }),
-  ),
 });
