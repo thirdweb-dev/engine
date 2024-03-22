@@ -1,7 +1,7 @@
 import { Transactions } from "@prisma/client";
 import { getBlock } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
-import { prisma, webhookQueue } from "../../db/client";
+import { prisma } from "../../db/client";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
@@ -13,13 +13,11 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData } from "../../utils/webhook";
 
 const MEMPOOL_DURATION_TIMEOUT_MS = 1000 * 60 * 60;
 
 export const updateMinedTx = async () => {
   try {
-    const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
@@ -27,8 +25,6 @@ export const updateMinedTx = async () => {
         if (txs.length === 0) {
           return;
         }
-
-        const droppedTxs: (Transactions & { provider?: string })[] = [];
 
         const txsWithReceipts = (
           await Promise.all(
@@ -51,11 +47,6 @@ export const updateMinedTx = async () => {
                   await cancelTransactionAndUpdate({
                     queueId: tx.id,
                     pgtx,
-                  });
-
-                  sendWebhookForQueueIds.push({
-                    id: tx.id,
-                    status: TransactionStatusEnum.Cancelled,
                   });
 
                   reportUsageForQueueIds.push({
@@ -144,11 +135,6 @@ export const updateMinedTx = async () => {
               message: "Updated mined tx.",
             });
 
-            sendWebhookForQueueIds.push({
-              id: txWithReceipt.tx.id,
-              status: TransactionStatusEnum.Mined,
-            });
-
             reportUsageForQueueIds.push({
               input: {
                 fromAddress: txWithReceipt.tx.fromAddress || undefined,
@@ -174,9 +160,6 @@ export const updateMinedTx = async () => {
       },
     );
 
-    sendWebhookForQueueIds.forEach((webhookData) => {
-      webhookQueue.add("webhookQueue", webhookData, { delay: 1000 });
-    });
     reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({

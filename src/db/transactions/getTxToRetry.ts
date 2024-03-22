@@ -21,8 +21,7 @@ SELECT
 FROM
   "transactions"
 WHERE
-  "processedAt" IS NOT NULL
-  AND "sentAt" IS NOT NULL
+  "sentAt" IS NOT NULL
   AND "accountAddress" IS NULL
   AND "minedAt" IS NULL
   AND "errorMessage" IS NULL

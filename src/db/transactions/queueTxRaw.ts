@@ -63,7 +63,7 @@ export const queueTxRaw = async ({
     },
   ]);
 
-  ingestRequestQueue.add(queueId, { ...tx, id: queueId });
+  ingestRequestQueue.add(queueId, { ...tx, id: queueId }, { jobId: queueId });
 
   // TODO: To bring ths back in the next iteration
   // const redisClient = await ingestRequestQueue.client;

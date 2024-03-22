@@ -1,9 +1,8 @@
 import { Job, Worker } from "bullmq";
-import { bullMQConnection, prisma } from "../../db/client";
-import { cleanTxs } from "../../db/transactions/cleanTxs";
+import { bullMQConnection } from "../../db/client";
 import { getAllWebhooks } from "../../db/webhooks/getAllWebhooks";
 import { logger } from "../../utils/logger";
-import { sendWebhookRequest } from "../../utils/webhook";
+import { WebhookData, sendWebhookRequest } from "../../utils/webhook";
 
 // Worker processing logic
 export const processWebhook = async () => {
@@ -12,22 +11,10 @@ export const processWebhook = async () => {
     async (job: Job) => {
       const webhookConfigs = await getAllWebhooks();
 
-      const rawRequest = await prisma.transactions.findUnique({
-        where: {
-          id: job.data.id,
-        },
-      });
+      const webhookQueueData = job.data as WebhookData;
 
-      if (rawRequest !== null && rawRequest !== undefined) {
-        const cleanedTx = cleanTxs([rawRequest])[0];
-
-        logger({
-          level: "debug",
-          message: `[processWebhook] Webhook job ${job.id} ${JSON.stringify(
-            webhookConfigs,
-          )}`,
-          service: "worker",
-        });
+      if (webhookQueueData && webhookQueueData.data) {
+        const cleanedTx = webhookQueueData.data;
 
         await Promise.all(
           webhookConfigs.map(async (webhookConfig) => {
@@ -41,9 +28,7 @@ export const processWebhook = async () => {
               return;
             }
 
-            if (rawRequest !== null && rawRequest !== undefined) {
-              await sendWebhookRequest(webhookConfig, cleanedTx);
-            }
+            await sendWebhookRequest(webhookConfig, cleanedTx);
           }),
         );
       }

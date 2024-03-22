@@ -1,11 +1,14 @@
+import { Static } from "@sinclair/typebox";
 import crypto from "crypto";
-import { getTxByIds } from "../db/transactions/getTxByIds";
 import {
   SanitizedWebHooksSchema,
   WalletBalanceWebhookSchema,
   WebhooksEventTypes,
 } from "../schema/webhooks";
-import { TransactionStatusEnum } from "../server/schemas/transaction";
+import {
+  TransactionStatusEnum,
+  transactionResponseSchema,
+} from "../server/schemas/transaction";
 import { getWebhook } from "./cache/getWebhook";
 import { logger } from "./logger";
 
@@ -84,67 +87,10 @@ export const sendWebhookRequest = async (
 
 export interface WebhookData {
   id: string;
+  data?: Static<typeof transactionResponseSchema>;
   status: TransactionStatusEnum;
+  url?: string;
 }
-
-export const sendWebhooks = async (webhooks: WebhookData[]) => {
-  const queueIds = webhooks.map((webhook) => webhook.id);
-  const txs = await getTxByIds({ queueIds });
-  if (!txs || txs.length === 0) {
-    return;
-  }
-
-  const webhooksWithTxs = webhooks
-    .map((webhook) => {
-      const tx = txs.find((tx) => tx.queueId === webhook.id);
-      return {
-        ...webhook,
-        tx,
-      };
-    })
-    .filter((webhook) => !!webhook.tx);
-
-  for (const webhook of webhooksWithTxs) {
-    const webhookStatus =
-      webhook.status === TransactionStatusEnum.Queued
-        ? WebhooksEventTypes.QUEUED_TX
-        : webhook.status === TransactionStatusEnum.Submitted
-        ? WebhooksEventTypes.SENT_TX
-        : webhook.status === TransactionStatusEnum.Retried
-        ? WebhooksEventTypes.RETRIED_TX
-        : webhook.status === TransactionStatusEnum.Mined
-        ? WebhooksEventTypes.MINED_TX
-        : webhook.status === TransactionStatusEnum.Errored
-        ? WebhooksEventTypes.ERRORED_TX
-        : webhook.status === TransactionStatusEnum.Cancelled
-        ? WebhooksEventTypes.CANCELLED_TX
-        : undefined;
-
-    const webhookConfigs = await Promise.all([
-      ...((await getWebhook(WebhooksEventTypes.ALL_TX)) || []),
-      ...(webhookStatus ? await getWebhook(webhookStatus) : []),
-    ]);
-
-    await Promise.all(
-      webhookConfigs.map(async (webhookConfig) => {
-        if (!webhookConfig.active) {
-          logger({
-            service: "server",
-            level: "debug",
-            message: "No webhook set or active, skipping webhook send",
-          });
-
-          return;
-        }
-
-        await sendWebhookRequest(
-          webhookConfig,
-          webhook.tx as Record<string, any>,
-        );
-      }),
-    );
-  }
-};
 
 // TODO: Add retry logic upto
 export const sendBalanceWebhook = async (

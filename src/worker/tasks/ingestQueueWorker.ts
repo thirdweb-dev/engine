@@ -1,7 +1,10 @@
 import { Job, Worker } from "bullmq";
 import { bullMQConnection, prisma, webhookQueue } from "../../db/client";
+import { cleanTxs } from "../../db/transactions/cleanTxs";
+import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
+import { WebhookData } from "../../utils/webhook";
 
 // Worker processing logic
 export const startIngestQueueWorker = async () => {
@@ -10,8 +13,8 @@ export const startIngestQueueWorker = async () => {
     async (job: Job) => {
       const tx = job.data;
       logger({
-        level: "info",
-        message: `Processing job ${job.id} ${JSON.stringify(tx)}`,
+        level: "debug",
+        message: `Processing job ${job.id}`,
         service: "worker",
       });
 
@@ -27,7 +30,14 @@ export const startIngestQueueWorker = async () => {
         },
       });
 
-      webhookQueue.add("webhookQueue", insertedData, { delay: 1000 });
+      const sanitizedTxData = cleanTxs([insertedData]);
+      const webhookQueueData: WebhookData = {
+        data: sanitizedTxData[0],
+        id: insertedData.id,
+        status: TransactionStatusEnum.Queued,
+      };
+
+      webhookQueue.add("webhookQueue", webhookQueueData);
     },
     {
       concurrency: env.INGEST_WORKER_CONCURRENCY,

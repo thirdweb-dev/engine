@@ -91,12 +91,6 @@ export const transactionResponseSchema = Type.Object({
     }),
     Type.Null(),
   ]),
-  processedAt: Type.Union([
-    Type.String({
-      description: "When the transaction is handled by a worker",
-    }),
-    Type.Null(),
-  ]),
   sentAt: Type.Union([
     Type.String({
       description: "When the transaction is submitted to mempool",
