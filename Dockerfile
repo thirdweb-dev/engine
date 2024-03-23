@@ -15,7 +15,7 @@ COPY package*.json yarn*.lock ./
 COPY . .
 
 # Install dependencies for both development and production
-RUN yarn install --frozen-lockfile --network-timeout 1000000
+RUN yarn install --network-timeout 1000000
 
 WORKDIR /app/src/https
 
@@ -56,7 +56,7 @@ RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip && \
     yarn build && \
     yarn copy-files && \
     rm -rf node_modules && \
-    yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
+    yarn install --production=true --network-timeout 1000000 && \
     apk del build-dependencies
 
 ##############################
