@@ -1,8 +1,9 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, Transactions } from "@prisma/client";
+import { uuid } from "uuidv4";
 import { PrismaTransaction } from "../../schema/prisma";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { simulateTx } from "../../server/utils/simulateTx";
-import { reportUsage, UsageEventTxActionEnum } from "../../utils/usage";
+import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
 import { sendWebhooks } from "../../utils/webhook";
 import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
@@ -10,10 +11,8 @@ import { getWalletDetails } from "../wallets/getWalletDetails";
 type QueueTxRawParams = Omit<
   Prisma.TransactionsCreateInput,
   "fromAddress" | "signerAddress"
-> & {
-  pgtx?: PrismaTransaction;
-  simulateTx?: boolean;
-} & (
+> &
+  (
     | {
         fromAddress: string;
         signerAddress?: never;
@@ -22,13 +21,18 @@ type QueueTxRawParams = Omit<
         fromAddress?: never;
         signerAddress: string;
       }
-  );
+  ) & {
+    pgtx?: PrismaTransaction;
+    simulateTx?: boolean;
+    idempotencyKey?: string;
+  };
 
 export const queueTxRaw = async ({
-  simulateTx: shouldSimulate,
   pgtx,
+  simulateTx: shouldSimulate,
+  idempotencyKey,
   ...tx
-}: QueueTxRawParams) => {
+}: QueueTxRawParams): Promise<Transactions> => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
   const walletDetails = await getWalletDetails({
@@ -48,21 +52,42 @@ export const queueTxRaw = async ({
     await simulateTx({ txRaw: tx });
   }
 
-  const insertedData = await prisma.transactions.create({
-    data: {
-      ...tx,
-      fromAddress: tx.fromAddress?.toLowerCase(),
-      toAddress: tx.toAddress?.toLowerCase(),
-      target: tx.target?.toLowerCase(),
-      signerAddress: tx.signerAddress?.toLowerCase(),
-      accountAddress: tx.accountAddress?.toLowerCase(),
-    },
-  });
+  const insertData = {
+    ...tx,
+    id: uuid(),
+    fromAddress: tx.fromAddress?.toLowerCase(),
+    toAddress: tx.toAddress?.toLowerCase(),
+    target: tx.target?.toLowerCase(),
+    signerAddress: tx.signerAddress?.toLowerCase(),
+    accountAddress: tx.accountAddress?.toLowerCase(),
+  };
+
+  let txRow: Transactions;
+  if (idempotencyKey) {
+    // Upsert the tx (insert if not exists).
+    txRow = await prisma.transactions.upsert({
+      where: { idempotencyKey },
+      create: {
+        ...insertData,
+        idempotencyKey,
+      },
+      update: {},
+    });
+  } else {
+    // Insert the tx.
+    txRow = await prisma.transactions.create({
+      data: {
+        ...insertData,
+        // Use queueId to ensure uniqueness.
+        idempotencyKey: insertData.id,
+      },
+    });
+  }
 
   // Send queued webhook.
   sendWebhooks([
     {
-      queueId: insertedData.id,
+      queueId: txRow.id,
       status: TransactionStatusEnum.Queued,
     },
   ]).catch((err) => {});
@@ -82,5 +107,5 @@ export const queueTxRaw = async ({
     },
   ]);
 
-  return insertedData;
+  return txRow;
 };

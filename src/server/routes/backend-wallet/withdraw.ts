@@ -6,7 +6,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletAuthSchema, walletParamSchema } from "../../schemas/wallet";
+import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Omit(walletParamSchema, ["walletAddress"]);
@@ -32,16 +32,19 @@ export async function withdraw(fastify: FastifyInstance) {
       operationId: "withdraw",
       params: ParamsSchema,
       body: BodySchema,
-      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
     },
-    handler: async (req, res) => {
-      const { chain } = req.params;
-      const { toAddress } = req.body;
-      const walletAddress = req.headers["x-backend-wallet-address"] as string;
+    handler: async (request, reply) => {
+      const { chain } = request.params;
+      const { toAddress } = request.body;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
 
@@ -52,9 +55,10 @@ export async function withdraw(fastify: FastifyInstance) {
         fromAddress: walletAddress,
         toAddress,
         data: "0x",
+        idempotencyKey,
       });
 
-      res.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: {
           queueId,
         },

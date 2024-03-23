@@ -16,7 +16,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletAuthSchema, walletParamSchema } from "../../schemas/wallet";
+import { txOverrides } from "../../schemas/txOverrides";
+import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
@@ -32,6 +33,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The amount of tokens to transfer",
   }),
+  ...txOverrides.properties,
 });
 
 export async function transfer(fastify: FastifyInstance) {
@@ -51,7 +53,7 @@ export async function transfer(fastify: FastifyInstance) {
       operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
-      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -61,13 +63,10 @@ export async function transfer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain } = request.params;
       const { to, amount, currencyAddress } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      let queueId: string | null = null;
-
-      // TODO: Bring Smart Wallet back
-      // const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const { simulateTx } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const sdk = await getSdk({ chainId, walletAddress });
@@ -78,6 +77,7 @@ export async function transfer(fastify: FastifyInstance) {
         currencyAddress,
       );
 
+      let queueId: string | null = null;
       if (isNativeToken(currencyAddress)) {
         const walletAddress = await sdk.getSigner()?.getAddress();
         if (!walletAddress) throw new Error("No wallet address");
@@ -108,6 +108,8 @@ export async function transfer(fastify: FastifyInstance) {
           toAddress: params.toAddress,
           value: params.value,
           data: "0x",
+          simulateTx,
+          idempotencyKey,
         }));
       } else {
         const contract = await getContract({
@@ -128,6 +130,7 @@ export async function transfer(fastify: FastifyInstance) {
           chainId,
           extension: "erc20",
           simulateTx,
+          idempotencyKey,
         });
       }
 

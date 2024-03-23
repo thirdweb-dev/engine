@@ -10,7 +10,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
@@ -39,7 +39,7 @@ export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
       operationId: "updateTokenMetadata",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -50,10 +50,11 @@ export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { tokenId, metadata } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -61,16 +62,17 @@ export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
       const tx = await contract.erc721.updateMetadata.prepare(
         tokenId,
         metadata,
       );
+
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "erc721",
+        idempotencyKey,
       });
 
       reply.status(StatusCodes.OK).send({
