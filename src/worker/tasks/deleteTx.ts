@@ -14,26 +14,17 @@ export const deleteTx = async () => {
             queuedAt: {
               lt: twentyFourHoursAgo,
             },
-            sentAt: {
-              not: null,
-            },
           },
           {
             OR: [
               {
-                minedAt: {
-                  not: null,
-                },
+                minedAt: { not: null },
               },
               {
-                cancelledAt: {
-                  not: null,
-                },
+                cancelledAt: { not: null },
               },
               {
-                errorMessage: {
-                  not: null,
-                },
+                errorMessage: { not: null },
               },
             ],
           },

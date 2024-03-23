@@ -12,17 +12,17 @@ export const getQueueStatus = async ({
       fromAddress: walletAddress?.toLowerCase(),
       sentAt: null,
       errorMessage: null,
+      cancelledAt: null,
     },
   });
 
   const pending = await prisma.transactions.count({
     where: {
       fromAddress: walletAddress?.toLowerCase(),
-      sentAt: {
-        not: null,
-      },
+      sentAt: { not: null },
       minedAt: null,
       errorMessage: null,
+      cancelledAt: null,
     },
   });
 
