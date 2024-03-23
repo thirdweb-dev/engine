@@ -1,41 +1,41 @@
-import { asL2Provider } from "@eth-optimism/sdk";
-import { Base, Optimism, Zora } from "@thirdweb-dev/chains";
-import { getDefaultGasOverrides, toUnits } from "@thirdweb-dev/sdk";
-import { BigNumber, ethers } from "ethers";
+import { defineChain, estimateGas, prepareTransaction } from "thirdweb";
+import { ethers5Adapter } from "thirdweb/adapters/ethers5";
+import { getWalletBalance } from "thirdweb/wallets";
+import { getWallet } from "../../utils/cache/getWallet";
+import { thirdwebClient } from "../../utils/sdk";
 
-interface GetWithdrawalValueParams {
-  provider: ethers.providers.Provider;
+interface GetWithdrawValueParams {
   chainId: number;
   fromAddress: string;
   toAddress: string;
-  gasOverrides: Awaited<ReturnType<typeof getDefaultGasOverrides>>;
 }
 
-export const getWithdrawalValue = async ({
-  provider,
+export const getWithdrawValue = async ({
   chainId,
   fromAddress,
   toAddress,
-  gasOverrides,
-}: GetWithdrawalValueParams): Promise<BigNumber> => {
-  const balance = await provider.getBalance(fromAddress);
+}: GetWithdrawValueParams): Promise<bigint> => {
+  const chain = defineChain(chainId);
 
-  let transferCost = BigNumber.from(
-    gasOverrides.maxFeePerGas || gasOverrides.gasPrice || toUnits(1, 9),
-  ).mul(21000);
+  // Get wallet balance.
+  const wallet = await getWallet({ chainId, walletAddress: fromAddress });
+  const account = await ethers5Adapter.signer.fromEthers(wallet.getSigner());
+  const balance = await getWalletBalance({
+    account,
+    client: thirdwebClient,
+    chain,
+  });
 
-  if (
-    chainId === Base.chainId ||
-    chainId === Optimism.chainId ||
-    chainId === Zora.chainId
-  ) {
-    const l2Provider = asL2Provider(provider);
-    transferCost = await l2Provider.estimateTotalGasCost({
-      to: toAddress,
-      value: 1,
-    });
-  }
+  // Estimate gas for a transfer.
+  const transferTx = prepareTransaction({
+    value: BigInt(balance.toString()),
+    to: toAddress,
+    chain,
+    client: thirdwebClient,
+  });
+  const transferCostGwei = await estimateGas({ transaction: transferTx });
+  // Convert to wei and add 20% buffer to account for variance.
+  const transferCostWei = transferCostGwei * BigInt(1.2 * 10 ** 9);
 
-  transferCost = transferCost.mul(120).div(100); // +20% in all cases for safety
-  return BigNumber.from(balance).sub(transferCost);
+  return balance.value - transferCostWei;
 };
