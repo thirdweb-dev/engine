@@ -28,23 +28,19 @@ export const getWithdrawValue = async ({
     chain,
   });
 
-  try {
-    // Estimate gas for a transfer.
-    const transferTx = prepareTransaction({
-      value: BigInt(1),
-      to: toAddress,
-      chain,
-      client: thirdwebClient,
-    });
-    const { wei: transferCostWei } = await estimateGasCost({
-      transaction: transferTx,
-    });
+  // Estimate gas for a transfer.
+  const transferTx = prepareTransaction({
+    value: BigInt(1),
+    to: toAddress,
+    chain,
+    client: thirdwebClient,
+  });
+  const { wei: transferCostWei } = await estimateGasCost({
+    transaction: transferTx,
+  });
 
-    // Add a 20% buffer for gas variance.
-    const buffer = BigInt(Math.round(Number(transferCostWei) * 0.2));
+  // Add a 20% buffer for gas variance.
+  const buffer = BigInt(Math.round(Number(transferCostWei) * 0.2));
 
-    return balanceWei - transferCostWei - buffer;
-  } catch (e) {
-    console.error(e);
-  }
+  return balanceWei - transferCostWei - buffer;
 };
