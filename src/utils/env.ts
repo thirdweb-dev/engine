@@ -3,10 +3,7 @@ import * as dotenv from "dotenv";
 import type { ZodError } from "zod";
 import { z } from "zod";
 
-dotenv.config({
-  debug: true,
-  override: false,
-});
+dotenv.config();
 
 export const JsonSchema = z.string().refine(
   (value) => {

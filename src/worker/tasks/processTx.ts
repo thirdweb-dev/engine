@@ -167,7 +167,6 @@ export const processTx = async () => {
                   toAddress: tx.toAddress!,
                 });
                 value = BigNumber.from(withdrawValue.toString());
-                console.log("[DEBUG] value", value);
               }
 
               const txRequest = await signer.populateTransaction({

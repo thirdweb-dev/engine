@@ -1,5 +1,6 @@
-import { defineChain, estimateGas, prepareTransaction } from "thirdweb";
+import { defineChain, prepareTransaction } from "thirdweb";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
+import { estimateGasCost } from "thirdweb/transaction";
 import { getWalletBalance } from "thirdweb/wallets";
 import { getWallet } from "../../utils/cache/getWallet";
 import { thirdwebClient } from "../../utils/sdk";
@@ -19,23 +20,31 @@ export const getWithdrawValue = async ({
 
   // Get wallet balance.
   const wallet = await getWallet({ chainId, walletAddress: fromAddress });
-  const account = await ethers5Adapter.signer.fromEthers(wallet.getSigner());
-  const balance = await getWalletBalance({
+  const signer = await wallet.getSigner();
+  const account = await ethers5Adapter.signer.fromEthers(signer);
+  const { value: balanceWei } = await getWalletBalance({
     account,
     client: thirdwebClient,
     chain,
   });
 
-  // Estimate gas for a transfer.
-  const transferTx = prepareTransaction({
-    value: BigInt(balance.toString()),
-    to: toAddress,
-    chain,
-    client: thirdwebClient,
-  });
-  const transferCostGwei = await estimateGas({ transaction: transferTx });
-  // Convert to wei and add 20% buffer to account for variance.
-  const transferCostWei = transferCostGwei * BigInt(1.2 * 10 ** 9);
+  try {
+    // Estimate gas for a transfer.
+    const transferTx = prepareTransaction({
+      value: BigInt(1),
+      to: toAddress,
+      chain,
+      client: thirdwebClient,
+    });
+    const { wei: transferCostWei } = await estimateGasCost({
+      transaction: transferTx,
+    });
 
-  return balance.value - transferCostWei;
+    // Add a 20% buffer for gas variance.
+    const buffer = BigInt(Math.round(Number(transferCostWei) * 0.2));
+
+    return balanceWei - transferCostWei - buffer;
+  } catch (e) {
+    console.error(e);
+  }
 };
