@@ -2,6 +2,10 @@ import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { PrismaTransaction } from "../../schema/prisma";
 import { simulateTx } from "../../server/utils/simulateTx";
+import {
+  getIdempotencyCacheKey,
+  getQueueIdCacheKey,
+} from "../../utils/redisKeys";
 import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
 import { ingestRequestQueue } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
@@ -65,10 +69,20 @@ export const queueTxRaw = async ({
     },
   ]);
 
-  ingestRequestQueue.add(queueId, { ...tx, id: queueId }, { jobId: queueId });
+  const ingestQueueData = { ...tx, id: queueId, idempotencyKey };
+  ingestRequestQueue.add(queueId, ingestQueueData, {
+    jobId: queueId,
+    removeOnComplete: true,
+  });
 
   // TODO: To bring ths back in the next iteration
-  // const redisClient = await ingestRequestQueue.client;
-  // await redisClient.hmset(queueId, tx);
+  const redisClient = await ingestRequestQueue.client;
+  const idempotencyCacheKey = getIdempotencyCacheKey(idempotencyKey || queueId);
+  const queueIdCacheKey = getQueueIdCacheKey(queueId);
+  console.log("::Debug Log:: queueIdCacheKey:", queueIdCacheKey);
+  console.log("::Debug Log:: idempotencyCacheKey:", idempotencyCacheKey);
+
+  await redisClient.hmset(queueIdCacheKey, ingestQueueData);
+  await redisClient.hmset(idempotencyCacheKey, ingestQueueData);
   return { id: queueId };
 };

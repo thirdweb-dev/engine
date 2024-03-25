@@ -9,16 +9,6 @@ export const getWebhook = async (
   eventType: WebhooksEventTypes,
   retrieveFromCache = true,
 ): Promise<SanitizedWebHooksSchema[]> => {
-  const cacheKey = `webhook:${eventType}`;
-  const redisClient = await getRedisClient();
-  const cachedWebhooks = await redisClient.hgetall(cacheKey);
-  console.log("::Debug Log:: Cache Key: ", cacheKey);
-  console.log("::Debug Log:: Cached Webhooks: ", cachedWebhooks);
-
-  if (retrieveFromCache && !cachedWebhooks) {
-    return JSON.parse(cachedWebhooks);
-  }
-
   const webhookConfig = await getAllWebhooks();
 
   const eventTypeWebhookDetails = webhookConfig.filter((webhook) => {
@@ -27,7 +17,6 @@ export const getWebhook = async (
     }
   });
 
-  redisClient.hset(cacheKey, JSON.stringify(eventTypeWebhookDetails));
   return eventTypeWebhookDetails;
 };
 

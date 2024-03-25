@@ -27,10 +27,6 @@ export const initWorker = async () => {
   await newConfigurationListener();
   await updatedConfigurationListener();
 
-  // Listen for new & updated webhooks data
-  // await newWebhooksListener();
-  // await updatedWebhooksListener();
-
   await startIngestQueueWorker();
   await processWebhook();
 
