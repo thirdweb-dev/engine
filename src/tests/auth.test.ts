@@ -1,5 +1,6 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { FastifyRequest } from "fastify/types/request";
+import jsonwebtoken from "jsonwebtoken";
 import { getPermissions } from "../db/permissions/getPermissions";
 import { WebhooksEventTypes } from "../schema/webhooks";
 import { onRequest } from "../server/middleware/auth";
@@ -142,7 +143,7 @@ describe("Websocket requests", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).not.toBeUndefined();
   });
 
   it("A websocket request with a valid access token and non-admin permission is not authed", async () => {
@@ -274,7 +275,7 @@ describe("Access tokens", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).not.toBeUndefined();
   });
 
   it("Valid access token with non-admin permissions is not authed", async () => {
@@ -353,50 +354,101 @@ describe("Access tokens", () => {
   });
 });
 
-describe("Admin wallet-signed JWT", () => {
+describe("Keypair auth JWT", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  const mockGetUser = jest.fn();
-  mockGetAccessToken.mockResolvedValue(null);
+  // Example ES256 private key used only for unit tests.
+  const TEST_PRIVATE_KEY = `-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEICIJbkRowq93OJvo2Tk4eopRbU8dDqp1bh9xHDpF9b6boAoGCCqGSM49
+AwEHoUQDQgAEKbqftPicYL3V+4gZHi16wUWSJ1gObsSyKJ/JW3qPUmL0fhdSNZz6
+C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
+-----END EC PRIVATE KEY-----`;
 
-  it("Valid admin wallet JWT", async () => {
-    // Mock non-dashboard JWTs.
-    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
-      if (issuer !== THIRDWEB_DASHBOARD_ISSUER) {
-        return { address: "0x0000000000000000000000000123" };
-      }
-      return null;
+  const mockGetUser = jest.fn();
+
+  it("Valid JWT signed by private key", async () => {
+    // Sign a valid auth payload.
+    const now = Math.floor(new Date().getTime() / 1000);
+    const payload = {
+      iss: "not_used",
+      aud: "thirdweb.com",
+      iat: now,
+      exp: now + 20,
+    };
+    const jwt = jsonwebtoken.sign(payload, TEST_PRIVATE_KEY, {
+      algorithm: "ES256",
     });
 
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-admin-wallet-jwt" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).toBeUndefined();
   });
 
-  it("Invalid admin wallet JWT is not authed", async () => {
-    // Mock non-dashboard JWTs.
-    mockHandleSiwe.mockResolvedValue(null);
+  it("Expired JWT signed by private key", async () => {
+    // Sign an expired auth payload.
+    const now = Math.floor(new Date().getTime() / 1000);
+    const payload = {
+      iss: "not_used",
+      aud: "thirdweb.com",
+      iat: now - 60,
+      exp: now - 20,
+    };
+    const jwt = jsonwebtoken.sign(payload, TEST_PRIVATE_KEY, {
+      algorithm: "ES256",
+    });
 
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+  });
+
+  it("Invalid JWT signed by the wrong private key", async () => {
+    // Sign a valid auth payload with a different private key.
+    const now = Math.floor(new Date().getTime() / 1000);
+    const payload = {
+      iss: "not_used",
+      aud: "thirdweb.com",
+      iat: now,
+      exp: now + 20,
+    };
+    const WRONG_PRIVATE_KEY = `-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIH719lhdn4CzboBQKr8E68htVNeQ2wwrxnsDhfLOgGNAoAoGCCqGSM49
+AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
+6sE9ABLmMjeNbKKz9ayyCGN/BC3MNikhfw==
+-----END EC PRIVATE KEY-----`;
+    const jwt = jsonwebtoken.sign(payload, WRONG_PRIVATE_KEY, {
+      algorithm: "ES256",
+    });
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: `Bearer ${jwt}` },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
   });
 });
 
@@ -433,7 +485,7 @@ describe("Dashboard JWT", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).not.toBeUndefined();
   });
 
   it("Valid dashboard JWT with non-admin permission is not authed", async () => {
@@ -511,10 +563,9 @@ describe("thirdweb secret key", () => {
   const mockGetUser = jest.fn();
 
   it("Valid thirdweb secret key is authed", async () => {
-    const localWallet = new LocalWallet();
-    await localWallet.generate();
-
-    mockGetAuthWallet.mockResolvedValue(localWallet);
+    const testAuthWallet = new LocalWallet();
+    await testAuthWallet.generate();
+    mockGetAuthWallet.mockResolvedValue(testAuthWallet);
 
     const req: FastifyRequest = {
       method: "POST",
@@ -526,7 +577,7 @@ describe("thirdweb secret key", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).not.toBeUndefined();
   });
 });
 
@@ -571,7 +622,7 @@ describe("auth webhooks", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).toBeUndefined();
   });
 
   it("A request that gets a non-2xx from any auth webhooks is not authed", async () => {

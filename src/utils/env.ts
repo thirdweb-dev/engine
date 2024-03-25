@@ -3,7 +3,8 @@ import * as dotenv from "dotenv";
 import type { ZodError } from "zod";
 import { z } from "zod";
 
-dotenv.config();
+const path = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
+dotenv.config({ path });
 
 export const JsonSchema = z.string().refine(
   (value) => {

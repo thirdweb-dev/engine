@@ -144,7 +144,6 @@ export const onRequest = async ({
   }
 
   const keypairAuthResp = await handleKeypairAuth(req);
-  throw `Authed? ${keypairAuthResp.isAuthed}`;
   if (keypairAuthResp.isAuthed) {
     return keypairAuthResp;
   }
@@ -286,31 +285,20 @@ const handleAccessTokenJwt = async (
 const handleKeypairAuth = async (
   req: FastifyRequest,
 ): Promise<AuthResponse> => {
-  const jwt = req.headers["x-keypair-auth"] as string;
-  console.log("[DEBUG] jwt", jwt);
-
+  const jwt = getJWT(req);
   if (env.KEYPAIR_PUBLIC_KEY && jwt) {
     try {
       const payload = jsonwebtoken.verify(jwt, env.KEYPAIR_PUBLIC_KEY, {
-        algorithms: ["RS256"],
+        algorithms: ["ES256"],
       }) as jsonwebtoken.JwtPayload;
 
       if (payload.aud !== "thirdweb.com") {
         throw 'Invalid "aud".';
       }
 
-      const authWallet = await getAuthWallet();
-      return {
-        isAuthed: true,
-        user: {
-          address: await authWallet.getAddress(),
-          session: {
-            permissions: Permission.Admin,
-          },
-        },
-      };
+      return { isAuthed: true };
     } catch (e) {
-      // Invalid signature.
+      // Missing or invalid signature.
     }
   }
 
