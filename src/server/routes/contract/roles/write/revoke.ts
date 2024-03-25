@@ -9,7 +9,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
@@ -40,7 +40,7 @@ export async function revokeRole(fastify: FastifyInstance) {
       description: "Revoke a role from a specific wallet.",
       tags: ["Contract-Roles"],
       operationId: "revoke",
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -53,10 +53,12 @@ export async function revokeRole(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { role, address } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -64,14 +66,16 @@ export async function revokeRole(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
       const tx = await contract.roles.revoke.prepare(role, address);
+
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "roles",
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

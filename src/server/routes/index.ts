@@ -126,6 +126,7 @@ import { removeContractSubscription } from "./contract/subscriptions/removeContr
 import { getContractTransactionReceipts } from "./contract/transactions/getTransactionReceipts";
 import { getContractTransactionReceiptsByTimestamp } from "./contract/transactions/getTransactionReceiptsByTimestamp";
 import { pageTransactionReceipts } from "./contract/transactions/paginateTransactionReceipts";
+import { syncRetryTransaction } from "./transaction/syncRetry";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -226,6 +227,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllDeployedContracts);
   await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
+  await fastify.register(syncRetryTransaction);
   await fastify.register(cancelTransaction);
   await fastify.register(sendSignedTransaction);
   await fastify.register(sendSignedUserOp);

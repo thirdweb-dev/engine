@@ -11,7 +11,7 @@ import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { checkAndReturnERC20SignaturePayload } from "../../../../../utils/validator";
 
@@ -48,7 +48,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
       operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

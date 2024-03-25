@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getWallet } from "../../../utils/cache/getWallet";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../schemas/wallet";
+import { walletHeaderSchema } from "../../schemas/wallet";
 
 const BodySchema = Type.Object({
   transaction: Type.Object({
@@ -41,15 +41,16 @@ export async function signTransaction(fastify: FastifyInstance) {
       tags: ["Backend Wallet"],
       operationId: "signTransaction",
       body: BodySchema,
-      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },
-    handler: async (req, res) => {
-      const { transaction } = req.body;
-      const walletAddress = req.headers["x-backend-wallet-address"] as string;
+    handler: async (request, reply) => {
+      const { transaction } = request.body;
+      const { "x-backend-wallet-address": walletAddress } =
+        request.headers as Static<typeof walletHeaderSchema>;
 
       const wallet = await getWallet({
         chainId: 1,
@@ -59,7 +60,7 @@ export async function signTransaction(fastify: FastifyInstance) {
       const signer = await wallet.getSigner();
       const signedMessage = await signer.signTransaction(transaction);
 
-      res.status(200).send({
+      reply.status(200).send({
         result: signedMessage,
       });
     },

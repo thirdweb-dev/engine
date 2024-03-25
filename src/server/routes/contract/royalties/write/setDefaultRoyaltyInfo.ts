@@ -10,7 +10,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
@@ -41,7 +41,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       description: "Set the royalty recipient and fee for the smart contract.",
       tags: ["Contract-Royalties"],
       operationId: "setDefaultRoyaltyInfo",
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -54,10 +54,12 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { seller_fee_basis_points, fee_recipient } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -65,17 +67,19 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
       const tx = await contract.royalties.setDefaultRoyaltyInfo.prepare({
         seller_fee_basis_points,
         fee_recipient,
       });
+
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "none",
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

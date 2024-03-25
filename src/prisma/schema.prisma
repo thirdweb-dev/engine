@@ -103,6 +103,8 @@ model WalletNonce {
 
 model Transactions {
   id                        String    @id @default(uuid()) @map("id")
+  // Backward compatibility: default to db-generated UUID.
+  idempotencyKey            String    @unique @default(dbgenerated("gen_random_uuid()")) @map("idempotencyKey")
   groupId                   String?   @map("groupId")
   chainId                   String    @map("chainId")
   // Shared

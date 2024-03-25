@@ -3,10 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
-import {
-  claimConditionInputSchema,
-  sanitizedClaimConditionInputSchema,
-} from "../../../../../schemas/claimConditions";
+import { nftMetadataInputSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -15,19 +12,18 @@ import {
 } from "../../../../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
 // INPUT
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  claimConditionInput: claimConditionInputSchema,
-  index: Type.Number({
-    description: "Index of the claim condition to update",
+  tokenId: Type.String({
+    description: "Token ID to update metadata",
   }),
+  metadata: nftMetadataInputSchema,
 });
 
 // LOGIC
-export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
+export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
@@ -35,13 +31,12 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contractAddress/erc721/claim-conditions/update",
+    url: "/contract/:chain/:contractAddress/erc721/token/update",
     schema: {
-      summary: "Update a single claim phase.",
-      description:
-        "Update a single claim phase, by providing the index of the claim phase and the new phase configuration. The index is the position of the phase in the list of phases you have made, starting from zero. e.g. if you have two phases, the first phase has an index of 0 and the second phase has an index of 1. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.",
+      summary: "Update token metadata",
+      description: "Update the metadata for an ERC721 token.",
       tags: ["ERC721"],
-      operationId: "updateClaimConditions",
+      operationId: "updateTokenMetadata",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletHeaderSchema,
@@ -54,13 +49,12 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { claimConditionInput, index } = request.body;
+      const { tokenId, metadata } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
       } = request.headers as Static<typeof walletHeaderSchema>;
-
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -68,28 +62,11 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
-      // Since Swagger doesn't allow for Date objects, we need to convert the
-      // startTime property to a Date object before passing it to the contract.
-      const sanitizedClaimConditionInput: Static<
-        typeof sanitizedClaimConditionInputSchema
-      > = {
-        ...claimConditionInput,
-        startTime: claimConditionInput.startTime
-          ? isUnixEpochTimestamp(
-              parseInt(claimConditionInput.startTime.toString()),
-            )
-            ? new Date(
-                parseInt(claimConditionInput.startTime.toString()) * 1000,
-              )
-            : new Date(claimConditionInput.startTime)
-          : undefined,
-      };
-
-      const tx = await contract.erc721.claimConditions.update.prepare(
-        index,
-        sanitizedClaimConditionInput,
+      const tx = await contract.erc721.updateMetadata.prepare(
+        tokenId,
+        metadata,
       );
+
       const queueId = await queueTx({
         tx,
         chainId,
