@@ -30,7 +30,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.398.0",
-    "@eth-optimism/sdk": "^3.1.6",
     "@fastify/cookie": "^8.3.0",
     "@fastify/cors": "^8.2.1",
     "@fastify/express": "^2.3.0",
@@ -69,7 +68,7 @@
     "pino": "^8.15.1",
     "pino-pretty": "^10.0.0",
     "prisma": "^5.2.0",
-    "thirdweb": "^1.0.0-beta-0e947333cefd127c2ccda059c775d2975021be33-20240229054327",
+    "thirdweb": "^5.0.0-beta-ca68bc77e74f594360b4da1e9e77793b66cfb12a-20240323045412",
     "uuidv4": "^6.2.13",
     "viem": "^1.14.0",
     "zod": "^3.21.4"
