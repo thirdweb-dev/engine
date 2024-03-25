@@ -4,8 +4,8 @@ import { initWorker } from "./worker";
 
 const main = async () => {
   await initSyncConfigFromPostgres();
-  initServer();
-  initWorker();
+  await initServer();
+  await initWorker();
 };
 
 main();

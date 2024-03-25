@@ -11,7 +11,6 @@ export const getQueueStatus = async ({
     where: {
       fromAddress: walletAddress?.toLowerCase(),
       sentAt: null,
-      minedAt: null,
       errorMessage: {
         not: null,
       },
