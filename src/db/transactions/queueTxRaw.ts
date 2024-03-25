@@ -1,18 +1,16 @@
-import { Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { PrismaTransaction } from "../../schema/prisma";
 import { simulateTx } from "../../server/utils/simulateTx";
-import { reportUsage, UsageEventTxActionEnum } from "../../utils/usage";
+import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
 import { ingestRequestQueue } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
 type QueueTxRawParams = Omit<
   Prisma.TransactionsCreateInput,
   "fromAddress" | "signerAddress"
-> & {
-  pgtx?: PrismaTransaction;
-  simulateTx?: boolean;
-} & (
+> &
+  (
     | {
         fromAddress: string;
         signerAddress?: never;
@@ -21,11 +19,16 @@ type QueueTxRawParams = Omit<
         fromAddress?: never;
         signerAddress: string;
       }
-  );
+  ) & {
+    pgtx?: PrismaTransaction;
+    simulateTx?: boolean;
+    idempotencyKey?: string;
+  };
 
 export const queueTxRaw = async ({
-  simulateTx: shouldSimulate,
   pgtx,
+  simulateTx: shouldSimulate,
+  idempotencyKey,
   ...tx
 }: QueueTxRawParams) => {
   const queueId = uuidv4();
@@ -47,7 +50,6 @@ export const queueTxRaw = async ({
     await simulateTx({ txRaw: tx });
   }
 
-  // Send queued webhook.
   reportUsage([
     {
       input: {

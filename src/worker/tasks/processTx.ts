@@ -30,7 +30,7 @@ import {
 } from "../../utils/usage";
 import { WebhookData, sendBalanceWebhook } from "../../utils/webhook";
 import { randomNonce } from "../utils/nonce";
-import { getWithdrawalValue } from "../utils/withdraw";
+import { getWithdrawValue } from "../utils/withdraw";
 
 type RpcResponseData = {
   tx: Transactions;
@@ -148,13 +148,12 @@ export const processTx = async () => {
             try {
               let value = BigNumber.from(tx.value ?? 0);
               if (tx.extension === "withdraw") {
-                value = await getWithdrawalValue({
-                  provider,
+                const withdrawValue = await getWithdrawValue({
                   chainId,
                   fromAddress: tx.fromAddress!,
                   toAddress: tx.toAddress!,
-                  gasOverrides,
                 });
+                value = BigNumber.from(withdrawValue.toString());
               }
 
               const txRequest = await signer.populateTransaction({

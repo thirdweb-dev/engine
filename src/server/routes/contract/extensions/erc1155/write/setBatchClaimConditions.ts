@@ -13,7 +13,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
@@ -49,7 +49,7 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
       operationId: "claimConditionsUpdate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -61,10 +61,12 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
       const { simulateTx } = request.query;
       const { claimConditionsForToken, resetClaimEligibilityForAll } =
         request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -97,16 +99,17 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
         }),
         resetClaimEligibilityForAll,
       };
-
       const tx = await contract.erc1155.claimConditions.setBatch.prepare(
         sanitizedClaimConditionInputs.claimConditionsForToken,
         resetClaimEligibilityForAll,
       );
+
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "erc1155",
+        idempotencyKey,
       });
 
       reply.status(StatusCodes.OK).send({

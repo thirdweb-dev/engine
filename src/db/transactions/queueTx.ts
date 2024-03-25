@@ -1,4 +1,4 @@
-import { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
+import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
@@ -12,6 +12,7 @@ interface QueueTxParams {
   deployedContractAddress?: string;
   deployedContractType?: string;
   simulateTx?: boolean;
+  idempotencyKey?: string;
 }
 
 export const queueTx = async ({
@@ -21,6 +22,7 @@ export const queueTx = async ({
   deployedContractAddress,
   deployedContractType,
   simulateTx,
+  idempotencyKey,
 }: QueueTxParams) => {
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
 
@@ -49,6 +51,7 @@ export const queueTx = async ({
       accountAddress,
       target,
       simulateTx,
+      idempotencyKey,
     });
     return queueId;
   } else {
@@ -60,6 +63,7 @@ export const queueTx = async ({
       fromAddress,
       toAddress,
       simulateTx,
+      idempotencyKey,
     });
 
     return queueId;
