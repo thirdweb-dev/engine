@@ -143,16 +143,17 @@ export const onRequest = async ({
     return publicRoutesResp;
   }
 
+  const keypairAuthResp = await handleKeypairAuth(req);
+  throw `Authed? ${keypairAuthResp.isAuthed}`;
+  if (keypairAuthResp.isAuthed) {
+    return keypairAuthResp;
+  }
+
   const jwt = getJWT(req);
   if (jwt) {
     const accessTokenResp = await handleAccessTokenJwt(jwt, req, getUser);
     if (accessTokenResp.isAuthed) {
       return accessTokenResp;
-    }
-
-    const adminWalletJwtResp = await handleAdminWalletJwt(jwt);
-    if (adminWalletJwtResp.isAuthed) {
-      return adminWalletJwtResp;
     }
 
     const dashboardJwtResp = await handleDashboardJwt(jwt);
@@ -277,53 +278,41 @@ const handleAccessTokenJwt = async (
 };
 
 /**
- * Auth via admin-signed JWT.
- * Allow a request that provides a JWT signed by the admin wallet.
- * @param jwt string
+ * Auth via JWT signed by the private key in a keypair.
+ * @param req FastifyRequest
  * @returns AuthResponse
  * @async
  */
-const handleAdminWalletJwt = async (jwt: string): Promise<AuthResponse> => {
-  const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmHMzoiM9ZnitQQe7ntPz
-VrFlfGWW4OuVIVD1YkCPM1D+XFhCIiN4b2F1WoAXvqlUInW3YPVVBXssu80VVjWH
-AxRCY2VgIv8EKQB+jiIsyteGB533bhp7OO9uuVraXFq67dV7LDmjehM7cOLZluIx
-/XAiO68ZvqT7LD3L2HxIrx/8gHXn58ICNCEiNSo54HbYR1kbO0iVvHraB2s3High
-hNiljzsojqSe6wQXzvjaWLUjmHCSjBi9EVZPIkUl5BSmWw9oAhLioVTsdONge+X1
-laKXcNmLj6GOGhsLKVs67MFqF+WO03ZCdDce3KmGrHwsXrAy20rK6cIfI43DFnNB
-iQIDAQAB
------END PUBLIC KEY-----` as const;
-  try {
-    const payload = jsonwebtoken.verify(jwt, PUBLIC_KEY, {
-      algorithm: "RS256",
-    });
-    console.log("[DEBUG] payload", payload);
+const handleKeypairAuth = async (
+  req: FastifyRequest,
+): Promise<AuthResponse> => {
+  const jwt = req.headers["x-keypair-auth"] as string;
+  console.log("[DEBUG] jwt", jwt);
 
-    return {
-      isAuthed: true,
-      user: {
-        address: THIRDWEB_DASHBOARD_ISSUER,
-        session: {
-          permissions: Permission.Owner,
+  if (env.KEYPAIR_PUBLIC_KEY && jwt) {
+    try {
+      const payload = jsonwebtoken.verify(jwt, env.KEYPAIR_PUBLIC_KEY, {
+        algorithms: ["RS256"],
+      }) as jsonwebtoken.JwtPayload;
+
+      if (payload.aud !== "thirdweb.com") {
+        throw 'Invalid "aud".';
+      }
+
+      const authWallet = await getAuthWallet();
+      return {
+        isAuthed: true,
+        user: {
+          address: await authWallet.getAddress(),
+          session: {
+            permissions: Permission.Admin,
+          },
         },
-      },
-    };
-  } catch (e) {
-    // Invalid signature.
+      };
+    } catch (e) {
+      // Invalid signature.
+    }
   }
-
-  // const user = await handleSiwe(jwt, "thirdweb.com", env.ADMIN_WALLET_ADDRESS);
-  // if (user) {
-  //   return {
-  //     isAuthed: true,
-  //     user: {
-  //       address: user.address,
-  //       session: {
-  //         permissions: Permission.Owner,
-  //       },
-  //     },
-  //   };
-  // }
 
   return { isAuthed: false };
 };
