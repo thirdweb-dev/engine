@@ -15,23 +15,21 @@ export const JsonSchema = z.string().refine(
       return false;
     }
   },
-  { message: "Not a valid JSON string" },
+  { message: "Invalid JSON string" },
 );
 
 export const UrlSchema = z
   .string()
   .refine(
     (value) => value.startsWith("http://") || value.startsWith("https://"),
-    { message: "Not a valid URL" },
+    { message: "Invalid URL" },
   );
 
-export const FilePathSchema = z
+export const PublicKeySchema = z
   .string()
-  .refine(
-    (value) =>
-      value.startsWith("./") || value.startsWith("/") || value.includes("."),
-    { message: "Not a valid file path" },
-  );
+  .refine((value) => value.startsWith("-----BEGIN PUBLIC KEY-----\n"), {
+    message: "Invalid public key",
+  });
 
 const boolSchema = (defaultBool: "true" | "false") =>
   z
@@ -74,7 +72,7 @@ export const env = createEnv({
       .default("https://c.thirdweb.com/event"),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
-    KEYPAIR_PUBLIC_KEY: z.optional(z.string()),
+    KEYPAIR_PUBLIC_KEY: z.optional(PublicKeySchema),
   },
   clientPrefix: "NEVER_USED",
   client: {},

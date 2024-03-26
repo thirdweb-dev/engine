@@ -294,10 +294,18 @@ const handleAccessTokenJwt = async (
 const handleKeypairAuth = async (jwt: string): Promise<AuthResponse> => {
   if (env.KEYPAIR_PUBLIC_KEY) {
     try {
-      const { exp, iat } = jsonwebtoken.verify(jwt, env.KEYPAIR_PUBLIC_KEY, {
-        algorithms: ["ES256"],
-        audience: "thirdweb.com",
-      }) as jsonwebtoken.JwtPayload;
+      const { aud, exp, iat } = jsonwebtoken.verify(
+        jwt,
+        env.KEYPAIR_PUBLIC_KEY,
+        {
+          algorithms: ["ES256"],
+          audience: "thirdweb.com",
+        },
+      ) as jsonwebtoken.JwtPayload;
+
+      if (aud !== "thirdweb.com") {
+        return { isAuthed: false, error: 'Keypair token has invalid "aud".' };
+      }
 
       const duration = exp && iat ? exp - iat : undefined;
       if (!duration || duration > KEYPAIR_AUTH_MAX_DURATION_SECONDS) {
@@ -312,10 +320,8 @@ const handleKeypairAuth = async (jwt: string): Promise<AuthResponse> => {
     } catch (e) {
       if (e instanceof jsonwebtoken.TokenExpiredError) {
         return { isAuthed: false, error: "Keypair token is expired." };
-      } else if (e instanceof jsonwebtoken.JsonWebTokenError) {
-        return { isAuthed: false, error: "Keypair token is malformed." };
       }
-      // Missing or invalid signature.
+      // Missing or invalid signature. This will occur if the JWT is an access token or dashboard auth.
     }
   }
 
