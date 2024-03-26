@@ -23,12 +23,16 @@ import { logger } from "../../utils/logger";
 import { sendWebhookRequest } from "../../utils/webhook";
 import { Permission } from "../schemas/auth";
 
+const KEYPAIR_AUTH_MAX_DURATION_SECONDS = 15 * 60;
+
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };
 
 interface AuthResponse {
   isAuthed: boolean;
   user?: ThirdwebAuthUser<TAuthData, TAuthSession>;
+  // If error is provided, return an error immediately.
+  error?: string;
 }
 
 declare module "fastify" {
@@ -101,13 +105,18 @@ export const withAuth = async (server: FastifyInstance) => {
   // Add auth validation middleware to check for authenticated requests
   server.addHook("onRequest", async (req, res) => {
     try {
-      const { isAuthed, user } = await onRequest({ req, getUser });
+      const { isAuthed, user, error } = await onRequest({ req, getUser });
       if (isAuthed) {
         if (user) {
           req.user = user;
         }
         // Allow this request to proceed.
         return;
+      } else if (error) {
+        return res.status(401).send({
+          error: "Unauthorized",
+          message: error,
+        });
       }
     } catch (err: any) {
       logger({
@@ -143,13 +152,13 @@ export const onRequest = async ({
     return publicRoutesResp;
   }
 
-  const keypairAuthResp = await handleKeypairAuth(req);
-  if (keypairAuthResp.isAuthed) {
-    return keypairAuthResp;
-  }
-
   const jwt = getJWT(req);
   if (jwt) {
+    const keypairAuthResp = await handleKeypairAuth(jwt);
+    if (keypairAuthResp.isAuthed || keypairAuthResp.error) {
+      return keypairAuthResp;
+    }
+
     const accessTokenResp = await handleAccessTokenJwt(jwt, req, getUser);
     if (accessTokenResp.isAuthed) {
       return accessTokenResp;
@@ -278,26 +287,34 @@ const handleAccessTokenJwt = async (
 
 /**
  * Auth via JWT signed by the private key in a keypair.
- * @param req FastifyRequest
+ * @param jwt string
  * @returns AuthResponse
  * @async
  */
-const handleKeypairAuth = async (
-  req: FastifyRequest,
-): Promise<AuthResponse> => {
-  const jwt = getJWT(req);
-  if (env.KEYPAIR_PUBLIC_KEY && jwt) {
+const handleKeypairAuth = async (jwt: string): Promise<AuthResponse> => {
+  if (env.KEYPAIR_PUBLIC_KEY) {
     try {
-      const payload = jsonwebtoken.verify(jwt, env.KEYPAIR_PUBLIC_KEY, {
+      const { exp, iat } = jsonwebtoken.verify(jwt, env.KEYPAIR_PUBLIC_KEY, {
         algorithms: ["ES256"],
+        audience: "thirdweb.com",
       }) as jsonwebtoken.JwtPayload;
 
-      if (payload.aud !== "thirdweb.com") {
-        throw 'Invalid "aud".';
+      const duration = exp && iat ? exp - iat : undefined;
+      if (!duration || duration > KEYPAIR_AUTH_MAX_DURATION_SECONDS) {
+        return {
+          isAuthed: false,
+          error: `Keypair token duration must not exceed ${KEYPAIR_AUTH_MAX_DURATION_SECONDS} seconds.`,
+        };
       }
 
+      // The JWT is valid if `verify` did not throw.
       return { isAuthed: true };
     } catch (e) {
+      if (e instanceof jsonwebtoken.TokenExpiredError) {
+        return { isAuthed: false, error: "Keypair token is expired." };
+      } else if (e instanceof jsonwebtoken.JsonWebTokenError) {
+        return { isAuthed: false, error: "Keypair token is malformed." };
+      }
       // Missing or invalid signature.
     }
   }

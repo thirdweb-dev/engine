@@ -370,16 +370,17 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
 
   it("Valid JWT signed by private key", async () => {
     // Sign a valid auth payload.
-    const now = Math.floor(new Date().getTime() / 1000);
-    const payload = {
-      iss: "not_used",
-      aud: "thirdweb.com",
-      iat: now,
-      exp: now + 20,
-    };
-    const jwt = jsonwebtoken.sign(payload, TEST_PRIVATE_KEY, {
-      algorithm: "ES256",
-    });
+    const jwt = jsonwebtoken.sign(
+      {
+        iss: "",
+        aud: "thirdweb.com",
+      },
+      TEST_PRIVATE_KEY,
+      {
+        algorithm: "ES256",
+        expiresIn: "20s",
+      },
+    );
 
     const req: FastifyRequest = {
       method: "POST",
@@ -394,18 +395,73 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     expect(result.user).toBeUndefined();
   });
 
+  it("JWT with exp > 15 min signed by private key", async () => {
+    // Sign a valid auth payload.
+    const jwt = jsonwebtoken.sign(
+      {
+        iss: "not_used",
+        aud: "thirdweb.com",
+      },
+      TEST_PRIVATE_KEY,
+      {
+        algorithm: "ES256",
+        expiresIn: "16m",
+      },
+    );
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: `Bearer ${jwt}` },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+  });
+
   it("Expired JWT signed by private key", async () => {
     // Sign an expired auth payload.
-    const now = Math.floor(new Date().getTime() / 1000);
-    const payload = {
-      iss: "not_used",
-      aud: "thirdweb.com",
-      iat: now - 60,
-      exp: now - 20,
+    const jwt = jsonwebtoken.sign(
+      {
+        iss: "not_used",
+        aud: "thirdweb.com",
+      },
+      TEST_PRIVATE_KEY,
+      {
+        algorithm: "ES256",
+        expiresIn: -3_000,
+      },
+    );
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: `Bearer ${jwt}` },
+      // @ts-ignore
+      raw: {},
     };
-    const jwt = jsonwebtoken.sign(payload, TEST_PRIVATE_KEY, {
-      algorithm: "ES256",
-    });
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+  });
+
+  it("JWT with wrong audience signed by private key", async () => {
+    // Sign an expired auth payload.
+    const jwt = jsonwebtoken.sign(
+      {
+        iss: "not_used",
+        aud: "not-thirdweb.com",
+      },
+      TEST_PRIVATE_KEY,
+      {
+        algorithm: "ES256",
+        expiresIn: "15s",
+      },
+    );
 
     const req: FastifyRequest = {
       method: "POST",
@@ -422,21 +478,22 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
 
   it("Invalid JWT signed by the wrong private key", async () => {
     // Sign a valid auth payload with a different private key.
-    const now = Math.floor(new Date().getTime() / 1000);
-    const payload = {
-      iss: "not_used",
-      aud: "thirdweb.com",
-      iat: now,
-      exp: now + 20,
-    };
     const WRONG_PRIVATE_KEY = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIH719lhdn4CzboBQKr8E68htVNeQ2wwrxnsDhfLOgGNAoAoGCCqGSM49
 AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
 6sE9ABLmMjeNbKKz9ayyCGN/BC3MNikhfw==
 -----END EC PRIVATE KEY-----`;
-    const jwt = jsonwebtoken.sign(payload, WRONG_PRIVATE_KEY, {
-      algorithm: "ES256",
-    });
+    const jwt = jsonwebtoken.sign(
+      {
+        iss: "not_used",
+        aud: "thirdweb.com",
+      },
+      WRONG_PRIVATE_KEY,
+      {
+        algorithm: "ES256",
+        expiresIn: "15s",
+      },
+    );
 
     const req: FastifyRequest = {
       method: "POST",
