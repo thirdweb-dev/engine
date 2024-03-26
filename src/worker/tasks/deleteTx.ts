@@ -13,9 +13,6 @@ export const deleteTx = async () => {
             queuedAt: {
               lt: twentyFourHoursAgo,
             },
-            processedAt: {
-              not: null,
-            },
           },
           {
             OR: [

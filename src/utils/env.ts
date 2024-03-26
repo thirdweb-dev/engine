@@ -52,7 +52,7 @@ export const env = createEnv({
       .default("server,worker,cache,websocket")
       .transform((s) =>
         z
-          .array(z.enum(["server", "worker", "cache", "websocket"]))
+          .array(z.enum(["server", "worker", "cache", "websocket", "database"]))
           .parse(s.split(",")),
       ),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
@@ -73,6 +73,8 @@ export const env = createEnv({
       .default("https://c.thirdweb.com/event"),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
+    REDIS_URL: z.string().default("redis://localhost:6379"),
+    INGEST_WORKER_CONCURRENCY: z.coerce.number().default(20),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -93,6 +95,8 @@ export const env = createEnv({
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
+    REDIS_URL: process.env.REDIS_URL,
+    INGEST_WORKER_CONCURRENCY: process.env.INGEST_WORKER_CONCURRENCY,
   },
   onValidationError: (error: ZodError) => {
     console.error(

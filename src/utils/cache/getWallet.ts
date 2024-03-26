@@ -2,6 +2,7 @@ import { EVMWallet } from "@thirdweb-dev/wallets";
 import { getWalletDetails } from "../../db/wallets/getWalletDetails";
 import { PrismaTransaction } from "../../schema/prisma";
 import { WalletType } from "../../schema/wallet";
+import { createCustomError } from "../../server/middleware/error";
 import { getAwsKmsWallet } from "../../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsWallet } from "../../server/utils/wallets/getGcpKmsWallet";
 import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
@@ -55,8 +56,10 @@ export const getWallet = async <TWallet extends EVMWallet>({
       wallet = await getLocalWallet({ chainId, walletAddress });
       break;
     default:
-      throw new Error(
+      throw createCustomError(
         `Wallet with address ${walletAddress} was configured with unknown wallet type ${walletDetails.type}`,
+        400,
+        "BAD_REQUEST",
       );
   }
 

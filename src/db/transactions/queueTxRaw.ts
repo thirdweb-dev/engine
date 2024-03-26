@@ -1,11 +1,13 @@
-import type { Prisma, Transactions } from "@prisma/client";
-import { uuid } from "uuidv4";
+import type { Prisma } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 import { PrismaTransaction } from "../../schema/prisma";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { simulateTx } from "../../server/utils/simulateTx";
+import {
+  getIdempotencyCacheKey,
+  getQueueIdCacheKey,
+} from "../../utils/redisKeys";
 import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
-import { sendWebhooks } from "../../utils/webhook";
-import { getPrismaWithPostgresTx } from "../client";
+import { ingestRequestQueue } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
 type QueueTxRawParams = Omit<
@@ -32,8 +34,8 @@ export const queueTxRaw = async ({
   simulateTx: shouldSimulate,
   idempotencyKey,
   ...tx
-}: QueueTxRawParams): Promise<Transactions> => {
-  const prisma = getPrismaWithPostgresTx(pgtx);
+}: QueueTxRawParams) => {
+  const queueId = uuidv4();
 
   const walletDetails = await getWalletDetails({
     pgtx,
@@ -52,46 +54,6 @@ export const queueTxRaw = async ({
     await simulateTx({ txRaw: tx });
   }
 
-  const insertData = {
-    ...tx,
-    id: uuid(),
-    fromAddress: tx.fromAddress?.toLowerCase(),
-    toAddress: tx.toAddress?.toLowerCase(),
-    target: tx.target?.toLowerCase(),
-    signerAddress: tx.signerAddress?.toLowerCase(),
-    accountAddress: tx.accountAddress?.toLowerCase(),
-  };
-
-  let txRow: Transactions;
-  if (idempotencyKey) {
-    // Upsert the tx (insert if not exists).
-    txRow = await prisma.transactions.upsert({
-      where: { idempotencyKey },
-      create: {
-        ...insertData,
-        idempotencyKey,
-      },
-      update: {},
-    });
-  } else {
-    // Insert the tx.
-    txRow = await prisma.transactions.create({
-      data: {
-        ...insertData,
-        // Use queueId to ensure uniqueness.
-        idempotencyKey: insertData.id,
-      },
-    });
-  }
-
-  // Send queued webhook.
-  sendWebhooks([
-    {
-      queueId: txRow.id,
-      status: TransactionStatusEnum.Queued,
-    },
-  ]).catch((err) => {});
-
   reportUsage([
     {
       input: {
@@ -107,5 +69,20 @@ export const queueTxRaw = async ({
     },
   ]);
 
-  return txRow;
+  const ingestQueueData = { ...tx, id: queueId, idempotencyKey };
+  ingestRequestQueue.add(queueId, ingestQueueData, {
+    jobId: queueId,
+    removeOnComplete: true,
+  });
+
+  // TODO: To bring ths back in the next iteration
+  const redisClient = await ingestRequestQueue.client;
+  const idempotencyCacheKey = getIdempotencyCacheKey(idempotencyKey || queueId);
+  const queueIdCacheKey = getQueueIdCacheKey(queueId);
+  console.log("::Debug Log:: queueIdCacheKey:", queueIdCacheKey);
+  console.log("::Debug Log:: idempotencyCacheKey:", idempotencyCacheKey);
+
+  await redisClient.hmset(queueIdCacheKey, ingestQueueData);
+  await redisClient.hmset(idempotencyCacheKey, ingestQueueData);
+  return { id: queueId };
 };

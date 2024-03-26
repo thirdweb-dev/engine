@@ -1,9 +1,11 @@
+import { initSyncConfigFromPostgres } from "./scripts/sync-config-from-postgres";
 import { initServer } from "./server";
 import { initWorker } from "./worker";
 
 const main = async () => {
-  initServer();
-  initWorker();
+  await initSyncConfigFromPostgres();
+  await initServer();
+  await initWorker();
 };
 
 main();

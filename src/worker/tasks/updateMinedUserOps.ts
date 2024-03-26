@@ -11,11 +11,9 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData, sendWebhooks } from "../../utils/webhook";
 
 export const updateMinedUserOps = async () => {
   try {
-    const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
@@ -103,10 +101,6 @@ export const updateMinedUserOps = async () => {
               queueId: userOp!.id,
               message: `Updated with receipt`,
             });
-            sendWebhookForQueueIds.push({
-              queueId: userOp!.id,
-              status: TransactionStatusEnum.Mined,
-            });
             reportUsageForQueueIds.push({
               input: {
                 fromAddress: userOp!.fromAddress || undefined,
@@ -131,7 +125,6 @@ export const updateMinedUserOps = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
     reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({

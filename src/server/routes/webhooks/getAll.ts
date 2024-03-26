@@ -2,20 +2,13 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllWebhooks } from "../../../db/webhooks/getAllWebhooks";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import {
+  WebhookResponseSchema,
+  standardResponseSchema,
+} from "../../schemas/sharedApiSchemas";
 
 const ReplySchema = Type.Object({
-  result: Type.Array(
-    Type.Object({
-      url: Type.String(),
-      name: Type.Union([Type.String(), Type.Null()]),
-      secret: Type.Optional(Type.String()),
-      eventType: Type.String(),
-      active: Type.Boolean(),
-      createdAt: Type.String(),
-      id: Type.Number(),
-    }),
-  ),
+  result: Type.Array(WebhookResponseSchema),
 });
 
 export async function getAllWebhooksData(fastify: FastifyInstance) {

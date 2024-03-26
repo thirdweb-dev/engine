@@ -5,7 +5,7 @@ import { markWebhookAsRevoked } from "../../../db/webhooks/revokeWebhook";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
-  id: Type.Number(),
+  id: Type.String(),
 });
 
 const ReplySchema = Type.Object({

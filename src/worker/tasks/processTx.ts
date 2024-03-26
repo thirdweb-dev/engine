@@ -28,11 +28,7 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import {
-  WebhookData,
-  sendBalanceWebhook,
-  sendWebhooks,
-} from "../../utils/webhook";
+import { WebhookData, sendBalanceWebhook } from "../../utils/webhook";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawValue } from "../utils/withdraw";
 
@@ -71,15 +67,6 @@ export const processTx = async () => {
             queueId: tx.id,
             message: `Processing`,
           });
-
-          await updateTx({
-            pgtx,
-            queueId: tx.id,
-            data: {
-              status: TransactionStatusEnum.Processed,
-            },
-          });
-
           if (tx.accountAddress && tx.signerAddress) {
             userOpsToSend.push(tx);
           } else {
@@ -216,10 +203,6 @@ export const processTx = async () => {
                   txRequest,
                   rpcResponse,
                 });
-                sendWebhookForQueueIds.push({
-                  queueId: tx.id,
-                  status: TransactionStatusEnum.Submitted,
-                });
               } else if (
                 typeof rpcResponse.error?.message === "string" &&
                 (rpcResponse.error.message as string)
@@ -237,18 +220,18 @@ export const processTx = async () => {
                   txRequest,
                   rpcResponse,
                 });
-                sendWebhookForQueueIds.push({
-                  queueId: tx.id,
-                  status: TransactionStatusEnum.Errored,
-                });
               }
             } catch (err: any) {
               // Error. Continue to the next transaction.
               txIndex++;
 
-              sendWebhookForQueueIds.push({
+              await updateTx({
+                pgtx,
                 queueId: tx.id,
-                status: TransactionStatusEnum.Errored,
+                data: {
+                  status: TransactionStatusEnum.Errored,
+                  errorMessage: await parseTxError(tx, err),
+                },
               });
               reportUsageForQueueIds.push({
                 input: {
@@ -270,15 +253,6 @@ export const processTx = async () => {
                 queueId: tx.id,
                 message: `Failed to send`,
                 error: err,
-              });
-
-              await updateTx({
-                pgtx,
-                queueId: tx.id,
-                data: {
-                  status: TransactionStatusEnum.Errored,
-                  errorMessage: await parseTxError(tx, err),
-                },
               });
             }
           }
@@ -391,10 +365,6 @@ export const processTx = async () => {
                 userOpHash,
               },
             });
-            sendWebhookForQueueIds.push({
-              queueId: tx.id,
-              status: TransactionStatusEnum.UserOpSent,
-            });
             reportUsageForQueueIds.push({
               input: {
                 fromAddress: tx.accountAddress || undefined,
@@ -426,10 +396,6 @@ export const processTx = async () => {
                 errorMessage: await parseTxError(tx, err),
               },
             });
-            sendWebhookForQueueIds.push({
-              queueId: tx.id,
-              status: TransactionStatusEnum.Errored,
-            });
             reportUsageForQueueIds.push({
               input: {
                 fromAddress: tx.accountAddress || undefined,
@@ -453,7 +419,6 @@ export const processTx = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
     reportUsage(reportUsageForQueueIds);
   } catch (err: any) {
     logger({

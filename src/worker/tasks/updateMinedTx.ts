@@ -13,13 +13,11 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData, sendWebhooks } from "../../utils/webhook";
 
 const MEMPOOL_DURATION_TIMEOUT_MS = 1000 * 60 * 60;
 
 export const updateMinedTx = async () => {
   try {
-    const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
@@ -27,8 +25,6 @@ export const updateMinedTx = async () => {
         if (txs.length === 0) {
           return;
         }
-
-        const droppedTxs: (Transactions & { provider?: string })[] = [];
 
         const txsWithReceipts = (
           await Promise.all(
@@ -54,11 +50,6 @@ export const updateMinedTx = async () => {
                       pgtx,
                     });
 
-                    sendWebhookForQueueIds.push({
-                      queueId: tx.id,
-                      status: TransactionStatusEnum.Cancelled,
-                    });
-
                     reportUsageForQueueIds.push({
                       input: {
                         fromAddress: tx.fromAddress || undefined,
@@ -79,11 +70,6 @@ export const updateMinedTx = async () => {
                         status: TransactionStatusEnum.Errored,
                         errorMessage: "Transaction timed out.",
                       },
-                    });
-
-                    sendWebhookForQueueIds.push({
-                      queueId: tx.id,
-                      status: TransactionStatusEnum.Errored,
                     });
 
                     reportUsageForQueueIds.push({
@@ -173,11 +159,6 @@ export const updateMinedTx = async () => {
               message: "Updated mined tx.",
             });
 
-            sendWebhookForQueueIds.push({
-              queueId: txWithReceipt.tx.id,
-              status: TransactionStatusEnum.Mined,
-            });
-
             reportUsageForQueueIds.push({
               input: {
                 fromAddress: txWithReceipt.tx.fromAddress || undefined,
@@ -203,7 +184,6 @@ export const updateMinedTx = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
     reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({

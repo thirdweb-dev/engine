@@ -10,8 +10,13 @@ export const getQueueStatus = async ({
   const queued = await prisma.transactions.count({
     where: {
       fromAddress: walletAddress?.toLowerCase(),
-      processedAt: null,
-      errorMessage: null,
+      sentAt: null,
+      errorMessage: {
+        not: null,
+      },
+      cancelledAt: {
+        not: null,
+      },
     },
   });
 

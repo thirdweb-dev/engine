@@ -5,7 +5,10 @@ import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
 import { isLocalhost } from "../../../utils/url";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import {
+  WebhookResponseSchema,
+  standardResponseSchema,
+} from "../../schemas/sharedApiSchemas";
 
 const uriFormat = TypeSystem.Format("uri", (input: string) => {
   // Assert valid URL.
@@ -81,14 +84,7 @@ BodySchema.examples = [
 ];
 
 const ReplySchema = Type.Object({
-  result: Type.Object({
-    url: Type.String(),
-    name: Type.String(),
-    createdAt: Type.String(),
-    eventType: Type.String(),
-    secret: Type.Optional(Type.String()),
-    id: Type.Number(),
-  }),
+  result: WebhookResponseSchema,
 });
 
 export async function createWebhook(fastify: FastifyInstance) {

@@ -99,7 +99,6 @@ export const cancelTransactionAndUpdate = async ({
           "TransactionAlreadyMined",
         );
         break;
-      case TransactionStatusEnum.Processed:
       case TransactionStatusEnum.Submitted: {
         const sdk = await getSdk({
           chainId: parseInt(txData.chainId!),
