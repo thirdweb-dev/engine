@@ -258,40 +258,13 @@ const handleWebsocketAuth = async (
 };
 
 /**
- * Auth via access token.
- * Allow a request that provides a non-revoked access token for an owner/admin.
- * @param jwt string
- * @param req FastifyRequest
- * @param getUser
- * @returns AuthResponse
- * @async
- */
-const handleAccessTokenJwt = async (
-  jwt: string,
-  req: FastifyRequest,
-  getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"],
-): Promise<AuthResponse> => {
-  const token = await getAccessToken({ jwt });
-  if (token && token.revokedAt === null) {
-    const user = await getUser(req);
-    if (
-      user?.session?.permissions === Permission.Owner ||
-      user?.session?.permissions === Permission.Admin
-    ) {
-      return { isAuthed: true, user };
-    }
-  }
-
-  return { isAuthed: false };
-};
-
-/**
- * Auth via JWT signed by the private key in a keypair.
+ * Auth via keypair.
+ * Allow a request that provides a JWT signed by an ES256 private key
+ * matching the configured public key.
  * @param jwt string
  * @returns AuthResponse
- * @async
  */
-const handleKeypairAuth = async (jwt: string): Promise<AuthResponse> => {
+const handleKeypairAuth = (jwt: string): AuthResponse => {
   if (env.KEYPAIR_PUBLIC_KEY) {
     try {
       const { aud, exp, iat } = jsonwebtoken.verify(
@@ -321,8 +294,40 @@ const handleKeypairAuth = async (jwt: string): Promise<AuthResponse> => {
       if (e instanceof jsonwebtoken.TokenExpiredError) {
         return { isAuthed: false, error: "Keypair token is expired." };
       }
-      // Missing or invalid signature. This will occur if the JWT is an access token or dashboard auth.
+      // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
     }
+  }
+
+  return { isAuthed: false };
+};
+
+/**
+ * Auth via access token.
+ * Allow a request that provides a non-revoked access token for an owner/admin.
+ * @param jwt string
+ * @param req FastifyRequest
+ * @param getUser
+ * @returns AuthResponse
+ * @async
+ */
+const handleAccessTokenJwt = async (
+  jwt: string,
+  req: FastifyRequest,
+  getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"],
+): Promise<AuthResponse> => {
+  try {
+    const token = await getAccessToken({ jwt });
+    if (token && token.revokedAt === null) {
+      const user = await getUser(req);
+      if (
+        user?.session?.permissions === Permission.Owner ||
+        user?.session?.permissions === Permission.Admin
+      ) {
+        return { isAuthed: true, user };
+      }
+    }
+  } catch (e) {
+    // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
   }
 
   return { isAuthed: false };
