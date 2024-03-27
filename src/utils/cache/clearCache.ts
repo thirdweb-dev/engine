@@ -4,6 +4,7 @@ import { configCache } from "./getConfig";
 import { sdkCache } from "./getSdk";
 import { walletsCache } from "./getWallet";
 import { webhookCache } from "./getWebhook";
+import { keypairCache } from "./keypair";
 
 export const clearCache = async (
   service: (typeof env)["LOG_SERVICES"][0],
@@ -13,4 +14,5 @@ export const clearCache = async (
   sdkCache.clear();
   walletsCache.clear();
   accessTokenCache.clear();
+  keypairCache.clear();
 };

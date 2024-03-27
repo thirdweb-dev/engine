@@ -18,6 +18,7 @@ import { getAccessToken } from "../../utils/cache/accessToken";
 import { getAuthWallet } from "../../utils/cache/authWallet";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getWebhook } from "../../utils/cache/getWebhook";
+import { getKeypair } from "../../utils/cache/keypair";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { sendWebhookRequest } from "../../utils/webhook";
@@ -152,13 +153,13 @@ export const onRequest = async ({
     return publicRoutesResp;
   }
 
+  const keypairAuthResp = await handleKeypairAuth(req);
+  if (keypairAuthResp.isAuthed || keypairAuthResp.error) {
+    return keypairAuthResp;
+  }
+
   const jwt = getJWT(req);
   if (jwt) {
-    const keypairAuthResp = await handleKeypairAuth(jwt);
-    if (keypairAuthResp.isAuthed || keypairAuthResp.error) {
-      return keypairAuthResp;
-    }
-
     const accessTokenResp = await handleAccessTokenJwt(jwt, req, getUser);
     if (accessTokenResp.isAuthed) {
       return accessTokenResp;
@@ -261,44 +262,53 @@ const handleWebsocketAuth = async (
  * Auth via keypair.
  * Allow a request that provides a JWT signed by an ES256 private key
  * matching the configured public key.
- * @param jwt string
+ * @param req FastifyRequest
  * @returns AuthResponse
  */
-const handleKeypairAuth = (jwt: string): AuthResponse => {
-  if (env.KEYPAIR_PUBLIC_KEY) {
-    try {
-      const { aud, exp, iat } = jsonwebtoken.verify(
-        jwt,
-        env.KEYPAIR_PUBLIC_KEY,
-        {
-          algorithms: ["ES256"],
-          audience: "thirdweb.com",
-        },
-      ) as jsonwebtoken.JwtPayload;
+const handleKeypairAuth = async (
+  req: FastifyRequest,
+): Promise<AuthResponse> => {
+  const jwt = req.headers["x-keypair-signature"] as string | undefined;
+  if (!jwt) {
+    return { isAuthed: false };
+  }
 
-      if (aud !== "thirdweb.com") {
-        return { isAuthed: false, error: 'Keypair token has invalid "aud".' };
-      }
+  let error: string | undefined;
+  try {
+    const payload = jsonwebtoken.decode(jwt, { json: true });
+    if (!payload?.iss) {
+      error = 'The "iss" field must contain an ES256 public key.';
+      throw error;
+    }
 
-      const duration = exp && iat ? exp - iat : undefined;
-      if (!duration || duration > KEYPAIR_AUTH_MAX_DURATION_SECONDS) {
-        return {
-          isAuthed: false,
-          error: `Keypair token duration must not exceed ${KEYPAIR_AUTH_MAX_DURATION_SECONDS} seconds.`,
-        };
-      }
+    const keypair = await getKeypair({ publicKey: payload.iss });
+    if (!keypair || keypair.publicKey !== payload.iss) {
+      error =
+        "The provided public key is not configured for this Engine instance.";
+      throw error;
+    }
 
-      // The JWT is valid if `verify` did not throw.
-      return { isAuthed: true };
-    } catch (e) {
-      if (e instanceof jsonwebtoken.TokenExpiredError) {
-        return { isAuthed: false, error: "Keypair token is expired." };
-      }
-      // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
+    const { exp, iat } = jsonwebtoken.verify(jwt, keypair.publicKey, {
+      algorithms: ["ES256"],
+    }) as jsonwebtoken.JwtPayload;
+
+    const duration = exp && iat ? exp - iat : undefined;
+    if (!duration || duration > KEYPAIR_AUTH_MAX_DURATION_SECONDS) {
+      error = `Keypair token duration must not exceed ${KEYPAIR_AUTH_MAX_DURATION_SECONDS} seconds.`;
+      throw error;
+    }
+
+    // The JWT is valid if `verify` did not throw.
+    return { isAuthed: true };
+  } catch (e) {
+    if (e instanceof jsonwebtoken.TokenExpiredError) {
+      error = "Keypair token is expired.";
+    } else if (!error) {
+      error = 'Error parsing "x-keypair-signature" header.';
     }
   }
 
-  return { isAuthed: false };
+  return { isAuthed: false, error };
 };
 
 /**

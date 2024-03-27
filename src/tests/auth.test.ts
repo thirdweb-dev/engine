@@ -9,6 +9,7 @@ import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../utils/auth";
 import { getAccessToken } from "../utils/cache/accessToken";
 import { getAuthWallet } from "../utils/cache/authWallet";
 import { getWebhook } from "../utils/cache/getWebhook";
+import { getKeypair } from "../utils/cache/keypair";
 import { sendWebhookRequest } from "../utils/webhook";
 
 jest.mock("../utils/cache/accessToken");
@@ -37,6 +38,9 @@ const mockSendWebhookRequest = sendWebhookRequest as jest.MockedFunction<
 
 jest.mock("../utils/auth");
 const mockHandleSiwe = handleSiwe as jest.MockedFunction<typeof handleSiwe>;
+
+jest.mock("../utils/cache/keypair");
+const mockGetKeypair = getKeypair as jest.MockedFunction<typeof getKeypair>;
 
 describe("Static paths", () => {
   beforeEach(() => {
@@ -359,23 +363,32 @@ describe("Keypair auth JWT", () => {
     jest.clearAllMocks();
   });
 
-  // Example ES256 private key used only for unit tests.
-  const TEST_PRIVATE_KEY = `-----BEGIN EC PRIVATE KEY-----
+  // Example ES256 keypair used only for unit tests.
+  const testKeypair = {
+    public: `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEKbqftPicYL3V+4gZHi16wUWSJ1gO
+bsSyKJ/JW3qPUmL0fhdSNZz6C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
+-----END PUBLIC KEY-----`,
+    private: `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEICIJbkRowq93OJvo2Tk4eopRbU8dDqp1bh9xHDpF9b6boAoGCCqGSM49
 AwEHoUQDQgAEKbqftPicYL3V+4gZHi16wUWSJ1gObsSyKJ/JW3qPUmL0fhdSNZz6
 C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
------END EC PRIVATE KEY-----`;
+-----END EC PRIVATE KEY-----`,
+  } as const;
 
   const mockGetUser = jest.fn();
 
   it("Valid JWT signed by private key", async () => {
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      createdAt: new Date(),
+    });
+
     // Sign a valid auth payload.
     const jwt = jsonwebtoken.sign(
-      {
-        iss: "",
-        aud: "thirdweb.com",
-      },
-      TEST_PRIVATE_KEY,
+      { iss: testKeypair.public },
+      testKeypair.private,
       {
         algorithm: "ES256",
         expiresIn: "20s",
@@ -385,7 +398,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: `Bearer ${jwt}` },
+      headers: { "x-keypair-signature": jwt },
       // @ts-ignore
       raw: {},
     };
@@ -393,16 +406,20 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
     expect(result.user).toBeUndefined();
+    expect(result.error).toBeUndefined();
   });
 
   it("JWT with exp > 15 min signed by private key", async () => {
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      createdAt: new Date(),
+    });
+
     // Sign a valid auth payload.
     const jwt = jsonwebtoken.sign(
-      {
-        iss: "not_used",
-        aud: "thirdweb.com",
-      },
-      TEST_PRIVATE_KEY,
+      { iss: testKeypair.public },
+      testKeypair.private,
       {
         algorithm: "ES256",
         expiresIn: "16m",
@@ -412,7 +429,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: `Bearer ${jwt}` },
+      headers: { "x-keypair-signature": jwt },
       // @ts-ignore
       raw: {},
     };
@@ -420,16 +437,22 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeFalsy();
     expect(result.user).toBeUndefined();
+    expect(result.error).toEqual(
+      "Keypair token duration must not exceed 900 seconds.",
+    );
   });
 
   it("Expired JWT signed by private key", async () => {
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      createdAt: new Date(),
+    });
+
     // Sign an expired auth payload.
     const jwt = jsonwebtoken.sign(
-      {
-        iss: "not_used",
-        aud: "thirdweb.com",
-      },
-      TEST_PRIVATE_KEY,
+      { iss: testKeypair.public },
+      testKeypair.private,
       {
         algorithm: "ES256",
         expiresIn: -3_000,
@@ -439,7 +462,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: `Bearer ${jwt}` },
+      headers: { "x-keypair-signature": jwt },
       // @ts-ignore
       raw: {},
     };
@@ -447,16 +470,20 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeFalsy();
     expect(result.user).toBeUndefined();
+    expect(result.error).toEqual("Keypair token is expired.");
   });
 
-  it("JWT with wrong audience signed by private key", async () => {
+  it("Unrecognized public key", async () => {
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      createdAt: new Date(),
+    });
+
     // Sign an expired auth payload.
     const jwt = jsonwebtoken.sign(
-      {
-        iss: "not_used",
-        aud: "not-thirdweb.com",
-      },
-      TEST_PRIVATE_KEY,
+      { iss: "some_other_public_key" },
+      testKeypair.private,
       {
         algorithm: "ES256",
         expiresIn: "15s",
@@ -466,7 +493,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: `Bearer ${jwt}` },
+      headers: { "x-keypair-signature": jwt },
       // @ts-ignore
       raw: {},
     };
@@ -474,6 +501,9 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeFalsy();
     expect(result.user).toBeUndefined();
+    expect(result.error).toEqual(
+      "The provided public key is not configured for this Engine instance.",
+    );
   });
 
   it("Invalid JWT signed by the wrong private key", async () => {
@@ -484,10 +514,7 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
 6sE9ABLmMjeNbKKz9ayyCGN/BC3MNikhfw==
 -----END EC PRIVATE KEY-----`;
     const jwt = jsonwebtoken.sign(
-      {
-        iss: "not_used",
-        aud: "thirdweb.com",
-      },
+      { iss: testKeypair.public },
       WRONG_PRIVATE_KEY,
       {
         algorithm: "ES256",
@@ -498,7 +525,7 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: `Bearer ${jwt}` },
+      headers: { "x-keypair-signature": jwt },
       // @ts-ignore
       raw: {},
     };
@@ -506,6 +533,7 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeFalsy();
     expect(result.user).toBeUndefined();
+    expect(result.error).toEqual('Error parsing "x-keypair-signature" header.');
   });
 });
 
