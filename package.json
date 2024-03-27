@@ -51,7 +51,7 @@
     "cookie-parser": "^1.4.6",
     "copyfiles": "^2.4.1",
     "cron-parser": "^4.9.0",
-    "crypto-js": "^4.1.1",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.0.3",
     "ethers": "5",
     "fastify": "^4.15.0",
@@ -72,7 +72,7 @@
   "devDependencies": {
     "@types/cli-progress": "^3.11.3",
     "@types/cookie": "^0.5.1",
-    "@types/crypto-js": "^4.1.2",
+    "@types/crypto-js": "^4.2.2",
     "@types/express": "^4.17.17",
     "@types/jest": "^29.5.11",
     "@types/node": "^18.15.4",
