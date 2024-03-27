@@ -96,6 +96,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           gasLimit: data.res?.gasLimit?.toString(),
           maxFeePerGas: data.res?.maxFeePerGas?.toString(),
           maxPriorityFeePerGas: data.res?.maxPriorityFeePerGas?.toString(),
+          value: data.res?.value?.toString(),
         },
       });
       break;
@@ -119,13 +120,11 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           minedAt: data.minedAt,
           blockNumber: data.blockNumber,
           onChainTxStatus: data.onChainTxStatus,
-          transactionHash: data.transactionHash,
           transactionType: data.transactionType,
           gasPrice: data.gasPrice,
           gasLimit: data.gasLimit,
           maxFeePerGas: data.maxFeePerGas,
           maxPriorityFeePerGas: data.maxPriorityFeePerGas,
-          nonce: data.nonce,
         },
       });
       break;
