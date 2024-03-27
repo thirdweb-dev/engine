@@ -1,4 +1,4 @@
-FROM node:20.11.1-alpine AS base
+FROM node:18.19-alpine AS base
 
 # Install tini & build dependencies
 RUN apk add --no-cache tini && \
@@ -69,7 +69,7 @@ RUN apk update && apk upgrade
 ##############################
 
 # Production stage
-FROM node:20.11.1-alpine AS prod
+FROM node:18.19-alpine AS prod
 
 # Setting ENV variables for image information
 ARG ENGINE_VERSION
