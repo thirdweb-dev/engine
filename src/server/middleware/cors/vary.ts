@@ -1,5 +1,3 @@
-"use strict";
-
 import { FastifyReply } from "fastify";
 import LRUCache from "mnemonist/lru-cache";
 
