@@ -2,14 +2,14 @@ import { execSync, spawn } from "child_process";
 import fs from "fs";
 
 async function main() {
-  const child = spawn("yarn", ["dev"], { detached: true });
+  const child = spawn("bun", ["dev"], { detached: true });
   if (!child.pid) return;
 
   await new Promise((resolve) => setTimeout(resolve, 10000));
   process.kill(-child.pid);
 
   execSync(
-    "yarn openapi --input ./dist/openapi.json --output ./sdk/src --name Engine",
+    "bunx openapi --input ./dist/openapi.json --output ./sdk/src --name Engine",
   );
 
   const code = fs
