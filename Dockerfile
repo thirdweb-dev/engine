@@ -49,4 +49,4 @@ ENV NODE_ENV="production" \
 EXPOSE 3005/tcp
 # Use tini as entrypoint to handle killing processes
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD [ "yarn", "start"]
+CMD [ "bun", "start"]

@@ -24,7 +24,7 @@
     "@prisma/client": "5.2.0",
     "@sinclair/typebox": "^0.31.28",
     "@t3-oss/env-core": "^0.6.0",
-    "@thirdweb-dev/auth": "^4.1.47",
+    "@thirdweb-dev/auth": "^4.1.27",
     "@thirdweb-dev/chains": "^0.1.77",
     "@thirdweb-dev/sdk": "^4.0.46-nightly-3e7f9cb94-20240314012159",
     "@thirdweb-dev/service-utils": "0.4.17",
