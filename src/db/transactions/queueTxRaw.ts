@@ -1,5 +1,5 @@
 import type { Prisma, Transactions } from "@prisma/client";
-import { uuid } from "uuidv4";
+import { randomUUID } from "crypto";
 import { PrismaTransaction } from "../../schema/prisma";
 import { TransactionStatusEnum } from "../../server/schemas/transaction";
 import { simulateTx } from "../../server/utils/simulateTx";
@@ -54,7 +54,7 @@ export const queueTxRaw = async ({
 
   const insertData = {
     ...tx,
-    id: uuid(),
+    id: randomUUID(),
     fromAddress: tx.fromAddress?.toLowerCase(),
     toAddress: tx.toAddress?.toLowerCase(),
     target: tx.target?.toLowerCase(),
