@@ -1,23 +1,20 @@
-import { authenticateJWT } from "@thirdweb-dev/auth";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { FastifyRequest } from "fastify/types/request";
+import jsonwebtoken from "jsonwebtoken";
 import { getPermissions } from "../db/permissions/getPermissions";
 import { WebhooksEventTypes } from "../schema/webhooks";
 import { onRequest } from "../server/middleware/auth";
 import { Permission } from "../server/schemas/auth";
+import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../utils/auth";
 import { getAccessToken } from "../utils/cache/accessToken";
 import { getAuthWallet } from "../utils/cache/authWallet";
 import { getWebhook } from "../utils/cache/getWebhook";
+import { getKeypair } from "../utils/cache/keypair";
 import { sendWebhookRequest } from "../utils/webhook";
 
 jest.mock("../utils/cache/accessToken");
 const mockGetAccessToken = getAccessToken as jest.MockedFunction<
   typeof getAccessToken
->;
-
-jest.mock("@thirdweb-dev/auth");
-const mockAuthenticateJWT = authenticateJWT as jest.MockedFunction<
-  typeof authenticateJWT
 >;
 
 jest.mock("../db/permissions/getPermissions");
@@ -32,11 +29,18 @@ const mockGetAuthWallet = getAuthWallet as jest.MockedFunction<
 
 jest.mock("../utils/cache/getWebhook");
 const mockGetWebhook = getWebhook as jest.MockedFunction<typeof getWebhook>;
+mockGetWebhook.mockResolvedValue([]);
 
-jest.mock("../server/utils/webhook");
+jest.mock("../utils/webhook");
 const mockSendWebhookRequest = sendWebhookRequest as jest.MockedFunction<
   typeof sendWebhookRequest
 >;
+
+jest.mock("../utils/auth");
+const mockHandleSiwe = handleSiwe as jest.MockedFunction<typeof handleSiwe>;
+
+jest.mock("../utils/cache/keypair");
+const mockGetKeypair = getKeypair as jest.MockedFunction<typeof getKeypair>;
 
 describe("Static paths", () => {
   beforeEach(() => {
@@ -48,7 +52,7 @@ describe("Static paths", () => {
   it("Static paths are authed", async () => {
     const pathsToTest = [
       "/",
-      "/system/heath",
+      "/system/health",
       "/json",
       "/transaction/status/my-queue-id",
     ];
@@ -143,7 +147,7 @@ describe("Websocket requests", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).not.toBeUndefined();
   });
 
   it("A websocket request with a valid access token and non-admin permission is not authed", async () => {
@@ -275,7 +279,7 @@ describe("Access tokens", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).not.toBeUndefined();
   });
 
   it("Valid access token with non-admin permissions is not authed", async () => {
@@ -354,6 +358,185 @@ describe("Access tokens", () => {
   });
 });
 
+describe("Keypair auth JWT", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Example ES256 keypair used only for unit tests.
+  const testKeypair = {
+    public: `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEKbqftPicYL3V+4gZHi16wUWSJ1gO
+bsSyKJ/JW3qPUmL0fhdSNZz6C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
+-----END PUBLIC KEY-----`,
+    private: `-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEICIJbkRowq93OJvo2Tk4eopRbU8dDqp1bh9xHDpF9b6boAoGCCqGSM49
+AwEHoUQDQgAEKbqftPicYL3V+4gZHi16wUWSJ1gObsSyKJ/JW3qPUmL0fhdSNZz6
+C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
+-----END EC PRIVATE KEY-----`,
+  } as const;
+
+  const mockGetUser = jest.fn();
+
+  it("Valid JWT signed by private key", async () => {
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      createdAt: new Date(),
+    });
+
+    // Sign a valid auth payload.
+    const jwt = jsonwebtoken.sign(
+      { iss: testKeypair.public },
+      testKeypair.private,
+      {
+        algorithm: "ES256",
+        expiresIn: "20s",
+      },
+    );
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { "x-keypair-signature": jwt },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeTruthy();
+    expect(result.user).toBeUndefined();
+    expect(result.error).toBeUndefined();
+  });
+
+  it("JWT with exp > 15 min signed by private key", async () => {
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      createdAt: new Date(),
+    });
+
+    // Sign a valid auth payload.
+    const jwt = jsonwebtoken.sign(
+      { iss: testKeypair.public },
+      testKeypair.private,
+      {
+        algorithm: "ES256",
+        expiresIn: "16m",
+      },
+    );
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { "x-keypair-signature": jwt },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+    expect(result.error).toEqual(
+      "Keypair token duration must not exceed 900 seconds.",
+    );
+  });
+
+  it("Expired JWT signed by private key", async () => {
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      createdAt: new Date(),
+    });
+
+    // Sign an expired auth payload.
+    const jwt = jsonwebtoken.sign(
+      { iss: testKeypair.public },
+      testKeypair.private,
+      {
+        algorithm: "ES256",
+        expiresIn: -3_000,
+      },
+    );
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { "x-keypair-signature": jwt },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+    expect(result.error).toEqual("Keypair token is expired.");
+  });
+
+  it("Unrecognized public key", async () => {
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      createdAt: new Date(),
+    });
+
+    // Sign an expired auth payload.
+    const jwt = jsonwebtoken.sign(
+      { iss: "some_other_public_key" },
+      testKeypair.private,
+      {
+        algorithm: "ES256",
+        expiresIn: "15s",
+      },
+    );
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { "x-keypair-signature": jwt },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+    expect(result.error).toEqual(
+      "The provided public key is not configured for this Engine instance.",
+    );
+  });
+
+  it("Invalid JWT signed by the wrong private key", async () => {
+    // Sign a valid auth payload with a different private key.
+    const WRONG_PRIVATE_KEY = `-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIH719lhdn4CzboBQKr8E68htVNeQ2wwrxnsDhfLOgGNAoAoGCCqGSM49
+AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
+6sE9ABLmMjeNbKKz9ayyCGN/BC3MNikhfw==
+-----END EC PRIVATE KEY-----`;
+    const jwt = jsonwebtoken.sign(
+      { iss: testKeypair.public },
+      WRONG_PRIVATE_KEY,
+      {
+        algorithm: "ES256",
+        expiresIn: "15s",
+      },
+    );
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { "x-keypair-signature": jwt },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+    expect(result.error).toEqual('Error parsing "x-keypair-signature" header.');
+  });
+});
+
 describe("Dashboard JWT", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -363,8 +546,12 @@ describe("Dashboard JWT", () => {
   mockGetAccessToken.mockResolvedValue(null);
 
   it("Valid dashboard JWT with admin permission is authed", async () => {
-    mockAuthenticateJWT.mockResolvedValue({
-      address: "0x0000000000000000000000000123",
+    // Mock dashboard JWTs.
+    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
+      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
+        return { address: "0x0000000000000000000000000123" };
+      }
+      return null;
     });
 
     mockGetPermissions.mockResolvedValue({
@@ -383,12 +570,16 @@ describe("Dashboard JWT", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).not.toBeUndefined();
   });
 
   it("Valid dashboard JWT with non-admin permission is not authed", async () => {
-    mockAuthenticateJWT.mockResolvedValue({
-      address: "0x0000000000000000000000000123",
+    // Mock dashboard JWTs.
+    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
+      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
+        return { address: "0x0000000000000000000000000123" };
+      }
+      return null;
     });
 
     mockGetPermissions.mockResolvedValue({
@@ -409,12 +600,32 @@ describe("Dashboard JWT", () => {
     expect(result.isAuthed).toBeFalsy();
   });
 
-  it("Invalid dashboard JWT is not authed", async () => {
-    mockAuthenticateJWT.mockResolvedValue({
-      address: "0x0000000000000000000000000123",
+  it("Dashboard JWT for an unknown user is not authed", async () => {
+    // Mock dashboard JWTs.
+    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
+      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
+        return { address: "0x0000000000000000000000000123" };
+      }
+      return null;
     });
 
     mockGetPermissions.mockResolvedValue(null);
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: "Bearer my-access-token" },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+  });
+
+  it("Invalid dashboard JWT is not authed", async () => {
+    // Mock dashboard JWTs.
+    mockHandleSiwe.mockResolvedValue(null);
 
     const req: FastifyRequest = {
       method: "POST",
@@ -437,10 +648,9 @@ describe("thirdweb secret key", () => {
   const mockGetUser = jest.fn();
 
   it("Valid thirdweb secret key is authed", async () => {
-    const localWallet = new LocalWallet();
-    await localWallet.generate();
-
-    mockGetAuthWallet.mockResolvedValue(localWallet);
+    const testAuthWallet = new LocalWallet();
+    await testAuthWallet.generate();
+    mockGetAuthWallet.mockResolvedValue(testAuthWallet);
 
     const req: FastifyRequest = {
       method: "POST",
@@ -452,7 +662,7 @@ describe("thirdweb secret key", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).not.toBeUndefined();
   });
 });
 
@@ -497,7 +707,7 @@ describe("auth webhooks", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
-    expect(result.user).not.toBeNull();
+    expect(result.user).toBeUndefined();
   });
 
   it("A request that gets a non-2xx from any auth webhooks is not authed", async () => {

@@ -3,7 +3,8 @@ import * as dotenv from "dotenv";
 import type { ZodError } from "zod";
 import { z } from "zod";
 
-dotenv.config();
+const path = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
+dotenv.config({ path });
 
 export const JsonSchema = z.string().refine(
   (value) => {
@@ -14,23 +15,21 @@ export const JsonSchema = z.string().refine(
       return false;
     }
   },
-  { message: "Not a valid JSON string" },
+  { message: "Invalid JSON string" },
 );
 
 export const UrlSchema = z
   .string()
   .refine(
     (value) => value.startsWith("http://") || value.startsWith("https://"),
-    { message: "Not a valid URL" },
+    { message: "Invalid URL" },
   );
 
-export const FilePathSchema = z
+export const PublicKeySchema = z
   .string()
-  .refine(
-    (value) =>
-      value.startsWith("./") || value.startsWith("/") || value.includes("."),
-    { message: "Not a valid file path" },
-  );
+  .refine((value) => value.startsWith("-----BEGIN PUBLIC KEY-----\n"), {
+    message: "Invalid public key",
+  });
 
 const boolSchema = (defaultBool: "true" | "false") =>
   z
