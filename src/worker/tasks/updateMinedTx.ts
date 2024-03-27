@@ -28,8 +28,6 @@ export const updateMinedTx = async () => {
           return;
         }
 
-        const droppedTxs: (Transactions & { provider?: string })[] = [];
-
         const txsWithReceipts = (
           await Promise.all(
             txs.map(async (tx) => {
