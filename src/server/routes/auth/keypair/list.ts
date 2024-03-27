@@ -11,7 +11,7 @@ const ReplySchema = Type.Object({
   }),
 });
 
-export async function importPublicKey(fastify: FastifyInstance) {
+export async function listPublicKeys(fastify: FastifyInstance) {
   fastify.route<{
     Reply: Static<typeof ReplySchema>;
   }>({

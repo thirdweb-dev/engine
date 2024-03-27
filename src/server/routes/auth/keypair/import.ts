@@ -1,3 +1,4 @@
+import { Keypairs, Prisma } from "@prisma/client";
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
@@ -45,13 +46,27 @@ export async function importPublicKey(fastify: FastifyInstance) {
         !publicKey.endsWith("\n-----END PUBLIC KEY-----")
       ) {
         throw createCustomError(
-          "Invalid ES256 public key.",
+          "Invalid ES256 public key. Make sure it starts with '-----BEGIN PUBLIC KEY-----'.",
           StatusCodes.BAD_REQUEST,
           "INVALID_PUBLIC_KEY",
         );
       }
 
-      const keypair = await insertKeypair({ publicKey });
+      let keypair: Keypairs;
+      try {
+        keypair = await insertKeypair({ publicKey });
+      } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError) {
+          if (e.code === "P2002") {
+            throw createCustomError(
+              "Public key already imported.",
+              StatusCodes.BAD_REQUEST,
+              "PUBLIC_KEY_EXISTS",
+            );
+          }
+        }
+        throw e;
+      }
 
       res.status(200).send({
         result: { keypair },
