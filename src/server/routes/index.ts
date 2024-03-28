@@ -116,6 +116,7 @@ import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { checkGroupStatus } from "./transaction/group";
 
 // Indexer
+import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
 import { getContractEventLogs } from "./contract/events/getContractEventLogs";
 import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
 import { pageEventLogs } from "./contract/events/paginateEventLogs";
@@ -162,6 +163,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getCorsConfiguration);
   await fastify.register(addUrlToCorsConfiguration);
   await fastify.register(removeUrlToCorsConfiguration);
+  await fastify.register(setUrlsToCorsConfiguration);
   await fastify.register(getCacheConfiguration);
   await fastify.register(updateCacheConfiguration);
 

@@ -8,7 +8,7 @@ import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Object({
-  urlsToAdd: Type.Array(
+  urls: Type.Array(
     Type.String({
       description: "Comma separated list of origins that will call Engine",
       minLength: 1,
@@ -18,22 +18,23 @@ const BodySchema = Type.Object({
 
 BodySchema.examples = [
   {
-    urlsToAdd: ["https://example.com", "https://subdomain.example.com"],
+    urls: ["https://example.com", "https://subdomain.example.com"],
   },
 ];
 
-export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
+export async function setUrlsToCorsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
     Reply: Static<typeof ReplySchema>;
   }>({
-    method: "POST",
+    method: "PUT",
     url: "/configuration/cors",
     schema: {
-      summary: "Add a CORS URL",
-      description: "Add a URL to allow client-side calls to Engine",
+      summary: "Set CORS URLs",
+      description:
+        "Replaces the CORS URLs to allow client-side calls to Engine",
       tags: ["Configuration"],
-      operationId: "addUrlToCorsConfiguration",
+      operationId: "setUrlsToCorsConfiguration",
       body: BodySchema,
       response: {
         ...standardResponseSchema,
@@ -41,25 +42,18 @@ export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const oldConfig = await getConfig();
+      const urls = req.body.urls.map((url) => url.trim());
 
-      const urlsToAdd = req.body.urlsToAdd.map((url) => url.trim());
+      // Add required domains and dedupe.
+      const dedupe = Array.from(
+        new Set([...urls, ...mandatoryAllowedCorsUrls]),
+      );
 
-      const requiredUrls = mandatoryAllowedCorsUrls;
-
-      requiredUrls.forEach((url) => {
-        if (!urlsToAdd.includes(url)) {
-          urlsToAdd.push(url);
-        }
-      });
+      console.log("[DEBUG] urls", urls);
+      console.log("[DEBUG] dedupe", dedupe);
 
       await updateConfiguration({
-        accessControlAllowOrigin: [
-          ...new Set([
-            ...urlsToAdd,
-            ...oldConfig.accessControlAllowOrigin.split(","),
-          ]),
-        ].join(","),
+        accessControlAllowOrigin: dedupe.join(","),
       });
 
       // Fetch and return the updated configuration
