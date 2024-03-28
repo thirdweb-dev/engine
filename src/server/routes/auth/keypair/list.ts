@@ -6,9 +6,7 @@ import { KeypairSchema } from "../../../schemas/auth";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const ReplySchema = Type.Object({
-  result: Type.Object({
-    keypairs: Type.Array(KeypairSchema),
-  }),
+  result: Type.Array(KeypairSchema),
 });
 
 export async function listPublicKeys(fastify: FastifyInstance) {
@@ -16,7 +14,7 @@ export async function listPublicKeys(fastify: FastifyInstance) {
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
-    url: "/auth/keypair/list",
+    url: "/auth/keypair/get-all",
     schema: {
       summary: "List public keys",
       description: "List the public keys configured with Engine",
@@ -31,7 +29,7 @@ export async function listPublicKeys(fastify: FastifyInstance) {
       const keypairs = await listKeypairs();
 
       res.status(200).send({
-        result: { keypairs },
+        result: keypairs,
       });
     },
   });

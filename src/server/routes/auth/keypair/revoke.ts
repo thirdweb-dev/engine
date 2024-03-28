@@ -3,14 +3,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { deleteKeypair } from "../../../../db/keypair/delete";
 import { keypairCache } from "../../../../utils/cache/keypair";
-import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
-  publicKey: Type.String({
-    description:
-      "An ES256 public key beginning with '-----BEGIN PUBLIC KEY-----'",
-  }),
+  hash: Type.String(),
 });
 
 const ReplySchema = Type.Object({
@@ -28,7 +24,7 @@ export async function revokePublicKey(fastify: FastifyInstance) {
     url: "/auth/keypair/revoke",
     schema: {
       summary: "Revoke public key",
-      description: "Revoke a public key",
+      description: "Revoke the public key for an ES256 keypair from Engine",
       tags: ["Keypair"],
       operationId: "revoke",
       body: BodySchema,
@@ -38,20 +34,9 @@ export async function revokePublicKey(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { publicKey } = req.body;
+      const { hash } = req.body;
 
-      if (
-        !publicKey.startsWith("-----BEGIN PUBLIC KEY-----\n") ||
-        !publicKey.endsWith("\n-----END PUBLIC KEY-----")
-      ) {
-        throw createCustomError(
-          "Invalid ES256 public key.",
-          StatusCodes.BAD_REQUEST,
-          "INVALID_PUBLIC_KEY",
-        );
-      }
-
-      await deleteKeypair({ publicKey });
+      await deleteKeypair({ hash });
       keypairCache.clear();
 
       res.status(200).send({

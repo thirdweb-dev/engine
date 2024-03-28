@@ -20,7 +20,7 @@ const ReplySchema = Type.Object({
   }),
 });
 
-export async function importPublicKey(fastify: FastifyInstance) {
+export async function importKeypair(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
     Reply: Static<typeof ReplySchema>;
@@ -29,7 +29,7 @@ export async function importPublicKey(fastify: FastifyInstance) {
     url: "/auth/keypair/import",
     schema: {
       summary: "Import public key",
-      description: "Import a public key from an ES256 keypair",
+      description: "Import the public key for an ES256 keypair",
       tags: ["Keypair"],
       operationId: "import",
       body: BodySchema,
