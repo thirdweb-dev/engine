@@ -128,7 +128,7 @@ export const getTransactionReceiptsByCursor = async ({
                 {
                   createdAt: { equals: cursorObj.createdAt },
                   chainId: { equals: cursorObj.chainId },
-                  blockNumber: { gt: cursorObj.blockNumber },
+                  blockNumber: { equals: cursorObj.blockNumber },
                   transactionIndex: { gt: cursorObj.transactionIndex },
                 },
               ],
