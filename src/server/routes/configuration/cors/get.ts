@@ -3,9 +3,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 
 export const ReplySchema = Type.Object({
-  result: Type.Union([Type.Array(Type.String()), Type.String(), Type.Null()]),
+  result: Type.Array(Type.String()),
 });
 
 export async function getCorsConfiguration(fastify: FastifyInstance) {
@@ -27,8 +28,13 @@ export async function getCorsConfiguration(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const config = await getConfig(false);
 
+      // Omit required domains.
+      const omitted = config.accessControlAllowOrigin
+        .split(",")
+        .filter((url) => !mandatoryAllowedCorsUrls.includes(url));
+
       res.status(200).send({
-        result: config.accessControlAllowOrigin.split(","),
+        result: omitted,
       });
     },
   });
