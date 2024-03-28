@@ -3,7 +3,6 @@ export enum WebhooksEventTypes {
   SENT_TX = "sent_transaction",
   MINED_TX = "mined_transaction",
   ERRORED_TX = "errored_transaction",
-  RETRIED_TX = "retried_transaction",
   CANCELLED_TX = "cancelled_transaction",
   ALL_TX = "all_transactions",
   BACKEND_WALLET_BALANCE = "backend_wallet_balance",

@@ -15,8 +15,7 @@ export const getSentUserOps = async ({
 
   return prisma.$queryRaw<Transactions[]>`
     SELECT * FROM "transactions"
-    WHERE "processedAt" IS NOT NULL
-    AND "sentAt" IS NOT NULL
+    WHERE "sentAt" IS NOT NULL
     AND "accountAddress" IS NOT NULL
     AND "userOpHash" IS NOT NULL
     AND "minedAt" IS NULL

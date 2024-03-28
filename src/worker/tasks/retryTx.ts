@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { prisma } from "../../db/client";
 import { getTxToRetry } from "../../db/transactions/getTxToRetry";
 import { updateTx } from "../../db/transactions/updateTx";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
 import { parseTxError } from "../../utils/errors";
@@ -82,7 +82,7 @@ export const retryTx = async () => {
             pgtx,
             queueId: tx.id,
             data: {
-              status: TransactionStatusEnum.Errored,
+              status: TransactionStatus.Errored,
               errorMessage: await parseTxError(tx, err),
             },
           });
@@ -111,7 +111,7 @@ export const retryTx = async () => {
           queueId: tx.id,
           data: {
             sentAt: new Date(),
-            status: TransactionStatusEnum.Submitted,
+            status: TransactionStatus.Sent,
             res: txRequest,
             sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
             retryCount: tx.retryCount + 1,

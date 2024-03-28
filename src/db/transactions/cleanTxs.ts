@@ -13,7 +13,6 @@ export const cleanTxs = (
       id: undefined,
       queuedAt: tx.queuedAt.toISOString(),
       sentAt: tx.sentAt?.toISOString() || null,
-      processedAt: tx.processedAt?.toISOString() || null,
       minedAt: tx.minedAt?.toISOString() || null,
       cancelledAt: tx.cancelledAt?.toISOString() || null,
       status: !!tx.errorMessage
@@ -26,8 +25,6 @@ export const cleanTxs = (
         ? "sent"
         : !!tx.sentAt && tx.retryCount > 0
         ? "retried"
-        : !!tx.processedAt
-        ? "processed"
         : "queued",
     };
   });

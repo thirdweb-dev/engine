@@ -3,7 +3,7 @@ import { Static } from "@sinclair/typebox";
 import { FastifyRequest } from "fastify";
 import { logger } from "../../utils/logger";
 import {
-  TransactionStatusEnum,
+  TransactionStatus,
   transactionResponseSchema,
 } from "../schemas/transaction";
 import { UserSubscription, subscriptionsData } from "../schemas/websocket";
@@ -145,17 +145,15 @@ export const getStatusMessageAndConnectionStatus = async (
   if (!data) {
     message = `Transaction not found. Make sure the provided ID is correct.`;
     closeConnection = true;
-  } else if (data.status === TransactionStatusEnum.Mined) {
+  } else if (data.status === TransactionStatus.Mined) {
     message = "Transaction mined. Closing connection.";
     closeConnection = true;
-  } else if (data.status === TransactionStatusEnum.Errored) {
+  } else if (data.status === TransactionStatus.Errored) {
     message = data.errorMessage || "Transaction errored. Closing connection.";
     closeConnection = true;
-  } else if (data.status === TransactionStatusEnum.Submitted) {
+  } else if (data.status === TransactionStatus.Sent) {
     message =
       "Transaction submitted to blockchain. Waiting for transaction to be mined...";
-  } else if (data.status === TransactionStatusEnum.Processed) {
-    message = "Worker is processing the transaction. Please wait...";
   }
 
   return { message, closeConnection };

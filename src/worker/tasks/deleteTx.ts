@@ -8,32 +8,23 @@ export const deleteTx = async () => {
 
     const deletedItems = await prisma.transactions.deleteMany({
       where: {
+        // All txs queued 24+ hours ago that are mined, cancelled, or errored.
         AND: [
           {
             queuedAt: {
               lt: twentyFourHoursAgo,
             },
-            processedAt: {
-              not: null,
-            },
           },
           {
             OR: [
               {
-                minedAt: {
-                  not: null,
-                },
+                minedAt: { not: null },
               },
               {
-                cancelledAt: {
-                  not: null,
-                },
+                cancelledAt: { not: null },
               },
-              // Check to if the transaction Errored
               {
-                errorMessage: {
-                  not: null,
-                },
+                errorMessage: { not: null },
               },
             ],
           },

@@ -44,11 +44,6 @@ BodySchema.examples = [
     eventType: WebhooksEventTypes.QUEUED_TX,
   },
   {
-    url: "https://example.com/retiredTx",
-    name: "RetriedTx",
-    eventType: WebhooksEventTypes.RETRIED_TX,
-  },
-  {
     url: "https://example.com/sentTx",
     name: "Sent Transaction Event",
     eventType: WebhooksEventTypes.SENT_TX,
