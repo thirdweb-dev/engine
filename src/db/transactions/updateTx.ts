@@ -3,7 +3,7 @@ import { Static } from "@sinclair/typebox";
 import { BigNumber, ethers } from "ethers";
 import { PrismaTransaction } from "../../schema/prisma";
 import {
-  TransactionStatusEnum,
+  TransactionStatus,
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx, webhookQueue } from "../client";
@@ -17,17 +17,14 @@ interface UpdateTxParams {
 
 type UpdateTxData =
   | {
-      status: TransactionStatusEnum.Cancelled;
+      status: TransactionStatus.Cancelled;
     }
   | {
-      status: TransactionStatusEnum.Processed;
-    }
-  | {
-      status: TransactionStatusEnum.Errored;
+      status: TransactionStatus.Errored;
       errorMessage: string;
     }
   | {
-      status: TransactionStatusEnum.Submitted;
+      status: TransactionStatus.Sent;
       sentAt: Date;
       transactionHash: string;
       res: ethers.providers.TransactionRequest;
@@ -35,12 +32,12 @@ type UpdateTxData =
       retryCount?: number;
     }
   | {
-      status: TransactionStatusEnum.UserOpSent;
+      status: TransactionStatus.UserOpSent;
       sentAt: Date;
       userOpHash: string;
     }
   | {
-      status: TransactionStatusEnum.Mined;
+      status: TransactionStatus.Mined;
       gasPrice?: string;
       blockNumber?: number;
       minedAt: Date;
@@ -57,7 +54,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
   let updatedData: Transactions | null = null;
   let sanitizedTxData: Static<typeof transactionResponseSchema>[] = [];
-  if (data.status === TransactionStatusEnum.Cancelled) {
+  if (data.status === TransactionStatus.Cancelled) {
     updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
@@ -66,7 +63,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         cancelledAt: new Date(),
       },
     });
-  } else if (data.status === TransactionStatusEnum.Errored) {
+  } else if (data.status === TransactionStatus.Errored) {
     updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
@@ -75,7 +72,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         errorMessage: data.errorMessage,
       },
     });
-  } else if (data.status === TransactionStatusEnum.Submitted) {
+  } else if (data.status === TransactionStatus.Sent) {
     updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
@@ -93,7 +90,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         maxPriorityFeePerGas: data.res?.maxPriorityFeePerGas?.toString(),
       },
     });
-  } else if (data.status === TransactionStatusEnum.UserOpSent) {
+  } else if (data.status === TransactionStatus.UserOpSent) {
     updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
@@ -103,7 +100,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         userOpHash: data.userOpHash,
       },
     });
-  } else if (data.status === TransactionStatusEnum.Mined) {
+  } else if (data.status === TransactionStatus.Mined) {
     updatedData = await prisma.transactions.update({
       where: {
         id: queueId,

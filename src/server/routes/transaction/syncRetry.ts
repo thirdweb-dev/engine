@@ -10,7 +10,7 @@ import { parseTxError } from "../../../utils/errors";
 import { UsageEventTxActionEnum, reportUsage } from "../../../utils/usage";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { TransactionStatusEnum } from "../../schemas/transaction";
+import { TransactionStatus } from "../../schemas/transaction";
 
 // INPUT
 const requestBodySchema = Type.Object({
@@ -141,7 +141,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
       await updateTx({
         queueId: tx.id,
         data: {
-          status: TransactionStatusEnum.Submitted,
+          status: TransactionStatus.Sent,
           transactionHash,
           res: txRequest,
           sentAt: new Date(),

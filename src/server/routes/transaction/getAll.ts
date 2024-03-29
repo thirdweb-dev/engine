@@ -21,7 +21,7 @@ const requestQuerySchema = Type.Object({
     default: "10",
   }),
   // filter: Type.Optional(
-  //   Type.Union([Type.Enum(TransactionStatusEnum), Type.Literal("all")], {
+  //   Type.Union([Type.Enum(TransactionStatus), Type.Literal("all")], {
   //     description:
   //       "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
   //     examples: ["all", "submitted", "processed", "errored", "mined", "queued"],
