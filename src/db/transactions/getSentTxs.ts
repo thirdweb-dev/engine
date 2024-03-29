@@ -15,8 +15,7 @@ export const getSentTxs = async ({ pgtx }: GetSentTxsParams = {}): Promise<
 
   return prisma.$queryRaw<Transactions[]>`
     SELECT * FROM "transactions"
-    WHERE "processedAt" IS NOT NULL
-    AND "sentAt" IS NOT NULL
+    WHERE "sentAt" IS NOT NULL
     AND "transactionHash" IS NOT NULL
     AND "accountAddress" IS NULL
     AND "minedAt" IS NULL

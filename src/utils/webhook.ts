@@ -5,7 +5,7 @@ import {
   WalletBalanceWebhookSchema,
   WebhooksEventTypes,
 } from "../schema/webhooks";
-import { TransactionStatusEnum } from "../server/schemas/transaction";
+import { TransactionStatus } from "../server/schemas/transaction";
 import { getWebhook } from "./cache/getWebhook";
 import { logger } from "./logger";
 
@@ -84,7 +84,7 @@ export const sendWebhookRequest = async (
 
 export interface WebhookData {
   queueId: string;
-  status: TransactionStatusEnum;
+  status: TransactionStatus;
 }
 
 export const sendWebhooks = async (webhooks: WebhookData[]) => {
@@ -106,17 +106,15 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
 
   for (const webhook of webhooksWithTxs) {
     const webhookStatus =
-      webhook.status === TransactionStatusEnum.Queued
+      webhook.status === TransactionStatus.Queued
         ? WebhooksEventTypes.QUEUED_TX
-        : webhook.status === TransactionStatusEnum.Submitted
+        : webhook.status === TransactionStatus.Sent
         ? WebhooksEventTypes.SENT_TX
-        : webhook.status === TransactionStatusEnum.Retried
-        ? WebhooksEventTypes.RETRIED_TX
-        : webhook.status === TransactionStatusEnum.Mined
+        : webhook.status === TransactionStatus.Mined
         ? WebhooksEventTypes.MINED_TX
-        : webhook.status === TransactionStatusEnum.Errored
+        : webhook.status === TransactionStatus.Errored
         ? WebhooksEventTypes.ERRORED_TX
-        : webhook.status === TransactionStatusEnum.Cancelled
+        : webhook.status === TransactionStatus.Cancelled
         ? WebhooksEventTypes.CANCELLED_TX
         : undefined;
 

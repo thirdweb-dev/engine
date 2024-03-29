@@ -91,12 +91,6 @@ export const transactionResponseSchema = Type.Object({
     }),
     Type.Null(),
   ]),
-  processedAt: Type.Union([
-    Type.String({
-      description: "When the transaction is handled by a worker",
-    }),
-    Type.Null(),
-  ]),
   sentAt: Type.Union([
     Type.String({
       description: "When the transaction is submitted to mempool",
@@ -190,16 +184,19 @@ export const transactionResponseSchema = Type.Object({
   onChainTxStatus: Type.Union([Type.Number(), Type.Null()]),
 });
 
-export enum TransactionStatusEnum {
-  Processed = "processed",
+export enum TransactionStatus {
+  // Tx was received and waiting to be processed.
   Queued = "queued",
-  // TODO: Switch to sent
-  Submitted = "sent",
+  // Tx was submitted to mempool.
+  Sent = "sent",
+  // Tx (userOp for smart account) was submitted to mempool.
   UserOpSent = "user-op-sent",
+  // Tx failed before submitting to mempool.
   Errored = "errored",
+  // Tx was successfully mined onchain. Note: The tx may have "reverted" onchain.
   Mined = "mined",
+  // Tx was cancelled and will not be re-attempted.
   Cancelled = "cancelled",
-  Retried = "retried",
 }
 
 export interface TransactionSchema {
