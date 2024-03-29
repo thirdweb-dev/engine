@@ -12,7 +12,7 @@ export const setCache = async (
   val: any,
   ttlSeconds = DEFAULT_TTL_SECONDS,
 ) => {
-  await redis.setex(key, JSON.stringify(val), ttlSeconds);
+  await redis.setex(key, ttlSeconds, JSON.stringify(val));
 };
 
 export const invalidateCache = async (key: string) => await redis.del(key);
@@ -24,7 +24,7 @@ export const invalidateCache = async (key: string) => await redis.del(key);
 export const cacheKeyWalletDetails = (address: string) =>
   `wallet_details:${address.toLowerCase()}`;
 
-export const cacheKeyAllWebhooks = () => "webhooks:*";
+export const cacheKeyAllWebhooks = () => "webhooks";
 
 export const cacheKeyConfiguration = () => "configuration";
 
