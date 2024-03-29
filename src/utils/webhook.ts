@@ -6,7 +6,7 @@ import {
   WebhooksEventTypes,
 } from "../schema/webhooks";
 import {
-  TransactionStatusEnum,
+  TransactionStatus,
   transactionResponseSchema,
 } from "../server/schemas/transaction";
 import { getWebhook } from "./cache/getWebhook";
@@ -88,7 +88,7 @@ export const sendWebhookRequest = async (
 export interface WebhookData {
   id: string;
   data?: Static<typeof transactionResponseSchema>;
-  status: TransactionStatusEnum;
+  status: TransactionStatus;
   url?: string;
 }
 

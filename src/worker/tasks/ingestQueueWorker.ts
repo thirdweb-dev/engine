@@ -7,7 +7,7 @@ import {
   webhookQueue,
 } from "../../db/client";
 import { cleanTxs } from "../../db/transactions/cleanTxs";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import {
@@ -61,7 +61,7 @@ export const startIngestQueueWorker = async () => {
       const webhookQueueData: WebhookData = {
         data: sanitizedTxData[0],
         id: txRow.id,
-        status: TransactionStatusEnum.Queued,
+        status: TransactionStatus.Queued,
       };
 
       const idempotencyCacheKey = getIdempotencyCacheKey(
