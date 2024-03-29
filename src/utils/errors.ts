@@ -1,12 +1,8 @@
 import { Transactions } from ".prisma/client";
 import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import { ethers } from "ethers";
-import {
-  createThirdwebClient,
-  prepareTransaction,
-  simulateTransaction,
-} from "thirdweb";
-import { env } from "./env";
+import { prepareTransaction, simulateTransaction } from "thirdweb";
+import { thirdwebClient } from "./sdk";
 
 interface EthersError {
   reason: string;
@@ -15,10 +11,6 @@ interface EthersError {
   method: string;
   transaction: any;
 }
-
-const client = createThirdwebClient({
-  secretKey: env.THIRDWEB_API_SECRET_KEY,
-});
 
 export const parseTxError = async (
   tx: Transactions,
@@ -46,7 +38,7 @@ export const parseTxError = async (
             id: Number(tx.chainId),
             rpc: chain.rpc[0],
           },
-          client,
+          client: thirdwebClient,
         });
         await simulateTransaction({ transaction, from: tx.fromAddress });
       } catch (simErr: any) {

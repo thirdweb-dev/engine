@@ -1,5 +1,5 @@
 import { ContractOptions, defineChain, getContract } from "thirdweb";
-import { client } from "./getClient";
+import { thirdwebClient } from "../sdk";
 
 interface GetContractParams {
   chainId: number;
@@ -25,7 +25,7 @@ export const getContractV5 = ({
   // get a contract
   return getContract({
     // the client you have created via `createThirdwebClient()`
-    client,
+    client: thirdwebClient,
     // the contract's address
     address: contractAddress,
     // the chain the contract is deployed on
