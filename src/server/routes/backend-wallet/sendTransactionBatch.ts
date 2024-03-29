@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { v4 as uuidv4 } from "uuid";
+import { v4 } from "uuid";
 import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
@@ -64,10 +64,10 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
         request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
-      const groupId = uuidv4();
+      const groupId = v4();
       const data = txs.map((tx) => ({
         groupId,
-        id: uuidv4(),
+        id: v4(),
         chainId: chainId.toString(),
         fromAddress: fromAddress.toLowerCase(),
         toAddress: tx.toAddress?.toLowerCase(),

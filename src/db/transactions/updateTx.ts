@@ -1,6 +1,11 @@
+import { Transactions } from "@prisma/client";
+import { Static } from "@sinclair/typebox";
 import { BigNumber, ethers } from "ethers";
 import { PrismaTransaction } from "../../schema/prisma";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import {
+  TransactionStatusEnum,
+  transactionResponseSchema,
+} from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx, webhookQueue } from "../client";
 import { cleanTxs } from "./cleanTxs";
 
@@ -50,8 +55,10 @@ type UpdateTxData =
 
 export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
+  let updatedData: Transactions | null = null;
+  let sanitizedTxData: Static<typeof transactionResponseSchema>[] = [];
   if (data.status === TransactionStatusEnum.Cancelled) {
-    const updatedData = await prisma.transactions.update({
+    updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -59,22 +66,8 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         cancelledAt: new Date(),
       },
     });
-
-    const sanitizedTxData = cleanTxs([updatedData]);
-
-    webhookQueue.add(
-      "webhookQueue",
-      {
-        id: queueId,
-        data: sanitizedTxData[0],
-        status: TransactionStatusEnum.Cancelled,
-      },
-      {
-        removeOnComplete: true,
-      },
-    );
   } else if (data.status === TransactionStatusEnum.Errored) {
-    const updatedData = await prisma.transactions.update({
+    updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -82,22 +75,8 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         errorMessage: data.errorMessage,
       },
     });
-
-    const sanitizedTxData = cleanTxs([updatedData]);
-
-    webhookQueue.add(
-      "webhookQueue",
-      {
-        id: queueId,
-        data: sanitizedTxData[0],
-        status: TransactionStatusEnum.Errored,
-      },
-      {
-        removeOnComplete: true,
-      },
-    );
   } else if (data.status === TransactionStatusEnum.Submitted) {
-    const updatedData = await prisma.transactions.update({
+    updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -114,22 +93,8 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         maxPriorityFeePerGas: data.res?.maxPriorityFeePerGas?.toString(),
       },
     });
-
-    const sanitizedTxData = cleanTxs([updatedData]);
-
-    webhookQueue.add(
-      "webhookQueue",
-      {
-        id: queueId,
-        data: sanitizedTxData[0],
-        status: TransactionStatusEnum.Errored,
-      },
-      {
-        removeOnComplete: true,
-      },
-    );
   } else if (data.status === TransactionStatusEnum.UserOpSent) {
-    const updatedData = await prisma.transactions.update({
+    updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -138,22 +103,8 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         userOpHash: data.userOpHash,
       },
     });
-
-    const sanitizedTxData = cleanTxs([updatedData]);
-
-    webhookQueue.add(
-      "webhookQueue",
-      {
-        id: queueId,
-        data: sanitizedTxData[0],
-        status: TransactionStatusEnum.UserOpSent,
-      },
-      {
-        removeOnComplete: true,
-      },
-    );
   } else if (data.status === TransactionStatusEnum.Mined) {
-    const updatedData = await prisma.transactions.update({
+    updatedData = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -170,14 +121,16 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         nonce: data.nonce,
       },
     });
-    const sanitizedTxData = cleanTxs([updatedData]);
+  }
 
+  if (updatedData) {
+    sanitizedTxData = cleanTxs([updatedData]);
     webhookQueue.add(
       "webhookQueue",
       {
         id: queueId,
         data: sanitizedTxData[0],
-        status: TransactionStatusEnum.UserOpSent,
+        status: data.status,
       },
       {
         removeOnComplete: true,
