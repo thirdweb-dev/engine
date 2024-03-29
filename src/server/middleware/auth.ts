@@ -36,6 +36,9 @@ const authWithApiServer = async (jwt: string, domain: string) => {
   let user: User<Json> | null = null;
   try {
     user = await authenticateJWT({
+      clientOptions: {
+        secretKey: env.THIRDWEB_API_SECRET_KEY,
+      },
       wallet: {
         type: "evm",
         getAddress: async () => "0x016757dDf2Ab6a998a4729A80a091308d9059E17",

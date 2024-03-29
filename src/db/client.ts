@@ -25,7 +25,7 @@ export const knex = pg({
       rejectUnauthorized: false,
     },
   },
-  acquireConnectionTimeout: 10000,
+  acquireConnectionTimeout: 30000,
 } as Knex.Config);
 
 export const isDatabaseHealthy = async (): Promise<boolean> => {

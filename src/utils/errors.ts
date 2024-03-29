@@ -28,29 +28,30 @@ export const parseTxError = async (
     return "Unexpected error.";
   }
 
-  const chain = await getChainByChainIdAsync(Number(tx.chainId));
+  // EOA transactions
+  if (tx.toAddress && tx.fromAddress && tx.data) {
+    const chain = await getChainByChainIdAsync(Number(tx.chainId));
 
-  if ((err as EthersError)?.code === ethers.errors.INSUFFICIENT_FUNDS) {
-    return `Insufficient ${chain.nativeCurrency?.symbol} on ${
-      chain.name
-    } in backend wallet ${tx.fromAddress!}.`;
-  }
+    if ((err as EthersError)?.code === ethers.errors.INSUFFICIENT_FUNDS) {
+      return `Insufficient ${chain.nativeCurrency?.symbol} on ${chain.name} in backend wallet ${tx.fromAddress}.`;
+    }
 
-  if ((err as EthersError)?.code === ethers.errors.UNPREDICTABLE_GAS_LIMIT) {
-    try {
-      const transaction = prepareTransaction({
-        to: tx.toAddress!,
-        value: BigInt(tx.value!),
-        data: tx.data! as `0x${string}`,
-        chain: {
-          id: Number(tx.chainId!),
-          rpc: chain.rpc[0],
-        },
-        client,
-      });
-      await simulateTransaction({ transaction, from: tx.fromAddress! });
-    } catch (simErr: any) {
-      return simErr?.message ?? simErr.toString();
+    if ((err as EthersError)?.code === ethers.errors.UNPREDICTABLE_GAS_LIMIT) {
+      try {
+        const transaction = prepareTransaction({
+          to: tx.toAddress,
+          value: BigInt(tx.value || "0"),
+          data: tx.data as `0x${string}`,
+          chain: {
+            id: Number(tx.chainId),
+            rpc: chain.rpc[0],
+          },
+          client,
+        });
+        await simulateTransaction({ transaction, from: tx.fromAddress });
+      } catch (simErr: any) {
+        return simErr?.message ?? simErr.toString();
+      }
     }
   }
 

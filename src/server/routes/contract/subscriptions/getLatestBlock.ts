@@ -21,7 +21,7 @@ responseSchema.example = {
   },
 };
 
-export async function getContractSubscriptions(fastify: FastifyInstance) {
+export async function getLatestBlock(fastify: FastifyInstance) {
   fastify.route<{
     Querystring: Static<typeof chainRequestQuerystringSchema>;
     Reply: Static<typeof responseSchema>;
