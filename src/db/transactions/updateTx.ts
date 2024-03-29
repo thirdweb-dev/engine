@@ -122,16 +122,10 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
 
   if (updatedData) {
     sanitizedTxData = cleanTxs([updatedData]);
-    webhookQueue.add(
-      "webhookQueue",
-      {
-        id: queueId,
-        data: sanitizedTxData[0],
-        status: data.status,
-      },
-      {
-        removeOnComplete: true,
-      },
-    );
+    webhookQueue.add(queueId, {
+      id: queueId,
+      data: sanitizedTxData[0],
+      status: data.status,
+    });
   }
 };
