@@ -1,13 +1,10 @@
 import { Transactions } from "@prisma/client";
-import { Static } from "@sinclair/typebox";
 import { BigNumber, ethers } from "ethers";
 import { PrismaTransaction } from "../../schema/prisma";
-import {
-  TransactionStatus,
-  transactionResponseSchema,
-} from "../../server/schemas/transaction";
-import { getPrismaWithPostgresTx, webhookQueue } from "../client";
-import { cleanTxs } from "./cleanTxs";
+import { WebhooksEventTypes } from "../../schema/webhooks";
+import { TransactionStatus } from "../../server/schemas/transaction";
+import { insertWebhookQueue } from "../../worker/queues/queues";
+import { getPrismaWithPostgresTx } from "../client";
 
 interface UpdateTxParams {
   pgtx?: PrismaTransaction;
@@ -52,10 +49,10 @@ type UpdateTxData =
 
 export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
-  let updatedData: Transactions | null = null;
-  let sanitizedTxData: Static<typeof transactionResponseSchema>[] = [];
+
+  let updatedTx: Transactions | null = null;
   if (data.status === TransactionStatus.Cancelled) {
-    updatedData = await prisma.transactions.update({
+    updatedTx = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -64,7 +61,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
       },
     });
   } else if (data.status === TransactionStatus.Errored) {
-    updatedData = await prisma.transactions.update({
+    updatedTx = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -73,7 +70,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
       },
     });
   } else if (data.status === TransactionStatus.Sent) {
-    updatedData = await prisma.transactions.update({
+    updatedTx = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -91,7 +88,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
       },
     });
   } else if (data.status === TransactionStatus.UserOpSent) {
-    updatedData = await prisma.transactions.update({
+    updatedTx = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -101,7 +98,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
       },
     });
   } else if (data.status === TransactionStatus.Mined) {
-    updatedData = await prisma.transactions.update({
+    updatedTx = await prisma.transactions.update({
       where: {
         id: queueId,
       },
@@ -120,12 +117,11 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
     });
   }
 
-  if (updatedData) {
-    sanitizedTxData = cleanTxs([updatedData]);
-    webhookQueue.add(queueId, {
-      id: queueId,
-      data: sanitizedTxData[0],
+  if (updatedTx) {
+    insertWebhookQueue({
+      type: WebhooksEventTypes.ALL_TRANSACTIONS,
       status: data.status,
+      tx: updatedTx,
     });
   }
 };

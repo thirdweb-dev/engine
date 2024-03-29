@@ -1,18 +1,5 @@
-import { Static } from "@sinclair/typebox";
+import { Webhooks } from "@prisma/client";
 import crypto from "crypto";
-import {
-  SanitizedWebHooksSchema,
-  WalletBalanceWebhookSchema,
-  WebhooksEventTypes,
-} from "../schema/webhooks";
-import {
-  TransactionStatus,
-  transactionResponseSchema,
-} from "../server/schemas/transaction";
-import { getWebhook } from "./cache/getWebhook";
-import { logger } from "./logger";
-
-let balanceNotificationLastSentAt = -1;
 
 export const generateSignature = (
   body: Record<string, any>,
@@ -25,7 +12,7 @@ export const generateSignature = (
 };
 
 export const createWebhookRequestHeaders = async (
-  webhookConfig: SanitizedWebHooksSchema,
+  webhook: Webhooks,
   body: Record<string, any>,
 ): Promise<HeadersInit> => {
   const headers: {
@@ -39,11 +26,11 @@ export const createWebhookRequestHeaders = async (
     "Content-Type": "application/json",
   };
 
-  if (webhookConfig.secret) {
+  if (webhook.secret) {
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    const signature = generateSignature(body, timestamp, webhookConfig.secret);
+    const signature = generateSignature(body, timestamp, webhook.secret);
 
-    headers["Authorization"] = `Bearer ${webhookConfig.secret}`;
+    headers["Authorization"] = `Bearer ${webhook.secret}`;
     headers["x-engine-signature"] = signature;
     headers["x-engine-timestamp"] = timestamp;
   }
@@ -52,98 +39,75 @@ export const createWebhookRequestHeaders = async (
 };
 
 export const sendWebhookRequest = async (
-  webhookConfig: SanitizedWebHooksSchema,
+  webhook: Webhooks,
   body: Record<string, any | null>,
-): Promise<boolean> => {
-  try {
-    const headers = await createWebhookRequestHeaders(webhookConfig, body);
-    const response = await fetch(webhookConfig?.url, {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(body),
-    });
+) => {
+  const headers = await createWebhookRequestHeaders(webhook, body);
+  const resp = await fetch(webhook.url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
 
-    if (!response.ok) {
-      logger({
-        service: "server",
-        level: "error",
-        message: `[sendWebhook] Webhook request error: ${response.status} ${response.statusText}`,
-      });
-
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    logger({
-      service: "server",
-      level: "error",
-      message: `[sendWebhook] Webhook request error: ${error}`,
-      error,
-    });
-    return false;
+  // Ignore body response.
+  await resp.body?.cancel();
+  if (!resp.ok) {
+    throw `Unexpected status: ${resp.status}: ${await resp.text()}`;
   }
 };
-
-export interface WebhookData {
-  id: string;
-  data?: Static<typeof transactionResponseSchema>;
-  status: TransactionStatus;
-  url?: string;
-}
 
 // TODO: Add retry logic upto
-export const sendBalanceWebhook = async (
-  data: WalletBalanceWebhookSchema,
-): Promise<void> => {
-  try {
-    const elaspsedTime = Date.now() - balanceNotificationLastSentAt;
-    if (elaspsedTime < 30000) {
-      logger({
-        service: "server",
-        level: "warn",
-        message: `[sendBalanceWebhook] Low wallet balance notification sent within last 30 Seconds. Skipping.`,
-      });
-      return;
-    }
+// export const sendBalanceWebhook = async (
+//   data: WalletBalanceWebhookSchema,
+// ): Promise<void> => {
+//   try {
+//     const elaspsedTime = Date.now() - balanceNotificationLastSentAt;
+//     if (elaspsedTime < 30000) {
+//       logger({
+//         service: "server",
+//         level: "warn",
+//         message: `[sendBalanceWebhook] Low wallet balance notification sent within last 30 Seconds. Skipping.`,
+//       });
+//       return;
+//     }
 
-    const webhooks = await getWebhook(
-      WebhooksEventTypes.BACKEND_WALLET_BALANCE,
-    );
+//     const webhooks = await getWebhook(
+//       WebhooksEventTypes.BACKEND_WALLET_BALANCE,
+//     );
 
-    if (webhooks.length === 0) {
-      logger({
-        service: "server",
-        level: "debug",
-        message: "No webhook set, skipping webhook send",
-      });
+//     if (webhooks.length === 0) {
+//       logger({
+//         service: "server",
+//         level: "debug",
+//         message: "No webhook set, skipping webhook send",
+//       });
 
-      return;
-    }
+//       return;
+//     }
 
-    webhooks.map(async (config) => {
-      if (!config || !config.active) {
-        logger({
-          service: "server",
-          level: "debug",
-          message: "No webhook set or active, skipping webhook send",
-        });
+//     webhooks.map(async (config) => {
+//       if (!config || !config.active) {
+//         logger({
+//           service: "server",
+//           level: "debug",
+//           message: "No webhook set or active, skipping webhook send",
+//         });
 
-        return;
-      }
+//         return;
+//       }
 
-      const success = await sendWebhookRequest(config, data);
+//       const success = await sendWebhookRequest(config, data);
 
-      if (success) {
-        balanceNotificationLastSentAt = Date.now();
-      }
-    });
-  } catch (error) {
-    logger({
-      service: "server",
-      level: "error",
-      message: `Failed to send balance webhook`,
-      error,
-    });
-  }
-};
+//       if (success) {
+//         balanceNotificationLastSentAt = Date.now();
+//       }
+//     });
+//   } catch (error) {
+//     logger({
+//       service: "server",
+//       level: "error",
+//       message: `Failed to send balance webhook`,
+//       error,
+//     });
+//   }
+// };

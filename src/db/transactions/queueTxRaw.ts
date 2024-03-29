@@ -1,47 +1,33 @@
-import type { Prisma } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
+import type { Transactions } from "@prisma/client";
+import { randomUUID } from "crypto";
 import { PrismaTransaction } from "../../schema/prisma";
 import { simulateTx } from "../../server/utils/simulateTx";
-import {
-  getIdempotencyCacheKey,
-  getQueueIdCacheKey,
-} from "../../utils/redisKeys";
 import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
-import { ingestRequestQueue } from "../client";
+import { IngestQueueData, ingestQueue } from "../../worker/queues/queues";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
-type QueueTxRawParams = Omit<
-  Prisma.TransactionsCreateInput,
-  "fromAddress" | "signerAddress"
-> &
-  (
-    | {
-        fromAddress: string;
-        signerAddress?: never;
-      }
-    | {
-        fromAddress?: never;
-        signerAddress: string;
-      }
-  ) & {
-    pgtx?: PrismaTransaction;
-    simulateTx?: boolean;
-    idempotencyKey?: string;
-  };
+type QueueTxRawParams = {
+  tx: Transactions;
+  pgtx?: PrismaTransaction;
+  simulateTx?: boolean;
+  idempotencyKey?: string;
+};
 
 export const queueTxRaw = async ({
+  tx,
   pgtx,
   simulateTx: shouldSimulate,
   idempotencyKey,
-  ...tx
 }: QueueTxRawParams) => {
-  const queueId = uuidv4();
+  const queueId = randomUUID();
+
+  if (!tx.fromAddress || !tx.signerAddress) {
+    throw "tx is missing fromAddress or signerAddress.";
+  }
 
   const walletDetails = await getWalletDetails({
-    pgtx,
-    address: (tx.fromAddress || tx.signerAddress) as string,
+    address: tx.fromAddress || tx.signerAddress,
   });
-
   if (!walletDetails) {
     throw new Error(
       `No backend wallet found with address ${
@@ -69,20 +55,16 @@ export const queueTxRaw = async ({
     },
   ]);
 
-  const ingestQueueData = { ...tx, id: queueId, idempotencyKey };
-  ingestRequestQueue.add(queueId, ingestQueueData, {
-    jobId: queueId,
-    removeOnComplete: true,
+  const job: IngestQueueData = {
+    tx: {
+      ...tx,
+      id: queueId,
+      idempotencyKey: idempotencyKey ?? queueId,
+    },
+  };
+  await ingestQueue.add(queueId, job, {
+    jobId: job.tx.idempotencyKey,
   });
 
-  // TODO: To bring ths back in the next iteration
-  const redisClient = await ingestRequestQueue.client;
-  const idempotencyCacheKey = getIdempotencyCacheKey(idempotencyKey || queueId);
-  const queueIdCacheKey = getQueueIdCacheKey(queueId);
-  console.log("::Debug Log:: queueIdCacheKey:", queueIdCacheKey);
-  console.log("::Debug Log:: idempotencyCacheKey:", idempotencyCacheKey);
-
-  await redisClient.hmset(queueIdCacheKey, ingestQueueData);
-  await redisClient.hmset(idempotencyCacheKey, ingestQueueData);
   return { id: queueId };
 };

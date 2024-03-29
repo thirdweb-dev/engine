@@ -28,9 +28,19 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const webhooksData = await getAllWebhooks();
+      const allWebhooks = await getAllWebhooks();
+      const result = allWebhooks.map((webhook) => ({
+        url: webhook.url,
+        name: webhook.name,
+        secret: webhook.secret,
+        eventType: webhook.eventType,
+        active: !webhook.revokedAt,
+        createdAt: webhook.createdAt.toISOString(),
+        id: webhook.id.toString(),
+      }));
+
       res.status(200).send({
-        result: webhooksData,
+        result,
       });
     },
   });

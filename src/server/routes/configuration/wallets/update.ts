@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { WalletType } from "../../../../schema/wallet";
-import { getConfig } from "../../../../utils/cache/getConfig";
+import { clearConfigCache, getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
@@ -126,7 +126,8 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
           break;
       }
 
-      const config = await getConfig(false);
+      await clearConfigCache();
+      const config = await getConfig();
       res.status(200).send({
         result: config.walletConfiguration,
       });

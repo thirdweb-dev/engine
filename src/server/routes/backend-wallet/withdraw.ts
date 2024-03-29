@@ -49,12 +49,14 @@ export async function withdraw(fastify: FastifyInstance) {
       const chainId = await getChainIdFromChain(chain);
 
       const { id: queueId } = await queueTxRaw({
-        chainId: chainId.toString(),
-        extension: "withdraw",
-        functionName: "transfer",
-        fromAddress: walletAddress,
-        toAddress,
-        data: "0x",
+        tx: {
+          chainId: chainId.toString(),
+          extension: "withdraw",
+          functionName: "transfer",
+          fromAddress: walletAddress,
+          toAddress,
+          data: "0x",
+        },
         idempotencyKey,
       });
 

@@ -5,7 +5,7 @@ import { markWebhookAsRevoked } from "../../../db/webhooks/revokeWebhook";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
-  id: Type.String(),
+  id: Type.Number(),
 });
 
 const ReplySchema = Type.Object({
@@ -34,9 +34,9 @@ export async function revokeWebhook(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const { id } = req.body;
-      await markWebhookAsRevoked({
-        id,
-      });
+
+      await markWebhookAsRevoked({ id });
+
       res.status(200).send({
         result: {
           success: true,

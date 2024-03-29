@@ -1,5 +1,5 @@
 import { knex } from "../../db/client";
-import { getConfig } from "../../utils/cache/getConfig";
+import { clearConfigCache, getConfig } from "../../utils/cache/getConfig";
 import { clearCacheCron } from "../../utils/cron/clearCacheCron";
 import { logger } from "../../utils/logger";
 import { chainIndexerListener } from "./chainIndexerListener";
@@ -22,8 +22,8 @@ export const newConfigurationListener = async (): Promise<void> => {
   connection.on(
     "notification",
     async (msg: { channel: string; payload: string }) => {
-      // Update Configs Data
-      await getConfig(false);
+      await clearConfigCache();
+      await getConfig();
     },
   );
 
@@ -79,7 +79,8 @@ export const updatedConfigurationListener = async (): Promise<void> => {
         level: "info",
         message: `Updated configuration data`,
       });
-      await getConfig(false);
+      await clearConfigCache();
+      await getConfig();
       await queuedTxListener();
       await minedTxListener();
       await retryTxListener();

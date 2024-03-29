@@ -1,7 +1,12 @@
 import { Configuration } from "@prisma/client";
-import { getRedisClient } from "../../db/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { WalletType } from "../../schema/wallet";
+import {
+  cacheKeyConfiguration,
+  getCache,
+  invalidateCache,
+  setCache,
+} from "../redis/cache";
 
 const cacheKey = "engineConfig:";
 interface Config
@@ -36,23 +41,19 @@ interface Config
       };
 }
 
-export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
-  const redisClient = await getRedisClient();
-  const config = JSON.parse((await redisClient.get(cacheKey)) as string);
-
-  if (config && retrieveFromCache) {
-    if (config.authDomain && config.authWalletEncryptedJson) {
-      return config;
-    }
+export const getConfig = async (): Promise<Config> => {
+  const key = cacheKeyConfiguration();
+  const cached = await getCache<Config>(key);
+  if (cached) {
+    return cached;
   }
 
-  const configData = await getConfiguration();
-
-  redisClient.set(cacheKey, JSON.stringify(configData));
-  return configData;
+  const config = await getConfiguration();
+  await setCache(key, config);
+  return config;
 };
 
 export const clearConfigCache = async (): Promise<void> => {
-  const redisClient = await getRedisClient();
-  redisClient.del(cacheKey);
+  const key = cacheKeyConfiguration();
+  await invalidateCache(key);
 };

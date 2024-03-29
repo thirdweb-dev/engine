@@ -1,9 +1,9 @@
-import { initSyncConfigFromPostgres } from "./scripts/sync-config-from-postgres";
 import { initServer } from "./server";
 import { initWorker } from "./worker";
 
 const main = async () => {
-  await initSyncConfigFromPostgres();
+  // TODO: Revisit if/when we migrate data to Redis.
+  // await initSyncConfigFromPostgres();
   await initServer();
   await initWorker();
 };

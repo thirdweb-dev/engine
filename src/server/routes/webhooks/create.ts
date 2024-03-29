@@ -39,32 +39,7 @@ BodySchema.examples = [
   {
     url: "https://example.com/allTxUpdate",
     name: "All Transaction Events",
-    eventType: WebhooksEventTypes.ALL_TX,
-  },
-  {
-    url: "https://example.com/queuedTx",
-    name: "QueuedTx",
-    eventType: WebhooksEventTypes.QUEUED_TX,
-  },
-  {
-    url: "https://example.com/sentTx",
-    name: "Sent Transaction Event",
-    eventType: WebhooksEventTypes.SENT_TX,
-  },
-  {
-    url: "https://example.com/minedTx",
-    name: "Mined Transaction Event",
-    eventType: WebhooksEventTypes.MINED_TX,
-  },
-  {
-    url: "https://example.com/erroredTx",
-    name: "Errored Transaction Event",
-    eventType: WebhooksEventTypes.ERRORED_TX,
-  },
-  {
-    url: "https://example.com/cancelledTx",
-    name: "Cancelled Transaction Event",
-    eventType: WebhooksEventTypes.CANCELLED_TX,
+    eventType: WebhooksEventTypes.ALL_TRANSACTIONS,
   },
   {
     url: "https://example.com/walletBalance",

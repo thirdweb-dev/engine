@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Transactions } from ".prisma/client";
 import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import {
@@ -15,7 +14,7 @@ import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
-import { WalletBalanceWebhookSchema } from "../../schema/webhooks";
+import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
@@ -28,7 +27,7 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData, sendBalanceWebhook } from "../../utils/webhook";
+import { insertWebhookQueue } from "../queues/queues";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawValue } from "../utils/withdraw";
 
@@ -40,7 +39,6 @@ type RpcResponseData = {
 
 export const processTx = async () => {
   try {
-    const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
@@ -442,15 +440,14 @@ const alertOnBackendWalletLowBalance = async (wallet: UserWallet) => {
         config.minWalletBalance,
       );
 
-      const walletBalanceData: WalletBalanceWebhookSchema = {
+      await insertWebhookQueue({
+        type: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
         walletAddress: address,
         minimumBalance: minBalanceDisplay,
         currentBalance: balance.displayValue,
         chainId: chain.chainId,
         message: `Backend wallet ${address} has below ${minBalanceDisplay} ${chain.nativeCurrency.symbol}.`,
-      };
-
-      await sendBalanceWebhook(walletBalanceData);
+      });
     }
   } catch (e) {}
 };

@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
-import { getConfig } from "../../../../utils/cache/getConfig";
+import { clearConfigCache, getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 import { ReplySchema } from "./get";
@@ -53,8 +53,8 @@ export async function setUrlsToCorsConfiguration(fastify: FastifyInstance) {
         accessControlAllowOrigin: dedupe.join(","),
       });
 
-      // Fetch and return the updated configuration
-      const config = await getConfig(false);
+      await clearConfigCache();
+      const config = await getConfig();
       res.status(200).send({
         result: config.accessControlAllowOrigin.split(","),
       });

@@ -7,8 +7,6 @@ import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
 import { retryTxListener } from "./listeners/retryTxListener";
-import { startIngestQueueWorker } from "./tasks/ingestQueueWorker";
-import { processWebhook } from "./tasks/processWebhook";
 
 export const initWorker = async () => {
   // Listen for queued transactions to process
@@ -26,9 +24,6 @@ export const initWorker = async () => {
   // Listen for new & updated configuration data
   await newConfigurationListener();
   await updatedConfigurationListener();
-
-  await startIngestQueueWorker();
-  await processWebhook();
 
   await chainIndexerListener();
 };

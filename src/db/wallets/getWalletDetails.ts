@@ -1,33 +1,33 @@
-import { PrismaTransaction } from "../../schema/prisma";
-import { getPrismaWithPostgresTx, getRedisClient } from "../client";
+import { WalletDetails } from "@prisma/client";
+import {
+  cacheKeyWalletDetails,
+  getCache,
+  setCache,
+} from "../../utils/redis/cache";
+import { getPrismaWithPostgresTx } from "../client";
 
 interface GetWalletDetailsParams {
-  pgtx?: PrismaTransaction;
   address: string;
 }
 
 export const getWalletDetails = async ({
-  pgtx,
   address,
-}: GetWalletDetailsParams) => {
-  const redisClient = await getRedisClient();
-  const walletDetails = await redisClient.hgetall(
-    "wallet:" + address.toLowerCase(),
-  );
+}: GetWalletDetailsParams): Promise<WalletDetails | null> => {
+  const key = cacheKeyWalletDetails(address);
+  const cached = await getCache<WalletDetails>(key);
+  if (cached) {
+    return cached;
+  }
 
-  if (Object.keys(walletDetails).length === 0) {
-    const prisma = getPrismaWithPostgresTx(pgtx);
+  const prisma = getPrismaWithPostgresTx();
+  const walletDetails = await prisma.walletDetails.findUnique({
+    where: {
+      address: address.toLowerCase(),
+    },
+  });
 
-    const walletDetails = await prisma.walletDetails.findUnique({
-      where: {
-        address: address.toLowerCase(),
-      },
-    });
-
-    if (walletDetails) {
-      await redisClient.hset("wallet:" + address.toLowerCase(), walletDetails);
-    }
-    return walletDetails;
+  if (walletDetails) {
+    setCache(key, walletDetails);
   }
   return walletDetails;
 };

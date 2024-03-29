@@ -26,7 +26,7 @@ export async function getCorsConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const config = await getConfig(false);
+      const config = await getConfig();
 
       // Omit required domains.
       const omitted = config.accessControlAllowOrigin

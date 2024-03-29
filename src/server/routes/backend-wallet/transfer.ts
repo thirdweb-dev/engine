@@ -96,18 +96,20 @@ export async function transfer(fastify: FastifyInstance) {
         };
 
         ({ id: queueId } = await queueTxRaw({
-          chainId: chainId.toString(),
-          functionName: "transfer",
-          functionArgs: JSON.stringify([
-            params.toAddress,
-            params.value,
-            params.currencyAddress,
-          ]),
-          extension: "none",
-          fromAddress: params.fromAddress,
-          toAddress: params.toAddress,
-          value: params.value,
-          data: "0x",
+          tx: {
+            chainId: chainId.toString(),
+            functionName: "transfer",
+            functionArgs: JSON.stringify([
+              params.toAddress,
+              params.value,
+              params.currencyAddress,
+            ]),
+            extension: "none",
+            fromAddress: params.fromAddress,
+            toAddress: params.toAddress,
+            value: params.value,
+            data: "0x",
+          },
           simulateTx,
           idempotencyKey,
         }));

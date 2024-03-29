@@ -1,39 +1,33 @@
 import { createHash } from "crypto";
-import { getRedisClient } from "../db/client";
-import { getConfig } from "../utils/cache/getConfig";
 import { env } from "../utils/env";
-import { logger } from "../utils/logger";
 
-const engineConfigCacheKey = "engineConfig";
-const engineWebhookCacheKey = "engineWebhooks";
+// const engineConfigCacheKey = "engineConfig";
 
-export const initSyncConfigFromPostgres = async () => {
-  logger({
-    level: "info",
-    message: "Syncing config from Postgres to Redis",
-    service: "cache",
-  });
-  const redisClient = await getRedisClient();
+// export const initSyncConfigFromPostgres = async () => {
+//   logger({
+//     level: "info",
+//     message: "Syncing config from Postgres to Redis",
+//     service: "cache",
+//   });
+//   // Postgres DB Data
+//   const config = await getConfig();
+//   let engineConfigCacheData = await redis.get(engineConfigCacheKey);
 
-  // Postgres DB Data
-  const config = await getConfig();
-  let engineConfigCacheData = await redisClient.get(engineConfigCacheKey);
+//   if (!engineConfigCacheData) {
+//     await redis.set(engineConfigCacheKey, JSON.stringify(config));
+//     engineConfigCacheData = JSON.stringify(config);
+//     return;
+//   }
 
-  if (!engineConfigCacheData) {
-    await redisClient.set(engineConfigCacheKey, JSON.stringify(config));
-    engineConfigCacheData = JSON.stringify(config);
-    return;
-  }
+//   const isConfigDataChanged = compareData(
+//     config,
+//     JSON.parse(engineConfigCacheData),
+//   );
 
-  const isConfigDataChanged = compareData(
-    config,
-    JSON.parse(engineConfigCacheData),
-  );
-
-  if (isConfigDataChanged) {
-    await redisClient.set(engineConfigCacheKey, JSON.stringify(config));
-  }
-};
+//   if (isConfigDataChanged) {
+//     await redis.set(engineConfigCacheKey, JSON.stringify(config));
+//   }
+// };
 
 // Function to generate a hash of your config data
 const hashData = (data: string, salt: string): string => {
