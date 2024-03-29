@@ -1,5 +1,4 @@
-# Beta Branch Build Workflow for Docker Image supporting multiple architectures
-name: Build on Beta Branch
+name: Build on beta branch
 
 on:
   workflow_dispatch:
