@@ -12,10 +12,15 @@ export const cleanTxs = (
       queueId: tx.id,
       id: undefined,
       processedAt: undefined,
-      queuedAt: tx.queuedAt.toISOString(),
-      sentAt: tx.sentAt?.toISOString() || null,
-      minedAt: tx.minedAt?.toISOString() || null,
-      cancelledAt: tx.cancelledAt?.toISOString() || null,
+      queuedAt:
+        tx.queuedAt instanceof Date ? tx.queuedAt.toISOString() : tx.queuedAt,
+      sentAt: tx.sentAt instanceof Date ? tx.sentAt?.toISOString() : tx.sentAt,
+      minedAt:
+        tx.minedAt instanceof Date ? tx.minedAt?.toISOString() : tx.minedAt,
+      cancelledAt:
+        tx.cancelledAt instanceof Date
+          ? tx.cancelledAt?.toISOString()
+          : tx.cancelledAt,
       status: !!tx.errorMessage
         ? "errored"
         : !!tx.minedAt

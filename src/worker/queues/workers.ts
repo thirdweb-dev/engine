@@ -1,4 +1,5 @@
 import { Job, Worker } from "bullmq";
+import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
 export const logWorkerEvents = (worker: Worker) => {
@@ -21,7 +22,7 @@ export const logWorkerEvents = (worker: Worker) => {
       level: "error",
       message: `[${worker.name}]  Job ${job?.id ?? "?"} has failed with ${
         err.message
-      }`,
+      } ${env.NODE_ENV === "development" ? err.stack : ""}`,
       service: "worker",
     });
   });

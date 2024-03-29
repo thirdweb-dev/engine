@@ -20,13 +20,14 @@ export const queueTxRaw = async ({
   idempotencyKey,
 }: QueueTxRawParams) => {
   const queueId = randomUUID();
+  const walletAddress = tx.fromAddress || tx.signerAddress;
 
-  if (!tx.fromAddress || !tx.signerAddress) {
-    throw "tx is missing fromAddress or signerAddress.";
+  if (!walletAddress) {
+    throw new Error("tx is missing fromAddress or signerAddress.");
   }
 
   const walletDetails = await getWalletDetails({
-    address: tx.fromAddress || tx.signerAddress,
+    address: walletAddress.toLowerCase(),
   });
   if (!walletDetails) {
     throw new Error(
