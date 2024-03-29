@@ -1,5 +1,5 @@
 import type { Prisma, Transactions } from "@prisma/client";
-import { uuid } from "uuidv4";
+import { v4 as uuid } from "uuid";
 import { PrismaTransaction } from "../../schema/prisma";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { simulateTx } from "../../server/utils/simulateTx";
