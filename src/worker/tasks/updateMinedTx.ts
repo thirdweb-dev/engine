@@ -74,14 +74,14 @@ export const updateMinedTx = async () => {
                       pgtx,
                       queueId: tx.id,
                       data: {
-                        status: TransactionStatusEnum.Errored,
+                        status: TransactionStatus.Errored,
                         errorMessage: "Transaction timed out.",
                       },
                     });
 
                     sendWebhookForQueueIds.push({
                       queueId: tx.id,
-                      status: TransactionStatusEnum.Errored,
+                      status: TransactionStatus.Errored,
                     });
 
                     reportUsageForQueueIds.push({
