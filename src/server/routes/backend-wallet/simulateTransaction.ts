@@ -8,7 +8,7 @@ import {
 } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-import { SimulateTxParams, simulateTx } from "../../utils/simulateTx";
+import { simulate } from "../../utils/simulateTx";
 
 // INPUT
 const ParamsSchema = Type.Object({
@@ -85,7 +85,6 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       const chainId = await getChainIdFromChain(chain);
 
       // Get decoded tx simulate args
-      let simulateArgs: SimulateTxParams;
       if (functionName && args) {
         const contract = await getContract({
           chainId,
@@ -93,14 +92,12 @@ export async function simulateTransaction(fastify: FastifyInstance) {
           walletAddress,
           accountAddress,
         });
-        const tx = contract.prepare(functionName, args, {
-          value: value ?? "0",
-        });
-        simulateArgs = { tx };
+        const tx = contract.prepare(functionName, args, { value });
+        await simulate({ tx });
       }
       // Get raw tx simulate args
       else {
-        simulateArgs = {
+        await simulate({
           txRaw: {
             chainId: chainId.toString(),
             fromAddress: walletAddress,
@@ -108,11 +105,8 @@ export async function simulateTransaction(fastify: FastifyInstance) {
             data,
             value,
           },
-        };
+        });
       }
-
-      // Simulate raw tx
-      await simulateTx(simulateArgs);
 
       // Return success
       reply.status(StatusCodes.OK).send({

@@ -6,7 +6,7 @@ import type { ContractExtension } from "../../schema/extension";
 import { queueTxRaw } from "./queueTxRaw";
 
 interface QueueTxParams {
-  tx: Transaction<any> | DeployTransaction;
+  tx: Transaction | DeployTransaction;
   chainId: number;
   extension: ContractExtension;
   // TODO: These shouldn't be in here

@@ -1,27 +1,22 @@
 import type { Transactions } from "@prisma/client";
 import { randomUUID } from "crypto";
-import { PrismaTransaction } from "../../schema/prisma";
-import { simulateTx } from "../../server/utils/simulateTx";
+import { simulate } from "../../server/utils/simulateTx";
 import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
-import { IngestQueueData, ingestQueue } from "../../worker/queues/queues";
+import { ingestQueue } from "../../worker/queues/queues";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
 type QueueTxRawParams = {
-  tx: Transactions;
-  pgtx?: PrismaTransaction;
+  tx: Partial<Transactions>;
   simulateTx?: boolean;
   idempotencyKey?: string;
 };
 
 export const queueTxRaw = async ({
   tx,
-  pgtx,
-  simulateTx: shouldSimulate,
+  simulateTx,
   idempotencyKey,
 }: QueueTxRawParams) => {
-  const queueId = randomUUID();
   const walletAddress = tx.fromAddress || tx.signerAddress;
-
   if (!walletAddress) {
     throw new Error("tx is missing fromAddress or signerAddress.");
   }
@@ -37,8 +32,11 @@ export const queueTxRaw = async ({
     );
   }
 
-  if (shouldSimulate) {
-    await simulateTx({ txRaw: tx });
+  tx.id = randomUUID();
+  tx.idempotencyKey = idempotencyKey ?? tx.id;
+
+  if (simulateTx) {
+    await simulate({ txRaw: tx });
   }
 
   reportUsage([
@@ -56,16 +54,53 @@ export const queueTxRaw = async ({
     },
   ]);
 
-  const job: IngestQueueData = {
-    tx: {
-      ...tx,
-      id: queueId,
-      idempotencyKey: idempotencyKey ?? queueId,
-    },
-  };
-  await ingestQueue.add(queueId, job, {
-    jobId: job.tx.idempotencyKey,
+  const job = { tx };
+  await ingestQueue.add(tx.id, job, {
+    jobId: tx.idempotencyKey,
   });
-
-  return { id: queueId };
+  return { id: tx.id };
 };
+
+const hydratePartialTx = (partial: Partial<Transactions>): Transactions => ({
+  id: "",
+  groupId: null,
+  data: null,
+  value: null,
+  gasLimit: null,
+  nonce: null,
+  maxFeePerGas: null,
+  maxPriorityFeePerGas: null,
+  fromAddress: null,
+  toAddress: null,
+  gasPrice: null,
+  transactionType: null,
+  transactionHash: null,
+  onChainTxStatus: null,
+  signerAddress: null,
+  accountAddress: null,
+  target: null,
+  sender: null,
+  initCode: null,
+  callData: null,
+  callGasLimit: null,
+  verificationGasLimit: null,
+  preVerificationGas: null,
+  paymasterAndData: null,
+  userOpHash: null,
+  functionName: null,
+  functionArgs: null,
+  extension: null,
+  deployedContractAddress: null,
+  deployedContractType: null,
+  processedAt: null,
+  sentAt: null,
+  minedAt: null,
+  cancelledAt: null,
+  retryGasValues: null,
+  retryMaxPriorityFeePerGas: null,
+  retryMaxFeePerGas: null,
+  errorMessage: null,
+  sentAtBlockNumber: null,
+  blockNumber: null,
+  ...partial,
+});

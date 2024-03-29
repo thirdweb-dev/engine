@@ -83,7 +83,6 @@ export async function transfer(fastify: FastifyInstance) {
         if (!walletAddress) throw new Error("No wallet address");
 
         const balance = await sdk.getBalance(walletAddress);
-
         if (balance.value.lt(normalizedValue)) {
           throw new Error("Insufficient balance");
         }

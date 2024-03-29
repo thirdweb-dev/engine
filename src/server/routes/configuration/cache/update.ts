@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
-import { getConfig } from "../../../../utils/cache/getConfig";
+import { clearConfigCache, getConfig } from "../../../../utils/cache/getConfig";
 import { clearCacheCron } from "../../../../utils/cron/clearCacheCron";
 import { isValidCron } from "../../../../utils/cron/isValidCron";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
@@ -46,7 +46,9 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
       }
 
       await updateConfiguration({ ...req.body });
-      const config = await getConfig(false);
+
+      await clearConfigCache();
+      const config = await getConfig();
       // restarting cache cron with updated cron schedule
       await clearCacheCron("server");
       res.status(200).send({

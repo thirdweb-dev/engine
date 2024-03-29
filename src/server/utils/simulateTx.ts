@@ -7,15 +7,15 @@ import { ethers } from "ethers";
 import { getSdk } from "../../utils/cache/getSdk";
 import { createCustomError } from "../middleware/error";
 
-type SimulateTxRawParams = {
+interface SimulateRawParams {
   chainId: string;
   toAddress?: string | null;
   fromAddress?: string | null;
   data?: string | null;
   value?: any;
-};
+}
 
-const simulateTxRaw = async (args: SimulateTxRawParams) => {
+const simulateRaw = async (args: SimulateRawParams) => {
   const sdk = await getSdk({ chainId: parseInt(args.chainId) });
   const simulateResult = await sdk.getProvider().call({
     to: `${args.toAddress}`,
@@ -33,17 +33,17 @@ const simulateTxRaw = async (args: SimulateTxRawParams) => {
   }
 };
 
-export type SimulateTxParams = {
+interface SimulateParams {
   tx?: Transaction<any> | DeployTransaction;
-  txRaw?: SimulateTxRawParams;
-};
+  txRaw?: SimulateRawParams;
+}
 
-export const simulateTx = async ({ tx, txRaw }: SimulateTxParams) => {
+export const simulate = async ({ tx, txRaw }: SimulateParams) => {
   try {
     if (tx) {
       await tx.simulate();
     } else if (txRaw) {
-      await simulateTxRaw(txRaw);
+      await simulateRaw(txRaw);
     } else {
       throw new Error("No transaction to simulate");
     }
