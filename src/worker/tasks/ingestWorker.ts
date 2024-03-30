@@ -10,29 +10,14 @@ const handleIngest: Processor<any, void, string> = async (
 ) => {
   const { tx } = job.data;
 
-  if (tx.idempotencyKey) {
-    // Upsert the tx (insert if not exists).
-    await prisma.transactions.upsert({
-      where: {
-        idempotencyKey: tx.idempotencyKey,
-      },
-      create: tx,
-      update: {},
-    });
-  } else {
-    // Insert the tx.
-    await prisma.transactions.create({
-      data: {
-        ...tx,
-        fromAddress: tx.fromAddress?.toLowerCase(),
-        toAddress: tx.toAddress?.toLowerCase(),
-        target: tx.target?.toLowerCase(),
-        signerAddress: tx.signerAddress?.toLowerCase(),
-        accountAddress: tx.accountAddress?.toLowerCase(),
-        queuedAt: new Date(),
-      },
-    });
-  }
+  // Insert if the idempotency key does not exist. Else no-op.
+  await prisma.transactions.upsert({
+    where: {
+      idempotencyKey: tx.idempotencyKey,
+    },
+    create: tx,
+    update: {},
+  });
 };
 
 const ingestWorker = new Worker("ingest", handleIngest, {

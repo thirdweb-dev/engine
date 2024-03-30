@@ -1,41 +1,48 @@
+import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import {
   DeployTransaction,
   Transaction,
   TransactionError,
 } from "@thirdweb-dev/sdk";
-import { ethers } from "ethers";
-import { getSdk } from "../../utils/cache/getSdk";
+import { prepareTransaction, simulateTransaction } from "thirdweb";
+import { InputTransaction } from "../../schema/transaction";
+import { thirdwebClient } from "../../utils/sdk";
 import { createCustomError } from "../middleware/error";
 
-interface SimulateRawParams {
-  chainId: string;
-  toAddress?: string | null;
-  fromAddress?: string | null;
-  data?: string | null;
-  value?: any;
-}
+/**
+ * Simulates a transaction.
+ * @returns Error message if the simulation fails. Else null.
+ */
+export const simulateRaw = async (tx: InputTransaction) => {
+  if (!tx.toAddress || !tx.fromAddress) {
+    return;
+  }
 
-const simulateRaw = async (args: SimulateRawParams) => {
-  const sdk = await getSdk({ chainId: parseInt(args.chainId) });
-  const simulateResult = await sdk.getProvider().call({
-    to: `${args.toAddress}`,
-    from: `${args.fromAddress}`,
-    data: `${args.data}`,
-    value: `${args.value}`,
-  });
-  if (simulateResult.length > 2) {
-    // '0x' is the success result value
-    const decoded = ethers.utils.defaultAbiCoder.decode(
-      ["string"],
-      ethers.utils.hexDataSlice(simulateResult, 4),
-    );
-    throw new Error(decoded[0]);
+  try {
+    const chain = await getChainByChainIdAsync(Number(tx.chainId));
+    const transaction = prepareTransaction({
+      to: tx.toAddress,
+      value: tx.value ? BigInt(tx.value) : undefined,
+      data: tx.data as `0x${string}`,
+      chain: {
+        id: Number(tx.chainId),
+        rpc: chain.rpc[0],
+      },
+      client: thirdwebClient,
+    });
+
+    await simulateTransaction({
+      transaction,
+      from: tx.fromAddress,
+    });
+  } catch (e: any) {
+    throw e?.message || e.toString();
   }
 };
 
 interface SimulateParams {
   tx?: Transaction<any> | DeployTransaction;
-  txRaw?: SimulateRawParams;
+  txRaw?: InputTransaction;
 }
 
 export const simulate = async ({ tx, txRaw }: SimulateParams) => {

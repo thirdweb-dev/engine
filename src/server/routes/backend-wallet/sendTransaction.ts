@@ -32,7 +32,7 @@ requestBodySchema.examples = [
   {
     toAddress: "0x7a0ce8524bea337f0bee853b68fabde145dac0a0",
     data: "0x449a52f800000000000000000000000043cae0d7fe86c713530e679ce02574743b2ee9fc0000000000000000000000000000000000000000000000000de0b6b3a7640000",
-    value: "0x00",
+    value: "0",
   },
 ];
 
@@ -69,16 +69,16 @@ export async function sendTransaction(fastify: FastifyInstance) {
       } = request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
-      const { id: queueId } = await queueTxRaw({
+      const queueId = await queueTxRaw({
         tx: {
           chainId: chainId.toString(),
           fromAddress,
-          toAddress: toAddress || null,
+          toAddress,
           data,
           value,
+          idempotencyKey,
         },
         simulateTx,
-        idempotencyKey,
       });
 
       reply.status(StatusCodes.OK).send({

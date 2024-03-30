@@ -7,7 +7,7 @@ import { updateTx } from "../../../db/transactions/updateTx";
 import { getSdk } from "../../../utils/cache/getSdk";
 import { msSince } from "../../../utils/date";
 import { parseTxError } from "../../../utils/errors";
-import { UsageEventTxActionEnum, reportUsage } from "../../../utils/usage";
+import { UsageEventType, reportUsage } from "../../../utils/usage";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { TransactionStatus } from "../../schemas/transaction";
@@ -150,8 +150,8 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
       });
       reportUsage([
         {
-          action: UsageEventTxActionEnum.SendTx,
-          input: {
+          action: UsageEventType.SendTx,
+          data: {
             fromAddress: tx.fromAddress,
             toAddress: tx.toAddress,
             value: tx.value,

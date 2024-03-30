@@ -1,7 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { InputTransaction } from "../../../schema/transaction";
 import { getContract } from "../../../utils/cache/getContract";
+import { createCustomError } from "../../middleware/error";
 import {
   simulateResponseSchema,
   standardResponseSchema,
@@ -75,7 +77,6 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      // Destruct core params
       const { chain } = request.params;
       const { toAddress, value, functionName, args, data } = request.body;
       const {
@@ -84,8 +85,8 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       } = request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
-      // Get decoded tx simulate args
       if (functionName && args) {
+        // Simulate a function call to a contract.
         const contract = await getContract({
           chainId,
           contractAddress: toAddress,
@@ -94,18 +95,22 @@ export async function simulateTransaction(fastify: FastifyInstance) {
         });
         const tx = contract.prepare(functionName, args, { value });
         await simulate({ tx });
-      }
-      // Get raw tx simulate args
-      else {
-        await simulate({
-          txRaw: {
-            chainId: chainId.toString(),
-            fromAddress: walletAddress,
-            toAddress,
-            data,
-            value,
-          },
-        });
+      } else if (data) {
+        // Simulate from raw calldata.
+        const txRaw: InputTransaction = {
+          chainId: chainId.toString(),
+          fromAddress: walletAddress,
+          toAddress,
+          data,
+          value: value || "0",
+        };
+        await simulate({ txRaw });
+      } else {
+        throw createCustomError(
+          "Missing params for simulation",
+          StatusCodes.BAD_REQUEST,
+          "INVALID_SIMULATION_PARAMS",
+        );
       }
 
       // Return success

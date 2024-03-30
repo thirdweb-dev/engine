@@ -1,6 +1,7 @@
 import { Transactions, Webhooks } from "@prisma/client";
 import { JobsOptions, Queue } from "bullmq";
 import { getAllWebhooks } from "../../db/webhooks/getAllWebhooks";
+import { QueuedTransaction } from "../../schema/transaction";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { redis } from "../../utils/redis/redis";
@@ -22,7 +23,7 @@ export type QueueType = "ingest" | "webhook";
  * Processes write transaction requests.
  */
 export interface IngestQueueData {
-  tx: Transactions;
+  tx: QueuedTransaction;
 }
 export const ingestQueue = new Queue<IngestQueueData>("ingest", {
   connection: redis,

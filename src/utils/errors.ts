@@ -1,8 +1,7 @@
 import { Transactions } from ".prisma/client";
 import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import { ethers } from "ethers";
-import { prepareTransaction, simulateTransaction } from "thirdweb";
-import { thirdwebClient } from "./sdk";
+import { simulateRaw } from "../server/utils/simulateTx";
 
 interface EthersError {
   reason: string;
@@ -21,29 +20,22 @@ export const parseTxError = async (
   }
 
   // EOA transactions
-  if (tx.toAddress && tx.fromAddress && tx.data) {
+  if ((err as EthersError)?.code === ethers.errors.INSUFFICIENT_FUNDS) {
     const chain = await getChainByChainIdAsync(Number(tx.chainId));
+    return `Insufficient ${chain.nativeCurrency?.symbol} on ${chain.name} in backend wallet ${tx.fromAddress}.`;
+  }
 
-    if ((err as EthersError)?.code === ethers.errors.INSUFFICIENT_FUNDS) {
-      return `Insufficient ${chain.nativeCurrency?.symbol} on ${chain.name} in backend wallet ${tx.fromAddress}.`;
-    }
-
-    if ((err as EthersError)?.code === ethers.errors.UNPREDICTABLE_GAS_LIMIT) {
-      try {
-        const transaction = prepareTransaction({
-          to: tx.toAddress,
-          value: BigInt(tx.value || "0"),
-          data: tx.data as `0x${string}`,
-          chain: {
-            id: Number(tx.chainId),
-            rpc: chain.rpc[0],
-          },
-          client: thirdwebClient,
-        });
-        await simulateTransaction({ transaction, from: tx.fromAddress });
-      } catch (simErr: any) {
-        return simErr?.message ?? simErr.toString();
-      }
+  if ((err as EthersError)?.code === ethers.errors.UNPREDICTABLE_GAS_LIMIT) {
+    try {
+      await simulateRaw({
+        chainId: tx.chainId,
+        fromAddress: tx.fromAddress ?? undefined,
+        toAddress: tx.toAddress ?? undefined,
+        data: tx.data ?? "0x",
+        value: tx.value ?? undefined,
+      });
+    } catch (simulationErr: any) {
+      return simulationErr.toString();
     }
   }
 

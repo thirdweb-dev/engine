@@ -77,7 +77,7 @@ export async function transfer(fastify: FastifyInstance) {
         currencyAddress,
       );
 
-      let queueId: string | null = null;
+      let queueId: string;
       if (isNativeToken(currencyAddress)) {
         const walletAddress = await sdk.getSigner()?.getAddress();
         if (!walletAddress) throw new Error("No wallet address");
@@ -94,7 +94,7 @@ export async function transfer(fastify: FastifyInstance) {
           value: normalizedValue.toHexString(),
         };
 
-        ({ id: queueId } = await queueTxRaw({
+        queueId = await queueTxRaw({
           tx: {
             chainId: chainId.toString(),
             functionName: "transfer",
@@ -108,10 +108,10 @@ export async function transfer(fastify: FastifyInstance) {
             toAddress: params.toAddress,
             value: params.value,
             data: "0x",
+            idempotencyKey,
           },
           simulateTx,
-          idempotencyKey,
-        }));
+        });
       } else {
         const contract = await getContract({
           chainId,

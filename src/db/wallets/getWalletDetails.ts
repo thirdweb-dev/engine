@@ -11,8 +11,10 @@ interface GetWalletDetailsParams {
 }
 
 export const getWalletDetails = async ({
-  address,
+  address: _address,
 }: GetWalletDetailsParams): Promise<WalletDetails | null> => {
+  const address = _address.toLowerCase();
+
   const key = cacheKeyWalletDetails(address);
   const cached = await getCache<WalletDetails>(key);
   if (cached) {

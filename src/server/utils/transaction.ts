@@ -117,7 +117,7 @@ export const cancelTransactionAndUpdate = async ({
           to: txData.fromAddress!,
           from: txData.fromAddress!,
           data: "0x",
-          value: "0x00",
+          value: "0",
           nonce: txData.nonce!,
           ...multiplyGasOverrides(gasOverrides, 2),
         });

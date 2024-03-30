@@ -1,106 +1,56 @@
-import type { Transactions } from "@prisma/client";
 import { randomUUID } from "crypto";
+import { InputTransaction, QueuedTransaction } from "../../schema/transaction";
 import { simulate } from "../../server/utils/simulateTx";
-import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
+import { UsageEventType, reportUsage } from "../../utils/usage";
 import { ingestQueue } from "../../worker/queues/queues";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
 type QueueTxRawParams = {
-  tx: Partial<Transactions>;
+  tx: InputTransaction;
   simulateTx?: boolean;
-  idempotencyKey?: string;
 };
 
+/**
+ * Enqueues a transaction.
+ * @returns string The queueId generated for this transaction.
+ */
 export const queueTxRaw = async ({
   tx,
   simulateTx,
-  idempotencyKey,
-}: QueueTxRawParams) => {
+}: QueueTxRawParams): Promise<string> => {
+  // Assert a valid backend wallet address.
   const walletAddress = tx.fromAddress || tx.signerAddress;
   if (!walletAddress) {
-    throw new Error("tx is missing fromAddress or signerAddress.");
+    throw new Error("Transaction missing sender address.");
   }
-
   const walletDetails = await getWalletDetails({
-    address: walletAddress.toLowerCase(),
+    address: walletAddress,
   });
   if (!walletDetails) {
-    throw new Error(
-      `No backend wallet found with address ${
-        tx.fromAddress || tx.signerAddress
-      }`,
-    );
+    throw new Error(`Backend wallet not found: ${walletAddress}`);
   }
 
-  tx.id = randomUUID();
-  tx.idempotencyKey = idempotencyKey ?? tx.id;
+  // Build a QueuedTransaction.
+  const queueId = randomUUID();
+  const queuedTx: QueuedTransaction = {
+    ...tx,
+    id: queueId,
+    idempotencyKey: tx.idempotencyKey ?? queueId,
+    value: tx.value ?? "0",
+    queuedAt: new Date(),
+  };
 
+  // (Optional) Simulate the transaction.
   if (simulateTx) {
-    await simulate({ txRaw: tx });
+    await simulate({ txRaw: queuedTx });
   }
 
-  reportUsage([
-    {
-      input: {
-        chainId: tx.chainId || undefined,
-        fromAddress: tx.fromAddress || undefined,
-        toAddress: tx.toAddress || undefined,
-        value: tx.value || undefined,
-        transactionHash: tx.transactionHash || undefined,
-        functionName: tx.functionName || undefined,
-        extension: tx.extension || undefined,
-      },
-      action: UsageEventTxActionEnum.QueueTx,
-    },
-  ]);
-
-  const job = { tx };
-  await ingestQueue.add(tx.id, job, {
-    jobId: tx.idempotencyKey,
+  // Enqueue the job.
+  const job = { tx: queuedTx };
+  await ingestQueue.add(queuedTx.idempotencyKey, job, {
+    jobId: queuedTx.idempotencyKey,
   });
-  return { id: tx.id };
-};
 
-const hydratePartialTx = (partial: Partial<Transactions>): Transactions => ({
-  id: "",
-  groupId: null,
-  data: null,
-  value: null,
-  gasLimit: null,
-  nonce: null,
-  maxFeePerGas: null,
-  maxPriorityFeePerGas: null,
-  fromAddress: null,
-  toAddress: null,
-  gasPrice: null,
-  transactionType: null,
-  transactionHash: null,
-  onChainTxStatus: null,
-  signerAddress: null,
-  accountAddress: null,
-  target: null,
-  sender: null,
-  initCode: null,
-  callData: null,
-  callGasLimit: null,
-  verificationGasLimit: null,
-  preVerificationGas: null,
-  paymasterAndData: null,
-  userOpHash: null,
-  functionName: null,
-  functionArgs: null,
-  extension: null,
-  deployedContractAddress: null,
-  deployedContractType: null,
-  processedAt: null,
-  sentAt: null,
-  minedAt: null,
-  cancelledAt: null,
-  retryGasValues: null,
-  retryMaxPriorityFeePerGas: null,
-  retryMaxFeePerGas: null,
-  errorMessage: null,
-  sentAtBlockNumber: null,
-  blockNumber: null,
-  ...partial,
-});
+  reportUsage([{ action: UsageEventType.QueueTx, data: queuedTx }]);
+  return queueId;
+};

@@ -24,7 +24,7 @@ import { parseTxError } from "../../utils/errors";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
-  UsageEventTxActionEnum,
+  UsageEventType,
   reportUsage,
 } from "../../utils/usage";
 import { insertWebhookQueue } from "../queues/queues";
@@ -232,17 +232,17 @@ export const processTx = async () => {
                 },
               });
               reportUsageForQueueIds.push({
-                input: {
+                data: {
                   fromAddress: tx.fromAddress || undefined,
                   toAddress: tx.toAddress || undefined,
                   value: tx.value || undefined,
-                  chainId: tx.chainId || undefined,
+                  chainId: tx.chainId,
                   functionName: tx.functionName || undefined,
                   extension: tx.extension || undefined,
                   provider: provider.connection.url || undefined,
                   msSinceQueue: msSince(tx.queuedAt),
                 },
-                action: UsageEventTxActionEnum.NotSendTx,
+                action: UsageEventType.NotSendTx,
               });
 
               logger({
@@ -280,7 +280,7 @@ export const processTx = async () => {
                   },
                 });
                 reportUsageForQueueIds.push({
-                  input: {
+                  data: {
                     fromAddress: txRequest.from,
                     toAddress: txRequest.to,
                     value: (txRequest.value ?? 0).toString(),
@@ -291,7 +291,7 @@ export const processTx = async () => {
                     provider: provider.connection.url || undefined,
                     msSinceQueue: msSince(tx.queuedAt),
                   },
-                  action: UsageEventTxActionEnum.SendTx,
+                  action: UsageEventType.SendTx,
                 });
               } else {
                 // Transaction failed.
@@ -304,7 +304,7 @@ export const processTx = async () => {
                   },
                 });
                 reportUsageForQueueIds.push({
-                  input: {
+                  data: {
                     fromAddress: txRequest.from,
                     toAddress: txRequest.to,
                     value: (txRequest.value ?? 0).toString(),
@@ -314,7 +314,7 @@ export const processTx = async () => {
                     provider: provider.connection.url || undefined,
                     msSinceQueue: msSince(tx.queuedAt),
                   },
-                  action: UsageEventTxActionEnum.NotSendTx,
+                  action: UsageEventType.NotSendTx,
                 });
               }
             }),
@@ -364,18 +364,18 @@ export const processTx = async () => {
               },
             });
             reportUsageForQueueIds.push({
-              input: {
+              data: {
                 fromAddress: tx.accountAddress || undefined,
                 toAddress: tx.toAddress || undefined,
                 value: tx.value || undefined,
-                chainId: tx.chainId || undefined,
+                chainId: tx.chainId,
                 userOpHash,
                 functionName: tx.functionName || undefined,
                 extension: tx.extension || undefined,
-                provider: signer.httpRpcClient.bundlerUrl || undefined,
+                provider: signer.httpRpcClient.bundlerUrl,
                 msSinceQueue: msSince(tx.queuedAt),
               },
-              action: UsageEventTxActionEnum.SendTx,
+              action: UsageEventType.SendTx,
             });
           } catch (err: any) {
             logger({
@@ -395,16 +395,16 @@ export const processTx = async () => {
               },
             });
             reportUsageForQueueIds.push({
-              input: {
+              data: {
                 fromAddress: tx.accountAddress || undefined,
                 toAddress: tx.toAddress || undefined,
                 value: tx.value || undefined,
-                chainId: tx.chainId || undefined,
+                chainId: tx.chainId,
                 functionName: tx.functionName || undefined,
                 extension: tx.extension || undefined,
                 msSinceQueue: msSince(tx.queuedAt),
               },
-              action: UsageEventTxActionEnum.NotSendTx,
+              action: UsageEventType.NotSendTx,
             });
           }
         });
