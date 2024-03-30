@@ -38,17 +38,17 @@ const BodySchema = Type.Object({
 BodySchema.examples = [
   {
     url: "https://example.com/allTxUpdate",
-    name: "All Transaction Events",
+    name: "All transaction events",
     eventType: WebhooksEventTypes.ALL_TRANSACTIONS,
   },
   {
     url: "https://example.com/walletBalance",
-    name: "Backend Wallet Balance Event",
+    name: "Backend wallet balance event",
     eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
   },
   {
     url: "https://example.com/auth",
-    name: "Auth Check",
+    name: "Authentication",
     eventType: WebhooksEventTypes.AUTH,
   },
 ];

@@ -297,25 +297,16 @@ export const onRequest = async ({
   if (authWebhooks.length > 0) {
     const authResponses = await Promise.all(
       authWebhooks.map(async (webhook) => {
-        try {
-          await sendWebhookRequest(webhook, {
-            url: req.url,
-            method: req.method,
-            headers: req.headers,
-            params: req.params,
-            query: req.query,
-            cookies: req.cookies,
-            body: req.body,
-          });
-          return true;
-        } catch (e) {
-          logger({
-            service: "worker",
-            level: "error",
-            message: `[Auth] Failed to call auth webhook: ${e}`,
-          });
-          return false;
-        }
+        const { ok } = await sendWebhookRequest(webhook, {
+          url: req.url,
+          method: req.method,
+          headers: req.headers,
+          params: req.params,
+          query: req.query,
+          cookies: req.cookies,
+          body: req.body,
+        });
+        return ok;
       }),
     );
 

@@ -35,7 +35,7 @@ export const parseTxError = async (
         value: tx.value ?? undefined,
       });
     } catch (simulationErr: any) {
-      return simulationErr.toString();
+      return simulationErr;
     }
   }
 

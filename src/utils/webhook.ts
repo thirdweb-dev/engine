@@ -38,76 +38,42 @@ export const createWebhookRequestHeaders = async (
   return headers;
 };
 
+export interface WebhookResponse {
+  ok: boolean;
+  status: number;
+  body: string;
+}
+
+/**
+ * Calls a webhok URL with the appropriate headers and body.
+ * @param webhook
+ * @param body
+ * @returns ok boolean Whether the response was 2xx.
+ * @returns status number The response status code.
+ * @returns body string The response body.
+ */
 export const sendWebhookRequest = async (
   webhook: Webhooks,
-  body: Record<string, any | null>,
-) => {
-  const headers = await createWebhookRequestHeaders(webhook, body);
-  const resp = await fetch(webhook.url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(body),
-  });
+  body: Record<string, any>,
+): Promise<WebhookResponse> => {
+  try {
+    const headers = await createWebhookRequestHeaders(webhook, body);
+    const resp = await fetch(webhook.url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
+    });
 
-  // Ignore body response.
-  await resp.body?.cancel();
-  if (!resp.ok) {
-    throw `Unexpected status: ${resp.status}: ${await resp.text()}`;
+    return {
+      ok: resp.ok,
+      status: resp.status,
+      body: await resp.text(),
+    };
+  } catch (e: any) {
+    return {
+      ok: false,
+      status: 500,
+      body: e,
+    };
   }
 };
-
-// TODO: Add retry logic upto
-// export const sendBalanceWebhook = async (
-//   data: WalletBalanceWebhookSchema,
-// ): Promise<void> => {
-//   try {
-//     const elaspsedTime = Date.now() - balanceNotificationLastSentAt;
-//     if (elaspsedTime < 30000) {
-//       logger({
-//         service: "server",
-//         level: "warn",
-//         message: `[sendBalanceWebhook] Low wallet balance notification sent within last 30 Seconds. Skipping.`,
-//       });
-//       return;
-//     }
-
-//     const webhooks = await getWebhook(
-//       WebhooksEventTypes.BACKEND_WALLET_BALANCE,
-//     );
-
-//     if (webhooks.length === 0) {
-//       logger({
-//         service: "server",
-//         level: "debug",
-//         message: "No webhook set, skipping webhook send",
-//       });
-
-//       return;
-//     }
-
-//     webhooks.map(async (config) => {
-//       if (!config || !config.active) {
-//         logger({
-//           service: "server",
-//           level: "debug",
-//           message: "No webhook set or active, skipping webhook send",
-//         });
-
-//         return;
-//       }
-
-//       const success = await sendWebhookRequest(config, data);
-
-//       if (success) {
-//         balanceNotificationLastSentAt = Date.now();
-//       }
-//     });
-//   } catch (error) {
-//     logger({
-//       service: "server",
-//       level: "error",
-//       message: `Failed to send balance webhook`,
-//       error,
-//     });
-//   }
-// };

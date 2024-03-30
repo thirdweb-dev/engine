@@ -8,7 +8,6 @@ import {
   setCache,
 } from "../redis/cache";
 
-const cacheKey = "engineConfig:";
 interface Config
   extends Omit<
     Configuration,

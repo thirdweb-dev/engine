@@ -6,6 +6,7 @@ import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
 import { env } from "./env";
+import { logger } from "./logger";
 import { thirdwebClientId } from "./sdk";
 
 export interface ReportUsageParams {
@@ -52,7 +53,7 @@ const URLS_LIST_TO_NOT_REPORT_USAGE = new Set([
   "",
 ]);
 
-const usageRequestHeaders: HeadersInit = {
+const defaultHeaders: HeadersInit = {
   "Content-Type": "application/json",
   "x-sdk-version": process.env.ENGINE_VERSION ?? "",
   "x-product-name": "engine",
@@ -93,7 +94,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
 
     fetch(env.CLIENT_ANALYTICS_URL, {
       method: "POST",
-      headers: usageRequestHeaders,
+      headers: defaultHeaders,
       body: JSON.stringify(requestBody),
     }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
   });
@@ -129,11 +130,18 @@ export const reportUsage = (usageEvents: ReportUsageParams[]) => {
         msSinceQueue: event.data.msSinceQueue,
       };
 
-      await fetch(env.CLIENT_ANALYTICS_URL, {
+      fetch(env.CLIENT_ANALYTICS_URL, {
         method: "POST",
-        headers: usageRequestHeaders,
+        headers: defaultHeaders,
         body: JSON.stringify(requestBody),
       }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
-    } catch {}
+    } catch (error) {
+      logger({
+        service: "worker",
+        level: "error",
+        message: `Error:`,
+        error,
+      });
+    }
   });
 };

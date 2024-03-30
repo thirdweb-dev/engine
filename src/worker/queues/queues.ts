@@ -1,6 +1,6 @@
 import { Transactions, Webhooks } from "@prisma/client";
 import { JobsOptions, Queue } from "bullmq";
-import { getAllWebhooks } from "../../db/webhooks/getAllWebhooks";
+import { getAllWebhooks } from "../../db/webhooks/getAll";
 import { QueuedTransaction } from "../../schema/transaction";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
