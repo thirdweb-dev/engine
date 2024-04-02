@@ -23,6 +23,7 @@ export const getQueuedTxs = async ({ pgtx }: GetQueuedTxsParams = {}): Promise<
     "sentAt" IS NULL
     AND "minedAt" IS NULL
     AND "cancelledAt" IS NULL
+    AND "errorMessage" IS NULL
   ORDER BY
     "queuedAt"
   ASC
