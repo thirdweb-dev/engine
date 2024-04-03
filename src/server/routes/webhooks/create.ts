@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { TypeSystem } from "@sinclair/typebox/system";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { insertWebhook } from "../../../db/webhooks/createWebhook";
+import { insertWebhook } from "../../../db/webhooks/insert";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
 import { isLocalhost } from "../../../utils/url";
 import {
