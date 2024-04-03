@@ -76,7 +76,7 @@ export async function erc1155Get(fastify: FastifyInstance) {
       });
       const nftData = await getNFT({
         contract,
-        id: BigInt(tokenId),
+        tokenId: BigInt(tokenId),
       });
       const result = convertBigIntToString(nftData) as Static<
         typeof v5NFTSchema
