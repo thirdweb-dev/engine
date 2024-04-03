@@ -104,6 +104,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           id: queueId,
         },
         data: {
+          transactionHash: data.transactionHash,
           minedAt: data.minedAt,
           blockNumber: data.blockNumber,
           onChainTxStatus: data.onChainTxStatus,
@@ -112,6 +113,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           gasLimit: data.gasLimit,
           maxFeePerGas: data.maxFeePerGas,
           maxPriorityFeePerGas: data.maxPriorityFeePerGas,
+          nonce: data.nonce,
         },
       });
       break;
