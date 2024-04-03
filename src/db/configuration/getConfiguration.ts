@@ -179,6 +179,9 @@ export const getConfiguration = async (): Promise<Config> => {
         minedTxListenerCronSchedule: "*/5 * * * * *",
         maxTxsToUpdate: 50,
         retryTxListenerCronSchedule: "*/15 * * * * *",
+        indexerListenerCronSchedule: "*/5 * * * * *",
+        maxBlocksToIndex: 25,
+        cursorDelaySeconds: 2,
         minEllapsedBlocksBeforeRetry: 12,
         maxFeePerGasForRetries: ethers.utils
           .parseUnits("10000", "gwei")
@@ -204,6 +207,10 @@ export const getConfiguration = async (): Promise<Config> => {
   } else if (!config.accessControlAllowOrigin) {
     config = await updateConfiguration({
       accessControlAllowOrigin: mandatoryAllowedCorsUrls.join(","),
+    });
+  } else if (!config.indexerListenerCronSchedule) {
+    config = await updateConfiguration({
+      indexerListenerCronSchedule: "*/5 * * * * *",
     });
   }
 

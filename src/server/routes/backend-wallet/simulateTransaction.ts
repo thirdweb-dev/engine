@@ -6,7 +6,7 @@ import {
   simulateResponseSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../schemas/wallet";
+import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 import { SimulateTxParams, simulateTx } from "../../utils/simulateTx";
 
@@ -17,25 +17,25 @@ const ParamsSchema = Type.Object({
 
 const simulateRequestBodySchema = Type.Object({
   toAddress: Type.String({
-    description: "Address of the contract",
+    description: "The contract address",
   }),
   value: Type.Optional(
     Type.String({
       examples: ["0"],
-      description: "Native Currency Value",
+      description: "The amount of native currency",
     }),
   ),
   // Decoded transaction args
   functionName: Type.Optional(
     Type.String({
-      description: "Name of the function to call on Contract",
+      description: "The function to call on the contract",
     }),
   ),
   args: Type.Optional(
     Type.Array(
       Type.Union([
         Type.String({
-          description: "Arguments for the function. Comma Separated",
+          description: "The arguments to call for this function",
         }),
         Type.Tuple([Type.String(), Type.String()]),
         Type.Object({}),
@@ -47,7 +47,7 @@ const simulateRequestBodySchema = Type.Object({
   // Raw transaction args
   data: Type.Optional(
     Type.String({
-      description: "Transaction Data",
+      description: "Raw calldata",
     }),
   ),
 });
@@ -68,7 +68,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       operationId: "simulateTransaction",
       params: ParamsSchema,
       body: simulateRequestBodySchema,
-      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: simulateResponseSchema,
@@ -78,10 +78,10 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       // Destruct core params
       const { chain } = request.params;
       const { toAddress, value, functionName, args, data } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       // Get decoded tx simulate args

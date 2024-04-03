@@ -3,7 +3,6 @@ import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
 import path from "path";
 import { URL } from "url";
-import { deleteAllWalletNonces } from "../db/wallets/deleteAllWalletNonces";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
@@ -34,10 +33,6 @@ interface HttpsObject {
 }
 
 export const initServer = async () => {
-  // Reset any server state that is safe to reset.
-  // This allows the server to start in a predictable state.
-  await deleteAllWalletNonces({});
-
   // Enables the server to run on https://localhost:PORT, if ENABLE_HTTPS is provided.
   let httpsObject: HttpsObject | undefined = undefined;
   if (env.ENABLE_HTTPS) {
@@ -89,14 +84,18 @@ export const initServer = async () => {
     },
   );
 
+  const url = `${env.ENABLE_HTTPS ? "https://" : "http://"}localhost:${
+    env.PORT
+  }`;
+
   logger({
     service: "server",
     level: "info",
-    message: `Listening on ${
-      env.ENABLE_HTTPS ? "https://" : "http://"
-    }localhost:${
+    message: `Engine server is listening on port ${
       env.PORT
-    }. Manage your Engine from https://thirdweb.com/dashboard/engine.`,
+    }. Add to your dashboard: https://thirdweb.com/dashboard/engine?importUrl=${encodeURIComponent(
+      url,
+    )}.`,
   });
 
   writeOpenApiToFile(server);

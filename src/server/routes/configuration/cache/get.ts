@@ -18,7 +18,7 @@ export async function getCacheConfiguration(fastify: FastifyInstance) {
     url: "/configuration/cache",
     schema: {
       summary: "Get cache configuration",
-      description: "Get the engine configuration for cache",
+      description: "Get cache configuration",
       tags: ["Configuration"],
       operationId: "getCacheConfiguration",
       response: {

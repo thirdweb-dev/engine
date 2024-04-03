@@ -52,7 +52,7 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
     url: "/configuration/chains",
     schema: {
       summary: "Update chain overrides configuration",
-      description: "Update the engine configuration for chain overrides",
+      description: "Update chain overrides configuration",
       tags: ["Configuration"],
       operationId: "updateChainsConfiguration",
       body: BodySchema,

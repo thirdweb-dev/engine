@@ -1,8 +1,11 @@
-FROM node:18.15.0-alpine AS base
+FROM node:18.19-alpine AS base
 
 # Install tini & build dependencies
 RUN apk add --no-cache tini && \
     apk --no-cache --virtual build-dependencies add g++ make py3-pip openssl
+
+# Upgrade packages
+RUN apk update && apk upgrade
 
 # Set the working directory
 WORKDIR /app
@@ -59,11 +62,14 @@ RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip && \
     yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
     apk del build-dependencies
 
+# Upgrade packages
+RUN apk update && apk upgrade
+
 ##############################
 ##############################
 
 # Production stage
-FROM node:18.15.0-alpine AS prod
+FROM node:18.19-alpine AS prod
 
 # Setting ENV variables for image information
 ARG ENGINE_VERSION

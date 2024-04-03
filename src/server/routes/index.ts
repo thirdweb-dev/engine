@@ -115,6 +115,21 @@ import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { checkGroupStatus } from "./transaction/group";
 
+// Indexer
+import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
+import { getContractEventLogs } from "./contract/events/getContractEventLogs";
+import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
+import { pageEventLogs } from "./contract/events/paginateEventLogs";
+import { addContractSubscription } from "./contract/subscriptions/addContractSubscription";
+import { getContractIndexedBlockRange } from "./contract/subscriptions/getContractIndexedBlockRange";
+import { getContractSubscriptions } from "./contract/subscriptions/getContractSubscriptions";
+import { getLatestBlock } from "./contract/subscriptions/getLatestBlock";
+import { removeContractSubscription } from "./contract/subscriptions/removeContractSubscription";
+import { getContractTransactionReceipts } from "./contract/transactions/getTransactionReceipts";
+import { getContractTransactionReceiptsByTimestamp } from "./contract/transactions/getTransactionReceiptsByTimestamp";
+import { pageTransactionReceipts } from "./contract/transactions/paginateTransactionReceipts";
+import { syncRetryTransaction } from "./transaction/syncRetry";
+
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
   await fastify.register(createBackendWallet);
@@ -148,6 +163,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getCorsConfiguration);
   await fastify.register(addUrlToCorsConfiguration);
   await fastify.register(removeUrlToCorsConfiguration);
+  await fastify.register(setUrlsToCorsConfiguration);
   await fastify.register(getCacheConfiguration);
   await fastify.register(updateCacheConfiguration);
 
@@ -214,6 +230,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllDeployedContracts);
   await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
+  await fastify.register(syncRetryTransaction);
   await fastify.register(cancelTransaction);
   await fastify.register(sendSignedTransaction);
   await fastify.register(sendSignedUserOp);
@@ -233,4 +250,21 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(home);
   await fastify.register(healthCheck);
   await fastify.register(queueStatus);
+
+  // Contract Subscriptions
+  await fastify.register(addContractSubscription);
+  await fastify.register(getContractSubscriptions);
+  await fastify.register(getContractIndexedBlockRange);
+  await fastify.register(removeContractSubscription);
+  await fastify.register(getLatestBlock);
+
+  // Contract Transactions
+  await fastify.register(getContractTransactionReceipts);
+  await fastify.register(getContractTransactionReceiptsByTimestamp);
+  await fastify.register(pageTransactionReceipts);
+
+  // Contract Event Logs
+  await fastify.register(getContractEventLogs);
+  await fastify.register(getEventLogs);
+  await fastify.register(pageEventLogs);
 };

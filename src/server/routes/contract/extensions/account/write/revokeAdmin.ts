@@ -9,7 +9,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = Type.Object({
@@ -38,7 +38,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       description: "Revoke a smart account's admin permission.",
       tags: ["Account"],
       operationId: "revokeAdmin",
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       params: contractParamSchema,
       body: BodySchema,
       querystring: requestQuerystringSchema,
@@ -51,9 +51,10 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { walletAddress } = request.body;
-      const backendWalletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
+      const {
+        "x-backend-wallet-address": backendWalletAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const accountAddress = request.headers["x-account-address"] as string;
       const chainId = await getChainIdFromChain(chain);
 
@@ -72,6 +73,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
         chainId,
         simulateTx,
         extension: "account",
+        idempotencyKey,
       });
 
       reply.status(StatusCodes.OK).send({

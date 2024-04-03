@@ -332,3 +332,40 @@ export const walletDetailsSchema = Type.Object({
     Type.Null(),
   ]),
 });
+
+export const eventLogsSchema = Type.Array(
+  Type.Object({
+    chainId: Type.Number(),
+    contractAddress: Type.String(),
+    blockNumber: Type.Number(),
+    transactionHash: Type.String(),
+    topics: Type.Array(Type.String()),
+    data: Type.String(),
+    eventName: Type.Optional(Type.String()),
+    decodedLog: Type.Any(),
+    timestamp: Type.Number(),
+    transactionIndex: Type.Number(),
+    logIndex: Type.Number(),
+  }),
+);
+
+export const transactionReceiptsSchema = Type.Array(
+  Type.Object({
+    chainId: Type.Number(),
+    blockNumber: Type.Number(),
+    contractAddress: Type.String(),
+    transactionHash: Type.String(),
+    blockHash: Type.String(),
+    timestamp: Type.Number(),
+    data: Type.String(),
+    value: Type.String(),
+
+    to: Type.String(),
+    from: Type.String(),
+    transactionIndex: Type.Number(),
+
+    gasUsed: Type.String(),
+    effectiveGasPrice: Type.String(),
+    status: Type.Number(),
+  }),
+);

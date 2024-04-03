@@ -3,7 +3,7 @@ import { Static } from "@sinclair/typebox";
 import { ContractExtension } from "../../schema/extension";
 import { PrismaTransaction } from "../../schema/prisma";
 import {
-  TransactionStatusEnum,
+  TransactionStatus,
   transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
@@ -13,7 +13,7 @@ interface GetAllTxsParams {
   pgtx?: PrismaTransaction;
   page: number;
   limit: number;
-  filter?: TransactionStatusEnum;
+  filter?: TransactionStatus;
   extensions?: ContractExtension[];
 }
 
@@ -40,15 +40,15 @@ export const getAllTxs = async ({
   //   | "errorMessage"
   //   | undefined;
 
-  // if (filter === TransactionStatusEnum.Queued) {
+  // if (filter === TransactionStatus.Queued) {
   //   filterBy = "queuedAt";
-  // } else if (filter === TransactionStatusEnum.Submitted) {
+  // } else if (filter === TransactionStatus.Sent) {
   //   filterBy = "sentAt";
-  // } else if (filter === TransactionStatusEnum.Processed) {
+  // } else if (filter === TransactionStatus.Processed) {
   //   filterBy = "processedAt";
-  // } else if (filter === TransactionStatusEnum.Mined) {
+  // } else if (filter === TransactionStatus.Mined) {
   //   filterBy = "minedAt";
-  // } else if (filter === TransactionStatusEnum.Errored) {
+  // } else if (filter === TransactionStatus.Errored) {
   //   filterBy = "errorMessage";
   // }
 

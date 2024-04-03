@@ -16,7 +16,7 @@ const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
   start: Type.Optional(
     Type.Number({
-      description: "The start token id for paginated results. Defaults to 0.",
+      description: "The start token ID for paginated results. Defaults to 0.",
       examples: ["0"],
     }),
   ),

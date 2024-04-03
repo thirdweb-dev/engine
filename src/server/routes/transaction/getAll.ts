@@ -21,7 +21,7 @@ const requestQuerySchema = Type.Object({
     default: "10",
   }),
   // filter: Type.Optional(
-  //   Type.Union([Type.Enum(TransactionStatusEnum), Type.Literal("all")], {
+  //   Type.Union([Type.Enum(TransactionStatus), Type.Literal("all")], {
   //     description:
   //       "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
   //     examples: ["all", "submitted", "processed", "errored", "mined", "queued"],
@@ -58,7 +58,6 @@ responseBodySchema.example = {
         transactionHash:
           "0xf11ca950299c9e72b8d6cac8a03623c6e5a43af1d1b0d45b3fd804c129b573f8",
         queuedAt: "2023-09-29T18:17:36.929Z",
-        processedAt: "2023-09-29T18:17:37.011Z",
         sentAt: "2023-09-29T18:17:40.832Z",
         minedAt: "2023-09-29T18:17:44.000Z",
         cancelledAt: null,

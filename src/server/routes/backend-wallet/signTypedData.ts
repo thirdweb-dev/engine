@@ -4,7 +4,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getWallet } from "../../../utils/cache/getWallet";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../schemas/wallet";
+import { walletHeaderSchema } from "../../schemas/wallet";
 
 const BodySchema = Type.Object({
   domain: Type.Object({}, { additionalProperties: true }),
@@ -24,27 +24,28 @@ export async function signTypedData(fastify: FastifyInstance) {
     method: "POST",
     url: "/backend-wallet/sign-typed-data",
     schema: {
-      summary: "Sign a EIP-712 message",
-      description: "Send a EIP-712 message",
+      summary: "Sign an EIP-712 message",
+      description: 'Send an EIP-712 message ("typed data")',
       tags: ["Backend Wallet"],
       operationId: "signTypedData",
       body: BodySchema,
-      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },
-    handler: async (req, res) => {
-      const { domain, value, types } = req.body;
-      const walletAddress = req.headers["x-backend-wallet-address"] as string;
+    handler: async (request, reply) => {
+      const { domain, value, types } = request.body;
+      const { "x-backend-wallet-address": walletAddress } =
+        request.headers as Static<typeof walletHeaderSchema>;
 
       const wallet = await getWallet({ chainId: 1, walletAddress });
 
       const signer = (await wallet.getSigner()) as unknown as TypedDataSigner;
       const result = await signer._signTypedData(domain, types, value);
 
-      res.status(200).send({
+      reply.status(200).send({
         result: result,
       });
     },
