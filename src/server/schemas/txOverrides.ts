@@ -5,8 +5,14 @@ export const txOverrides = Type.Object({
     Type.Object({
       value: Type.Optional(
         Type.String({
-          examples: ["0"],
+          examples: ["10000000000"],
           description: "Amount of native currency to send",
+        }),
+      ),
+      gas: Type.Optional(
+        Type.String({
+          examples: ["530000"],
+          description: "Gas limit for the transaction",
         }),
       ),
     }),

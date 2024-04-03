@@ -85,7 +85,10 @@ export async function writeToContract(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-      const tx = await contract.prepare(functionName, args, txOverrides);
+      const tx = contract.prepare(functionName, args, {
+        value: txOverrides?.value,
+        gasLimit: txOverrides?.gas,
+      });
 
       const queueId = await queueTx({
         tx,
