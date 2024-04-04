@@ -17,6 +17,13 @@ export const setCache = async (
 
 export const invalidateCache = async (key: string) => await redis.del(key);
 
+const serialize = (val: any): string => {
+  return "";
+};
+const deserialize = (serialized: string): any => {
+  return null;
+};
+
 /**
  * Cache keys
  */

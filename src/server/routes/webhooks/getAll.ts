@@ -2,10 +2,11 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllWebhooks } from "../../../db/webhooks/getAll";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   WebhookResponseSchema,
-  standardResponseSchema,
-} from "../../schemas/sharedApiSchemas";
+  toWebhookResponse,
+} from "../../schemas/webhooks";
 
 const ReplySchema = Type.Object({
   result: Type.Array(WebhookResponseSchema),
@@ -29,18 +30,9 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const allWebhooks = await getAllWebhooks();
-      const result = allWebhooks.map((webhook) => ({
-        url: webhook.url,
-        name: webhook.name,
-        secret: webhook.secret,
-        eventType: webhook.eventType,
-        active: !webhook.revokedAt,
-        createdAt: webhook.createdAt.toISOString(),
-        id: webhook.id.toString(),
-      }));
 
       res.status(200).send({
-        result,
+        result: allWebhooks.map(toWebhookResponse),
       });
     },
   });

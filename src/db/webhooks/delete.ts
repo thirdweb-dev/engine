@@ -3,7 +3,7 @@ import { prisma } from "../client";
 
 export const deleteWebhook = async (id: number) => {
   const now = new Date();
-  const webhook = prisma.webhooks.update({
+  const webhook = await prisma.webhooks.update({
     where: {
       id,
     },

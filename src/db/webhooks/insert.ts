@@ -19,7 +19,7 @@ export const insertWebhook = async ({
   // hash the bytes to create the secret (this will not be stored by itself)
   const secret = createHash("sha512").update(bytes).digest("base64url");
 
-  const webhook = prisma.webhooks.create({
+  const webhook = await prisma.webhooks.create({
     data: {
       url,
       name,

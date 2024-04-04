@@ -5,10 +5,11 @@ import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/insert";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
 import { isLocalhost } from "../../../utils/url";
+import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   WebhookResponseSchema,
-  standardResponseSchema,
-} from "../../schemas/sharedApiSchemas";
+  toWebhookResponse,
+} from "../../schemas/webhooks";
 
 const uriFormat = TypeSystem.Format("uri", (input: string) => {
   // Assert valid URL.
@@ -76,11 +77,11 @@ export async function createWebhook(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const config = await insertWebhook({ ...req.body });
+      const { url, name, eventType } = req.body;
+      const webhook = await insertWebhook({ url, name, eventType });
+
       res.status(200).send({
-        result: {
-          ...config,
-        },
+        result: toWebhookResponse(webhook),
       });
     },
   });

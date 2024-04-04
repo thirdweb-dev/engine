@@ -369,12 +369,3 @@ export const transactionReceiptsSchema = Type.Array(
     status: Type.Number(),
   }),
 );
-export const WebhookResponseSchema = Type.Object({
-  url: Type.String(),
-  name: Type.Union([Type.String(), Type.Null()]),
-  secret: Type.Optional(Type.String()),
-  eventType: Type.String(),
-  active: Type.Boolean(),
-  createdAt: Type.String(),
-  id: Type.String(),
-});
