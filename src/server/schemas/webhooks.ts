@@ -13,17 +13,9 @@ export const WebhookResponseSchema = Type.Object({
 
 export const toWebhookResponse = (
   raw: Webhooks,
-): Static<typeof WebhookResponseSchema> => {
-  console.log("[DEBUG] typeof raw.createdAt", typeof raw.createdAt);
-  console.log(
-    "[DEBUG] raw.createdAt.toISOString()",
-    raw.createdAt.toISOString(),
-  );
-
-  return {
-    ...raw,
-    id: raw.id.toString(),
-    active: !raw.revokedAt,
-    createdAt: raw.createdAt.toISOString(),
-  };
-};
+): Static<typeof WebhookResponseSchema> => ({
+  ...raw,
+  id: raw.id.toString(),
+  active: !raw.revokedAt,
+  createdAt: raw.createdAt.toISOString(),
+});
