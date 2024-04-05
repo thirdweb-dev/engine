@@ -59,12 +59,11 @@ export async function getContractIndexedBlockRange(fastify: FastifyInstance) {
       });
 
       if (!result.fromBlock || !result.toBlock) {
-        const error = createCustomError(
+        throw createCustomError(
           `No logs found for chainId: ${chainId}, contractAddress: ${standardizedContractAddress}`,
           StatusCodes.NOT_FOUND,
           "LOG_NOT_FOUND",
         );
-        throw error;
       }
 
       reply.status(StatusCodes.OK).send({

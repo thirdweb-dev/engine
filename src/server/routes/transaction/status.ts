@@ -82,12 +82,11 @@ export async function checkTxStatus(fastify: FastifyInstance) {
       const returnData = await getTxById({ queueId });
 
       if (!returnData) {
-        const error = createCustomError(
+        throw createCustomError(
           `Transaction not found with queueId ${queueId}`,
           StatusCodes.NOT_FOUND,
           "TX_NOT_FOUND",
         );
-        throw error;
       }
 
       reply.status(StatusCodes.OK).send({

@@ -94,19 +94,17 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
       const { page, limit } = request.query;
 
       if (isNaN(parseInt(page, 10))) {
-        const customError = createCustomError(
+        throw createCustomError(
           "Page must be a number",
           StatusCodes.BAD_REQUEST,
           "BAD_REQUEST",
         );
-        throw customError;
       } else if (isNaN(parseInt(limit, 10))) {
-        const customError = createCustomError(
+        throw createCustomError(
           "Limit must be a number",
           StatusCodes.BAD_REQUEST,
           "BAD_REQUEST",
         );
-        throw customError;
       }
       const { transactions, totalCount } = await getAllTxs({
         page: parseInt(page, 10),
