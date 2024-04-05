@@ -1,5 +1,5 @@
 import { Webhooks } from "@prisma/client";
-import { getAllWebhooks } from "../../db/webhooks/getAll";
+import { getAllWebhooks } from "../../db/webhooks/getAllWebhooks";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 
 export const getWebhooksByType = async (

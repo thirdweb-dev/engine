@@ -3,7 +3,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getTxsByGroupId } from "../../../db/transactions/getTxsByGroupId";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import {
+  toTransactionResponse,
+  transactionResponseSchema,
+} from "../../schemas/transaction";
 
 const ParamsSchema = Type.Object({
   groupId: Type.String(),
@@ -36,7 +39,7 @@ export async function checkGroupStatus(fastify: FastifyInstance) {
       const txs = await getTxsByGroupId({ groupId });
 
       res.status(StatusCodes.OK).send({
-        result: txs,
+        result: txs.map(toTransactionResponse),
       });
     },
   });

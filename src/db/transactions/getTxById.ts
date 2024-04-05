@@ -1,8 +1,10 @@
 import { Static } from "@sinclair/typebox";
 import { PrismaTransaction } from "../../schema/prisma";
-import { transactionResponseSchema } from "../../server/schemas/transaction";
+import {
+  toTransactionResponse,
+  transactionResponseSchema,
+} from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
-import { cleanTxs } from "./cleanTxs";
 
 interface GetTxByIdParams {
   queueId: string;
@@ -24,11 +26,5 @@ export const getTxById = async ({
       id: queueId,
     },
   });
-
-  if (!tx) {
-    return null;
-  }
-
-  const [cleanedTx] = cleanTxs([tx]);
-  return cleanedTx;
+  return tx ? toTransactionResponse(tx) : null;
 };

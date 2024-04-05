@@ -1,14 +1,13 @@
 import { Job, Processor, Worker } from "bullmq";
+import superjson from "superjson";
 import { prisma } from "../../db/client";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
-import { IngestQueueData } from "../queues/queues";
+import { IngestJob } from "../queues/queues";
 import { logWorkerEvents } from "../queues/workers";
 
-const handleIngest: Processor<any, void, string> = async (
-  job: Job<IngestQueueData>,
-) => {
-  const { tx } = job.data;
+const handleIngest: Processor<any, void, string> = async (job: Job) => {
+  const { tx } = superjson.parse<IngestJob>(job.data);
 
   // Insert if the idempotency key does not exist. Else no-op.
   await prisma.transactions.upsert({

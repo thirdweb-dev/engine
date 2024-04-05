@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllWebhooks } from "../../../db/webhooks/getAll";
+import { getAllWebhooks } from "../../../db/webhooks/getAllWebhooks";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   WebhookResponseSchema,

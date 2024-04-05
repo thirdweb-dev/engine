@@ -3,7 +3,7 @@ import { BigNumber, ethers } from "ethers";
 import { PrismaTransaction } from "../../schema/prisma";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
-import { insertWebhookQueue } from "../../worker/queues/queues";
+import { WebhookQueue } from "../../worker/queues/queues";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface UpdateTxParams {
@@ -126,7 +126,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
   }
 
   if (updatedTx) {
-    insertWebhookQueue({
+    await WebhookQueue.add({
       type: WebhooksEventTypes.ALL_TRANSACTIONS,
       status: data.status,
       tx: updatedTx,

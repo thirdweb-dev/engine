@@ -4,7 +4,10 @@ import { StatusCodes } from "http-status-codes";
 import { getAllTxs } from "../../../db/transactions/getAllTxs";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import {
+  toTransactionResponse,
+  transactionResponseSchema,
+} from "../../schemas/transaction";
 
 // INPUT
 const requestQuerySchema = Type.Object({
@@ -105,7 +108,7 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
         );
         throw customError;
       }
-      const txsData = await getAllTxs({
+      const { transactions, totalCount } = await getAllTxs({
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
         // filter: filter && filter !== "all" ? filter : undefined,
@@ -114,8 +117,8 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: {
-          transactions: txsData.transactions,
-          totalCount: txsData.totalCount,
+          transactions: transactions.map(toTransactionResponse),
+          totalCount,
         },
       });
     },

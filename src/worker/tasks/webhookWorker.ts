@@ -1,20 +1,20 @@
 import { Job, Processor, Worker } from "bullmq";
-import { cleanTxs } from "../../db/transactions/cleanTxs";
+import superjson from "superjson";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { toTransactionResponse } from "../../server/schemas/transaction";
 import { redis } from "../../utils/redis/redis";
 import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
-import { WebhookQueueData } from "../queues/queues";
+import { WebhookJob } from "../queues/queues";
 import { logWorkerEvents } from "../queues/workers";
 
 const handleWebhook: Processor<any, void, string> = async (
-  job: Job<WebhookQueueData>,
+  job: Job<string>,
 ) => {
-  const { data, webhook } = job.data;
+  const { data, webhook } = superjson.parse<WebhookJob>(job.data);
 
   let resp: WebhookResponse | undefined;
   if (data.type === WebhooksEventTypes.ALL_TRANSACTIONS) {
-    const sanitized = cleanTxs([data.tx])[0];
-    resp = await sendWebhookRequest(webhook, sanitized);
+    resp = await sendWebhookRequest(webhook, toTransactionResponse(data.tx));
   } else if (data.type === WebhooksEventTypes.BACKEND_WALLET_BALANCE) {
     resp = await sendWebhookRequest(webhook, data);
   }

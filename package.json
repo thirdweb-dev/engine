@@ -68,6 +68,7 @@
     "pino": "^8.15.1",
     "pino-pretty": "^10.0.0",
     "prisma": "^5.2.0",
+    "superjson": "^2.2.1",
     "thirdweb": "^5.1.0",
     "uuid": "^9.0.1",
     "viem": "^1.14.0",

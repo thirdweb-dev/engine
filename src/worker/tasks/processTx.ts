@@ -27,7 +27,7 @@ import {
   UsageEventType,
   reportUsage,
 } from "../../utils/usage";
-import { insertWebhookQueue } from "../queues/queues";
+import { WebhookQueue } from "../queues/queues";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawValue } from "../utils/withdraw";
 
@@ -440,7 +440,7 @@ const alertOnBackendWalletLowBalance = async (wallet: UserWallet) => {
         config.minWalletBalance,
       );
 
-      await insertWebhookQueue({
+      await WebhookQueue.add({
         type: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
         walletAddress: address,
         minimumBalance: minBalanceDisplay,

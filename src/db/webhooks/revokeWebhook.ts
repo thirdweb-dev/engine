@@ -1,7 +1,7 @@
 import { cacheKeyAllWebhooks, invalidateCache } from "../../utils/redis/cache";
 import { prisma } from "../client";
 
-export const deleteWebhook = async (id: number) => {
+export const revokeWebhook = async (id: number) => {
   const now = new Date();
   const webhook = await prisma.webhooks.update({
     where: {

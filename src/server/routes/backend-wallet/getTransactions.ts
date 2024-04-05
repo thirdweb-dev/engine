@@ -3,7 +3,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllTxsByWallet } from "../../../db/transactions/getAllTxsByWallet";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import {
+  toTransactionResponse,
+  transactionResponseSchema,
+} from "../../schemas/transaction";
 import { walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -40,7 +43,7 @@ export async function getAllTransactions(fastify: FastifyInstance) {
 
       res.status(StatusCodes.OK).send({
         result: {
-          transactions,
+          transactions: transactions.map(toTransactionResponse),
         },
       });
     },

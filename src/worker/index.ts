@@ -7,12 +7,8 @@ import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
 import { retryTxListener } from "./listeners/retryTxListener";
-import {
-  newWebhooksListener,
-  updatedWebhooksListener,
-} from "./listeners/webhookListener";
 
-// Import all workers
+// Init Redis workers
 import "./tasks/ingestWorker";
 import "./tasks/webhookWorker";
 
@@ -32,10 +28,6 @@ export const initWorker = async () => {
   // Listen for new & updated configuration data
   await newConfigurationListener();
   await updatedConfigurationListener();
-
-  // Listen for new & updated webhooks data
-  await newWebhooksListener();
-  await updatedWebhooksListener();
 
   await chainIndexerListener();
 };

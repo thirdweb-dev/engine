@@ -1,10 +1,11 @@
+import superjson from "superjson";
 import { redis } from "./redis";
 
 const DEFAULT_TTL_SECONDS = 60;
 
 export const getCache = async <T>(key: string): Promise<T | null> => {
   const val = await redis.get(key);
-  return val ? (JSON.parse(val) as T) : null;
+  return val ? superjson.parse<T>(val) : null;
 };
 
 export const setCache = async (
@@ -12,17 +13,10 @@ export const setCache = async (
   val: any,
   ttlSeconds = DEFAULT_TTL_SECONDS,
 ) => {
-  await redis.setex(key, ttlSeconds, JSON.stringify(val));
+  await redis.setex(key, ttlSeconds, superjson.stringify(val));
 };
 
 export const invalidateCache = async (key: string) => await redis.del(key);
-
-const serialize = (val: any): string => {
-  return "";
-};
-const deserialize = (serialized: string): any => {
-  return null;
-};
 
 /**
  * Cache keys

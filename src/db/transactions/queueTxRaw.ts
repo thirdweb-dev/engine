@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { InputTransaction, QueuedTransaction } from "../../schema/transaction";
 import { simulate } from "../../server/utils/simulateTx";
 import { UsageEventType, reportUsage } from "../../utils/usage";
-import { ingestQueue } from "../../worker/queues/queues";
+import { IngestQueue } from "../../worker/queues/queues";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
 type QueueTxRawParams = {
@@ -47,9 +47,7 @@ export const queueTxRaw = async ({
 
   // Enqueue the job.
   const job = { tx: queuedTx };
-  await ingestQueue.add(queuedTx.idempotencyKey, job, {
-    jobId: queuedTx.idempotencyKey,
-  });
+  await IngestQueue.add(job);
 
   reportUsage([{ action: UsageEventType.QueueTx, data: queuedTx }]);
   return queueId;

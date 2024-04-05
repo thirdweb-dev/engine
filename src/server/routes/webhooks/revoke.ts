@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteWebhook } from "../../../db/webhooks/delete";
+import { revokeWebhook } from "../../../db/webhooks/revokeWebhook";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
@@ -35,7 +35,7 @@ export async function revokeWebhook(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const { id } = req.body;
 
-      await deleteWebhook(id);
+      await revokeWebhook(id);
 
       res.status(200).send({
         result: {

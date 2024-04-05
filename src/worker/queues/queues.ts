@@ -1,6 +1,7 @@
 import { Transactions, Webhooks } from "@prisma/client";
 import { JobsOptions, Queue } from "bullmq";
-import { getAllWebhooks } from "../../db/webhooks/getAll";
+import superjson from "superjson";
+import { getAllWebhooks } from "../../db/webhooks/getAllWebhooks";
 import { QueuedTransaction } from "../../schema/transaction";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
@@ -22,28 +23,27 @@ export type QueueType = "ingest" | "webhook";
 /**
  * Processes write transaction requests.
  */
-export interface IngestQueueData {
+export interface IngestJob {
   tx: QueuedTransaction;
 }
-export const ingestQueue = new Queue<IngestQueueData>("ingest", {
-  connection: redis,
-  defaultJobOptions,
-});
+export class IngestQueue {
+  private static q = new Queue<string>("ingest", {
+    connection: redis,
+    defaultJobOptions,
+  });
+
+  static add = async (data: IngestJob) => {
+    const serialized = superjson.stringify(data);
+    await this.q.add(data.tx.idempotencyKey, serialized, {
+      jobId: data.tx.idempotencyKey,
+    });
+  };
+}
 
 /**
  * Sends webhooks to configured webhook URLs.
  */
-export type WebhookQueueData = {
-  data: InsertWebhookData;
-  webhook: Webhooks;
-};
-
-const webhookQueue = new Queue<WebhookQueueData>("webhook", {
-  connection: redis,
-  defaultJobOptions,
-});
-
-export type InsertWebhookData =
+export type EnqueueWebhookData =
   | {
       type: WebhooksEventTypes.ALL_TRANSACTIONS;
       status: TransactionStatus;
@@ -57,15 +57,26 @@ export type InsertWebhookData =
       chainId: number;
       message: string;
     };
-export const insertWebhookQueue = async (data: InsertWebhookData) => {
-  const webhooks = await getAllWebhooks();
+export interface WebhookJob {
+  data: EnqueueWebhookData;
+  webhook: Webhooks;
+}
 
-  for (const webhook of webhooks) {
-    if (!webhook.revokedAt && data.type === webhook.eventType) {
-      await webhookQueue.add(`${data.type}:${webhook.id}`, {
-        data,
-        webhook,
-      });
+export class WebhookQueue {
+  private static q = new Queue<string>("webhook", {
+    connection: redis,
+    defaultJobOptions,
+  });
+
+  static add = async (data: EnqueueWebhookData) => {
+    const webhooks = await getAllWebhooks();
+
+    for (const webhook of webhooks) {
+      if (!webhook.revokedAt && data.type === webhook.eventType) {
+        const job: WebhookJob = { data, webhook };
+        const serialized = superjson.stringify(job);
+        await this.q.add(`${data.type}:${webhook.id}`, serialized);
+      }
     }
-  }
-};
+  };
+}

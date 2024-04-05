@@ -1,13 +1,8 @@
 import { Transactions } from "@prisma/client";
-import { Static } from "@sinclair/typebox";
 import { ContractExtension } from "../../schema/extension";
 import { PrismaTransaction } from "../../schema/prisma";
-import {
-  TransactionStatus,
-  transactionResponseSchema,
-} from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
-import { cleanTxs } from "./cleanTxs";
 
 interface GetAllTxsParams {
   pgtx?: PrismaTransaction;
@@ -18,7 +13,7 @@ interface GetAllTxsParams {
 }
 
 interface GetAllTxsResponse {
-  transactions: Static<typeof transactionResponseSchema>[];
+  transactions: Transactions[];
   totalCount: number;
 }
 
@@ -99,7 +94,7 @@ export const getAllTxs = async ({
   const [totalCount, txs] = await Promise.all([totalCountPromise, txsPromise]);
 
   return {
-    transactions: cleanTxs(txs),
+    transactions: txs,
     totalCount: totalCount,
   };
 };
