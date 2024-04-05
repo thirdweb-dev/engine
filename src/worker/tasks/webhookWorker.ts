@@ -20,7 +20,9 @@ const handleWebhook: Processor<any, void, string> = async (
   }
 
   if (resp && !resp.ok) {
-    throw `Received status ${resp.status} from webhook ${webhook.url}.`;
+    throw new Error(
+      `Received status ${resp.status} from webhook ${webhook.url}.`,
+    );
   }
 };
 
