@@ -15,6 +15,13 @@ services:
         reservations:
           cpus: "2"
           memory: 2G
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   engine:
     build:
@@ -38,3 +45,4 @@ services:
 
 volumes:
   db_data:
+  redis_data:

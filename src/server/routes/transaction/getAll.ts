@@ -4,7 +4,10 @@ import { StatusCodes } from "http-status-codes";
 import { getAllTxs } from "../../../db/transactions/getAllTxs";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import {
+  toTransactionResponse,
+  transactionResponseSchema,
+} from "../../schemas/transaction";
 
 // INPUT
 const requestQuerySchema = Type.Object({
@@ -48,7 +51,7 @@ responseBodySchema.example = {
         toAddress: "0x365b83d67d5539c6583b9c0266a548926bf216f4",
         data: "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e183730000000000000000000000000000000000000000000000000000000000000064",
         extension: "none",
-        value: "0x00",
+        value: "0",
         nonce: 1758,
         gasLimit: "39580",
         gasPrice: "2008818932",
@@ -127,7 +130,7 @@ export async function getAllTx(fastify: FastifyInstance) {
         throw customError;
       }
 
-      const trasactionsData = await getAllTxs({
+      const { transactions, totalCount } = await getAllTxs({
         page: parseInt(page, 10),
         limit: parseInt(limit, 10),
         // filter: filter && filter !== "all" ? filter : undefined, // TODO: To bring this back for Paid feature
@@ -135,8 +138,8 @@ export async function getAllTx(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: {
-          transactions: trasactionsData.transactions,
-          totalCount: trasactionsData.totalCount,
+          transactions: transactions.map(toTransactionResponse),
+          totalCount,
         },
       });
     },

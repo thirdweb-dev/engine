@@ -7,19 +7,18 @@ import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { cancelTransactionAndUpdate } from "../../server/utils/transaction";
 import { getSdk } from "../../utils/cache/getSdk";
+import { msSince } from "../../utils/date";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
-  UsageEventTxActionEnum,
+  UsageEventType,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData, sendWebhooks } from "../../utils/webhook";
 
 const MEMPOOL_DURATION_TIMEOUT_MS = 1000 * 60 * 60;
 
 export const updateMinedTx = async () => {
   try {
-    const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
@@ -52,22 +51,17 @@ export const updateMinedTx = async () => {
                       pgtx,
                     });
 
-                    sendWebhookForQueueIds.push({
-                      queueId: tx.id,
-                      status: TransactionStatus.Cancelled,
-                    });
-
                     reportUsageForQueueIds.push({
-                      input: {
+                      data: {
                         fromAddress: tx.fromAddress || undefined,
                         toAddress: tx.toAddress || undefined,
                         value: tx.value || undefined,
-                        chainId: tx.chainId || undefined,
+                        chainId: tx.chainId,
                         transactionHash: tx.transactionHash || undefined,
                         provider: provider.connection.url || undefined,
-                        msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                        msSinceSend: msSince(new Date(tx.sentAt!)),
                       },
-                      action: UsageEventTxActionEnum.CancelTx,
+                      action: UsageEventType.CancelTx,
                     });
                   } catch (error) {
                     await updateTx({
@@ -79,22 +73,17 @@ export const updateMinedTx = async () => {
                       },
                     });
 
-                    sendWebhookForQueueIds.push({
-                      queueId: tx.id,
-                      status: TransactionStatus.Errored,
-                    });
-
                     reportUsageForQueueIds.push({
-                      input: {
+                      data: {
                         fromAddress: tx.fromAddress || undefined,
                         toAddress: tx.toAddress || undefined,
                         value: tx.value || undefined,
-                        chainId: tx.chainId || undefined,
+                        chainId: tx.chainId,
                         transactionHash: tx.transactionHash || undefined,
                         provider: provider.connection.url || undefined,
-                        msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                        msSinceSend: msSince(new Date(tx.sentAt!)),
                       },
-                      action: UsageEventTxActionEnum.ErrorTx,
+                      action: UsageEventType.ErrorTx,
                     });
                   }
                 }
@@ -171,27 +160,22 @@ export const updateMinedTx = async () => {
               message: "Updated mined tx.",
             });
 
-            sendWebhookForQueueIds.push({
-              queueId: txWithReceipt.tx.id,
-              status: TransactionStatus.Mined,
-            });
-
             reportUsageForQueueIds.push({
-              input: {
+              data: {
                 fromAddress: txWithReceipt.tx.fromAddress || undefined,
                 toAddress: txWithReceipt.tx.toAddress || undefined,
                 value: txWithReceipt.tx.value || undefined,
-                chainId: txWithReceipt.tx.chainId || undefined,
+                chainId: txWithReceipt.tx.chainId,
                 transactionHash: txWithReceipt.tx.transactionHash || undefined,
                 onChainTxStatus: txWithReceipt.receipt.status,
                 functionName: txWithReceipt.tx.functionName || undefined,
                 extension: txWithReceipt.tx.extension || undefined,
-                provider: txWithReceipt.provider || undefined,
+                provider: txWithReceipt.provider,
                 msSinceSend:
                   txWithReceipt.minedAt.getTime() -
                   txWithReceipt.tx.sentAt!.getTime(),
               },
-              action: UsageEventTxActionEnum.MineTx,
+              action: UsageEventType.MineTx,
             });
           }),
         );
@@ -201,7 +185,6 @@ export const updateMinedTx = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
     reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({

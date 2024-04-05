@@ -2,10 +2,14 @@ import { Static, Type } from "@sinclair/typebox";
 import { TypeSystem } from "@sinclair/typebox/system";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { insertWebhook } from "../../../db/webhooks/createWebhook";
+import { insertWebhook } from "../../../db/webhooks/insertWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
 import { isLocalhost } from "../../../utils/url";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import {
+  WebhookResponseSchema,
+  toWebhookResponse,
+} from "../../schemas/webhooks";
 
 const uriFormat = TypeSystem.Format("uri", (input: string) => {
   // Assert valid URL.
@@ -35,55 +39,23 @@ const BodySchema = Type.Object({
 BodySchema.examples = [
   {
     url: "https://example.com/allTxUpdate",
-    name: "All Transaction Events",
-    eventType: WebhooksEventTypes.ALL_TX,
-  },
-  {
-    url: "https://example.com/queuedTx",
-    name: "QueuedTx",
-    eventType: WebhooksEventTypes.QUEUED_TX,
-  },
-  {
-    url: "https://example.com/sentTx",
-    name: "Sent Transaction Event",
-    eventType: WebhooksEventTypes.SENT_TX,
-  },
-  {
-    url: "https://example.com/minedTx",
-    name: "Mined Transaction Event",
-    eventType: WebhooksEventTypes.MINED_TX,
-  },
-  {
-    url: "https://example.com/erroredTx",
-    name: "Errored Transaction Event",
-    eventType: WebhooksEventTypes.ERRORED_TX,
-  },
-  {
-    url: "https://example.com/cancelledTx",
-    name: "Cancelled Transaction Event",
-    eventType: WebhooksEventTypes.CANCELLED_TX,
+    name: "All transaction events",
+    eventType: WebhooksEventTypes.ALL_TRANSACTIONS,
   },
   {
     url: "https://example.com/walletBalance",
-    name: "Backend Wallet Balance Event",
+    name: "Backend wallet balance event",
     eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
   },
   {
     url: "https://example.com/auth",
-    name: "Auth Check",
+    name: "Authentication",
     eventType: WebhooksEventTypes.AUTH,
   },
 ];
 
 const ReplySchema = Type.Object({
-  result: Type.Object({
-    url: Type.String(),
-    name: Type.String(),
-    createdAt: Type.String(),
-    eventType: Type.String(),
-    secret: Type.Optional(Type.String()),
-    id: Type.Number(),
-  }),
+  result: WebhookResponseSchema,
 });
 
 export async function createWebhook(fastify: FastifyInstance) {
@@ -105,11 +77,11 @@ export async function createWebhook(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const config = await insertWebhook({ ...req.body });
+      const { url, name, eventType } = req.body;
+      const webhook = await insertWebhook({ url, name, eventType });
+
       res.status(200).send({
-        result: {
-          ...config,
-        },
+        result: toWebhookResponse(webhook),
       });
     },
   });

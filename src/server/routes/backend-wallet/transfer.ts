@@ -77,13 +77,12 @@ export async function transfer(fastify: FastifyInstance) {
         currencyAddress,
       );
 
-      let queueId: string | null = null;
+      let queueId: string;
       if (isNativeToken(currencyAddress)) {
         const walletAddress = await sdk.getSigner()?.getAddress();
         if (!walletAddress) throw new Error("No wallet address");
 
         const balance = await sdk.getBalance(walletAddress);
-
         if (balance.value.lt(normalizedValue)) {
           throw new Error("Insufficient balance");
         }
@@ -95,22 +94,24 @@ export async function transfer(fastify: FastifyInstance) {
           value: normalizedValue.toHexString(),
         };
 
-        ({ id: queueId } = await queueTxRaw({
-          chainId: chainId.toString(),
-          functionName: "transfer",
-          functionArgs: JSON.stringify([
-            params.toAddress,
-            params.value,
-            params.currencyAddress,
-          ]),
-          extension: "none",
-          fromAddress: params.fromAddress,
-          toAddress: params.toAddress,
-          value: params.value,
-          data: "0x",
+        queueId = await queueTxRaw({
+          tx: {
+            chainId: chainId.toString(),
+            functionName: "transfer",
+            functionArgs: JSON.stringify([
+              params.toAddress,
+              params.value,
+              params.currencyAddress,
+            ]),
+            extension: "none",
+            fromAddress: params.fromAddress,
+            toAddress: params.toAddress,
+            value: params.value,
+            data: "0x",
+            idempotencyKey,
+          },
           simulateTx,
-          idempotencyKey,
-        }));
+        });
       } else {
         const contract = await getContract({
           chainId,

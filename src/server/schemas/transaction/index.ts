@@ -1,4 +1,5 @@
-import { Type } from "@sinclair/typebox";
+import { Transactions } from "@prisma/client";
+import { Static, Type } from "@sinclair/typebox";
 
 export const transactionResponseSchema = Type.Object({
   queueId: Type.Union([
@@ -199,40 +200,22 @@ export enum TransactionStatus {
   Cancelled = "cancelled",
 }
 
-export interface TransactionSchema {
-  identifier?: string;
-  walletAddress?: string;
-  contractAddress?: string;
-  chainId?: string;
-  extension?: string;
-  rawFunctionName?: string;
-  rawFunctionArgs?: string;
-  txProcessed?: boolean;
-  txSubmitted?: boolean;
-  txErrored?: boolean;
-  txMined?: boolean;
-  encodedInputData?: string;
-  txType?: number;
-  gasPrice?: string;
-  gasLimit?: string;
-  maxPriorityFeePerGas?: string;
-  maxFeePerGas?: string;
-  txHash?: string;
-  status?: string;
-  createdTimestamp?: Date;
-  txSubmittedTimestamp?: Date;
-  txProcessedTimestamp?: Date;
-  submittedTxNonce?: number;
-  deployedContractAddress?: string;
-  contractType?: string;
-  txValue?: string;
-  errorMessage?: string;
-  txMinedTimestamp?: Date;
-  blockNumber?: number;
-  toAddress?: string;
-  txSubmittedAtBlockNumber?: number;
-  numberOfRetries?: number;
-  overrideGasValuesForTx?: boolean;
-  overrideMaxFeePerGas?: string;
-  overrideMaxPriorityFeePerGas?: string;
-}
+export const toTransactionResponse = (
+  raw: Transactions,
+): Static<typeof transactionResponseSchema> => ({
+  ...raw,
+  queueId: raw.id,
+  queuedAt: raw.queuedAt.toISOString(),
+  sentAt: raw.sentAt?.toISOString() || null,
+  minedAt: raw.minedAt?.toISOString() || null,
+  cancelledAt: raw.cancelledAt?.toISOString() || null,
+  status: raw.errorMessage
+    ? "errored"
+    : raw.minedAt
+    ? "mined"
+    : raw.cancelledAt
+    ? "cancelled"
+    : raw.sentAt
+    ? "sent"
+    : "queued",
+});

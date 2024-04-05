@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "crypto";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { cacheKeyAllWebhooks, invalidateCache } from "../../utils/redis/cache";
 import { prisma } from "../client";
 
 interface CreateWebhooksParams {
@@ -18,7 +19,7 @@ export const insertWebhook = async ({
   // hash the bytes to create the secret (this will not be stored by itself)
   const secret = createHash("sha512").update(bytes).digest("base64url");
 
-  return prisma.webhooks.create({
+  const webhook = await prisma.webhooks.create({
     data: {
       url,
       name,
@@ -26,4 +27,8 @@ export const insertWebhook = async ({
       secret,
     },
   });
+
+  const key = cacheKeyAllWebhooks();
+  await invalidateCache(key);
+  return webhook;
 };

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Transactions } from ".prisma/client";
 import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import {
@@ -15,7 +14,7 @@ import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
 import { updateTx } from "../../db/transactions/updateTx";
 import { getWalletNonce } from "../../db/wallets/getWalletNonce";
 import { updateWalletNonce } from "../../db/wallets/updateWalletNonce";
-import { WalletBalanceWebhookSchema } from "../../schema/webhooks";
+import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getSdk } from "../../utils/cache/getSdk";
@@ -25,14 +24,10 @@ import { parseTxError } from "../../utils/errors";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
-  UsageEventTxActionEnum,
+  UsageEventType,
   reportUsage,
 } from "../../utils/usage";
-import {
-  WebhookData,
-  sendBalanceWebhook,
-  sendWebhooks,
-} from "../../utils/webhook";
+import { WebhookQueue } from "../queues/queues";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawValue } from "../utils/withdraw";
 
@@ -44,7 +39,6 @@ type RpcResponseData = {
 
 export const processTx = async () => {
   try {
-    const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
@@ -71,7 +65,6 @@ export const processTx = async () => {
             queueId: tx.id,
             message: `Processing`,
           });
-
           if (tx.accountAddress && tx.signerAddress) {
             userOpsToSend.push(tx);
           } else {
@@ -208,10 +201,6 @@ export const processTx = async () => {
                   txRequest,
                   rpcResponse,
                 });
-                sendWebhookForQueueIds.push({
-                  queueId: tx.id,
-                  status: TransactionStatus.Sent,
-                });
               } else if (
                 typeof rpcResponse.error?.message === "string" &&
                 (rpcResponse.error.message as string)
@@ -229,40 +218,10 @@ export const processTx = async () => {
                   txRequest,
                   rpcResponse,
                 });
-                sendWebhookForQueueIds.push({
-                  queueId: tx.id,
-                  status: TransactionStatus.Errored,
-                });
               }
             } catch (err: any) {
               // Error. Continue to the next transaction.
               txIndex++;
-
-              sendWebhookForQueueIds.push({
-                queueId: tx.id,
-                status: TransactionStatus.Errored,
-              });
-              reportUsageForQueueIds.push({
-                input: {
-                  fromAddress: tx.fromAddress || undefined,
-                  toAddress: tx.toAddress || undefined,
-                  value: tx.value || undefined,
-                  chainId: tx.chainId || undefined,
-                  functionName: tx.functionName || undefined,
-                  extension: tx.extension || undefined,
-                  provider: provider.connection.url || undefined,
-                  msSinceQueue: msSince(tx.queuedAt),
-                },
-                action: UsageEventTxActionEnum.NotSendTx,
-              });
-
-              logger({
-                service: "worker",
-                level: "warn",
-                queueId: tx.id,
-                message: `Failed to send`,
-                error: err,
-              });
 
               await updateTx({
                 pgtx,
@@ -271,6 +230,27 @@ export const processTx = async () => {
                   status: TransactionStatus.Errored,
                   errorMessage: await parseTxError(tx, err),
                 },
+              });
+              reportUsageForQueueIds.push({
+                data: {
+                  fromAddress: tx.fromAddress || undefined,
+                  toAddress: tx.toAddress || undefined,
+                  value: tx.value || undefined,
+                  chainId: tx.chainId,
+                  functionName: tx.functionName || undefined,
+                  extension: tx.extension || undefined,
+                  provider: provider.connection.url || undefined,
+                  msSinceQueue: msSince(tx.queuedAt),
+                },
+                action: UsageEventType.NotSendTx,
+              });
+
+              logger({
+                service: "worker",
+                level: "warn",
+                queueId: tx.id,
+                message: `Failed to send`,
+                error: err,
               });
             }
           }
@@ -300,7 +280,7 @@ export const processTx = async () => {
                   },
                 });
                 reportUsageForQueueIds.push({
-                  input: {
+                  data: {
                     fromAddress: txRequest.from,
                     toAddress: txRequest.to,
                     value: (txRequest.value ?? 0).toString(),
@@ -311,7 +291,7 @@ export const processTx = async () => {
                     provider: provider.connection.url || undefined,
                     msSinceQueue: msSince(tx.queuedAt),
                   },
-                  action: UsageEventTxActionEnum.SendTx,
+                  action: UsageEventType.SendTx,
                 });
               } else {
                 // Transaction failed.
@@ -324,7 +304,7 @@ export const processTx = async () => {
                   },
                 });
                 reportUsageForQueueIds.push({
-                  input: {
+                  data: {
                     fromAddress: txRequest.from,
                     toAddress: txRequest.to,
                     value: (txRequest.value ?? 0).toString(),
@@ -334,7 +314,7 @@ export const processTx = async () => {
                     provider: provider.connection.url || undefined,
                     msSinceQueue: msSince(tx.queuedAt),
                   },
-                  action: UsageEventTxActionEnum.NotSendTx,
+                  action: UsageEventType.NotSendTx,
                 });
               }
             }),
@@ -383,23 +363,19 @@ export const processTx = async () => {
                 userOpHash,
               },
             });
-            sendWebhookForQueueIds.push({
-              queueId: tx.id,
-              status: TransactionStatus.UserOpSent,
-            });
             reportUsageForQueueIds.push({
-              input: {
+              data: {
                 fromAddress: tx.accountAddress || undefined,
                 toAddress: tx.toAddress || undefined,
                 value: tx.value || undefined,
-                chainId: tx.chainId || undefined,
+                chainId: tx.chainId,
                 userOpHash,
                 functionName: tx.functionName || undefined,
                 extension: tx.extension || undefined,
-                provider: signer.httpRpcClient.bundlerUrl || undefined,
+                provider: signer.httpRpcClient.bundlerUrl,
                 msSinceQueue: msSince(tx.queuedAt),
               },
-              action: UsageEventTxActionEnum.SendTx,
+              action: UsageEventType.SendTx,
             });
           } catch (err: any) {
             logger({
@@ -418,21 +394,17 @@ export const processTx = async () => {
                 errorMessage: await parseTxError(tx, err),
               },
             });
-            sendWebhookForQueueIds.push({
-              queueId: tx.id,
-              status: TransactionStatus.Errored,
-            });
             reportUsageForQueueIds.push({
-              input: {
+              data: {
                 fromAddress: tx.accountAddress || undefined,
                 toAddress: tx.toAddress || undefined,
                 value: tx.value || undefined,
-                chainId: tx.chainId || undefined,
+                chainId: tx.chainId,
                 functionName: tx.functionName || undefined,
                 extension: tx.extension || undefined,
                 msSinceQueue: msSince(tx.queuedAt),
               },
-              action: UsageEventTxActionEnum.NotSendTx,
+              action: UsageEventType.NotSendTx,
             });
           }
         });
@@ -445,7 +417,6 @@ export const processTx = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
     reportUsage(reportUsageForQueueIds);
   } catch (err: any) {
     logger({
@@ -469,15 +440,14 @@ const alertOnBackendWalletLowBalance = async (wallet: UserWallet) => {
         config.minWalletBalance,
       );
 
-      const walletBalanceData: WalletBalanceWebhookSchema = {
+      await WebhookQueue.add({
+        type: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
         walletAddress: address,
         minimumBalance: minBalanceDisplay,
         currentBalance: balance.displayValue,
         chainId: chain.chainId,
         message: `Backend wallet ${address} has below ${minBalanceDisplay} ${chain.nativeCurrency.symbol}.`,
-      };
-
-      await sendBalanceWebhook(walletBalanceData);
+      });
     }
   } catch (e) {}
 };

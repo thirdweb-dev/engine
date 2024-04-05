@@ -1,8 +1,13 @@
 import { Configuration } from "@prisma/client";
 import { getConfiguration } from "../../db/configuration/getConfiguration";
 import { WalletType } from "../../schema/wallet";
+import {
+  cacheKeyConfiguration,
+  getCache,
+  invalidateCache,
+  setCache,
+} from "../redis/cache";
 
-const cacheKey = "config";
 interface Config
   extends Omit<
     Configuration,
@@ -35,23 +40,19 @@ interface Config
       };
 }
 
-export const configCache = new Map<string, Config>();
-
-export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
-  if (
-    configCache.has(cacheKey) &&
-    configCache.get(cacheKey) &&
-    retrieveFromCache
-  ) {
-    const config = configCache.get(cacheKey) as Config;
-
-    if (config.authDomain && config.authWalletEncryptedJson) {
-      return config;
-    }
+export const getConfig = async (): Promise<Config> => {
+  const key = cacheKeyConfiguration();
+  const cached = await getCache<Config>(key);
+  if (cached) {
+    return cached;
   }
 
-  const configData = await getConfiguration();
+  const config = await getConfiguration();
+  await setCache(key, config);
+  return config;
+};
 
-  configCache.set(cacheKey, configData);
-  return configData;
+export const clearConfigCache = async (): Promise<void> => {
+  const key = cacheKeyConfiguration();
+  await invalidateCache(key);
 };

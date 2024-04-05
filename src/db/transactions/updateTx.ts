@@ -1,6 +1,9 @@
+import { Transactions } from "@prisma/client";
 import { BigNumber, ethers } from "ethers";
 import { PrismaTransaction } from "../../schema/prisma";
+import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
+import { WebhookQueue } from "../../worker/queues/queues";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface UpdateTxParams {
@@ -46,9 +49,12 @@ type UpdateTxData =
 
 export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
+
+  let updatedTx: Transactions | null = null;
+
   switch (data.status) {
     case TransactionStatus.Cancelled:
-      await prisma.transactions.update({
+      updatedTx = await prisma.transactions.update({
         where: {
           id: queueId,
         },
@@ -58,7 +64,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
       });
       break;
     case TransactionStatus.Errored:
-      await prisma.transactions.update({
+      updatedTx = await prisma.transactions.update({
         where: {
           id: queueId,
         },
@@ -68,7 +74,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
       });
       break;
     case TransactionStatus.Sent:
-      await prisma.transactions.update({
+      updatedTx = await prisma.transactions.update({
         where: {
           id: queueId,
         },
@@ -88,7 +94,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
       });
       break;
     case TransactionStatus.UserOpSent:
-      await prisma.transactions.update({
+      updatedTx = await prisma.transactions.update({
         where: {
           id: queueId,
         },
@@ -99,11 +105,12 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
       });
       break;
     case TransactionStatus.Mined:
-      await prisma.transactions.update({
+      updatedTx = await prisma.transactions.update({
         where: {
           id: queueId,
         },
         data: {
+          transactionHash: data.transactionHash,
           minedAt: data.minedAt,
           blockNumber: data.blockNumber,
           onChainTxStatus: data.onChainTxStatus,
@@ -112,8 +119,17 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           gasLimit: data.gasLimit,
           maxFeePerGas: data.maxFeePerGas,
           maxPriorityFeePerGas: data.maxPriorityFeePerGas,
+          nonce: data.nonce,
         },
       });
       break;
+  }
+
+  if (updatedTx) {
+    await WebhookQueue.add({
+      type: WebhooksEventTypes.ALL_TRANSACTIONS,
+      status: data.status,
+      tx: updatedTx,
+    });
   }
 };

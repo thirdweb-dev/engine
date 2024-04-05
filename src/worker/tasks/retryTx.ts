@@ -11,7 +11,7 @@ import { getGasSettingsForRetry } from "../../utils/gas";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
-  UsageEventTxActionEnum,
+  UsageEventType,
   reportUsage,
 } from "../../utils/usage";
 
@@ -88,17 +88,17 @@ export const retryTx = async () => {
           });
 
           reportUsageForQueueIds.push({
-            input: {
+            data: {
               fromAddress: tx.fromAddress || undefined,
               toAddress: tx.toAddress || undefined,
               value: tx.value || undefined,
-              chainId: tx.chainId || undefined,
+              chainId: tx.chainId,
               functionName: tx.functionName || undefined,
               extension: tx.extension || undefined,
-              retryCount: tx.retryCount + 1 || 0,
-              provider: provider.connection.url || undefined,
+              retryCount: tx.retryCount + 1,
+              provider: provider.connection.url,
             },
-            action: UsageEventTxActionEnum.ErrorTx,
+            action: UsageEventType.ErrorTx,
           });
 
           reportUsage(reportUsageForQueueIds);
@@ -120,18 +120,18 @@ export const retryTx = async () => {
         });
 
         reportUsageForQueueIds.push({
-          input: {
+          data: {
             fromAddress: tx.fromAddress || undefined,
             toAddress: tx.toAddress || undefined,
             value: tx.value || undefined,
-            chainId: tx.chainId || undefined,
+            chainId: tx.chainId,
             functionName: tx.functionName || undefined,
             extension: tx.extension || undefined,
             retryCount: tx.retryCount + 1,
             transactionHash: res.hash || undefined,
-            provider: provider.connection.url || undefined,
+            provider: provider.connection.url,
           },
-          action: UsageEventTxActionEnum.SendTx,
+          action: UsageEventType.SendTx,
         });
 
         reportUsage(reportUsageForQueueIds);

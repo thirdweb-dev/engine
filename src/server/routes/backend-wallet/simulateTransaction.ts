@@ -1,14 +1,16 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { InputTransaction } from "../../../schema/transaction";
 import { getContract } from "../../../utils/cache/getContract";
+import { createCustomError } from "../../middleware/error";
 import {
   simulateResponseSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-import { SimulateTxParams, simulateTx } from "../../utils/simulateTx";
+import { simulate } from "../../utils/simulateTx";
 
 // INPUT
 const ParamsSchema = Type.Object({
@@ -75,7 +77,6 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      // Destruct core params
       const { chain } = request.params;
       const { toAddress, value, functionName, args, data } = request.body;
       const {
@@ -84,35 +85,33 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       } = request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
-      // Get decoded tx simulate args
-      let simulateArgs: SimulateTxParams;
       if (functionName && args) {
+        // Simulate a function call to a contract.
         const contract = await getContract({
           chainId,
           contractAddress: toAddress,
           walletAddress,
           accountAddress,
         });
-        const tx = contract.prepare(functionName, args, {
-          value: value ?? "0",
-        });
-        simulateArgs = { tx };
-      }
-      // Get raw tx simulate args
-      else {
-        simulateArgs = {
-          txRaw: {
-            chainId: chainId.toString(),
-            fromAddress: walletAddress,
-            toAddress,
-            data,
-            value,
-          },
+        const tx = contract.prepare(functionName, args, { value });
+        await simulate({ tx });
+      } else if (data) {
+        // Simulate from raw calldata.
+        const txRaw: InputTransaction = {
+          chainId: chainId.toString(),
+          fromAddress: walletAddress,
+          toAddress,
+          data,
+          value: value || "0",
         };
+        await simulate({ txRaw });
+      } else {
+        throw createCustomError(
+          "Missing params for simulation",
+          StatusCodes.BAD_REQUEST,
+          "INVALID_SIMULATION_PARAMS",
+        );
       }
-
-      // Simulate raw tx
-      await simulateTx(simulateArgs);
 
       // Return success
       reply.status(StatusCodes.OK).send({

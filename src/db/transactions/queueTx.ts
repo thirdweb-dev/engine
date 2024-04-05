@@ -2,11 +2,10 @@ import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
-import { PrismaTransaction } from "../../schema/prisma";
+import { InputTransaction } from "../../schema/transaction";
 import { queueTxRaw } from "./queueTxRaw";
 
 interface QueueTxParams {
-  pgtx?: PrismaTransaction;
   tx: Transaction<any> | DeployTransaction;
   chainId: number;
   extension: ContractExtension;
@@ -18,59 +17,48 @@ interface QueueTxParams {
 }
 
 export const queueTx = async ({
-  pgtx,
-  tx,
+  tx: sdkTx,
   chainId,
   extension,
   deployedContractAddress,
   deployedContractType,
   simulateTx,
   idempotencyKey,
-}: QueueTxParams) => {
-  // TODO: We need a much safer way of detecting if the transaction should be a user operation
-  const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
-  const txData = {
+}: QueueTxParams): Promise<string> => {
+  const tx: InputTransaction = {
+    idempotencyKey,
     chainId: chainId.toString(),
-    functionName: tx.getMethod(),
-    functionArgs: JSON.stringify(tx.getArgs()),
+    functionName: sdkTx.getMethod(),
+    functionArgs: JSON.stringify(sdkTx.getArgs()),
     extension,
-    deployedContractAddress: deployedContractAddress,
-    deployedContractType: deployedContractType,
-    data: tx.encode(),
-    value: BigNumber.from(await tx.getValue()).toHexString(),
+    deployedContractAddress,
+    deployedContractType,
+    data: sdkTx.encode(),
+    value: BigNumber.from(await sdkTx.getValue()).toHexString(),
   };
 
+  // TODO: We need a much safer way of detecting if the transaction should be a user operation
+  const isUserOp = !!(sdkTx.getSigner as ERC4337EthersSigner).erc4337provider;
   if (isUserOp) {
-    const signerAddress = await (
-      tx.getSigner as ERC4337EthersSigner
-    ).originalSigner.getAddress();
-    const accountAddress = await tx.getSignerAddress();
-    const target = tx.getTarget();
-
-    const { id: queueId } = await queueTxRaw({
-      pgtx,
-      ...txData,
-      signerAddress,
-      accountAddress,
-      target,
+    return await queueTxRaw({
+      tx: {
+        ...tx,
+        signerAddress: await (
+          sdkTx.getSigner as ERC4337EthersSigner
+        ).originalSigner.getAddress(),
+        accountAddress: await sdkTx.getSignerAddress(),
+        target: sdkTx.getTarget(),
+      },
       simulateTx,
-      idempotencyKey,
     });
-
-    return queueId;
-  } else {
-    const fromAddress = await tx.getSignerAddress();
-    const toAddress = tx.getTarget();
-
-    const { id: queueId } = await queueTxRaw({
-      pgtx,
-      ...txData,
-      fromAddress,
-      toAddress,
-      simulateTx,
-      idempotencyKey,
-    });
-
-    return queueId;
   }
+
+  return await queueTxRaw({
+    tx: {
+      ...tx,
+      fromAddress: await sdkTx.getSignerAddress(),
+      toAddress: sdkTx.getTarget(),
+    },
+    simulateTx,
+  });
 };

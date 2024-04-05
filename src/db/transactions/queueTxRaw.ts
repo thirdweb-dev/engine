@@ -1,111 +1,54 @@
-import type { Prisma, Transactions } from "@prisma/client";
-import { v4 as uuid } from "uuid";
-import { PrismaTransaction } from "../../schema/prisma";
-import { TransactionStatus } from "../../server/schemas/transaction";
-import { simulateTx } from "../../server/utils/simulateTx";
-import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
-import { sendWebhooks } from "../../utils/webhook";
-import { getPrismaWithPostgresTx } from "../client";
+import { randomUUID } from "crypto";
+import { InputTransaction, QueuedTransaction } from "../../schema/transaction";
+import { simulate } from "../../server/utils/simulateTx";
+import { UsageEventType, reportUsage } from "../../utils/usage";
+import { IngestQueue } from "../../worker/queues/queues";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
-type QueueTxRawParams = Omit<
-  Prisma.TransactionsCreateInput,
-  "fromAddress" | "signerAddress"
-> &
-  (
-    | {
-        fromAddress: string;
-        signerAddress?: never;
-      }
-    | {
-        fromAddress?: never;
-        signerAddress: string;
-      }
-  ) & {
-    pgtx?: PrismaTransaction;
-    simulateTx?: boolean;
-    idempotencyKey?: string;
-  };
+type QueueTxRawParams = {
+  tx: InputTransaction;
+  simulateTx?: boolean;
+};
 
+/**
+ * Enqueues a transaction.
+ * @returns string The queueId generated for this transaction.
+ */
 export const queueTxRaw = async ({
-  pgtx,
-  simulateTx: shouldSimulate,
-  idempotencyKey,
-  ...tx
-}: QueueTxRawParams): Promise<Transactions> => {
-  const prisma = getPrismaWithPostgresTx(pgtx);
-
+  tx,
+  simulateTx,
+}: QueueTxRawParams): Promise<string> => {
+  // Assert a valid backend wallet address.
+  const walletAddress = tx.fromAddress || tx.signerAddress;
+  if (!walletAddress) {
+    throw new Error("Transaction missing sender address.");
+  }
   const walletDetails = await getWalletDetails({
-    pgtx,
-    address: (tx.fromAddress || tx.signerAddress) as string,
+    address: walletAddress,
   });
-
   if (!walletDetails) {
-    throw new Error(
-      `No backend wallet found with address ${
-        tx.fromAddress || tx.signerAddress
-      }`,
-    );
+    throw new Error(`Backend wallet not found: ${walletAddress}`);
   }
 
-  if (shouldSimulate) {
-    await simulateTx({ txRaw: tx });
-  }
-
-  const insertData = {
+  // Build a QueuedTransaction.
+  const queueId = randomUUID();
+  const queuedTx: QueuedTransaction = {
     ...tx,
-    id: uuid(),
-    fromAddress: tx.fromAddress?.toLowerCase(),
-    toAddress: tx.toAddress?.toLowerCase(),
-    target: tx.target?.toLowerCase(),
-    signerAddress: tx.signerAddress?.toLowerCase(),
-    accountAddress: tx.accountAddress?.toLowerCase(),
+    id: queueId,
+    idempotencyKey: tx.idempotencyKey ?? queueId,
+    value: tx.value ?? "0",
+    queuedAt: new Date(),
   };
 
-  let txRow: Transactions;
-  if (idempotencyKey) {
-    // Upsert the tx (insert if not exists).
-    txRow = await prisma.transactions.upsert({
-      where: { idempotencyKey },
-      create: {
-        ...insertData,
-        idempotencyKey,
-      },
-      update: {},
-    });
-  } else {
-    // Insert the tx.
-    txRow = await prisma.transactions.create({
-      data: {
-        ...insertData,
-        // Use queueId to ensure uniqueness.
-        idempotencyKey: insertData.id,
-      },
-    });
+  // (Optional) Simulate the transaction.
+  if (simulateTx) {
+    await simulate({ txRaw: queuedTx });
   }
 
-  // Send queued webhook.
-  sendWebhooks([
-    {
-      queueId: txRow.id,
-      status: TransactionStatus.Queued,
-    },
-  ]).catch((err) => {});
+  // Enqueue the job.
+  const job = { tx: queuedTx };
+  await IngestQueue.add(job);
 
-  reportUsage([
-    {
-      input: {
-        chainId: tx.chainId || undefined,
-        fromAddress: tx.fromAddress || undefined,
-        toAddress: tx.toAddress || undefined,
-        value: tx.value || undefined,
-        transactionHash: tx.transactionHash || undefined,
-        functionName: tx.functionName || undefined,
-        extension: tx.extension || undefined,
-      },
-      action: UsageEventTxActionEnum.QueueTx,
-    },
-  ]);
-
-  return txRow;
+  reportUsage([{ action: UsageEventType.QueueTx, data: queuedTx }]);
+  return queueId;
 };

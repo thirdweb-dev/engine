@@ -119,7 +119,6 @@ export const getSdk = async ({
     });
   } else {
     const wallet = await getWallet({
-      pgtx,
       chainId,
       walletAddress,
       accountAddress,

@@ -8,14 +8,12 @@ import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
-  UsageEventTxActionEnum,
+  UsageEventType,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData, sendWebhooks } from "../../utils/webhook";
 
 export const updateMinedUserOps = async () => {
   try {
-    const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
@@ -90,9 +88,9 @@ export const updateMinedUserOps = async () => {
                 onChainTxStatus: userOp!.onChainTxStatus,
                 transactionHash: userOp!.transactionHash,
                 transactionType: userOp!.transactionType || undefined,
-                gasLimit: userOp!.gasLimit || undefined,
-                maxFeePerGas: userOp!.maxFeePerGas || undefined,
-                maxPriorityFeePerGas: userOp!.maxPriorityFeePerGas || undefined,
+                gasLimit: userOp!.gasLimit,
+                maxFeePerGas: userOp!.maxFeePerGas,
+                maxPriorityFeePerGas: userOp!.maxPriorityFeePerGas,
                 gasPrice: userOp!.gasPrice || undefined,
               },
             });
@@ -103,25 +101,21 @@ export const updateMinedUserOps = async () => {
               queueId: userOp!.id,
               message: `Updated with receipt`,
             });
-            sendWebhookForQueueIds.push({
-              queueId: userOp!.id,
-              status: TransactionStatus.Mined,
-            });
             reportUsageForQueueIds.push({
-              input: {
+              data: {
                 fromAddress: userOp!.fromAddress || undefined,
                 toAddress: userOp!.toAddress || undefined,
                 value: userOp!.value || undefined,
-                chainId: userOp!.chainId || undefined,
+                chainId: userOp!.chainId,
                 userOpHash: userOp!.userOpHash || undefined,
                 onChainTxStatus: userOp!.onChainTxStatus,
                 functionName: userOp!.functionName || undefined,
                 extension: userOp!.extension || undefined,
-                provider: userOp!.provider || undefined,
+                provider: userOp!.provider,
                 msSinceSend:
                   userOp!.minedAt.getTime() - userOp!.sentAt!.getTime(),
               },
-              action: UsageEventTxActionEnum.MineTx,
+              action: UsageEventType.MineTx,
             });
           }),
         );
@@ -131,7 +125,6 @@ export const updateMinedUserOps = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
     reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({

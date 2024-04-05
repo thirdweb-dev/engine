@@ -23,18 +23,6 @@ export const createWalletDetails = async ({
 }: CreateWalletDetailsParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  const wallet = await prisma.walletDetails.findUnique({
-    where: {
-      address: walletDetails.address.toLowerCase(),
-    },
-  });
-
-  if (wallet) {
-    throw new Error(
-      `Wallet with address ${walletDetails.address} has already been added!`,
-    );
-  }
-
   return prisma.walletDetails.create({
     data: {
       ...walletDetails,

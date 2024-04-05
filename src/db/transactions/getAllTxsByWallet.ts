@@ -1,6 +1,5 @@
 import { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
-import { cleanTxs } from "./cleanTxs";
 
 interface GetAllTxsByWalletParams {
   pgtx?: PrismaTransaction;
@@ -14,7 +13,7 @@ export const getAllTxsByWallet = async ({
 }: GetAllTxsByWalletParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  const txs = await prisma.transactions.findMany({
+  return await prisma.transactions.findMany({
     where: {
       fromAddress: walletAddress.toLowerCase(),
     },
@@ -24,6 +23,4 @@ export const getAllTxsByWallet = async ({
       },
     ],
   });
-
-  return cleanTxs(txs);
 };

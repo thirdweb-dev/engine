@@ -125,6 +125,7 @@ model Transactions {
   signerAddress             String?   @map("signerAddress")
   accountAddress            String?   @map("accountAddress")
   target                    String?   @map("target")
+  // @deprecated
   sender                    String?   @map("sender")
   initCode                  String?   @map("initCode")
   callData                  String?   @map("callData")
