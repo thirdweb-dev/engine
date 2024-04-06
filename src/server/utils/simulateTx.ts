@@ -36,7 +36,7 @@ export const simulateRaw = async (tx: InputTransaction) => {
       from: tx.fromAddress,
     });
   } catch (e: any) {
-    throw e?.message || e.toString();
+    throw new Error(e?.message || e.toString());
   }
 };
 

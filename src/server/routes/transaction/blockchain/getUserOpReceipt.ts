@@ -101,7 +101,9 @@ export async function getUserOpReceipt(fastify: FastifyInstance) {
           }),
         });
         if (!resp.ok) {
-          throw `Unexpected status ${resp.status} - ${await resp.text()}`;
+          throw new Error(
+            `Unexpected status ${resp.status} - ${await resp.text()}`,
+          );
         }
 
         const json = await resp.json();

@@ -125,7 +125,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
       try {
         txResponse = await signer.sendTransaction(txRequest);
         if (!txResponse) {
-          throw "Missing transaction response.";
+          throw new Error("Missing transaction response.");
         }
       } catch (e) {
         const errorMessage = await parseTxError(tx, e);

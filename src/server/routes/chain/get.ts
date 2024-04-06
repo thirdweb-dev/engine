@@ -77,12 +77,11 @@ export async function getChainData(fastify: FastifyInstance) {
       }
 
       if (!chainData) {
-        const error = createCustomError(
+        throw createCustomError(
           "Chain not found",
           StatusCodes.NOT_FOUND,
           "ChainNotFound",
         );
-        throw error;
       }
 
       const minimizeChainData = minimizeChain(chainData);
