@@ -85,6 +85,7 @@ import { grantPermissions } from "./auth/permissions/grant";
 import { revokePermissions } from "./auth/permissions/revoke";
 import { signMessage } from "./backend-wallet/signMessage";
 import { signTransaction } from "./backend-wallet/signTransaction";
+import { signTypedData } from "./backend-wallet/signTypedData";
 import { getAuthConfiguration } from "./configuration/auth/get";
 import { updateAuthConfiguration } from "./configuration/auth/update";
 
@@ -102,6 +103,7 @@ import { revokeRelayer } from "./relayer/revoke";
 import { getAllTransactions } from "./backend-wallet/getTransactions";
 import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
+import { simulateTransaction } from "./backend-wallet/simulateTransaction";
 import { withdraw } from "./backend-wallet/withdraw";
 import { bundler } from "./bundler";
 import { createBundler } from "./bundler/create";
@@ -112,9 +114,26 @@ import { home } from "./home";
 import { updateRelayer } from "./relayer/update";
 import { healthCheck } from "./system/health";
 import { queueStatus } from "./system/queue";
+import { getTxHashReceipt } from "./transaction/blockchain/getTxReceipt";
+import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
+import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
+import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { checkGroupStatus } from "./transaction/group";
-import { sendSignedTransaction } from "./transaction/sendSignedTx";
-import { sendSignedUserOp } from "./transaction/sendSignedUserOp";
+
+// Indexer
+import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
+import { getContractEventLogs } from "./contract/events/getContractEventLogs";
+import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
+import { pageEventLogs } from "./contract/events/paginateEventLogs";
+import { addContractSubscription } from "./contract/subscriptions/addContractSubscription";
+import { getContractIndexedBlockRange } from "./contract/subscriptions/getContractIndexedBlockRange";
+import { getContractSubscriptions } from "./contract/subscriptions/getContractSubscriptions";
+import { getLatestBlock } from "./contract/subscriptions/getLatestBlock";
+import { removeContractSubscription } from "./contract/subscriptions/removeContractSubscription";
+import { getContractTransactionReceipts } from "./contract/transactions/getTransactionReceipts";
+import { getContractTransactionReceiptsByTimestamp } from "./contract/transactions/getTransactionReceiptsByTimestamp";
+import { pageTransactionReceipts } from "./contract/transactions/paginateTransactionReceipts";
+import { syncRetryTransaction } from "./transaction/syncRetry";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
@@ -129,9 +148,11 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(sendTransactionBatch);
   await fastify.register(signTransaction);
   await fastify.register(signMessage);
+  await fastify.register(signTypedData);
   await fastify.register(getAllTransactions);
   await fastify.register(resetBackendWalletNonces);
   await fastify.register(getBackendWalletNonce);
+  await fastify.register(simulateTransaction);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);
@@ -147,6 +168,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getCorsConfiguration);
   await fastify.register(addUrlToCorsConfiguration);
   await fastify.register(removeUrlToCorsConfiguration);
+  await fastify.register(setUrlsToCorsConfiguration);
   await fastify.register(getCacheConfiguration);
   await fastify.register(updateCacheConfiguration);
 
@@ -220,9 +242,12 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllDeployedContracts);
   await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
+  await fastify.register(syncRetryTransaction);
   await fastify.register(cancelTransaction);
   await fastify.register(sendSignedTransaction);
   await fastify.register(sendSignedUserOp);
+  await fastify.register(getTxHashReceipt);
+  await fastify.register(getUserOpReceipt);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);
@@ -233,7 +258,25 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(marketplaceV3Routes);
 
   // System
+  // These should be hidden by default
   await fastify.register(home);
   await fastify.register(healthCheck);
   await fastify.register(queueStatus);
+
+  // Contract Subscriptions
+  await fastify.register(addContractSubscription);
+  await fastify.register(getContractSubscriptions);
+  await fastify.register(getContractIndexedBlockRange);
+  await fastify.register(removeContractSubscription);
+  await fastify.register(getLatestBlock);
+
+  // Contract Transactions
+  await fastify.register(getContractTransactionReceipts);
+  await fastify.register(getContractTransactionReceiptsByTimestamp);
+  await fastify.register(pageTransactionReceipts);
+
+  // Contract Event Logs
+  await fastify.register(getContractEventLogs);
+  await fastify.register(getEventLogs);
+  await fastify.register(pageEventLogs);
 };

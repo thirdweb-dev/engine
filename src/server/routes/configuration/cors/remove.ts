@@ -10,14 +10,14 @@ import { ReplySchema } from "./get";
 const BodySchema = Type.Object({
   urlsToRemove: Type.Array(
     Type.String({
-      description: "Comma separated list urls",
+      description: "Comma separated list of origins to remove",
     }),
   ),
 });
 
 BodySchema.examples = [
   {
-    urlsToRemove: ["https://example.com", "https://example2.com"],
+    urlsToRemove: ["https://example.com", "https://subdomain.example.com"],
   },
 ];
 

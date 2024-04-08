@@ -3,11 +3,11 @@ import fastify, { FastifyInstance } from "fastify";
 import * as fs from "fs";
 import path from "path";
 import { URL } from "url";
-import { deleteAllWalletNonces } from "../db/wallets/deleteAllWalletNonces";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
-import { updateTxListener } from "./listerners/updateTxListener";
+import { withServerUsageReporting } from "../utils/usage";
+import { updateTxListener } from "./listeners/updateTxListener";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
 import { withErrorHandler } from "./middleware/error";
@@ -17,6 +17,10 @@ import { withOpenApi } from "./middleware/open-api";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
+
+// The server timeout in milliseconds.
+// Source: https://fastify.dev/docs/latest/Reference/Server/#connectiontimeout
+const SERVER_CONNECTION_TIMEOUT = 60_000;
 
 const __dirname = new URL(".", import.meta.url).pathname;
 
@@ -28,11 +32,7 @@ interface HttpsObject {
   };
 }
 
-const main = async () => {
-  // Reset any server state that is safe to reset.
-  // This allows the server to start in a predictable state.
-  await deleteAllWalletNonces({});
-
+export const initServer = async () => {
   // Enables the server to run on https://localhost:PORT, if ENABLE_HTTPS is provided.
   let httpsObject: HttpsObject | undefined = undefined;
   if (env.ENABLE_HTTPS) {
@@ -47,6 +47,7 @@ const main = async () => {
 
   // Start the server with middleware.
   const server: FastifyInstance = fastify({
+    connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
@@ -61,6 +62,7 @@ const main = async () => {
   await withExpress(server);
   await withOpenApi(server);
   await withRoutes(server);
+  await withServerUsageReporting(server);
 
   await server.ready();
 
@@ -82,17 +84,21 @@ const main = async () => {
     },
   );
 
+  const url = `${env.ENABLE_HTTPS ? "https://" : "http://"}localhost:${
+    env.PORT
+  }`;
+
   logger({
     service: "server",
     level: "info",
-    message: `Listening on ${env.ENABLE_HTTPS ? "https://" : "http://"}${
-      env.HOST
-    }:${env.PORT}`,
+    message: `Engine server is listening on port ${
+      env.PORT
+    }. Add to your dashboard: https://thirdweb.com/dashboard/engine?importUrl=${encodeURIComponent(
+      url,
+    )}.`,
   });
 
   writeOpenApiToFile(server);
   await updateTxListener();
   await clearCacheCron("server");
 };
-
-main();

@@ -92,7 +92,7 @@ export async function getEvents(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = await contract.events.getEvents(eventName, {
+      const returnData = await contract.events.getEvents(eventName, {
         fromBlock,
         toBlock,
         order,

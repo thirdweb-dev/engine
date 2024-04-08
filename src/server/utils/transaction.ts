@@ -1,21 +1,24 @@
 import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
-import { BigNumber } from "ethers";
 import { StatusCodes } from "http-status-codes";
 import { getTxById } from "../../db/transactions/getTxById";
 import { updateTx } from "../../db/transactions/updateTx";
+import { PrismaTransaction } from "../../schema/prisma";
 import { getSdk } from "../../utils/cache/getSdk";
+import { multiplyGasOverrides } from "../../utils/gas";
 import { createCustomError } from "../middleware/error";
-import { TransactionStatusEnum } from "../schemas/transaction";
+import { TransactionStatus } from "../schemas/transaction";
 
 interface CancelTransactionAndUpdateParams {
   queueId: string;
+  pgtx?: PrismaTransaction;
 }
 
 export const cancelTransactionAndUpdate = async ({
   queueId,
+  pgtx,
 }: CancelTransactionAndUpdateParams) => {
-  const txData = await getTxById({ queueId });
+  const txData = await getTxById({ queueId, pgtx });
   if (!txData) {
     return {
       message: `Transaction ${queueId} not found.`,
@@ -28,36 +31,35 @@ export const cancelTransactionAndUpdate = async ({
 
   if (txData.signerAddress && txData.accountAddress) {
     switch (txData.status) {
-      case TransactionStatusEnum.Errored:
+      case TransactionStatus.Errored:
         throw createCustomError(
           `Cannot cancel user operation because it already errored`,
           StatusCodes.BAD_REQUEST,
           "TransactionErrored",
         );
-      case TransactionStatusEnum.Cancelled:
+      case TransactionStatus.Cancelled:
         throw createCustomError(
           `User operation was already cancelled`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyCancelled",
         );
-      case TransactionStatusEnum.Mined:
+      case TransactionStatus.Mined:
         throw createCustomError(
           `Cannot cancel user operation because it was already mined`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyMined",
         );
-      case TransactionStatusEnum.Submitted:
-      case TransactionStatusEnum.Processed:
+      case TransactionStatus.Sent:
         throw createCustomError(
           `Cannot cancel user operation because it was already processed.`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadySubmitted",
         );
-      case TransactionStatusEnum.Queued:
+      case TransactionStatus.Queued:
         await updateTx({
           queueId,
           data: {
-            status: TransactionStatusEnum.Cancelled,
+            status: TransactionStatus.Cancelled,
           },
         });
         message = "Transaction cancelled on-database successfully.";
@@ -65,38 +67,38 @@ export const cancelTransactionAndUpdate = async ({
     }
   } else {
     switch (txData.status) {
-      case TransactionStatusEnum.Errored:
+      case TransactionStatus.Errored:
         error = createCustomError(
-          `Cannot cancel errored transaction with queueId ${queueId}. Error: ${txData.errorMessage}`,
+          `Transaction has already errored: ${txData.errorMessage}`,
           StatusCodes.BAD_REQUEST,
           "TransactionErrored",
         );
         break;
-      case TransactionStatusEnum.Cancelled:
+      case TransactionStatus.Cancelled:
         error = createCustomError(
-          `Transaction already cancelled with queueId ${queueId}`,
+          "Transaction is already cancelled.",
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyCancelled",
         );
         break;
-      case TransactionStatusEnum.Queued:
+      case TransactionStatus.Queued:
         await updateTx({
           queueId,
+          pgtx,
           data: {
-            status: TransactionStatusEnum.Cancelled,
+            status: TransactionStatus.Cancelled,
           },
         });
-        message = "Transaction cancelled on-database successfully.";
+        message = "Transaction cancelled successfully.";
         break;
-      case TransactionStatusEnum.Mined:
+      case TransactionStatus.Mined:
         error = createCustomError(
-          `Transaction already mined with queueId ${queueId}`,
+          "Transaction already mined.",
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyMined",
         );
         break;
-      case TransactionStatusEnum.Processed:
-      case TransactionStatusEnum.Submitted: {
+      case TransactionStatus.Sent: {
         const sdk = await getSdk({
           chainId: parseInt(txData.chainId!),
           walletAddress: txData.fromAddress!,
@@ -105,10 +107,8 @@ export const cancelTransactionAndUpdate = async ({
         const txReceipt = await sdk
           .getProvider()
           .getTransactionReceipt(txData.transactionHash!);
-
         if (txReceipt) {
-          message =
-            "Transaction already mined. Cannot cancel transaction on-chain.";
+          message = "Transaction already mined.";
           break;
         }
 
@@ -119,19 +119,16 @@ export const cancelTransactionAndUpdate = async ({
           data: "0x",
           value: "0x00",
           nonce: txData.nonce!,
-          ...gasOverrides,
-          maxFeePerGas: BigNumber.from(gasOverrides.maxFeePerGas).mul(2),
-          maxPriorityFeePerGas: BigNumber.from(
-            gasOverrides.maxPriorityFeePerGas,
-          ).mul(2),
+          ...multiplyGasOverrides(gasOverrides, 2),
         });
 
-        message = "Cancellation Transaction sent on chain successfully.";
+        message = "Transaction cancelled successfully.";
 
         await updateTx({
           queueId,
+          pgtx,
           data: {
-            status: TransactionStatusEnum.Cancelled,
+            status: TransactionStatus.Cancelled,
           },
         });
         break;

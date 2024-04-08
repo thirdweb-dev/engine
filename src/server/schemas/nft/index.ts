@@ -305,7 +305,7 @@ export type ercNFTResponseType = (
 
 signature721InputSchema.examples = [
   {
-    to: "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
+    to: "0x...",
     quantity: "1",
     metadata: {
       name: "test tokenII",

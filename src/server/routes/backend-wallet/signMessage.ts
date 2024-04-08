@@ -1,12 +1,14 @@
 import { Static, Type } from "@sinclair/typebox";
+import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getWallet } from "../../../utils/cache/getWallet";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../schemas/wallet";
+import { walletHeaderSchema } from "../../schemas/wallet";
 
 const BodySchema = Type.Object({
   message: Type.String(),
+  isBytes: Type.Optional(Type.Boolean()),
 });
 
 const ReplySchema = Type.Object({
@@ -26,15 +28,16 @@ export async function signMessage(fastify: FastifyInstance) {
       tags: ["Backend Wallet"],
       operationId: "signMessage",
       body: BodySchema,
-      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },
-    handler: async (req, res) => {
-      const { message } = req.body;
-      const walletAddress = req.headers["x-backend-wallet-address"] as string;
+    handler: async (request, reply) => {
+      const { message, isBytes } = request.body;
+      const { "x-backend-wallet-address": walletAddress } =
+        request.headers as Static<typeof walletHeaderSchema>;
 
       const wallet = await getWallet({
         chainId: 1,
@@ -42,9 +45,17 @@ export async function signMessage(fastify: FastifyInstance) {
       });
 
       const signer = await wallet.getSigner();
-      const signedMessage = await signer.signMessage(message);
 
-      res.status(200).send({
+      let signedMessage;
+      if (isBytes) {
+        signedMessage = await signer.signMessage(
+          ethers.utils.arrayify(message),
+        );
+      } else {
+        signedMessage = await signer.signMessage(message);
+      }
+
+      reply.status(200).send({
         result: signedMessage,
       });
     },

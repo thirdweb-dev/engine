@@ -9,19 +9,19 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../schemas/web3api-overrides";
+import { txOverrides } from "../../../schemas/txOverrides";
+import { walletHeaderSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
   functionName: Type.String({
-    description: "Name of the function to call on Contract",
+    description: "The function to call on the contract",
   }),
   args: Type.Array(
     Type.Union([
       Type.String({
-        description: "Arguments for the function. Comma Separated",
+        description: "The arguments to call on the function",
       }),
       Type.Tuple([Type.String(), Type.String()]),
       Type.Object({}),
@@ -29,7 +29,7 @@ const writeRequestBodySchema = Type.Object({
       Type.Any(),
     ]),
   ),
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 // Adding example for Swagger File
@@ -60,7 +60,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -72,10 +72,12 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { functionName, args, txOverrides } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -83,7 +85,6 @@ export async function writeToContract(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
       const tx = await contract.prepare(functionName, args, txOverrides);
 
       const queueId = await queueTx({
@@ -91,6 +92,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         chainId,
         simulateTx,
         extension: "none",
+        idempotencyKey,
       });
 
       reply.status(StatusCodes.OK).send({

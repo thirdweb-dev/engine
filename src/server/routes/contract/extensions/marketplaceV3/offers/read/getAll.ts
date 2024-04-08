@@ -15,7 +15,7 @@ import { formatOffersV3Result } from "../../../../../../utils/marketplaceV3";
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestQuerySchema = Type.Omit(marketplaceFilterSchema, ["seller"]);
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Array(OfferV3OutputSchema),
 });

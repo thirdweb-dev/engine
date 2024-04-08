@@ -4,22 +4,24 @@ import {
   ThirdwebAuthUser,
   getToken as getJWT,
 } from "@thirdweb-dev/auth/fastify";
-import { GenericAuthWallet, LocalWallet } from "@thirdweb-dev/wallets";
+import { GenericAuthWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { utils } from "ethers";
 import { FastifyInstance } from "fastify";
-import { updateConfiguration } from "../../db/configuration/updateConfiguration";
+import { FastifyRequest } from "fastify/types/request";
+import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
-import { getToken } from "../../db/tokens/getToken";
 import { revokeToken } from "../../db/tokens/revokeToken";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { getAccessToken } from "../../utils/cache/accessToken";
+import { getAuthWallet } from "../../utils/cache/authWallet";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getWebhook } from "../../utils/cache/getWebhook";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
+import { sendWebhookRequest } from "../../utils/webhook";
 import { Permission } from "../schemas/auth";
-import { sendWebhookRequest } from "../utils/webhook";
 
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };
@@ -34,6 +36,9 @@ const authWithApiServer = async (jwt: string, domain: string) => {
   let user: User<Json> | null = null;
   try {
     user = await authenticateJWT({
+      options: {
+        secretKey: env.THIRDWEB_API_SECRET_KEY,
+      },
       wallet: {
         type: "evm",
         getAddress: async () => "0x016757dDf2Ab6a998a4729A80a091308d9059E17",
@@ -84,42 +89,9 @@ export const withAuth = async (server: FastifyInstance) => {
     domain: config.authDomain,
     // We use an async wallet here to load wallet from config every time
     wallet: new AsyncWallet({
-      // TODO: Use caching for the signer
       getSigner: async () => {
-        const config = await getConfig();
-        const wallet = new LocalWallet();
-
-        try {
-          // First, we try to load the wallet with the encryption password
-          await wallet.import({
-            encryptedJson: config.authWalletEncryptedJson,
-            password: env.ENCRYPTION_PASSWORD,
-          });
-        } catch {
-          // If that fails, we try to load the wallet with the secret key
-          await wallet.import({
-            encryptedJson: config.authWalletEncryptedJson,
-            password: env.THIRDWEB_API_SECRET_KEY,
-          });
-
-          // And then update the auth wallet to use encryption password instead
-          const encryptedJson = await wallet.export({
-            strategy: "encryptedJson",
-            password: env.ENCRYPTION_PASSWORD,
-          });
-
-          logger({
-            service: "worker",
-            level: "info",
-            message: `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
-          });
-
-          await updateConfiguration({
-            authWalletEncryptedJson: encryptedJson,
-          });
-        }
-
-        return wallet.getSigner();
+        const authWallet = await getAuthWallet();
+        return authWallet.getSigner();
       },
       cacheSigner: false,
     }),
@@ -168,6 +140,7 @@ export const withAuth = async (server: FastifyInstance) => {
 
   // Add auth validation middleware to check for authenticated requests
   server.addHook("onRequest", async (req, res) => {
+<<<<<<< HEAD
     if (
       req.url === "/favicon.ico" ||
       req.url === "/" ||
@@ -215,136 +188,181 @@ export const withAuth = async (server: FastifyInstance) => {
       return;
     }
 
+=======
+>>>>>>> main
     try {
-      // If we have a valid secret key, skip authentication check
-      const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
-      if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
-        // If the secret key is being used, treat the user as the auth wallet
-        const config = await getConfig();
-        const wallet = new LocalWallet();
-
-        try {
-          await wallet.import({
-            encryptedJson: config.authWalletEncryptedJson,
-            password: env.ENCRYPTION_PASSWORD,
-          });
-        } catch {
-          // If that fails, we try to load the wallet with the secret key
-          await wallet.import({
-            encryptedJson: config.authWalletEncryptedJson,
-            password: env.THIRDWEB_API_SECRET_KEY,
-          });
-
-          // And then update the auth wallet to use encryption password instead
-          const encryptedJson = await wallet.export({
-            strategy: "encryptedJson",
-            password: env.ENCRYPTION_PASSWORD,
-          });
-
-          logger({
-            service: "worker",
-            level: "info",
-            message: `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
-          });
-
-          await updateConfiguration({
-            authWalletEncryptedJson: encryptedJson,
-          });
+      const { isAuthed, user } = await onRequest({ req, getUser });
+      if (isAuthed) {
+        if (user) {
+          req.user = user;
         }
-
-        req.user = {
-          address: await wallet.getAddress(),
-          session: {
-            permissions: Permission.Admin,
-          },
-        };
-
+        // Allow this request to proceed.
         return;
-      }
-
-      // Otherwise, check for an authenticated user
-      try {
-        const jwt = getJWT(req);
-        if (jwt) {
-          // 1. Check if the token is a valid engine JWT
-          const token = await getToken({ jwt });
-
-          // First, we ensure that the token hasn't been revoked
-          if (token?.revokedAt === null) {
-            // Then we perform our standard auth checks for the user
-            const user = await getUser(req);
-
-            // Ensure that the token user is an admin or owner
-            if (
-              (user && user?.session?.permissions === Permission.Owner) ||
-              user?.session?.permissions === Permission.Admin
-            ) {
-              req.user = user;
-              return;
-            }
-          }
-
-          // 2. Otherwise, check if the token is a valid api-server JWT
-          const user =
-            (await authWithApiServer(jwt, "thirdweb.com")) ||
-            (await authWithApiServer(jwt, "thirdweb-preview.com"));
-
-          // If we have an api-server user, return it with the proper permissions
-          if (user) {
-            const res = await getPermissions({ walletAddress: user.address });
-
-            if (
-              res?.permissions === Permission.Owner ||
-              res?.permissions === Permission.Admin
-            ) {
-              req.user = {
-                address: user.address,
-                session: {
-                  permissions: res.permissions,
-                },
-              };
-              return;
-            }
-          }
-        }
-      } catch {
-        // no-op
-      }
-
-      const authWebhooks = await getWebhook(WebhooksEventTypes.AUTH);
-      if (authWebhooks.length > 0) {
-        const authResponses = await Promise.all(
-          authWebhooks.map((webhook) =>
-            sendWebhookRequest(webhook, {
-              url: req.url,
-              method: req.method,
-              headers: req.headers,
-              params: req.params,
-              query: req.query,
-              cookies: req.cookies,
-              body: req.body,
-            }),
-          ),
-        );
-
-        // If every auth webhook returns true, we allow the request
-        if (authResponses.every((ok) => !!ok)) {
-          return;
-        }
       }
     } catch (err: any) {
       logger({
         service: "server",
         level: "warn",
-        message: `Caught error authenticating user`,
+        message: "Error authenticating user",
         error: err,
       });
     }
 
-    // If we have no secret key or authenticated user, return 401
+    // Return 401 if:
+    // - There was an error authenticating this request.
+    // - No auth credentials were provided.
+    // - The auth credentials were invalid or revoked.
     return res.status(401).send({
       error: "Unauthorized",
-      message: "Please provide a valid secret key or JWT",
+      message:
+        "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/permissions",
     });
   });
+};
+
+export const onRequest = async ({
+  req,
+  getUser,
+}: {
+  req: FastifyRequest;
+  getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"];
+}): Promise<{
+  isAuthed: boolean;
+  user?: ThirdwebAuthUser<TAuthData, TAuthSession>;
+}> => {
+  if (
+    req.url === "/favicon.ico" ||
+    req.url === "/" ||
+    req.url === "/system/health" ||
+    req.url === "/json" ||
+    req.url.startsWith("/auth/payload") ||
+    req.url.startsWith("/auth/login") ||
+    req.url.startsWith("/auth/user") ||
+    req.url.startsWith("/auth/switch-account") ||
+    req.url.startsWith("/auth/logout") ||
+    req.url.startsWith("/transaction/status")
+  ) {
+    // Skip auth check for static endpoints and Thirdweb Auth routes.
+    return { isAuthed: true };
+  }
+
+  if (req.method === "POST" && req.url.startsWith("/relayer/")) {
+    const relayerId = req.url.slice("/relayer/".length);
+    if (uuidValidate(relayerId)) {
+      // The "relay transaction" endpoint handles its own authentication.
+      return { isAuthed: true };
+    }
+  }
+
+  // Handle websocket request: auth via access token
+  // Allow a request that provides a non-revoked access token for an owner/admin.
+  if (
+    req.headers.upgrade &&
+    req.headers.upgrade.toLowerCase() === "websocket"
+  ) {
+    const { token: jwt } = req.query as { token: string };
+
+    const token = await getAccessToken({ jwt });
+    if (token && token.revokedAt === null) {
+      // Set as a header for `getUsers` to parse the token.
+      req.headers.authorization = `Bearer ${jwt}`;
+      const user = await getUser(req);
+      if (
+        user?.session?.permissions === Permission.Owner ||
+        user?.session?.permissions === Permission.Admin
+      ) {
+        return { isAuthed: true, user };
+      }
+    }
+
+    // Destroy the websocket connection.
+    req.raw.socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+    req.raw.socket.destroy();
+    return { isAuthed: false };
+  }
+
+  try {
+    const jwt = getJWT(req);
+    if (jwt) {
+      // Auth via access token
+      // Allow a request that provides a non-revoked access token for an owner/admin.
+      const token = await getAccessToken({ jwt });
+      if (token && token.revokedAt === null) {
+        const user = await getUser(req);
+        if (
+          user?.session?.permissions === Permission.Owner ||
+          user?.session?.permissions === Permission.Admin
+        ) {
+          return { isAuthed: true, user };
+        }
+      }
+
+      // Auth via dashboard
+      // Allow a request that provides a dashboard JWT.
+      const user =
+        (await authWithApiServer(jwt, "thirdweb.com")) ||
+        (await authWithApiServer(jwt, "thirdweb-preview.com"));
+      if (user) {
+        const res = await getPermissions({ walletAddress: user.address });
+        if (
+          res?.permissions === Permission.Owner ||
+          res?.permissions === Permission.Admin
+        ) {
+          return {
+            isAuthed: true,
+            user: {
+              address: user.address,
+              session: {
+                permissions: res.permissions,
+              },
+            },
+          };
+        }
+      }
+    }
+  } catch {
+    // This throws if no JWT is provided. Continue to check other auth mechanisms.
+  }
+
+  // Auth via thirdweb secret key
+  // Allow a request that provides the thirdweb secret key used to init Engine.
+  const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
+  if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
+    const authWallet = await getAuthWallet();
+    return {
+      isAuthed: true,
+      user: {
+        address: await authWallet.getAddress(),
+        session: {
+          permissions: Permission.Admin,
+        },
+      },
+    };
+  }
+
+  // Auth via auth webhooks
+  // Allow a request if it satisfies all configured auth webhooks.
+  // Must have at least one auth webhook.
+  const authWebhooks = await getWebhook(WebhooksEventTypes.AUTH);
+  if (authWebhooks.length > 0) {
+    const authResponses = await Promise.all(
+      authWebhooks.map((webhook) =>
+        sendWebhookRequest(webhook, {
+          url: req.url,
+          method: req.method,
+          headers: req.headers,
+          params: req.params,
+          query: req.query,
+          cookies: req.cookies,
+          body: req.body,
+        }),
+      ),
+    );
+
+    if (authResponses.every((ok) => !!ok)) {
+      return { isAuthed: true };
+    }
+  }
+
+  return { isAuthed: false };
 };

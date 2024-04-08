@@ -136,7 +136,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
           NativeMetaTransaction,
         );
 
-        const tx = await target.prepare("executeMetaTransaction", [
+        const tx = target.prepare("executeMetaTransaction", [
           request.from,
           request.data,
           r,
@@ -178,7 +178,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
           ERC20PermitAbi,
         );
 
-        const tx = await target.prepare("permit", [
+        const tx = target.prepare("permit", [
           request.owner,
           request.spender,
           request.value,
@@ -264,10 +264,10 @@ export async function relayTransaction(fastify: FastifyInstance) {
         forwarderAbi,
       );
 
-      const valid = await forwarder.call("verify", [
-        request,
-        ethers.utils.joinSignature(ethers.utils.splitSignature(signature)),
-      ]);
+      const fixedSignature = ethers.utils.joinSignature(
+        ethers.utils.splitSignature(signature),
+      );
+      const valid = await forwarder.call("verify", [request, fixedSignature]);
 
       if (!valid) {
         res.status(400).send({
@@ -278,7 +278,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
         return;
       }
 
-      const tx = await forwarder.prepare("execute", [request, signature]);
+      const tx = forwarder.prepare("execute", [request, fixedSignature]);
       const queueId = await queueTx({
         tx,
         chainId: relayer.chainId,

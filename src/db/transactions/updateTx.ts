@@ -1,6 +1,6 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { PrismaTransaction } from "../../schema/prisma";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface UpdateTxParams {
@@ -11,30 +11,27 @@ interface UpdateTxParams {
 
 type UpdateTxData =
   | {
-      status: TransactionStatusEnum.Cancelled;
+      status: TransactionStatus.Cancelled;
     }
   | {
-      status: TransactionStatusEnum.Processed;
-    }
-  | {
-      status: TransactionStatusEnum.Errored;
+      status: TransactionStatus.Errored;
       errorMessage: string;
     }
   | {
-      status: TransactionStatusEnum.Submitted;
+      status: TransactionStatus.Sent;
       sentAt: Date;
       transactionHash: string;
-      res: ethers.providers.TransactionResponse | null;
+      res: ethers.providers.TransactionRequest;
       sentAtBlockNumber: number;
       retryCount?: number;
     }
   | {
-      status: TransactionStatusEnum.UserOpSent;
+      status: TransactionStatus.UserOpSent;
       sentAt: Date;
       userOpHash: string;
     }
   | {
-      status: TransactionStatusEnum.Mined;
+      status: TransactionStatus.Mined;
       gasPrice?: string;
       blockNumber?: number;
       minedAt: Date;
@@ -50,7 +47,7 @@ type UpdateTxData =
 export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
   switch (data.status) {
-    case TransactionStatusEnum.Cancelled:
+    case TransactionStatus.Cancelled:
       await prisma.transactions.update({
         where: {
           id: queueId,
@@ -60,17 +57,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         },
       });
       break;
-    case TransactionStatusEnum.Processed:
-      await prisma.transactions.update({
-        where: {
-          id: queueId,
-        },
-        data: {
-          processedAt: new Date(),
-        },
-      });
-      break;
-    case TransactionStatusEnum.Errored:
+    case TransactionStatus.Errored:
       await prisma.transactions.update({
         where: {
           id: queueId,
@@ -80,7 +67,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         },
       });
       break;
-    case TransactionStatusEnum.Submitted:
+    case TransactionStatus.Sent:
       await prisma.transactions.update({
         where: {
           id: queueId,
@@ -90,16 +77,17 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           transactionHash: data.transactionHash,
           sentAtBlockNumber: data.sentAtBlockNumber,
           retryCount: data.retryCount,
-          nonce: data.res?.nonce,
+          nonce: BigNumber.from(data.res.nonce).toNumber(),
           transactionType: data.res?.type || undefined,
           gasPrice: data.res?.gasPrice?.toString(),
           gasLimit: data.res?.gasLimit?.toString(),
           maxFeePerGas: data.res?.maxFeePerGas?.toString(),
           maxPriorityFeePerGas: data.res?.maxPriorityFeePerGas?.toString(),
+          value: data.res?.value?.toString(),
         },
       });
       break;
-    case TransactionStatusEnum.UserOpSent:
+    case TransactionStatus.UserOpSent:
       await prisma.transactions.update({
         where: {
           id: queueId,
@@ -110,16 +98,16 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         },
       });
       break;
-    case TransactionStatusEnum.Mined:
+    case TransactionStatus.Mined:
       await prisma.transactions.update({
         where: {
           id: queueId,
         },
         data: {
+          transactionHash: data.transactionHash,
           minedAt: data.minedAt,
           blockNumber: data.blockNumber,
           onChainTxStatus: data.onChainTxStatus,
-          transactionHash: data.transactionHash,
           transactionType: data.transactionType,
           gasPrice: data.gasPrice,
           gasLimit: data.gasLimit,

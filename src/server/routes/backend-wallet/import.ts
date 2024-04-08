@@ -11,11 +11,11 @@ import { importLocalWallet } from "../../utils/wallets/importLocalWallet";
 const RequestBodySchema = Type.Union([
   Type.Object({
     awsKmsKeyId: Type.String({
-      description: "AWS KMS Key ID",
+      description: "AWS KMS key ID",
       examples: ["12345678-1234-1234-1234-123456789012"],
     }),
     awsKmsArn: Type.String({
-      description: "AWS KMS Key ARN",
+      description: "AWS KMS key ARN",
       examples: [
         "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
       ],
@@ -23,11 +23,11 @@ const RequestBodySchema = Type.Union([
   }),
   Type.Object({
     gcpKmsKeyId: Type.String({
-      description: "GCP KMS Key ID",
+      description: "GCP KMS key ID",
       examples: ["12345678-1234-1234-1234-123456789012"],
     }),
     gcpKmsKeyVersionId: Type.String({
-      description: "GCP KMS Key Version ID",
+      description: "GCP KMS key version ID",
       examples: ["1"],
     }),
   }),

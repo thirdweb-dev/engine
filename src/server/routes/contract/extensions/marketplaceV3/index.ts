@@ -7,6 +7,7 @@ import { directListingsIsBuyerApprovedForListing } from "./directListings/read/i
 import { directListingsIsCurrencyApprovedForListing } from "./directListings/read/isCurrencyApprovedForListing";
 import { directListingsApproveBuyerForReservedListing } from "./directListings/write/approveBuyerForReservedListing";
 import { directListingsBuyFromListing } from "./directListings/write/buyFromListing";
+import { directListingsCancelListing } from "./directListings/write/cancelListing";
 import { directListingsCreateListing } from "./directListings/write/createListing";
 import { directListingsRevokeBuyerApprovalForReservedListing } from "./directListings/write/revokeBuyerApprovalForReservedListing";
 import { directListingsRevokeCurrencyApprovalForListing } from "./directListings/write/revokeCurrencyApprovalForListing";
@@ -74,6 +75,7 @@ export const marketplaceV3Routes = async (fastify: FastifyInstance) => {
   await fastify.register(directListingsApproveBuyerForReservedListing);
   await fastify.register(directListingsRevokeBuyerApprovalForReservedListing);
   await fastify.register(directListingsRevokeCurrencyApprovalForListing);
+  await fastify.register(directListingsCancelListing);
 
   // English Auctions
   await fastify.register(englishAuctionsBuyoutAuction);

@@ -9,8 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverrides } from "../../../../../schemas/txOverrides";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The amount of tokens to claim.",
   }),
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 // Example for the Request Body
@@ -49,7 +49,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
       operationId: "claimTo",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -60,10 +60,12 @@ export async function erc20claimTo(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { recipient, amount } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -71,14 +73,16 @@ export async function erc20claimTo(fastify: FastifyInstance) {
         walletAddress,
         accountAddress,
       });
-
       const tx = await contract.erc20.claimTo.prepare(recipient, amount);
+
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "erc20",
+        idempotencyKey,
       });
+
       reply.status(StatusCodes.OK).send({
         result: {
           queueId,

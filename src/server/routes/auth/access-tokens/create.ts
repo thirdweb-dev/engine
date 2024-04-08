@@ -5,6 +5,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { createToken } from "../../../../db/tokens/createToken";
+import { accessTokenCache } from "../../../../utils/cache/accessToken";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { env } from "../../../../utils/env";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
@@ -87,6 +88,8 @@ export async function createAccessToken(fastify: FastifyInstance) {
       });
 
       const token = await createToken({ jwt, isAccessToken: true, label });
+
+      accessTokenCache.clear();
 
       res.status(200).send({
         result: {

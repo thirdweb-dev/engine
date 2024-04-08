@@ -10,8 +10,7 @@ import { ReplySchema } from "./get";
 const BodySchema = Type.Object({
   urlsToAdd: Type.Array(
     Type.String({
-      description:
-        "Comma separated list of origins to allow CORS for. Thirdweb URLs are automatically added.",
+      description: "Comma separated list of origins that will call Engine",
       minLength: 1,
     }),
   ),
@@ -19,7 +18,7 @@ const BodySchema = Type.Object({
 
 BodySchema.examples = [
   {
-    urlsToAdd: ["https://example.com", "https://example2.com"],
+    urlsToAdd: ["https://example.com", "https://subdomain.example.com"],
   },
 ];
 
@@ -31,8 +30,8 @@ export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
     method: "POST",
     url: "/configuration/cors",
     schema: {
-      summary: "Add Url to CORS configuration",
-      description: "Add Url to CORS configuration",
+      summary: "Add a CORS URL",
+      description: "Add a URL to allow client-side calls to Engine",
       tags: ["Configuration"],
       operationId: "addUrlToCorsConfiguration",
       body: BodySchema,

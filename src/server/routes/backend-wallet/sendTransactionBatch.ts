@@ -1,10 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { v4 as uuidv4 } from "uuid";
+import { v4 } from "uuid";
 import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../schemas/wallet";
+import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
@@ -50,22 +50,24 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
       operationId: "sendTransactionBatch",
       params: ParamsSchema,
       body: BodySchema,
-      headers: Type.Omit(walletAuthSchema, ["x-account-address"]),
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,
       },
     },
-    handler: async (req, res) => {
-      const { chain } = req.params;
-      const txs = req.body;
-      const fromAddress = req.headers["x-backend-wallet-address"] as string;
+    handler: async (request, reply) => {
+      const { chain } = request.params;
+      const txs = request.body;
+      // The batch endpoint does not support idempotency keys.
+      const { "x-backend-wallet-address": fromAddress } =
+        request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
-      const groupId = uuidv4();
+      const groupId = v4();
       const data = txs.map((tx) => ({
         groupId,
-        id: uuidv4(),
+        id: v4(),
         chainId: chainId.toString(),
         fromAddress: fromAddress.toLowerCase(),
         toAddress: tx.toAddress?.toLowerCase(),
@@ -77,7 +79,7 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
         data,
       });
 
-      res.status(StatusCodes.OK).send({
+      reply.status(StatusCodes.OK).send({
         result: {
           groupId,
           queueIds: data.map((tx) => tx.id.toString()),

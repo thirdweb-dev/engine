@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { sdkCache } from "../../../../utils/cache/getSdk";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
@@ -51,7 +52,7 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
     url: "/configuration/chains",
     schema: {
       summary: "Update chain overrides configuration",
-      description: "Update the engine configuration for chain overrides",
+      description: "Update chain overrides configuration",
       tags: ["Configuration"],
       operationId: "updateChainsConfiguration",
       body: BodySchema,
@@ -66,6 +67,7 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
       });
 
       const config = await getConfig(false);
+      sdkCache.clear();
       res.status(200).send({
         result: config.chainOverrides,
       });

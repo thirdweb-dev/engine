@@ -1,5 +1,6 @@
 import { Configuration } from "@prisma/client";
 import { LocalWallet } from "@thirdweb-dev/wallets";
+import { ethers } from "ethers";
 import { WalletType } from "../../schema/wallet";
 import { mandatoryAllowedCorsUrls } from "../../server/utils/cors-urls";
 import { decrypt } from "../../utils/crypto";
@@ -174,13 +175,20 @@ export const getConfiguration = async (): Promise<Config> => {
       },
       create: {
         minTxsToProcess: 1,
-        maxTxsToProcess: 10,
+        maxTxsToProcess: 30,
         minedTxListenerCronSchedule: "*/5 * * * * *",
         maxTxsToUpdate: 50,
-        retryTxListenerCronSchedule: "*/30 * * * * *",
-        minEllapsedBlocksBeforeRetry: 15,
-        maxFeePerGasForRetries: "55000000000",
-        maxPriorityFeePerGasForRetries: "55000000000",
+        retryTxListenerCronSchedule: "*/15 * * * * *",
+        indexerListenerCronSchedule: "*/5 * * * * *",
+        maxBlocksToIndex: 25,
+        cursorDelaySeconds: 2,
+        minEllapsedBlocksBeforeRetry: 12,
+        maxFeePerGasForRetries: ethers.utils
+          .parseUnits("10000", "gwei")
+          .toString(),
+        maxPriorityFeePerGasForRetries: ethers.utils
+          .parseUnits("10000", "gwei")
+          .toString(),
         maxRetriesPerTx: 3,
         authDomain: "thirdweb.com",
         authWalletEncryptedJson: await createAuthWalletEncryptedJson(),
@@ -199,6 +207,10 @@ export const getConfiguration = async (): Promise<Config> => {
   } else if (!config.accessControlAllowOrigin) {
     config = await updateConfiguration({
       accessControlAllowOrigin: mandatoryAllowedCorsUrls.join(","),
+    });
+  } else if (!config.indexerListenerCronSchedule) {
+    config = await updateConfiguration({
+      indexerListenerCronSchedule: "*/5 * * * * *",
     });
   }
 

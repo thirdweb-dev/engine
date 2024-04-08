@@ -11,8 +11,8 @@ import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
-import { txOverridesForWriteRequest } from "../../../../../schemas/web3api-overrides";
+import { txOverrides } from "../../../../../schemas/txOverrides";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
@@ -20,7 +20,7 @@ import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validato
 const requestSchema = erc721ContractParamSchema;
 const requestBodySchema = Type.Object({
   ...signature721InputSchema.properties,
-  ...txOverridesForWriteRequest.properties,
+  ...txOverrides.properties,
 });
 
 // OUTPUT
@@ -72,7 +72,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -96,11 +96,13 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       const walletAddress = request.headers[
         "x-backend-wallet-address"
       ] as string;
+      const accountAddress = request.headers["x-account-address"] as string;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
         walletAddress,
+        accountAddress,
       });
 
       const payload = checkAndReturnNFTSignaturePayload<

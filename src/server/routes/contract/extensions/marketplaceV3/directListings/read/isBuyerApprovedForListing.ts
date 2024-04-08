@@ -6,7 +6,6 @@ import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -20,7 +19,7 @@ const requestQuerySchema = Type.Object({
   }),
 });
 
-// OUPUT
+// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Boolean(),
 });
@@ -48,7 +47,6 @@ export async function directListingsIsBuyerApprovedForListing(
         "Check if a buyer is approved to purchase a specific direct listing.",
       tags: ["Marketplace-DirectListings"],
       operationId: "isBuyerApprovedForListing",
-      headers: walletAuthSchema,
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

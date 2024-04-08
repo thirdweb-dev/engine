@@ -1,5 +1,5 @@
-import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { bundlerUserOpListener } from "./listeners/bundleUserOpListener";
+import { chainIndexerListener } from "./listeners/chainIndexerListener";
 import {
   newConfigurationListener,
   updatedConfigurationListener,
@@ -13,7 +13,7 @@ import {
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
 
-const worker = async () => {
+export const initWorker = async () => {
   // Listen for queued transactions to process
   await queuedTxListener();
 
@@ -37,8 +37,5 @@ const worker = async () => {
   await newWebhooksListener();
   await updatedWebhooksListener();
 
-  // Rest Cache Cron
-  await clearCacheCron("worker");
+  await chainIndexerListener();
 };
-
-worker();

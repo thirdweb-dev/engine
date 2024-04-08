@@ -9,7 +9,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletAuthSchema } from "../../../../../schemas/wallet";
+import { walletHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const BodySchema = Type.Object({
@@ -39,7 +39,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
       tags: ["Account"],
       operationId: "revokeSession",
       params: contractParamSchema,
-      headers: walletAuthSchema,
+      headers: walletHeaderSchema,
       body: BodySchema,
       querystring: requestQuerystringSchema,
       response: {
@@ -51,10 +51,11 @@ export const revokeSession = async (fastify: FastifyInstance) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { walletAddress } = request.body;
-      const backendWalletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": backendWalletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -69,6 +70,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
         chainId,
         simulateTx,
         extension: "account",
+        idempotencyKey,
       });
 
       reply.status(StatusCodes.OK).send({

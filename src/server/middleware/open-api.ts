@@ -7,7 +7,7 @@ export const withOpenApi = async (server: FastifyInstance) => {
     openapi: {
       info: {
         title: "thirdweb Engine",
-        description: "The most powerful backend engine for web3 apps.",
+        description: "The open-source server for scalable web3 apps.",
         version: "0.0.2",
         license: {
           name: "Apache 2.0",
@@ -20,7 +20,7 @@ export const withOpenApi = async (server: FastifyInstance) => {
             type: "http",
             scheme: "bearer",
             bearerFormat: "JWT",
-            description: "For secure server-authenticated calls",
+            description: "To authenticate server-side requests",
           },
         },
       },
