@@ -12,10 +12,10 @@ import { thirdwebClientId } from "./sdk";
 export interface ReportUsageParams {
   action: UsageEventType;
   data: {
-    chainId: string;
+    chainId: number;
     fromAddress?: string;
     toAddress?: string;
-    value?: string;
+    value?: bigint;
     transactionHash?: string;
     onChainTxStatus?: number;
     userOpHash?: string;
@@ -112,10 +112,10 @@ export const reportUsage = (usageEvents: ReportUsageParams[]) => {
         source: "engine",
         action: event.action,
         clientId: thirdwebClientId,
-        chainId: parseInt(event.data.chainId),
+        chainId: event.data.chainId,
         walletAddress: event.data.fromAddress,
         contractAddress: event.data.toAddress,
-        transactionValue: event.data.value,
+        transactionValue: event.data.value?.toString(),
         transactionHash: event.data.transactionHash,
         userOpHash: event.data.userOpHash,
         errorCode:

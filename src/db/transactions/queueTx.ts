@@ -1,6 +1,5 @@
 import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
-import { BigNumber } from "ethers";
 import type { ContractExtension } from "../../schema/extension";
 import { InputTransaction } from "../../schema/transaction";
 import { queueTxRaw } from "./queueTxRaw";
@@ -27,14 +26,14 @@ export const queueTx = async ({
 }: QueueTxParams): Promise<string> => {
   const tx: InputTransaction = {
     idempotencyKey,
-    chainId: chainId.toString(),
+    chainId,
     functionName: sdkTx.getMethod(),
     functionArgs: JSON.stringify(sdkTx.getArgs()),
     extension,
     deployedContractAddress,
     deployedContractType,
     data: sdkTx.encode(),
-    value: BigNumber.from(await sdkTx.getValue()).toHexString(),
+    value: BigInt(await sdkTx.getValue().toString()),
   };
 
   // TODO: We need a much safer way of detecting if the transaction should be a user operation

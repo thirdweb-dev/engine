@@ -3,11 +3,11 @@ export type InputTransaction = {
   idempotencyKey?: string;
 
   // Onchain data
-  chainId: string;
+  chainId: number;
   fromAddress?: string;
   toAddress?: string;
   data: string;
-  value?: string;
+  value?: bigint;
   functionName?: string;
   functionArgs?: string;
   extension?: string;
@@ -28,7 +28,7 @@ export type QueuedTransaction = InputTransaction & {
   queuedAt: Date;
 
   // Onchain data
-  value: string;
+  value: bigint;
 
   // User operation
   initCode?: string;
@@ -41,31 +41,28 @@ export type QueuedTransaction = InputTransaction & {
 
 export type SentTransaction = QueuedTransaction & {
   sentAt: Date;
-  sentAtBlockNumber: number;
-
-  // Prepared onchain data
-  gasLimit: string;
+  sentAtBlock: bigint;
+  gas: bigint;
   nonce: number;
-  gasPrice: string;
-  maxFeePerGas: string;
-  maxPriorityFeePerGas: string;
-
-  // From RPC response
-  transactionType: number;
-  transactionHash: string;
-  userOpHash?: string;
-
-  // Retry data
-  retryCount: number;
-  retryGasValues?: boolean;
-  retryMaxPriorityFeePerGas?: string;
-  retryMaxFeePerGas?: string;
-};
+  transactionHash: `0x${string}`;
+  userOpHash?: `0x${string}`;
+} & (
+    | {
+        gasPrice: bigint;
+        maxFeePerGas: undefined;
+        maxPriorityFeePerGas: undefined;
+      }
+    | {
+        gasPrice: undefined;
+        maxFeePerGas: bigint;
+        maxPriorityFeePerGas: bigint;
+      }
+  );
 
 export type MinedTransaction = SentTransaction & {
   minedAt: Date;
-  blockNumber: number;
-  onChainTxStatus: number;
+  minedAtBlock: bigint;
+  onChainTxStatus: "success" | "reverted";
 };
 
 export type ErroredTransaction = (QueuedTransaction | SentTransaction) & {

@@ -71,11 +71,11 @@ export async function sendTransaction(fastify: FastifyInstance) {
 
       const queueId = await queueTxRaw({
         tx: {
-          chainId: chainId.toString(),
+          chainId,
           fromAddress,
           toAddress,
           data,
-          value,
+          value: BigInt(value),
           idempotencyKey,
         },
         simulateTx,

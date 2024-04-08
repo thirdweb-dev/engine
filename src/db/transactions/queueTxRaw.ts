@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { InputTransaction, QueuedTransaction } from "../../schema/transaction";
 import { simulate } from "../../server/utils/simulateTx";
 import { UsageEventType, reportUsage } from "../../utils/usage";
-import { IngestQueue } from "../../worker/queues/queues";
+import { QueuedTransactionQueue } from "../../worker/queues/queues";
 import { getWalletDetails } from "../wallets/getWalletDetails";
 
 type QueueTxRawParams = {
@@ -32,23 +32,23 @@ export const queueTxRaw = async ({
 
   // Build a QueuedTransaction.
   const queueId = randomUUID();
-  const queuedTx: QueuedTransaction = {
+  const queuedTransaction: QueuedTransaction = {
     ...tx,
     id: queueId,
     idempotencyKey: tx.idempotencyKey ?? queueId,
-    value: tx.value ?? "0",
     queuedAt: new Date(),
+    value: tx.value ? BigInt(tx.value) : 0n,
   };
 
   // (Optional) Simulate the transaction.
   if (simulateTx) {
-    await simulate({ txRaw: queuedTx });
+    await simulate({ txRaw: queuedTransaction });
   }
 
   // Enqueue the job.
-  const job = { tx: queuedTx };
-  await IngestQueue.add(job);
+  const job = { queuedTransaction };
+  await QueuedTransactionQueue.add(job);
 
-  reportUsage([{ action: UsageEventType.QueueTx, data: queuedTx }]);
+  reportUsage([{ action: UsageEventType.QueueTx, data: queuedTransaction }]);
   return queueId;
 };

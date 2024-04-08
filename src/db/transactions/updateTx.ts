@@ -1,5 +1,4 @@
 import { Transactions } from "@prisma/client";
-import { BigNumber, ethers } from "ethers";
 import { PrismaTransaction } from "../../schema/prisma";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
@@ -23,10 +22,16 @@ type UpdateTxData =
   | {
       status: TransactionStatus.Sent;
       sentAt: Date;
+      sentAtBlock: bigint;
       transactionHash: string;
-      res: ethers.providers.TransactionRequest;
-      sentAtBlockNumber: number;
       retryCount?: number;
+      nonce: number;
+      transactionType: number;
+      gas: bigint;
+      gasPrice?: bigint;
+      maxFeePerGas?: bigint;
+      maxPriorityFeePerGas?: bigint;
+      value: bigint;
     }
   | {
       status: TransactionStatus.UserOpSent;
@@ -35,15 +40,15 @@ type UpdateTxData =
     }
   | {
       status: TransactionStatus.Mined;
-      gasPrice?: string;
-      blockNumber?: number;
       minedAt: Date;
-      onChainTxStatus?: number;
-      transactionHash?: string;
+      minedAtBlock: bigint;
+      onChainTxStatus: "success" | "reverted";
+      transactionHash: string;
       transactionType?: number;
-      gasLimit?: string;
-      maxFeePerGas?: string;
-      maxPriorityFeePerGas?: string;
+      gasPrice: bigint;
+      gas: bigint;
+      maxFeePerGas?: bigint;
+      maxPriorityFeePerGas?: bigint;
       nonce?: number;
     };
 
@@ -80,16 +85,16 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         },
         data: {
           sentAt: data.sentAt,
+          sentAtBlockNumber: Number(data.sentAtBlock),
           transactionHash: data.transactionHash,
-          sentAtBlockNumber: data.sentAtBlockNumber,
           retryCount: data.retryCount,
-          nonce: BigNumber.from(data.res.nonce).toNumber(),
-          transactionType: data.res?.type || undefined,
-          gasPrice: data.res?.gasPrice?.toString(),
-          gasLimit: data.res?.gasLimit?.toString(),
-          maxFeePerGas: data.res?.maxFeePerGas?.toString(),
-          maxPriorityFeePerGas: data.res?.maxPriorityFeePerGas?.toString(),
-          value: data.res?.value?.toString(),
+          nonce: data.nonce,
+          transactionType: data.transactionType,
+          gasLimit: data.gas.toString(),
+          gasPrice: data.gasPrice?.toString(),
+          maxFeePerGas: data.maxFeePerGas?.toString(),
+          maxPriorityFeePerGas: data.maxPriorityFeePerGas?.toString(),
+          value: data.value.toString(),
         },
       });
       break;
@@ -112,13 +117,13 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
         data: {
           transactionHash: data.transactionHash,
           minedAt: data.minedAt,
-          blockNumber: data.blockNumber,
-          onChainTxStatus: data.onChainTxStatus,
+          blockNumber: Number(data.minedAtBlock),
+          onChainTxStatus: data.onChainTxStatus === "success" ? 1 : 0,
           transactionType: data.transactionType,
-          gasPrice: data.gasPrice,
-          gasLimit: data.gasLimit,
-          maxFeePerGas: data.maxFeePerGas,
-          maxPriorityFeePerGas: data.maxPriorityFeePerGas,
+          gasPrice: data.gasPrice.toString(),
+          gasLimit: data.gas.toString(),
+          maxFeePerGas: data.maxFeePerGas?.toString(),
+          maxPriorityFeePerGas: data.maxPriorityFeePerGas?.toString(),
           nonce: data.nonce,
         },
       });

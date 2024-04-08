@@ -71,7 +71,6 @@
     "superjson": "^2.2.1",
     "thirdweb": "^5.1.0",
     "uuid": "^9.0.1",
-    "viem": "^1.14.0",
     "zod": "^3.21.4"
   },
   "devDependencies": {

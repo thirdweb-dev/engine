@@ -1,12 +1,21 @@
-import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import {
+  defineChain,
+  eth_blockNumber,
+  getRpcClient,
+  prepareTransaction,
+  sendTransaction,
+} from "thirdweb";
+import { ethers5Adapter } from "thirdweb/adapters/ethers5";
+import { resolvePromisedValue } from "thirdweb/dist/types/utils/promise/resolve-promised-value";
 import { prisma } from "../../../db/client";
 import { updateTx } from "../../../db/transactions/updateTx";
-import { getSdk } from "../../../utils/cache/getSdk";
+import { getWallet } from "../../../utils/cache/getWallet";
 import { msSince } from "../../../utils/date";
 import { parseTxError } from "../../../utils/errors";
+import { thirdwebClient } from "../../../utils/sdk";
 import { UsageEventType, reportUsage } from "../../../utils/usage";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -83,9 +92,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         !tx.fromAddress ||
         !tx.data ||
         !tx.value ||
-        !tx.nonce ||
-        !tx.maxFeePerGas ||
-        !tx.maxPriorityFeePerGas
+        !tx.nonce
       ) {
         throw createCustomError(
           "Transaction is not in a valid state.",
@@ -94,39 +101,37 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         );
       }
 
-      // Get signer.
-      const sdk = await getSdk({
-        chainId: Number(tx.chainId),
+      const chain = defineChain(parseInt(tx.chainId));
+      const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
+      const wallet = await getWallet({
+        chainId: chain.id,
         walletAddress: tx.fromAddress,
       });
-      const signer = sdk.getSigner();
-      if (!signer) {
-        throw createCustomError(
-          "Backend wallet not found.",
-          StatusCodes.BAD_REQUEST,
-          "BACKEND_WALLET_NOT_FOUND",
-        );
-      }
-
-      const blockNumber = await sdk.getProvider().getBlockNumber();
+      const account = await ethers5Adapter.signer.fromEthers({
+        signer: wallet.getSigner(),
+      });
 
       // Send transaction and get the transaction hash.
-      const txRequest = {
+      const retryTransaction = prepareTransaction({
+        client: thirdwebClient,
+        chain,
         to: tx.toAddress,
-        from: tx.fromAddress,
-        data: tx.data,
-        value: tx.value,
+        data: tx.data as `0x${string}`,
+        value: BigInt(tx.value),
         nonce: tx.nonce,
-        maxFeePerGas: maxFeePerGas ?? tx.maxFeePerGas,
-        maxPriorityFeePerGas: maxPriorityFeePerGas ?? tx.maxPriorityFeePerGas,
-      };
+        maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
+        maxPriorityFeePerGas: maxPriorityFeePerGas
+          ? BigInt(maxPriorityFeePerGas)
+          : undefined,
+      });
 
-      let txResponse: TransactionResponse;
+      let transactionHash: string;
       try {
-        txResponse = await signer.sendTransaction(txRequest);
-        if (!txResponse) {
-          throw new Error("Missing transaction response.");
-        }
+        const result = await sendTransaction({
+          transaction: retryTransaction,
+          account,
+        });
+        transactionHash = result.transactionHash;
       } catch (e) {
         const errorMessage = await parseTxError(tx, e);
         throw createCustomError(
@@ -135,17 +140,26 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           "TRANSACTION_RETRY_FAILED",
         );
       }
-      const transactionHash = txResponse.hash;
 
       // Update DB.
       await updateTx({
         queueId: tx.id,
         data: {
           status: TransactionStatus.Sent,
-          transactionHash,
-          res: txRequest,
           sentAt: new Date(),
-          sentAtBlockNumber: blockNumber,
+          sentAtBlock: await eth_blockNumber(rpcRequest),
+          transactionHash,
+          nonce: tx.nonce,
+          transactionType: tx.transactionType ?? 0,
+          gas: await resolvePromisedValue(retryTransaction.gas),
+          gasPrice: await resolvePromisedValue(retryTransaction.gasPrice),
+          maxFeePerGas: await resolvePromisedValue(
+            retryTransaction.maxFeePerGas,
+          ),
+          maxPriorityFeePerGas: await resolvePromisedValue(
+            retryTransaction.maxPriorityFeePerGas,
+          ),
+          value: await resolvePromisedValue(retryTransaction.value),
         },
       });
       reportUsage([
@@ -154,8 +168,8 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           data: {
             fromAddress: tx.fromAddress,
             toAddress: tx.toAddress,
-            value: tx.value,
-            chainId: tx.chainId,
+            value: BigInt(tx.value),
+            chainId: parseInt(tx.chainId),
             transactionHash,
             functionName: tx.functionName || undefined,
             extension: tx.extension || undefined,

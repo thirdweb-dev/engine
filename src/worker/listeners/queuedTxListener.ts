@@ -6,6 +6,7 @@ import { processTx } from "../tasks/processTx";
 let processTxStarted = false;
 let task: cron.ScheduledTask;
 
+// @deprecated
 export const queuedTxListener = async (): Promise<void> => {
   logger({
     service: "worker",

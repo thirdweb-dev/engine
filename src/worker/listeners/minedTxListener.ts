@@ -1,6 +1,5 @@
 import cron from "node-cron";
 import { getConfig } from "../../utils/cache/getConfig";
-import { updateMinedTx } from "../tasks/updateMinedTx";
 import { updateMinedUserOps } from "../tasks/updateMinedUserOps";
 
 let task: cron.ScheduledTask;
@@ -16,7 +15,6 @@ export const minedTxListener = async () => {
   }
 
   task = cron.schedule(config.minedTxListenerCronSchedule, async () => {
-    await updateMinedTx();
     await updateMinedUserOps();
   });
 };

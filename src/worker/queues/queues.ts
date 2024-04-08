@@ -2,7 +2,7 @@ import { Transactions, Webhooks } from "@prisma/client";
 import { JobsOptions, Queue } from "bullmq";
 import superjson from "superjson";
 import { getAllWebhooks } from "../../db/webhooks/getAllWebhooks";
-import { QueuedTransaction } from "../../schema/transaction";
+import { QueuedTransaction, SentTransaction } from "../../schema/transaction";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { redis } from "../../utils/redis/redis";
@@ -18,25 +18,57 @@ const defaultJobOptions: JobsOptions = {
   },
 };
 
-export type QueueType = "ingest" | "webhook";
-
 /**
- * Processes write transaction requests.
+ * Ingests write transaction requests.
  */
-export interface IngestJob {
-  tx: QueuedTransaction;
+export interface QueuedTransactionJob {
+  queuedTransaction: QueuedTransaction;
 }
-export class IngestQueue {
-  private static q = new Queue<string>("ingest", {
+
+export class QueuedTransactionQueue {
+  static name = "queuedTransaction";
+
+  private static q = new Queue<string>(this.name, {
     connection: redis,
     defaultJobOptions,
   });
 
-  static add = async (data: IngestJob) => {
+  static add = async (data: QueuedTransactionJob) => {
     const serialized = superjson.stringify(data);
-    await this.q.add(data.tx.idempotencyKey, serialized, {
-      jobId: data.tx.idempotencyKey,
+    await this.q.add(data.queuedTransaction.id, serialized, {
+      jobId: data.queuedTransaction.idempotencyKey,
     });
+  };
+}
+
+/**
+ * Polls sent transactions to confirm or retry them.
+ */
+export interface SentTransactionJob {
+  sentTransaction: SentTransaction;
+}
+
+export class SentTransactionQueue {
+  static name = "sentTransaction";
+
+  // Retry every 2 seconds up to 1 hour.
+  private static RETRY_DURATION_SECONDS = 60 * 60;
+  private static RETRY_INTERVAL_SECONDS = 2;
+
+  private static q = new Queue<string>(this.name, {
+    connection: redis,
+    defaultJobOptions: {
+      ...defaultJobOptions,
+      backoff: this.RETRY_INTERVAL_SECONDS * 1000,
+      attempts: this.RETRY_DURATION_SECONDS / this.RETRY_INTERVAL_SECONDS,
+      // Wait 500ms before polling the transaction onchain status.
+      delay: 500,
+    },
+  });
+
+  static add = async (data: SentTransactionJob) => {
+    const serialized = superjson.stringify(data);
+    await this.q.add(data.sentTransaction.id, serialized);
   };
 }
 
@@ -63,7 +95,9 @@ export interface WebhookJob {
 }
 
 export class WebhookQueue {
-  private static q = new Queue<string>("webhook", {
+  static name = "webhook";
+
+  private static q = new Queue<string>(this.name, {
     connection: redis,
     defaultJobOptions,
   });

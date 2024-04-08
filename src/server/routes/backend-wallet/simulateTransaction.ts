@@ -98,11 +98,11 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       } else if (data) {
         // Simulate from raw calldata.
         const txRaw: InputTransaction = {
-          chainId: chainId.toString(),
+          chainId,
           fromAddress: walletAddress,
           toAddress,
           data,
-          value: value || "0",
+          value: value ? BigInt(value) : 0n,
         };
         await simulate({ txRaw });
       } else {

@@ -74,7 +74,9 @@ export const env = createEnv({
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
     REDIS_URL: z.string().default("redis://localhost:6379"),
-    INGEST_WORKER_CONCURRENCY: z.coerce.number().default(20),
+    QUEUED_TX_WORKER_CONCURRENCY: z.coerce.number().default(10),
+    SENT_TX_WORKER_CONCURRENCY: z.coerce.number().default(10),
+    WEBHOOK_WORKER_CONCURRENCY: z.coerce.number().default(2),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -96,7 +98,9 @@ export const env = createEnv({
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
     REDIS_URL: process.env.REDIS_URL,
-    INGEST_WORKER_CONCURRENCY: process.env.INGEST_WORKER_CONCURRENCY,
+    QUEUED_TX_WORKER_CONCURRENCY: process.env.QUEUED_TX_WORKER_CONCURRENCY,
+    SENT_TX_WORKER_CONCURRENCY: process.env.SENT_TX_WORKER_CONCURRENCY,
+    WEBHOOK_WORKER_CONCURRENCY: process.env.WEBHOOK_WORKER_CONCURRENCY,
   },
   onValidationError: (error: ZodError) => {
     console.error(
