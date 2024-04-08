@@ -1,4 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getNFTs } from "thirdweb/extensions/erc1155";
@@ -9,7 +10,6 @@ import {
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-import { convertBigIntToString } from "../../../../../utils/convertor";
 
 // INPUT
 const requestSchema = erc1155ContractParamSchema;
@@ -89,7 +89,7 @@ export async function erc1155GetAll(fastify: FastifyInstance) {
         count,
       });
       const result = nftData.map(
-        (nft) => convertBigIntToString(nft) as Static<typeof v5NFTSchema>,
+        (nft) => Value.Convert(v5NFTSchema, nft) as Static<typeof v5NFTSchema>,
       );
 
       reply.status(StatusCodes.OK).send({

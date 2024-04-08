@@ -2,15 +2,14 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import { getBalance } from "thirdweb/extensions/erc20";
 import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
-import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-import { convertBigIntToString } from "../../../../../utils/convertor";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
@@ -23,14 +22,14 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: erc20MetadataSchema,
+  result: Type.String({
+    description: "The balance of the wallet for the ERC-20 contract",
+  }),
 });
 
 responseSchema.example = [
   {
-    result: {
-      value: "7799999999615999974",
-    },
+    result: "7799999999615999974",
   },
 ];
 
@@ -69,7 +68,9 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
         address: wallet_address,
       });
       reply.status(StatusCodes.OK).send({
-        result: convertBigIntToString(returnData),
+        ...(Value.Convert(responseSchema, { result: returnData }) as Static<
+          typeof responseSchema
+        >),
       });
     },
   });

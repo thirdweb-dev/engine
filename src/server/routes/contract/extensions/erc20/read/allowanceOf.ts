@@ -2,9 +2,9 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import { allowance } from "thirdweb/extensions/erc20";
 import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
-import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
@@ -25,17 +25,13 @@ const querystringSchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: erc20MetadataSchema,
+  result: Type.String({
+    description: "The allowance of the wallet for the ERC-20 contract",
+  }),
 });
 
 responseSchema.example = {
-  result: {
-    name: "ERC20",
-    symbol: "",
-    decimals: "18",
-    value: "0",
-    displayValue: "0.0",
-  },
+  result: "0",
 };
 
 // LOGIC
@@ -74,9 +70,9 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
         spender: spenderWallet,
       });
       reply.status(StatusCodes.OK).send({
-        result: {
-          value: returnData.toString(),
-        },
+        ...(Value.Convert(responseSchema, { result: returnData }) as Static<
+          typeof responseSchema
+        >),
       });
     },
   });

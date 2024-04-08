@@ -1,33 +1,28 @@
 import { Static, Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { totalSupply } from "thirdweb/extensions/erc20";
 import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
-import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-import { convertBigIntToString } from "../../../../../utils/convertor";
 
 // INPUT
 const requestSchema = erc20ContractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: erc20MetadataSchema,
+  result: Type.String({
+    description: "The total supply of the ERC-20 contract",
+  }),
 });
 
 responseSchema.example = [
   {
-    result: {
-      name: "Mumba20",
-      symbol: "",
-      decimals: "18",
-      value: "10000000000000000000",
-      displayValue: "10.0",
-    },
+    result: "10000000000000000000",
   },
 ];
 
@@ -63,9 +58,9 @@ export async function erc20TotalSupply(fastify: FastifyInstance) {
       });
 
       reply.status(StatusCodes.OK).send({
-        result: {
-          value: convertBigIntToString(returnData),
-        },
+        ...(Value.Convert(responseSchema, { result: returnData }) as Static<
+          typeof responseSchema
+        >),
       });
     },
   });

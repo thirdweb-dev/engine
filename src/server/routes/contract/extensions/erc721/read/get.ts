@@ -1,4 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
+import { Value } from "@sinclair/typebox/value";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getNFT } from "thirdweb/extensions/erc721";
@@ -9,7 +10,6 @@ import {
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-import { convertBigIntToString } from "../../../../../utils/convertor";
 // INPUT
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
@@ -75,7 +75,7 @@ export async function erc721Get(fastify: FastifyInstance) {
         tokenId: BigInt(tokenId),
         includeOwner: true,
       });
-      const result = convertBigIntToString(nftData) as Static<
+      const result = Value.Convert(v5NFTSchema, nftData) as Static<
         typeof v5NFTSchema
       >;
       reply.status(StatusCodes.OK).send({
