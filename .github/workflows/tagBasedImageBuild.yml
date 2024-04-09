@@ -1,4 +1,4 @@
-name: Build and Push Image on Tag
+name: Tag Based Image Build
 
 on:
   release:
