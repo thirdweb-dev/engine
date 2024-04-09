@@ -1,24 +1,14 @@
 name: Tag Based Image Build
 
 on:
-  create:
+  release:
+    types: [created] # This listens to release creation events
 
 jobs:
   buildImageForNewTag:
-    if: startsWith(github.ref, 'refs/tags/') # Only run this job when a tag is created
     runs-on: ubuntu-latest
 
     steps:
-      - name: Extract tag name
-        id: get_tag_name
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Determine Branch Name
-        id: get_branch
-        run: |
-          branch=$(git branch -r --contains tags/${{ env.TAG_NAME }} | grep 'origin/' | sed 's|origin/||' | head -n 1)
-          echo "BRANCH_NAME=$branch" >> $GITHUB_ENV
-
       - name: Check Disk Space Before Build
         run: df -h
 
@@ -28,7 +18,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.ref }}
+          # Fetches the branch at which the release was made
+          ref: ${{ github.event.release.target_commitish }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -47,10 +38,10 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            thirdweb/engine:${{ env.TAG_NAME }}
-            ${{ env.BRANCH_NAME == 'main' && 'thirdweb/engine:latest' }}
+            thirdweb/engine:${{ github.event.release.tag_name }}
+            ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' }}
           build-args: |
-            ENGINE_VERSION=${{ env.TAG_NAME }}
+            ENGINE_VERSION=${{ github.event.release.tag_name }}
 
       - name: Check Disk Space After Build
         run: df -h
