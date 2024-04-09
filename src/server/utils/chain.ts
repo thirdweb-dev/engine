@@ -43,18 +43,18 @@ export const getChainIdFromChain = async (input: string): Promise<number> => {
   if (!isNaN(inputId)) {
     // Fetch by chain ID.
     const chainData = await getChainByChainIdAsync(inputId);
-    if (chainData) {
+    if (chainData && chainData.status !== "deprecated") {
       return chainData.chainId;
     }
   } else {
     // Fetch by chain name.
     const chainData = await getChainBySlugAsync(inputSlug);
-    if (chainData) {
+    if (chainData && chainData.status !== "deprecated") {
       return chainData.chainId;
     }
   }
 
   throw new Error(
-    `Invalid chain. Please confirm this is a valid chain: https://thirdweb.com/${input}`,
+    `Invalid or deprecated chain. Please confirm this is a valid chain: https://thirdweb.com/${input}`,
   );
 };
