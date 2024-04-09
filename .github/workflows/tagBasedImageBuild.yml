@@ -5,7 +5,7 @@ on:
     types: [created] # This listens to release creation events
 
 jobs:
-  buildImageForNewBranch:
+  buildImageForNewTag:
     if: startsWith(github.ref, 'refs/tags/') // This will run the workflow only when a tag is created
     runs-on: ubuntu-latest
 
