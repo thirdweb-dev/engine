@@ -6,7 +6,7 @@ on:
 
 jobs:
   buildImageForNewTag:
-    if: startsWith(github.ref, 'refs/tags/') // This will run the workflow only when a tag is created
+    if: startsWith(github.ref, 'refs/tags/') # Only run this job when a tag is created
     runs-on: ubuntu-latest
 
     steps:
