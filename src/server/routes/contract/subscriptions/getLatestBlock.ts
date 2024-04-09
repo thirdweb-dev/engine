@@ -33,6 +33,7 @@ export async function getLatestBlock(fastify: FastifyInstance) {
       description: "Get latest indexed block for a chain",
       tags: ["Contract-Subscriptions"],
       operationId: "getLatestBlock",
+      querystring: chainRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
