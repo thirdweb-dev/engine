@@ -357,12 +357,15 @@ export const processTx = async () => {
 
             const nonce = randomNonce();
             const unsignedOp =
-              await signer.smartAccountAPI.createUnsignedUserOp({
-                target: tx.target || "",
-                data: tx.data || "0x",
-                value: tx.value ? BigNumber.from(tx.value) : undefined,
-                nonce,
-              });
+              await signer.smartAccountAPI.createUnsignedUserOp(
+                signer.httpRpcClient,
+                {
+                  target: tx.target || "",
+                  data: tx.data || "0x",
+                  value: tx.value ? BigNumber.from(tx.value) : undefined,
+                  nonce,
+                },
+              );
             const userOp = await signer.smartAccountAPI.signUserOp(unsignedOp);
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,

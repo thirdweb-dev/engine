@@ -9,12 +9,6 @@ export const bundleUserOps = async () => {
   await prisma.$transaction(async (pgtx) => {
     const userOps = await getQueuedUserOps({ pgtx });
 
-    logger({
-      service: "worker",
-      level: "info",
-      message: `Received ${userOps.length} user ops to bundle`,
-    });
-
     const userOpsByWallet = userOps.reduce((acc, userOp) => {
       const key = `${userOp.backendWalletAddress}-${userOp.chainId}-${userOp.entrypointAddress}`;
       if (!acc[key]) {

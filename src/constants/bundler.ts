@@ -795,4 +795,4 @@ export const EntrypointAbi = [
     type: "function",
   },
   { stateMutability: "payable", type: "receive" },
-];
+] as const;

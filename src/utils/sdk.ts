@@ -7,5 +7,5 @@ export const thirdwebClientId = sha256HexSync(
 ).slice(0, 32);
 
 export const thirdwebClient = createThirdwebClient({
-  clientId: thirdwebClientId,
+  secretKey: env.THIRDWEB_API_SECRET_KEY,
 });

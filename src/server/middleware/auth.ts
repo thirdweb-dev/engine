@@ -37,6 +37,9 @@ const authWithApiServer = async (jwt: string, domain: string) => {
   try {
     user = await authenticateJWT({
       options: {
+        domain,
+      },
+      clientOptions: {
         secretKey: env.THIRDWEB_API_SECRET_KEY,
       },
       wallet: {
@@ -66,9 +69,6 @@ const authWithApiServer = async (jwt: string, domain: string) => {
         },
       } as GenericAuthWallet,
       jwt,
-      options: {
-        domain,
-      },
     });
   } catch {
     // no-op
@@ -140,56 +140,6 @@ export const withAuth = async (server: FastifyInstance) => {
 
   // Add auth validation middleware to check for authenticated requests
   server.addHook("onRequest", async (req, res) => {
-<<<<<<< HEAD
-    if (
-      req.url === "/favicon.ico" ||
-      req.url === "/" ||
-      req.url === "/health" ||
-      req.url === "/static" ||
-      req.url === "/json" ||
-      req.url.startsWith("/auth/payload") ||
-      req.url.startsWith("/auth/login") ||
-      req.url.startsWith("/auth/user") ||
-      req.url.startsWith("/auth/switch-account") ||
-      req.url.startsWith("/auth/logout") ||
-      req.url.startsWith("/transaction/status")
-    ) {
-      // We skip auth check for static endpoints and auth routes
-      return;
-    }
-
-    if (
-      req.url.startsWith("/relayer/") &&
-      req.method === "POST" &&
-      !req.url.startsWith("/relayer/create") &&
-      !req.url.startsWith("/relayer/revoke") &&
-      !req.url.startsWith("/relayer/update")
-    ) {
-      // Relayer endpoints can handle their own authentication
-      return;
-    }
-
-    if (
-      req.url.startsWith("/bundler/") &&
-      req.method === "POST" &&
-      !req.url.startsWith("/bundler/create") &&
-      !req.url.startsWith("/bundler/revoke") &&
-      !req.url.startsWith("/bundler/update")
-    ) {
-      // Bundler endpoints can handle their own authentication
-      return;
-    }
-
-    // TODO: Enable authentication check for websocket requests
-    if (
-      req.headers.upgrade &&
-      req.headers.upgrade.toLowerCase() === "websocket"
-    ) {
-      return;
-    }
-
-=======
->>>>>>> main
     try {
       const { isAuthed, user } = await onRequest({ req, getUser });
       if (isAuthed) {
@@ -250,6 +200,14 @@ export const onRequest = async ({
     const relayerId = req.url.slice("/relayer/".length);
     if (uuidValidate(relayerId)) {
       // The "relay transaction" endpoint handles its own authentication.
+      return { isAuthed: true };
+    }
+  }
+
+  if (req.method === "POST" && req.url.startsWith("/bundler/")) {
+    const bundlerId = req.url.slice("/bundler/".length);
+    if (uuidValidate(bundlerId)) {
+      // The "bundle transaction" endpoint handles its own authentication.
       return { isAuthed: true };
     }
   }
