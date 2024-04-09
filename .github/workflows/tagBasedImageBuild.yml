@@ -2,7 +2,6 @@ name: Build and Push Image on Tag
 
 on:
   release:
-  prerelease:
     types: [created] # This listens to release creation events
 
 jobs:
