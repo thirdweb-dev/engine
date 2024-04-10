@@ -46,7 +46,7 @@ Host Engine on your own instructure for free. [View self-host instructions](http
 
 Other deployment options:
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/fcEVay?referralCode=KN9JqT)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/fcEVay)
 
 ### Cloud-host
 
