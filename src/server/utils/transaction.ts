@@ -1,10 +1,11 @@
-import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
+import { Transactions } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
 import { getTxById } from "../../db/transactions/getTxById";
 import { updateTx } from "../../db/transactions/updateTx";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getSdk } from "../../utils/cache/getSdk";
-import { multiplyGasOverrides } from "../../utils/gas";
+import { getGasSettingsForRetry } from "../../utils/gas";
 import { createCustomError } from "../middleware/error";
 import { TransactionStatus } from "../schemas/transaction";
 
@@ -65,11 +66,7 @@ export const cancelTransactionAndUpdate = async ({
     switch (txData.status) {
       case TransactionStatus.Errored: {
         if (txData.chainId && txData.fromAddress && txData.nonce) {
-          const { message, transactionHash } = await sendNullTransaction({
-            chainId: parseInt(txData.chainId),
-            walletAddress: txData.fromAddress,
-            nonce: txData.nonce,
-          });
+          const { message, transactionHash } = await cancelTransaction(txData);
           if (transactionHash) {
             await updateTx({
               queueId,
@@ -114,11 +111,7 @@ export const cancelTransactionAndUpdate = async ({
         );
       case TransactionStatus.Sent: {
         if (txData.chainId && txData.fromAddress && txData.nonce) {
-          const { message, transactionHash } = await sendNullTransaction({
-            chainId: parseInt(txData.chainId),
-            walletAddress: txData.fromAddress,
-            nonce: txData.nonce,
-          });
+          const { message, transactionHash } = await cancelTransaction(txData);
           if (transactionHash) {
             await updateTx({
               queueId,
@@ -138,37 +131,40 @@ export const cancelTransactionAndUpdate = async ({
   throw new Error("Unhandled cancellation state.");
 };
 
-const sendNullTransaction = async (args: {
-  chainId: number;
-  walletAddress: string;
-  nonce: number;
-  transactionHash?: string;
-}): Promise<{
+const cancelTransaction = async (
+  tx: Transactions,
+): Promise<{
   message: string;
   transactionHash?: string;
 }> => {
-  const { chainId, walletAddress, nonce, transactionHash } = args;
+  if (!tx.fromAddress || !tx.nonce) {
+    return { message: `Invalid transaction state to cancel. (${tx.id})` };
+  }
 
-  const sdk = await getSdk({ chainId, walletAddress });
-  const provider = sdk.getProvider();
+  const sdk = await getSdk({
+    chainId: parseInt(tx.chainId),
+    walletAddress: tx.fromAddress,
+  });
+  const provider = sdk.getProvider() as StaticJsonRpcProvider;
 
   // Skip if the transaction is already mined.
-  if (transactionHash) {
-    const receipt = await provider.getTransactionReceipt(transactionHash);
+  if (tx.transactionHash) {
+    const receipt = await provider.getTransactionReceipt(tx.transactionHash);
     if (receipt) {
       return { message: "Transaction already mined." };
     }
   }
 
   try {
-    const gasOverrides = await getDefaultGasOverrides(provider);
+    const gasOptions = await getGasSettingsForRetry(tx, provider);
+    // Send 0 currency to self.
     const { hash } = await sdk.wallet.sendRawTransaction({
-      to: walletAddress,
-      from: walletAddress,
+      to: tx.fromAddress,
+      from: tx.fromAddress,
       data: "0x",
       value: "0",
-      nonce,
-      ...multiplyGasOverrides(gasOverrides, 2),
+      nonce: tx.nonce,
+      ...gasOptions,
     });
 
     return {

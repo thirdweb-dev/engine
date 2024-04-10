@@ -10,11 +10,7 @@ import { getSdk } from "../../utils/cache/getSdk";
 import { parseTxError } from "../../utils/errors";
 import { getGasSettingsForRetry } from "../../utils/gas";
 import { logger } from "../../utils/logger";
-import {
-  ReportUsageParams,
-  UsageEventTxActionEnum,
-  reportUsage,
-} from "../../utils/usage";
+import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
 
 export const retryTx = async () => {
   try {
@@ -27,7 +23,6 @@ export const retryTx = async () => {
         }
 
         const config = await getConfig();
-        const reportUsageForQueueIds: ReportUsageParams[] = [];
         const sdk = await getSdk({
           chainId: parseInt(tx.chainId!),
           walletAddress: tx.fromAddress!,

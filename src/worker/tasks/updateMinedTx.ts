@@ -7,6 +7,7 @@ import { updateTx } from "../../db/transactions/updateTx";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { cancelTransactionAndUpdate } from "../../server/utils/transaction";
 import { getSdk } from "../../utils/cache/getSdk";
+import { msSince } from "../../utils/date";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
@@ -65,7 +66,7 @@ export const updateMinedTx = async () => {
                         chainId: tx.chainId || undefined,
                         transactionHash: tx.transactionHash || undefined,
                         provider: provider.connection.url || undefined,
-                        msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                        msSinceSend: msSince(tx.sentAt!),
                       },
                       action: UsageEventTxActionEnum.CancelTx,
                     });
