@@ -65,11 +65,22 @@ export const cancelTransactionAndUpdate = async ({
     switch (txData.status) {
       case TransactionStatus.Errored: {
         if (txData.chainId && txData.fromAddress && txData.nonce) {
-          return await sendNullTransaction({
+          const { message, transactionHash } = await sendNullTransaction({
             chainId: parseInt(txData.chainId),
             walletAddress: txData.fromAddress,
             nonce: txData.nonce,
           });
+          if (transactionHash) {
+            await updateTx({
+              queueId,
+              pgtx,
+              data: {
+                status: TransactionStatus.Cancelled,
+              },
+            });
+          }
+
+          return { message, transactionHash };
         }
 
         throw createCustomError(
@@ -103,7 +114,7 @@ export const cancelTransactionAndUpdate = async ({
         );
       case TransactionStatus.Sent: {
         if (txData.chainId && txData.fromAddress && txData.nonce) {
-          const { transactionHash, message } = await sendNullTransaction({
+          const { message, transactionHash } = await sendNullTransaction({
             chainId: parseInt(txData.chainId),
             walletAddress: txData.fromAddress,
             nonce: txData.nonce,
@@ -159,6 +170,7 @@ const sendNullTransaction = async (args: {
       nonce,
       ...multiplyGasOverrides(gasOverrides, 2),
     });
+
     return {
       message: "Transaction cancelled successfully.",
       transactionHash: hash,
