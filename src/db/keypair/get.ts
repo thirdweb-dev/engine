@@ -2,7 +2,7 @@ import { Keypairs } from "@prisma/client";
 import { createHash } from "crypto";
 import { prisma } from "../client";
 
-export const _getKeypair = async ({
+export const getKeypairByPublicKey = async ({
   publicKey,
 }: {
   publicKey: string;

@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { listKeypairs } from "../../../../db/keypair/list";
-import { KeypairSchema } from "../../../schemas/auth";
+import { KeypairSchema } from "../../../schemas/keypairs";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const ReplySchema = Type.Object({

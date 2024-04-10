@@ -49,9 +49,6 @@ export async function setUrlsToCorsConfiguration(fastify: FastifyInstance) {
         new Set([...urls, ...mandatoryAllowedCorsUrls]),
       );
 
-      console.log("[DEBUG] urls", urls);
-      console.log("[DEBUG] dedupe", dedupe);
-
       await updateConfiguration({
         accessControlAllowOrigin: dedupe.join(","),
       });

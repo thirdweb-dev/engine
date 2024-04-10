@@ -4,14 +4,18 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertKeypair } from "../../../../db/keypair/insert";
 import { createCustomError } from "../../../middleware/error";
-import { KeypairSchema } from "../../../schemas/auth";
+import {
+  KeypairAlgorithmSchema,
+  KeypairSchema,
+} from "../../../schemas/keypairs";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
   publicKey: Type.String({
     description:
-      "An ES256 public key beginning with '-----BEGIN PUBLIC KEY-----'",
+      "The public key of your keypair beginning with '-----BEGIN PUBLIC KEY-----'.",
   }),
+  algorithm: KeypairAlgorithmSchema,
 });
 
 const ReplySchema = Type.Object({
@@ -29,7 +33,7 @@ export async function importKeypair(fastify: FastifyInstance) {
     url: "/auth/keypair/import",
     schema: {
       summary: "Import public key",
-      description: "Import the public key for an ES256 keypair",
+      description: "Import the public key for a keypair",
       tags: ["Keypair"],
       operationId: "import",
       body: BodySchema,
@@ -39,7 +43,7 @@ export async function importKeypair(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { publicKey } = req.body;
+      const { publicKey, algorithm } = req.body;
 
       if (
         !publicKey.startsWith("-----BEGIN PUBLIC KEY-----\n") ||
@@ -54,7 +58,10 @@ export async function importKeypair(fastify: FastifyInstance) {
 
       let keypair: Keypairs;
       try {
-        keypair = await insertKeypair({ publicKey });
+        keypair = await insertKeypair({
+          publicKey,
+          algorithm,
+        });
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError) {
           if (e.code === "P2002") {
