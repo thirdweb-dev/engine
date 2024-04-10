@@ -141,10 +141,10 @@ const sendNullTransaction = async (args: {
   const sdk = await getSdk({ chainId, walletAddress });
   const provider = sdk.getProvider();
 
-  // Skip if the tx is already mined.
+  // Skip if the transaction is already mined.
   if (transactionHash) {
-    const txReceipt = await provider.getTransactionReceipt(transactionHash);
-    if (txReceipt) {
+    const receipt = await provider.getTransactionReceipt(transactionHash);
+    if (receipt) {
       return { message: "Transaction already mined." };
     }
   }
