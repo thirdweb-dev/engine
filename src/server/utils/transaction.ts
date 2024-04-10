@@ -64,23 +64,12 @@ export const cancelTransactionAndUpdate = async ({
   } else {
     switch (txData.status) {
       case TransactionStatus.Errored: {
-        if (!txData.chainId || !txData.fromAddress) {
-          throw new Error("Invalid transaction state to cancel.");
-        }
-        if (txData.nonce) {
-          const { transactionHash, error } = await sendNullTransaction({
+        if (txData.chainId && txData.fromAddress && txData.nonce) {
+          return await sendNullTransaction({
             chainId: parseInt(txData.chainId),
             walletAddress: txData.fromAddress,
             nonce: txData.nonce,
           });
-          if (error) {
-            return { message: error };
-          }
-
-          return {
-            message: "Transaction cancelled successfully.",
-            transactionHash,
-          };
         }
 
         throw createCustomError(
@@ -113,30 +102,24 @@ export const cancelTransactionAndUpdate = async ({
           "TransactionAlreadyMined",
         );
       case TransactionStatus.Sent: {
-        if (!txData.chainId || !txData.fromAddress || !txData.nonce) {
-          throw new Error("Invalid transaction state to cancel.");
-        }
+        if (txData.chainId && txData.fromAddress && txData.nonce) {
+          const { transactionHash, message } = await sendNullTransaction({
+            chainId: parseInt(txData.chainId),
+            walletAddress: txData.fromAddress,
+            nonce: txData.nonce,
+          });
+          if (transactionHash) {
+            await updateTx({
+              queueId,
+              pgtx,
+              data: {
+                status: TransactionStatus.Cancelled,
+              },
+            });
+          }
 
-        const { transactionHash, error } = await sendNullTransaction({
-          chainId: parseInt(txData.chainId),
-          walletAddress: txData.fromAddress,
-          nonce: txData.nonce,
-        });
-        if (error) {
-          return { message: error };
+          return { message, transactionHash };
         }
-
-        await updateTx({
-          queueId,
-          pgtx,
-          data: {
-            status: TransactionStatus.Cancelled,
-          },
-        });
-        return {
-          message: "Transaction cancelled successfully.",
-          transactionHash,
-        };
       }
     }
   }
@@ -150,8 +133,8 @@ const sendNullTransaction = async (args: {
   nonce: number;
   transactionHash?: string;
 }): Promise<{
+  message: string;
   transactionHash?: string;
-  error?: string;
 }> => {
   const { chainId, walletAddress, nonce, transactionHash } = args;
 
@@ -162,7 +145,7 @@ const sendNullTransaction = async (args: {
   if (transactionHash) {
     const txReceipt = await provider.getTransactionReceipt(transactionHash);
     if (txReceipt) {
-      return { error: "Transaction already mined." };
+      return { message: "Transaction already mined." };
     }
   }
 
@@ -176,8 +159,11 @@ const sendNullTransaction = async (args: {
       nonce,
       ...multiplyGasOverrides(gasOverrides, 2),
     });
-    return { transactionHash: hash };
+    return {
+      message: "Transaction cancelled successfully.",
+      transactionHash: hash,
+    };
   } catch (e: any) {
-    return { error: e.toString() };
+    return { message: e.toString() };
   }
 };
