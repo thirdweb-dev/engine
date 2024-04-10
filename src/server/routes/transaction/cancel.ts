@@ -40,7 +40,7 @@ export const responseBodySchema = Type.Object({
 
 responseBodySchema.example = {
   result: {
-    qeueuId: "a20ed4ce-301d-4251-a7af-86bd88f6c015",
+    queueId: "a20ed4ce-301d-4251-a7af-86bd88f6c015",
     status: "success",
   },
 };

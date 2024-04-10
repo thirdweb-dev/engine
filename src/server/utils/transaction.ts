@@ -1,4 +1,3 @@
-import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { StatusCodes } from "http-status-codes";
 import { getTxById } from "../../db/transactions/getTxById";
@@ -24,10 +23,6 @@ export const cancelTransactionAndUpdate = async ({
       message: `Transaction ${queueId} not found.`,
     };
   }
-
-  let message = "";
-  let error = null;
-  let transferTransactionResult: TransactionResponse | null = null;
 
   if (txData.signerAddress && txData.accountAddress) {
     switch (txData.status) {
@@ -62,25 +57,44 @@ export const cancelTransactionAndUpdate = async ({
             status: TransactionStatus.Cancelled,
           },
         });
-        message = "Transaction cancelled on-database successfully.";
-        break;
+        return {
+          message: "Transaction cancelled on-database successfully.",
+        };
     }
   } else {
     switch (txData.status) {
-      case TransactionStatus.Errored:
-        error = createCustomError(
+      case TransactionStatus.Errored: {
+        if (!txData.chainId || !txData.fromAddress) {
+          throw new Error("Invalid transaction state to cancel.");
+        }
+        if (txData.nonce) {
+          const { transactionHash, error } = await sendNullTransaction({
+            chainId: parseInt(txData.chainId),
+            walletAddress: txData.fromAddress,
+            nonce: txData.nonce,
+          });
+          if (error) {
+            return { message: error };
+          }
+
+          return {
+            message: "Transaction cancelled successfully.",
+            transactionHash,
+          };
+        }
+
+        throw createCustomError(
           `Transaction has already errored: ${txData.errorMessage}`,
           StatusCodes.BAD_REQUEST,
           "TransactionErrored",
         );
-        break;
+      }
       case TransactionStatus.Cancelled:
-        error = createCustomError(
+        throw createCustomError(
           "Transaction is already cancelled.",
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyCancelled",
         );
-        break;
       case TransactionStatus.Queued:
         await updateTx({
           queueId,
@@ -89,40 +103,28 @@ export const cancelTransactionAndUpdate = async ({
             status: TransactionStatus.Cancelled,
           },
         });
-        message = "Transaction cancelled successfully.";
-        break;
+        return {
+          message: "Transaction cancelled successfully.",
+        };
       case TransactionStatus.Mined:
-        error = createCustomError(
+        throw createCustomError(
           "Transaction already mined.",
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyMined",
         );
-        break;
       case TransactionStatus.Sent: {
-        const sdk = await getSdk({
-          chainId: parseInt(txData.chainId!),
-          walletAddress: txData.fromAddress!,
-        });
-
-        const txReceipt = await sdk
-          .getProvider()
-          .getTransactionReceipt(txData.transactionHash!);
-        if (txReceipt) {
-          message = "Transaction already mined.";
-          break;
+        if (!txData.chainId || !txData.fromAddress || !txData.nonce) {
+          throw new Error("Invalid transaction state to cancel.");
         }
 
-        const gasOverrides = await getDefaultGasOverrides(sdk.getProvider());
-        transferTransactionResult = await sdk.wallet.sendRawTransaction({
-          to: txData.fromAddress!,
-          from: txData.fromAddress!,
-          data: "0x",
-          value: "0x00",
-          nonce: txData.nonce!,
-          ...multiplyGasOverrides(gasOverrides, 2),
+        const { transactionHash, error } = await sendNullTransaction({
+          chainId: parseInt(txData.chainId),
+          walletAddress: txData.fromAddress,
+          nonce: txData.nonce,
         });
-
-        message = "Transaction cancelled successfully.";
+        if (error) {
+          return { message: error };
+        }
 
         await updateTx({
           queueId,
@@ -131,19 +133,51 @@ export const cancelTransactionAndUpdate = async ({
             status: TransactionStatus.Cancelled,
           },
         });
-        break;
+        return {
+          message: "Transaction cancelled successfully.",
+          transactionHash,
+        };
       }
-      default:
-        break;
     }
   }
 
-  if (error) {
-    throw error;
+  throw new Error("Unhandled cancellation state.");
+};
+
+const sendNullTransaction = async (args: {
+  chainId: number;
+  walletAddress: string;
+  nonce: number;
+  transactionHash?: string;
+}): Promise<{
+  transactionHash?: string;
+  error?: string;
+}> => {
+  const { chainId, walletAddress, nonce, transactionHash } = args;
+
+  const sdk = await getSdk({ chainId, walletAddress });
+  const provider = sdk.getProvider();
+
+  // Skip if the tx is already mined.
+  if (transactionHash) {
+    const txReceipt = await provider.getTransactionReceipt(transactionHash);
+    if (txReceipt) {
+      return { error: "Transaction already mined." };
+    }
   }
 
-  return {
-    message,
-    transactionHash: transferTransactionResult?.hash,
-  };
+  try {
+    const gasOverrides = await getDefaultGasOverrides(provider);
+    const { hash } = await sdk.wallet.sendRawTransaction({
+      to: walletAddress,
+      from: walletAddress,
+      data: "0x",
+      value: "0",
+      nonce,
+      ...multiplyGasOverrides(gasOverrides, 2),
+    });
+    return { transactionHash: hash };
+  } catch (e: any) {
+    return { error: e.toString() };
+  }
 };
