@@ -54,7 +54,7 @@ export const retryTx = async () => {
         });
 
         const gasOverrides = await getGasSettingsForRetry(tx, provider);
-        const transactionRequestRaw = {
+        const transactionRequest = {
           to: tx.toAddress!,
           from: tx.fromAddress!,
           data: tx.data!,
@@ -63,21 +63,27 @@ export const retryTx = async () => {
           ...gasOverrides,
         };
 
-        // Populate transaction.
-        let transactionRequest: ethers.providers.TransactionRequest;
+        // Send transaction.
+        let transactionResponse: ethers.providers.TransactionResponse;
         try {
-          transactionRequest = await sdk
+          transactionResponse = await sdk
             .getSigner()!
-            .populateTransaction(transactionRequestRaw);
-        } catch (err) {
-          // Error populating transaction. This transaction will revert onchain.
+            .sendTransaction(transactionRequest);
+        } catch (err: any) {
+          // The RPC rejected this transaction.
+          logger({
+            service: "worker",
+            level: "error",
+            queueId: tx.id,
+            message: "Failed to retry",
+            error: err,
+          });
 
           // Consume the nonce.
           await cancelTransactionAndUpdate({
             queueId: tx.id,
             pgtx,
           });
-
           await updateTx({
             pgtx,
             queueId: tx.id,
@@ -106,32 +112,14 @@ export const retryTx = async () => {
           return;
         }
 
-        // Send transaction.
-        let transactionResponse: ethers.providers.TransactionResponse;
-        try {
-          transactionResponse = await sdk
-            .getSigner()!
-            .sendTransaction(transactionRequest);
-        } catch (err: any) {
-          // The RPC rejected this transaction. Re-attempt later.
-          logger({
-            service: "worker",
-            level: "error",
-            queueId: tx.id,
-            message: "Failed to retry",
-            error: err,
-          });
-          return;
-        }
-
         await updateTx({
           pgtx,
           queueId: tx.id,
           data: {
             sentAt: new Date(),
             status: TransactionStatus.Sent,
-            res: transactionRequestRaw,
-            sentAtBlockNumber: await sdk.getProvider().getBlockNumber(),
+            res: transactionRequest,
+            sentAtBlockNumber: await provider.getBlockNumber(),
             retryCount: tx.retryCount + 1,
             transactionHash: transactionResponse.hash,
           },
