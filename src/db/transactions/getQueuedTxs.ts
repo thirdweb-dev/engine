@@ -20,10 +20,10 @@ export const getQueuedTxs = async ({ pgtx }: GetQueuedTxsParams = {}): Promise<
   FROM
     "transactions"
   WHERE
-    "processedAt" IS NULL
-    AND "sentAt" IS NULL
+    "sentAt" IS NULL
     AND "minedAt" IS NULL
     AND "cancelledAt" IS NULL
+    AND "errorMessage" IS NULL
   ORDER BY
     "queuedAt"
   ASC

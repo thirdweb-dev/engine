@@ -1,8 +1,6 @@
 import { defineChain, prepareTransaction } from "thirdweb";
-import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { estimateGasCost } from "thirdweb/transaction";
 import { getWalletBalance } from "thirdweb/wallets";
-import { getWallet } from "../../utils/cache/getWallet";
 import { thirdwebClient } from "../../utils/sdk";
 
 interface GetWithdrawValueParams {
@@ -19,11 +17,8 @@ export const getWithdrawValue = async ({
   const chain = defineChain(chainId);
 
   // Get wallet balance.
-  const wallet = await getWallet({ chainId, walletAddress: fromAddress });
-  const signer = await wallet.getSigner();
-  const account = await ethers5Adapter.signer.fromEthers(signer);
   const { value: balanceWei } = await getWalletBalance({
-    account,
+    address: fromAddress,
     client: thirdwebClient,
     chain,
   });

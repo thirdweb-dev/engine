@@ -21,7 +21,7 @@ responseSchema.example = {
   },
 };
 
-export async function getContractSubscriptions(fastify: FastifyInstance) {
+export async function getLatestBlock(fastify: FastifyInstance) {
   fastify.route<{
     Querystring: Static<typeof chainRequestQuerystringSchema>;
     Reply: Static<typeof responseSchema>;
@@ -29,10 +29,11 @@ export async function getContractSubscriptions(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/subscriptions/get-last-block",
     schema: {
-      summary: "Get subscribed contract latest indexed block",
-      description: "Get latest indexed block for a subscribed contract",
+      summary: "Get latest indexed block for a chain",
+      description: "Get latest indexed block for a chain",
       tags: ["Contract-Subscriptions"],
-      operationId: "getContractSubscriptions",
+      operationId: "getLatestBlock",
+      querystring: chainRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

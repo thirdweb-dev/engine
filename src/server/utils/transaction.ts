@@ -1,13 +1,13 @@
-import { TransactionResponse } from "@ethersproject/abstract-provider";
-import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
+import { Transactions } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
-import { getTxById } from "../../db/transactions/getTxById";
+import { prisma } from "../../db/client";
 import { updateTx } from "../../db/transactions/updateTx";
 import { PrismaTransaction } from "../../schema/prisma";
 import { getSdk } from "../../utils/cache/getSdk";
-import { multiplyGasOverrides } from "../../utils/gas";
+import { getGasSettingsForRetry } from "../../utils/gas";
 import { createCustomError } from "../middleware/error";
-import { TransactionStatusEnum } from "../schemas/transaction";
+import { TransactionStatus } from "../schemas/transaction";
 
 interface CancelTransactionAndUpdateParams {
   queueId: string;
@@ -18,134 +18,174 @@ export const cancelTransactionAndUpdate = async ({
   queueId,
   pgtx,
 }: CancelTransactionAndUpdateParams) => {
-  const txData = await getTxById({ queueId, pgtx });
-  if (!txData) {
+  const tx = await prisma.transactions.findUnique({
+    where: {
+      id: queueId,
+    },
+  });
+  if (!tx) {
     return {
       message: `Transaction ${queueId} not found.`,
     };
   }
 
-  let message = "";
-  let error = null;
-  let transferTransactionResult: TransactionResponse | null = null;
+  const status: TransactionStatus = tx.errorMessage
+    ? TransactionStatus.Errored
+    : tx.minedAt
+    ? TransactionStatus.Mined
+    : tx.cancelledAt
+    ? TransactionStatus.Cancelled
+    : tx.sentAt
+    ? TransactionStatus.Sent
+    : TransactionStatus.Queued;
 
-  if (txData.signerAddress && txData.accountAddress) {
-    switch (txData.status) {
-      case TransactionStatusEnum.Errored:
+  if (tx.signerAddress && tx.accountAddress) {
+    switch (status) {
+      case TransactionStatus.Errored:
         throw createCustomError(
           `Cannot cancel user operation because it already errored`,
           StatusCodes.BAD_REQUEST,
           "TransactionErrored",
         );
-      case TransactionStatusEnum.Cancelled:
+      case TransactionStatus.Cancelled:
         throw createCustomError(
           `User operation was already cancelled`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyCancelled",
         );
-      case TransactionStatusEnum.Mined:
+      case TransactionStatus.Mined:
         throw createCustomError(
           `Cannot cancel user operation because it was already mined`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyMined",
         );
-      case TransactionStatusEnum.Submitted:
-      case TransactionStatusEnum.Processed:
+      case TransactionStatus.Sent:
         throw createCustomError(
           `Cannot cancel user operation because it was already processed.`,
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadySubmitted",
         );
-      case TransactionStatusEnum.Queued:
+      case TransactionStatus.Queued:
         await updateTx({
           queueId,
           data: {
-            status: TransactionStatusEnum.Cancelled,
+            status: TransactionStatus.Cancelled,
           },
         });
-        message = "Transaction cancelled on-database successfully.";
-        break;
+        return {
+          message: "Transaction cancelled on-database successfully.",
+        };
     }
   } else {
-    switch (txData.status) {
-      case TransactionStatusEnum.Errored:
-        error = createCustomError(
-          `Transaction has already errored: ${txData.errorMessage}`,
+    switch (status) {
+      case TransactionStatus.Errored: {
+        if (tx.chainId && tx.fromAddress && tx.nonce) {
+          const { message, transactionHash } = await cancelTransaction(tx);
+          if (transactionHash) {
+            await updateTx({
+              queueId,
+              pgtx,
+              data: {
+                status: TransactionStatus.Cancelled,
+              },
+            });
+          }
+
+          return { message, transactionHash };
+        }
+
+        throw createCustomError(
+          `Transaction has already errored: ${tx.errorMessage}`,
           StatusCodes.BAD_REQUEST,
           "TransactionErrored",
         );
-        break;
-      case TransactionStatusEnum.Cancelled:
-        error = createCustomError(
+      }
+      case TransactionStatus.Cancelled:
+        throw createCustomError(
           "Transaction is already cancelled.",
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyCancelled",
         );
-        break;
-      case TransactionStatusEnum.Queued:
+      case TransactionStatus.Queued:
         await updateTx({
           queueId,
           pgtx,
           data: {
-            status: TransactionStatusEnum.Cancelled,
+            status: TransactionStatus.Cancelled,
           },
         });
-        message = "Transaction cancelled successfully.";
-        break;
-      case TransactionStatusEnum.Mined:
-        error = createCustomError(
+        return {
+          message: "Transaction cancelled successfully.",
+        };
+      case TransactionStatus.Mined:
+        throw createCustomError(
           "Transaction already mined.",
           StatusCodes.BAD_REQUEST,
           "TransactionAlreadyMined",
         );
-        break;
-      case TransactionStatusEnum.Processed:
-      case TransactionStatusEnum.Submitted: {
-        const sdk = await getSdk({
-          chainId: parseInt(txData.chainId!),
-          walletAddress: txData.fromAddress!,
-        });
+      case TransactionStatus.Sent: {
+        if (tx.chainId && tx.fromAddress && tx.nonce) {
+          const { message, transactionHash } = await cancelTransaction(tx);
+          if (transactionHash) {
+            await updateTx({
+              queueId,
+              pgtx,
+              data: {
+                status: TransactionStatus.Cancelled,
+              },
+            });
+          }
 
-        const txReceipt = await sdk
-          .getProvider()
-          .getTransactionReceipt(txData.transactionHash!);
-        if (txReceipt) {
-          message = "Transaction already mined.";
-          break;
+          return { message, transactionHash };
         }
-
-        const gasOverrides = await getDefaultGasOverrides(sdk.getProvider());
-        transferTransactionResult = await sdk.wallet.sendRawTransaction({
-          to: txData.fromAddress!,
-          from: txData.fromAddress!,
-          data: "0x",
-          value: "0x00",
-          nonce: txData.nonce!,
-          ...multiplyGasOverrides(gasOverrides, 2),
-        });
-
-        message = "Transaction cancelled successfully.";
-
-        await updateTx({
-          queueId,
-          pgtx,
-          data: {
-            status: TransactionStatusEnum.Cancelled,
-          },
-        });
-        break;
       }
-      default:
-        break;
     }
   }
 
-  if (error) {
-    throw error;
+  throw new Error("Unhandled cancellation state.");
+};
+
+const cancelTransaction = async (
+  tx: Transactions,
+): Promise<{
+  message: string;
+  transactionHash?: string;
+}> => {
+  if (!tx.fromAddress || !tx.nonce) {
+    return { message: `Invalid transaction state to cancel. (${tx.id})` };
   }
 
-  return {
-    message,
-    transactionHash: transferTransactionResult?.hash,
-  };
+  const sdk = await getSdk({
+    chainId: parseInt(tx.chainId),
+    walletAddress: tx.fromAddress,
+  });
+  const provider = sdk.getProvider() as StaticJsonRpcProvider;
+
+  // Skip if the transaction is already mined.
+  if (tx.transactionHash) {
+    const receipt = await provider.getTransactionReceipt(tx.transactionHash);
+    if (receipt) {
+      return { message: "Transaction already mined." };
+    }
+  }
+
+  try {
+    const gasOptions = await getGasSettingsForRetry(tx, provider);
+    // Send 0 currency to self.
+    const { hash } = await sdk.wallet.sendRawTransaction({
+      to: tx.fromAddress,
+      from: tx.fromAddress,
+      data: "0x",
+      value: "0",
+      nonce: tx.nonce,
+      ...gasOptions,
+    });
+
+    return {
+      message: "Transaction cancelled successfully.",
+      transactionHash: hash,
+    };
+  } catch (e: any) {
+    return { message: e.toString() };
+  }
 };

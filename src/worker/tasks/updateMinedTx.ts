@@ -4,9 +4,10 @@ import { ethers } from "ethers";
 import { prisma } from "../../db/client";
 import { getSentTxs } from "../../db/transactions/getSentTxs";
 import { updateTx } from "../../db/transactions/updateTx";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { cancelTransactionAndUpdate } from "../../server/utils/transaction";
 import { getSdk } from "../../utils/cache/getSdk";
+import { msSince } from "../../utils/date";
 import { logger } from "../../utils/logger";
 import {
   ReportUsageParams,
@@ -27,8 +28,6 @@ export const updateMinedTx = async () => {
         if (txs.length === 0) {
           return;
         }
-
-        const droppedTxs: (Transactions & { provider?: string })[] = [];
 
         const txsWithReceipts = (
           await Promise.all(
@@ -56,7 +55,7 @@ export const updateMinedTx = async () => {
 
                     sendWebhookForQueueIds.push({
                       queueId: tx.id,
-                      status: TransactionStatusEnum.Cancelled,
+                      status: TransactionStatus.Cancelled,
                     });
 
                     reportUsageForQueueIds.push({
@@ -67,7 +66,7 @@ export const updateMinedTx = async () => {
                         chainId: tx.chainId || undefined,
                         transactionHash: tx.transactionHash || undefined,
                         provider: provider.connection.url || undefined,
-                        msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                        msSinceSend: msSince(tx.sentAt!),
                       },
                       action: UsageEventTxActionEnum.CancelTx,
                     });
@@ -76,14 +75,14 @@ export const updateMinedTx = async () => {
                       pgtx,
                       queueId: tx.id,
                       data: {
-                        status: TransactionStatusEnum.Errored,
+                        status: TransactionStatus.Errored,
                         errorMessage: "Transaction timed out.",
                       },
                     });
 
                     sendWebhookForQueueIds.push({
                       queueId: tx.id,
-                      status: TransactionStatusEnum.Errored,
+                      status: TransactionStatus.Errored,
                     });
 
                     reportUsageForQueueIds.push({
@@ -151,7 +150,7 @@ export const updateMinedTx = async () => {
               pgtx,
               queueId: txWithReceipt.tx.id,
               data: {
-                status: TransactionStatusEnum.Mined,
+                status: TransactionStatus.Mined,
                 minedAt: txWithReceipt.minedAt,
                 blockNumber: txWithReceipt.receipt.blockNumber,
                 onChainTxStatus: txWithReceipt.receipt.status,
@@ -175,7 +174,7 @@ export const updateMinedTx = async () => {
 
             sendWebhookForQueueIds.push({
               queueId: txWithReceipt.tx.id,
-              status: TransactionStatusEnum.Mined,
+              status: TransactionStatus.Mined,
             });
 
             reportUsageForQueueIds.push({

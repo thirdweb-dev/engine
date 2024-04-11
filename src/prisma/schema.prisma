@@ -142,6 +142,7 @@ model Transactions {
   deployedContractType      String?   @map("deployedContractType")
   // Timestamps
   queuedAt                  DateTime  @default(now()) @map("queuedAt")
+  // @deprecated
   processedAt               DateTime? @map("processedAt")
   sentAt                    DateTime? @map("sentAt")
   minedAt                   DateTime? @map("minedAt")

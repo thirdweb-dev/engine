@@ -3,7 +3,7 @@ import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src
 import { prisma } from "../../db/client";
 import { getSentUserOps } from "../../db/transactions/getSentUserOps";
 import { updateTx } from "../../db/transactions/updateTx";
-import { TransactionStatusEnum } from "../../server/schemas/transaction";
+import { TransactionStatus } from "../../server/schemas/transaction";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 import {
@@ -36,12 +36,14 @@ export const updateMinedUserOps = async () => {
               });
               const signer = sdk.getSigner() as ERC4337EthersSigner;
 
-              const txHash = await signer.smartAccountAPI.getUserOpReceipt(
-                userOp.userOpHash!,
-                3000,
-              );
+              const userOpReceipt =
+                await signer.smartAccountAPI.getUserOpReceipt(
+                  signer.httpRpcClient,
+                  userOp.userOpHash!,
+                  3000,
+                );
 
-              if (!txHash) {
+              if (!userOpReceipt) {
                 // If no receipt was received, return undefined to filter out tx
                 return undefined;
               }
@@ -49,10 +51,12 @@ export const updateMinedUserOps = async () => {
                 chainId: parseInt(userOp.chainId!),
               });
 
-              const tx = await signer.provider!.getTransaction(txHash);
+              const tx = await signer.provider!.getTransaction(
+                userOpReceipt.transactionHash,
+              );
               const txReceipt = await _sdk
                 .getProvider()
-                .getTransactionReceipt(txHash);
+                .getTransactionReceipt(tx.hash);
               const minedAt = new Date(
                 (
                   await getBlock({
@@ -67,7 +71,7 @@ export const updateMinedUserOps = async () => {
                 blockNumber: tx.blockNumber!,
                 minedAt,
                 onChainTxStatus: txReceipt.status,
-                transactionHash: txHash,
+                transactionHash: txReceipt.transactionHash,
                 transactionType: tx.type,
                 gasLimit: tx.gasLimit.toString(),
                 maxFeePerGas: tx.maxFeePerGas?.toString(),
@@ -84,7 +88,7 @@ export const updateMinedUserOps = async () => {
               pgtx,
               queueId: userOp!.id,
               data: {
-                status: TransactionStatusEnum.Mined,
+                status: TransactionStatus.Mined,
                 minedAt: userOp!.minedAt,
                 blockNumber: userOp!.blockNumber,
                 onChainTxStatus: userOp!.onChainTxStatus,
@@ -105,7 +109,7 @@ export const updateMinedUserOps = async () => {
             });
             sendWebhookForQueueIds.push({
               queueId: userOp!.id,
-              status: TransactionStatusEnum.Mined,
+              status: TransactionStatus.Mined,
             });
             reportUsageForQueueIds.push({
               input: {
