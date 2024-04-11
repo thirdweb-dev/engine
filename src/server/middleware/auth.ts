@@ -105,6 +105,9 @@ export const withAuth = async (server: FastifyInstance) => {
 
   // Add auth validation middleware to check for authenticated requests
   server.addHook("onRequest", async (req, res) => {
+    let message =
+      "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/access-tokens";
+
     try {
       const { isAuthed, user, error } = await onRequest({ req, getUser });
       if (isAuthed) {
@@ -114,10 +117,7 @@ export const withAuth = async (server: FastifyInstance) => {
         // Allow this request to proceed.
         return;
       } else if (error) {
-        return res.status(401).send({
-          error: "Unauthorized",
-          message: error,
-        });
+        message = error;
       }
     } catch (err: any) {
       logger({
@@ -130,8 +130,7 @@ export const withAuth = async (server: FastifyInstance) => {
 
     return res.status(401).send({
       error: "Unauthorized",
-      message:
-        "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/permissions",
+      message,
     });
   });
 };
@@ -153,21 +152,20 @@ export const onRequest = async ({
     return publicRoutesResp;
   }
 
-  const keypairAuthResp = await handleKeypairAuth(req);
-  if (keypairAuthResp.isAuthed || keypairAuthResp.error) {
-    return keypairAuthResp;
-  }
-
   const jwt = getJWT(req);
   if (jwt) {
-    const accessTokenResp = await handleAccessTokenJwt(jwt, req, getUser);
-    if (accessTokenResp.isAuthed) {
-      return accessTokenResp;
-    }
+    const payload = jsonwebtoken.decode(jwt, { json: true });
 
-    const dashboardJwtResp = await handleDashboardJwt(jwt);
-    if (dashboardJwtResp.isAuthed) {
-      return dashboardJwtResp;
+    // The `iss` field determines the auth type.
+    if (payload?.iss) {
+      const authWallet = await getAuthWallet();
+      if (payload.iss === (await authWallet.getAddress())) {
+        return await handleAccessTokenJwt(jwt, req, getUser);
+      } else if (payload.iss === THIRDWEB_DASHBOARD_ISSUER) {
+        return await handleDashboardJwt(jwt);
+      } else {
+        return await handleKeypairAuth(jwt, payload.iss);
+      }
     }
   }
 
@@ -266,35 +264,24 @@ const handleWebsocketAuth = async (
  * @returns AuthResponse
  */
 const handleKeypairAuth = async (
-  req: FastifyRequest,
+  jwt: string,
+  iss: string,
 ): Promise<AuthResponse> => {
   // The keypair auth feature must be explicitly enabled.
   if (!env.ENABLE_KEYPAIR_AUTH) {
     return { isAuthed: false };
   }
 
-  const jwt = getJWT(req);
-  if (!jwt) {
-    return { isAuthed: false };
-  }
-
   let error: string | undefined;
   try {
-    const payload = jsonwebtoken.decode(jwt, { json: true });
-    if (!payload?.iss) {
-      error = 'The "iss" field must contain an ES256 public key.';
-      throw error;
-    }
-
-    const keypair = await getKeypair({ publicKey: payload.iss });
-    if (!keypair || keypair.publicKey !== payload.iss) {
-      error =
-        "The provided public key is not configured for this Engine instance.";
+    const keypair = await getKeypair({ publicKey: iss });
+    if (!keypair || keypair.publicKey !== iss) {
+      error = "The provided public key is incorrect or not added to Engine.";
       throw error;
     }
 
     const { exp, iat } = jsonwebtoken.verify(jwt, keypair.publicKey, {
-      algorithms: ["ES256"],
+      algorithms: [keypair.algorithm as jsonwebtoken.Algorithm],
     }) as jsonwebtoken.JwtPayload;
 
     const duration = exp && iat ? exp - iat : undefined;
@@ -309,7 +296,9 @@ const handleKeypairAuth = async (
     if (e instanceof jsonwebtoken.TokenExpiredError) {
       error = "Keypair token is expired.";
     } else if (!error) {
-      error = 'Error parsing "x-keypair-signature" header.';
+      // Default error.
+      error =
+        'Error parsing "Authorization" header. See: https://portal.thirdweb.com/engine/features/access-tokens';
     }
   }
 

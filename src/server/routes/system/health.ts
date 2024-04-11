@@ -54,6 +54,6 @@ export async function healthCheck(fastify: FastifyInstance) {
 
 const getFeatures = (): EngineFeature[] => {
   const features: EngineFeature[] = [];
-  if (env.ENABLE_KEYPAIR_AUTH) features.push("keypairAuth");
+  if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
   return features;
 };

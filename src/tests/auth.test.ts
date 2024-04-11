@@ -42,6 +42,14 @@ const mockHandleSiwe = handleSiwe as jest.MockedFunction<typeof handleSiwe>;
 jest.mock("../utils/cache/keypair");
 const mockGetKeypair = getKeypair as jest.MockedFunction<typeof getKeypair>;
 
+let testAuthWallet: LocalWallet;
+beforeAll(async () => {
+  // Initialize a local auth wallet.
+  testAuthWallet = new LocalWallet();
+  await testAuthWallet.generate();
+  mockGetAuthWallet.mockResolvedValue(testAuthWallet);
+});
+
 describe("Static paths", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -254,6 +262,10 @@ describe("Access tokens", () => {
   const mockGetUser = jest.fn();
 
   it("Valid access token with admin permissions is authed", async () => {
+    const jwt = jsonwebtoken.sign(
+      { iss: await testAuthWallet.getAddress() },
+      "test",
+    );
     mockGetAccessToken.mockResolvedValue({
       id: "my-access-token",
       tokenMask: "",
@@ -272,7 +284,7 @@ describe("Access tokens", () => {
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -283,6 +295,10 @@ describe("Access tokens", () => {
   });
 
   it("Valid access token with non-admin permissions is not authed", async () => {
+    const jwt = jsonwebtoken.sign(
+      { iss: await testAuthWallet.getAddress() },
+      "test",
+    );
     mockGetAccessToken.mockResolvedValue({
       id: "my-access-token",
       tokenMask: "",
@@ -301,7 +317,7 @@ describe("Access tokens", () => {
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -311,6 +327,10 @@ describe("Access tokens", () => {
   });
 
   it("Revoked access token is not authed", async () => {
+    const jwt = jsonwebtoken.sign(
+      { iss: await testAuthWallet.getAddress() },
+      "test",
+    );
     mockGetAccessToken.mockResolvedValue({
       id: "my-access-token",
       tokenMask: "",
@@ -329,7 +349,7 @@ describe("Access tokens", () => {
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -339,6 +359,10 @@ describe("Access tokens", () => {
   });
 
   it("Invalid access token is not authed", async () => {
+    const jwt = jsonwebtoken.sign(
+      { iss: await testAuthWallet.getAddress() },
+      "test",
+    );
     mockGetAccessToken.mockResolvedValue(null);
 
     mockGetUser.mockReturnValue({
@@ -348,7 +372,7 @@ describe("Access tokens", () => {
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -382,6 +406,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     mockGetKeypair.mockResolvedValue({
       hash: "",
       publicKey: testKeypair.public,
+      algorithm: "ES256",
       createdAt: new Date(),
     });
 
@@ -398,7 +423,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { "x-keypair-signature": jwt },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -413,6 +438,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     mockGetKeypair.mockResolvedValue({
       hash: "",
       publicKey: testKeypair.public,
+      algorithm: "ES256",
       createdAt: new Date(),
     });
 
@@ -429,7 +455,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { "x-keypair-signature": jwt },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -446,6 +472,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     mockGetKeypair.mockResolvedValue({
       hash: "",
       publicKey: testKeypair.public,
+      algorithm: "ES256",
       createdAt: new Date(),
     });
 
@@ -462,7 +489,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { "x-keypair-signature": jwt },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -477,6 +504,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     mockGetKeypair.mockResolvedValue({
       hash: "",
       publicKey: testKeypair.public,
+      algorithm: "ES256",
       createdAt: new Date(),
     });
 
@@ -493,7 +521,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { "x-keypair-signature": jwt },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -502,7 +530,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     expect(result.isAuthed).toBeFalsy();
     expect(result.user).toBeUndefined();
     expect(result.error).toEqual(
-      "The provided public key is not configured for this Engine instance.",
+      "The provided public key is incorrect or not added to Engine.",
     );
   });
 
@@ -525,7 +553,7 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { "x-keypair-signature": jwt },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -533,7 +561,9 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeFalsy();
     expect(result.user).toBeUndefined();
-    expect(result.error).toEqual('Error parsing "x-keypair-signature" header.');
+    expect(result.error).toEqual(
+      'Error parsing "Authorization" header. See: https://portal.thirdweb.com/engine/features/access-tokens',
+    );
   });
 });
 
@@ -546,14 +576,10 @@ describe("Dashboard JWT", () => {
   mockGetAccessToken.mockResolvedValue(null);
 
   it("Valid dashboard JWT with admin permission is authed", async () => {
-    // Mock dashboard JWTs.
-    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
-      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
-        return { address: "0x0000000000000000000000000123" };
-      }
-      return null;
+    const jwt = jsonwebtoken.sign({ iss: THIRDWEB_DASHBOARD_ISSUER }, "test");
+    mockHandleSiwe.mockResolvedValue({
+      address: "0x0000000000000000000000000123",
     });
-
     mockGetPermissions.mockResolvedValue({
       walletAddress: "0x0000000000000000000000000123",
       permissions: Permission.Admin,
@@ -563,7 +589,7 @@ describe("Dashboard JWT", () => {
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -575,13 +601,10 @@ describe("Dashboard JWT", () => {
 
   it("Valid dashboard JWT with non-admin permission is not authed", async () => {
     // Mock dashboard JWTs.
-    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
-      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
-        return { address: "0x0000000000000000000000000123" };
-      }
-      return null;
+    const jwt = jsonwebtoken.sign({ iss: THIRDWEB_DASHBOARD_ISSUER }, "test");
+    mockHandleSiwe.mockResolvedValue({
+      address: "0x0000000000000000000000000123",
     });
-
     mockGetPermissions.mockResolvedValue({
       walletAddress: "0x0000000000000000000000000123",
       permissions: "none",
@@ -591,7 +614,7 @@ describe("Dashboard JWT", () => {
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -602,19 +625,16 @@ describe("Dashboard JWT", () => {
 
   it("Dashboard JWT for an unknown user is not authed", async () => {
     // Mock dashboard JWTs.
-    mockHandleSiwe.mockImplementation(async (_, __, issuer: string) => {
-      if (issuer === THIRDWEB_DASHBOARD_ISSUER) {
-        return { address: "0x0000000000000000000000000123" };
-      }
-      return null;
+    const jwt = jsonwebtoken.sign({ iss: THIRDWEB_DASHBOARD_ISSUER }, "test");
+    mockHandleSiwe.mockResolvedValue({
+      address: "0x0000000000000000000000000123",
     });
-
     mockGetPermissions.mockResolvedValue(null);
 
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -625,12 +645,13 @@ describe("Dashboard JWT", () => {
 
   it("Invalid dashboard JWT is not authed", async () => {
     // Mock dashboard JWTs.
+    const jwt = jsonwebtoken.sign({ iss: THIRDWEB_DASHBOARD_ISSUER }, "test");
     mockHandleSiwe.mockResolvedValue(null);
 
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
-      headers: { authorization: "Bearer my-access-token" },
+      headers: { authorization: `Bearer ${jwt}` },
       // @ts-ignore
       raw: {},
     };
@@ -648,10 +669,6 @@ describe("thirdweb secret key", () => {
   const mockGetUser = jest.fn();
 
   it("Valid thirdweb secret key is authed", async () => {
-    const testAuthWallet = new LocalWallet();
-    await testAuthWallet.generate();
-    mockGetAuthWallet.mockResolvedValue(testAuthWallet);
-
     const req: FastifyRequest = {
       method: "POST",
       url: "/backend-wallets/get-all",
