@@ -160,9 +160,9 @@ export const onRequest = async ({
     if (payload?.iss) {
       const authWallet = await getAuthWallet();
       if (payload.iss === (await authWallet.getAddress())) {
-        return await handleAccessTokenJwt(jwt, req, getUser);
+        return await handleAccessToken(jwt, req, getUser);
       } else if (payload.iss === THIRDWEB_DASHBOARD_ISSUER) {
-        return await handleDashboardJwt(jwt);
+        return await handleDashboardAuth(jwt);
       } else {
         return await handleKeypairAuth(jwt, payload.iss);
       }
@@ -314,7 +314,7 @@ const handleKeypairAuth = async (
  * @returns AuthResponse
  * @async
  */
-const handleAccessTokenJwt = async (
+const handleAccessToken = async (
   jwt: string,
   req: FastifyRequest,
   getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"],
@@ -344,7 +344,7 @@ const handleAccessTokenJwt = async (
  * @returns AuthResponse
  * @async
  */
-const handleDashboardJwt = async (jwt: string): Promise<AuthResponse> => {
+const handleDashboardAuth = async (jwt: string): Promise<AuthResponse> => {
   const user =
     (await handleSiwe(jwt, "thirdweb.com", THIRDWEB_DASHBOARD_ISSUER)) ||
     (await handleSiwe(jwt, "thirdweb-preview.com", THIRDWEB_DASHBOARD_ISSUER));
