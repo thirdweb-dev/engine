@@ -268,7 +268,12 @@ const handleWebsocketAuth = async (
 const handleKeypairAuth = async (
   req: FastifyRequest,
 ): Promise<AuthResponse> => {
-  const jwt = req.headers["x-keypair-signature"] as string | undefined;
+  // The keypair auth feature must be explicitly enabled.
+  if (!env.ENABLE_KEYPAIR_AUTH) {
+    return { isAuthed: false };
+  }
+
+  const jwt = getJWT(req);
   if (!jwt) {
     return { isAuthed: false };
   }

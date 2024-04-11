@@ -2,10 +2,14 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isDatabaseHealthy } from "../../../db/client";
+import { env } from "../../../utils/env";
+
+type EngineFeature = "KEYPAIR_AUTH";
 
 const ReplySchemaOk = Type.Object({
   status: Type.String(),
   engineVersion: Type.Optional(Type.String()),
+  features: Type.Array(Type.Union([Type.Literal("KEYPAIR_AUTH")])),
 });
 
 const ReplySchemaError = Type.Object({
@@ -42,7 +46,14 @@ export async function healthCheck(fastify: FastifyInstance) {
       res.status(StatusCodes.OK).send({
         status: "OK",
         engineVersion: process.env.ENGINE_VERSION,
+        features: getFeatures(),
       });
     },
   });
 }
+
+const getFeatures = (): EngineFeature[] => {
+  const features: EngineFeature[] = [];
+  if (env.ENABLE_KEYPAIR_AUTH) features.push("keypairAuth");
+  return features;
+};
