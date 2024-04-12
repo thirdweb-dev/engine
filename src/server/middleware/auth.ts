@@ -1,23 +1,24 @@
-import { Json, User, authenticateJWT, parseJWT } from "@thirdweb-dev/auth";
+import { parseJWT } from "@thirdweb-dev/auth";
 import {
   ThirdwebAuth,
   ThirdwebAuthUser,
   getToken as getJWT,
 } from "@thirdweb-dev/auth/fastify";
-import { GenericAuthWallet } from "@thirdweb-dev/wallets";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
-import { utils } from "ethers";
 import { FastifyInstance } from "fastify";
 import { FastifyRequest } from "fastify/types/request";
+import jsonwebtoken from "jsonwebtoken";
 import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
 import { revokeToken } from "../../db/tokens/revokeToken";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../../utils/auth";
 import { getAccessToken } from "../../utils/cache/accessToken";
 import { getAuthWallet } from "../../utils/cache/authWallet";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getWebhook } from "../../utils/cache/getWebhook";
+import { getKeypair } from "../../utils/cache/keypair";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { sendWebhookRequest } from "../../utils/webhook";
@@ -26,56 +27,18 @@ import { Permission } from "../schemas/auth";
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };
 
+interface AuthResponse {
+  isAuthed: boolean;
+  user?: ThirdwebAuthUser<TAuthData, TAuthSession>;
+  // If error is provided, return an error immediately.
+  error?: string;
+}
+
 declare module "fastify" {
   interface FastifyRequest {
     user: ThirdwebAuthUser<TAuthData, TAuthSession>;
   }
 }
-
-const authWithApiServer = async (jwt: string, domain: string) => {
-  let user: User<Json> | null = null;
-  try {
-    user = await authenticateJWT({
-      clientOptions: {
-        secretKey: env.THIRDWEB_API_SECRET_KEY,
-      },
-      wallet: {
-        type: "evm",
-        getAddress: async () => "0x016757dDf2Ab6a998a4729A80a091308d9059E17",
-        verifySignature: async (
-          message: string,
-          signature: string,
-          address: string,
-        ) => {
-          try {
-            const messageHash = utils.hashMessage(message);
-            const messageHashBytes = utils.arrayify(messageHash);
-            const recoveredAddress = utils.recoverAddress(
-              messageHashBytes,
-              signature,
-            );
-
-            if (recoveredAddress === address) {
-              return true;
-            }
-          } catch {
-            // no-op
-          }
-
-          return false;
-        },
-      } as GenericAuthWallet,
-      jwt,
-      options: {
-        domain,
-      },
-    });
-  } catch {
-    // no-op
-  }
-
-  return user;
-};
 
 export const withAuth = async (server: FastifyInstance) => {
   const config = await getConfig();
@@ -140,14 +103,19 @@ export const withAuth = async (server: FastifyInstance) => {
 
   // Add auth validation middleware to check for authenticated requests
   server.addHook("onRequest", async (req, res) => {
+    let message =
+      "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/access-tokens";
+
     try {
-      const { isAuthed, user } = await onRequest({ req, getUser });
+      const { isAuthed, user, error } = await onRequest({ req, getUser });
       if (isAuthed) {
         if (user) {
           req.user = user;
         }
         // Allow this request to proceed.
         return;
+      } else if (error) {
+        message = error;
       }
     } catch (err: any) {
       logger({
@@ -158,14 +126,9 @@ export const withAuth = async (server: FastifyInstance) => {
       });
     }
 
-    // Return 401 if:
-    // - There was an error authenticating this request.
-    // - No auth credentials were provided.
-    // - The auth credentials were invalid or revoked.
     return res.status(401).send({
       error: "Unauthorized",
-      message:
-        "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/permissions",
+      message,
     });
   });
 };
@@ -176,46 +139,181 @@ export const onRequest = async ({
 }: {
   req: FastifyRequest;
   getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"];
-}): Promise<{
-  isAuthed: boolean;
-  user?: ThirdwebAuthUser<TAuthData, TAuthSession>;
-}> => {
-  if (
-    req.url === "/favicon.ico" ||
-    req.url === "/" ||
-    req.url === "/system/health" ||
-    req.url === "/json" ||
-    req.url.startsWith("/auth/payload") ||
-    req.url.startsWith("/auth/login") ||
-    req.url.startsWith("/auth/user") ||
-    req.url.startsWith("/auth/switch-account") ||
-    req.url.startsWith("/auth/logout") ||
-    req.url.startsWith("/transaction/status")
-  ) {
-    // Skip auth check for static endpoints and Thirdweb Auth routes.
-    return { isAuthed: true };
+}): Promise<AuthResponse> => {
+  // Handle websocket auth separately.
+  if (req.headers.upgrade?.toLowerCase() === "websocket") {
+    return handleWebsocketAuth(req, getUser);
   }
 
-  if (req.method === "POST" && req.url.startsWith("/relayer/")) {
-    const relayerId = req.url.slice("/relayer/".length);
-    if (uuidValidate(relayerId)) {
-      // The "relay transaction" endpoint handles its own authentication.
-      return { isAuthed: true };
+  const publicRoutesResp = handlePublicEndpoints(req);
+  if (publicRoutesResp.isAuthed) {
+    return publicRoutesResp;
+  }
+
+  const jwt = getJWT(req);
+  if (jwt) {
+    const payload = jsonwebtoken.decode(jwt, { json: true });
+
+    // The `iss` field determines the auth type.
+    if (payload?.iss) {
+      const authWallet = await getAuthWallet();
+      if (payload.iss === (await authWallet.getAddress())) {
+        return await handleAccessToken(jwt, req, getUser);
+      } else if (payload.iss === THIRDWEB_DASHBOARD_ISSUER) {
+        return await handleDashboardAuth(jwt);
+      } else {
+        return await handleKeypairAuth(jwt, payload.iss);
+      }
     }
   }
 
-  // Handle websocket request: auth via access token
-  // Allow a request that provides a non-revoked access token for an owner/admin.
-  if (
-    req.headers.upgrade &&
-    req.headers.upgrade.toLowerCase() === "websocket"
-  ) {
-    const { token: jwt } = req.query as { token: string };
+  const secretKeyResp = await handleSecretKey(req);
+  if (secretKeyResp.isAuthed) {
+    return secretKeyResp;
+  }
 
+  const authWebhooksResp = await handleAuthWebhooks(req);
+  if (authWebhooksResp.isAuthed) {
+    return authWebhooksResp;
+  }
+
+  // Unauthorized: no auth patterns matched.
+  return { isAuthed: false };
+};
+
+/**
+ * Handles unauthed routes.
+ * @param req FastifyRequest
+ * @returns AuthResponse
+ */
+const handlePublicEndpoints = (req: FastifyRequest): AuthResponse => {
+  if (req.method === "GET") {
+    if (
+      req.url === "/favicon.ico" ||
+      req.url === "/" ||
+      req.url === "/system/health" ||
+      req.url === "/json" ||
+      req.url.startsWith("/auth/user") ||
+      req.url.startsWith("/transaction/status")
+    ) {
+      return { isAuthed: true };
+    }
+  } else if (req.method === "POST") {
+    if (
+      req.url.startsWith("/auth/payload") ||
+      req.url.startsWith("/auth/login") ||
+      req.url.startsWith("/auth/switch-account") ||
+      req.url.startsWith("/auth/logout")
+    ) {
+      return { isAuthed: true };
+    }
+
+    if (req.url.startsWith("/relayer/")) {
+      const relayerId = req.url.slice("/relayer/".length);
+      if (uuidValidate(relayerId)) {
+        // "Relay transaction" endpoint which handles its own authentication.
+        return { isAuthed: true };
+      }
+    }
+  }
+
+  return { isAuthed: false };
+};
+
+/**
+ * Handle websocket request: auth via access token
+ * Allow a request that provides a non-revoked access token for an owner/admin
+ * Handle websocket auth separately.
+ * @param req FastifyRequest
+ * @param getUser
+ * @returns AuthResponse
+ * @async
+ */
+const handleWebsocketAuth = async (
+  req: FastifyRequest,
+  getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"],
+): Promise<AuthResponse> => {
+  const { token: jwt } = req.query as { token: string };
+
+  const token = await getAccessToken({ jwt });
+  if (token && token.revokedAt === null) {
+    // Set as a header for `getUsers` to parse the token.
+    req.headers.authorization = `Bearer ${jwt}`;
+    const user = await getUser(req);
+    if (
+      user?.session?.permissions === Permission.Owner ||
+      user?.session?.permissions === Permission.Admin
+    ) {
+      return { isAuthed: true, user };
+    }
+  }
+
+  // Destroy the websocket connection.
+  req.raw.socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+  req.raw.socket.destroy();
+  return { isAuthed: false };
+};
+
+/**
+ * Auth via keypair.
+ * Allow a request that provides a JWT signed by an ES256 private key
+ * matching the configured public key.
+ * @param req FastifyRequest
+ * @returns AuthResponse
+ */
+const handleKeypairAuth = async (
+  jwt: string,
+  iss: string,
+): Promise<AuthResponse> => {
+  // The keypair auth feature must be explicitly enabled.
+  if (!env.ENABLE_KEYPAIR_AUTH) {
+    return { isAuthed: false };
+  }
+
+  let error: string | undefined;
+  try {
+    const keypair = await getKeypair({ publicKey: iss });
+    if (!keypair || keypair.publicKey !== iss) {
+      error = "The provided public key is incorrect or not added to Engine.";
+      throw error;
+    }
+
+    // The JWT is valid if `verify` did not throw.
+    jsonwebtoken.verify(jwt, keypair.publicKey, {
+      algorithms: [keypair.algorithm as jsonwebtoken.Algorithm],
+    }) as jsonwebtoken.JwtPayload;
+
+    return { isAuthed: true };
+  } catch (e) {
+    if (e instanceof jsonwebtoken.TokenExpiredError) {
+      error = "Keypair token is expired.";
+    } else if (!error) {
+      // Default error.
+      error =
+        'Error parsing "Authorization" header. See: https://portal.thirdweb.com/engine/features/access-tokens';
+    }
+  }
+
+  return { isAuthed: false, error };
+};
+
+/**
+ * Auth via access token.
+ * Allow a request that provides a non-revoked access token for an owner/admin.
+ * @param jwt string
+ * @param req FastifyRequest
+ * @param getUser
+ * @returns AuthResponse
+ * @async
+ */
+const handleAccessToken = async (
+  jwt: string,
+  req: FastifyRequest,
+  getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"],
+): Promise<AuthResponse> => {
+  try {
     const token = await getAccessToken({ jwt });
     if (token && token.revokedAt === null) {
-      // Set as a header for `getUsers` to parse the token.
-      req.headers.authorization = `Bearer ${jwt}`;
       const user = await getUser(req);
       if (
         user?.session?.permissions === Permission.Owner ||
@@ -224,58 +322,53 @@ export const onRequest = async ({
         return { isAuthed: true, user };
       }
     }
-
-    // Destroy the websocket connection.
-    req.raw.socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
-    req.raw.socket.destroy();
-    return { isAuthed: false };
+  } catch (e) {
+    // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
   }
 
-  try {
-    const jwt = getJWT(req);
-    if (jwt) {
-      // Auth via access token
-      // Allow a request that provides a non-revoked access token for an owner/admin.
-      const token = await getAccessToken({ jwt });
-      if (token && token.revokedAt === null) {
-        const user = await getUser(req);
-        if (
-          user?.session?.permissions === Permission.Owner ||
-          user?.session?.permissions === Permission.Admin
-        ) {
-          return { isAuthed: true, user };
-        }
-      }
+  return { isAuthed: false };
+};
 
-      // Auth via dashboard
-      // Allow a request that provides a dashboard JWT.
-      const user =
-        (await authWithApiServer(jwt, "thirdweb.com")) ||
-        (await authWithApiServer(jwt, "thirdweb-preview.com"));
-      if (user) {
-        const res = await getPermissions({ walletAddress: user.address });
-        if (
-          res?.permissions === Permission.Owner ||
-          res?.permissions === Permission.Admin
-        ) {
-          return {
-            isAuthed: true,
-            user: {
-              address: user.address,
-              session: {
-                permissions: res.permissions,
-              },
-            },
-          };
-        }
-      }
+/**
+ * Auth via dashboard.
+ * Allow a request that provides a dashboard JWT.
+ * @param jwt string
+ * @returns AuthResponse
+ * @async
+ */
+const handleDashboardAuth = async (jwt: string): Promise<AuthResponse> => {
+  const user =
+    (await handleSiwe(jwt, "thirdweb.com", THIRDWEB_DASHBOARD_ISSUER)) ||
+    (await handleSiwe(jwt, "thirdweb-preview.com", THIRDWEB_DASHBOARD_ISSUER));
+  if (user) {
+    const res = await getPermissions({ walletAddress: user.address });
+    if (
+      res?.permissions === Permission.Owner ||
+      res?.permissions === Permission.Admin
+    ) {
+      return {
+        isAuthed: true,
+        user: {
+          address: user.address,
+          session: {
+            permissions: res.permissions,
+          },
+        },
+      };
     }
-  } catch {
-    // This throws if no JWT is provided. Continue to check other auth mechanisms.
   }
 
-  // Auth via thirdweb secret key
-  // Allow a request that provides the thirdweb secret key used to init Engine.
+  return { isAuthed: false };
+};
+
+/**
+ * Auth via thirdweb secret key.
+ * Allow a request that provides the thirdweb secret key used to init Engine.
+ *
+ * @param req FastifyRequest
+ * @returns
+ */
+const handleSecretKey = async (req: FastifyRequest): Promise<AuthResponse> => {
   const thirdwebApiSecretKey = req.headers.authorization?.split(" ")[1];
   if (thirdwebApiSecretKey === env.THIRDWEB_API_SECRET_KEY) {
     const authWallet = await getAuthWallet();
@@ -290,9 +383,20 @@ export const onRequest = async ({
     };
   }
 
-  // Auth via auth webhooks
-  // Allow a request if it satisfies all configured auth webhooks.
-  // Must have at least one auth webhook.
+  return { isAuthed: false };
+};
+
+/**
+ * Auth via auth webhooks
+ * Allow a request if it satisfies all configured auth webhooks.
+ * Must have at least one auth webhook.
+ * @param req FastifyRequest
+ * @returns AuthResponse
+ * @async
+ */
+const handleAuthWebhooks = async (
+  req: FastifyRequest,
+): Promise<AuthResponse> => {
   const authWebhooks = await getWebhook(WebhooksEventTypes.AUTH);
   if (authWebhooks.length > 0) {
     const authResponses = await Promise.all(
