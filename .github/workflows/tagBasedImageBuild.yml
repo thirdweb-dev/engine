@@ -7,6 +7,9 @@ on:
 jobs:
   buildImageForNewTag:
     runs-on: ubuntu-latest
+    # Set environment variables
+    env:
+      LATEST_TAG: ${{ (github.event.release.target_commitish == 'main') && 'thirdweb/engine:latest' || '' }}
 
     steps:
       - name: Check Disk Space Before Build
@@ -39,7 +42,7 @@ jobs:
           push: true
           tags: |
             thirdweb/engine:${{ github.event.release.tag_name }}
-            ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' }}
+            ${{ env.LATEST_TAG }}
           build-args: |
             ENGINE_VERSION=${{ github.event.release.tag_name }}
 
