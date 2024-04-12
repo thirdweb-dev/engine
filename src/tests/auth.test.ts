@@ -407,7 +407,9 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
       hash: "",
       publicKey: testKeypair.public,
       algorithm: "ES256",
+      label: null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     // Sign a valid auth payload.
@@ -434,46 +436,14 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
     expect(result.error).toBeUndefined();
   });
 
-  it("JWT with exp > 15 min signed by private key", async () => {
-    mockGetKeypair.mockResolvedValue({
-      hash: "",
-      publicKey: testKeypair.public,
-      algorithm: "ES256",
-      createdAt: new Date(),
-    });
-
-    // Sign a valid auth payload.
-    const jwt = jsonwebtoken.sign(
-      { iss: testKeypair.public },
-      testKeypair.private,
-      {
-        algorithm: "ES256",
-        expiresIn: "16m",
-      },
-    );
-
-    const req: FastifyRequest = {
-      method: "POST",
-      url: "/backend-wallets/get-all",
-      headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
-      raw: {},
-    };
-
-    const result = await onRequest({ req, getUser: mockGetUser });
-    expect(result.isAuthed).toBeFalsy();
-    expect(result.user).toBeUndefined();
-    expect(result.error).toEqual(
-      "Keypair token duration must not exceed 900 seconds.",
-    );
-  });
-
   it("Expired JWT signed by private key", async () => {
     mockGetKeypair.mockResolvedValue({
       hash: "",
       publicKey: testKeypair.public,
       algorithm: "ES256",
+      label: null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     // Sign an expired auth payload.
@@ -505,7 +475,9 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
       hash: "",
       publicKey: testKeypair.public,
       algorithm: "ES256",
+      label: null,
       createdAt: new Date(),
+      updatedAt: new Date(),
     });
 
     // Sign an expired auth payload.

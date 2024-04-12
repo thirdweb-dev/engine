@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { listKeypairs } from "../../../../db/keypair/list";
-import { KeypairSchema } from "../../../schemas/keypairs";
+import { KeypairSchema, toKeypairSchema } from "../../../schemas/keypairs";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const ReplySchema = Type.Object({
@@ -29,7 +29,7 @@ export async function listPublicKeys(fastify: FastifyInstance) {
       const keypairs = await listKeypairs();
 
       res.status(200).send({
-        result: keypairs,
+        result: keypairs.map(toKeypairSchema),
       });
     },
   });

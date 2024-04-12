@@ -1,4 +1,5 @@
-import { Type } from "@sinclair/typebox";
+import { Keypairs } from "@prisma/client";
+import { Static, Type } from "@sinclair/typebox";
 
 // https://github.com/auth0/node-jsonwebtoken#algorithms-supported
 const _supportedAlgorithms = [
@@ -33,9 +34,30 @@ export const KeypairSchema = Type.Object({
   algorithm: Type.String({
     description: "The keypair algorithm.",
   }),
+  label: Type.Optional(
+    Type.String({
+      description: "A description for the keypair.",
+    }),
+  ),
   createdAt: Type.Unsafe<Date>({
     type: "string",
     format: "date",
-    description: "When the keypair was imported",
+    description: "When the keypair was added",
   }),
+  updatedAt: Type.Unsafe<Date>({
+    type: "string",
+    format: "date",
+    description: "When the keypair was updated",
+  }),
+});
+
+export const toKeypairSchema = (
+  keypair: Keypairs,
+): Static<typeof KeypairSchema> => ({
+  hash: keypair.hash,
+  publicKey: keypair.publicKey,
+  algorithm: keypair.algorithm,
+  label: keypair.label ?? undefined,
+  createdAt: keypair.createdAt,
+  updatedAt: keypair.updatedAt,
 });

@@ -6,9 +6,11 @@ import { prisma } from "../client";
 export const insertKeypair = async ({
   publicKey,
   algorithm,
+  label,
 }: {
   publicKey: string;
   algorithm: KeypairAlgorithm;
+  label?: string;
 }): Promise<Keypairs> => {
   const hash = createHash("sha256").update(publicKey).digest("hex");
 
@@ -17,6 +19,7 @@ export const insertKeypair = async ({
       hash,
       publicKey,
       algorithm,
+      label,
     },
   });
 };

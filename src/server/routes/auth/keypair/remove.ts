@@ -11,22 +11,22 @@ const BodySchema = Type.Object({
 
 const ReplySchema = Type.Object({
   result: Type.Object({
-    message: Type.String(),
+    success: Type.Boolean(),
   }),
 });
 
-export async function revokePublicKey(fastify: FastifyInstance) {
+export async function removePublicKey(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "POST",
-    url: "/auth/keypair/revoke",
+    url: "/auth/keypair/remove",
     schema: {
-      summary: "Revoke public key",
-      description: "Revoke the public key for an ES256 keypair from Engine",
+      summary: "Remove public key",
+      description: "Remove the public key for a keypair",
       tags: ["Keypair"],
-      operationId: "revoke",
+      operationId: "remove",
       body: BodySchema,
       response: {
         ...standardResponseSchema,
@@ -40,9 +40,7 @@ export async function revokePublicKey(fastify: FastifyInstance) {
       keypairCache.clear();
 
       res.status(200).send({
-        result: {
-          message: "OK",
-        },
+        result: { success: true },
       });
     },
   });

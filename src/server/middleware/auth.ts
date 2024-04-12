@@ -24,8 +24,6 @@ import { logger } from "../../utils/logger";
 import { sendWebhookRequest } from "../../utils/webhook";
 import { Permission } from "../schemas/auth";
 
-const KEYPAIR_AUTH_MAX_DURATION_SECONDS = 15 * 60;
-
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };
 
@@ -280,17 +278,11 @@ const handleKeypairAuth = async (
       throw error;
     }
 
-    const { exp, iat } = jsonwebtoken.verify(jwt, keypair.publicKey, {
+    // The JWT is valid if `verify` did not throw.
+    jsonwebtoken.verify(jwt, keypair.publicKey, {
       algorithms: [keypair.algorithm as jsonwebtoken.Algorithm],
     }) as jsonwebtoken.JwtPayload;
 
-    const duration = exp && iat ? exp - iat : undefined;
-    if (!duration || duration > KEYPAIR_AUTH_MAX_DURATION_SECONDS) {
-      error = `Keypair token duration must not exceed ${KEYPAIR_AUTH_MAX_DURATION_SECONDS} seconds.`;
-      throw error;
-    }
-
-    // The JWT is valid if `verify` did not throw.
     return { isAuthed: true };
   } catch (e) {
     if (e instanceof jsonwebtoken.TokenExpiredError) {

@@ -25,12 +25,6 @@ export const UrlSchema = z
     { message: "Invalid URL" },
   );
 
-export const PublicKeySchema = z
-  .string()
-  .refine((value) => value.startsWith("-----BEGIN PUBLIC KEY-----\n"), {
-    message: "Invalid public key",
-  });
-
 const boolSchema = (defaultBool: "true" | "false") =>
   z
     .string()

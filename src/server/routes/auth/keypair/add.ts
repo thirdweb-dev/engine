@@ -3,10 +3,12 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertKeypair } from "../../../../db/keypair/insert";
+import { isWellFormedPublicKey } from "../../../../utils/crypto";
 import { createCustomError } from "../../../middleware/error";
 import {
   KeypairAlgorithmSchema,
   KeypairSchema,
+  toKeypairSchema,
 } from "../../../schemas/keypairs";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
@@ -16,6 +18,7 @@ const BodySchema = Type.Object({
       "The public key of your keypair beginning with '-----BEGIN PUBLIC KEY-----'.",
   }),
   algorithm: KeypairAlgorithmSchema,
+  label: Type.Optional(Type.String()),
 });
 
 const ReplySchema = Type.Object({
@@ -24,18 +27,18 @@ const ReplySchema = Type.Object({
   }),
 });
 
-export async function importKeypair(fastify: FastifyInstance) {
+export async function addKeypair(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
     Reply: Static<typeof ReplySchema>;
   }>({
     method: "POST",
-    url: "/auth/keypair/import",
+    url: "/auth/keypair/add",
     schema: {
-      summary: "Import public key",
-      description: "Import the public key for a keypair",
+      summary: "Add public key",
+      description: "Add the public key for a keypair",
       tags: ["Keypair"],
-      operationId: "import",
+      operationId: "add",
       body: BodySchema,
       response: {
         ...standardResponseSchema,
@@ -43,14 +46,12 @@ export async function importKeypair(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { publicKey, algorithm } = req.body;
+      const { publicKey: publicKeyRaw, algorithm, label } = req.body;
+      const publicKey = publicKeyRaw.trim();
 
-      if (
-        !publicKey.startsWith("-----BEGIN PUBLIC KEY-----\n") ||
-        !publicKey.endsWith("\n-----END PUBLIC KEY-----")
-      ) {
+      if (!isWellFormedPublicKey(publicKey)) {
         throw createCustomError(
-          "Invalid ES256 public key. Make sure it starts with '-----BEGIN PUBLIC KEY-----'.",
+          "Invalid public key. Make sure it starts with '-----BEGIN PUBLIC KEY-----'.",
           StatusCodes.BAD_REQUEST,
           "INVALID_PUBLIC_KEY",
         );
@@ -61,6 +62,7 @@ export async function importKeypair(fastify: FastifyInstance) {
         keypair = await insertKeypair({
           publicKey,
           algorithm,
+          label,
         });
       } catch (e) {
         if (e instanceof Prisma.PrismaClientKnownRequestError) {
@@ -76,7 +78,9 @@ export async function importKeypair(fastify: FastifyInstance) {
       }
 
       res.status(200).send({
-        result: { keypair },
+        result: {
+          keypair: toKeypairSchema(keypair),
+        },
       });
     },
   });

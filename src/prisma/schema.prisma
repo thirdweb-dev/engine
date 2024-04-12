@@ -270,7 +270,9 @@ model Keypairs {
   hash      String   @id
   publicKey String
   algorithm String
+  label     String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
   @@map("keypairs")
 }
