@@ -35,6 +35,7 @@
     "@fastify/swagger": "^8.9.0",
     "@fastify/type-provider-typebox": "^3.2.0",
     "@fastify/websocket": "^8.2.0",
+    "@google-cloud/kms": "^4.2.0",
     "@prisma/client": "5.2.0",
     "@sinclair/typebox": "^0.31.28",
     "@t3-oss/env-core": "^0.6.0",

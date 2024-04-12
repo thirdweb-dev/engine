@@ -1874,7 +1874,7 @@
   dependencies:
     google-gax "^3.0.1"
 
-"@google-cloud/kms@4.2.0":
+"@google-cloud/kms@4.2.0", "@google-cloud/kms@^4.2.0":
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/@google-cloud/kms/-/kms-4.2.0.tgz#7d8c1c1c7f906bdf6b5504518967aa9834a31375"
   integrity sha512-EIFxBL2XbpRkW6TmmYNU3xmpbaDw49uD57q6/rRQMkWPENvPTrlonQeTBeXV1I18GMToVliQOwKs001Mzo7Dwg==
