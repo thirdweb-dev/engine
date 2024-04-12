@@ -34,12 +34,14 @@ export const updateMinedUserOps = async () => {
               });
               const signer = sdk.getSigner() as ERC4337EthersSigner;
 
-              const txHash = await signer.smartAccountAPI.getUserOpReceipt(
-                userOp.userOpHash!,
-                3000,
-              );
+              const userOpReceipt =
+                await signer.smartAccountAPI.getUserOpReceipt(
+                  signer.httpRpcClient,
+                  userOp.userOpHash!,
+                  3000,
+                );
 
-              if (!txHash) {
+              if (!userOpReceipt) {
                 // If no receipt was received, return undefined to filter out tx
                 return undefined;
               }
@@ -47,10 +49,12 @@ export const updateMinedUserOps = async () => {
                 chainId: parseInt(userOp.chainId!),
               });
 
-              const tx = await signer.provider!.getTransaction(txHash);
+              const tx = await signer.provider!.getTransaction(
+                userOpReceipt.transactionHash,
+              );
               const txReceipt = await _sdk
                 .getProvider()
-                .getTransactionReceipt(txHash);
+                .getTransactionReceipt(tx.hash);
               const minedAt = new Date(
                 (
                   await getBlock({
@@ -65,7 +69,7 @@ export const updateMinedUserOps = async () => {
                 blockNumber: tx.blockNumber!,
                 minedAt,
                 onChainTxStatus: txReceipt.status,
-                transactionHash: txHash,
+                transactionHash: tx.hash,
                 transactionType: tx.type,
                 gasLimit: tx.gasLimit.toString(),
                 maxFeePerGas: tx.maxFeePerGas?.toString(),
