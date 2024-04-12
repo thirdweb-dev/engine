@@ -7,11 +7,14 @@ on:
 jobs:
   buildImageForNewTag:
     runs-on: ubuntu-latest
-    # Set environment variables
-    env:
-      LATEST_TAG: ${{ (github.event.release.target_commitish == 'main') && 'thirdweb/engine:latest' || '' }}
 
     steps:
+      - name: Get Latest Tag
+        id: get_latest_tag
+        if: github.event.release.target_commitish == 'main'
+        run: |
+          echo "LATEST_TAG=thirdweb/engine:latest" >> "$GITHUB_OUTPUT"
+
       - name: Check Disk Space Before Build
         run: df -h
 
@@ -42,7 +45,7 @@ jobs:
           push: true
           tags: |
             thirdweb/engine:${{ github.event.release.tag_name }}
-            ${{ env.LATEST_TAG }}
+            ${{ steps.get_latest_tag.outputs.LATEST_TAG }}
           build-args: |
             ENGINE_VERSION=${{ github.event.release.tag_name }}
 
