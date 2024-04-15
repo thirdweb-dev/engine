@@ -60,7 +60,12 @@ export const queueTx = async ({
     return queueId;
   } else {
     const fromAddress = await tx.getSignerAddress();
-    const toAddress = tx.getTarget();
+    const toAddress =
+      tx.getTarget() === "0x0000000000000000000000000000000000000000" &&
+      txData.functionName === "deploy" &&
+      extension === "deploy-published"
+        ? null
+        : tx.getTarget();
 
     const { id: queueId } = await queueTxRaw({
       pgtx,
