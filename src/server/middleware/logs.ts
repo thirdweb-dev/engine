@@ -4,19 +4,19 @@ import { logger } from "../../utils/logger";
 export const withRequestLogs = async (server: FastifyInstance) => {
   server.addHook("onRequest", async (request, reply) => {
     if (
-      !request.routeOptions.url?.includes("static") &&
-      !request.routeOptions.url?.includes("json") &&
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json") &&
       request.method !== "OPTIONS"
     ) {
       logger({
         service: "server",
         level: "info",
-        message: `Request received - ${request.method} - ${request.routeOptions.url}`,
+        message: `Request received - ${request.method} - ${request.routerPath}`,
       });
     }
 
     if (process.env.NODE_ENV === "production") {
-      if (request.routeOptions.url?.includes("static")) {
+      if (request.routerPath?.includes("static")) {
         return reply.status(404).send({
           statusCode: 404,
           error: "Not Found",
@@ -28,16 +28,16 @@ export const withRequestLogs = async (server: FastifyInstance) => {
 
   server.addHook("preHandler", async (request, reply) => {
     if (
-      !request.routeOptions.url?.includes("static") &&
-      !request.routeOptions.url?.includes("json") &&
-      !request.routeOptions.url?.includes("/backend-wallet/import") &&
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json") &&
+      !request.routerPath?.includes("/backend-wallet/import") &&
       request.method !== "OPTIONS"
     ) {
       if (request.body && Object.keys(request.body).length > 0) {
         logger({
           service: "server",
           level: "info",
-          message: `Request body - ${request.method} - ${request.routeOptions.url}`,
+          message: `Request body - ${request.method} - ${request.routerPath}`,
           data: request.body,
         });
       }
@@ -55,7 +55,7 @@ export const withRequestLogs = async (server: FastifyInstance) => {
         logger({
           service: "server",
           level: "info",
-          message: `Request querystring - ${request.method} - ${request.routeOptions.url}`,
+          message: `Request querystring - ${request.method} - ${request.routerPath}`,
           data: request.query,
         });
       }
@@ -64,18 +64,18 @@ export const withRequestLogs = async (server: FastifyInstance) => {
 
   server.addHook("onResponse", (request, reply, done) => {
     if (
-      !request.routeOptions.url?.includes("static") &&
-      !request.routeOptions.url?.includes("json") &&
+      !request.routerPath?.includes("static") &&
+      !request.routerPath?.includes("json") &&
       request.method !== "OPTIONS"
     ) {
       logger({
         service: "server",
         level: "info",
         message: `Request completed - ${request.method} - ${
-          reply.request.routeOptions.url
-        } - status code: ${
-          reply.statusCode
-        } - Response time: ${reply.elapsedTime.toFixed(2)}ms`,
+          reply.request.routerPath
+        } - status code: ${reply.statusCode} - Response time: ${reply
+          .getResponseTime()
+          .toFixed(2)}ms`,
       });
     }
 

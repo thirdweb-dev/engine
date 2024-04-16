@@ -80,8 +80,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
 
   server.addHook("onResponse", async (request, reply) => {
     if (
-      reply.request.routeOptions.url === undefined ||
-      URLS_LIST_TO_NOT_REPORT_USAGE.has(reply.request.routeOptions.url) ||
+      URLS_LIST_TO_NOT_REPORT_USAGE.has(reply.request.routerPath) ||
       reply.request.method === "OPTIONS"
     ) {
       return;
@@ -101,12 +100,12 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       source: "engine",
       action: UsageEventTxActionEnum.APIRequest,
       clientId: thirdwebClientId,
-      pathname: reply.request.routeOptions.url,
+      pathname: reply.request.routerPath,
       chainId: chainId || undefined,
       walletAddress: requestParams.walletAddress || undefined,
       contractAddress: requestParams.contractAddress || undefined,
       httpStatusCode: reply.statusCode,
-      msTotalDuration: Math.ceil(reply.elapsedTime),
+      msTotalDuration: Math.ceil(reply.getResponseTime()),
     };
 
     fetch(env.CLIENT_ANALYTICS_URL, {
