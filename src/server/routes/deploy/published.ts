@@ -35,7 +35,6 @@ requestBodySchema.examples = [
 // OUTPUT
 const responseSchema = Type.Object({
   queueId: Type.Optional(Type.String()),
-  // deployedAddress: Type.Optional(Type.String()),
 });
 
 export async function deployPublished(fastify: FastifyInstance) {
@@ -88,7 +87,6 @@ export async function deployPublished(fastify: FastifyInstance) {
       });
 
       reply.status(StatusCodes.OK).send({
-        // deployedAddress,
         queueId,
       });
     },
