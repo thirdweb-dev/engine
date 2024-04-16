@@ -24,6 +24,7 @@ type UpdateTxData =
       res: ethers.providers.TransactionRequest;
       sentAtBlockNumber: number;
       retryCount?: number;
+      deployedContractAddress?: string;
     }
   | {
       status: TransactionStatus.UserOpSent;
@@ -84,6 +85,7 @@ export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
           maxFeePerGas: data.res?.maxFeePerGas?.toString(),
           maxPriorityFeePerGas: data.res?.maxPriorityFeePerGas?.toString(),
           value: data.res?.value?.toString(),
+          deployedContractAddress: data.deployedContractAddress,
         },
       });
       break;

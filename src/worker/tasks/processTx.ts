@@ -35,6 +35,7 @@ import {
 } from "../../utils/webhook";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawValue } from "../utils/withdraw";
+import { getContractAddress } from "ethers/lib/utils";
 
 type RpcResponseData = {
   tx: Transactions;
@@ -288,6 +289,16 @@ export const processTx = async () => {
               if (rpcResponse.result) {
                 // Transaction was successful.
                 const transactionHash = rpcResponse.result;
+                let contractAddress: string | undefined;
+                if (
+                  tx.extension === "deploy-published" &&
+                  tx.functionName === "deploy"
+                ) {
+                  contractAddress = getContractAddress({
+                    from: txRequest.from!,
+                    nonce: BigNumber.from(txRequest.nonce!),
+                  });
+                }
                 await updateTx({
                   pgtx,
                   queueId: tx.id,
@@ -297,6 +308,7 @@ export const processTx = async () => {
                     res: txRequest,
                     sentAt: new Date(),
                     sentAtBlockNumber: sentAtBlockNumber!,
+                    deployedContractAddress: contractAddress,
                   },
                 });
                 reportUsageForQueueIds.push({

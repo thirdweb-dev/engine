@@ -10,6 +10,7 @@ import {
 import { txOverrides } from "../../schemas/txOverrides";
 import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
+import { isAddress } from "thirdweb";
 
 // INPUTS
 const requestSchema = publishedDeployParamSchema;
@@ -35,7 +36,12 @@ requestBodySchema.examples = [
 // OUTPUT
 const responseSchema = Type.Object({
   queueId: Type.Optional(Type.String()),
-  deployedAddress: Type.Optional(Type.String()),
+  deployedAddress: Type.Optional(
+    Type.String({
+      description: "Not all contracts return a deployed address.",
+    }),
+  ),
+  message: Type.Optional(Type.String()),
 });
 
 export async function deployPublished(fastify: FastifyInstance) {
@@ -76,7 +82,10 @@ export async function deployPublished(fastify: FastifyInstance) {
         constructorParams,
         version,
       );
-      const deployedAddress = await tx.simulate();
+      const _deployedAddress = await tx.simulate();
+      const deployedAddress = isAddress(_deployedAddress)
+        ? _deployedAddress
+        : undefined;
 
       const queueId = await queueTx({
         tx,
@@ -90,6 +99,9 @@ export async function deployPublished(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         deployedAddress,
         queueId,
+        message: !deployedAddress
+          ? `To retrieve the deployed contract address, use the endpoint '/transaction/status/${queueId}' and check the value of the 'deployedContractAddress' field`
+          : undefined,
       });
     },
   });
