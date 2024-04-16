@@ -1,10 +1,10 @@
 import { env } from "../env";
 import { accessTokenCache } from "./accessToken";
 import { configCache } from "./getConfig";
-import { contractCache } from "./getContractV5";
 import { sdkCache } from "./getSdk";
 import { walletsCache } from "./getWallet";
 import { webhookCache } from "./getWebhook";
+import { keypairCache } from "./keypair";
 
 export const clearCache = async (
   service: (typeof env)["LOG_SERVICES"][0],
@@ -14,5 +14,5 @@ export const clearCache = async (
   sdkCache.clear();
   walletsCache.clear();
   accessTokenCache.clear();
-  contractCache.clear();
+  keypairCache.clear();
 };

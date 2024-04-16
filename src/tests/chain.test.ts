@@ -131,8 +131,8 @@ describe("getChainIdFromChain", () => {
     // @ts-ignore
     mockGetConfig.mockResolvedValueOnce({});
 
-    await expect(getChainIdFromChain("InvalidChain")).rejects.toThrow(
-      "Invalid chain. Please confirm this is a valid chain",
+    await expect(getChainIdFromChain("6666666666666")).rejects.toThrow(
+      "Invalid or deprecated chain. Please confirm this is a valid chain: https://thirdweb.com/6666666666666",
     );
   });
 });

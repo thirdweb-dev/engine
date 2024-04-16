@@ -79,6 +79,11 @@ import { getAllAccessTokens } from "./auth/access-tokens/getAll";
 import { revokeAccessToken } from "./auth/access-tokens/revoke";
 import { updateAccessToken } from "./auth/access-tokens/update";
 
+// Keypairs
+import { addKeypair } from "./auth/keypair/add";
+import { listPublicKeys } from "./auth/keypair/list";
+import { removePublicKey } from "./auth/keypair/remove";
+
 // Admins
 import { getAllPermissions } from "./auth/permissions/getAll";
 import { grantPermissions } from "./auth/permissions/grant";
@@ -183,6 +188,11 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(createAccessToken);
   await fastify.register(revokeAccessToken);
   await fastify.register(updateAccessToken);
+
+  // Keypairs
+  await fastify.register(listPublicKeys);
+  await fastify.register(addKeypair);
+  await fastify.register(removePublicKey);
 
   // Chains
   await fastify.register(getChainData);

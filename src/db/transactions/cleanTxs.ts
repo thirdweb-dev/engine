@@ -15,16 +15,14 @@ export const cleanTxs = (
       sentAt: tx.sentAt?.toISOString() || null,
       minedAt: tx.minedAt?.toISOString() || null,
       cancelledAt: tx.cancelledAt?.toISOString() || null,
-      status: !!tx.errorMessage
+      status: tx.errorMessage
         ? "errored"
-        : !!tx.minedAt
+        : tx.minedAt
         ? "mined"
-        : !!tx.cancelledAt
+        : tx.cancelledAt
         ? "cancelled"
-        : !!tx.sentAt && tx.retryCount === 0
+        : tx.sentAt
         ? "sent"
-        : !!tx.sentAt && tx.retryCount > 0
-        ? "retried"
         : "queued",
     };
   });
