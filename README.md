@@ -58,6 +58,7 @@ We welcome contributions! See [How to contribute](./contributing.md).
 
 ## Get in touch
 
-- Support: [Join the Discord](https://discord.gg/thirdweb)
+- Community: [Join us on Discord](https://discord.gg/thirdweb)
+- Support: <https://thirdweb.com/support>
 - Twitter: [@thirdweb](https://twitter.com/thirdweb)
 - Report a vulnerability: security@thirdweb.com
