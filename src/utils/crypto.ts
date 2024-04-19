@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import CryptoJS from "crypto-js";
 import { env } from "./env";
 
 export const encrypt = (data: string): string => {
