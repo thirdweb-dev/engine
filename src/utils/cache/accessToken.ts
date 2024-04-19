@@ -16,7 +16,7 @@ export const getAccessToken = async ({
     return cached;
   }
 
-  const accessToken = await getToken({ jwt });
+  const accessToken = await getToken(jwt);
   accessTokenCache.set(jwt, accessToken);
   return accessToken;
 };
