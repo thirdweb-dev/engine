@@ -15,6 +15,11 @@ interface QueueTxParams {
   deployedContractType?: string;
   simulateTx?: boolean;
   idempotencyKey?: string;
+  txOverrides?: {
+    gasLimit?: string;
+    maxFeePerGas?: string;
+    maxPriorityFeePerGas?: string;
+  };
 }
 
 export const queueTx = async ({
@@ -26,6 +31,7 @@ export const queueTx = async ({
   deployedContractType,
   simulateTx,
   idempotencyKey,
+  txOverrides,
 }: QueueTxParams) => {
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
   const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
@@ -38,6 +44,7 @@ export const queueTx = async ({
     deployedContractType: deployedContractType,
     data: tx.encode(),
     value: BigNumber.from(await tx.getValue()).toHexString(),
+    ...txOverrides,
   };
 
   if (isUserOp) {

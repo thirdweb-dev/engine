@@ -171,11 +171,27 @@ export const processTx = async () => {
                 ...gasOverrides,
               });
 
-              // TODO: We need to target specific cases
-              // Bump gas limit to avoid occasional out of gas errors
-              txRequest.gasLimit = txRequest.gasLimit
-                ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
-                : undefined;
+              // Gas limit override
+              if (tx.gasLimit) {
+                txRequest.gasLimit = BigNumber.from(tx.gasLimit);
+              } else {
+                // TODO: We need to target specific cases
+                // Bump gas limit to avoid occasional out of gas errors
+                txRequest.gasLimit = txRequest.gasLimit
+                  ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
+                  : undefined;
+              }
+
+              // Gas price overrides
+              if (tx.maxFeePerGas) {
+                txRequest.maxFeePerGas = BigNumber.from(tx.maxFeePerGas);
+              }
+
+              if (tx.maxPriorityFeePerGas) {
+                txRequest.maxPriorityFeePerGas = BigNumber.from(
+                  tx.maxPriorityFeePerGas,
+                );
+              }
 
               const signature = await signer.signTransaction(txRequest);
               const rpcRequest = {
@@ -378,6 +394,24 @@ export const processTx = async () => {
                   nonce,
                 },
               );
+
+            // Temporary fix untill SDK allows us to do this
+            if (tx.gasLimit) {
+              unsignedOp.callGasLimit = BigNumber.from(tx.gasLimit);
+              unsignedOp.paymasterAndData = "0x";
+              const DUMMY_SIGNATURE =
+                "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+              unsignedOp.signature = DUMMY_SIGNATURE;
+              const paymasterResult =
+                await signer.smartAccountAPI.paymasterAPI.getPaymasterAndData(
+                  unsignedOp,
+                );
+              const paymasterAndData = paymasterResult.paymasterAndData;
+              if (paymasterAndData && paymasterAndData !== "0x") {
+                unsignedOp.paymasterAndData = paymasterAndData;
+              }
+            }
+
             const userOp = await signer.smartAccountAPI.signUserOp(unsignedOp);
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
