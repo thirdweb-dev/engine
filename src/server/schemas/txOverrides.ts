@@ -15,6 +15,18 @@ export const txOverrides = Type.Object({
           description: "Gas limit for the transaction",
         }),
       ),
+      maxFeePerGas: Type.Optional(
+        Type.String({
+          examples: ["1000000000"],
+          description: "Maximum fee per gas",
+        }),
+      ),
+      maxPriorityFeePerGas: Type.Optional(
+        Type.String({
+          examples: ["1000000000"],
+          description: "Maximum priority fee per gas",
+        }),
+      ),
     }),
   ),
 });
