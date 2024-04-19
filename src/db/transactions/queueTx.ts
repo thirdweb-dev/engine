@@ -16,7 +16,7 @@ interface QueueTxParams {
   simulateTx?: boolean;
   idempotencyKey?: string;
   txOverrides?: {
-    gasLimit?: string;
+    gas?: string;
     maxFeePerGas?: string;
     maxPriorityFeePerGas?: string;
   };

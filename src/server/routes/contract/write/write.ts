@@ -92,9 +92,6 @@ export async function writeToContract(fastify: FastifyInstance) {
         maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas,
       });
 
-      const gasLimit = txOverrides?.gas;
-      delete txOverrides?.gas;
-
       const queueId = await queueTx({
         tx,
         chainId,
@@ -103,7 +100,6 @@ export async function writeToContract(fastify: FastifyInstance) {
         idempotencyKey,
         txOverrides: {
           ...txOverrides,
-          gasLimit,
         },
       });
 
