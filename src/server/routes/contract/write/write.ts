@@ -88,7 +88,12 @@ export async function writeToContract(fastify: FastifyInstance) {
       const tx = contract.prepare(functionName, args, {
         value: txOverrides?.value,
         gasLimit: txOverrides?.gas,
+        maxFeePerGas: txOverrides?.maxFeePerGas,
+        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas,
       });
+
+      const gasLimit = txOverrides?.gas;
+      delete txOverrides?.gas;
 
       const queueId = await queueTx({
         tx,
@@ -96,6 +101,10 @@ export async function writeToContract(fastify: FastifyInstance) {
         simulateTx,
         extension: "none",
         idempotencyKey,
+        txOverrides: {
+          ...txOverrides,
+          gasLimit,
+        },
       });
 
       reply.status(StatusCodes.OK).send({
