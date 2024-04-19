@@ -23,6 +23,6 @@ export const toTransactionType = (
   if (type === "legacy") return 0;
   if (type === "eip1559") return 1;
   if (type === "eip2930") return 2;
-  if (type === "eip4844") return 0; // Unknown
+  if (type === "eip4844") return 3;
   throw new Error(`Unexpected transaction type ${type}`);
 };
