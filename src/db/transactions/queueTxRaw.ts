@@ -25,6 +25,7 @@ type QueueTxRawParams = Omit<
     pgtx?: PrismaTransaction;
     simulateTx?: boolean;
     idempotencyKey?: string;
+    gas?: string;
   };
 
 export const queueTxRaw = async ({
@@ -60,6 +61,8 @@ export const queueTxRaw = async ({
     target: tx.target?.toLowerCase(),
     signerAddress: tx.signerAddress?.toLowerCase(),
     accountAddress: tx.accountAddress?.toLowerCase(),
+    gasLimit: tx.gas,
+    gas: undefined,
   };
 
   let txRow: Transactions;
