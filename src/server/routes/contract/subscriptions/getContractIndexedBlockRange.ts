@@ -29,18 +29,19 @@ responseSchema.example = {
   },
 };
 
-export async function getContractIndexedBlockRange(fastify: FastifyInstance) {
+export async function getContractSubscriptionBlocks(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contractAddress/subscriptions/get-indexed-blocks",
+    url: "/contract/:chain/:contractAddress/subscriptions/blocks",
     schema: {
-      summary: "Get subscribed contract indexed block range",
-      description: "Gets the subscribed contract's indexed block range",
+      summary: "Get processed blocks",
+      description:
+        "Get the block range that has been processed for this contract subscription.",
       tags: ["Contract-Subscriptions"],
-      operationId: "getContractIndexedBlockRange",
+      operationId: "getContractSubscriptionBlocks",
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,

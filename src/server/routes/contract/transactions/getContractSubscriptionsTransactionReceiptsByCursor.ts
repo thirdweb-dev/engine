@@ -1,12 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../../db/configuration/getConfiguration";
 import { getTransactionReceiptsByCursor } from "../../../../db/contractTransactionReceipts/getContractTransactionReceipts";
+import { parseArrayString } from "../../../../utils/url";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import {
-  standardResponseSchema,
-  transactionReceiptsSchema,
-} from "../../../schemas/sharedApiSchemas";
+  toTransactionReceiptSchema,
+  transactionReceiptSchema,
+} from "../../../schemas/transactionReceipt";
 
 /* Consider moving all cursor logic inside db file */
 
@@ -19,7 +20,7 @@ const requestQuerySchema = Type.Object({
 const responseSchema = Type.Object({
   result: Type.Object({
     cursor: Type.Optional(Type.String()),
-    receipts: transactionReceiptsSchema,
+    receipts: Type.Array(transactionReceiptSchema),
     status: Type.String(),
   }),
 });
@@ -49,7 +50,9 @@ responseSchema.example = {
   },
 };
 
-export async function pageTransactionReceipts(fastify: FastifyInstance) {
+export async function getContractSubscriptionsTransactionReceiptsByCursor(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
@@ -57,52 +60,33 @@ export async function pageTransactionReceipts(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/transactions/paginate-receipts",
     schema: {
-      summary:
-        "Get contract paginated transaction receipts for subscribed contract",
+      summary: "Get transaction receipts by cursor",
       description:
-        "Get contract paginated transaction receipts for subscribed contract",
+        "(Deprecated) Get transaction receipts for a contract subscription by cursor.",
       tags: ["Contract-Transactions"],
-      operationId: "pageTransactionReceipts",
+      operationId: "getContractSubscriptionsTransactionReceiptsByCursor",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
+      deprecated: true,
     },
     handler: async (request, reply) => {
       const { cursor, pageSize, contractAddresses } = request.query;
 
-      const standardizedContractAddresses = contractAddresses?.map((val) =>
-        val.toLowerCase(),
-      );
-
-      // add lag behind to account for clock skew, concurrent writes, etc
-      const config = await getConfiguration();
-      const maxCreatedAt = new Date(
-        Date.now() - config.cursorDelaySeconds * 1000,
-      );
-
-      const {
-        cursor: newCursor,
-        transactionReceipts: resultTransactionReceipts,
-      } = await getTransactionReceiptsByCursor({
-        cursor,
-        limit: pageSize,
-        contractAddresses: standardizedContractAddresses,
-        maxCreatedAt,
-      });
-
-      const transactionReceipts = resultTransactionReceipts.map((txRcpt) => {
-        return {
-          ...txRcpt,
-          timestamp: txRcpt.timestamp.getTime(),
-        };
-      });
+      const { cursor: newCursor, receipts } =
+        await getTransactionReceiptsByCursor({
+          addresses: parseArrayString(contractAddresses),
+          limit: pageSize ?? 100,
+          cursor,
+        });
 
       reply.status(StatusCodes.OK).send({
         result: {
           cursor: newCursor,
-          receipts: transactionReceipts,
+          receipts: receipts.map(toTransactionReceiptSchema),
           status: "success",
         },
       });

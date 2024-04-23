@@ -1,12 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../../db/configuration/getConfiguration";
-import { getEventLogsByCursor } from "../../../../db/contractEventLogs/getContractEventLogs";
-import {
-  eventLogsSchema,
-  standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+import { parseArrayString } from "../../../../utils/url";
+import { eventLogSchema, toEventLogSchema } from "../../../schemas/eventLog";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { getLogsByCursor } from "../subscriptions/getEventLogs";
 
 const requestQuerySchema = Type.Object({
   cursor: Type.Optional(Type.String()),
@@ -18,7 +16,7 @@ const requestQuerySchema = Type.Object({
 const responseSchema = Type.Object({
   result: Type.Object({
     cursor: Type.Optional(Type.String()),
-    logs: eventLogsSchema,
+    logs: Type.Array(eventLogSchema),
     status: Type.String(),
   }),
 });
@@ -58,7 +56,9 @@ responseSchema.example = {
   },
 };
 
-export async function pageEventLogs(fastify: FastifyInstance) {
+export async function getContractSubscriptionsEventLogsByCursor(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
@@ -66,65 +66,33 @@ export async function pageEventLogs(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/events/paginate-logs",
     schema: {
-      summary: "Get contract paginated event logs for subscribed contract",
-      description: "Get contract paginated event logs for subscribed contract",
+      summary: "Get event logs by cursor",
+      description:
+        "(Deprecated) Get event logs for a contract subscription by cursor.",
       tags: ["Contract-Events"],
-      operationId: "pageEventLogs",
+      operationId: "getContractSubscriptionsEventLogsByCursor",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
+      deprecated: true,
     },
     handler: async (request, reply) => {
       const { cursor, pageSize, topics, contractAddresses } = request.query;
 
-      const standardizedContractAddresses = contractAddresses?.map((val) =>
-        val.toLowerCase(),
-      );
-
-      // add lag behind to account for clock skew, concurrent writes, etc
-      const config = await getConfiguration();
-      const maxCreatedAt = new Date(
-        Date.now() - config.cursorDelaySeconds * 1000,
-      );
-
-      const { cursor: newCursor, logs: resultLogs } =
-        await getEventLogsByCursor({
-          cursor,
-          limit: pageSize,
-          topics,
-          contractAddresses: standardizedContractAddresses,
-          maxCreatedAt,
-        });
-
-      const logs = resultLogs.map((log) => {
-        const topics: string[] = [];
-        [log.topic0, log.topic1, log.topic2, log.topic3].forEach((val) => {
-          if (val) {
-            topics.push(val);
-          }
-        });
-
-        return {
-          chainId: log.chainId,
-          contractAddress: log.contractAddress,
-          blockNumber: log.blockNumber,
-          transactionHash: log.transactionHash,
-          topics,
-          data: log.data,
-          eventName: log.eventName ?? undefined,
-          decodedLog: log.decodedLog,
-          timestamp: log.timestamp.getTime(),
-          transactionIndex: log.transactionIndex,
-          logIndex: log.logIndex,
-        };
+      const { cursor: newCursor, logs } = await getLogsByCursor({
+        limit: pageSize ?? 100,
+        cursor,
+        addresses: parseArrayString(contractAddresses),
+        topics,
       });
 
       reply.status(StatusCodes.OK).send({
         result: {
           cursor: newCursor,
-          logs,
+          logs: logs.map(toEventLogSchema),
           status: "success",
         },
       });

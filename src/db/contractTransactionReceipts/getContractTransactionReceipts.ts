@@ -1,26 +1,27 @@
+import { ContractTransactionReceipts, Prisma } from "@prisma/client";
 import base64 from "base-64";
 import { z } from "zod";
 import { prisma } from "../client";
 
-interface GetContractTransactionReceiptsParams {
+interface GetTransactionReceiptsParams {
   chainId: number;
-  contractAddress: string;
+  addresses: string[];
   fromBlock: number;
   toBlock?: number;
 }
 
-export const getContractTransactionReceiptsByBlock = async ({
+export const getTransactionReceiptsByBlock = async ({
   chainId,
-  contractAddress,
+  addresses,
   fromBlock,
   toBlock,
-}: GetContractTransactionReceiptsParams) => {
-  const whereClause = {
+}: GetTransactionReceiptsParams): Promise<ContractTransactionReceipts[]> => {
+  const whereClause: Prisma.ContractTransactionReceiptsWhereInput = {
     chainId,
-    contractAddress,
+    contractAddress: { in: addresses },
     blockNumber: {
       gte: fromBlock,
-      ...(toBlock ? { lte: toBlock } : {}),
+      lte: toBlock,
     },
   };
 
@@ -29,27 +30,26 @@ export const getContractTransactionReceiptsByBlock = async ({
   });
 };
 
-interface GetContractTransactionReceiptsByBlockTimestampParams {
-  fromBlockTimestamp: number;
-  toBlockTimestamp?: number;
-  contractAddresses?: string[];
+interface GetContractTransactionReceiptsByTimestampParams {
+  fromTimestamp: number;
+  toTimestamp?: number;
+  addresses?: string[];
 }
 
-export const getTransactionReceiptsByBlockTimestamp = async ({
-  fromBlockTimestamp,
-  toBlockTimestamp,
-  contractAddresses,
-}: GetContractTransactionReceiptsByBlockTimestampParams) => {
-  const fromBlockDate = new Date(fromBlockTimestamp);
-  const toBlockDate = toBlockTimestamp ? new Date(toBlockTimestamp) : undefined;
-
-  const whereClause = {
+export const getTransactionReceiptsByTimestamp = async ({
+  fromTimestamp,
+  toTimestamp,
+  addresses,
+}: GetContractTransactionReceiptsByTimestampParams): Promise<
+  ContractTransactionReceipts[]
+> => {
+  const whereClause: Prisma.ContractTransactionReceiptsWhereInput = {
     timestamp: {
-      gte: fromBlockDate,
-      ...(toBlockDate && { lte: toBlockDate }),
+      gte: new Date(fromTimestamp),
+      lte: toTimestamp ? new Date(toTimestamp) : undefined,
     },
-    ...(contractAddresses && contractAddresses.length > 0
-      ? { contractAddress: { in: contractAddresses } }
+    ...(addresses && addresses.length > 0
+      ? { contractAddress: { in: addresses } }
       : {}),
   };
 
@@ -60,19 +60,10 @@ export const getTransactionReceiptsByBlockTimestamp = async ({
 
 interface GetContractTransactionReceiptsByCursorParams {
   cursor?: string;
-  limit?: number;
-  contractAddresses?: string[];
+  limit: number;
+  addresses?: string[];
   maxCreatedAt?: Date;
 }
-
-/*
-  cursor?: {
-    createdAt: Date;
-    chainId: number;
-    blockNumber: number;
-    transactionIndex: number;
-  };
-*/
 
 const CursorSchema = z.object({
   createdAt: z.number().transform((s) => new Date(s)),
@@ -83,10 +74,13 @@ const CursorSchema = z.object({
 
 export const getTransactionReceiptsByCursor = async ({
   cursor,
-  limit = 100,
-  contractAddresses,
+  limit,
+  addresses,
   maxCreatedAt,
-}: GetContractTransactionReceiptsByCursorParams) => {
+}: GetContractTransactionReceiptsByCursorParams): Promise<{
+  cursor?: string;
+  receipts: ContractTransactionReceipts[];
+}> => {
   let cursorObj: z.infer<typeof CursorSchema> | null = null;
   if (cursor) {
     const decodedCursor = base64.decode(cursor);
@@ -106,10 +100,10 @@ export const getTransactionReceiptsByCursor = async ({
     cursorObj = validationResult.data;
   }
 
-  const whereClause = {
+  const whereClause: Prisma.ContractTransactionReceiptsWhereInput = {
     AND: [
-      ...(contractAddresses && contractAddresses.length > 0
-        ? [{ contractAddress: { in: contractAddresses } }]
+      ...(addresses && addresses.length > 0
+        ? [{ contractAddress: { in: addresses } }]
         : []),
       ...(cursorObj
         ? [
@@ -147,31 +141,29 @@ export const getTransactionReceiptsByCursor = async ({
     ],
   };
 
-  const transactionReceipts = await prisma.contractTransactionReceipts.findMany(
-    {
-      where: whereClause,
-      orderBy: [
-        { createdAt: "asc" },
-        { chainId: "asc" },
-        { blockNumber: "asc" },
-        { transactionIndex: "asc" },
-      ],
-      take: limit,
-    },
-  );
+  const receipts = await prisma.contractTransactionReceipts.findMany({
+    where: whereClause,
+    orderBy: [
+      { createdAt: "asc" },
+      { chainId: "asc" },
+      { blockNumber: "asc" },
+      { transactionIndex: "asc" },
+    ],
+    take: limit,
+  });
 
   /* cursor rules */
   // if new logs returned, return new cursor
   // if no new logs and no cursor return null (original cursor)
   // if no new logs and cursor return original cursor
   let newCursor = cursor;
-  if (transactionReceipts.length > 0) {
-    const lastReceipt = transactionReceipts[transactionReceipts.length - 1];
+  if (receipts.length > 0) {
+    const lastReceipt = receipts[receipts.length - 1];
     const cursorString = `${lastReceipt.createdAt.getTime()}-${
       lastReceipt.chainId
     }-${lastReceipt.blockNumber}-${lastReceipt.transactionIndex}`;
     newCursor = base64.encode(cursorString);
   }
 
-  return { cursor: newCursor, transactionReceipts };
+  return { cursor: newCursor, receipts };
 };

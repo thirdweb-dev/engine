@@ -38,8 +38,8 @@ export async function addContractSubscription(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contractAddress/subscriptions/subscribe",
     schema: {
-      summary: "Subscribe to contract events and transactions",
-      description: "Subscribe to contract events and transactions",
+      summary: "Add contract subscription",
+      description: "Subscribe to contract logs and receipts.",
       tags: ["Contract-Subscriptions"],
       operationId: "addContractSubscription",
       params: contractParamSchema,

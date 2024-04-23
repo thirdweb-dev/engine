@@ -122,17 +122,19 @@ import { checkGroupStatus } from "./transaction/group";
 
 // Indexer
 import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
-import { getContractEventLogs } from "./contract/events/getContractEventLogs";
-import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
-import { pageEventLogs } from "./contract/events/paginateEventLogs";
+import { getContractSubscriptionsEventLogsByBlock } from "./contract/events/getContractSubscriptionsEventLogsByBlock";
+import { getContractSubscriptionsEventLogsByCursor } from "./contract/events/getContractSubscriptionsEventLogsByCursor";
+import { getContractSubscriptionsEventLogsByTimestamp } from "./contract/events/getContractSubscriptionsEventLogsByTimestamp";
 import { addContractSubscription } from "./contract/subscriptions/addContractSubscription";
-import { getContractIndexedBlockRange } from "./contract/subscriptions/getContractIndexedBlockRange";
+import { getContractSubscriptionBlocks } from "./contract/subscriptions/getContractIndexedBlockRange";
 import { getContractSubscriptions } from "./contract/subscriptions/getContractSubscriptions";
+import { getContractSubscriptionsEventLogs } from "./contract/subscriptions/getEventLogs";
 import { getLatestBlock } from "./contract/subscriptions/getLatestBlock";
+import { getContractSubscriptionsTransactionReceipts } from "./contract/subscriptions/getTransactionReceipts";
 import { removeContractSubscription } from "./contract/subscriptions/removeContractSubscription";
-import { getContractTransactionReceipts } from "./contract/transactions/getTransactionReceipts";
-import { getContractTransactionReceiptsByTimestamp } from "./contract/transactions/getTransactionReceiptsByTimestamp";
-import { pageTransactionReceipts } from "./contract/transactions/paginateTransactionReceipts";
+import { getContractSubscriptionsTransactionReceiptsByBlock } from "./contract/transactions/getContractSubscriptionsTransactionReceiptsByBlock";
+import { getContractSubscriptionsTransactionReceiptsByCursor } from "./contract/transactions/getContractSubscriptionsTransactionReceiptsByCursor";
+import { getContractSubscriptionsTransactionReceiptsByTimestamp } from "./contract/transactions/getContractSubscriptionsTransactionReceiptsByTimestamp";
 import { syncRetryTransaction } from "./transaction/syncRetry";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
@@ -256,25 +258,29 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(marketplaceV3Routes);
 
   // System
-  // These should be hidden by default
   await fastify.register(home);
   await fastify.register(healthCheck);
   await fastify.register(queueStatus);
 
   // Contract Subscriptions
   await fastify.register(addContractSubscription);
-  await fastify.register(getContractSubscriptions);
-  await fastify.register(getContractIndexedBlockRange);
   await fastify.register(removeContractSubscription);
+  await fastify.register(getContractSubscriptions);
+  await fastify.register(getContractSubscriptionBlocks);
   await fastify.register(getLatestBlock);
 
-  // Contract Transactions
-  await fastify.register(getContractTransactionReceipts);
-  await fastify.register(getContractTransactionReceiptsByTimestamp);
-  await fastify.register(pageTransactionReceipts);
+  await fastify.register(getContractSubscriptionsTransactionReceipts);
+  await fastify.register(getContractSubscriptionsEventLogs);
 
-  // Contract Event Logs
-  await fastify.register(getContractEventLogs);
-  await fastify.register(getEventLogs);
-  await fastify.register(pageEventLogs);
+  // @deprecated
+  // Transaction Receipts
+  await fastify.register(getContractSubscriptionsTransactionReceiptsByCursor);
+  await fastify.register(getContractSubscriptionsTransactionReceiptsByBlock);
+  await fastify.register(
+    getContractSubscriptionsTransactionReceiptsByTimestamp,
+  );
+  // Transaction Logs
+  await fastify.register(getContractSubscriptionsEventLogsByCursor);
+  await fastify.register(getContractSubscriptionsEventLogsByBlock);
+  await fastify.register(getContractSubscriptionsEventLogsByTimestamp);
 };

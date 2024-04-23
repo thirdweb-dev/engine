@@ -27,10 +27,11 @@ export async function getLatestBlock(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/subscriptions/get-last-block",
+    url: "/contract/subscriptions/get-latest-block",
     schema: {
-      summary: "Get latest indexed block for a chain",
-      description: "Get latest indexed block for a chain",
+      summary: "Get latest block",
+      description:
+        "Get the latest block that has been processed for this chain.",
       tags: ["Contract-Subscriptions"],
       operationId: "getLatestBlock",
       querystring: chainRequestQuerystringSchema,

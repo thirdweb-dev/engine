@@ -1,11 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getEventLogsByBlockTimestamp } from "../../../../db/contractEventLogs/getContractEventLogs";
-import {
-  eventLogsSchema,
-  standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+import { parseArrayString } from "../../../../utils/url";
+import { eventLogSchema, toEventLogSchema } from "../../../schemas/eventLog";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { getLogsByTimestamp } from "../subscriptions/getEventLogs";
 
 const requestQuerySchema = Type.Object({
   contractAddresses: Type.Optional(Type.Array(Type.String())),
@@ -16,7 +15,7 @@ const requestQuerySchema = Type.Object({
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    logs: eventLogsSchema,
+    logs: Type.Array(eventLogSchema),
     status: Type.String(),
   }),
 });
@@ -55,7 +54,9 @@ responseSchema.example = {
   },
 };
 
-export async function getEventLogs(fastify: FastifyInstance) {
+export async function getContractSubscriptionsEventLogsByTimestamp(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
     Querystring: Static<typeof requestQuerySchema>;
@@ -63,15 +64,18 @@ export async function getEventLogs(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/events/get-logs",
     schema: {
-      summary: "Get subscribed contract event logs",
-      description: "Get event logs for a subscribed contract",
+      summary: "Get event logs by timestamp",
+      description:
+        "(Deprecated) Get event logs for a contract subscription by timestamp range.",
       tags: ["Contract-Events"],
-      operationId: "getEventLogs",
+      operationId: "getContractSubscriptionsEventLogsByTimestamp",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
+      deprecated: true,
     },
     handler: async (request, reply) => {
       const {
@@ -81,43 +85,16 @@ export async function getEventLogs(fastify: FastifyInstance) {
         toBlockTimestamp,
       } = request.query;
 
-      const standardizedContractAddresses = contractAddresses?.map((val) =>
-        val.toLowerCase(),
-      );
-
-      const resultLogs = await getEventLogsByBlockTimestamp({
-        fromBlockTimestamp: fromBlockTimestamp,
-        toBlockTimestamp: toBlockTimestamp,
-        contractAddresses: standardizedContractAddresses,
-        topics: topics,
-      });
-
-      const logs = resultLogs.map((log) => {
-        const topics: string[] = [];
-        [log.topic0, log.topic1, log.topic2, log.topic3].forEach((val) => {
-          if (val) {
-            topics.push(val);
-          }
-        });
-
-        return {
-          chainId: log.chainId,
-          contractAddress: log.contractAddress,
-          blockNumber: log.blockNumber,
-          transactionHash: log.transactionHash,
-          topics,
-          data: log.data,
-          eventName: log.eventName ?? undefined,
-          decodedLog: log.decodedLog,
-          timestamp: log.timestamp.getTime(),
-          transactionIndex: log.transactionIndex,
-          logIndex: log.logIndex,
-        };
+      const logs = await getLogsByTimestamp({
+        fromTimestamp: fromBlockTimestamp,
+        toTimestamp: toBlockTimestamp,
+        addresses: parseArrayString(contractAddresses),
+        topics,
       });
 
       reply.status(StatusCodes.OK).send({
         result: {
-          logs,
+          logs: logs.map(toEventLogSchema),
           status: "success",
         },
       });

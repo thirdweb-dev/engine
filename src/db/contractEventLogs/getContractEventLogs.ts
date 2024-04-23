@@ -1,28 +1,31 @@
+import { ContractEventLogs, Prisma } from "@prisma/client";
 import base64 from "base-64";
 import { z } from "zod";
 import { prisma } from "../client";
 
-interface GetContractLogsParams {
+interface GetContractEventLogsParams {
   chainId: number;
-  contractAddress: string;
+  contractAddresses: string[];
   fromBlock: number;
   toBlock?: number;
   topics?: string[];
 }
 
-export const getContractEventLogsByBlockAndTopics = async ({
+export const getEventLogsByBlock = async ({
   chainId,
-  contractAddress,
+  contractAddresses,
   fromBlock,
   toBlock,
   topics,
-}: GetContractLogsParams) => {
-  const whereClause = {
+}: GetContractEventLogsParams): Promise<ContractEventLogs[]> => {
+  const whereClause: Prisma.ContractEventLogsWhereInput = {
     chainId,
-    contractAddress,
+    contractAddress: {
+      in: contractAddresses,
+    },
     blockNumber: {
       gte: fromBlock,
-      ...(toBlock ? { lte: toBlock } : {}),
+      lte: toBlock,
     },
     ...(topics && topics.length > 0
       ? {
@@ -41,26 +44,24 @@ export const getContractEventLogsByBlockAndTopics = async ({
   });
 };
 
-interface GetEventLogsByBlockTimestampParams {
-  fromBlockTimestamp: number;
-  toBlockTimestamp?: number;
+interface GetEventLogsByTimestampParams {
+  chainId?: string;
+  fromTimestamp: number;
+  toTimestamp?: number;
   contractAddresses?: string[];
   topics?: string[];
 }
 
-export const getEventLogsByBlockTimestamp = async ({
-  fromBlockTimestamp,
-  toBlockTimestamp,
+export const getEventLogsByTimestamp = async ({
+  fromTimestamp,
+  toTimestamp,
   contractAddresses,
   topics,
-}: GetEventLogsByBlockTimestampParams) => {
-  const fromBlockDate = new Date(fromBlockTimestamp);
-  const toBlockDate = toBlockTimestamp ? new Date(toBlockTimestamp) : undefined;
-
-  const whereClause = {
+}: GetEventLogsByTimestampParams): Promise<ContractEventLogs[]> => {
+  const whereClause: Prisma.ContractEventLogsWhereInput = {
     timestamp: {
-      gte: fromBlockDate,
-      ...(toBlockDate && { lte: toBlockDate }),
+      gte: new Date(fromTimestamp),
+      lte: toTimestamp ? new Date(toTimestamp) : undefined,
     },
     ...(contractAddresses && contractAddresses.length > 0
       ? { contractAddress: { in: contractAddresses } }
@@ -84,21 +85,11 @@ export const getEventLogsByBlockTimestamp = async ({
 
 interface GetEventLogsByCursorParams {
   cursor?: string;
-  limit?: number;
+  limit: number;
   contractAddresses?: string[];
   topics?: string[];
   maxCreatedAt?: Date;
 }
-
-/*
-  cursor?: {
-    createdAt: Date;
-    chainId: number;
-    blockNumber: number;
-    transactionIndex: number;
-    logIndex: number;
-  };
-  */
 
 const CursorSchema = z.object({
   createdAt: z.number().transform((s) => new Date(s)),
@@ -110,11 +101,14 @@ const CursorSchema = z.object({
 
 export const getEventLogsByCursor = async ({
   cursor,
-  limit = 100,
+  limit,
   contractAddresses,
   topics,
   maxCreatedAt,
-}: GetEventLogsByCursorParams) => {
+}: GetEventLogsByCursorParams): Promise<{
+  cursor?: string;
+  logs: ContractEventLogs[];
+}> => {
   let cursorObj: z.infer<typeof CursorSchema> | null = null;
   if (cursor) {
     const decodedCursor = base64.decode(cursor);
@@ -136,7 +130,7 @@ export const getEventLogsByCursor = async ({
     cursorObj = validationResult.data;
   }
 
-  const whereClause = {
+  const whereClause: Prisma.ContractEventLogsWhereInput = {
     AND: [
       ...(contractAddresses && contractAddresses.length > 0
         ? [{ contractAddress: { in: contractAddresses } }]

@@ -34,8 +34,8 @@ export async function removeContractSubscription(fastify: FastifyInstance) {
     method: "POST",
     url: "/contract/:chain/:contractAddress/subscriptions/unsubscribe",
     schema: {
-      summary: "Unsubscribe from contract events",
-      description: "Unsubscribe from contract events",
+      summary: "Remove contract subscription",
+      description: "Unsubscribe from contract logs and receipts.",
       tags: ["Contract-Subscriptions"],
       operationId: "removeContractSubscription",
       params: contractParamSchema,

@@ -6,3 +6,16 @@ export const isLocalhost = (url: string) => {
     return false;
   }
 };
+
+/**
+ * Parses an array string that comes in from a query param.
+ * Handles a single string, comma-separated string, or array of strings.
+ * @param raw string | string[] | undefined
+ * @returns string[]
+ */
+export const parseArrayString = (raw?: string | string[]): string[] => {
+  if (!raw) return [];
+
+  const arr = Array.isArray(raw) ? raw : [raw];
+  return arr.flatMap((str) => str.split(",")).map((str) => str.trim());
+};

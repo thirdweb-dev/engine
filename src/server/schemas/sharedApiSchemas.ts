@@ -17,7 +17,7 @@ export const baseReplyErrorSchema = Type.Object({
  */
 export const contractParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
   contractAddress: Type.String({
@@ -37,7 +37,7 @@ export const requestQuerystringSchema = Type.Object({
 
 export const prebuiltDeployParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
   contractType: Type.String({
@@ -48,7 +48,7 @@ export const prebuiltDeployParamSchema = Type.Object({
 
 export const publishedDeployParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
   publisher: Type.String({
@@ -176,7 +176,7 @@ transactionWritesResponseSchema.example = {
  */
 export const erc20ContractParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
   contractAddress: Type.String({
@@ -190,7 +190,7 @@ export const erc20ContractParamSchema = Type.Object({
  */
 export const erc1155ContractParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
   contractAddress: Type.String({
@@ -204,7 +204,7 @@ export const erc1155ContractParamSchema = Type.Object({
  */
 export const erc721ContractParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
   contractAddress: Type.String({
@@ -234,7 +234,7 @@ export enum Status {
 
 export const marketplaceV3ContractParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
   contractAddress: Type.String({
@@ -332,40 +332,3 @@ export const walletDetailsSchema = Type.Object({
     Type.Null(),
   ]),
 });
-
-export const eventLogsSchema = Type.Array(
-  Type.Object({
-    chainId: Type.Number(),
-    contractAddress: Type.String(),
-    blockNumber: Type.Number(),
-    transactionHash: Type.String(),
-    topics: Type.Array(Type.String()),
-    data: Type.String(),
-    eventName: Type.Optional(Type.String()),
-    decodedLog: Type.Any(),
-    timestamp: Type.Number(),
-    transactionIndex: Type.Number(),
-    logIndex: Type.Number(),
-  }),
-);
-
-export const transactionReceiptsSchema = Type.Array(
-  Type.Object({
-    chainId: Type.Number(),
-    blockNumber: Type.Number(),
-    contractAddress: Type.String(),
-    transactionHash: Type.String(),
-    blockHash: Type.String(),
-    timestamp: Type.Number(),
-    data: Type.String(),
-    value: Type.String(),
-
-    to: Type.String(),
-    from: Type.String(),
-    transactionIndex: Type.Number(),
-
-    gasUsed: Type.String(),
-    effectiveGasPrice: Type.String(),
-    status: Type.Number(),
-  }),
-);

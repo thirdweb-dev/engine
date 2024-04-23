@@ -35,8 +35,8 @@ export async function getContractSubscriptions(fastify: FastifyInstance) {
     method: "GET",
     url: "/contract/subscriptions/get-all",
     schema: {
-      summary: "Get all subscribed contracts",
-      description: "Get all subscribed contracts",
+      summary: "Get all contract subscriptions",
+      description: "Get all contract subscriptions.",
       tags: ["Contract-Subscriptions"],
       operationId: "getContractSubscriptions",
       response: {
