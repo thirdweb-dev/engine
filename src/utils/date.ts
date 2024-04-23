@@ -6,5 +6,5 @@
  */
 export const msSince = (from: Date) => {
   const ms = new Date().getTime() - from.getTime();
-  return Math.min(ms, 0);
+  return Math.max(ms, 0);
 };

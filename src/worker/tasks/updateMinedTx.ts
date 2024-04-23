@@ -16,7 +16,7 @@ import {
 } from "../../utils/usage";
 import { WebhookData, sendWebhooks } from "../../utils/webhook";
 
-const MEMPOOL_DURATION_TIMEOUT_MS = 1000 * 60 * 60;
+const CANCEL_DEADLINE_MS = 1000 * 60 * 60; // 1 hour
 
 export const updateMinedTx = async () => {
   try {
@@ -44,9 +44,7 @@ export const updateMinedTx = async () => {
 
                 // Cancel transactions submitted over 1 hour ago.
                 // @TODO: move duration to config
-                const sentAt = new Date(tx.sentAt!);
-                const ageInMilliseconds = Date.now() - sentAt.getTime();
-                if (ageInMilliseconds > MEMPOOL_DURATION_TIMEOUT_MS) {
+                if (msSince(tx.sentAt!) > CANCEL_DEADLINE_MS) {
                   try {
                     await cancelTransactionAndUpdate({
                       queueId: tx.id,
@@ -93,7 +91,7 @@ export const updateMinedTx = async () => {
                         chainId: tx.chainId || undefined,
                         transactionHash: tx.transactionHash || undefined,
                         provider: provider.connection.url || undefined,
-                        msSinceSend: Date.now() - tx.sentAt!.getTime(),
+                        msSinceSend: msSince(tx.sentAt!),
                       },
                       action: UsageEventTxActionEnum.ErrorTx,
                     });
