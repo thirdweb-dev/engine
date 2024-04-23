@@ -35,6 +35,7 @@ import {
 } from "../../utils/webhook";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawValue } from "../utils/withdraw";
+import { getContractAddress } from "ethers/lib/utils";
 
 type RpcResponseData = {
   tx: Transactions;
@@ -170,11 +171,27 @@ export const processTx = async () => {
                 ...gasOverrides,
               });
 
-              // TODO: We need to target specific cases
-              // Bump gas limit to avoid occasional out of gas errors
-              txRequest.gasLimit = txRequest.gasLimit
-                ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
-                : undefined;
+              // Gas limit override
+              if (tx.gasLimit) {
+                txRequest.gasLimit = BigNumber.from(tx.gasLimit);
+              } else {
+                // TODO: We need to target specific cases
+                // Bump gas limit to avoid occasional out of gas errors
+                txRequest.gasLimit = txRequest.gasLimit
+                  ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
+                  : undefined;
+              }
+
+              // Gas price overrides
+              if (tx.maxFeePerGas) {
+                txRequest.maxFeePerGas = BigNumber.from(tx.maxFeePerGas);
+              }
+
+              if (tx.maxPriorityFeePerGas) {
+                txRequest.maxPriorityFeePerGas = BigNumber.from(
+                  tx.maxPriorityFeePerGas,
+                );
+              }
 
               const signature = await signer.signTransaction(txRequest);
               const rpcRequest = {
@@ -288,6 +305,16 @@ export const processTx = async () => {
               if (rpcResponse.result) {
                 // Transaction was successful.
                 const transactionHash = rpcResponse.result;
+                let contractAddress: string | undefined;
+                if (
+                  tx.extension === "deploy-published" &&
+                  tx.functionName === "deploy"
+                ) {
+                  contractAddress = getContractAddress({
+                    from: txRequest.from!,
+                    nonce: BigNumber.from(txRequest.nonce!),
+                  });
+                }
                 await updateTx({
                   pgtx,
                   queueId: tx.id,
@@ -297,6 +324,7 @@ export const processTx = async () => {
                     res: txRequest,
                     sentAt: new Date(),
                     sentAtBlockNumber: sentAtBlockNumber!,
+                    deployedContractAddress: contractAddress,
                   },
                 });
                 reportUsageForQueueIds.push({
@@ -366,6 +394,24 @@ export const processTx = async () => {
                   nonce,
                 },
               );
+
+            // Temporary fix untill SDK allows us to do this
+            if (tx.gasLimit) {
+              unsignedOp.callGasLimit = BigNumber.from(tx.gasLimit);
+              unsignedOp.paymasterAndData = "0x";
+              const DUMMY_SIGNATURE =
+                "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+              unsignedOp.signature = DUMMY_SIGNATURE;
+              const paymasterResult =
+                await signer.smartAccountAPI.paymasterAPI.getPaymasterAndData(
+                  unsignedOp,
+                );
+              const paymasterAndData = paymasterResult.paymasterAndData;
+              if (paymasterAndData && paymasterAndData !== "0x") {
+                unsignedOp.paymasterAndData = paymasterAndData;
+              }
+            }
+
             const userOp = await signer.smartAccountAPI.signUserOp(unsignedOp);
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
