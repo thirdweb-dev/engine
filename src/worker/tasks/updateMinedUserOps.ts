@@ -67,7 +67,7 @@ export const updateMinedUserOps = async () => {
                 3_000, // 3 seconds
               );
             } catch (error) {
-              // do-nothing
+              // Exception is thrown when userOp is not found/null
               logger({
                 service: "worker",
                 level: "error",
