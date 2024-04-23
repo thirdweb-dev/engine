@@ -1,4 +1,5 @@
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
+import { providers } from "ethers";
 import {
   defineChain,
   eth_getBlockByNumber,
@@ -39,118 +40,140 @@ export const updateMinedUserOps = async () => {
         }
 
         const promises = userOps.map(async (userOp) => {
-          if (
-            !userOp.sentAt ||
-            !userOp.signerAddress ||
-            !userOp.accountAddress ||
-            !userOp.userOpHash
-          ) {
-            return;
-          }
+          try {
+            if (
+              !userOp.sentAt ||
+              !userOp.signerAddress ||
+              !userOp.accountAddress ||
+              !userOp.userOpHash
+            ) {
+              return;
+            }
 
-          const sdk = await getSdk({
-            chainId: parseInt(userOp.chainId),
-            walletAddress: userOp.signerAddress,
-            accountAddress: userOp.accountAddress,
-          });
-          const signer = sdk.getSigner() as ERC4337EthersSigner;
-
-          // Get userOp receipt.
-          // If no receipt, try again later (or cancel userOps after 1 hour).
-          // Else the transaction call was submitted to mempool.
-          const userOpReceipt = await signer.smartAccountAPI.getUserOpReceipt(
-            signer.httpRpcClient,
-            userOp.userOpHash,
-            3_000, // 3 seconds
-          );
-          if (!userOpReceipt) {
-            if (msSince(userOp.sentAt) > CANCEL_DEADLINE_MS) {
-              await updateTx({
-                pgtx,
+            const sdk = await getSdk({
+              chainId: parseInt(userOp.chainId),
+              walletAddress: userOp.signerAddress,
+              accountAddress: userOp.accountAddress,
+            });
+            const signer = sdk.getSigner() as ERC4337EthersSigner;
+            let userOpReceipt: providers.TransactionReceipt | undefined;
+            try {
+              // Get userOp receipt.
+              // If no receipt, try again later (or cancel userOps after 1 hour).
+              // Else the transaction call was submitted to mempool.
+              userOpReceipt = await signer.smartAccountAPI.getUserOpReceipt(
+                signer.httpRpcClient,
+                userOp.userOpHash,
+                3_000, // 3 seconds
+              );
+            } catch (error) {
+              // Exception is thrown when userOp is not found/null
+              logger({
+                service: "worker",
+                level: "error",
                 queueId: userOp.id,
-                data: {
-                  status: TransactionStatus.Errored,
-                  errorMessage: "Transaction timed out.",
-                },
+                message: "Failed to get receipt for UserOp",
+                error,
               });
             }
-            return;
-          }
 
-          const chain = defineChain(parseInt(userOp.chainId));
-          const rpcRequest = getRpcClient({
-            client: thirdwebClient,
-            chain,
-          });
+            if (!userOpReceipt) {
+              if (msSince(userOp.sentAt) > CANCEL_DEADLINE_MS) {
+                await updateTx({
+                  pgtx,
+                  queueId: userOp.id,
+                  data: {
+                    status: TransactionStatus.Errored,
+                    errorMessage: "Transaction timed out.",
+                  },
+                });
+              }
+              return;
+            }
 
-          // Get the transaction receipt.
-          // If no receipt, try again later.
-          // Else the transaction call was confirmed onchain.
-          const transaction = await eth_getTransactionByHash(rpcRequest, {
-            hash: userOpReceipt.transactionHash as `0x${string}`,
-          });
-          const transactionReceipt = await eth_getTransactionReceipt(
-            rpcRequest,
-            { hash: transaction.hash },
-          );
-          if (!transactionReceipt) {
-            // If no receipt, try again later.
-            return;
-          }
-
-          let minedAt = new Date();
-          try {
-            const block = await eth_getBlockByNumber(rpcRequest, {
-              blockNumber: transactionReceipt.blockNumber,
-              includeTransactions: false,
+            const chain = defineChain(parseInt(userOp.chainId));
+            const rpcRequest = getRpcClient({
+              client: thirdwebClient,
+              chain,
             });
-            minedAt = new Date(Number(block.timestamp) * 1000);
-          } catch (e) {}
 
-          // Update the userOp transaction as mined.
-          await updateTx({
-            pgtx,
-            queueId: userOp.id,
-            data: {
+            // Get the transaction receipt.
+            // If no receipt, try again later.
+            // Else the transaction call was confirmed onchain.
+            const transaction = await eth_getTransactionByHash(rpcRequest, {
+              hash: userOpReceipt.transactionHash as `0x${string}`,
+            });
+            const transactionReceipt = await eth_getTransactionReceipt(
+              rpcRequest,
+              { hash: transaction.hash },
+            );
+            if (!transactionReceipt) {
+              // If no receipt, try again later.
+              return;
+            }
+
+            let minedAt = new Date();
+            try {
+              const block = await eth_getBlockByNumber(rpcRequest, {
+                blockNumber: transactionReceipt.blockNumber,
+                includeTransactions: false,
+              });
+              minedAt = new Date(Number(block.timestamp) * 1000);
+            } catch (e) {}
+
+            // Update the userOp transaction as mined.
+            await updateTx({
+              pgtx,
+              queueId: userOp.id,
+              data: {
+                status: TransactionStatus.Mined,
+                minedAt,
+                blockNumber: Number(transactionReceipt.blockNumber),
+                onChainTxStatus: toTransactionStatus(transactionReceipt.status),
+                transactionHash: transactionReceipt.transactionHash,
+                transactionType: toTransactionType(transaction.type),
+                gasLimit: userOp.gasLimit ?? undefined,
+                maxFeePerGas: transaction.maxFeePerGas?.toString(),
+                maxPriorityFeePerGas:
+                  transaction.maxPriorityFeePerGas?.toString(),
+                gasPrice: transaction.gasPrice?.toString(),
+              },
+            });
+
+            logger({
+              service: "worker",
+              level: "info",
+              queueId: userOp.id,
+              message: "Updated with receipt",
+            });
+            sendWebhookForQueueIds.push({
+              queueId: userOp.id,
               status: TransactionStatus.Mined,
-              minedAt,
-              blockNumber: Number(transactionReceipt.blockNumber),
-              onChainTxStatus: toTransactionStatus(transactionReceipt.status),
-              transactionHash: transactionReceipt.transactionHash,
-              transactionType: toTransactionType(transaction.type),
-              gasLimit: userOp.gasLimit ?? undefined,
-              maxFeePerGas: transaction.maxFeePerGas?.toString(),
-              maxPriorityFeePerGas:
-                transaction.maxPriorityFeePerGas?.toString(),
-              gasPrice: transaction.gasPrice?.toString(),
-            },
-          });
-
-          logger({
-            service: "worker",
-            level: "info",
-            queueId: userOp.id,
-            message: "Updated with receipt",
-          });
-          sendWebhookForQueueIds.push({
-            queueId: userOp.id,
-            status: TransactionStatus.Mined,
-          });
-          reportUsageForQueueIds.push({
-            input: {
-              fromAddress: userOp.fromAddress ?? undefined,
-              toAddress: userOp.toAddress ?? undefined,
-              value: userOp.value ?? undefined,
-              chainId: userOp.chainId,
-              userOpHash: userOp.userOpHash ?? undefined,
-              onChainTxStatus: toTransactionStatus(transactionReceipt.status),
-              functionName: userOp.functionName ?? undefined,
-              extension: userOp.extension ?? undefined,
-              provider: signer.httpRpcClient.bundlerUrl,
-              msSinceSend: msSince(userOp.sentAt!),
-            },
-            action: UsageEventTxActionEnum.MineTx,
-          });
+            });
+            reportUsageForQueueIds.push({
+              input: {
+                fromAddress: userOp.fromAddress ?? undefined,
+                toAddress: userOp.toAddress ?? undefined,
+                value: userOp.value ?? undefined,
+                chainId: userOp.chainId,
+                userOpHash: userOp.userOpHash ?? undefined,
+                onChainTxStatus: toTransactionStatus(transactionReceipt.status),
+                functionName: userOp.functionName ?? undefined,
+                extension: userOp.extension ?? undefined,
+                provider: signer.httpRpcClient.bundlerUrl,
+                msSinceSend: msSince(userOp.sentAt!),
+              },
+              action: UsageEventTxActionEnum.MineTx,
+            });
+          } catch (err) {
+            logger({
+              service: "worker",
+              level: "error",
+              queueId: userOp.id,
+              message: "Failed to update receipt for UserOp ",
+              error: err,
+            });
+          }
         });
 
         await Promise.all(promises);
@@ -166,7 +189,7 @@ export const updateMinedUserOps = async () => {
     logger({
       service: "worker",
       level: "error",
-      message: "Failed to update receipts",
+      message: "Failed to batch update receipts",
       error: err,
     });
   }
