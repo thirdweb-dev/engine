@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
+import { dedupeArray } from "../../../../utils/array";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
@@ -61,9 +62,7 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
         .filter((url) => !urlsToRemove.includes(url));
 
       await updateConfiguration({
-        accessControlAllowOrigin: [...new Set([...newAllowOriginsList])].join(
-          ",",
-        ),
+        accessControlAllowOrigin: dedupeArray(newAllowOriginsList).join(","),
       });
 
       // Fetch and return the updated configuration

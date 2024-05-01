@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
+import { dedupeArray } from "../../../../utils/array";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
@@ -54,12 +55,10 @@ export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
       });
 
       await updateConfiguration({
-        accessControlAllowOrigin: [
-          ...new Set([
-            ...urlsToAdd,
-            ...oldConfig.accessControlAllowOrigin.split(","),
-          ]),
-        ].join(","),
+        accessControlAllowOrigin: dedupeArray([
+          ...urlsToAdd,
+          ...oldConfig.accessControlAllowOrigin.split(","),
+        ]).join(","),
       });
 
       // Fetch and return the updated configuration
