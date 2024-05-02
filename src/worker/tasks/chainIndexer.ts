@@ -14,6 +14,8 @@ import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
 import { getContractId } from "../utils/contractId";
 
+const NUM_BLOCKS_TO_RECHECK = 2;
+
 export interface GetSubscribedContractsLogsParams {
   chainId: number;
   contractAddresses: string[];
@@ -278,6 +280,12 @@ export const createChainIndexerTask = async (
           let lastIndexedBlock;
           try {
             lastIndexedBlock = await getBlockForIndexing({ chainId, pgtx });
+
+            // RPC may provide incomplete data for new blocks from the previous scan.
+            // Re-check the last few blocks to capture any missing onchain data.
+            if (lastIndexedBlock > 0) {
+              lastIndexedBlock -= NUM_BLOCKS_TO_RECHECK;
+            }
           } catch (error) {
             // row is locked, return
             return;
