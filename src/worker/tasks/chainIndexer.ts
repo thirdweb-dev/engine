@@ -268,10 +268,13 @@ const indexTransactionReceipts = async ({
   }
 };
 
-export const createChainIndexerTask = async (
-  chainId: number,
-  maxBlocksToIndex: number,
-) => {
+export const createChainIndexerTask = async (args: {
+  chainId: number;
+  maxBlocksToIndex: number;
+  toBlockOffset: number;
+}) => {
+  const { chainId, maxBlocksToIndex, toBlockOffset } = args;
+
   const chainIndexerTask = async () => {
     try {
       await prisma.$transaction(
@@ -287,7 +290,8 @@ export const createChainIndexerTask = async (
           const sdk = await getSdk({ chainId });
 
           const provider = sdk.getProvider();
-          const currentBlockNumber = await provider.getBlockNumber();
+          const currentBlockNumber =
+            (await provider.getBlockNumber()) - toBlockOffset;
 
           // check if up-to-date
           if (lastIndexedBlock >= currentBlockNumber) {

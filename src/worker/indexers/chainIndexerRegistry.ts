@@ -1,5 +1,6 @@
 import cron from "node-cron";
 import { getConfig } from "../../utils/cache/getConfig";
+import { env } from "../../utils/env";
 import { getBlockTimeSeconds } from "../../utils/indexer/getBlockTime";
 import { logger } from "../../utils/logger";
 import { createChainIndexerTask } from "../tasks/chainIndexer";
@@ -18,6 +19,8 @@ export const addChainIndexer = async (chainId: number) => {
 
   let processStarted = false;
   const config = await getConfig();
+
+  // Estimate block time.
   const blockTimeSeconds = await getBlockTimeSeconds(chainId);
 
   const blocksIn5Seconds = Math.round((1 / blockTimeSeconds) * 5);
@@ -26,7 +29,17 @@ export const addChainIndexer = async (chainId: number) => {
     blocksIn5Seconds * 4,
   );
 
-  const handler = await createChainIndexerTask(chainId, maxBlocksToIndex);
+  // Compute block offset based on delay.
+  // Example: 10s delay with a 3s block time = 4 blocks offset
+  const toBlockOffset = env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS
+    ? Math.ceil(env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS / blockTimeSeconds)
+    : 0;
+
+  const handler = await createChainIndexerTask({
+    chainId,
+    maxBlocksToIndex,
+    toBlockOffset,
+  });
 
   const cronSchedule = createScheduleSeconds(
     Math.max(Math.round(blockTimeSeconds), 1),
