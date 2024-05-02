@@ -300,8 +300,8 @@ export const createChainIndexerTask = async (args: {
 
           // limit max block numbers
           let toBlockNumber = currentBlockNumber;
-          if (currentBlockNumber - (lastIndexedBlock + 1) > maxBlocksToIndex) {
-            toBlockNumber = lastIndexedBlock + 1 + maxBlocksToIndex;
+          if (currentBlockNumber - lastIndexedBlock > maxBlocksToIndex) {
+            toBlockNumber = lastIndexedBlock + maxBlocksToIndex;
           }
 
           const subscribedContracts = await getContractSubscriptionsByChainId(
@@ -319,14 +319,14 @@ export const createChainIndexerTask = async (args: {
             indexContractEvents({
               pgtx,
               chainId,
-              fromBlockNumber: lastIndexedBlock + 1,
+              fromBlockNumber: lastIndexedBlock,
               toBlockNumber,
               subscribedContractAddresses,
             }),
             indexTransactionReceipts({
               pgtx,
               chainId,
-              fromBlockNumber: lastIndexedBlock + 1,
+              fromBlockNumber: lastIndexedBlock,
               toBlockNumber,
               subscribedContractAddresses,
             }),
