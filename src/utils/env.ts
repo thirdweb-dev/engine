@@ -67,6 +67,10 @@ export const env = createEnv({
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
     ENABLE_KEYPAIR_AUTH: boolSchema("false"),
+    CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS: z.coerce
+      .number()
+      .nonnegative()
+      .default(0),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -88,6 +92,8 @@ export const env = createEnv({
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
     ENABLE_KEYPAIR_AUTH: process.env.ENABLE_KEYPAIR_AUTH,
+    CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
+      process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
   },
   onValidationError: (error: ZodError) => {
     console.error(
