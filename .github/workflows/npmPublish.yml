@@ -38,6 +38,7 @@ jobs:
         run: yarn generate:sdk
 
       - name: Push to npm
-        run: npm publish ./sdk --tag ${{ github.event.inputs.npm_tag }}
+        working-directory: ./sdk
+        run: npm publish --tag ${{ github.event.inputs.npm_tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
