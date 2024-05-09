@@ -2,11 +2,6 @@ name: Publish to npm
 
 on:
   workflow_dispatch:
-    inputs:
-      npm_tag:
-        description: "Release type latest"
-        required: true
-        default: "latest"
 
 jobs:
   build:
@@ -22,6 +17,9 @@ jobs:
         with:
           node-version: "14" # Use Node.js version 14
           cache: "yarn"
+
+      - name: Install tsx
+        run: npm install -g tsx
 
       - name: Install dependencies
         working-directory: ./sdk
@@ -39,6 +37,6 @@ jobs:
 
       - name: Push to npm
         working-directory: ./sdk
-        run: npm publish --tag ${{ github.event.inputs.npm_tag }}
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
