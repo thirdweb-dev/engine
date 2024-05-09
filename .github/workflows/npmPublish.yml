@@ -1,0 +1,42 @@
+name: Publish to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      npm_tag:
+        description: "Release type latest"
+        required: true
+        default: "latest"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: "main"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14" # Use Node.js version 14
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Get version from package.json
+        id: package_version
+        run: echo "PACKAGE_VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+
+      - name: Use version
+        run: echo "The version from package.json is $PACKAGE_VERSION"
+
+      - name: Build
+        run: yarn build
+
+      - name: Push to npm
+        run: npm publish ./dist --tag ${{ github.event.inputs.npm_tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
