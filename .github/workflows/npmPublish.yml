@@ -15,7 +15,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: "14" # Use Node.js version 14
+          node-version: "18"
           cache: "yarn"
 
       - name: Install tsx
