@@ -24,19 +24,20 @@ jobs:
           cache: "yarn"
 
       - name: Install dependencies
+        working-directory: ./sdk
         run: yarn install
 
       - name: Get version from package.json
         id: package_version
-        run: echo "PACKAGE_VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+        run: echo "PACKAGE_VERSION=$(jq -r '.version' ./sdk/package.json)" >> $GITHUB_ENV
 
       - name: Use version
-        run: echo "The version from package.json is $PACKAGE_VERSION"
+        run: echo "SDK version is $PACKAGE_VERSION"
 
       - name: Build
         run: yarn build
 
       - name: Push to npm
-        run: npm publish ./dist --tag ${{ github.event.inputs.npm_tag }}
+        run: npm publish ./sdk --tag ${{ github.event.inputs.npm_tag }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
