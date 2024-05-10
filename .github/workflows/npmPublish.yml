@@ -21,13 +21,6 @@ jobs:
       - name: Install tsx
         run: npm install -g tsx
 
-      - name: Install tsx
-        run: npm install -g dotenv
-
-      - name: Create .env file
-        run: |
-          echo "ENGINE_OPENAPI_URL=${{ secrets.ENGINE_OPENAPI_URL }}" >> .env
-
       - name: Install dependencies
         working-directory: ./sdk
         run: yarn install

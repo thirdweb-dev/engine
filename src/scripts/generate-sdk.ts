@@ -1,18 +1,11 @@
 import { execSync } from "child_process";
-import dotenv from "dotenv";
 import fs from "fs";
 import { kill } from "process";
 
-dotenv.config();
-
-const ENGINE_OPENAPI_URL = process.env.ENGINE_OPENAPI_URL;
+const ENGINE_OPENAPI_URL = "https://demo.web3api.thirdweb.com/json";
 
 async function main() {
   try {
-    console.log("ENGINE_OPENAPI_URL:", ENGINE_OPENAPI_URL);
-    if (!ENGINE_OPENAPI_URL) {
-      throw new Error("ENGINE_OPENAPI_URL is not defined");
-    }
     const response = await fetch(ENGINE_OPENAPI_URL);
     const jsonData = await response.json();
 
