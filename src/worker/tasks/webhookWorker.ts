@@ -36,7 +36,7 @@ const handleWebhook: Processor<any, void, string> = async (
   }
 };
 
-const webhookWorker = new Worker("webhook", handleWebhook, {
+export const webhookWorker = new Worker("webhook", handleWebhook, {
   concurrency: 1,
   connection: redis,
 });

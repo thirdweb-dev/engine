@@ -60,7 +60,7 @@ export class WebhookQueue {
     data: EnqueueContractSubscriptionWebhookData,
   ) => {
     const { type, webhook, eventLog, transactionReceipt } = data;
-    if (!eventLog || !transactionReceipt) {
+    if (!eventLog && !transactionReceipt) {
       throw 'Must provide "eventLog" or "transactionReceipt".';
     }
 

@@ -39,6 +39,15 @@ export const ethGetLogs = async (params: GetSubscribedContractsLogsParams) => {
   const sdk = await getSdk({ chainId: params.chainId });
   const provider = sdk.getProvider();
 
+  logger({
+    service: "worker",
+    level: "debug",
+    message: `Fetching logs for chainId: ${
+      params.chainId
+    }, contractAddresses: ${params.contractAddresses.join(", ")}, fromBlock: ${
+      params.fromBlock
+    }, toBlock: ${params.toBlock}`,
+  });
   const logs = await Promise.all(
     params.contractAddresses.map(async (contractAddress) => {
       const logFilter = {
@@ -70,6 +79,13 @@ export const getBlocksAndTransactions = async ({
     (_, index) => fromBlock + index,
   );
 
+  logger({
+    service: "worker",
+    level: "debug",
+    message: `Fetching blocks and transactions for chainId: ${chainId}, contractAddresses: ${contractAddresses.join(
+      ", ",
+    )}, fromBlock: ${fromBlock}, toBlock: ${toBlock}`,
+  });
   const blocksWithTransactionsAndReceipts = await Promise.all(
     blockNumbers.map(async (blockNumber) => {
       const block = await provider.getBlockWithTransactions(blockNumber);

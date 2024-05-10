@@ -20,5 +20,29 @@ services:
           cpus: "2"
           memory: 2G
 
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
+  bullboard:
+    container_name: bullboard
+    image: deadly0/bull-board:latest
+    restart: always
+    ports:
+      - 3000:3000
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_USE_TLS: "false"
+      BULL_PREFIX: bull
+    depends_on:
+      - redis
+
 volumes:
   psql_db:
+  redis_data:

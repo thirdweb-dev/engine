@@ -11,6 +11,7 @@ import {
   newWebhooksListener,
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
+import "./tasks/webhookWorker";
 
 export const initWorker = async () => {
   // Listen for queued transactions to process
