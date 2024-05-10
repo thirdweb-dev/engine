@@ -11,13 +11,13 @@ async function main() {
 
     // Save the JSON response to a file
     fs.writeFileSync(
-      "./dist/openapi.json",
+      "openapi.json",
       JSON.stringify(jsonData, null, 2),
       "utf-8",
     );
 
     execSync(
-      "yarn openapi --input ./dist/openapi.json --output ./sdk/src --name Engine",
+      "yarn openapi --input ./openapi.json --output ./sdk/src --name Engine",
     );
 
     const code = fs
