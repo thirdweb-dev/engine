@@ -21,11 +21,17 @@ export const isContractSubscribed = async ({
   else return true;
 };
 
-export const getContractSubscriptionsByChainId = async (chainId: number) => {
+export const getContractSubscriptionsByChainId = async (
+  chainId: number,
+  includeWebhook = false,
+) => {
   return await prisma.contractSubscriptions.findMany({
     where: {
       chainId,
       deletedAt: null,
+    },
+    include: {
+      webhook: includeWebhook,
     },
   });
 };

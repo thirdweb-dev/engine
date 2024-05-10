@@ -400,8 +400,8 @@ const handleAuthWebhooks = async (
   const authWebhooks = await getWebhook(WebhooksEventTypes.AUTH);
   if (authWebhooks.length > 0) {
     const authResponses = await Promise.all(
-      authWebhooks.map((webhook) =>
-        sendWebhookRequest(webhook, {
+      authWebhooks.map(async (webhook) => {
+        const { ok } = await sendWebhookRequest(webhook, {
           url: req.url,
           method: req.method,
           headers: req.headers,
@@ -409,8 +409,9 @@ const handleAuthWebhooks = async (
           query: req.query,
           cookies: req.cookies,
           body: req.body,
-        }),
-      ),
+        });
+        return ok;
+      }),
     );
 
     if (authResponses.every((ok) => !!ok)) {

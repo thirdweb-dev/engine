@@ -6,6 +6,7 @@ import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
 import { isLocalhost } from "../../../utils/url";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
 
 const uriFormat = TypeSystem.Format("uri", (input: string) => {
   // Assert valid URL.
@@ -76,14 +77,7 @@ BodySchema.examples = [
 ];
 
 const ReplySchema = Type.Object({
-  result: Type.Object({
-    url: Type.String(),
-    name: Type.String(),
-    createdAt: Type.String(),
-    eventType: Type.String(),
-    secret: Type.Optional(Type.String()),
-    id: Type.Number(),
-  }),
+  result: WebhookSchema,
 });
 
 export async function createWebhook(fastify: FastifyInstance) {
@@ -105,11 +99,10 @@ export async function createWebhook(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const config = await insertWebhook({ ...req.body });
+      const webhook = await insertWebhook({ ...req.body });
+
       res.status(200).send({
-        result: {
-          ...config,
-        },
+        result: toWebhookSchema(webhook),
       });
     },
   });

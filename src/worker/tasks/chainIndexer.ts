@@ -1,4 +1,10 @@
 import { BlockWithTransactions } from "@ethersproject/abstract-provider";
+import {
+  ContractEventLogs,
+  ContractTransactionReceipts,
+  Prisma,
+  Webhooks,
+} from "@prisma/client";
 import { SmartContract } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
@@ -8,9 +14,11 @@ import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createCo
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
 import { PrismaTransaction } from "../../schema/prisma";
+import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
+import { WebhookQueue } from "../queues/queues";
 import { getContractId } from "../utils/contractId";
 
 export interface GetSubscribedContractsLogsParams {
@@ -98,7 +106,7 @@ export const getBlocksAndTransactions = async ({
 
 export const getSubscribedContractsLogs = async (
   params: GetSubscribedContractsLogsParams,
-) => {
+): Promise<Prisma.ContractEventLogsCreateInput[]> => {
   const sdk = await getSdk({ chainId: params.chainId });
   const provider = sdk.getProvider();
 
@@ -206,8 +214,8 @@ const indexContractEvents = async ({
   fromBlockNumber,
   toBlockNumber,
   subscribedContractAddresses,
-}: IndexFnParams) => {
-  // get all logs for the contracts
+}: IndexFnParams): Promise<ContractEventLogs[]> => {
+  // Get all logs for the contracts.
   const logs = await getSubscribedContractsLogs({
     chainId,
     fromBlock: fromBlockNumber,
@@ -215,10 +223,11 @@ const indexContractEvents = async ({
     contractAddresses: subscribedContractAddresses,
   });
 
-  // update the logs
+  // Store logs to DB.
   if (logs.length > 0) {
-    await bulkInsertContractEventLogs({ logs, pgtx });
+    return await bulkInsertContractEventLogs({ logs, pgtx });
   }
+  return [];
 };
 
 const indexTransactionReceipts = async ({
@@ -227,7 +236,8 @@ const indexTransactionReceipts = async ({
   fromBlockNumber,
   toBlockNumber,
   subscribedContractAddresses,
-}: IndexFnParams) => {
+}: IndexFnParams): Promise<ContractTransactionReceipts[]> => {
+  // Get all receipts for the contracts.
   const { blocks, transactionsWithReceipt } = await getBlocksAndTransactions({
     chainId,
     fromBlock: fromBlockNumber,
@@ -240,32 +250,39 @@ const indexTransactionReceipts = async ({
     return acc;
   }, {} as Record<number, BlockWithTransactions>);
 
-  const txReceipts = transactionsWithReceipt.map(({ receipt, transaction }) => {
-    return {
-      chainId: chainId,
-      blockNumber: receipt.blockNumber,
-      contractAddress: receipt.to.toLowerCase(),
-      contractId: getContractId(chainId, receipt.to.toLowerCase()),
-      transactionHash: receipt.transactionHash.toLowerCase(),
-      blockHash: receipt.blockHash.toLowerCase(),
-      timestamp: new Date(blockLookup[receipt.blockNumber].timestamp * 1000),
-      to: receipt.to.toLowerCase(),
-      from: receipt.from.toLowerCase(),
-      value: transaction.value.toString(),
-      data: transaction.data,
-      transactionIndex: receipt.transactionIndex,
-      gasUsed: receipt.gasUsed.toString(),
-      effectiveGasPrice: receipt.effectiveGasPrice.toString(),
-      status: receipt.status ?? 1, // requires post-byzantium
-    };
-  });
+  const receipts = transactionsWithReceipt.map(
+    ({
+      receipt,
+      transaction,
+    }): Prisma.ContractTransactionReceiptsCreateInput => {
+      return {
+        chainId: chainId,
+        blockNumber: receipt.blockNumber,
+        contractAddress: receipt.to.toLowerCase(),
+        contractId: getContractId(chainId, receipt.to.toLowerCase()),
+        transactionHash: receipt.transactionHash.toLowerCase(),
+        blockHash: receipt.blockHash.toLowerCase(),
+        timestamp: new Date(blockLookup[receipt.blockNumber].timestamp * 1000),
+        to: receipt.to.toLowerCase(),
+        from: receipt.from.toLowerCase(),
+        value: transaction.value.toString(),
+        data: transaction.data,
+        transactionIndex: receipt.transactionIndex,
+        gasUsed: receipt.gasUsed.toString(),
+        effectiveGasPrice: receipt.effectiveGasPrice.toString(),
+        status: receipt.status ?? 1, // requires post-byzantium
+      };
+    },
+  );
 
-  if (txReceipts.length > 0) {
-    await bulkInsertContractTransactionReceipts({
-      txReceipts: txReceipts,
+  // Store receipts to DB.
+  if (receipts.length > 0) {
+    return await bulkInsertContractTransactionReceipts({
+      receipts,
       pgtx,
     });
   }
+  return [];
 };
 
 export const createChainIndexerTask = async (args: {
@@ -304,18 +321,20 @@ export const createChainIndexerTask = async (args: {
             toBlockNumber = lastIndexedBlock + maxBlocksToIndex;
           }
 
-          const subscribedContracts = await getContractSubscriptionsByChainId(
+          const contractSubscriptions = await getContractSubscriptionsByChainId(
             chainId,
+            true,
           );
           const subscribedContractAddresses = [
             ...new Set<string>(
-              subscribedContracts.map(
-                (subscribedContract) => subscribedContract.contractAddress,
+              contractSubscriptions.map(
+                (subscription) => subscription.contractAddress,
               ),
             ),
           ];
 
-          await Promise.all([
+          // Store log events and transaction receipts to DB.
+          const [eventLogs, transactionReceipts] = await Promise.all([
             indexContractEvents({
               pgtx,
               chainId,
@@ -332,7 +351,43 @@ export const createChainIndexerTask = async (args: {
             }),
           ]);
 
-          // update the block number
+          // Map { contractAddress => array of webhooks }
+          const webhooksByContractAddress: Record<string, Webhooks[]> = {};
+          for (const { contractAddress, webhook } of contractSubscriptions) {
+            if (webhook) {
+              if (!webhooksByContractAddress[contractAddress]) {
+                webhooksByContractAddress[contractAddress] = [];
+              }
+              webhooksByContractAddress[contractAddress].push(webhook);
+            }
+          }
+
+          // Enqueue webhook jobs for any matching contract subscriptions.
+          for (const eventLog of eventLogs) {
+            const webhooks =
+              webhooksByContractAddress[eventLog.contractAddress] ?? [];
+            for (const webhook of webhooks) {
+              await WebhookQueue.add({
+                type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
+                webhook,
+                eventLog,
+              });
+            }
+          }
+          for (const transactionReceipt of transactionReceipts) {
+            const webhooks =
+              webhooksByContractAddress[transactionReceipt.contractAddress] ??
+              [];
+            for (const webhook of webhooks) {
+              await WebhookQueue.add({
+                type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
+                webhook,
+                transactionReceipt,
+              });
+            }
+          }
+
+          // Update the latest block number.
           try {
             await upsertChainIndexer({
               pgtx,
