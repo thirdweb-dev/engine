@@ -18,7 +18,7 @@ import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
-import { WebhookQueue } from "../queues/queues";
+import { enqueueWebhook } from "../queues/webhookQueue";
 import { getContractId } from "../utils/contractId";
 
 export interface GetSubscribedContractsLogsParams {
@@ -383,7 +383,7 @@ export const createChainIndexerTask = async (args: {
             const webhooks =
               webhooksByContractAddress[eventLog.contractAddress] ?? [];
             for (const webhook of webhooks) {
-              await WebhookQueue.add({
+              await enqueueWebhook({
                 type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
                 webhook,
                 eventLog,
@@ -395,7 +395,7 @@ export const createChainIndexerTask = async (args: {
               webhooksByContractAddress[transactionReceipt.contractAddress] ??
               [];
             for (const webhook of webhooks) {
-              await WebhookQueue.add({
+              await enqueueWebhook({
                 type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
                 webhook,
                 transactionReceipt,

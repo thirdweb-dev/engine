@@ -196,7 +196,7 @@ model ContractSubscriptions {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  webhook Webhooks? @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  webhook Webhooks? @relation(fields: [webhookId], references: [id], onDelete: SetNull)
 
   // optimize distinct lookups
   @@index([chainId])

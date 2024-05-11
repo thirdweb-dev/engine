@@ -5,8 +5,8 @@ import { toEventLogSchema } from "../../server/schemas/eventLog";
 import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
 import { redis } from "../../utils/redis/redis";
 import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
-import { WebhookJob } from "../queues/queues";
-import { logWorkerEvents } from "../queues/worker";
+import { logWorkerEvents } from "../queues/queues";
+import { WebhookJob } from "../queues/webhookQueue";
 
 interface WebhookBody {
   type: "event-log" | "transaction-receipt";
@@ -47,8 +47,11 @@ const handleWebhook: Processor<any, void, string> = async (
   }
 };
 
-export const webhookWorker = new Worker("webhook", handleWebhook, {
-  concurrency: 1,
-  connection: redis,
-});
-logWorkerEvents(webhookWorker);
+let _worker: Worker | null = null;
+if (redis) {
+  _worker = new Worker("webhook", handleWebhook, {
+    concurrency: 1,
+    connection: redis,
+  });
+  logWorkerEvents(_worker);
+}

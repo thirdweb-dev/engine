@@ -94,7 +94,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
 
         const webhook = await insertWebhook({
           eventType: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
-          name: "Auto-generated for contract subscription",
+          name: "(Auto-generated)",
           url: webhookUrl,
         });
         webhookId = webhook.id;

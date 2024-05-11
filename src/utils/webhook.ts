@@ -129,7 +129,6 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
             level: "debug",
             message: "No webhook set or active, skipping webhook send",
           });
-
           return;
         }
 
