@@ -8,6 +8,11 @@ import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
 import { WebhookJob } from "../queues/queues";
 import { logWorkerEvents } from "../queues/worker";
 
+interface WebhookBody {
+  type: "event-log" | "transaction-receipt";
+  data: any;
+}
+
 const handleWebhook: Processor<any, void, string> = async (
   job: Job<string>,
 ) => {
@@ -15,11 +20,17 @@ const handleWebhook: Processor<any, void, string> = async (
 
   let resp: WebhookResponse | undefined;
   if (data.type === WebhooksEventTypes.CONTRACT_SUBSCRIPTION) {
-    let webhookBody: Record<string, any>;
+    let webhookBody: WebhookBody;
     if (data.eventLog) {
-      webhookBody = toEventLogSchema(data.eventLog);
+      webhookBody = {
+        type: "event-log",
+        data: toEventLogSchema(data.eventLog),
+      };
     } else if (data.transactionReceipt) {
-      webhookBody = toTransactionReceiptSchema(data.transactionReceipt);
+      webhookBody = {
+        type: "transaction-receipt",
+        data: toTransactionReceiptSchema(data.transactionReceipt),
+      };
     } else {
       throw new Error(
         'Missing "eventLog" or "transactionReceipt" for CONTRACT_SUBSCRIPTION webhook.',

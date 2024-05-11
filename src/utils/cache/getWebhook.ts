@@ -4,7 +4,7 @@ import { WebhooksEventTypes } from "../../schema/webhooks";
 
 export const webhookCache = new Map<string, Webhooks[]>();
 
-export const getWebhook = async (
+export const getWebhooksByEventType = async (
   eventType: WebhooksEventTypes,
   retrieveFromCache = true,
 ): Promise<Webhooks[]> => {

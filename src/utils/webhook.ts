@@ -6,7 +6,7 @@ import {
   WebhooksEventTypes,
 } from "../schema/webhooks";
 import { TransactionStatus } from "../server/schemas/transaction";
-import { getWebhook } from "./cache/getWebhook";
+import { getWebhooksByEventType } from "./cache/getWebhook";
 import { logger } from "./logger";
 
 let balanceNotificationLastSentAt = -1;
@@ -117,8 +117,8 @@ export const sendWebhooks = async (webhooks: WebhookData[]) => {
         : undefined;
 
     const webhookConfigs = await Promise.all([
-      ...((await getWebhook(WebhooksEventTypes.ALL_TX)) || []),
-      ...(webhookStatus ? await getWebhook(webhookStatus) : []),
+      ...((await getWebhooksByEventType(WebhooksEventTypes.ALL_TX)) || []),
+      ...(webhookStatus ? await getWebhooksByEventType(webhookStatus) : []),
     ]);
 
     await Promise.all(
@@ -157,7 +157,7 @@ export const sendBalanceWebhook = async (
       return;
     }
 
-    const webhooks = await getWebhook(
+    const webhooks = await getWebhooksByEventType(
       WebhooksEventTypes.BACKEND_WALLET_BALANCE,
     );
 

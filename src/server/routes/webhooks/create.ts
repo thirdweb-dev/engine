@@ -1,29 +1,17 @@
 import { Static, Type } from "@sinclair/typebox";
-import { TypeSystem } from "@sinclair/typebox/system";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
-import { isLocalhost } from "../../../utils/url";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
-
-const uriFormat = TypeSystem.Format("uri", (input: string) => {
-  // Assert valid URL.
-  try {
-    new URL(input);
-  } catch (err) {
-    return false;
-  }
-
-  return !isLocalhost(input);
-});
+import { isValidHttpUrl } from "../../utils/validator";
 
 const BodySchema = Type.Object({
   url: Type.String({
     description: "Webhook URL",
-    format: uriFormat,
-    examples: ["https://example.com/webhooks"],
+    examples: ["https://example.com/webhook"],
   }),
   name: Type.Optional(
     Type.String({
@@ -83,6 +71,7 @@ const ReplySchema = Type.Object({
 export async function createWebhook(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof BodySchema>;
+    Reply: Static<typeof ReplySchema>;
   }>({
     method: "POST",
     url: "/webhooks/create",
@@ -99,7 +88,21 @@ export async function createWebhook(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const webhook = await insertWebhook({ ...req.body });
+      const { url, name, eventType } = req.body;
+
+      if (!isValidHttpUrl(url)) {
+        throw createCustomError(
+          "Invalid webhook URL. Make sure it starts with 'https://'.",
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
+      }
+
+      const webhook = await insertWebhook({
+        url,
+        name,
+        eventType,
+      });
 
       res.status(200).send({
         result: toWebhookSchema(webhook),

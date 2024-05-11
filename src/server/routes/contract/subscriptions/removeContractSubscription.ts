@@ -1,73 +1,58 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteContractEventLogs } from "../../../../db/contractEventLogs/deleteContractEventLogs";
 import { deleteContractSubscription } from "../../../../db/contractSubscriptions/deleteContractSubscription";
-import { deleteContractTransactionReceipts } from "../../../../db/contractTransactionReceipts/deleteContractTransactionReceipts";
-import {
-  contractParamSchema,
-  standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
-import { getChainIdFromChain } from "../../../utils/chain";
+import { deleteWebhook } from "../../../../db/webhooks/revokeWebhook";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+
+const bodySchema = Type.Object({
+  contractSubscriptionId: Type.String({
+    description: "The ID for an existing contract subscription.",
+  }),
+});
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    chain: Type.String(),
-    contractAddress: Type.String(),
     status: Type.String(),
   }),
 });
 
 responseSchema.example = {
   result: {
-    chain: "ethereum",
-    contractAddress: "0x....",
     status: "success",
   },
 };
 
 export async function removeContractSubscription(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof contractParamSchema>;
+    Body: Static<typeof bodySchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
-    url: "/contract/:chain/:contractAddress/subscriptions/unsubscribe",
+    url: "/contract-subscriptions/remove",
     schema: {
-      summary: "Unsubscribe from contract events",
-      description: "Unsubscribe from contract events",
+      summary: "Remove contract subscription",
+      description: "Remove an existing contract subscription",
       tags: ["Contract-Subscriptions"],
       operationId: "removeContractSubscription",
-      params: contractParamSchema,
+      body: bodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
-      const standardizedContractAddress = contractAddress.toLowerCase();
-      const chainId = await getChainIdFromChain(chain);
+      const { contractSubscriptionId } = request.body;
 
-      await deleteContractSubscription({
-        chainId,
-        contractAddress: standardizedContractAddress,
-      });
-
-      await deleteContractEventLogs({
-        chainId,
-        contractAddress: standardizedContractAddress,
-      });
-
-      await deleteContractTransactionReceipts({
-        chainId,
-        contractAddress: standardizedContractAddress,
-      });
+      const contractSubscription = await deleteContractSubscription(
+        contractSubscriptionId,
+      );
+      if (contractSubscription.webhookId) {
+        await deleteWebhook(contractSubscription.webhookId);
+      }
 
       reply.status(StatusCodes.OK).send({
         result: {
-          chain,
-          contractAddress: standardizedContractAddress,
           status: "success",
         },
       });

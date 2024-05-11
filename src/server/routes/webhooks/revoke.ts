@@ -1,7 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { markWebhookAsRevoked } from "../../../db/webhooks/revokeWebhook";
+import { getWebhook } from "../../../db/webhooks/getWebhook";
+import { deleteWebhook } from "../../../db/webhooks/revokeWebhook";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const BodySchema = Type.Object({
@@ -34,9 +36,18 @@ export async function revokeWebhook(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const { id } = req.body;
-      await markWebhookAsRevoked({
-        id,
-      });
+
+      const webhook = await getWebhook(id);
+      if (!webhook) {
+        throw createCustomError(
+          "Webhook not found.",
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
+      }
+
+      await deleteWebhook(id);
+
       res.status(200).send({
         result: {
           success: true,

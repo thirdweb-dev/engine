@@ -17,7 +17,7 @@ import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../../utils/auth";
 import { getAccessToken } from "../../utils/cache/accessToken";
 import { getAuthWallet } from "../../utils/cache/authWallet";
 import { getConfig } from "../../utils/cache/getConfig";
-import { getWebhook } from "../../utils/cache/getWebhook";
+import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
 import { getKeypair } from "../../utils/cache/keypair";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -397,7 +397,7 @@ const handleSecretKey = async (req: FastifyRequest): Promise<AuthResponse> => {
 const handleAuthWebhooks = async (
   req: FastifyRequest,
 ): Promise<AuthResponse> => {
-  const authWebhooks = await getWebhook(WebhooksEventTypes.AUTH);
+  const authWebhooks = await getWebhooksByEventType(WebhooksEventTypes.AUTH);
   if (authWebhooks.length > 0) {
     const authResponses = await Promise.all(
       authWebhooks.map(async (webhook) => {

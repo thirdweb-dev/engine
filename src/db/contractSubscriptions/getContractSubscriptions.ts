@@ -9,16 +9,14 @@ export const isContractSubscribed = async ({
   chainId,
   contractAddress,
 }: GetContractSubscriptionsParams) => {
-  const subscribedContract = await prisma.contractSubscriptions.findMany({
+  const contractSubscription = await prisma.contractSubscriptions.findFirst({
     where: {
       chainId,
       contractAddress,
       deletedAt: null,
     },
   });
-
-  if (subscribedContract.length === 0) return false;
-  else return true;
+  return contractSubscription !== null;
 };
 
 export const getContractSubscriptionsByChainId = async (
@@ -40,6 +38,9 @@ export const getAllContractSubscriptions = async () => {
   return await prisma.contractSubscriptions.findMany({
     where: {
       deletedAt: null,
+    },
+    include: {
+      webhook: true,
     },
   });
 };

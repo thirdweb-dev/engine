@@ -262,10 +262,10 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(queueStatus);
 
   // Contract Subscriptions
-  await fastify.register(addContractSubscription);
   await fastify.register(getContractSubscriptions);
-  await fastify.register(getContractIndexedBlockRange);
+  await fastify.register(addContractSubscription);
   await fastify.register(removeContractSubscription);
+  await fastify.register(getContractIndexedBlockRange);
   await fastify.register(getLatestBlock);
 
   // Contract Transactions
