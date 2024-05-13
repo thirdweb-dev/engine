@@ -10,9 +10,11 @@ import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
+export const SEND_WEBHOOK_QUEUE_NAME = "send-webhook";
+
 // Queue
 const _queue = redis
-  ? new Queue<string>("webhook", {
+  ? new Queue<string>(SEND_WEBHOOK_QUEUE_NAME, {
       connection: redis,
       defaultJobOptions,
     })

@@ -18,7 +18,7 @@ import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getContract } from "../../utils/cache/getContract";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
-import { enqueueWebhook } from "../queues/webhookQueue";
+import { enqueueWebhook } from "../queues/sendWebhookQueue";
 import { getContractId } from "../utils/contractId";
 
 export interface GetSubscribedContractsLogsParams {

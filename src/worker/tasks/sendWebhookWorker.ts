@@ -6,16 +6,17 @@ import { toTransactionReceiptSchema } from "../../server/schemas/transactionRece
 import { redis } from "../../utils/redis/redis";
 import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
 import { logWorkerEvents } from "../queues/queues";
-import { WebhookJob } from "../queues/webhookQueue";
+import {
+  SEND_WEBHOOK_QUEUE_NAME,
+  WebhookJob,
+} from "../queues/sendWebhookQueue";
 
 interface WebhookBody {
   type: "event-log" | "transaction-receipt";
   data: any;
 }
 
-const handleWebhook: Processor<any, void, string> = async (
-  job: Job<string>,
-) => {
+const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);
 
   let resp: WebhookResponse | undefined;
@@ -47,9 +48,10 @@ const handleWebhook: Processor<any, void, string> = async (
   }
 };
 
+// Worker
 let _worker: Worker | null = null;
 if (redis) {
-  _worker = new Worker("webhook", handleWebhook, {
+  _worker = new Worker(SEND_WEBHOOK_QUEUE_NAME, handler, {
     concurrency: 1,
     connection: redis,
   });
