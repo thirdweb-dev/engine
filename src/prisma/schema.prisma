@@ -27,6 +27,7 @@ model Configuration {
   indexerListenerCronSchedule    String? @map("indexerListenerCronSchedule")
   maxBlocksToIndex               Int     @default(25) @map("maxBlocksToIndex")
   cursorDelaySeconds             Int     @default(2) @map("cursorDelaySeconds")
+  contractSubscriptionsRetryDelaySeconds String @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")

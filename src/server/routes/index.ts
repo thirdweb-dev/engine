@@ -59,6 +59,8 @@ import { getCacheConfiguration } from "./configuration/cache/get";
 import { updateCacheConfiguration } from "./configuration/cache/update";
 import { getChainsConfiguration } from "./configuration/chains/get";
 import { updateChainsConfiguration } from "./configuration/chains/update";
+import { getContractSubscriptionsConfiguration } from "./configuration/contract-subscriptions/get";
+import { updateContractSubscriptionsConfiguration } from "./configuration/contract-subscriptions/update";
 import { addUrlToCorsConfiguration } from "./configuration/cors/add";
 import { getCorsConfiguration } from "./configuration/cors/get";
 import { removeUrlToCorsConfiguration } from "./configuration/cors/remove";
@@ -171,6 +173,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(setUrlsToCorsConfiguration);
   await fastify.register(getCacheConfiguration);
   await fastify.register(updateCacheConfiguration);
+  await fastify.register(getContractSubscriptionsConfiguration);
+  await fastify.register(updateContractSubscriptionsConfiguration);
 
   // Webhooks
   await fastify.register(getAllWebhooksData);
