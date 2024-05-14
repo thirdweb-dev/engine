@@ -14,12 +14,6 @@ export const defaultJobOptions: JobsOptions = {
 };
 
 export const logWorkerEvents = (worker: Worker) => {
-  worker.on("active", (job: Job) => {
-    // do nothing
-  });
-  worker.on("completed", (job: Job) => {
-    //do nothing
-  });
   worker.on("failed", (job: Job | undefined, err: Error) => {
     logger({
       level: "error",
