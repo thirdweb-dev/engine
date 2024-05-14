@@ -11,6 +11,7 @@ import { queueTx } from "../../../db/transactions/queueTx";
 import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
 import { getContract } from "../../../utils/cache/getContract";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { createCustomError } from "../../middleware/error";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -80,12 +81,21 @@ export async function transfer(fastify: FastifyInstance) {
       let queueId: string | null = null;
       if (isNativeToken(currencyAddress)) {
         const walletAddress = await sdk.getSigner()?.getAddress();
-        if (!walletAddress) throw new Error("No wallet address");
+        if (!walletAddress)
+          throw createCustomError(
+            "No wallet address",
+            StatusCodes.BAD_REQUEST,
+            "NO_WALLET_ADDRESS",
+          );
 
         const balance = await sdk.getBalance(walletAddress);
 
         if (balance.value.lt(normalizedValue)) {
-          throw new Error("Insufficient balance");
+          throw createCustomError(
+            "Insufficient balance",
+            StatusCodes.BAD_GATEWAY,
+            "INSUFFICIENT_BALANCE",
+          );
         }
 
         const params = {
