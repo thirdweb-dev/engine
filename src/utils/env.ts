@@ -39,7 +39,7 @@ export const env = createEnv({
       .default("development"),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace"])
-      .default("debug"),
+      .default("info"),
     LOG_SERVICES: z
       .string()
       .default("server,worker,cache,websocket")
