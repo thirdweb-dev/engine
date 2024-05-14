@@ -8,7 +8,7 @@ import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
 const BodySchema = Type.Object({
-  maxBlocksToIndex: Type.Optional(Type.Number()),
+  maxBlocksToIndex: Type.Optional(Type.Number({ minimum: 1, maximum: 25 })),
   contractSubscriptionsRetryDelaySeconds: Type.Optional(Type.String()),
 });
 
@@ -38,14 +38,6 @@ export async function updateContractSubscriptionsConfiguration(
       if (!maxBlocksToIndex && !contractSubscriptionsRetryDelaySeconds) {
         throw createCustomError(
           "At least one parameter is required",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-      }
-
-      if (maxBlocksToIndex && (maxBlocksToIndex < 1 || maxBlocksToIndex > 10)) {
-        throw createCustomError(
-          "Required: 0 < maxBlocksToIndex <= 10",
           StatusCodes.BAD_REQUEST,
           "BAD_REQUEST",
         );
