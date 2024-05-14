@@ -7,16 +7,7 @@ export enum WebhooksEventTypes {
   ALL_TX = "all_transactions",
   BACKEND_WALLET_BALANCE = "backend_wallet_balance",
   AUTH = "auth",
-}
-
-export interface SanitizedWebHooksSchema {
-  url: string;
-  name: string | null;
-  eventType: string;
-  secret?: string;
-  createdAt: string;
-  active: boolean;
-  id: number;
+  CONTRACT_SUBSCRIPTION = "contract_subscription",
 }
 
 export interface WalletBalanceWebhookSchema {

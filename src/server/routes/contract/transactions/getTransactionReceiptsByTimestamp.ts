@@ -2,10 +2,8 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getTransactionReceiptsByBlockTimestamp } from "../../../../db/contractTransactionReceipts/getContractTransactionReceipts";
-import {
-  standardResponseSchema,
-  transactionReceiptsSchema,
-} from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { transactionReceiptSchema } from "../../../schemas/transactionReceipt";
 
 const requestQuerySchema = Type.Object({
   contractAddresses: Type.Optional(Type.Array(Type.String())),
@@ -15,7 +13,7 @@ const requestQuerySchema = Type.Object({
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    receipts: transactionReceiptsSchema,
+    receipts: Type.Array(transactionReceiptSchema),
     status: Type.String(),
   }),
 });

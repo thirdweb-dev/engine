@@ -3,10 +3,11 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../../db/configuration/getConfiguration";
 import { getTransactionReceiptsByCursor } from "../../../../db/contractTransactionReceipts/getContractTransactionReceipts";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import {
-  standardResponseSchema,
-  transactionReceiptsSchema,
-} from "../../../schemas/sharedApiSchemas";
+  toTransactionReceiptSchema,
+  transactionReceiptSchema,
+} from "../../../schemas/transactionReceipt";
 
 /* Consider moving all cursor logic inside db file */
 
@@ -19,7 +20,7 @@ const requestQuerySchema = Type.Object({
 const responseSchema = Type.Object({
   result: Type.Object({
     cursor: Type.Optional(Type.String()),
-    receipts: transactionReceiptsSchema,
+    receipts: Type.Array(transactionReceiptSchema),
     status: Type.String(),
   }),
 });
@@ -82,27 +83,18 @@ export async function pageTransactionReceipts(fastify: FastifyInstance) {
         Date.now() - config.cursorDelaySeconds * 1000,
       );
 
-      const {
-        cursor: newCursor,
-        transactionReceipts: resultTransactionReceipts,
-      } = await getTransactionReceiptsByCursor({
-        cursor,
-        limit: pageSize,
-        contractAddresses: standardizedContractAddresses,
-        maxCreatedAt,
-      });
-
-      const transactionReceipts = resultTransactionReceipts.map((txRcpt) => {
-        return {
-          ...txRcpt,
-          timestamp: txRcpt.timestamp.getTime(),
-        };
-      });
+      const { cursor: newCursor, transactionReceipts } =
+        await getTransactionReceiptsByCursor({
+          cursor,
+          limit: pageSize,
+          contractAddresses: standardizedContractAddresses,
+          maxCreatedAt,
+        });
 
       reply.status(StatusCodes.OK).send({
         result: {
           cursor: newCursor,
-          receipts: transactionReceipts,
+          receipts: transactionReceipts.map(toTransactionReceiptSchema),
           status: "success",
         },
       });

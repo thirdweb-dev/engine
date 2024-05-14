@@ -88,15 +88,12 @@ export const checkAndReturnNFTSignaturePayload = <
 };
 
 export const isValidHttpUrl = (urlString: string): boolean => {
-  let url;
-
   try {
-    url = new URL(urlString);
-  } catch (_) {
+    const url = new URL(urlString);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
     return false;
   }
-
-  return url.protocol === "http:" || url.protocol === "https:";
 };
 
 export const isUnixEpochTimestamp = (timestamp: number): boolean => {

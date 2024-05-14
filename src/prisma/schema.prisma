@@ -27,6 +27,7 @@ model Configuration {
   indexerListenerCronSchedule    String? @map("indexerListenerCronSchedule")
   maxBlocksToIndex               Int     @default(25) @map("maxBlocksToIndex")
   cursorDelaySeconds             Int     @default(2) @map("cursorDelaySeconds")
+  contractSubscriptionsRetryDelaySeconds String @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")
@@ -162,14 +163,15 @@ model Transactions {
 }
 
 model Webhooks {
-  id        Int       @id @default(autoincrement()) @map("id")
-  name      String?   @map("name")
-  url       String    @map("url")
-  secret    String    @map("secret")
-  eventType String    @map("evenType")
-  createdAt DateTime  @default(now()) @map("createdAt")
-  updatedAt DateTime  @updatedAt @map("updatedAt")
-  revokedAt DateTime? @map("revokedAt")
+  id                    Int                     @id @default(autoincrement()) @map("id")
+  name                  String?                 @map("name")
+  url                   String                  @map("url")
+  secret                String                  @map("secret")
+  eventType             String                  @map("evenType")
+  createdAt             DateTime                @default(now()) @map("createdAt")
+  updatedAt             DateTime                @updatedAt @map("updatedAt")
+  revokedAt             DateTime?               @map("revokedAt")
+  ContractSubscriptions ContractSubscriptions[]
 
   @@map("webhooks")
 }
@@ -189,10 +191,13 @@ model ContractSubscriptions {
   id              String @id @default(uuid()) @map("id")
   chainId         Int
   contractAddress String
+  webhookId       Int?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+
+  webhook Webhooks? @relation(fields: [webhookId], references: [id], onDelete: SetNull)
 
   // optimize distinct lookups
   @@index([chainId])

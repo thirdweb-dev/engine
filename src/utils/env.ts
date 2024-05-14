@@ -71,6 +71,7 @@ export const env = createEnv({
       .number()
       .nonnegative()
       .default(0),
+    REDIS_URL: z.string().optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -94,6 +95,7 @@ export const env = createEnv({
     ENABLE_KEYPAIR_AUTH: process.env.ENABLE_KEYPAIR_AUTH,
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
+    REDIS_URL: process.env.REDIS_URL,
   },
   onValidationError: (error: ZodError) => {
     console.error(

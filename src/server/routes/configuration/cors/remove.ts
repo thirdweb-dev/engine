@@ -29,8 +29,8 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
     method: "DELETE",
     url: "/configuration/cors",
     schema: {
-      summary: "Remove Url from CORS configuration",
-      description: "Remove Url from CORS configuration",
+      summary: "Remove CORS URLs",
+      description: "Remove URLs from CORS configuration",
       tags: ["Configuration"],
       operationId: "removeUrlToCorsConfiguration",
       body: BodySchema,

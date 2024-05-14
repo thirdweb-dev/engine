@@ -3,19 +3,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllWebhooks } from "../../../db/webhooks/getAllWebhooks";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
 
 const ReplySchema = Type.Object({
-  result: Type.Array(
-    Type.Object({
-      url: Type.String(),
-      name: Type.Union([Type.String(), Type.Null()]),
-      secret: Type.Optional(Type.String()),
-      eventType: Type.String(),
-      active: Type.Boolean(),
-      createdAt: Type.String(),
-      id: Type.Number(),
-    }),
-  ),
+  result: Type.Array(WebhookSchema),
 });
 
 export async function getAllWebhooksData(fastify: FastifyInstance) {
@@ -35,9 +26,10 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const webhooksData = await getAllWebhooks();
+      const webhooks = await getAllWebhooks();
+
       res.status(200).send({
-        result: webhooksData,
+        result: webhooks.map(toWebhookSchema),
       });
     },
   });
