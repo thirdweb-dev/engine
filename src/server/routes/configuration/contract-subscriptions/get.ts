@@ -20,8 +20,8 @@ export async function getContractSubscriptionsConfiguration(
     method: "GET",
     url: "/configuration/contract-subscriptions",
     schema: {
-      summary: "Get contract-subscriptions configuration",
-      description: "Get the engine configuration for contract-subscriptions",
+      summary: "Get Contract Subscriptions configuration",
+      description: "Get the configuration for Contract Subscriptions",
       tags: ["Configuration"],
       operationId: "getContractSubscriptionsConfiguration",
       response: {

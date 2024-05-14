@@ -21,8 +21,8 @@ export async function updateContractSubscriptionsConfiguration(
     method: "POST",
     url: "/configuration/contract-subscriptions",
     schema: {
-      summary: "Update contract-subscriptions configuration",
-      description: "Update the engine configuration for contract-subscriptions",
+      summary: "Update Contract Subscriptions configuration",
+      description: "Update the configuration for Contract Subscriptions",
       tags: ["Configuration"],
       operationId: "updateContractSubscriptionsConfiguration",
       body: BodySchema,
@@ -41,6 +41,22 @@ export async function updateContractSubscriptionsConfiguration(
           StatusCodes.BAD_REQUEST,
           "BAD_REQUEST",
         );
+      }
+
+      if (contractSubscriptionsRetryDelaySeconds) {
+        try {
+          contractSubscriptionsRetryDelaySeconds.split(",").forEach((d) => {
+            if (Number.isNaN(parseInt(d))) {
+              throw "Invalid number";
+            }
+          });
+        } catch {
+          throw createCustomError(
+            'At least one integer "contractSubscriptionsRetryDelaySeconds" is required',
+            StatusCodes.BAD_REQUEST,
+            "BAD_REQUEST",
+          );
+        }
       }
 
       await updateConfiguration({
