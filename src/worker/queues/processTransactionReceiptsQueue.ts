@@ -4,11 +4,12 @@ import { getConfig } from "../../utils/cache/getConfig";
 import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
-export const PROCESS_EVENT_LOGS_QUEUE_NAME = "process-event-logs";
+export const PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME =
+  "process-transaction-receipts";
 
 // Queue
 const _queue = redis
-  ? new Queue<string>(PROCESS_EVENT_LOGS_QUEUE_NAME, {
+  ? new Queue<string>(PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME, {
       connection: redis,
       defaultJobOptions: {
         ...defaultJobOptions,
@@ -17,15 +18,15 @@ const _queue = redis
     })
   : null;
 
-export type EnqueueProcessEventLogsData = {
+export type EnqueueProcessTransactionReceiptsData = {
   chainId: number;
   contractAddresses: string[];
   fromBlock: number; // inclusive
   toBlock: number; // inclusive
 };
 
-export const enqueueProcessEventLogs = async (
-  data: EnqueueProcessEventLogsData,
+export const enqueueProcessTransactionReceipts = async (
+  data: EnqueueProcessTransactionReceiptsData,
 ) => {
   if (!_queue) return;
 

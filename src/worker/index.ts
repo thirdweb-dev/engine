@@ -12,6 +12,7 @@ import {
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
 import "./tasks/processEventLogsWorker";
+import "./tasks/processTransactionReceiptsWorker";
 import "./tasks/sendWebhookWorker";
 
 export const initWorker = async () => {

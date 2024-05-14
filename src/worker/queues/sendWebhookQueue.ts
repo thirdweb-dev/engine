@@ -51,7 +51,6 @@ const enqueueContractSubscriptionWebhook = async (
   data: EnqueueContractSubscriptionWebhookData,
 ) => {
   if (!_queue) return;
-
   const { type, webhook, eventLog, transactionReceipt } = data;
   if (!eventLog && !transactionReceipt) {
     throw 'Must provide "eventLog" or "transactionReceipt".';
@@ -60,6 +59,32 @@ const enqueueContractSubscriptionWebhook = async (
   if (!webhook.revokedAt && type === webhook.eventType) {
     const job: WebhookJob = { data, webhook };
     const serialized = SuperJSON.stringify(job);
-    await _queue.add(`${data.type}:${webhook.id}`, serialized);
+    const idempotencyKey = getContractSubscriptionWebhookIdempotencyKey({
+      webhook,
+      eventLog,
+      transactionReceipt,
+    });
+    await _queue.add(`${data.type}:${webhook.id}`, serialized, {
+      jobId: idempotencyKey,
+    });
   }
+};
+
+/**
+ * Define an idempotency key that ensures a webhook URL will
+ * receive an event log or transaction receipt at most once.
+ */
+const getContractSubscriptionWebhookIdempotencyKey = (args: {
+  webhook: Webhooks;
+  eventLog?: ContractEventLogs;
+  transactionReceipt?: ContractTransactionReceipts;
+}) => {
+  const { webhook, eventLog, transactionReceipt } = args;
+
+  if (eventLog) {
+    return `${webhook.url}:${eventLog.transactionHash}:${eventLog.logIndex}`;
+  } else if (transactionReceipt) {
+    return `${webhook.url}:${transactionReceipt.transactionHash}`;
+  }
+  throw 'Must provide "eventLog" or "transactionReceipt".';
 };

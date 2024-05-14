@@ -7,18 +7,10 @@ import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { ReplySchema } from "./get";
 
-const BodySchema = Type.Union([
-  Type.Object({
-    maxBlocksToIndex: Type.Number(),
-    contractSubscriptionsRetryDelaySeconds: Type.String(),
-  }),
-  Type.Object({
-    maxBlocksToIndex: Type.Number(),
-  }),
-  Type.Object({
-    contractSubscriptionsRetryDelaySeconds: Type.String(),
-  }),
-]);
+const BodySchema = Type.Object({
+  maxBlocksToIndex: Type.Optional(Type.Number()),
+  contractSubscriptionsRetryDelaySeconds: Type.Optional(Type.String()),
+});
 
 export async function updateContractSubscriptionsConfiguration(
   fastify: FastifyInstance,
