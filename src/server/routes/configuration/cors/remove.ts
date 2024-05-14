@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 import { ReplySchema } from "./get";
@@ -49,8 +50,10 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
         mandatoryAllowedCorsUrls.includes(url),
       );
       if (containsMandatoryUrl) {
-        throw new Error(
+        throw createCustomError(
           `Cannot remove URLs: ${mandatoryAllowedCorsUrls.join(",")}`,
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
         );
       }
 

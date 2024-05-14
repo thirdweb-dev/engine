@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../schema/wallet";
 import { getConfig } from "../../../utils/cache/getConfig";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
@@ -135,16 +136,20 @@ export const importBackendWallet = async (fastify: FastifyInstance) => {
               password,
             });
           } else {
-            throw new Error(
+            throw createCustomError(
               `Please provide either 'privateKey', 'mnemonic', or 'encryptedJson' & 'password' to import a wallet.`,
+              StatusCodes.BAD_REQUEST,
+              "MISSING_PARAMETERS",
             );
           }
           break;
         case WalletType.awsKms:
           const { awsKmsArn, awsKmsKeyId } = request.body as any;
           if (!(awsKmsArn && awsKmsKeyId)) {
-            throw new Error(
+            throw createCustomError(
               `Please provide 'awsKmsArn' and 'awsKmsKeyId' to import a wallet.`,
+              StatusCodes.BAD_REQUEST,
+              "MISSING_PARAMETERS",
             );
           }
 
@@ -156,8 +161,10 @@ export const importBackendWallet = async (fastify: FastifyInstance) => {
         case WalletType.gcpKms:
           const { gcpKmsKeyId, gcpKmsKeyVersionId } = request.body as any;
           if (!(gcpKmsKeyId && gcpKmsKeyVersionId)) {
-            throw new Error(
+            throw createCustomError(
               `Please provide 'gcpKmsKeyId' and 'gcpKmsKeyVersionId' to import a wallet.`,
+              StatusCodes.BAD_REQUEST,
+              "MISSING_PARAMETERS",
             );
           }
 

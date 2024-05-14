@@ -127,6 +127,10 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     receipts,
   });
 
+  if (insertedReceipts.length === 0) {
+    return;
+  }
+
   // Enqueue webhooks.
   // This step should happen immediately after inserting to DB.
   for (const transactionReceipt of insertedReceipts) {
@@ -142,13 +146,15 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   // Any receipts inserted in a delayed job indicates missed receipts in the realtime job.
-  if (job.delay > 0) {
+  if (job.opts.delay && job.opts.delay > 0) {
     logger({
       service: "worker",
       level: "warn",
-      message: `Found ${insertedReceipts.length} receipts on ${chainId} after ${
-        job.delay / 1000
-      }s.`,
+      message: `Found ${
+        insertedReceipts.length
+      } receipts on chain: ${chainId}, block: ${insertedReceipts.map(
+        (receipt) => receipt.blockNumber,
+      )} after ${job.delay / 1000}s.`,
     });
   }
 };

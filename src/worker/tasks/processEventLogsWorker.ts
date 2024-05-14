@@ -40,6 +40,10 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // Store logs to DB.
   const insertedLogs = await bulkInsertContractEventLogs({ logs });
 
+  if (insertedLogs.length === 0) {
+    return;
+  }
+
   // Enqueue webhooks.
   // This step should happen immediately after inserting to DB.
   for (const eventLog of insertedLogs) {
@@ -54,13 +58,15 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   // Any logs inserted in a delayed job indicates missed logs in the realtime job.
-  if (job.delay > 0) {
+  if (job.opts.delay && job.opts.delay > 0) {
     logger({
       service: "worker",
       level: "warn",
-      message: `Found ${insertedLogs.length} logs on ${chainId} after ${
-        job.delay / 1000
-      }s.`,
+      message: `Found ${
+        insertedLogs.length
+      } logs on chain: ${chainId}, block: ${insertedLogs.map(
+        (log) => log.blockNumber,
+      )}  after ${job.opts.delay / 1000}s.`,
     });
   }
 };
