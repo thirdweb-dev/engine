@@ -32,13 +32,16 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     return;
   }
 
+  // Get webhooks.
+  const webhooksByContractAddress = await getWebhooksByContractAddresses(
+    chainId,
+  );
+
   // Store logs to DB.
   const insertedLogs = await bulkInsertContractEventLogs({ logs });
 
   // Enqueue webhooks.
-  const webhooksByContractAddress = await getWebhooksByContractAddresses(
-    chainId,
-  );
+  // This step should happen immediately after inserting to DB.
   for (const eventLog of insertedLogs) {
     const webhooks = webhooksByContractAddress[eventLog.contractAddress] ?? [];
     for (const webhook of webhooks) {
@@ -51,12 +54,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   // Any logs inserted in a delayed job indicates missed logs in the realtime job.
-  // Log this to get a sense of how frequent this is.
   if (job.delay > 0) {
     logger({
       service: "worker",
       level: "warn",
-      message: `Found ${insertedLogs.length} event logs on ${chainId} after ${
+      message: `Found ${insertedLogs.length} logs on ${chainId} after ${
         job.delay / 1000
       }s.`,
     });

@@ -17,11 +17,11 @@ import { enqueueWebhook } from "../queues/sendWebhookQueue";
 import { getContractId } from "../utils/contractId";
 import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
 
-interface GetSubscribedContractsLogsParams {
+interface GetBlocksAndTransactionsParams {
   chainId: number;
   contractAddresses: string[];
   fromBlock: number;
-  toBlock: number; // note: getLogs is inclusive
+  toBlock: number;
 }
 
 const getBlocksAndTransactions = async ({
@@ -29,7 +29,7 @@ const getBlocksAndTransactions = async ({
   fromBlock,
   toBlock,
   contractAddresses,
-}: GetSubscribedContractsLogsParams) => {
+}: GetBlocksAndTransactionsParams) => {
   const sdk = await getSdk({ chainId: chainId });
   const provider = sdk.getProvider();
 
@@ -113,6 +113,14 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       };
     },
   );
+  if (receipts.length === 0) {
+    return;
+  }
+
+  // Get webhooks.
+  const webhooksByContractAddress = await getWebhooksByContractAddresses(
+    chainId,
+  );
 
   // Store logs to DB.
   const insertedReceipts = await bulkInsertContractTransactionReceipts({
@@ -120,9 +128,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   });
 
   // Enqueue webhooks.
-  const webhooksByContractAddress = await getWebhooksByContractAddresses(
-    chainId,
-  );
+  // This step should happen immediately after inserting to DB.
   for (const transactionReceipt of insertedReceipts) {
     const webhooks =
       webhooksByContractAddress[transactionReceipt.contractAddress] ?? [];
@@ -136,14 +142,13 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   // Any receipts inserted in a delayed job indicates missed receipts in the realtime job.
-  // Log this to get a sense of how frequent this is.
   if (job.delay > 0) {
     logger({
       service: "worker",
       level: "warn",
-      message: `Found ${
-        insertedReceipts.length
-      } transaction receipts on ${chainId} after ${job.delay / 1000}s.`,
+      message: `Found ${insertedReceipts.length} receipts on ${chainId} after ${
+        job.delay / 1000
+      }s.`,
     });
   }
 };
