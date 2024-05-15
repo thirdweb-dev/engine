@@ -154,7 +154,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         insertedReceipts.length
       } receipts on chain: ${chainId}, block: ${insertedReceipts.map(
         (receipt) => receipt.blockNumber,
-      )} after ${job.delay / 1000}s.`,
+      )} after ${job.opts.delay / 1000}s.`,
     });
   }
 };
