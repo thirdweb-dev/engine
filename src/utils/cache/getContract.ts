@@ -19,7 +19,7 @@ export const getContract = async ({
 
   try {
     // SDK already handles caching.
-    return sdk.getContract(contractAddress);
+    return await sdk.getContract(contractAddress);
   } catch (e) {
     throw createCustomError(
       `Contract metadata could not be resolved: ${e}`,

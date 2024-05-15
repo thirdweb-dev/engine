@@ -90,10 +90,10 @@ export async function transfer(fastify: FastifyInstance) {
 
         const balance = await sdk.getBalance(walletAddress);
 
-        if (balance.value.lt(normalizedValue)) {
+        if (balance.value.lte(normalizedValue)) {
           throw createCustomError(
             "Insufficient balance",
-            StatusCodes.BAD_GATEWAY,
+            StatusCodes.BAD_REQUEST,
             "INSUFFICIENT_BALANCE",
           );
         }
