@@ -1,3 +1,5 @@
+import { StatusCodes } from "http-status-codes";
+import { createCustomError } from "../../server/middleware/error";
 import { getSdk } from "./getSdk";
 
 interface GetContractParams {
@@ -15,6 +17,14 @@ export const getContract = async ({
 }: GetContractParams) => {
   const sdk = await getSdk({ chainId, walletAddress, accountAddress });
 
-  // We don't need to maintain cache for contracts because sdk handles it already
-  return sdk.getContract(contractAddress);
+  try {
+    // SDK already handles caching.
+    return await sdk.getContract(contractAddress);
+  } catch (e) {
+    throw createCustomError(
+      `Contract metadata could not be resolved: ${e}`,
+      StatusCodes.BAD_REQUEST,
+      "INVALID_CONTRACT",
+    );
+  }
 };
