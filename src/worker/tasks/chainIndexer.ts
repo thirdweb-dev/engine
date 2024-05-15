@@ -42,6 +42,15 @@ export const createChainIndexerTask = async (args: {
             return;
           }
 
+          // Ensuring that the block data exists.
+          // Sometimes the RPC providers nodes are aware of the latest block
+          // but the block data is not available yet.
+          const block = await provider.getBlockWithTransactions(toBlock);
+
+          if (!block) {
+            throw new Error(`Failed to get block: ${toBlock}`);
+          }
+
           // Get contract addresses to filter event logs and transaction receipts by.
           const contractSubscriptions = await getContractSubscriptionsByChainId(
             chainId,

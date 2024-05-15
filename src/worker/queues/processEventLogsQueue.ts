@@ -37,9 +37,14 @@ export const enqueueProcessEventLogs = async (
 
   // Enqueue one job immediately and any delayed jobs.
   await _queue.add(jobName, serialized);
-  for (const retryDelay of retryDelays) {
+  for (let i = 0; i < retryDelays.length; i++) {
+    const delay = parseInt(retryDelays[i]) * 1000;
+    const attempts = i === retryDelays.length - 1 ? 10 : 0;
+
     await _queue.add(jobName, serialized, {
-      delay: parseInt(retryDelay) * 1000,
+      delay,
+      attempts,
+      backoff: { type: "exponential", delay: 30_000 },
     });
   }
 };
