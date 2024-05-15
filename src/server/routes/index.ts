@@ -273,11 +273,13 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getLatestBlock);
 
   // Contract Transactions
+  // @deprecated
   await fastify.register(getContractTransactionReceipts);
   await fastify.register(getContractTransactionReceiptsByTimestamp);
   await fastify.register(pageTransactionReceipts);
 
   // Contract Event Logs
+  // @deprecated
   await fastify.register(getContractEventLogs);
   await fastify.register(getEventLogs);
   await fastify.register(pageEventLogs);

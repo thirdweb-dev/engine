@@ -61,6 +61,7 @@ export async function getContractTransactionReceiptsByTimestamp(
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
     },
     handler: async (request, reply) => {
       const { contractAddresses, fromBlockTimestamp, toBlockTimestamp } =

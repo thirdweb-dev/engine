@@ -69,6 +69,7 @@ export async function getContractTransactionReceipts(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;

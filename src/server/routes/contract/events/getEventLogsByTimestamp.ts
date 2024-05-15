@@ -70,6 +70,7 @@ export async function getEventLogs(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
     },
     handler: async (request, reply) => {
       const {

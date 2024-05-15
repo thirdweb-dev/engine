@@ -69,6 +69,7 @@ export async function pageTransactionReceipts(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
     },
     handler: async (request, reply) => {
       const { cursor, pageSize, contractAddresses } = request.query;
