@@ -1,3 +1,4 @@
+import { StaticJsonRpcBatchProvider } from "@thirdweb-dev/sdk";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
 import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";
 import { prisma } from "../../db/client";
@@ -48,7 +49,14 @@ export const createChainIndexerTask = async (args: {
           const block = await provider.getBlockWithTransactions(toBlock);
 
           if (!block) {
-            throw new Error(`Failed to get block: ${toBlock}`);
+            logger({
+              service: "worker",
+              level: "warn",
+              message: `Block data not available: ${toBlock} on chain: ${chainId}, url: ${
+                (provider as StaticJsonRpcBatchProvider).connection.url
+              }. Will retry in the next cycle.`,
+            });
+            return;
           }
 
           // Get contract addresses to filter event logs and transaction receipts by.
