@@ -73,6 +73,7 @@ export async function pageEventLogs(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
     },
     handler: async (request, reply) => {
       const { cursor, pageSize, topics, contractAddresses } = request.query;
