@@ -21,6 +21,7 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
     gcpKmsKeyRingId,
     gcpApplicationCredentialEmail,
     gcpApplicationCredentialPrivateKey,
+    contractSubscriptionsRetryDelaySeconds,
     ...restConfig
   } = config;
 
@@ -59,7 +60,7 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
     return {
       ...restConfig,
       contractSubscriptionsRequeryDelaySeconds:
-        restConfig.contractSubscriptionsRetryDelaySeconds,
+        contractSubscriptionsRetryDelaySeconds,
       walletConfiguration: {
         type: WalletType.awsKms,
         awsRegion,
@@ -106,6 +107,8 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
     return {
       ...restConfig,
+      contractSubscriptionsRequeryDelaySeconds:
+        contractSubscriptionsRetryDelaySeconds,
       walletConfiguration: {
         type: WalletType.gcpKms,
         gcpApplicationProjectId,
@@ -119,6 +122,8 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
 
   return {
     ...restConfig,
+    contractSubscriptionsRequeryDelaySeconds:
+      contractSubscriptionsRetryDelaySeconds,
     walletConfiguration: {
       type: WalletType.local,
     },
