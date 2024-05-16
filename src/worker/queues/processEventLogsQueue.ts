@@ -38,12 +38,11 @@ export const enqueueProcessEventLogs = async (
   // Enqueue one job immediately and any delayed jobs.
   await _queue.add(jobName, serialized);
 
+  // The last attempt should attempt repeatedly to handle extended RPC issues.
+  // This backoff attempts at intervals:
+  // 30s, 1m, 2m, 4m, 8m, 16m, 32m, ~1h, ~2h, ~4h
   for (let i = 0; i < retryDelays.length; i++) {
     const delay = parseInt(retryDelays[i]) * 1000;
-
-    // The last attempt should attempt repeatedly to handle extended RPC issues.
-    // This backoff attempts at intervals:
-    // 30s, 1m, 2m, 4m, 8m, 16m, 32m, ~1h, ~2h, ~4h
     const attempts = i === retryDelays.length - 1 ? 10 : 0;
     await _queue.add(jobName, serialized, {
       delay,
