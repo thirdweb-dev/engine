@@ -1,21 +1,17 @@
-import { Static, Type } from "@sinclair/typebox";
+import { Static } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-
-export const ReplySchema = Type.Object({
-  result: Type.Object({
-    maxBlocksToIndex: Type.Number(),
-    contractSubscriptionsRetryDelaySeconds: Type.String(),
-  }),
-});
+import {
+  contractSubscriptionResponseSchema,
+  standardResponseSchema,
+} from "../../../schemas/sharedApiSchemas";
 
 export async function getContractSubscriptionsConfiguration(
   fastify: FastifyInstance,
 ) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof contractSubscriptionResponseSchema>;
   }>({
     method: "GET",
     url: "/configuration/contract-subscriptions",
@@ -26,7 +22,7 @@ export async function getContractSubscriptionsConfiguration(
       operationId: "getContractSubscriptionsConfiguration",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: contractSubscriptionResponseSchema,
       },
     },
     handler: async (req, res) => {
@@ -34,7 +30,7 @@ export async function getContractSubscriptionsConfiguration(
       res.status(200).send({
         result: {
           maxBlocksToIndex: config.maxBlocksToIndex,
-          contractSubscriptionsRetryDelaySeconds:
+          contractSubscriptionsRequeryDelaySeconds:
             config.contractSubscriptionsRetryDelaySeconds,
         },
       });

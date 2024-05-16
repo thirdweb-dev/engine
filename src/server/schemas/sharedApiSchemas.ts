@@ -332,3 +332,10 @@ export const walletDetailsSchema = Type.Object({
     Type.Null(),
   ]),
 });
+
+export const contractSubscriptionResponseSchema = Type.Object({
+  result: Type.Object({
+    maxBlocksToIndex: Type.Number(),
+    contractSubscriptionsRequeryDelaySeconds: Type.String(),
+  }),
+});
