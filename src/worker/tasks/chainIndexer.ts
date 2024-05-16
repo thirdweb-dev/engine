@@ -1,3 +1,4 @@
+import { StaticJsonRpcBatchProvider } from "@thirdweb-dev/sdk";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
 import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";
 import { prisma } from "../../db/client";
@@ -39,6 +40,22 @@ export const createChainIndexerTask = async (args: {
 
           // No-op if fromBlock is already up-to-date.
           if (fromBlock >= toBlock) {
+            return;
+          }
+
+          // Ensuring that the block data exists.
+          // Sometimes the RPC providers nodes are aware of the latest block
+          // but the block data is not available yet.
+          const block = await provider.getBlockWithTransactions(toBlock);
+
+          if (!block) {
+            logger({
+              service: "worker",
+              level: "warn",
+              message: `Block data not available: ${toBlock} on chain: ${chainId}, url: ${
+                (provider as StaticJsonRpcBatchProvider).connection.url
+              }. Will retry in the next cycle.`,
+            });
             return;
           }
 

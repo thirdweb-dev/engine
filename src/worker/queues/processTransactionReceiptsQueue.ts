@@ -33,14 +33,22 @@ export const enqueueProcessTransactionReceipts = async (
   const serialized = SuperJSON.stringify(data);
   // e.g. 8453:14423125-14423685
   const jobName = `${data.chainId}:${data.fromBlock}-${data.toBlock}`;
-  const { contractSubscriptionsRetryDelaySeconds } = await getConfig();
-  const retryDelays = contractSubscriptionsRetryDelaySeconds.split(",");
+  const { contractSubscriptionsRequeryDelaySeconds } = await getConfig();
+  const requeryDelays = contractSubscriptionsRequeryDelaySeconds.split(",");
 
   // Enqueue one job immediately and any delayed jobs.
   await _queue.add(jobName, serialized);
-  for (const retryDelay of retryDelays) {
+
+  // The last attempt should attempt repeatedly to handle extended RPC issues.
+  // This backoff attempts at intervals:
+  // 30s, 1m, 2m, 4m, 8m, 16m, 32m, ~1h, ~2h, ~4h
+  for (let i = 0; i < requeryDelays.length; i++) {
+    const delay = parseInt(requeryDelays[i]) * 1000;
+    const attempts = i === requeryDelays.length - 1 ? 10 : 0;
     await _queue.add(jobName, serialized, {
-      delay: parseInt(retryDelay) * 1000,
+      delay,
+      attempts,
+      backoff: { type: "exponential", delay: 30_000 },
     });
   }
 };

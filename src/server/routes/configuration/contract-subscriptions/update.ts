@@ -4,19 +4,25 @@ import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { createCustomError } from "../../../middleware/error";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { ReplySchema } from "./get";
+import {
+  contractSubscriptionConfigurationSchema,
+  standardResponseSchema,
+} from "../../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   maxBlocksToIndex: Type.Optional(Type.Number({ minimum: 1, maximum: 25 })),
-  contractSubscriptionsRetryDelaySeconds: Type.Optional(Type.String()),
+  contractSubscriptionsRequeryDelaySeconds: Type.Optional(Type.String()),
+});
+
+const responseSchema = Type.Object({
+  result: contractSubscriptionConfigurationSchema,
 });
 
 export async function updateContractSubscriptionsConfiguration(
   fastify: FastifyInstance,
 ) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/configuration/contract-subscriptions",
@@ -25,17 +31,17 @@ export async function updateContractSubscriptionsConfiguration(
       description: "Update the configuration for Contract Subscriptions",
       tags: ["Configuration"],
       operationId: "updateContractSubscriptionsConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (req, res) => {
-      const { maxBlocksToIndex, contractSubscriptionsRetryDelaySeconds } =
+      const { maxBlocksToIndex, contractSubscriptionsRequeryDelaySeconds } =
         req.body;
 
-      if (!maxBlocksToIndex && !contractSubscriptionsRetryDelaySeconds) {
+      if (!maxBlocksToIndex && !contractSubscriptionsRequeryDelaySeconds) {
         throw createCustomError(
           "At least one parameter is required",
           StatusCodes.BAD_REQUEST,
@@ -43,16 +49,16 @@ export async function updateContractSubscriptionsConfiguration(
         );
       }
 
-      if (contractSubscriptionsRetryDelaySeconds) {
+      if (contractSubscriptionsRequeryDelaySeconds) {
         try {
-          contractSubscriptionsRetryDelaySeconds.split(",").forEach((d) => {
+          contractSubscriptionsRequeryDelaySeconds.split(",").forEach((d) => {
             if (Number.isNaN(parseInt(d))) {
               throw "Invalid number";
             }
           });
         } catch {
           throw createCustomError(
-            'At least one integer "contractSubscriptionsRetryDelaySeconds" is required',
+            'At least one integer "contractSubscriptionsRequeryDelaySeconds" is required',
             StatusCodes.BAD_REQUEST,
             "BAD_REQUEST",
           );
@@ -61,15 +67,16 @@ export async function updateContractSubscriptionsConfiguration(
 
       await updateConfiguration({
         maxBlocksToIndex,
-        contractSubscriptionsRetryDelaySeconds,
+        contractSubscriptionsRetryDelaySeconds:
+          contractSubscriptionsRequeryDelaySeconds,
       });
       const config = await getConfig(false);
 
       res.status(200).send({
         result: {
           maxBlocksToIndex: config.maxBlocksToIndex,
-          contractSubscriptionsRetryDelaySeconds:
-            config.contractSubscriptionsRetryDelaySeconds,
+          contractSubscriptionsRequeryDelaySeconds:
+            config.contractSubscriptionsRequeryDelaySeconds,
         },
       });
     },

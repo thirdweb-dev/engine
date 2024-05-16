@@ -1,3 +1,5 @@
+import { logger } from "../utils/logger";
+import { redis } from "../utils/redis/redis";
 import { chainIndexerListener } from "./listeners/chainIndexerListener";
 import {
   newConfigurationListener,
@@ -36,5 +38,13 @@ export const initWorker = async () => {
   await newWebhooksListener();
   await updatedWebhooksListener();
 
-  await chainIndexerListener();
+  if (redis) {
+    await chainIndexerListener();
+  } else {
+    logger({
+      service: "worker",
+      level: "warn",
+      message: `Chain Indexer Listener not started, Redis not available`,
+    });
+  }
 };
