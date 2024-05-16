@@ -5,20 +5,24 @@ import { updateConfiguration } from "../../../../db/configuration/updateConfigur
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { createCustomError } from "../../../middleware/error";
 import {
-  contractSubscriptionResponseSchema,
+  contractSubscriptionConfigurationSchema,
   standardResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   maxBlocksToIndex: Type.Optional(Type.Number({ minimum: 1, maximum: 25 })),
   contractSubscriptionsRequeryDelaySeconds: Type.Optional(Type.String()),
+});
+
+const responseSchema = Type.Object({
+  result: contractSubscriptionConfigurationSchema,
 });
 
 export async function updateContractSubscriptionsConfiguration(
   fastify: FastifyInstance,
 ) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/configuration/contract-subscriptions",
@@ -27,10 +31,10 @@ export async function updateContractSubscriptionsConfiguration(
       description: "Update the configuration for Contract Subscriptions",
       tags: ["Configuration"],
       operationId: "updateContractSubscriptionsConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: contractSubscriptionResponseSchema,
+        [StatusCodes.OK]: responseSchema,
       },
     },
     handler: async (req, res) => {
@@ -72,7 +76,7 @@ export async function updateContractSubscriptionsConfiguration(
         result: {
           maxBlocksToIndex: config.maxBlocksToIndex,
           contractSubscriptionsRequeryDelaySeconds:
-            config.contractSubscriptionsRetryDelaySeconds,
+            config.contractSubscriptionsRequeryDelaySeconds,
         },
       });
     },

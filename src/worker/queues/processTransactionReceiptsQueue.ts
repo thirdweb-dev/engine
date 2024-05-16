@@ -33,8 +33,8 @@ export const enqueueProcessTransactionReceipts = async (
   const serialized = SuperJSON.stringify(data);
   // e.g. 8453:14423125-14423685
   const jobName = `${data.chainId}:${data.fromBlock}-${data.toBlock}`;
-  const { contractSubscriptionsRetryDelaySeconds } = await getConfig();
-  const requeryDelays = contractSubscriptionsRetryDelaySeconds.split(",");
+  const { contractSubscriptionsRequeryDelaySeconds } = await getConfig();
+  const requeryDelays = contractSubscriptionsRequeryDelaySeconds.split(",");
 
   // Enqueue one job immediately and any delayed jobs.
   await _queue.add(jobName, serialized);

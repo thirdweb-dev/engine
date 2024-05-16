@@ -1,6 +1,7 @@
 import { Configuration } from "@prisma/client";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { ethers } from "ethers";
+import { Config } from "../../schema/config";
 import { WalletType } from "../../schema/wallet";
 import { mandatoryAllowedCorsUrls } from "../../server/utils/cors-urls";
 import { decrypt } from "../../utils/crypto";
@@ -8,38 +9,6 @@ import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";
-
-interface Config
-  extends Omit<
-    Configuration,
-    | "awsAccessKeyId"
-    | "awsSecretAccessKey"
-    | "awsRegion"
-    | "gcpApplicationProjectId"
-    | "gcpKmsLocationId"
-    | "gcpKmsKeyRingId"
-    | "gcpApplicationCredentialEmail"
-    | "gcpApplicationCredentialPrivateKey"
-  > {
-  walletConfiguration:
-    | {
-        type: WalletType.local;
-      }
-    | {
-        type: WalletType.awsKms;
-        awsAccessKeyId: string;
-        awsSecretAccessKey: string;
-        awsRegion: string;
-      }
-    | {
-        type: WalletType.gcpKms;
-        gcpApplicationProjectId: string;
-        gcpKmsLocationId: string;
-        gcpKmsKeyRingId: string;
-        gcpApplicationCredentialEmail: string;
-        gcpApplicationCredentialPrivateKey: string;
-      };
-}
 
 const withWalletConfig = async (config: Configuration): Promise<Config> => {
   // We destructure the config to omit wallet related fields to prevent direct access
@@ -84,8 +53,13 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
       }
     }
 
+    // Renaming contractSubscriptionsRetryDelaySeconds
+    // to contractSubscriptionsRequeryDelaySeconds to reflect its purpose
+    // as we are requerying (& not retrying) with different delays
     return {
       ...restConfig,
+      contractSubscriptionsRequeryDelaySeconds:
+        restConfig.contractSubscriptionsRetryDelaySeconds,
       walletConfiguration: {
         type: WalletType.awsKms,
         awsRegion,
