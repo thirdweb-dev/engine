@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { getConfig } from "../../utils/cache/getConfig";
 import { logger } from "../../utils/logger";
+import { redis } from "../../utils/redis/redis";
 import { manageChainIndexers } from "../tasks/manageChainIndexers";
 
 let processChainIndexerStarted = false;
@@ -12,6 +13,14 @@ export const chainIndexerListener = async (): Promise<void> => {
     level: "info",
     message: `Listening for indexed contracts`,
   });
+
+  if (!redis) {
+    logger({
+      service: "worker",
+      level: "warn",
+      message: `Chain Indexer Listener not started, Redis not available`,
+    });
+  }
 
   const config = await getConfig();
 
