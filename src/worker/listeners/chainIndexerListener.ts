@@ -14,6 +14,7 @@ export const chainIndexerListener = async (): Promise<void> => {
       level: "warn",
       message: `Chain Indexer Listener not started, Redis not available`,
     });
+    return;
   }
 
   logger({
