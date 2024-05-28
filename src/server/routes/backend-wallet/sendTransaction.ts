@@ -7,6 +7,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
+import { txOverridesWithoutValue } from "../../schemas/txOverrides";
 import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -26,6 +27,7 @@ const requestBodySchema = Type.Object({
   value: Type.String({
     examples: ["10000000"],
   }),
+  ...txOverridesWithoutValue.properties,
 });
 
 requestBodySchema.examples = [
@@ -33,6 +35,9 @@ requestBodySchema.examples = [
     toAddress: "0x7a0ce8524bea337f0bee853b68fabde145dac0a0",
     data: "0x449a52f800000000000000000000000043cae0d7fe86c713530e679ce02574743b2ee9fc0000000000000000000000000000000000000000000000000de0b6b3a7640000",
     value: "0x00",
+    txOverrides: {
+      gas: "50000",
+    },
   },
 ];
 
@@ -61,7 +66,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { toAddress, data, value } = request.body;
+      const { toAddress, data, value, txOverrides } = request.body;
       const { simulateTx } = request.query;
       const {
         "x-backend-wallet-address": fromAddress,
@@ -77,6 +82,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
         value,
         simulateTx,
         idempotencyKey,
+        ...txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({
