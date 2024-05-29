@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getContract } from "../../../../utils/cache/getContract";
+import { abiSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -30,19 +31,8 @@ const writeRequestBodySchema = Type.Object({
     ]),
   ),
   ...txOverrides.properties,
+  abi: Type.Array(abiSchema),
 });
-
-// Adding example for Swagger File
-writeRequestBodySchema.examples = [
-  {
-    functionName: "transferFrom",
-    args: [
-      "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-      "0",
-    ],
-  },
-];
 
 // LOGIC
 export async function writeToContract(fastify: FastifyInstance) {
@@ -71,7 +61,7 @@ export async function writeToContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { functionName, args, txOverrides } = request.body;
+      const { functionName, args, txOverrides, abi } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -84,6 +74,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         contractAddress,
         walletAddress,
         accountAddress,
+        abi,
       });
       const tx = contract.prepare(functionName, args, {
         value: txOverrides?.value,

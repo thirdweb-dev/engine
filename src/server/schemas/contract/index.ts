@@ -54,8 +54,9 @@ export const abiEventSchema = Type.Object({
 
 export const abiSchema = Type.Object({
   type: Type.String(),
-  name: Type.String(),
+  name: Type.Optional(Type.String()),
   inputs: Type.Array(abiTypeSchema),
+  stateMutability: Type.Optional(Type.String()),
 });
 
 export const contractEventSchema = Type.Record(Type.String(), Type.Any());
