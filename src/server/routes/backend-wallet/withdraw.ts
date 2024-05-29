@@ -6,7 +6,11 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
+import {
+  walletHeaderSchema,
+  walletHeaderWithoutSmarAccountSchema,
+  walletParamSchema,
+} from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Omit(walletParamSchema, ["walletAddress"]);
@@ -32,7 +36,7 @@ export async function withdraw(fastify: FastifyInstance) {
       operationId: "withdraw",
       params: ParamsSchema,
       body: BodySchema,
-      headers: walletHeaderSchema,
+      headers: walletHeaderWithoutSmarAccountSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,

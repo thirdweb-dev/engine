@@ -8,7 +8,10 @@ import {
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithoutValue } from "../../schemas/txOverrides";
-import { walletHeaderSchema } from "../../schemas/wallet";
+import {
+  walletHeaderSchema,
+  walletHeaderWithoutSmarAccountSchema,
+} from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
@@ -57,7 +60,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       operationId: "sendTransaction",
       params: ParamsSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletHeaderWithoutSmarAccountSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,

@@ -3,7 +3,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getWallet } from "../../../utils/cache/getWallet";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../schemas/wallet";
+import {
+  walletHeaderSchema,
+  walletHeaderWithoutSmarAccountSchema,
+} from "../../schemas/wallet";
 
 const BodySchema = Type.Object({
   transaction: Type.Object({
@@ -41,7 +44,7 @@ export async function signTransaction(fastify: FastifyInstance) {
       tags: ["Backend Wallet"],
       operationId: "signTransaction",
       body: BodySchema,
-      headers: walletHeaderSchema,
+      headers: walletHeaderWithoutSmarAccountSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

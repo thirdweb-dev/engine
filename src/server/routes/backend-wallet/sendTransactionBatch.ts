@@ -4,7 +4,10 @@ import { StatusCodes } from "http-status-codes";
 import { v4 } from "uuid";
 import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../schemas/wallet";
+import {
+  walletHeaderSchema,
+  walletHeaderWithoutSmarAccountSchema,
+} from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
@@ -50,7 +53,7 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
       operationId: "sendTransactionBatch",
       params: ParamsSchema,
       body: BodySchema,
-      headers: walletHeaderSchema,
+      headers: walletHeaderWithoutSmarAccountSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

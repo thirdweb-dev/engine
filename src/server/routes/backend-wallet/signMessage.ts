@@ -28,7 +28,7 @@ export async function signMessage(fastify: FastifyInstance) {
       tags: ["Backend Wallet"],
       operationId: "signMessage",
       body: BodySchema,
-      headers: walletHeaderSchema,
+      headers: walletHeaderWithoutSmarAccountSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: ReplySchema,

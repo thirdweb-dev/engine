@@ -18,7 +18,11 @@ import {
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverrides } from "../../schemas/txOverrides";
-import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
+import {
+  walletHeaderSchema,
+  walletHeaderWithoutSmarAccountSchema,
+  walletParamSchema,
+} from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
@@ -54,7 +58,7 @@ export async function transfer(fastify: FastifyInstance) {
       operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletHeaderWithoutSmarAccountSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
