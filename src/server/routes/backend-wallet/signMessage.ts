@@ -4,7 +4,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getWallet } from "../../../utils/cache/getWallet";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../schemas/wallet";
+import { walletHeaderWithoutSmarAccountSchema } from "../../schemas/wallet";
 
 const BodySchema = Type.Object({
   message: Type.String(),
@@ -37,7 +37,7 @@ export async function signMessage(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { message, isBytes } = request.body;
       const { "x-backend-wallet-address": walletAddress } =
-        request.headers as Static<typeof walletHeaderSchema>;
+        request.headers as Static<typeof walletHeaderWithoutSmarAccountSchema>;
 
       const wallet = await getWallet({
         chainId: 1,
