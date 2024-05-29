@@ -31,7 +31,7 @@ const writeRequestBodySchema = Type.Object({
     ]),
   ),
   ...txOverrides.properties,
-  abi: Type.Array(abiSchema),
+  abi: Type.Optional(Type.Array(abiSchema)),
 });
 
 // LOGIC
