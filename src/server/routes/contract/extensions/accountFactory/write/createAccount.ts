@@ -9,10 +9,11 @@ import {
   requestQuerystringSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   adminAddress: Type.String({
     description: "The admin address to create an account for",
   }),
@@ -21,9 +22,10 @@ const BodySchema = Type.Object({
       description: "Extra data to add to use in creating the account address",
     }),
   ),
+  ...txOverridesWithValueSchema.properties,
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     adminAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
   },
@@ -33,7 +35,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof prebuiltDeployResponseSchema>;
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
     Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
@@ -44,8 +46,8 @@ export const createAccount = async (fastify: FastifyInstance) => {
       tags: ["Account Factory"],
       operationId: "createAccount",
       params: contractParamSchema,
-      headers: walletHeaderSchema,
-      body: BodySchema,
+      headers: backendWalletWithAAHeaderSchema,
+      body: requestBodySchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -55,12 +57,12 @@ export const createAccount = async (fastify: FastifyInstance) => {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { adminAddress, extraData } = request.body;
+      const { adminAddress, extraData, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -87,6 +89,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
         deployedContractAddress: deployedAddress,
         deployedContractType: "account",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

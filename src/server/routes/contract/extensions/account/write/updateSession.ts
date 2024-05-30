@@ -9,18 +9,20 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   signerAddress: Type.String(),
   approvedCallTargets: Type.Array(Type.String()),
   startDate: Type.Optional(Type.String()),
   expirationDate: Type.Optional(Type.String()),
   nativeTokenLimitPerTransaction: Type.Optional(Type.String()),
+  ...txOverridesWithValueSchema.properties,
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     signerAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
     approvedCallTargets: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
@@ -31,7 +33,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
     Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
@@ -42,8 +44,8 @@ export const updateSession = async (fastify: FastifyInstance) => {
       tags: ["Account"],
       operationId: "updateSession",
       params: contractParamSchema,
-      headers: walletHeaderSchema,
-      body: BodySchema,
+      headers: backendWalletWithAAHeaderSchema,
+      body: requestBodySchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -52,13 +54,13 @@ export const updateSession = async (fastify: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { signerAddress, ...permissions } = request.body;
+      const { signerAddress, txOverrides, ...permissions } = request.body;
       const { simulateTx } = request.query;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -88,6 +90,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
         simulateTx,
         extension: "account",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

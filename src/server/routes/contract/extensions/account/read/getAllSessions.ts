@@ -2,21 +2,21 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
-import { SessionSchema } from "../../../../../schemas/account";
+import { sessionSchema } from "../../../../../schemas/account";
 import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const ReplySchema = Type.Object({
-  result: Type.Array(SessionSchema),
+const responseBodySchema = Type.Object({
+  result: Type.Array(sessionSchema),
 });
 
 export const getAllSessions = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/contract/:chain/:contractAddress/account/sessions/get-all",
@@ -28,7 +28,7 @@ export const getAllSessions = async (fastify: FastifyInstance) => {
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (request, reply) => {

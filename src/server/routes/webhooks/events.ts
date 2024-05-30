@@ -4,13 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-export const ReplySchema = Type.Object({
+export const responseBodySchema = Type.Object({
   result: Type.Array(Type.Enum(WebhooksEventTypes)),
 });
 
 export async function getWebhooksEventTypes(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/webhooks/event-types",
@@ -21,7 +21,7 @@ export async function getWebhooksEventTypes(fastify: FastifyInstance) {
       operationId: "getEventTypes",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

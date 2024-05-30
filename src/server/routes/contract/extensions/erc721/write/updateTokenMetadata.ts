@@ -10,7 +10,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
@@ -20,6 +21,7 @@ const requestBodySchema = Type.Object({
     description: "Token ID to update metadata",
   }),
   metadata: nftMetadataInputSchema,
+  ...txOverridesWithValueSchema.properties,
 });
 
 // LOGIC
@@ -39,7 +41,7 @@ export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
       operationId: "updateTokenMetadata",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: backendWalletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -49,12 +51,12 @@ export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { tokenId, metadata } = request.body;
+      const { tokenId, metadata, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -73,6 +75,7 @@ export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
         simulateTx,
         extension: "erc721",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

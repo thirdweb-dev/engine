@@ -1,21 +1,25 @@
-import { Static } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
-import { SessionSchema } from "../../../../../schemas/account";
+import { sessionSchema } from "../../../../../schemas/account";
 import {
   contractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const BodySchema = SessionSchema;
+const requestBodySchema = Type.Object({
+  ...sessionSchema.properties,
+  ...txOverridesWithValueSchema.properties,
+});
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     signerAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
     startDate: "2021-01-01T00:00:00.000Z",
@@ -29,7 +33,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
     Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
@@ -40,8 +44,8 @@ export const grantSession = async (fastify: FastifyInstance) => {
       tags: ["Account"],
       operationId: "grantSession",
       params: contractParamSchema,
-      headers: walletHeaderSchema,
-      body: BodySchema,
+      headers: backendWalletWithAAHeaderSchema,
+      body: requestBodySchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -51,12 +55,12 @@ export const grantSession = async (fastify: FastifyInstance) => {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { signerAddress, ...permissions } = request.body;
+      const { signerAddress, txOverrides, ...permissions } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
-      const accountAddress = request.headers["x-account-address"] as string;
+        "x-account-address": accountAddress,
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -82,6 +86,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
         simulateTx,
         extension: "account",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

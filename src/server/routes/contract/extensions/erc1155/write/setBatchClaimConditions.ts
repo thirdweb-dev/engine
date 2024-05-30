@@ -13,7 +13,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 
@@ -29,6 +30,7 @@ const requestBodySchema = Type.Object({
     }),
   ),
   resetClaimEligibilityForAll: Type.Optional(Type.Boolean()),
+  ...txOverridesWithValueSchema.properties,
 });
 
 // LOGIC
@@ -49,7 +51,7 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
       operationId: "claimConditionsUpdate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: backendWalletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -59,13 +61,16 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { claimConditionsForToken, resetClaimEligibilityForAll } =
-        request.body;
+      const {
+        claimConditionsForToken,
+        resetClaimEligibilityForAll,
+        txOverrides,
+      } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -110,6 +115,7 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
         simulateTx,
         extension: "erc1155",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

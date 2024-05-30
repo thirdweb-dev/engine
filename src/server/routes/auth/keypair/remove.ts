@@ -5,11 +5,11 @@ import { deleteKeypair } from "../../../../db/keypair/delete";
 import { keypairCache } from "../../../../utils/cache/keypair";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   hash: Type.String(),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     success: Type.Boolean(),
   }),
@@ -17,8 +17,8 @@ const ReplySchema = Type.Object({
 
 export async function removePublicKey(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/auth/keypair/remove",
@@ -27,10 +27,10 @@ export async function removePublicKey(fastify: FastifyInstance) {
       description: "Remove the public key for a keypair",
       tags: ["Keypair"],
       operationId: "remove",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

@@ -11,11 +11,11 @@ import { env } from "../../../../utils/env";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { AccessTokenSchema } from "./getAll";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Composite([
     AccessTokenSchema,
     Type.Object({
@@ -26,8 +26,8 @@ const ReplySchema = Type.Object({
 
 export async function createAccessToken(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/auth/access-tokens/create",
@@ -36,10 +36,10 @@ export async function createAccessToken(fastify: FastifyInstance) {
       description: "Create a new access token",
       tags: ["Access Tokens"],
       operationId: "create",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

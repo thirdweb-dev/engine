@@ -6,11 +6,11 @@ import { deleteWebhook } from "../../../db/webhooks/revokeWebhook";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   id: Type.Number(),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     success: Type.Boolean(),
   }),
@@ -18,8 +18,8 @@ const ReplySchema = Type.Object({
 
 export async function revokeWebhook(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/webhooks/revoke",
@@ -28,10 +28,10 @@ export async function revokeWebhook(fastify: FastifyInstance) {
       description: "Revoke a Webhook",
       tags: ["Webhooks"],
       operationId: "revoke",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

@@ -9,7 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
+import { backendWalletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -21,6 +22,7 @@ const requestBodySchema = Type.Object({
   currencyContractAddress: Type.String({
     description: "The wallet address of the buyer to approve.",
   }),
+  ...txOverridesWithValueSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -47,7 +49,7 @@ export async function directListingsRevokeCurrencyApprovalForListing(
       description: "Revoke approval of a currency for a reserved listing.",
       tags: ["Marketplace-DirectListings"],
       operationId: "revokeCurrencyApprovalForListing",
-      headers: walletHeaderSchema,
+      headers: backendWalletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -59,12 +61,12 @@ export async function directListingsRevokeCurrencyApprovalForListing(
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { listingId, currencyContractAddress } = request.body;
+      const { listingId, currencyContractAddress, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -85,6 +87,7 @@ export async function directListingsRevokeCurrencyApprovalForListing(
         simulateTx,
         extension: "marketplace-v3-direct-listings",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

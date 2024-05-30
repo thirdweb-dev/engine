@@ -8,7 +8,7 @@ import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
 import { isValidHttpUrl } from "../../utils/validator";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   url: Type.String({
     description: "Webhook URL",
     examples: ["https://example.com/webhook"],
@@ -21,7 +21,7 @@ const BodySchema = Type.Object({
   eventType: Type.Enum(WebhooksEventTypes),
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     url: "https://example.com/allTxUpdate",
     name: "All Transaction Events",
@@ -64,14 +64,14 @@ BodySchema.examples = [
   },
 ];
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: WebhookSchema,
 });
 
 export async function createWebhook(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/webhooks/create",
@@ -81,10 +81,10 @@ export async function createWebhook(fastify: FastifyInstance) {
         "Create a webhook to call when certain blockchain events occur.",
       tags: ["Webhooks"],
       operationId: "create",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

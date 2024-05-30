@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     minTxsToProcess: Type.Number(),
     maxTxsToProcess: Type.Number(),
@@ -21,7 +21,7 @@ const ReplySchema = Type.Object({
 
 export async function getTransactionConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/configuration/transactions",
@@ -32,7 +32,7 @@ export async function getTransactionConfiguration(fastify: FastifyInstance) {
       operationId: "getTransactionConfiguration",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

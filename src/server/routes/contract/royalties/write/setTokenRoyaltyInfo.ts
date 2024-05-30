@@ -10,7 +10,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../schemas/txOverrides";
+import { backendWalletWithAAHeaderSchema } from "../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
@@ -20,6 +21,7 @@ const requestBodySchema = Type.Object({
   token_id: Type.String({
     description: "The token ID to set the royalty info for.",
   }),
+  ...txOverridesWithValueSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -48,7 +50,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
         "Set the royalty recipient and fee for a particular token in the contract.",
       tags: ["Contract-Royalties"],
       operationId: "setTokenRoyaltyInfo",
-      headers: walletHeaderSchema,
+      headers: backendWalletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -60,12 +62,13 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { seller_fee_basis_points, fee_recipient, token_id } = request.body;
+      const { seller_fee_basis_points, fee_recipient, token_id, txOverrides } =
+        request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -88,6 +91,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
         simulateTx,
         extension: "none",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

@@ -7,11 +7,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { txOverridesWithoutValue } from "../../schemas/txOverrides";
-import {
-  walletHeaderSchema,
-  walletHeaderWithoutSmarAccountSchema,
-} from "../../schemas/wallet";
+import { txOverridesSchema } from "../../schemas/txOverrides";
+import { backendWalletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
@@ -30,7 +27,7 @@ const requestBodySchema = Type.Object({
   value: Type.String({
     examples: ["10000000"],
   }),
-  ...txOverridesWithoutValue.properties,
+  ...txOverridesSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -60,7 +57,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       operationId: "sendTransaction",
       params: ParamsSchema,
       body: requestBodySchema,
-      headers: walletHeaderWithoutSmarAccountSchema,
+      headers: backendWalletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -74,7 +71,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": fromAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const { id: queueId } = await queueTxRaw({

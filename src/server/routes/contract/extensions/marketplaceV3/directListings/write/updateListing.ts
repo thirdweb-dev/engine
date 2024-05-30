@@ -10,19 +10,19 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
+import { backendWalletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
-const requestBodySchema = Type.Intersect([
-  Type.Object({
-    listingId: Type.String({
-      description: "The ID of the listing you want to update.",
-    }),
+const requestBodySchema = Type.Object({
+  listingId: Type.String({
+    description: "The ID of the listing you want to update.",
   }),
-  directListingV3InputSchema,
-]);
+  ...directListingV3InputSchema.properties,
+  ...txOverridesWithValueSchema.properties,
+});
 
 requestBodySchema.examples = [
   {
@@ -45,7 +45,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       description: "Update a direct listing on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
       operationId: "updateListing",
-      headers: walletHeaderSchema,
+      headers: backendWalletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -67,12 +67,13 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
         quantity,
         startTimestamp,
         endTimestamp,
+        txOverrides,
       } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -101,6 +102,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
         simulateTx,
         extension: "marketplace-v3-direct-listings",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

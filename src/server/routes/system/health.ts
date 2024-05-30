@@ -22,11 +22,11 @@ const ReplySchemaError = Type.Object({
   error: Type.String(),
 });
 
-const ReplySchema = Type.Union([ReplySchemaOk, ReplySchemaError]);
+const responseBodySchema = Type.Union([ReplySchemaOk, ReplySchemaError]);
 
 export async function healthCheck(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/system/health",

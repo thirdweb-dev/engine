@@ -8,7 +8,7 @@ import {
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Array(Type.String(), {
     description: "The account addresses of all the accounts in this factory",
   }),
@@ -17,7 +17,7 @@ const ReplySchema = Type.Object({
 export const getAllAccounts = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/contract/:chain/:contractAddress/account-factory/get-all-accounts",
@@ -29,7 +29,7 @@ export const getAllAccounts = async (fastify: FastifyInstance) => {
       params: contractParamSchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (request, reply) => {

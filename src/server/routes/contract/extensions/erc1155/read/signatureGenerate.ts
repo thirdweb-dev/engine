@@ -11,7 +11,7 @@ import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
@@ -48,7 +48,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
       operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: backendWalletWithAAHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -72,7 +72,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,

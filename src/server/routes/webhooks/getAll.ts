@@ -5,13 +5,13 @@ import { getAllWebhooks } from "../../../db/webhooks/getAllWebhooks";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Array(WebhookSchema),
 });
 
 export async function getAllWebhooksData(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/webhooks/get-all",
@@ -22,7 +22,7 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
       operationId: "getAll",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

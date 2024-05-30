@@ -5,12 +5,12 @@ import { updateToken } from "../../../../db/tokens/updateToken";
 import { accessTokenCache } from "../../../../utils/cache/accessToken";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   id: Type.String(),
   label: Type.Optional(Type.String()),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     success: Type.Boolean(),
   }),
@@ -18,8 +18,8 @@ const ReplySchema = Type.Object({
 
 export async function updateAccessToken(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/auth/access-tokens/update",
@@ -28,10 +28,10 @@ export async function updateAccessToken(fastify: FastifyInstance) {
       description: "Update an access token",
       tags: ["Access Tokens"],
       operationId: "update",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {
