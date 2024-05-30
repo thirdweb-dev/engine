@@ -26,7 +26,7 @@ export const responseBodySchema = Type.Object({
   // TODO: Use Type.Any() instead of strict typing.
   // UserOp receipts from different providers/chains may not have a consistent response,
   // so Engine would prefer to return _any_ result than fail due to strict typing errors.
-  result: Type.Union([Type.Any(), Type.Null()]),
+  result: Type.Any(),
 });
 
 responseBodySchema.example = {
