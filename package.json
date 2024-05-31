@@ -35,7 +35,7 @@
     "@fastify/swagger": "^8.9.0",
     "@fastify/type-provider-typebox": "^3.2.0",
     "@fastify/websocket": "^8.2.0",
-    "@google-cloud/kms": "^4.0.0",
+    "@google-cloud/kms": "^4.4.0",
     "@prisma/client": "^5.14.0-dev.65",
     "@sinclair/typebox": "^0.31.28",
     "@t3-oss/env-core": "^0.6.0",
@@ -68,7 +68,6 @@
     "pino": "^8.15.1",
     "pino-pretty": "^10.0.0",
     "prisma": "5.14.0-dev.61",
-    "protobufjs": "~7.3.0",
     "superjson": "^2.2.1",
     "thirdweb": "^5.25.1",
     "uuid": "^9.0.1",
@@ -90,7 +89,7 @@
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
     "commander": "^11.0.0",
-    "eslint": "^8.36.0",
+    "eslint": "^9.3.0",
     "eslint-config-prettier": "^8.7.0",
     "jest": "^29.7.0",
     "nodemon": "^3.1.2",
@@ -106,5 +105,9 @@
   },
   "prisma": {
     "schema": "./src/prisma/schema.prisma"
+  },
+  "resolutions": {
+    "protobufjs": ">=7.2.5",
+    "axios": ">=0.28.0"
   }
 }
