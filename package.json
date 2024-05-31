@@ -107,7 +107,7 @@
     "schema": "./src/prisma/schema.prisma"
   },
   "resolutions": {
-    "protobufjs": ">=7.2.5",
-    "axios": ">=0.28.0"
+    "ethers-gcp-kms-signer/**/protobufjs": ">=7.2.5",
+    "@thirdweb-dev/auth/**/axios": ">=0.28.0"
   }
 }
