@@ -1,7 +1,14 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSdk } from "../../../../utils/cache/getSdk";
+import {
+  defineChain,
+  eth_sendRawTransaction,
+  getRpcClient,
+  isHex,
+} from "thirdweb";
+import { thirdwebClient } from "../../../../utils/sdk";
+import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
@@ -43,13 +50,27 @@ export async function sendSignedTransaction(fastify: FastifyInstance) {
       const { chain } = req.params;
       const { signedTransaction } = req.body;
       const chainId = await getChainIdFromChain(chain);
-      const sdk = await getSdk({ chainId });
 
-      const txRes = await sdk.getProvider().sendTransaction(signedTransaction);
+      if (!isHex(signedTransaction)) {
+        throw createCustomError(
+          "SignedTransaction is not a valid hex string.",
+          StatusCodes.BAD_REQUEST,
+          "SendSignedTxError",
+        );
+      }
+
+      const rpc = getRpcClient({
+        chain: defineChain(chainId),
+        client: thirdwebClient,
+      });
+      const transactionHash = await eth_sendRawTransaction(
+        rpc,
+        signedTransaction,
+      );
 
       res.status(200).send({
         result: {
-          transactionHash: txRes.hash,
+          transactionHash,
         },
       });
     },

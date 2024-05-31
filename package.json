@@ -35,11 +35,12 @@
     "@fastify/swagger": "^8.9.0",
     "@fastify/type-provider-typebox": "^3.2.0",
     "@fastify/websocket": "^8.2.0",
-    "@google-cloud/kms": "^4.0.0",
+    "@google-cloud/kms": "^4.4.0",
     "@prisma/client": "^5.14.0-dev.65",
     "@sinclair/typebox": "^0.31.28",
     "@t3-oss/env-core": "^0.6.0",
     "@thirdweb-dev/auth": "^4.1.87",
+    "@thirdweb-dev/chains": "^0.1.77",
     "@thirdweb-dev/sdk": "^4.0.89",
     "@thirdweb-dev/service-utils": "^0.4.28",
     "@types/base-64": "^1.0.2",
@@ -68,10 +69,10 @@
     "pino-pretty": "^10.0.0",
     "prisma": "5.14.0-dev.61",
     "superjson": "^2.2.1",
-    "thirdweb": "^5.1.0",
+    "thirdweb": "^5.25.1",
     "uuid": "^9.0.1",
     "viem": "^1.14.0",
-    "zod": "^3.21.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.3",
@@ -88,10 +89,10 @@
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
     "commander": "^11.0.0",
-    "eslint": "^8.36.0",
+    "eslint": "^9.3.0",
     "eslint-config-prettier": "^8.7.0",
     "jest": "^29.7.0",
-    "nodemon": "^2.0.21",
+    "nodemon": "^3.1.2",
     "openapi-typescript-codegen": "^0.25.0",
     "prettier": "^2.8.7",
     "ts-jest": "^29.1.1",
@@ -104,5 +105,9 @@
   },
   "prisma": {
     "schema": "./src/prisma/schema.prisma"
+  },
+  "resolutions": {
+    "ethers-gcp-kms-signer/**/protobufjs": ">=7.2.5",
+    "@thirdweb-dev/auth/**/axios": ">=0.28.0"
   }
 }
