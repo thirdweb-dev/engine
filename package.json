@@ -73,7 +73,7 @@
     "thirdweb": "^5.25.1",
     "uuid": "^9.0.1",
     "viem": "^1.14.0",
-    "zod": "^3.21.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.3",
