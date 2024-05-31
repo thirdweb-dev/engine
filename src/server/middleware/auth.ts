@@ -164,7 +164,7 @@ export const onRequest = async ({
       } else if (payload.iss === THIRDWEB_DASHBOARD_ISSUER) {
         return await handleDashboardAuth(jwt);
       } else {
-        return await handleKeypairAuth(jwt, payload.iss, req, payload.data);
+        return await handleKeypairAuth(jwt, req, payload.iss);
       }
     }
   }
@@ -265,9 +265,8 @@ const handleWebsocketAuth = async (
  */
 const handleKeypairAuth = async (
   jwt: string,
-  iss: string,
   req: FastifyRequest,
-  data: string | null,
+  iss: string,
 ): Promise<AuthResponse> => {
   // The keypair auth feature must be explicitly enabled.
   if (!env.ENABLE_KEYPAIR_AUTH) {
@@ -282,15 +281,21 @@ const handleKeypairAuth = async (
       throw error;
     }
 
-    if (data && req.method === "POST" && data !== hashRequestBody(req)) {
-      error = "The request body has been tampered with.";
-      throw error;
-    }
-
     // The JWT is valid if `verify` did not throw.
-    jsonwebtoken.verify(jwt, keypair.publicKey, {
+    const payload = jsonwebtoken.verify(jwt, keypair.publicKey, {
       algorithms: [keypair.algorithm as jsonwebtoken.Algorithm],
     }) as jsonwebtoken.JwtPayload;
+
+    // If `bodyHash` is provided, it must match a hash of the POST request body.
+    if (
+      req.method === "POST" &&
+      payload?.bodyHash &&
+      payload.bodyHash !== hashRequestBody(req)
+    ) {
+      error =
+        "The request body does not match the hash in the access token. See: https://portal.thirdweb.com/engine/features/keypair-authentication";
+      throw error;
+    }
 
     return { isAuthed: true };
   } catch (e) {
