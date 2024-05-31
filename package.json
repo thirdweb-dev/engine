@@ -68,7 +68,7 @@
     "pino": "^8.15.1",
     "pino-pretty": "^10.0.0",
     "prisma": "5.14.0-dev.61",
-    "protobufjs": "~7.3.0",
+    "protobufjs": "~7.2.5",
     "superjson": "^2.2.1",
     "thirdweb": "^5.25.1",
     "uuid": "^9.0.1",
