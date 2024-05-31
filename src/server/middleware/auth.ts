@@ -5,6 +5,7 @@ import {
   getToken as getJWT,
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
+import { createHash } from "crypto";
 import { FastifyInstance } from "fastify";
 import { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken from "jsonwebtoken";
@@ -153,6 +154,7 @@ export const onRequest = async ({
   const jwt = getJWT(req);
   if (jwt) {
     const payload = jsonwebtoken.decode(jwt, { json: true });
+    const data = payload?.data;
 
     // The `iss` field determines the auth type.
     if (payload?.iss) {
@@ -162,7 +164,7 @@ export const onRequest = async ({
       } else if (payload.iss === THIRDWEB_DASHBOARD_ISSUER) {
         return await handleDashboardAuth(jwt);
       } else {
-        return await handleKeypairAuth(jwt, payload.iss);
+        return await handleKeypairAuth(jwt, payload.iss, req, payload.data);
       }
     }
   }
@@ -264,6 +266,8 @@ const handleWebsocketAuth = async (
 const handleKeypairAuth = async (
   jwt: string,
   iss: string,
+  req: FastifyRequest,
+  data: string | null,
 ): Promise<AuthResponse> => {
   // The keypair auth feature must be explicitly enabled.
   if (!env.ENABLE_KEYPAIR_AUTH) {
@@ -275,6 +279,11 @@ const handleKeypairAuth = async (
     const keypair = await getKeypair({ publicKey: iss });
     if (!keypair || keypair.publicKey !== iss) {
       error = "The provided public key is incorrect or not added to Engine.";
+      throw error;
+    }
+
+    if (data && req.method === "POST" && data !== hashRequestBody(req)) {
+      error = "The request body has been tampered with.";
       throw error;
     }
 
@@ -420,4 +429,10 @@ const handleAuthWebhooks = async (
   }
 
   return { isAuthed: false };
+};
+
+const hashRequestBody = (req: FastifyRequest): string => {
+  return createHash("sha256")
+    .update(JSON.stringify(req.body), "utf8")
+    .digest("hex");
 };
