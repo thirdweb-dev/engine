@@ -17,19 +17,12 @@ import { enqueueWebhook } from "../queues/sendWebhookQueue";
 import { getContractId } from "../utils/contractId";
 import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
 
-interface GetBlocksAndTransactionsParams {
-  chainId: number;
-  contractAddresses: string[];
-  fromBlock: number;
-  toBlock: number;
-}
-
 const getBlocksAndTransactions = async ({
   chainId,
   fromBlock,
   toBlock,
-  contractAddresses,
-}: GetBlocksAndTransactionsParams) => {
+  filters,
+}: EnqueueProcessTransactionReceiptsData) => {
   const sdk = await getSdk({ chainId: chainId });
   const provider = sdk.getProvider();
 
@@ -37,6 +30,8 @@ const getBlocksAndTransactions = async ({
     { length: toBlock - fromBlock + 1 },
     (_, index) => fromBlock + index,
   );
+
+  const contractAddresses = new Set(filters.map((f) => f.address));
 
   const blocksWithTransactionsAndReceipts = await Promise.all(
     blockNumbers.map(async (blockNumber) => {
@@ -47,7 +42,7 @@ const getBlocksAndTransactions = async ({
           .filter(
             (transaction) =>
               transaction.to &&
-              contractAddresses.includes(transaction.to.toLowerCase()),
+              contractAddresses.has(transaction.to.toLowerCase()),
           )
           .map(async (transaction) => {
             const receipt = await provider.getTransactionReceipt(

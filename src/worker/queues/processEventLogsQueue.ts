@@ -19,7 +19,11 @@ const _queue = redis
 
 export type EnqueueProcessEventLogsData = {
   chainId: number;
-  contractAddresses: string[];
+  filters: {
+    address: string;
+    events: string[];
+    functions: string[];
+  }[];
   fromBlock: number; // inclusive
   toBlock: number; // inclusive
 };
