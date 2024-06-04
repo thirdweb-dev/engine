@@ -29,22 +29,18 @@ const bodySchema = Type.Object({
       examples: ["https://example.com/webhook"],
     }),
   ),
-  processEventLogs: Type.Optional(
-    Type.Boolean({
-      description: "If true, parse event logs for this contract.",
-    }),
-  ),
+  processEventLogs: Type.Boolean({
+    description: "If true, parse event logs for this contract.",
+  }),
   filterEvents: Type.Optional(
     Type.Array(Type.String(), {
       description:
         "A case-sensitive list of event log names to parse. If empty, parse all event logs.",
     }),
   ),
-  processTransactionReceipts: Type.Optional(
-    Type.Boolean({
-      description: "If true, parse transaction receipts for this contract.",
-    }),
-  ),
+  processTransactionReceipts: Type.Boolean({
+    description: "If true, parse transaction receipts for this contract.",
+  }),
 });
 
 const responseSchema = Type.Object({
@@ -83,9 +79,9 @@ export async function addContractSubscription(fastify: FastifyInstance) {
         chain,
         contractAddress,
         webhookUrl,
-        processEventLogs = true,
+        processEventLogs,
         filterEvents = [],
-        processTransactionReceipts = true,
+        processTransactionReceipts,
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
