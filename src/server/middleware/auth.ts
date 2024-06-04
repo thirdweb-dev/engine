@@ -103,7 +103,9 @@ export const withAuth = async (server: FastifyInstance) => {
   server.decorateRequest("user", null);
 
   // Add auth validation middleware to check for authenticated requests
-  server.addHook("onRequest", async (req, res) => {
+  // Note: in the onRequest hook, request.body will always be undefined, because the body parsing happens before the preValidation hook.
+  // https://fastify.dev/docs/latest/Reference/Hooks/#onrequest
+  server.addHook("preValidation", async (req, res) => {
     let message =
       "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/access-tokens";
 
@@ -154,7 +156,6 @@ export const onRequest = async ({
   const jwt = getJWT(req);
   if (jwt) {
     const payload = jsonwebtoken.decode(jwt, { json: true });
-    const data = payload?.data;
 
     // The `iss` field determines the auth type.
     if (payload?.iss) {
@@ -260,7 +261,9 @@ const handleWebsocketAuth = async (
  * Auth via keypair.
  * Allow a request that provides a JWT signed by an ES256 private key
  * matching the configured public key.
+ * @param jwt string
  * @param req FastifyRequest
+ * @param iss string
  * @returns AuthResponse
  */
 const handleKeypairAuth = async (
