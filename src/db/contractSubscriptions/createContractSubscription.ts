@@ -4,27 +4,27 @@ interface CreateContractSubscriptionParams {
   chainId: number;
   contractAddress: string;
   webhookId?: number;
-  parseEventLogs: boolean;
-  filterEventLogs: string[];
-  parseTransactionReceipts: boolean;
+  processEventLogs: boolean;
+  filterEvents: string[];
+  processTransactionReceipts: boolean;
 }
 
 export const createContractSubscription = async ({
   chainId,
   contractAddress,
   webhookId,
-  parseEventLogs,
-  filterEventLogs,
-  parseTransactionReceipts,
+  processEventLogs,
+  filterEvents,
+  processTransactionReceipts,
 }: CreateContractSubscriptionParams) => {
   return prisma.contractSubscriptions.create({
     data: {
       chainId,
       contractAddress,
       webhookId,
-      parseEventLogs,
-      filterEventLogs,
-      parseTransactionReceipts,
+      processEventLogs,
+      filterEvents,
+      processTransactionReceipts,
     },
     include: {
       webhook: true,

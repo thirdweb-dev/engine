@@ -68,11 +68,11 @@ export const createChainIndexerTask = async (args: {
             events: string[];
             functions: string[];
           }[] = contractSubscriptions
-            .filter((c) => c.parseEventLogs)
+            .filter((c) => c.processEventLogs)
             .map((c) => ({
               address: c.contractAddress,
-              events: c.filterEventNames,
-              functions: c.filterFunctionNames,
+              events: c.filterEvents,
+              functions: [],
             }));
           if (eventLogFilters.length > 0) {
             await enqueueProcessEventLogs({
@@ -86,7 +86,7 @@ export const createChainIndexerTask = async (args: {
           // Identify contract addresses to parse transaction receipts, if any.
           const transactionReceiptFilters: { address: string }[] =
             contractSubscriptions
-              .filter((cs) => cs.parseTransactionReceipts)
+              .filter((cs) => cs.processTransactionReceipts)
               .map((cs) => ({
                 address: cs.contractAddress.toLowerCase(),
               }));

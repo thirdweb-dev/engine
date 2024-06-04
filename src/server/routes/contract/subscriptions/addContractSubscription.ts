@@ -29,18 +29,18 @@ const bodySchema = Type.Object({
       examples: ["https://example.com/webhook"],
     }),
   ),
-  parseEventLogs: Type.Optional(
+  processEventLogs: Type.Optional(
     Type.Boolean({
       description: "If true, parse event logs for this contract.",
     }),
   ),
-  filterEventLogs: Type.Optional(
+  filterEvents: Type.Optional(
     Type.Array(Type.String(), {
       description:
         "A case-sensitive list of event log names to parse. If empty, parse all event logs.",
     }),
   ),
-  parseTransactionReceipts: Type.Optional(
+  processTransactionReceipts: Type.Optional(
     Type.Boolean({
       description: "If true, parse transaction receipts for this contract.",
     }),
@@ -83,16 +83,16 @@ export async function addContractSubscription(fastify: FastifyInstance) {
         chain,
         contractAddress,
         webhookUrl,
-        parseEventLogs = true,
-        filterEventLogs = [],
-        parseTransactionReceipts = true,
+        processEventLogs = true,
+        filterEvents = [],
+        processTransactionReceipts = true,
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
       const standardizedContractAddress = contractAddress.toLowerCase();
 
       // Must parse logs or receipts.
-      if (!parseEventLogs && !parseTransactionReceipts) {
+      if (!processEventLogs && !processTransactionReceipts) {
         throw createCustomError(
           "Contract Subscriptions must parse event logs and/or receipts.",
           StatusCodes.BAD_REQUEST,
@@ -137,9 +137,9 @@ export async function addContractSubscription(fastify: FastifyInstance) {
         chainId,
         contractAddress: standardizedContractAddress,
         webhookId,
-        parseEventLogs,
-        filterEventLogs,
-        parseTransactionReceipts,
+        processEventLogs,
+        filterEvents,
+        processTransactionReceipts,
       });
 
       reply.status(StatusCodes.OK).send({
