@@ -11,7 +11,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
@@ -44,7 +44,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
       tags: ["Account"],
       operationId: "grantSession",
       params: contractParamSchema,
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
       response: {
@@ -60,7 +60,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({

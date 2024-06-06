@@ -11,7 +11,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
@@ -50,7 +50,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
         "Set the royalty recipient and fee for a particular token in the contract.",
       tags: ["Contract-Royalties"],
       operationId: "setTokenRoyaltyInfo",
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -68,7 +68,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

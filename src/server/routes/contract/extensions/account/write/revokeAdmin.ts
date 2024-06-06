@@ -10,7 +10,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
@@ -40,7 +40,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       description: "Revoke a smart account's admin permission.",
       tags: ["Account"],
       operationId: "revokeAdmin",
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       params: contractParamSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -57,7 +57,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
         "x-backend-wallet-address": backendWalletAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({

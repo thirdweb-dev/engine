@@ -10,7 +10,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -65,7 +65,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
       operationId: "airdrop",
       params: requestSchema,
       body: requestBodySchema,
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -80,7 +80,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,

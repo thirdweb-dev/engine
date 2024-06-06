@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 
-export const backendWalletHeaderSchema = Type.Object({
+export const walletHeaderSchema = Type.Object({
   "x-backend-wallet-address": Type.String({
     description: "Backend wallet address",
   }),
@@ -12,8 +12,8 @@ export const backendWalletHeaderSchema = Type.Object({
   ),
 });
 
-export const backendWalletWithAAHeaderSchema = Type.Object({
-  ...backendWalletHeaderSchema.properties,
+export const walletWithAAHeaderSchema = Type.Object({
+  ...walletHeaderSchema.properties,
   "x-account-address": Type.Optional(
     Type.String({
       description: "Smart account address",

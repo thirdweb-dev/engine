@@ -10,7 +10,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
@@ -40,7 +40,7 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
       description: "Grant a smart account's admin permission.",
       tags: ["Account"],
       operationId: "grantAdmin",
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       params: contractParamSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -57,7 +57,7 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({

@@ -18,10 +18,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
-import {
-  backendWalletHeaderSchema,
-  walletParamSchema,
-} from "../../schemas/wallet";
+import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
@@ -57,7 +54,7 @@ export async function transfer(fastify: FastifyInstance) {
       operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
-      headers: backendWalletHeaderSchema,
+      headers: walletHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -70,7 +67,7 @@ export async function transfer(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof backendWalletHeaderSchema>;
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const { simulateTx } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const sdk = await getSdk({ chainId, walletAddress });

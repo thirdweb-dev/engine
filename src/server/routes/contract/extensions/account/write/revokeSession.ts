@@ -10,7 +10,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
@@ -41,7 +41,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
       tags: ["Account"],
       operationId: "revokeSession",
       params: contractParamSchema,
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
       response: {
@@ -57,7 +57,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
         "x-backend-wallet-address": backendWalletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({

@@ -10,7 +10,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -52,7 +52,7 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
         "Buy from a specific direct listing from this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
       operationId: "buyFromListing",
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -69,7 +69,7 @@ export async function directListingsBuyFromListing(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

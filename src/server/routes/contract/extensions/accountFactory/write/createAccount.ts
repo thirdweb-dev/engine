@@ -10,7 +10,7 @@ import {
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
@@ -46,7 +46,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
       tags: ["Account Factory"],
       operationId: "createAccount",
       params: contractParamSchema,
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
       response: {
@@ -62,7 +62,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({

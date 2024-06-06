@@ -6,10 +6,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import {
-  backendWalletHeaderSchema,
-  walletParamSchema,
-} from "../../schemas/wallet";
+import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Omit(walletParamSchema, ["walletAddress"]);
@@ -35,7 +32,7 @@ export async function withdraw(fastify: FastifyInstance) {
       operationId: "withdraw",
       params: ParamsSchema,
       body: requestBodySchema,
-      headers: backendWalletHeaderSchema,
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -47,7 +44,7 @@ export async function withdraw(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof backendWalletHeaderSchema>;
+      } = request.headers as Static<typeof walletHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
 

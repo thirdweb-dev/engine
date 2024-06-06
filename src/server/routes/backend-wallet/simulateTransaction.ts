@@ -6,7 +6,7 @@ import {
   simulateResponseSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { backendWalletWithAAHeaderSchema } from "../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 import { SimulateTxParams, simulateTx } from "../../utils/simulateTx";
 
@@ -68,7 +68,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       operationId: "simulateTransaction",
       params: ParamsSchema,
       body: simulateRequestBodySchema,
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: simulateResponseSchema,
@@ -81,7 +81,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       // Get decoded tx simulate args

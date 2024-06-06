@@ -11,7 +11,7 @@ import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { backendWalletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
@@ -70,7 +70,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

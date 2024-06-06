@@ -5,7 +5,7 @@ import { v4 } from "uuid";
 import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
-import { backendWalletHeaderSchema } from "../../schemas/wallet";
+import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
@@ -52,7 +52,7 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
       operationId: "sendTransactionBatch",
       params: ParamsSchema,
       body: requestBodySchema,
-      headers: backendWalletHeaderSchema,
+      headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
@@ -63,7 +63,7 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
       const txs = request.body;
       // The batch endpoint does not support idempotency keys.
       const { "x-backend-wallet-address": fromAddress } =
-        request.headers as Static<typeof backendWalletHeaderSchema>;
+        request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const groupId = v4();

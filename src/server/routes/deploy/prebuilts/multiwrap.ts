@@ -13,7 +13,7 @@ import {
 } from "../../../schemas/prebuilts";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
-import { backendWalletWithAAHeaderSchema } from "../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUTS
@@ -61,7 +61,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
       operationId: "deployMultiwrap",
       params: requestSchema,
       body: requestBodySchema,
-      headers: backendWalletWithAAHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -75,7 +75,7 @@ export async function deployPrebuiltMultiwrap(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof backendWalletWithAAHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
