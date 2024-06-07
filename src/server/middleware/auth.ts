@@ -5,6 +5,7 @@ import {
   getToken as getJWT,
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
+import { createHash } from "crypto";
 import { FastifyInstance } from "fastify";
 import { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken from "jsonwebtoken";
@@ -102,7 +103,9 @@ export const withAuth = async (server: FastifyInstance) => {
   server.decorateRequest("user", null);
 
   // Add auth validation middleware to check for authenticated requests
-  server.addHook("onRequest", async (req, res) => {
+  // Note: in the onRequest hook, request.body will always be undefined, because the body parsing happens before the preValidation hook.
+  // https://fastify.dev/docs/latest/Reference/Hooks/#onrequest
+  server.addHook("preValidation", async (req, res) => {
     let message =
       "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/access-tokens";
 
@@ -162,7 +165,7 @@ export const onRequest = async ({
       } else if (payload.iss === THIRDWEB_DASHBOARD_ISSUER) {
         return await handleDashboardAuth(jwt);
       } else {
-        return await handleKeypairAuth(jwt, payload.iss);
+        return await handleKeypairAuth(jwt, req, payload.iss);
       }
     }
   }
@@ -258,11 +261,14 @@ const handleWebsocketAuth = async (
  * Auth via keypair.
  * Allow a request that provides a JWT signed by an ES256 private key
  * matching the configured public key.
+ * @param jwt string
  * @param req FastifyRequest
+ * @param iss string
  * @returns AuthResponse
  */
 const handleKeypairAuth = async (
   jwt: string,
+  req: FastifyRequest,
   iss: string,
 ): Promise<AuthResponse> => {
   // The keypair auth feature must be explicitly enabled.
@@ -279,9 +285,20 @@ const handleKeypairAuth = async (
     }
 
     // The JWT is valid if `verify` did not throw.
-    jsonwebtoken.verify(jwt, keypair.publicKey, {
+    const payload = jsonwebtoken.verify(jwt, keypair.publicKey, {
       algorithms: [keypair.algorithm as jsonwebtoken.Algorithm],
     }) as jsonwebtoken.JwtPayload;
+
+    // If `bodyHash` is provided, it must match a hash of the POST request body.
+    if (
+      req.method === "POST" &&
+      payload?.bodyHash &&
+      payload.bodyHash !== hashRequestBody(req)
+    ) {
+      error =
+        "The request body does not match the hash in the access token. See: https://portal.thirdweb.com/engine/features/keypair-authentication";
+      throw error;
+    }
 
     return { isAuthed: true };
   } catch (e) {
@@ -420,4 +437,10 @@ const handleAuthWebhooks = async (
   }
 
   return { isAuthed: false };
+};
+
+const hashRequestBody = (req: FastifyRequest): string => {
+  return createHash("sha256")
+    .update(JSON.stringify(req.body), "utf8")
+    .digest("hex");
 };
