@@ -34,7 +34,7 @@ services:
     image: deadly0/bull-board:latest
     restart: always
     ports:
-      - 3000:3000
+      - 3333:3000
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
