@@ -22,7 +22,6 @@ export type EnqueueProcessEventLogsData = {
   filters: {
     address: string;
     events: string[];
-    functions: string[];
   }[];
   fromBlock: number; // inclusive
   toBlock: number; // inclusive

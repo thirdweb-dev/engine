@@ -66,13 +66,11 @@ export const createChainIndexerTask = async (args: {
           const eventLogFilters: {
             address: string;
             events: string[];
-            functions: string[];
           }[] = contractSubscriptions
             .filter((c) => c.processEventLogs)
             .map((c) => ({
               address: c.contractAddress,
               events: c.filterEvents,
-              functions: [],
             }));
           if (eventLogFilters.length > 0) {
             await enqueueProcessEventLogs({

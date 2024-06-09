@@ -1,7 +1,9 @@
 import { Prisma, Webhooks } from "@prisma/client";
+import { AbiEvent } from "abitype";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
+  Chain,
   PreparedEvent,
   defineChain,
   eth_getBlockByHash,
@@ -11,6 +13,7 @@ import {
   prepareEvent,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
+import { Hash } from "viem";
 import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { WebhooksEventTypes } from "../../schema/webhooks";
@@ -104,23 +107,19 @@ const getLogs = async (
   params: GetLogsParams,
 ): Promise<Prisma.ContractEventLogsCreateInput[]> => {
   const chain = defineChain(params.chainId);
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain,
-  });
 
   // Get events for each contract address. Apply any filters.
   const promises = params.filters.map(async (f) => {
-    const contract = await getContract({
+    const contract = getContract({
       client: thirdwebClient,
       chain,
       address: f.address,
     });
 
     // Get events to filter by, if any.
-    const events: PreparedEvent[] = [];
+    const events: PreparedEvent<AbiEvent>[] = [];
     if (f.events.length) {
-      const abi = await resolveContractAbi(contract);
+      const abi = await resolveContractAbi<AbiEvent[]>(contract);
       for (const event of f.events) {
         const signature = abi.find((a) => a.name === event);
         if (signature) {
@@ -141,13 +140,12 @@ const getLogs = async (
   // Query and flatten all events.
   const allEvents = (await Promise.all(promises)).flat();
 
-  // Transform logs into the DB schema.
-  const formattedLogs: Prisma.ContractEventLogsCreateInput[] = [];
-  for (const event of allEvents) {
-    // This makes an RPC call, but it should be cached in SDK when querying the same block hash.
-    const timestamp = await getBlockTimestamp(rpcRequest, event.blockHash);
+  const blockHashes = allEvents.map((e) => e.blockHash);
+  const blockTimestamps = await getBlockTimestamps(chain, blockHashes);
 
-    formattedLogs.push({
+  // Transform logs into the DB schema.
+  return allEvents.map(
+    (event): Prisma.ContractEventLogsCreateInput => ({
       chainId: params.chainId,
       blockNumber: Number(event.blockNumber),
       contractAddress: event.address.toLowerCase(),
@@ -159,25 +157,41 @@ const getLogs = async (
       data: event.data,
       eventName: event.eventName,
       decodedLog: event.args,
-      timestamp,
+      timestamp: blockTimestamps[event.blockHash],
       transactionIndex: event.transactionIndex,
       logIndex: event.logIndex,
-    });
-  }
-
-  return formattedLogs;
+    }),
+  );
 };
 
-const getBlockTimestamp = async (
-  rpcRequest: ReturnType<typeof getRpcClient>,
-  blockHash: `0x${string}`,
-): Promise<Date> => {
-  try {
-    const block = await eth_getBlockByHash(rpcRequest, { blockHash });
-    return new Date(block.timestamp * 1000n);
-  } catch (e) {
-    return new Date();
+export const getBlockTimestamps = async (
+  chain: Chain,
+  blockHashes: Hash[],
+): Promise<Record<Hash, Date>> => {
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain,
+  });
+
+  const now = new Date();
+  const dedupe = Array.from(new Set(blockHashes));
+
+  const blocks = await Promise.all(
+    dedupe.map(async (blockHash) => {
+      try {
+        const block = await eth_getBlockByHash(rpcRequest, { blockHash });
+        return new Date(Number(block.timestamp * 1000n));
+      } catch (e) {
+        return now;
+      }
+    }),
+  );
+
+  const res: Record<Hash, Date> = {};
+  for (let i = 0; i < dedupe.length; i++) {
+    res[dedupe[i]] = blocks[i];
   }
+  return res;
 };
 
 // Worker

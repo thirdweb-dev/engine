@@ -69,14 +69,14 @@ const getBlocksAndTransactions = async ({
 };
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const { chainId, contractAddresses, fromBlock, toBlock } =
+  const { chainId, filters, fromBlock, toBlock } =
     superjson.parse<EnqueueProcessTransactionReceiptsData>(job.data);
 
   const { blocks, transactionsWithReceipt } = await getBlocksAndTransactions({
     chainId,
     fromBlock,
     toBlock,
-    contractAddresses,
+    filters,
   });
 
   const blockLookup = blocks.reduce((acc, curr) => {
