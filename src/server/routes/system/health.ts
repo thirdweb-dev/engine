@@ -10,6 +10,7 @@ type EngineFeature = "KEYPAIR_AUTH" | "CONTRACT_SUBSCRIPTIONS";
 const ReplySchemaOk = Type.Object({
   status: Type.String(),
   engineVersion: Type.Optional(Type.String()),
+  engineTier: Type.Optional(Type.String()),
   features: Type.Array(
     Type.Union([
       Type.Literal("KEYPAIR_AUTH"),
@@ -52,6 +53,7 @@ export async function healthCheck(fastify: FastifyInstance) {
       res.status(StatusCodes.OK).send({
         status: "OK",
         engineVersion: process.env.ENGINE_VERSION,
+        engineTier: process.env.ENGINE_TIER ?? "SELF_HOSTED",
         features: getFeatures(),
       });
     },
