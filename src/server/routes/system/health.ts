@@ -53,7 +53,7 @@ export async function healthCheck(fastify: FastifyInstance) {
       res.status(StatusCodes.OK).send({
         status: "OK",
         engineVersion: process.env.ENGINE_VERSION,
-        engineTier: process.env.ENGINE_TIER,
+        engineTier: process.env.ENGINE_TIER ?? "SELF_HOSTED",
         features: getFeatures(),
       });
     },
