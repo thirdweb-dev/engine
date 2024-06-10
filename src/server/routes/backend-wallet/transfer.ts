@@ -17,7 +17,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { txOverrides } from "../../schemas/txOverrides";
+import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
 import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -34,7 +34,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The amount of tokens to transfer",
   }),
-  ...txOverrides.properties,
+  ...txOverridesWithValueSchema.properties,
 });
 
 export async function transfer(fastify: FastifyInstance) {
@@ -63,7 +63,7 @@ export async function transfer(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { to, amount, currencyAddress } = request.body;
+      const { to, amount, currencyAddress, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
@@ -120,6 +120,7 @@ export async function transfer(fastify: FastifyInstance) {
           data: "0x",
           simulateTx,
           idempotencyKey,
+          ...txOverrides,
         }));
       } else {
         const contract = await getContract({
@@ -141,6 +142,7 @@ export async function transfer(fastify: FastifyInstance) {
           extension: "erc20",
           simulateTx,
           idempotencyKey,
+          txOverrides,
         });
       }
 

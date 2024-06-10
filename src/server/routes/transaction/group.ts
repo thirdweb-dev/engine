@@ -9,14 +9,14 @@ const ParamsSchema = Type.Object({
   groupId: Type.String(),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Array(transactionResponseSchema),
 });
 
 export async function checkGroupStatus(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/transaction/status/group/:groupId",
@@ -28,7 +28,7 @@ export async function checkGroupStatus(fastify: FastifyInstance) {
       params: ParamsSchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

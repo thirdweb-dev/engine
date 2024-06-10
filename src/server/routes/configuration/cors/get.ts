@@ -5,13 +5,13 @@ import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 
-export const ReplySchema = Type.Object({
+export const responseBodySchema = Type.Object({
   result: Type.Array(Type.String()),
 });
 
 export async function getCorsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/configuration/cors",
@@ -22,7 +22,7 @@ export async function getCorsConfiguration(fastify: FastifyInstance) {
       operationId: "getCorsConfiguration",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

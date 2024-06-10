@@ -13,13 +13,13 @@ export const AccessTokenSchema = Type.Object({
   label: Type.Union([Type.String(), Type.Null()]),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Array(AccessTokenSchema),
 });
 
 export async function getAllAccessTokens(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/auth/access-tokens/get-all",
@@ -30,7 +30,7 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
       operationId: "getAll",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

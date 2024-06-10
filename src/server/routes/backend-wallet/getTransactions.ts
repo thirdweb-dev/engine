@@ -9,7 +9,7 @@ import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = walletParamSchema;
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     transactions: Type.Array(transactionResponseSchema),
   }),
@@ -18,7 +18,7 @@ const ReplySchema = Type.Object({
 export async function getAllTransactions(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/backend-wallet/:chain/:walletAddress/get-all-transactions",
@@ -30,7 +30,7 @@ export async function getAllTransactions(fastify: FastifyInstance) {
       params: ParamsSchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

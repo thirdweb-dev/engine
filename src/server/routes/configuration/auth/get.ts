@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-export const ReplySchema = Type.Object({
+export const responseBodySchema = Type.Object({
   result: Type.Object({
     domain: Type.String(),
   }),
@@ -12,7 +12,7 @@ export const ReplySchema = Type.Object({
 
 export async function getAuthConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/configuration/auth",
@@ -23,7 +23,7 @@ export async function getAuthConfiguration(fastify: FastifyInstance) {
       operationId: "getAuthConfiguration",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

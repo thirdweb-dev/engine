@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 
-export const SessionSchema = Type.Object({
+export const sessionSchema = Type.Object({
   signerAddress: Type.String(),
   startDate: Type.String(),
   expirationDate: Type.String(),

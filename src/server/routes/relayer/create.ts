@@ -5,7 +5,7 @@ import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   name: Type.Optional(Type.String()),
   chain: Type.String(),
   backendWalletAddress: Type.String({
@@ -30,7 +30,7 @@ const BodySchema = Type.Object({
   ),
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     name: "My relayer",
     chain: "mainnet",
@@ -40,7 +40,7 @@ BodySchema.examples = [
   },
 ];
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     relayerId: Type.String(),
   }),
@@ -48,8 +48,8 @@ const ReplySchema = Type.Object({
 
 export async function createRelayer(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
-    Body: Static<typeof BodySchema>;
+    Reply: Static<typeof responseBodySchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/relayer/create",
@@ -58,10 +58,10 @@ export async function createRelayer(fastify: FastifyInstance) {
       description: "Create a new meta-transaction relayer",
       tags: ["Relayer"],
       operationId: "create",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

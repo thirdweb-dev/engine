@@ -10,8 +10,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
-import { txOverrides } from "../../../schemas/txOverrides";
-import { walletHeaderSchema } from "../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
@@ -30,7 +30,7 @@ const writeRequestBodySchema = Type.Object({
       Type.Any(),
     ]),
   ),
-  ...txOverrides.properties,
+  ...txOverridesWithValueSchema.properties,
   abi: Type.Optional(Type.Array(abiSchema)),
 });
 
@@ -50,7 +50,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -66,7 +66,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -89,9 +89,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         simulateTx,
         extension: "none",
         idempotencyKey,
-        txOverrides: {
-          ...txOverrides,
-        },
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

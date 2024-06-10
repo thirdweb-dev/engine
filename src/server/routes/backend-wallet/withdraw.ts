@@ -11,7 +11,7 @@ import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Omit(walletParamSchema, ["walletAddress"]);
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   toAddress: Type.String({
     description: "Address to withdraw all funds to",
   }),
@@ -21,7 +21,7 @@ export async function withdraw(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/backend-wallet/:chain/withdraw",
@@ -31,7 +31,7 @@ export async function withdraw(fastify: FastifyInstance) {
       tags: ["Backend Wallet"],
       operationId: "withdraw",
       params: ParamsSchema,
-      body: BodySchema,
+      body: requestBodySchema,
       headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,

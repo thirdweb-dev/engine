@@ -5,9 +5,9 @@ import { updateConfiguration } from "../../../../db/configuration/updateConfigur
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { sdkCache } from "../../../../utils/cache/getSdk";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { ReplySchema } from "./get";
+import { responseBodySchema } from "./get";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   chainOverrides: Type.Array(
     Type.Object({
       name: Type.String(),
@@ -24,7 +24,7 @@ const BodySchema = Type.Object({
   ),
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     chainOverrides: [
       {
@@ -45,8 +45,8 @@ BodySchema.examples = [
 
 export async function updateChainsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/configuration/chains",
@@ -55,10 +55,10 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
       description: "Update chain overrides configuration",
       tags: ["Configuration"],
       operationId: "updateChainsConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

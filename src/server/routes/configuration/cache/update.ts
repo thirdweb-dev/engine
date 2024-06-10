@@ -6,9 +6,9 @@ import { getConfig } from "../../../../utils/cache/getConfig";
 import { clearCacheCron } from "../../../../utils/cron/clearCacheCron";
 import { isValidCron } from "../../../../utils/cron/isValidCron";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { ReplySchema } from "./get";
+import { responseBodySchema } from "./get";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   clearCacheCronSchedule: Type.String({
     minLength: 11,
     description:
@@ -19,7 +19,7 @@ const BodySchema = Type.Object({
 
 export async function updateCacheConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/configuration/cache",
@@ -28,10 +28,10 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
       description: "Update cache configuration",
       tags: ["Configuration"],
       operationId: "updateCacheConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

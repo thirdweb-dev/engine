@@ -21,7 +21,7 @@ const ParamsSchema = Type.Object({
   relayerId: Type.String(),
 });
 
-const BodySchema = Type.Union([
+const requestBodySchema = Type.Union([
   Type.Object({
     type: Type.Literal("forward"),
     request: Type.Object({
@@ -59,7 +59,7 @@ const BodySchema = Type.Union([
   }),
 ]);
 
-const ReplySchema = Type.Composite([
+const responseBodySchema = Type.Composite([
   Type.Object({
     result: Type.Optional(
       Type.Object({
@@ -81,8 +81,8 @@ const ReplySchema = Type.Composite([
 export async function relayTransaction(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
-    Reply: Static<typeof ReplySchema>;
-    Body: Static<typeof BodySchema>;
+    Reply: Static<typeof responseBodySchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/relayer/:relayerId",
@@ -92,7 +92,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
       tags: ["Relayer"],
       operationId: "relay",
       params: ParamsSchema,
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,

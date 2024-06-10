@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Array(
     Type.Object({
       id: Type.String(),
@@ -28,7 +28,7 @@ export async function getAllRelayers(fastify: FastifyInstance) {
       operationId: "getAll",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

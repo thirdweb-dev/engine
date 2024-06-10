@@ -6,9 +6,9 @@ import { getConfig } from "../../../../utils/cache/getConfig";
 import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
-import { ReplySchema } from "./get";
+import { responseBodySchema } from "./get";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   urlsToRemove: Type.Array(
     Type.String({
       description: "Comma separated list of origins to remove",
@@ -16,7 +16,7 @@ const BodySchema = Type.Object({
   ),
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     urlsToRemove: ["https://example.com", "https://subdomain.example.com"],
   },
@@ -24,8 +24,8 @@ BodySchema.examples = [
 
 export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "DELETE",
     url: "/configuration/cors",
@@ -34,10 +34,10 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
       description: "Remove URLs from CORS configuration",
       tags: ["Configuration"],
       operationId: "removeUrlToCorsConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

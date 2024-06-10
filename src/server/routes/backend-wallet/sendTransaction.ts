@@ -7,7 +7,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { txOverridesWithoutValue } from "../../schemas/txOverrides";
+import { txOverridesSchema } from "../../schemas/txOverrides";
 import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -27,7 +27,7 @@ const requestBodySchema = Type.Object({
   value: Type.String({
     examples: ["10000000"],
   }),
-  ...txOverridesWithoutValue.properties,
+  ...txOverridesSchema.properties,
 });
 
 requestBodySchema.examples = [

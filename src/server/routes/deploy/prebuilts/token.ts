@@ -13,8 +13,8 @@ import {
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { txOverrides } from "../../../schemas/txOverrides";
-import { walletHeaderSchema } from "../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUTS
@@ -32,7 +32,7 @@ const requestBodySchema = Type.Object({
       description: "Version of the contract to deploy. Defaults to latest.",
     }),
   ),
-  ...txOverrides.properties,
+  ...txOverridesWithValueSchema.properties,
 });
 
 // Example for the Request Body
@@ -64,7 +64,7 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
       operationId: "deployToken",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -72,13 +72,13 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { contractMetadata, version } = request.body;
+      const { contractMetadata, version, txOverrides } = request.body;
       const chainId = await getChainIdFromChain(chain);
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });
       const tx = await sdk.deployer.deployBuiltInContract.prepare(
@@ -95,6 +95,7 @@ export async function deployPrebuiltToken(fastify: FastifyInstance) {
         deployedContractAddress: deployedAddress,
         deployedContractType: "token",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

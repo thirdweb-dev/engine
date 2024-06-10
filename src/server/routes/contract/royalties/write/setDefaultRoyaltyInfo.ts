@@ -1,4 +1,4 @@
-import { Static } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../db/transactions/queueTx";
@@ -10,12 +10,16 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
 const requestSchema = contractParamSchema;
-const requestBodySchema = RoyaltySchema;
+const requestBodySchema = Type.Object({
+  ...RoyaltySchema.properties,
+  ...txOverridesWithValueSchema.properties,
+});
 
 requestBodySchema.examples = [
   {
@@ -41,7 +45,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
       description: "Set the royalty recipient and fee for the smart contract.",
       tags: ["Contract-Royalties"],
       operationId: "setDefaultRoyaltyInfo",
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -53,12 +57,13 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { seller_fee_basis_points, fee_recipient } = request.body;
+      const { seller_fee_basis_points, fee_recipient, txOverrides } =
+        request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -78,6 +83,7 @@ export async function setDefaultRoyaltyInfo(fastify: FastifyInstance) {
         simulateTx,
         extension: "none",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({
