@@ -2,13 +2,13 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   message: Type.String(),
 });
 
 export async function home(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/",
@@ -19,7 +19,7 @@ export async function home(fastify: FastifyInstance) {
       tags: ["System"],
       operationId: "home",
       response: {
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

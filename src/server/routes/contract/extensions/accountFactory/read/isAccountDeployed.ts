@@ -8,7 +8,7 @@ import {
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Boolean({
     description: "Whether or not the account has been deployed",
   }),
@@ -29,7 +29,7 @@ const QuerySchema = Type.Object({
 export const isAccountDeployed = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
     Querystring: Static<typeof QuerySchema>;
   }>({
     method: "GET",
@@ -44,7 +44,7 @@ export const isAccountDeployed = async (fastify: FastifyInstance) => {
       querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (request, reply) => {

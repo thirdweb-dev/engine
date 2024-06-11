@@ -8,7 +8,7 @@ import {
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.String({
     description: "New account counter-factual address.",
   }),
@@ -28,7 +28,7 @@ const QuerySchema = Type.Object({
 export const predictAccountAddress = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
     Querystring: Static<typeof QuerySchema>;
   }>({
     method: "GET",
@@ -42,7 +42,7 @@ export const predictAccountAddress = async (fastify: FastifyInstance) => {
       querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (request, reply) => {

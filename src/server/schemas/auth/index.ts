@@ -5,7 +5,7 @@ export enum Permission {
   Admin = "ADMIN",
 }
 
-export const PermissionsSchema = Type.Union([
+export const permissionsSchema = Type.Union([
   Type.Literal(Permission.Admin),
   Type.Literal(Permission.Owner),
 ]);

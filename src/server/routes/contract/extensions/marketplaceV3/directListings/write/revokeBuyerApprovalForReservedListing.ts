@@ -9,7 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -21,6 +22,7 @@ const requestBodySchema = Type.Object({
   buyerAddress: Type.String({
     description: "The wallet address of the buyer to approve.",
   }),
+  ...txOverridesWithValueSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -48,7 +50,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
         "Revoke approval for a buyer to purchase a reserved listing.",
       tags: ["Marketplace-DirectListings"],
       operationId: "revokeBuyerApprovalForReservedListing",
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -60,12 +62,12 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { listingId, buyerAddress } = request.body;
+      const { listingId, buyerAddress, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -86,6 +88,7 @@ export async function directListingsRevokeBuyerApprovalForReservedListing(
         simulateTx,
         extension: "marketplace-v3-direct-listings",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

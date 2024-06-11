@@ -9,7 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -18,6 +19,7 @@ const requestBodySchema = Type.Object({
   listingId: Type.String({
     description: "The ID of the listing you want to cancel.",
   }),
+  ...txOverridesWithValueSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -42,7 +44,7 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
         "Cancel a direct listing from this marketplace contract. Only the creator of the listing can cancel it.",
       tags: ["Marketplace-DirectListings"],
       operationId: "cancelListing",
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -54,12 +56,12 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { listingId } = request.body;
+      const { listingId, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -76,6 +78,7 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
         simulateTx,
         extension: "marketplace-v3-direct-listings",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

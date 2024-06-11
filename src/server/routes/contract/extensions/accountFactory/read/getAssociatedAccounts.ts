@@ -8,7 +8,7 @@ import {
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Array(Type.String(), {
     description:
       "The account addresses of all the accounts with a specific signer in this factory",
@@ -24,7 +24,7 @@ const QuerySchema = Type.Object({
 export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
     Querystring: Static<typeof QuerySchema>;
   }>({
     method: "GET",
@@ -39,7 +39,7 @@ export const getAssociatedAccounts = async (fastify: FastifyInstance) => {
       querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (request, reply) => {

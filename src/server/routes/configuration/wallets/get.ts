@@ -5,7 +5,7 @@ import { WalletType } from "../../../../schema/wallet";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-export const ReplySchema = Type.Object({
+export const responseBodySchema = Type.Object({
   result: Type.Union([
     Type.Object({
       type: Type.Literal(WalletType.local),
@@ -29,7 +29,7 @@ export const ReplySchema = Type.Object({
 
 export async function getWalletsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/configuration/wallets",
@@ -40,7 +40,7 @@ export async function getWalletsConfiguration(fastify: FastifyInstance) {
       operationId: "getWalletsConfiguration",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

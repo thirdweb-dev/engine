@@ -29,12 +29,12 @@ const ParamsSchema = Type.Object({
   chain: Type.String(),
 });
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   // signedUserOp: Type.Union([UserOpString, UserOp]),
   signedUserOp: Type.Any(),
 });
 
-const ReplySchema = Type.Union([
+const responseBodySchema = Type.Union([
   Type.Object({
     result: Type.Object({
       userOpHash: Type.String(),
@@ -62,8 +62,8 @@ type RpcResponse =
 export async function sendSignedUserOp(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/transaction/:chain/send-signed-user-op",
@@ -73,10 +73,10 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
       tags: ["Transaction"],
       operationId: "sendSignedUserOp",
       params: ParamsSchema,
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

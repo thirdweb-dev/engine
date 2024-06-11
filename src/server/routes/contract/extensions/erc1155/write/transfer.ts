@@ -9,8 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { txOverrides } from "../../../../../schemas/txOverrides";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -25,7 +25,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "the amount of tokens to transfer",
   }),
-  ...txOverrides.properties,
+  ...txOverridesWithValueSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -51,7 +51,7 @@ export async function erc1155transfer(fastify: FastifyInstance) {
       tags: ["ERC1155"],
       operationId: "transfer",
       params: requestSchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
       response: {
@@ -62,12 +62,12 @@ export async function erc1155transfer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { to, tokenId, amount } = request.body;
+      const { to, tokenId, amount, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -84,6 +84,7 @@ export async function erc1155transfer(fastify: FastifyInstance) {
         simulateTx,
         extension: "erc1155",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

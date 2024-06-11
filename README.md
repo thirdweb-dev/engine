@@ -40,6 +40,10 @@ Engine is an open-source, backend HTTP server that provides a production-ready i
 
 ## Get Engine
 
+### Cloud-host
+
+[Get Engine hosted and managed by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted).
+
 ### Self-host
 
 Host Engine on your own instructure for free. [View self-host instructions](https://portal.thirdweb.com/engine/self-host).
@@ -47,10 +51,6 @@ Host Engine on your own instructure for free. [View self-host instructions](http
 Other deployment options:
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/fcEVay)
-
-### Cloud-host
-
-[Get Engine hosted and managed by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted).
 
 ## Contributing
 

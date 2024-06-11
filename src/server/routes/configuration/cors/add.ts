@@ -5,9 +5,9 @@ import { updateConfiguration } from "../../../../db/configuration/updateConfigur
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
-import { ReplySchema } from "./get";
+import { responseBodySchema } from "./get";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   urlsToAdd: Type.Array(
     Type.String({
       description: "Comma separated list of origins that will call Engine",
@@ -16,7 +16,7 @@ const BodySchema = Type.Object({
   ),
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     urlsToAdd: ["https://example.com", "https://subdomain.example.com"],
   },
@@ -24,8 +24,8 @@ BodySchema.examples = [
 
 export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/configuration/cors",
@@ -34,10 +34,10 @@ export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
       description: "Add a URL to allow client-side calls to Engine",
       tags: ["Configuration"],
       operationId: "addUrlToCorsConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

@@ -12,7 +12,7 @@ import {
 } from "../../../schemas/keypairs";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   publicKey: Type.String({
     description:
       "The public key of your keypair beginning with '-----BEGIN PUBLIC KEY-----'.",
@@ -21,7 +21,7 @@ const BodySchema = Type.Object({
   label: Type.Optional(Type.String()),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     keypair: KeypairSchema,
   }),
@@ -29,8 +29,8 @@ const ReplySchema = Type.Object({
 
 export async function addKeypair(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/auth/keypair/add",
@@ -39,10 +39,10 @@ export async function addKeypair(fastify: FastifyInstance) {
       description: "Add the public key for a keypair",
       tags: ["Keypair"],
       operationId: "add",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

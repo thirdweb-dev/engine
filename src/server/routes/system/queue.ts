@@ -8,7 +8,7 @@ const QuerySchema = Type.Object({
   walletAddress: Type.Optional(Type.String()),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     queued: Type.Number(),
     pending: Type.Number(),
@@ -18,7 +18,7 @@ const ReplySchema = Type.Object({
 export async function queueStatus(fastify: FastifyInstance) {
   fastify.route<{
     Querystring: Static<typeof QuerySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/system/queue",
@@ -31,7 +31,7 @@ export async function queueStatus(fastify: FastifyInstance) {
       querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {
