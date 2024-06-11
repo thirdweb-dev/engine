@@ -20,7 +20,10 @@ const _queue = redis
 
 export type EnqueueProcessTransactionReceiptsData = {
   chainId: number;
-  filters: { address: string }[];
+  filters: {
+    address: string;
+    functions: string[];
+  }[];
   fromBlock: number; // inclusive
   toBlock: number; // inclusive
 };

@@ -35,12 +35,18 @@ const bodySchema = Type.Object({
   filterEvents: Type.Optional(
     Type.Array(Type.String(), {
       description:
-        "A case-sensitive list of event log names to parse. If empty, parse all event logs.",
+        "A case-sensitive list of event names to filter event logs. Parses all event logs by default.",
     }),
   ),
   processTransactionReceipts: Type.Boolean({
     description: "If true, parse transaction receipts for this contract.",
   }),
+  filterFunctions: Type.Optional(
+    Type.Array(Type.String(), {
+      description:
+        "A case-sensitive list of function names to filter transaction receipts. Parses all transaction receipts by default.",
+    }),
+  ),
 });
 
 const responseSchema = Type.Object({
@@ -82,6 +88,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
         processEventLogs,
         filterEvents = [],
         processTransactionReceipts,
+        filterFunctions = [],
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
@@ -136,6 +143,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
         processEventLogs,
         filterEvents,
         processTransactionReceipts,
+        filterFunctions,
       });
 
       reply.status(StatusCodes.OK).send({

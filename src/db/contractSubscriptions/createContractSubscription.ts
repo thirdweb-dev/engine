@@ -7,6 +7,7 @@ interface CreateContractSubscriptionParams {
   processEventLogs: boolean;
   filterEvents: string[];
   processTransactionReceipts: boolean;
+  filterFunctions: string[];
 }
 
 export const createContractSubscription = async ({
@@ -16,6 +17,7 @@ export const createContractSubscription = async ({
   processEventLogs,
   filterEvents,
   processTransactionReceipts,
+  filterFunctions,
 }: CreateContractSubscriptionParams) => {
   return prisma.contractSubscriptions.create({
     data: {
@@ -25,6 +27,7 @@ export const createContractSubscription = async ({
       processEventLogs,
       filterEvents,
       processTransactionReceipts,
+      filterFunctions,
     },
     include: {
       webhook: true,

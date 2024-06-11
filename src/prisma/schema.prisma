@@ -195,6 +195,7 @@ model ContractSubscriptions {
   processEventLogs           Boolean  @default(true)
   filterEvents               String[] @default([]) // empty array = no filter
   processTransactionReceipts Boolean  @default(true)
+  filterFunctions            String[] @default([]) // empty array = no filter
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

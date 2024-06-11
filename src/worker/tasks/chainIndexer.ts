@@ -81,12 +81,13 @@ export const createChainIndexerTask = async (args: {
             });
           }
 
-          // Identify contract addresses to parse transaction receipts, if any.
+          // Identify addresses + function names to parse transaction receipts, if any.
           const transactionReceiptFilters: { address: string }[] =
             contractSubscriptions
-              .filter((cs) => cs.processTransactionReceipts)
-              .map((cs) => ({
-                address: cs.contractAddress.toLowerCase(),
+              .filter((c) => c.processTransactionReceipts)
+              .map((c) => ({
+                address: c.contractAddress.toLowerCase(),
+                functions: c.filterFunctions,
               }));
           if (transactionReceiptFilters.length > 0) {
             await enqueueProcessTransactionReceipts({

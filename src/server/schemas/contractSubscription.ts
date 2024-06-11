@@ -10,6 +10,7 @@ export const contractSubscriptionSchema = Type.Object({
   processEventLogs: Type.Boolean(),
   filterEvents: Type.Array(Type.String()),
   processTransactionReceipts: Type.Boolean(),
+  filterFunctions: Type.Array(Type.String()),
   createdAt: Type.Unsafe<Date>({
     type: "string",
     format: "date",
@@ -28,5 +29,6 @@ export const toContractSubscriptionSchema = (
   processEventLogs: contractSubscription.processEventLogs,
   filterEvents: contractSubscription.filterEvents,
   processTransactionReceipts: contractSubscription.processTransactionReceipts,
+  filterFunctions: contractSubscription.filterFunctions,
   createdAt: contractSubscription.createdAt,
 });

@@ -103,13 +103,20 @@ export const getWebhooksByContractAddresses = async (
 
 type GetLogsParams = EnqueueProcessEventLogsData;
 
-const getLogs = async (
-  params: GetLogsParams,
-): Promise<Prisma.ContractEventLogsCreateInput[]> => {
-  const chain = defineChain(params.chainId);
+const getLogs = async ({
+  chainId,
+  fromBlock,
+  toBlock,
+  filters,
+}: GetLogsParams): Promise<Prisma.ContractEventLogsCreateInput[]> => {
+  if (filters.length === 0) {
+    return [];
+  }
+
+  const chain = defineChain(chainId);
 
   // Get events for each contract address. Apply any filters.
-  const promises = params.filters.map(async (f) => {
+  const promises = filters.map(async (f) => {
     const contract = getContract({
       client: thirdwebClient,
       chain,
@@ -128,12 +135,10 @@ const getLogs = async (
       }
     }
 
-    // TODO: add filter for function name.
-
     return await getContractEvents({
       contract,
-      fromBlock: BigInt(params.fromBlock),
-      toBlock: BigInt(params.toBlock),
+      fromBlock: BigInt(fromBlock),
+      toBlock: BigInt(toBlock),
       events,
     });
   });
@@ -146,7 +151,7 @@ const getLogs = async (
   // Transform logs into the DB schema.
   return allEvents.map(
     (event): Prisma.ContractEventLogsCreateInput => ({
-      chainId: params.chainId,
+      chainId,
       blockNumber: Number(event.blockNumber),
       contractAddress: event.address.toLowerCase(),
       transactionHash: event.transactionHash,
@@ -156,7 +161,7 @@ const getLogs = async (
       topic3: event.topics[3],
       data: event.data,
       eventName: event.eventName,
-      decodedLog: event.args,
+      decodedLog: event.args ?? {},
       timestamp: blockTimestamps[event.blockHash],
       transactionIndex: event.transactionIndex,
       logIndex: event.logIndex,
@@ -164,7 +169,13 @@ const getLogs = async (
   );
 };
 
-export const getBlockTimestamps = async (
+/**
+ * Gets the timestamps for a list of block hashes. Falls back to the current time.
+ * @param chain
+ * @param blockHashes
+ * @returns Record<Hash, Date>
+ */
+const getBlockTimestamps = async (
   chain: Chain,
   blockHashes: Hash[],
 ): Promise<Record<Hash, Date>> => {
@@ -180,7 +191,7 @@ export const getBlockTimestamps = async (
     dedupe.map(async (blockHash) => {
       try {
         const block = await eth_getBlockByHash(rpcRequest, { blockHash });
-        return new Date(Number(block.timestamp * 1000n));
+        return new Date(Number(block.timestamp) * 1000);
       } catch (e) {
         return now;
       }
