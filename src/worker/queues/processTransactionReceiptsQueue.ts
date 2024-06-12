@@ -1,5 +1,6 @@
 import { Queue } from "bullmq";
 import SuperJSON from "superjson";
+import { Address } from "thirdweb";
 import { getConfig } from "../../utils/cache/getConfig";
 import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
@@ -18,10 +19,11 @@ const _queue = redis
     })
   : null;
 
+// Each job handles a block range for a given chain, filtered by addresses + events.
 export type EnqueueProcessTransactionReceiptsData = {
   chainId: number;
   filters: {
-    address: string;
+    address: Address;
     functions: string[];
   }[];
   fromBlock: number; // inclusive

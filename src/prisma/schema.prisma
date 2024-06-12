@@ -246,6 +246,7 @@ model ContractTransactionReceipts {
   blockHash       String
   timestamp       DateTime
   data            String
+  functionName    String?
 
   to               String
   from             String

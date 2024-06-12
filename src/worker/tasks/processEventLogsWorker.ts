@@ -3,8 +3,10 @@ import { AbiEvent } from "abitype";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
+  Address,
   Chain,
   PreparedEvent,
+  ThirdwebContract,
   defineChain,
   eth_getBlockByHash,
   getContract,
@@ -48,7 +50,6 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
   // Store logs to DB.
   const insertedLogs = await bulkInsertContractEventLogs({ logs });
-
   if (insertedLogs.length === 0) {
     return;
   }
@@ -103,6 +104,10 @@ export const getWebhooksByContractAddresses = async (
 
 type GetLogsParams = EnqueueProcessEventLogsData;
 
+/**
+ * Gets all event logs for the subscribed addresses and filters.
+ * @returns A list of logs to insert to the ContractEventLogs table.
+ */
 const getLogs = async ({
   chainId,
   fromBlock,
@@ -114,22 +119,32 @@ const getLogs = async ({
   }
 
   const chain = defineChain(chainId);
+  const addressConfig: Record<
+    Address,
+    {
+      contract: ThirdwebContract;
+    }
+  > = {};
+  for (const filter of filters) {
+    addressConfig[filter.address] = {
+      contract: getContract({
+        client: thirdwebClient,
+        chain,
+        address: filter.address,
+      }),
+    };
+  }
 
   // Get events for each contract address. Apply any filters.
   const promises = filters.map(async (f) => {
-    const contract = getContract({
-      client: thirdwebClient,
-      chain,
-      address: f.address,
-    });
+    const { contract } = addressConfig[f.address];
 
     // Get events to filter by, if any.
     const events: PreparedEvent<AbiEvent>[] = [];
-    if (f.events.length) {
+    if (f.events.length > 0) {
       const abi = await resolveContractAbi<AbiEvent[]>(contract);
-      for (const event of f.events) {
-        const signature = abi.find((a) => a.name === event);
-        if (signature) {
+      for (const signature of abi) {
+        if (f.events.includes(signature.name)) {
           events.push(prepareEvent({ signature }));
         }
       }
@@ -142,31 +157,86 @@ const getLogs = async ({
       events,
     });
   });
-  // Query and flatten all events.
-  const allEvents = (await Promise.all(promises)).flat();
 
-  const blockHashes = allEvents.map((e) => e.blockHash);
+  // Query and flatten all events.
+  const allLogs = (await Promise.all(promises)).flat();
+
+  // Get timestamps for blocks.
+  const blockHashes = allLogs.map((e) => e.blockHash);
   const blockTimestamps = await getBlockTimestamps(chain, blockHashes);
 
   // Transform logs into the DB schema.
-  return allEvents.map(
-    (event): Prisma.ContractEventLogsCreateInput => ({
-      chainId,
-      blockNumber: Number(event.blockNumber),
-      contractAddress: event.address.toLowerCase(),
-      transactionHash: event.transactionHash,
-      topic0: event.topics[0],
-      topic1: event.topics[1],
-      topic2: event.topics[2],
-      topic3: event.topics[3],
-      data: event.data,
-      eventName: event.eventName,
-      decodedLog: event.args ?? {},
-      timestamp: blockTimestamps[event.blockHash],
-      transactionIndex: event.transactionIndex,
-      logIndex: event.logIndex,
-    }),
+  return await Promise.all(
+    allLogs.map(
+      async (log): Promise<Prisma.ContractEventLogsCreateInput> => ({
+        chainId,
+        blockNumber: Number(log.blockNumber),
+        contractAddress: log.address.toLowerCase(),
+        transactionHash: log.transactionHash,
+        topic0: log.topics[0],
+        topic1: log.topics[1],
+        topic2: log.topics[2],
+        topic3: log.topics[3],
+        data: log.data,
+        eventName: log.eventName,
+        decodedLog: await formatDecodedLog({
+          contract:
+            addressConfig[log.address.toLowerCase() as Address].contract,
+          eventName: log.eventName,
+          logArgs: log.args as Record<string, unknown>,
+        }),
+        timestamp: blockTimestamps[log.blockHash],
+        transactionIndex: log.transactionIndex,
+        logIndex: log.logIndex,
+      }),
+    ),
   );
+};
+
+/**
+ * Transform v5 SDK to v4 log format.
+ *
+ * Example input:
+ *    {
+ *      "to": "0x123...",
+ *      "quantity": 2n
+ *    }
+ *
+ * Example output:
+ *    {
+ *      "to": {
+ *        "type:" "address",
+ *        "value": "0x123..."
+ *      },
+ *      "quantity": {
+ *        "type:" "uint256",
+ *        "value": "2"
+ *      },
+ *    }
+ */
+const formatDecodedLog = async (args: {
+  contract: ThirdwebContract;
+  eventName: string;
+  logArgs: Record<string, unknown>;
+}): Promise<Record<string, Prisma.InputJsonObject> | undefined> => {
+  const { contract, eventName, logArgs } = args;
+
+  const abi = await resolveContractAbi<AbiEvent[]>(contract);
+  const eventSignature = abi.find((a) => a.name === eventName);
+  if (!eventSignature) {
+    return;
+  }
+
+  const res: Record<string, Prisma.InputJsonObject> = {};
+  for (const { name, type } of eventSignature.inputs) {
+    if (name && name in logArgs) {
+      res[name] = {
+        type,
+        value: (logArgs[name] as any).toString(),
+      };
+    }
+  }
+  return res;
 };
 
 /**

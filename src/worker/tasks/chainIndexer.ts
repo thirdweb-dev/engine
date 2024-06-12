@@ -1,4 +1,5 @@
 import { StaticJsonRpcBatchProvider } from "@thirdweb-dev/sdk";
+import { Address } from "thirdweb";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
 import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";
 import { prisma } from "../../db/client";
@@ -64,12 +65,12 @@ export const createChainIndexerTask = async (args: {
 
           // Identify contract addresses + event names to parse event logs, if any.
           const eventLogFilters: {
-            address: string;
+            address: Address;
             events: string[];
           }[] = contractSubscriptions
             .filter((c) => c.processEventLogs)
             .map((c) => ({
-              address: c.contractAddress,
+              address: c.contractAddress as Address,
               events: c.filterEvents,
             }));
           if (eventLogFilters.length > 0) {
@@ -82,13 +83,15 @@ export const createChainIndexerTask = async (args: {
           }
 
           // Identify addresses + function names to parse transaction receipts, if any.
-          const transactionReceiptFilters: { address: string }[] =
-            contractSubscriptions
-              .filter((c) => c.processTransactionReceipts)
-              .map((c) => ({
-                address: c.contractAddress.toLowerCase(),
-                functions: c.filterFunctions,
-              }));
+          const transactionReceiptFilters: {
+            address: Address;
+            functions: string[];
+          }[] = contractSubscriptions
+            .filter((c) => c.processTransactionReceipts)
+            .map((c) => ({
+              address: c.contractAddress as Address,
+              functions: c.filterFunctions,
+            }));
           if (transactionReceiptFilters.length > 0) {
             await enqueueProcessTransactionReceipts({
               chainId,

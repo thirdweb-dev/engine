@@ -36,6 +36,7 @@ const bodySchema = Type.Object({
     Type.Array(Type.String(), {
       description:
         "A case-sensitive list of event names to filter event logs. Parses all event logs by default.",
+      examples: ["Transfer"],
     }),
   ),
   processTransactionReceipts: Type.Boolean({
@@ -45,6 +46,7 @@ const bodySchema = Type.Object({
     Type.Array(Type.String(), {
       description:
         "A case-sensitive list of function names to filter transaction receipts. Parses all transaction receipts by default.",
+      examples: ["mintTo"],
     }),
   ),
 });
@@ -92,7 +94,6 @@ export async function addContractSubscription(fastify: FastifyInstance) {
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
-      const standardizedContractAddress = contractAddress.toLowerCase();
 
       // Must parse logs or receipts.
       if (!processEventLogs && !processTransactionReceipts) {
@@ -138,7 +139,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
       // Create the contract subscription.
       const contractSubscription = await createContractSubscription({
         chainId,
-        contractAddress: standardizedContractAddress,
+        contractAddress: contractAddress.toLowerCase(),
         webhookId,
         processEventLogs,
         filterEvents,

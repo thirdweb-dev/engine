@@ -1,20 +1,18 @@
 import { Prisma } from "@prisma/client";
+import { AbiEvent } from "abitype";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
+  Address,
+  ThirdwebContract,
   defineChain,
   eth_getBlockByNumber,
   eth_getTransactionReceipt,
+  getContract,
   getRpcClient,
 } from "thirdweb";
-import { TransactionReceipt } from "thirdweb/transaction";
-import {
-  Block,
-  FormattedTransaction,
-  Hash,
-  Transaction,
-  decodeFunctionData,
-} from "viem";
+import { resolveContractAbi } from "thirdweb/contract";
+import { Abi, Hash, decodeFunctionData } from "viem";
 import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { logger } from "../../utils/logger";
@@ -29,130 +27,16 @@ import { enqueueWebhook } from "../queues/sendWebhookQueue";
 import { getContractId } from "../utils/contractId";
 import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
 
-const getTransactionsAndReceipts = async ({
-  chainId,
-  fromBlock,
-  toBlock,
-  filters,
-}: EnqueueProcessTransactionReceiptsData): Promise<
-  {
-    block: Block;
-    transactions: Record<Hash, FormattedTransaction>;
-    receipts: Record<Hash, TransactionReceipt>;
-  }[]
-> => {
-  if (filters.length === 0) {
-    return [];
-  }
-
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain: defineChain(chainId),
-  });
-
-  // Get array of block numbers between `fromBlock` and `toBlock` inclusive.
-  const blockRange: bigint[] = [];
-  for (let i = fromBlock; i <= toBlock; i++) {
-    blockRange.push(BigInt(i));
-  }
-
-  // Get map of { k: address => v: function names to filter, if any }.
-  const addressFilters: Record<string, string[]> = {};
-  for (const filter of filters) {
-    addressFilters[filter.address] = filter.functions;
-  }
-
-  const getMatchedTransactionsFromBlock = async (
-    blockNumber: bigint,
-  ): Promise<{
-    block: Block;
-    transactions: Record<Hash, FormattedTransaction>;
-    receipts: Record<Hash, TransactionReceipt>;
-  }> => {
-    const block = await eth_getBlockByNumber(rpcRequest, {
-      blockNumber,
-      includeTransactions: true,
-    });
-
-    const transactions: Record<Hash, Transaction> = {};
-    const receipts: Record<Hash, TransactionReceipt> = {};
-
-    for (const transaction of block.transactions) {
-      const toAddress = transaction.to?.toLowerCase();
-      if (!toAddress || !(toAddress in addressFilters)) {
-        // This transaction is not to a subscribed address.
-        continue;
-      }
-
-      const filterFunctions = new Set(addressFilters[toAddress]);
-      if (filterFunctions.size > 0) {
-        const { functionName } = decodeFunctionData({
-          // TODO: get abi from contract
-          abi,
-          data: transaction.input,
-        });
-        if (!filterFunctions.has(functionName)) {
-          // This transaction is to a subscribed address but not a subscribed function name.
-          continue;
-        }
-      }
-
-      // Store the transaction and receipt.
-      transactions[transaction.hash] = transaction;
-      receipts[transaction.hash] = await eth_getTransactionReceipt(rpcRequest, {
-        hash: transaction.hash,
-      });
-    }
-
-    return { block, transactions, receipts };
-  };
-
-  return await Promise.all(
-    blockRange.map((blockNumber) =>
-      getMatchedTransactionsFromBlock(blockNumber),
-    ),
-  );
-};
-
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { chainId, filters, fromBlock, toBlock } =
     superjson.parse<EnqueueProcessTransactionReceiptsData>(job.data);
 
-  const results = await getTransactionsAndReceipts({
+  const receipts = await getFormattedTransactionReceipts({
     chainId,
     fromBlock,
     toBlock,
     filters,
   });
-
-  const receipts: Prisma.ContractTransactionReceiptsCreateInput[] = [];
-  for (const { block, transactions, receipts: _receipts } of results) {
-    for (const [hash, transaction] of Object.entries(transactions)) {
-      const receipt = _receipts[hash as Hash];
-      if (!receipt.to) {
-        continue;
-      }
-
-      receipts.push({
-        chainId,
-        blockNumber: Number(receipt.blockNumber),
-        contractAddress: receipt.to.toLowerCase(),
-        contractId: getContractId(chainId, receipt.to.toLowerCase()),
-        blockHash: receipt.blockHash.toLowerCase(),
-        transactionHash: receipt.transactionHash.toLowerCase(),
-        timestamp: new Date(Number(block.timestamp) * 1000),
-        to: receipt.to.toLowerCase(),
-        from: receipt.from.toLowerCase(),
-        value: transaction.value.toString(),
-        data: transaction.input,
-        transactionIndex: receipt.transactionIndex,
-        gasUsed: receipt.gasUsed.toString(),
-        effectiveGasPrice: receipt.effectiveGasPrice.toString(),
-        status: receipt.status ? 1 : 0,
-      });
-    }
-  }
-
   if (receipts.length === 0) {
     return;
   }
@@ -197,6 +81,135 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       )} after ${job.opts.delay / 1000}s.`,
     });
   }
+};
+
+/**
+ * Gets all transaction receipts for the subscribed addresses and filters.
+ * @returns A list of receipts to insert to the ContractTransactionReceipts table.
+ */
+const getFormattedTransactionReceipts = async ({
+  chainId,
+  fromBlock,
+  toBlock,
+  filters,
+}: EnqueueProcessTransactionReceiptsData): Promise<
+  Prisma.ContractTransactionReceiptsCreateInput[]
+> => {
+  if (filters.length === 0) {
+    return [];
+  }
+
+  const chain = defineChain(chainId);
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain,
+  });
+
+  // Get array of block numbers between `fromBlock` and `toBlock` inclusive.
+  const blockRange: bigint[] = [];
+  for (let i = fromBlock; i <= toBlock; i++) {
+    blockRange.push(BigInt(i));
+  }
+
+  // Get the filtered functions (empty = no filter) and contract object for each address.
+  const addressConfig: Record<
+    Address,
+    {
+      functions: Set<string>;
+      contract: ThirdwebContract;
+    }
+  > = {};
+  for (const filter of filters) {
+    addressConfig[filter.address] = {
+      functions: new Set(filter.functions),
+      contract: getContract({
+        client: thirdwebClient,
+        chain,
+        address: filter.address,
+      }),
+    };
+  }
+
+  const getFormattedTransactionReceiptsFromBlock = async (
+    blockNumber: bigint,
+  ): Promise<Prisma.ContractTransactionReceiptsCreateInput[]> => {
+    const block = await eth_getBlockByNumber(rpcRequest, {
+      blockNumber,
+      includeTransactions: true,
+    });
+
+    const receipts: Prisma.ContractTransactionReceiptsCreateInput[] = [];
+    for (const transaction of block.transactions) {
+      const toAddress = transaction.to?.toLowerCase() as Address | undefined;
+      if (!toAddress) {
+        // This transaction is a contract deployment.
+        continue;
+      }
+      const config = addressConfig[toAddress];
+      if (!config) {
+        // This transaction is not to a subscribed address.
+        continue;
+      }
+
+      let functionName: string | undefined = undefined;
+      if (config.functions.size > 0) {
+        functionName = await getFunctionName({
+          contract: config.contract,
+          data: transaction.input,
+        });
+
+        if (!config.functions.has(functionName)) {
+          // This transaction is not for a subscribed function name.
+          continue;
+        }
+      }
+
+      // Store the transaction and receipt.
+      const receipt = await eth_getTransactionReceipt(rpcRequest, {
+        hash: transaction.hash,
+      });
+
+      receipts.push({
+        chainId,
+        blockNumber: Number(receipt.blockNumber),
+        contractAddress: toAddress,
+        contractId: getContractId(chainId, toAddress),
+        blockHash: receipt.blockHash.toLowerCase(),
+        transactionHash: receipt.transactionHash.toLowerCase(),
+        timestamp: new Date(Number(block.timestamp) * 1000),
+        to: toAddress,
+        from: receipt.from.toLowerCase(),
+        value: transaction.value.toString(),
+        data: transaction.input,
+        functionName,
+        transactionIndex: receipt.transactionIndex,
+        gasUsed: receipt.gasUsed.toString(),
+        effectiveGasPrice: receipt.effectiveGasPrice.toString(),
+        status: receipt.status ? 1 : 0,
+      });
+    }
+
+    return receipts;
+  };
+
+  const allReceipts = await Promise.all(
+    blockRange.map((blockNumber) =>
+      getFormattedTransactionReceiptsFromBlock(blockNumber),
+    ),
+  );
+  return allReceipts.flat();
+};
+
+const getFunctionName = async (args: {
+  contract: ThirdwebContract;
+  data: Hash;
+}) => {
+  const abi = await resolveContractAbi<AbiEvent[]>(args.contract);
+  const decoded = decodeFunctionData<Abi>({
+    abi,
+    data: args.data,
+  });
+  return decoded.functionName;
 };
 
 // Worker
