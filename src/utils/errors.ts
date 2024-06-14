@@ -1,11 +1,15 @@
 import { Transactions } from ".prisma/client";
-import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
+import {
+  Chain,
+  getChainByChainIdAsync,
+} from "@thirdweb-dev/chains";
 import { ethers } from "ethers";
 import {
   createThirdwebClient,
   prepareTransaction,
   simulateTransaction,
 } from "thirdweb";
+import { getConfig } from "./cache/getConfig";
 import { env } from "./env";
 
 interface EthersError {
@@ -30,7 +34,16 @@ export const parseTxError = async (
 
   // EOA transactions
   if (tx.toAddress && tx.fromAddress && tx.data) {
-    const chain = await getChainByChainIdAsync(Number(tx.chainId));
+
+    const config = await getConfig();
+
+    let chain: Chain;
+    if (config.chainOverrides) 
+      chain = JSON.parse(config.chainOverrides).find(
+        (dt: Chain) => dt.chainId === parseInt(tx.chainId),
+      );
+    else 
+      chain = await getChainByChainIdAsync(Number(tx.chainId))
 
     if ((err as EthersError)?.code === ethers.errors.INSUFFICIENT_FUNDS) {
       return `Insufficient ${chain.nativeCurrency?.symbol} on ${chain.name} in backend wallet ${tx.fromAddress}.`;
