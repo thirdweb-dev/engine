@@ -8,7 +8,7 @@ import {
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverridesSchema } from "../../schemas/txOverrides";
-import { walletHeaderSchema } from "../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
@@ -57,7 +57,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       operationId: "sendTransaction",
       params: ParamsSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -71,19 +71,37 @@ export async function sendTransaction(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": fromAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+        "x-account-address": accountAddress,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
-      const { id: queueId } = await queueTxRaw({
-        chainId: chainId.toString(),
-        fromAddress,
-        toAddress,
-        data,
-        value,
-        simulateTx,
-        idempotencyKey,
-        ...txOverrides,
-      });
+      let queueId: string;
+      if (accountAddress) {
+        const { id } = await queueTxRaw({
+          chainId: chainId.toString(),
+          signerAddress: fromAddress,
+          accountAddress,
+          target: toAddress,
+          data,
+          value,
+          simulateTx,
+          idempotencyKey,
+          ...txOverrides,
+        });
+        queueId = id;
+      } else {
+        const { id } = await queueTxRaw({
+          chainId: chainId.toString(),
+          fromAddress,
+          toAddress,
+          data,
+          value,
+          simulateTx,
+          idempotencyKey,
+          ...txOverrides,
+        });
+        queueId = id;
+      }
 
       reply.status(StatusCodes.OK).send({
         result: {
