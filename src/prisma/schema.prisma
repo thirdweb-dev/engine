@@ -8,26 +8,26 @@ generator client {
 }
 
 model Configuration {
-  id                             String  @id @default("default") @map("id")
+  id                                     String  @id @default("default") @map("id")
   // Chains
-  chainOverrides                 String? @map("chainOverrides")
+  chainOverrides                         String? @map("chainOverrides")
   // Tx Processing
-  minTxsToProcess                Int     @map("minTxsToProcess")
-  maxTxsToProcess                Int     @map("maxTxsToProcess")
+  minTxsToProcess                        Int     @map("minTxsToProcess")
+  maxTxsToProcess                        Int     @map("maxTxsToProcess")
   // Tx Updates
-  minedTxListenerCronSchedule    String? @map("minedTxsCronSchedule")
-  maxTxsToUpdate                 Int     @map("maxTxsToUpdate")
+  minedTxListenerCronSchedule            String? @map("minedTxsCronSchedule")
+  maxTxsToUpdate                         Int     @map("maxTxsToUpdate")
   // Tx Retries
-  retryTxListenerCronSchedule    String? @map("retryTxsCronSchedule")
-  minEllapsedBlocksBeforeRetry   Int     @map("minEllapsedBlocksBeforeRetry")
-  maxFeePerGasForRetries         String  @map("maxFeePerGasForRetries")
-  maxPriorityFeePerGasForRetries String  @map("maxPriorityFeePerGasForRetries")
-  maxRetriesPerTx                Int     @map("maxRetriesPerTx")
+  retryTxListenerCronSchedule            String? @map("retryTxsCronSchedule")
+  minEllapsedBlocksBeforeRetry           Int     @map("minEllapsedBlocksBeforeRetry")
+  maxFeePerGasForRetries                 String  @map("maxFeePerGasForRetries")
+  maxPriorityFeePerGasForRetries         String  @map("maxPriorityFeePerGasForRetries")
+  maxRetriesPerTx                        Int     @map("maxRetriesPerTx")
   // Contract Indexer Updates
-  indexerListenerCronSchedule    String? @map("indexerListenerCronSchedule")
-  maxBlocksToIndex               Int     @default(25) @map("maxBlocksToIndex")
-  cursorDelaySeconds             Int     @default(2) @map("cursorDelaySeconds")
-  contractSubscriptionsRetryDelaySeconds String @default("10") @map("contractSubscriptionsRetryDelaySeconds")
+  indexerListenerCronSchedule            String? @map("indexerListenerCronSchedule")
+  maxBlocksToIndex                       Int     @default(25) @map("maxBlocksToIndex")
+  cursorDelaySeconds                     Int     @default(2) @map("cursorDelaySeconds")
+  contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId")
@@ -188,10 +188,14 @@ model Relayers {
 }
 
 model ContractSubscriptions {
-  id              String @id @default(uuid()) @map("id")
-  chainId         Int
-  contractAddress String
-  webhookId       Int?
+  id                         String   @id @default(uuid()) @map("id")
+  chainId                    Int
+  contractAddress            String
+  webhookId                  Int?
+  processEventLogs           Boolean  @default(true)
+  filterEvents               String[] @default([]) // empty array = no filter
+  processTransactionReceipts Boolean  @default(true)
+  filterFunctions            String[] @default([]) // empty array = no filter
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -242,6 +246,7 @@ model ContractTransactionReceipts {
   blockHash       String
   timestamp       DateTime
   data            String
+  functionName    String?
 
   to               String
   from             String

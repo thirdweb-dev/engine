@@ -1,4 +1,5 @@
 import { StaticJsonRpcBatchProvider } from "@thirdweb-dev/sdk";
+import { Address } from "thirdweb";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
 import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";
 import { prisma } from "../../db/client";
@@ -32,7 +33,7 @@ export const createChainIndexerTask = async (args: {
           const currentBlockNumber =
             (await provider.getBlockNumber()) - toBlockOffset;
 
-          // Limit toBlock to avoid hitting rate or file size limits when querying logs.
+          // Limit toBlock to avoid hitting rate or block range limits when querying logs.
           const toBlock = Math.min(
             currentBlockNumber,
             fromBlock + maxBlocksToIndex,
@@ -43,11 +44,9 @@ export const createChainIndexerTask = async (args: {
             return;
           }
 
-          // Ensuring that the block data exists.
-          // Sometimes the RPC providers nodes are aware of the latest block
-          // but the block data is not available yet.
+          // Ensure that the block data exists.
+          // Sometimes the RPC nodes do not yet return data for the latest block.
           const block = await provider.getBlockWithTransactions(toBlock);
-
           if (!block) {
             logger({
               service: "worker",
@@ -59,32 +58,48 @@ export const createChainIndexerTask = async (args: {
             return;
           }
 
-          // Get contract addresses to filter event logs and transaction receipts by.
           const contractSubscriptions = await getContractSubscriptionsByChainId(
             chainId,
             true,
           );
-          const contractAddresses = [
-            ...new Set<string>(
-              contractSubscriptions.map(
-                (subscription) => subscription.contractAddress,
-              ),
-            ),
-          ];
 
-          await enqueueProcessEventLogs({
-            chainId,
-            fromBlock,
-            toBlock,
-            contractAddresses,
-          });
+          // Identify contract addresses + event names to parse event logs, if any.
+          const eventLogFilters: {
+            address: Address;
+            events: string[];
+          }[] = contractSubscriptions
+            .filter((c) => c.processEventLogs)
+            .map((c) => ({
+              address: c.contractAddress as Address,
+              events: c.filterEvents,
+            }));
+          if (eventLogFilters.length > 0) {
+            await enqueueProcessEventLogs({
+              chainId,
+              fromBlock,
+              toBlock,
+              filters: eventLogFilters,
+            });
+          }
 
-          await enqueueProcessTransactionReceipts({
-            chainId,
-            fromBlock,
-            toBlock,
-            contractAddresses,
-          });
+          // Identify addresses + function names to parse transaction receipts, if any.
+          const transactionReceiptFilters: {
+            address: Address;
+            functions: string[];
+          }[] = contractSubscriptions
+            .filter((c) => c.processTransactionReceipts)
+            .map((c) => ({
+              address: c.contractAddress as Address,
+              functions: c.filterFunctions,
+            }));
+          if (transactionReceiptFilters.length > 0) {
+            await enqueueProcessTransactionReceipts({
+              chainId,
+              fromBlock,
+              toBlock,
+              filters: transactionReceiptFilters,
+            });
+          }
 
           // Update the latest block number.
           try {
@@ -103,7 +118,7 @@ export const createChainIndexerTask = async (args: {
           }
         },
         {
-          timeout: 5 * 60000, // 3 minutes timeout
+          timeout: 60 * 1000, // 1 minute timeout
         },
       );
     } catch (err: any) {

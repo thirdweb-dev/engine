@@ -7,6 +7,10 @@ export const contractSubscriptionSchema = Type.Object({
   chainId: Type.Number(),
   contractAddress: Type.String(),
   webhook: Type.Optional(WebhookSchema),
+  processEventLogs: Type.Boolean(),
+  filterEvents: Type.Array(Type.String()),
+  processTransactionReceipts: Type.Boolean(),
+  filterFunctions: Type.Array(Type.String()),
   createdAt: Type.Unsafe<Date>({
     type: "string",
     format: "date",
@@ -22,5 +26,9 @@ export const toContractSubscriptionSchema = (
   webhook: contractSubscription.webhook
     ? toWebhookSchema(contractSubscription.webhook)
     : undefined,
+  processEventLogs: contractSubscription.processEventLogs,
+  filterEvents: contractSubscription.filterEvents,
+  processTransactionReceipts: contractSubscription.processTransactionReceipts,
+  filterFunctions: contractSubscription.filterFunctions,
   createdAt: contractSubscription.createdAt,
 });

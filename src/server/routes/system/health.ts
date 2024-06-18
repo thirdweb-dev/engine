@@ -64,7 +64,7 @@ const getFeatures = (): EngineFeature[] => {
   const features: EngineFeature[] = [];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
-  // Contract subscriptions requires Redis.
+  // Contract Subscriptions requires Redis.
   if (redis) features.push("CONTRACT_SUBSCRIPTIONS");
 
   return features;
