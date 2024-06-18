@@ -15,22 +15,16 @@ export const getQueuedTxs = async ({ pgtx }: GetQueuedTxsParams = {}): Promise<
 
   // TODO: Don't use env var for transactions to batch
   const txs = await prisma.$queryRaw<Transactions[]>`
-  SELECT
-    *
-  FROM
-    "transactions"
-  WHERE
-    "sentAt" IS NULL
-    AND "minedAt" IS NULL
-    AND "cancelledAt" IS NULL
-    AND "errorMessage" IS NULL
-  ORDER BY
-    "queuedAt"
-  ASC
-  LIMIT
-    ${config.maxTxsToProcess}
-  FOR UPDATE SKIP LOCKED
-  `;
+SELECT * FROM "transactions"
+WHERE
+  "sentAt" IS NULL
+  AND "minedAt" IS NULL
+  AND "cancelledAt" IS NULL
+  AND "errorMessage" IS NULL
+ORDER BY "queuedAt" ASC
+LIMIT ${config.maxTxsToProcess}
+FOR UPDATE SKIP LOCKED
+`;
 
   return txs;
 };

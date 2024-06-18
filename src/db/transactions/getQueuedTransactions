@@ -1,0 +1,30 @@
+import { prisma } from "../client";
+
+interface getQueuedTransactionsParams {
+  chainId: number;
+  limit: number;
+  fromAddress: string;
+  toAddress?: string;
+}
+
+/**
+ * Gets the next queued transactions for a given "fromWallet".
+ * @returns Transaction[]
+ * @async
+ */
+export const getQueuedTransactions = async (
+  args: getQueuedTransactionsParams,
+) => {
+  const { chainId, limit, fromAddress, toAddress } = args;
+
+  return await prisma.transactions.findMany({
+    where: {
+      chainId: chainId.toString(),
+      fromAddress,
+      toAddress,
+      sentAt: null,
+    },
+    orderBy: { queuedAt: "asc" },
+    take: limit,
+  });
+};

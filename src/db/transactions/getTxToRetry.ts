@@ -15,11 +15,8 @@ export const getTxToRetry = async ({ pgtx }: GetTxToRetryParams = {}): Promise<
 
   // TODO: Remove transactionHash
   // TODO: For now, we're not retrying user ops
-  const [tx] = (await prisma.$queryRaw`
-SELECT
-  *
-FROM
-  "transactions"
+  const [tx] = await prisma.$queryRaw<Transactions[]>`
+SELECT * FROM "transactions"
 WHERE
   "sentAt" IS NOT NULL
   AND "accountAddress" IS NULL
@@ -27,13 +24,10 @@ WHERE
   AND "errorMessage" IS NULL
   AND "transactionHash" IS NOT NULL
   AND "retryCount" < ${config.maxRetriesPerTx}
-ORDER BY
-  "nonce"
-ASC
-LIMIT
-  1
+ORDER BY "nonce" ASC
+LIMIT 1
 FOR UPDATE SKIP LOCKED
-  `) as Transactions[];
+  `;
 
   return tx;
 };

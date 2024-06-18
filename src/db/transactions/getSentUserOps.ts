@@ -14,15 +14,16 @@ export const getSentUserOps = async ({
   const config = await getConfig();
 
   return prisma.$queryRaw<Transactions[]>`
-    SELECT * FROM "transactions"
-    WHERE "sentAt" IS NOT NULL
-    AND "accountAddress" IS NOT NULL
-    AND "userOpHash" IS NOT NULL
-    AND "minedAt" IS NULL
-    AND "errorMessage" IS NULL
-    AND "retryCount" < 3
-    ORDER BY "sentAt" ASC
-    LIMIT ${config.maxTxsToUpdate}
-    FOR UPDATE SKIP LOCKED;
+SELECT * FROM "transactions"
+WHERE
+  "sentAt" IS NOT NULL
+  AND "accountAddress" IS NOT NULL
+  AND "userOpHash" IS NOT NULL
+  AND "minedAt" IS NULL
+  AND "errorMessage" IS NULL
+  AND "retryCount" < 3
+ORDER BY "sentAt" ASC
+LIMIT ${config.maxTxsToUpdate}
+FOR UPDATE SKIP LOCKED;
   `;
 };
