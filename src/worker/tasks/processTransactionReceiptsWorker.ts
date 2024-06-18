@@ -41,22 +41,18 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     return;
   }
 
-  // Get webhooks.
-  const webhooksByContractAddress = await getWebhooksByContractAddresses(
-    chainId,
-  );
-
   // Store logs to DB.
   const insertedReceipts = await bulkInsertContractTransactionReceipts({
     receipts,
   });
-
   if (insertedReceipts.length === 0) {
     return;
   }
 
   // Enqueue webhooks.
-  // This step should happen immediately after inserting to DB.
+  const webhooksByContractAddress = await getWebhooksByContractAddresses(
+    chainId,
+  );
   for (const transactionReceipt of insertedReceipts) {
     const webhooks =
       webhooksByContractAddress[transactionReceipt.contractAddress] ?? [];
@@ -115,13 +111,18 @@ const getFormattedTransactionReceipts = async ({
   const addressConfig: Record<
     Address,
     {
-      functions: Set<string>;
+      functions: string[];
       contract: ThirdwebContract;
     }
   > = {};
   for (const filter of filters) {
+    // Merge multiple filters for the same address.
+    if (filter.address in addressConfig) {
+      addressConfig[filter.address].functions.push(...filter.functions);
+    }
+
     addressConfig[filter.address] = {
-      functions: new Set(filter.functions),
+      functions: filter.functions,
       contract: getContract({
         client: thirdwebClient,
         chain,
@@ -152,13 +153,13 @@ const getFormattedTransactionReceipts = async ({
       }
 
       let functionName: string | undefined = undefined;
-      if (config.functions.size > 0) {
+      if (config.functions.length > 0) {
         functionName = await getFunctionName({
           contract: config.contract,
           data: transaction.input,
         });
 
-        if (!config.functions.has(functionName)) {
+        if (!config.functions.includes(functionName)) {
           // This transaction is not for a subscribed function name.
           continue;
         }

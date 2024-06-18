@@ -43,11 +43,6 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     return;
   }
 
-  // Get webhooks.
-  const webhooksByContractAddress = await getWebhooksByContractAddresses(
-    chainId,
-  );
-
   // Store logs to DB.
   const insertedLogs = await bulkInsertContractEventLogs({ logs });
   if (insertedLogs.length === 0) {
@@ -55,7 +50,9 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   // Enqueue webhooks.
-  // This step should happen immediately after inserting to DB.
+  const webhooksByContractAddress = await getWebhooksByContractAddresses(
+    chainId,
+  );
   for (const eventLog of insertedLogs) {
     const webhooks = webhooksByContractAddress[eventLog.contractAddress] ?? [];
     for (const webhook of webhooks) {
@@ -119,6 +116,7 @@ const getLogs = async ({
   }
 
   const chain = defineChain(chainId);
+  // Store a reference to `contract` so ABI fetches are cached.
   const addressConfig: Record<
     Address,
     {
@@ -140,6 +138,7 @@ const getLogs = async ({
     const { contract } = addressConfig[f.address];
 
     // Get events to filter by, if any.
+    // Resolve the event name, "Transfer", to event signature, "Transfer(address to, uint256 quantity)".
     const events: PreparedEvent<AbiEvent>[] = [];
     if (f.events.length > 0) {
       const abi = await resolveContractAbi<AbiEvent[]>(contract);
@@ -154,7 +153,7 @@ const getLogs = async ({
       contract,
       fromBlock: BigInt(fromBlock),
       toBlock: BigInt(toBlock),
-      events,
+      events, // [] means return all events
     });
   });
 
@@ -211,7 +210,7 @@ const getLogs = async ({
  *      "quantity": {
  *        "type:" "uint256",
  *        "value": "2"
- *      },
+ *      }
  *    }
  */
 const formatDecodedLog = async (args: {
