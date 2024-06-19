@@ -1,11 +1,15 @@
 import { Webhooks } from "@prisma/client";
 import crypto from "crypto";
-import { getTxByIds } from "../db/transactions/getTxByIds";
+import { getTransactionsByQueueIds } from "../db/transactions/getTxByIds";
 import {
   WalletBalanceWebhookSchema,
   WebhooksEventTypes,
 } from "../schema/webhooks";
-import { TransactionStatus } from "../server/schemas/transaction";
+import {
+  TransactionStatus,
+  toTransactionSchema,
+} from "../server/schemas/transaction";
+import { enqueueWebhook } from "../worker/queues/sendWebhookQueue";
 import { getWebhooksByEventType } from "./cache/getWebhook";
 import { logger } from "./logger";
 
@@ -85,59 +89,28 @@ export interface WebhookData {
   status: TransactionStatus;
 }
 
-export const sendWebhooks = async (webhooks: WebhookData[]) => {
-  const queueIds = webhooks.map((webhook) => webhook.queueId);
-  const txs = await getTxByIds({ queueIds });
-  if (!txs || txs.length === 0) {
-    return;
-  }
+export const sendWebhooks = async (data: WebhookData[]) => {
+  const queueIds = data.map((d) => d.queueId);
+  const transactions = await getTransactionsByQueueIds(queueIds);
 
-  const webhooksWithTxs = webhooks
-    .map((webhook) => {
-      const tx = txs.find((tx) => tx.queueId === webhook.queueId);
-      return {
-        ...webhook,
-        tx,
-      };
-    })
-    .filter((webhook) => !!webhook.tx);
-
-  for (const webhook of webhooksWithTxs) {
-    const webhookStatus =
-      webhook.status === TransactionStatus.Queued
+  for (const transaction of transactions) {
+    const transactionResponse = toTransactionSchema(transaction);
+    const type =
+      transactionResponse.status === TransactionStatus.Queued
         ? WebhooksEventTypes.QUEUED_TX
-        : webhook.status === TransactionStatus.Sent
+        : transactionResponse.status === TransactionStatus.Sent
         ? WebhooksEventTypes.SENT_TX
-        : webhook.status === TransactionStatus.Mined
+        : transactionResponse.status === TransactionStatus.Mined
         ? WebhooksEventTypes.MINED_TX
-        : webhook.status === TransactionStatus.Errored
+        : transactionResponse.status === TransactionStatus.Errored
         ? WebhooksEventTypes.ERRORED_TX
-        : webhook.status === TransactionStatus.Cancelled
+        : transactionResponse.status === TransactionStatus.Cancelled
         ? WebhooksEventTypes.CANCELLED_TX
         : undefined;
 
-    const webhookConfigs = await Promise.all([
-      ...((await getWebhooksByEventType(WebhooksEventTypes.ALL_TX)) || []),
-      ...(webhookStatus ? await getWebhooksByEventType(webhookStatus) : []),
-    ]);
-
-    await Promise.all(
-      webhookConfigs.map(async (webhookConfig) => {
-        if (webhookConfig.revokedAt) {
-          logger({
-            service: "server",
-            level: "debug",
-            message: "No webhook set or active, skipping webhook send",
-          });
-          return;
-        }
-
-        await sendWebhookRequest(
-          webhookConfig,
-          webhook.tx as Record<string, any>,
-        );
-      }),
-    );
+    if (type) {
+      await enqueueWebhook({ type, transaction });
+    }
   }
 };
 

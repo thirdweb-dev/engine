@@ -14,14 +14,10 @@ export const getWebhooksByEventType = async (
     return webhookCache.get(cacheKey) as Webhooks[];
   }
 
-  const webhookConfig = await getAllWebhooks();
+  const filteredWebhooks = (await getAllWebhooks()).filter(
+    (webhook) => webhook.eventType === eventType,
+  );
 
-  const eventTypeWebhookDetails = webhookConfig.filter((webhook) => {
-    if (!webhook.revokedAt && webhook.eventType === eventType) {
-      return webhook;
-    }
-  });
-
-  webhookCache.set(cacheKey, eventTypeWebhookDetails);
-  return eventTypeWebhookDetails;
+  webhookCache.set(cacheKey, filteredWebhooks);
+  return filteredWebhooks;
 };
