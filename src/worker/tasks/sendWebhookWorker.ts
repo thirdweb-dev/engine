@@ -74,7 +74,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 let _worker: Worker | null = null;
 if (redis) {
   _worker = new Worker(SEND_WEBHOOK_QUEUE_NAME, handler, {
-    concurrency: 1,
+    concurrency: 10,
     connection: redis,
   });
   logWorkerEvents(_worker);
