@@ -62,7 +62,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       return;
   }
 
-  if (!resp.ok) {
+  if (!resp?.ok) {
     // Throw on non-2xx so it remains in the queue to retry later.
     throw new Error(
       `Received status ${resp.status} from webhook ${webhook.url}.`,
