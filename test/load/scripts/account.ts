@@ -20,12 +20,12 @@ interface TimedResult extends TaskResult {
   time: number;
 }
 
-const chain = `arbitrum-goerli`;
-const host = `https://engine-load-testing-small-s4ym.zeet-nftlabs.zeet.app`;
-// const host = `http://127.0.0.1:3005`;
-const deployerWalletAddress = `0x43CAe0d7fe86C713530E679Ce02574743b2Ee9FC`;
+const chain = `sepolia`;
+//const host = `https://engine-load-testing-small-s4ym.zeet-nftlabs.zeet.app`;
+const host = `https://gg.furqan.sh:4435`;
+const deployerWalletAddress = `0xa117e64D1Ced1F1e2A7089fca981f360e4ec1Eaa`;
 const tokenAddress = `0x7A0CE8524bea337f0beE853B68fAbDE145dAC0A0`;
-const accountFactoryAddress = `0xD48f9d337626a991e5c86c38768DA09428Fa549B`;
+const accountFactoryAddress = `0x85e23b94e7F5E9cC1fF78BCe78cfb15B81f0DF00`;
 const thirdwebApiSecretKey = process.env.THIRDWEB_API_SECRET_KEY as string;
 const loadTestBatchSize = parseInt(process.env.LOAD_TEST_BATCH_SIZE || "30");
 const loadTestBatches = parseInt(process.env.LOAD_TEST_BATCHES || "1");
@@ -60,7 +60,9 @@ const main = async () => {
               path: `/backend-wallet/create`,
               method: `POST`,
               thirdwebApiSecretKey,
+              body: JSON.stringify({}),
             });
+            console.log({ res });
             const backendWalletAddress = res.result.walletAddress;
 
             const tx = await awaitTx({
@@ -68,7 +70,7 @@ const main = async () => {
               path: `/contract/${chain}/${accountFactoryAddress}/account-factory/create-account`,
               backendWalletAddress: deployerWalletAddress,
               body: JSON.stringify({
-                admin_address: backendWalletAddress,
+                adminAddress: backendWalletAddress,
               }),
               thirdwebApiSecretKey,
             });
@@ -92,7 +94,7 @@ const main = async () => {
               path: `/contract/${chain}/${tokenAddress}/erc20/signature/generate`,
               backendWalletAddress: deployerWalletAddress,
               body: JSON.stringify({
-                to: accountFactoryAddress,
+                to: accountAddress,
                 quantity: "1",
               }),
               thirdwebApiSecretKey,
