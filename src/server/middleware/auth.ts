@@ -8,7 +8,7 @@ import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { createHash } from "crypto";
 import { FastifyInstance } from "fastify";
 import { FastifyRequest } from "fastify/types/request";
-import jsonwebtoken from "jsonwebtoken";
+import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
 import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
@@ -155,17 +155,22 @@ export const onRequest = async ({
 
   const jwt = getJWT(req);
   if (jwt) {
-    const payload = jsonwebtoken.decode(jwt, { json: true });
+    const decoded = jsonwebtoken.decode(jwt, { complete: true });
+    if (decoded) {
+      const payload = decoded.payload as JwtPayload;
+      const header = decoded.header;
 
-    // The `iss` field determines the auth type.
-    if (payload?.iss) {
-      const authWallet = await getAuthWallet();
-      if (payload.iss === (await authWallet.getAddress())) {
-        return await handleAccessToken(jwt, req, getUser);
-      } else if (payload.iss === THIRDWEB_DASHBOARD_ISSUER) {
-        return await handleDashboardAuth(jwt);
-      } else {
-        return await handleKeypairAuth(jwt, req, payload.iss);
+      // Get the public key from the `iss` payload field or `kid` header field.
+      const publicKey = payload.iss ?? header.kid;
+      if (publicKey) {
+        const authWallet = await getAuthWallet();
+        if (publicKey === (await authWallet.getAddress())) {
+          return await handleAccessToken(jwt, req, getUser);
+        } else if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
+          return await handleDashboardAuth(jwt);
+        } else {
+          return await handleKeypairAuth(jwt, req, publicKey);
+        }
       }
     }
   }
@@ -263,13 +268,13 @@ const handleWebsocketAuth = async (
  * matching the configured public key.
  * @param jwt string
  * @param req FastifyRequest
- * @param iss string
+ * @param publicKey string
  * @returns AuthResponse
  */
 const handleKeypairAuth = async (
   jwt: string,
   req: FastifyRequest,
-  iss: string,
+  publicKey: string,
 ): Promise<AuthResponse> => {
   // The keypair auth feature must be explicitly enabled.
   if (!env.ENABLE_KEYPAIR_AUTH) {
@@ -278,8 +283,8 @@ const handleKeypairAuth = async (
 
   let error: string | undefined;
   try {
-    const keypair = await getKeypair({ publicKey: iss });
-    if (!keypair || keypair.publicKey !== iss) {
+    const keypair = await getKeypair({ publicKey });
+    if (!keypair) {
       error = "The provided public key is incorrect or not added to Engine.";
       throw error;
     }
