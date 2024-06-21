@@ -15,7 +15,7 @@ const requestSchema = Type.Object({
     pattern: "^0x([A-Fa-f0-9]{64})$",
   }),
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
 });

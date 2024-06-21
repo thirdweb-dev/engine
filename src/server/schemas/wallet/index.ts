@@ -23,7 +23,7 @@ export const walletWithAAHeaderSchema = Type.Object({
 
 export const walletParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain name",
   }),
   walletAddress: Type.String({
