@@ -138,7 +138,7 @@ export async function getTxHashReceipt(fastify: FastifyInstance) {
               ...receipt,
               gasUsed: receipt.gasUsed.toHexString(),
               cumulativeGasUsed: receipt.cumulativeGasUsed.toHexString(),
-              effectiveGasPrice: receipt.effectiveGasPrice.toHexString(),
+              effectiveGasPrice: receipt.effectiveGasPrice?.toHexString(),
             }
           : null,
       });

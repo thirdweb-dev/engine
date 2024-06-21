@@ -154,7 +154,7 @@ export const updateMinedTx = async () => {
                 onChainTxStatus: txWithReceipt.receipt.status,
                 transactionHash: txWithReceipt.receipt.transactionHash,
                 transactionType: txWithReceipt.receipt.type,
-                gasPrice: txWithReceipt.receipt.effectiveGasPrice.toString(),
+                gasPrice: txWithReceipt.receipt.effectiveGasPrice?.toString(),
                 gasLimit: txWithReceipt.response?.gasLimit?.toString(),
                 maxFeePerGas: txWithReceipt.response?.maxFeePerGas?.toString(),
                 maxPriorityFeePerGas:
