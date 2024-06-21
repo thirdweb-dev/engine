@@ -186,7 +186,7 @@ const getFormattedTransactionReceipts = async ({
         transactionIndex: receipt.transactionIndex,
         gasUsed: receipt.gasUsed.toString(),
         effectiveGasPrice: receipt.effectiveGasPrice.toString(),
-        status: receipt.status ? 1 : 0,
+        status: receipt.status === "success" ? 1 : 0,
       });
     }
 

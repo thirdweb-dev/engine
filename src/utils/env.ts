@@ -71,7 +71,7 @@ export const env = createEnv({
       .number()
       .nonnegative()
       .default(0),
-    REDIS_URL: z.string().optional(),
+    REDIS_URL: z.string(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
