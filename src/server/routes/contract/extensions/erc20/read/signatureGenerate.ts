@@ -1,12 +1,16 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { defineChain, getContract } from "thirdweb";
+import { generateMintSignature } from "thirdweb/extensions/erc20";
+import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
+import { thirdwebClient } from "../../../../../../utils/sdk";
 import {
   erc20ResponseType,
   signature20InputSchema,
   signature20OutputSchema,
 } from "../../../../../schemas/erc20";
+import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
@@ -48,7 +52,10 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
       operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletWithAAHeaderSchema,
+      headers: {
+        ...walletWithAAHeaderSchema.properties,
+        ...thirdwebSdkVersionSchema.properties,
+      },
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -66,17 +73,38 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
         quantity,
         uid,
       } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-thirdweb-sdk-version": sdkVersion,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema> &
+        Static<typeof thirdwebSdkVersionSchema>;
+
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+
+      const contract = await getContractV4({
         chainId,
         contractAddress,
         walletAddress,
         accountAddress,
       });
+
+      if (sdkVersion === "5") {
+        const contract = getContract({
+          client: thirdwebClient,
+          chain: defineChain(chainId),
+          address: contractAddress,
+        });
+        const { payload, signature } = await generateMintSignature({
+          account,
+          contract,
+          mintRequest: {
+            to: "0x...",
+            quantity: "10",
+          },
+        });
+        return;
+      }
 
       const payload = checkAndReturnERC20SignaturePayload<
         Static<typeof signature20InputSchema>,
@@ -91,8 +119,8 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
         quantity,
         uid,
       });
-
       const signedPayload = await contract.erc20.signature.generate(payload);
+
       reply.status(StatusCodes.OK).send({
         result: {
           ...signedPayload,
