@@ -1,8 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
+import { Address } from "thirdweb";
+import { insertTransaction } from "../../../db/transactions/insertTransaction";
 import {
+  requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
@@ -22,6 +24,7 @@ export async function withdraw(fastify: FastifyInstance) {
     Params: Static<typeof ParamsSchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Body: Static<typeof requestBodySchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
     url: "/backend-wallet/:chain/withdraw",
@@ -33,6 +36,7 @@ export async function withdraw(fastify: FastifyInstance) {
       params: ParamsSchema,
       body: requestBodySchema,
       headers: walletHeaderSchema,
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
@@ -40,6 +44,7 @@ export async function withdraw(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
+      const { simulateTx } = request.query;
       const { toAddress } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
@@ -48,14 +53,18 @@ export async function withdraw(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      const { id: queueId } = await queueTxRaw({
-        chainId: chainId.toString(),
-        extension: "withdraw",
-        functionName: "transfer",
-        fromAddress: walletAddress,
-        toAddress,
-        data: "0x",
+      const { queueId } = await insertTransaction({
+        insertedTransaction: {
+          chainId,
+          from: walletAddress as Address,
+          to: toAddress as Address,
+          data: "0x00",
+
+          extension: "withdraw",
+          functionName: "transfer",
+        },
         idempotencyKey,
+        shouldSimulate: simulateTx,
       });
 
       reply.status(StatusCodes.OK).send({

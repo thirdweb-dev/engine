@@ -4,37 +4,32 @@ import {
   updatedConfigurationListener,
 } from "./listeners/configListener";
 import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
-import { minedTxListener } from "./listeners/minedTxListener";
-import { queuedTxListener } from "./listeners/queuedTxListener";
-import { retryTxListener } from "./listeners/retryTxListener";
 import {
   newWebhooksListener,
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
+
+// Init workers.
+import "./tasks/cancelTransactionWorker";
+import "./tasks/confirmTransactionWorker";
+import "./tasks/prepareTransactionWorker";
 import "./tasks/processEventLogsWorker";
 import "./tasks/processTransactionReceiptsWorker";
+import "./tasks/sendTransactionWorker";
 import "./tasks/sendWebhookWorker";
 
 export const initWorker = async () => {
-  // Listen for queued transactions to process
-  await queuedTxListener();
-
-  // Poll for transactions stuck in mempool to retry
-  await retryTxListener();
-
-  // Poll for mined transactions to update database
-  await minedTxListener();
-
-  // Delete Successfully Processed Transactions which are older than 24 hours
+  // Delete completed transactions older than 24 hours.
   await deleteProcessedTx();
 
-  // Listen for new & updated configuration data
+  // Listen for new & updated configuration data.
   await newConfigurationListener();
   await updatedConfigurationListener();
 
-  // Listen for new & updated webhooks data
+  // Listen for new & updated webhooks data.
   await newWebhooksListener();
   await updatedWebhooksListener();
 
+  // Contract subscriptions.
   await chainIndexerListener();
 };

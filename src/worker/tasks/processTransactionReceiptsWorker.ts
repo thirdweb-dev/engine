@@ -214,11 +214,8 @@ const getFunctionName = async (args: {
 };
 
 // Worker
-let _worker: Worker | null = null;
-if (redis) {
-  _worker = new Worker(PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME, handler, {
-    concurrency: 5,
-    connection: redis,
-  });
-  logWorkerEvents(_worker);
-}
+const _worker = new Worker(PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME, handler, {
+  concurrency: 5,
+  connection: redis,
+});
+logWorkerEvents(_worker);

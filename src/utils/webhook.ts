@@ -84,12 +84,14 @@ export const sendWebhookRequest = async (
   }
 };
 
-export interface WebhookData {
+export interface TransactionWebhookData {
   queueId: string;
   status: TransactionStatus;
 }
 
-export const sendWebhooks = async (data: WebhookData[]) => {
+export const enqueueTransactionWebhooks = async (
+  data: TransactionWebhookData[],
+) => {
   const queueIds = data.map((d) => d.queueId);
   const transactions = await getTransactionsByQueueIds(queueIds);
 

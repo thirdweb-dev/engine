@@ -15,12 +15,10 @@ import { defaultJobOptions } from "./queues";
 export const SEND_WEBHOOK_QUEUE_NAME = "send-webhook";
 
 // Queue
-const _queue = redis
-  ? new Queue<string>(SEND_WEBHOOK_QUEUE_NAME, {
-      connection: redis,
-      defaultJobOptions,
-    })
-  : null;
+const _queue = new Queue<string>(SEND_WEBHOOK_QUEUE_NAME, {
+  connection: redis,
+  defaultJobOptions,
+});
 
 export type EnqueueContractSubscriptionWebhookData = {
   type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION;
@@ -77,7 +75,6 @@ export const enqueueWebhook = async (data: EnqueueWebhookData) => {
 const enqueueContractSubscriptionWebhook = async (
   data: EnqueueContractSubscriptionWebhookData,
 ) => {
-  if (!_queue) return;
   const { type, webhook, eventLog, transactionReceipt } = data;
   if (!eventLog && !transactionReceipt) {
     throw 'Must provide "eventLog" or "transactionReceipt".';
@@ -123,8 +120,6 @@ const getContractSubscriptionWebhookIdempotencyKey = (args: {
 const enqueueTransactionWebhook = async (
   data: EnqueueTransactionWebhookData,
 ) => {
-  if (!_queue) return;
-
   const webhooks = [
     ...(await getWebhooksByEventType(WebhooksEventTypes.ALL_TX)),
     ...(await getWebhooksByEventType(data.type)),

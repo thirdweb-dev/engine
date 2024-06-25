@@ -1,11 +1,11 @@
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
-import { Transactions } from "@prisma/client";
 import { StatusCodes } from "http-status-codes";
+import { defineChain, toSerializableTransaction } from "thirdweb";
+import { Address } from "viem";
 import { prisma } from "../../db/client";
 import { updateTx } from "../../db/transactions/updateTx";
 import { PrismaTransaction } from "../../schema/prisma";
-import { getSdk } from "../../utils/cache/getSdk";
-import { getGasSettingsForRetry } from "../../utils/gas";
+import { getAccount } from "../../utils/account";
+import { thirdwebClient } from "../../utils/sdk";
 import { createCustomError } from "../middleware/error";
 import { TransactionStatus } from "../schemas/transaction";
 
@@ -68,30 +68,29 @@ export const cancelTransactionAndUpdate = async ({
       case TransactionStatus.Queued:
         await updateTx({
           queueId,
-          data: {
-            status: TransactionStatus.Cancelled,
-          },
+          data: { status: TransactionStatus.Cancelled },
         });
-        return {
-          message: "Transaction cancelled on-database successfully.",
-        };
+        return { message: "Transaction cancelled." };
     }
   } else {
     switch (status) {
       case TransactionStatus.Errored: {
         if (tx.chainId && tx.fromAddress && tx.nonce) {
-          const { message, transactionHash } = await cancelTransaction(tx);
-          if (transactionHash) {
-            await updateTx({
-              queueId,
-              pgtx,
-              data: {
-                status: TransactionStatus.Cancelled,
-              },
+          try {
+            const transactionHash = await cancelTransaction({
+              chainId: parseInt(tx.chainId),
+              from: tx.fromAddress as Address,
+              nonce: tx.nonce,
             });
+            await updateTx({
+              pgtx,
+              queueId,
+              data: { status: TransactionStatus.Cancelled },
+            });
+            return { message: "Transaction cancelled.", transactionHash };
+          } catch (e: any) {
+            return { message: e.toString() };
           }
-
-          return { message, transactionHash };
         }
 
         throw createCustomError(
@@ -110,9 +109,7 @@ export const cancelTransactionAndUpdate = async ({
         await updateTx({
           queueId,
           pgtx,
-          data: {
-            status: TransactionStatus.Cancelled,
-          },
+          data: { status: TransactionStatus.Cancelled },
         });
         return {
           message: "Transaction cancelled successfully.",
@@ -125,18 +122,21 @@ export const cancelTransactionAndUpdate = async ({
         );
       case TransactionStatus.Sent: {
         if (tx.chainId && tx.fromAddress && tx.nonce) {
-          const { message, transactionHash } = await cancelTransaction(tx);
-          if (transactionHash) {
-            await updateTx({
-              queueId,
-              pgtx,
-              data: {
-                status: TransactionStatus.Cancelled,
-              },
+          try {
+            const transactionHash = await cancelTransaction({
+              chainId: parseInt(tx.chainId),
+              from: tx.fromAddress as Address,
+              nonce: tx.nonce,
             });
+            await updateTx({
+              pgtx,
+              queueId,
+              data: { status: TransactionStatus.Cancelled },
+            });
+            return { message: "Transaction cancelled.", transactionHash };
+          } catch (e: any) {
+            return { message: e.toString() };
           }
-
-          return { message, transactionHash };
         }
       }
     }
@@ -145,47 +145,45 @@ export const cancelTransactionAndUpdate = async ({
   throw new Error("Unhandled cancellation state.");
 };
 
-const cancelTransaction = async (
-  tx: Transactions,
-): Promise<{
-  message: string;
-  transactionHash?: string;
-}> => {
-  if (!tx.fromAddress || !tx.nonce) {
-    return { message: `Invalid transaction state to cancel. (${tx.id})` };
-  }
+interface CancellableTransaction {
+  chainId: number;
+  from: Address;
+  nonce: number;
+}
 
-  const sdk = await getSdk({
-    chainId: parseInt(tx.chainId),
-    walletAddress: tx.fromAddress,
-  });
-  const provider = sdk.getProvider() as StaticJsonRpcProvider;
+export const cancelTransaction = async (
+  transaction: CancellableTransaction,
+) => {
+  const { chainId, from, nonce } = transaction;
 
-  // Skip if the transaction is already mined.
-  if (tx.transactionHash) {
-    const receipt = await provider.getTransactionReceipt(tx.transactionHash);
-    if (receipt) {
-      return { message: "Transaction already mined." };
-    }
-  }
-
-  try {
-    const gasOptions = await getGasSettingsForRetry(tx, provider);
-    // Send 0 currency to self.
-    const { hash } = await sdk.wallet.sendRawTransaction({
-      to: tx.fromAddress,
-      from: tx.fromAddress,
+  const chain = defineChain(chainId);
+  const populatedTransaction = await toSerializableTransaction({
+    from,
+    transaction: {
+      client: thirdwebClient,
+      chain,
+      to: from,
       data: "0x",
-      value: "0",
-      nonce: tx.nonce,
-      ...gasOptions,
-    });
+      value: 0n,
+      nonce,
+    },
+  });
 
-    return {
-      message: "Transaction cancelled successfully.",
-      transactionHash: hash,
-    };
-  } catch (e: any) {
-    return { message: e.toString() };
+  // Set 2x current gas to prioritize this transaction over any pending one.
+  // NOTE: This will not cancel a pending transaction set with higher gas.
+  if (populatedTransaction.gasPrice) {
+    populatedTransaction.gasPrice *= 2n;
   }
+  if (populatedTransaction.maxFeePerGas) {
+    populatedTransaction.maxFeePerGas *= 2n;
+  }
+  if (populatedTransaction.maxFeePerGas) {
+    populatedTransaction.maxFeePerGas *= 2n;
+  }
+
+  const account = await getAccount({ chainId, from });
+  const { transactionHash } = await account.sendTransaction(
+    populatedTransaction,
+  );
+  return transactionHash;
 };

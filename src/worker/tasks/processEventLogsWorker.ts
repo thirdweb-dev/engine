@@ -275,11 +275,8 @@ const getBlockTimestamps = async (
 };
 
 // Worker
-let _worker: Worker | null = null;
-if (redis) {
-  _worker = new Worker(PROCESS_EVENT_LOGS_QUEUE_NAME, handler, {
-    concurrency: 5,
-    connection: redis,
-  });
-  logWorkerEvents(_worker);
-}
+const _worker = new Worker(PROCESS_EVENT_LOGS_QUEUE_NAME, handler, {
+  concurrency: 5,
+  connection: redis,
+});
+logWorkerEvents(_worker);

@@ -14,13 +14,16 @@ import {
   UsageEventTxActionEnum,
   reportUsage,
 } from "../../utils/usage";
-import { WebhookData, sendWebhooks } from "../../utils/webhook";
+import {
+  TransactionWebhookData,
+  enqueueTransactionWebhooks,
+} from "../../utils/webhook";
 
 const CANCEL_DEADLINE_MS = 1000 * 60 * 60; // 1 hour
 
 export const updateMinedTx = async () => {
   try {
-    const sendWebhookForQueueIds: WebhookData[] = [];
+    const sendWebhookForQueueIds: TransactionWebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
     await prisma.$transaction(
       async (pgtx) => {
@@ -200,7 +203,7 @@ export const updateMinedTx = async () => {
       },
     );
 
-    await sendWebhooks(sendWebhookForQueueIds);
+    await enqueueTransactionWebhooks(sendWebhookForQueueIds);
     reportUsage(reportUsageForQueueIds);
   } catch (err) {
     logger({
