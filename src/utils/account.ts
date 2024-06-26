@@ -1,4 +1,5 @@
 import { EVMWallet } from "@thirdweb-dev/wallets";
+import { Signer } from "ethers";
 import { Address } from "thirdweb";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { Account } from "thirdweb/wallets";
@@ -7,6 +8,7 @@ import { WalletType } from "../schema/wallet";
 import { getAwsKmsWallet } from "../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsWallet } from "../server/utils/wallets/getGcpKmsWallet";
 import { getLocalWallet } from "../server/utils/wallets/getLocalWallet";
+import { getSmartWallet } from "../server/utils/wallets/getSmartWallet";
 
 export const _accountsCache = new Map<string, Account>();
 
@@ -51,7 +53,19 @@ export const getAccount = async (args: {
       throw new Error(`Wallet type not supported: ${walletDetails.type}`);
   }
 
-  const signer = await wallet.getSigner();
+  // Get smart wallet if `accountAddress` is provided.
+  let signer: Signer;
+  if (accountAddress) {
+    const smartWallet = await getSmartWallet({
+      chainId,
+      backendWallet: wallet,
+      accountAddress,
+    });
+    signer = await smartWallet.getSigner();
+  } else {
+    signer = await wallet.getSigner();
+  }
+
   const account = await ethers5Adapter.signer.fromEthers({ signer });
 
   // Set cache.
