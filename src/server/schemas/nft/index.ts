@@ -1,6 +1,19 @@
 import { Static, Type } from "@sinclair/typebox";
 import { BigNumber } from "ethers";
 
+// NFTInput format compatible with v5 SDK
+export const nftInputSchema = Type.Partial(
+  Type.Object({
+    name: Type.String(),
+    description: Type.String(),
+    image: Type.String(),
+    animation_url: Type.String(),
+    external_url: Type.String(),
+    background_color: Type.String(),
+    properties: Type.Any(),
+  }),
+);
+
 export const nftMetadataInputSchema = Type.Object({
   name: Type.Optional(Type.Union([Type.String(), Type.Number(), Type.Null()])),
   description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
@@ -100,7 +113,6 @@ export const signature721InputSchema = Type.Object({
     Type.String({
       description:
         "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
-      default: "0",
     }),
   ),
   mintStartTime: Type.Optional(
@@ -215,7 +227,6 @@ export const signature1155InputSchema = Type.Object({
     Type.String({
       description:
         "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
-      default: "0",
     }),
   ),
   mintStartTime: Type.Optional(
