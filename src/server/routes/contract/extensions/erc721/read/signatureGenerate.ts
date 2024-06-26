@@ -43,10 +43,6 @@ const requestBodySchemaV5 = Type.Intersect([
     validityEndTimestamp: Type.Optional(Type.Integer()),
     uid: Type.Optional(Type.String()),
   }),
-  Type.Union([
-    Type.Object({ quantity: Type.String() }),
-    Type.Object({ quantityWei: Type.String() }),
-  ]),
 ]);
 const responseSchemaV5 = Type.Object({
   payload: Type.Object({
