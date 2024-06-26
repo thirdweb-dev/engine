@@ -185,7 +185,7 @@ export async function erc20SignatureGenerate(fastify: FastifyInstance) {
         currencyAddress,
         mintEndTime,
         mintStartTime,
-        price,
+        price = "0",
         primarySaleRecipient,
         quantity,
         uid,
