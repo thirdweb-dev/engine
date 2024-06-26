@@ -14,7 +14,7 @@ import {
 } from "../../../../../schemas/erc20";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {
-  erc721ContractParamSchema,
+  erc20ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
@@ -59,7 +59,7 @@ const responseSchemaV5 = Type.Object({
   signature: Type.String(),
 });
 
-const requestSchema = erc721ContractParamSchema;
+const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Union([
   requestBodySchemaV4,
   requestBodySchemaV5,
