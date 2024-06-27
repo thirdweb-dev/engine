@@ -1,6 +1,7 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import { cancelTransaction } from "../../server/utils/transaction";
+import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import {
   CANCEL_TRANSACTION_QUEUE_NAME,
@@ -31,7 +32,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
 // Worker
 const _worker = new Worker(CANCEL_TRANSACTION_QUEUE_NAME, handler, {
-  concurrency: 10,
+  concurrency: env.CANCEL_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });
 logWorkerEvents(_worker);

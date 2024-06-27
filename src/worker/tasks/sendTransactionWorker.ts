@@ -2,6 +2,8 @@ import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import { defineChain, toSerializableTransaction } from "thirdweb";
 import { getAccount } from "../../utils/account";
+import { getBlockNumberish } from "../../utils/block";
+import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { enqueueConfirmTransaction } from "../queues/confirmTransactionQueue";
@@ -50,6 +52,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     chainId,
     from,
   });
+  job.log(`Sending transaction: ${superjson.stringify(populatedTransaction)}`);
   const { transactionHash } = await account.sendTransaction(
     populatedTransaction,
   );
@@ -61,6 +64,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     sentTransaction: {
       ...preparedTransaction,
       sentAt: new Date(),
+      sentAtBlock: await getBlockNumberish(chainId),
       transactionHash,
     },
   });
@@ -68,7 +72,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
 // Worker
 const _worker = new Worker(SEND_TRANSACTION_QUEUE_NAME, handler, {
-  concurrency: 10,
+  concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });
 logWorkerEvents(_worker);

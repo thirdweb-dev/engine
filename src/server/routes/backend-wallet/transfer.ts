@@ -62,13 +62,14 @@ export async function transfer(fastify: FastifyInstance) {
         txOverrides,
       } = request.body;
       const {
-        "x-backend-wallet-address": walletAddress,
+        "x-backend-wallet-address": _walletAddress,
         "x-idempotency-key": idempotencyKey,
       } = request.headers as Static<typeof walletHeaderSchema>;
       const { simulateTx } = request.query;
 
       // Resolve inputs.
       const chainId = await getChainIdFromChain(chain);
+      const walletAddress = _walletAddress.toLowerCase();
       const currencyAddress = _currencyAddress.toLowerCase();
 
       let queueId: string;
@@ -76,6 +77,9 @@ export async function transfer(fastify: FastifyInstance) {
         currencyAddress === ZERO_ADDRESS ||
         currencyAddress === NATIVE_TOKEN_ADDRESS
       ) {
+        // DEBUG
+        // await syncWalletNonce(chainId, walletAddress as Address);
+
         const value = toWei(amount);
 
         ({ queueId } = await insertTransaction({
@@ -83,7 +87,7 @@ export async function transfer(fastify: FastifyInstance) {
             chainId,
             from: walletAddress as Address,
             to: to as Address,
-            data: "0x00",
+            data: "0x",
             value,
 
             gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,

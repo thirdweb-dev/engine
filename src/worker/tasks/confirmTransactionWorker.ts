@@ -1,7 +1,10 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import { defineChain, eth_getTransactionReceipt, getRpcClient } from "thirdweb";
+import { getBlockNumberish } from "../../utils/block";
+import { getConfig } from "../../utils/cache/getConfig";
 import { msSince } from "../../utils/date";
+import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { enqueueCancelTransaction } from "../queues/cancelTransactionQueue";
@@ -25,6 +28,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     return;
   }
 
+  const config = await getConfig();
   const chain = defineChain(chainId);
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
@@ -39,28 +43,43 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     job.log("Receipt found. This transaction is confirmed.");
     return;
   } catch (e) {
-    if (msSince(sentTransaction.sentAt) > DEADLINE_IN_MS) {
-      job.log(
-        "Transaction is not confirmed after deadline. Cancelling transaction...",
-      );
-      await enqueueCancelTransaction({
-        sentTransaction,
-      });
-    } else {
-      job.log(
-        "Transaction is not confirmed before deadline. Retrying transaction...",
-      );
-      await enqueueSendTransaction({
-        preparedTransaction: sentTransaction,
-        isRetry: true,
-      });
-    }
+    // Handle an unconfirmed transaction below.
   }
+
+  if (msSince(sentTransaction.sentAt) > DEADLINE_IN_MS) {
+    job.log(
+      "Transaction is not confirmed after cancel deadline. Cancelling transaction...",
+    );
+    await enqueueCancelTransaction({
+      sentTransaction,
+    });
+    return;
+  }
+
+  const blockNumber = await getBlockNumberish(chainId);
+  if (
+    blockNumber - sentTransaction.sentAtBlock >
+    config.minEllapsedBlocksBeforeRetry
+  ) {
+    job.log(
+      "Transaction is not confirmed before cancel deadline. Retrying transaction...",
+    );
+    await enqueueSendTransaction({
+      preparedTransaction: sentTransaction,
+      isRetry: true,
+    });
+    return;
+  }
+
+  job.log(
+    "Transaction is not confirmed before retry deadline. Check again later...",
+  );
+  throw new Error("NOT_CONFIRMED_YET");
 };
 
 // Worker
 const _worker = new Worker(CONFIRM_TRANSACTION_QUEUE_NAME, handler, {
-  concurrency: 10,
+  concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });
 logWorkerEvents(_worker);

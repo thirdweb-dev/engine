@@ -7,6 +7,7 @@ import {
   simulateTransaction,
 } from "thirdweb";
 import { incrWalletNonce } from "../../db/wallets/walletNonce";
+import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -80,7 +81,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
 // Worker
 const _worker = new Worker(PREPARE_TRANSACTION_QUEUE_NAME, handler, {
-  concurrency: 10,
+  concurrency: env.PREPARE_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });
 logWorkerEvents(_worker);

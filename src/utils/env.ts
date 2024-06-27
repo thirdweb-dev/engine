@@ -72,6 +72,10 @@ export const env = createEnv({
       .nonnegative()
       .default(0),
     REDIS_URL: z.string(),
+    PREPARE_TRANSACTION_QUEUE_CONCURRENCY: z.number().default(100),
+    SEND_TRANSACTION_QUEUE_CONCURRENCY: z.number().default(100),
+    CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.number().default(100),
+    CANCEL_TRANSACTION_QUEUE_CONCURRENCY: z.number().default(100),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -96,6 +100,14 @@ export const env = createEnv({
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
+    PREPARE_TRANSACTION_QUEUE_CONCURRENCY:
+      process.env.PREPARE_TRANSACTION_QUEUE_CONCURRENCY,
+    SEND_TRANSACTION_QUEUE_CONCURRENCY:
+      process.env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
+    CONFIRM_TRANSACTION_QUEUE_CONCURRENCY:
+      process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
+    CANCEL_TRANSACTION_QUEUE_CONCURRENCY:
+      process.env.CANCEL_TRANSACTION_QUEUE_CONCURRENCY,
   },
   onValidationError: (error: ZodError) => {
     console.error(

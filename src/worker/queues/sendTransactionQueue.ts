@@ -1,6 +1,5 @@
 import { Queue } from "bullmq";
 import superjson from "superjson";
-import { Hex } from "viem";
 import { redis } from "../../utils/redis/redis";
 import { QueuedTransaction } from "./prepareTransactionQueue";
 import { defaultJobOptions } from "./queues";
@@ -17,7 +16,6 @@ const _queue = new Queue<string>(SEND_TRANSACTION_QUEUE_NAME, {
 // and has some onchain details set.
 export type PreparedTransaction = QueuedTransaction & {
   nonce: number;
-  data: Hex;
 };
 
 export type SendTransactionData = {
