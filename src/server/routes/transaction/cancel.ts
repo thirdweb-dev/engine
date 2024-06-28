@@ -1,8 +1,18 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { Hex, defineChain } from "thirdweb";
+import { WebhooksEventTypes } from "../../../schema/webhooks";
+import { msSince } from "../../../utils/date";
+import { reportUsage } from "../../../utils/usage";
+import { enqueueWebhook } from "../../../worker/queues/sendWebhookQueue";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { cancelTransactionAndUpdate } from "../../utils/transaction";
+import {
+  CancelledTransaction,
+  QueuedTransaction,
+  SentTransaction,
+  sendCancellationTransaction,
+} from "../../utils/transaction";
 
 // INPUT
 const requestBodySchema = Type.Object({
@@ -67,9 +77,45 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { queueId } = request.body;
 
-      const { message, transactionHash } = await cancelTransactionAndUpdate({
-        queueId,
-      });
+      // @TODO: Handle cases that can't be cancelled.
+
+      // @TODO: Get a queued or sent transaction
+      // @ts-ignore
+      const transaction: QueuedTransaction | SentTransaction = {};
+
+      let message: string;
+      let transactionHash: Hex | undefined;
+      if ("sentAt" in transaction) {
+        // Cancel a sent transaction.
+        const { chainId, from, nonce } = transaction;
+        const chain = defineChain(chainId);
+
+        // Send the cancellation transaction with the same nonce.
+        transactionHash = await sendCancellationTransaction({
+          chainId,
+          from,
+          nonce,
+        });
+        message = "Transaction cancelled.";
+
+        // @TODO: update DB.
+        // Send webhook and analytics.
+        console.log(`Cancel transaction sent: ${transactionHash}`);
+        const cancelledTransaction: CancelledTransaction = {
+          ...transaction,
+          transactionHash,
+          cancelledAt: new Date(),
+        };
+        await enqueueWebhook({
+          type: WebhooksEventTypes.CANCELLED_TX,
+          queueId: cancelledTransaction.queueId,
+        });
+        _reportUsageSuccess(cancelledTransaction);
+      } else {
+        // Cancel an unsent transaction.
+        // @TODO: update DB
+        message = "@TODO";
+      }
 
       return reply.status(StatusCodes.OK).send({
         result: {
@@ -82,3 +128,21 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     },
   });
 }
+
+const _reportUsageSuccess = (cancelledTransaction: CancelledTransaction) => {
+  const chain = defineChain(cancelledTransaction.chainId);
+  reportUsage([
+    {
+      action: "cancel_tx",
+      input: {
+        ...cancelledTransaction,
+        provider: chain.rpc,
+        msSinceQueue: msSince(cancelledTransaction.queuedAt),
+        msSinceSend:
+          "sentAt" in cancelledTransaction
+            ? msSince(cancelledTransaction.sentAt)
+            : undefined,
+      },
+    },
+  ]);
+};

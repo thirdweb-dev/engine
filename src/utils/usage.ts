@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { TransactionErrorInfo } from "@thirdweb-dev/sdk";
+import { Static } from "@sinclair/typebox";
 import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import { FastifyInstance } from "fastify";
+import { Address, Hex } from "thirdweb";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
@@ -9,22 +9,23 @@ import { env } from "./env";
 import { logger } from "./logger";
 import { thirdwebClientId } from "./sdk";
 
-type CreateHeaderForRequestParams = {
-  clientId: string;
-  backendwalletAddress?: string;
-  chainId?: string;
-};
-
 export interface ReportUsageParams {
-  action: UsageEventTxActionEnum;
+  action:
+    | "queue_tx"
+    | "not_send_tx"
+    | "send_tx"
+    | "mine_tx"
+    | "cancel_tx"
+    | "error_tx"
+    | "api_request";
   input: {
-    chainId?: string;
-    fromAddress?: string;
-    toAddress?: string;
-    value?: string;
-    transactionHash?: string;
+    chainId?: number;
+    from?: Address;
+    to?: Address;
+    value?: bigint;
+    transactionHash?: Hex;
     onChainTxStatus?: number;
-    userOpHash?: string;
+    userOpHash?: Hex;
     functionName?: string;
     extension?: string;
     retryCount?: number;
@@ -32,29 +33,17 @@ export interface ReportUsageParams {
     msSinceQueue?: number;
     msSinceSend?: number;
   };
-  error?: TransactionErrorInfo;
+  error?: string;
 }
 
-const EngineRequestParams = Type.Object({
-  ...contractParamSchema.properties,
-  ...walletParamSchema.properties,
-});
+const ANALYTICS_DEFAULT_HEADERS = {
+  "Content-Type": "application/json",
+  "x-sdk-version": process.env.ENGINE_VERSION,
+  "x-product-name": "engine",
+  "x-client-id": thirdwebClientId,
+} as HeadersInit;
 
-export enum UsageEventTxActionEnum {
-  MineTx = "mine_tx",
-  NotSendTx = "not_send_tx",
-  QueueTx = "queue_tx",
-  SendTx = "send_tx",
-  CancelTx = "cancel_tx",
-  APIRequest = "api_request",
-  ErrorTx = "error_tx",
-}
-
-interface UsageEventSchema extends Omit<UsageEvent, "action"> {
-  action: UsageEventTxActionEnum;
-}
-
-const URLS_LIST_TO_NOT_REPORT_USAGE = new Set([
+const SKIP_USAGE_PATHS = new Set([
   "/",
   "/favicon.ico",
   "/system/health",
@@ -62,15 +51,6 @@ const URLS_LIST_TO_NOT_REPORT_USAGE = new Set([
   "/static",
   "",
 ]);
-
-const createHeaderForRequest = (input: CreateHeaderForRequestParams) => {
-  return {
-    "Content-Type": "application/json",
-    "x-sdk-version": process.env.ENGINE_VERSION,
-    "x-product-name": "engine",
-    "x-client-id": input.clientId,
-  } as HeadersInit;
-};
 
 export const withServerUsageReporting = (server: FastifyInstance) => {
   // Skip reporting if CLIENT_ANALYTICS_URL is not set.
@@ -80,85 +60,71 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
 
   server.addHook("onResponse", async (request, reply) => {
     if (
-      URLS_LIST_TO_NOT_REPORT_USAGE.has(reply.request.routerPath) ||
+      SKIP_USAGE_PATHS.has(reply.request.routerPath) ||
       reply.request.method === "OPTIONS"
     ) {
       return;
     }
 
-    const headers = createHeaderForRequest({
-      clientId: thirdwebClientId,
-    });
-
-    const requestParams = request?.params as Static<typeof EngineRequestParams>;
+    const requestParams = request?.params as
+      | (Static<typeof contractParamSchema> & Static<typeof walletParamSchema>)
+      | undefined;
 
     const chainId = requestParams?.chain
       ? await getChainIdFromChain(requestParams.chain)
-      : "";
+      : undefined;
 
-    const requestBody: UsageEventSchema = {
+    const requestBody: UsageEvent = {
       source: "engine",
-      action: UsageEventTxActionEnum.APIRequest,
+      action: "api_request",
       clientId: thirdwebClientId,
       pathname: reply.request.routerPath,
-      chainId: chainId || undefined,
-      walletAddress: requestParams.walletAddress || undefined,
-      contractAddress: requestParams.contractAddress || undefined,
+      chainId,
+      walletAddress: requestParams?.walletAddress,
+      contractAddress: requestParams?.contractAddress,
       httpStatusCode: reply.statusCode,
-      msTotalDuration: Math.ceil(reply.getResponseTime()),
-      httpMethod:
-        request.method.toUpperCase() as UsageEventSchema["httpMethod"],
+      msTotalDuration: Math.ceil(reply.elapsedTime),
+      httpMethod: request.method.toUpperCase() as UsageEvent["httpMethod"],
     };
 
     fetch(env.CLIENT_ANALYTICS_URL, {
       method: "POST",
-      headers,
+      headers: ANALYTICS_DEFAULT_HEADERS,
       body: JSON.stringify(requestBody),
     }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
   });
 };
 
-export const reportUsage = (usageParams: ReportUsageParams[]) => {
+export const reportUsage = (usageEvents: ReportUsageParams[]) => {
   // Skip reporting if CLIENT_ANALYTICS_URL is not set.
   if (env.CLIENT_ANALYTICS_URL === "") {
     return;
   }
 
-  usageParams.map(async (item) => {
+  usageEvents.map(async ({ action, input, error }) => {
     try {
-      const headers = createHeaderForRequest({
-        clientId: thirdwebClientId,
-      });
-
-      const chainId = item.input.chainId
-        ? parseInt(item.input.chainId)
-        : undefined;
-      const requestBody: UsageEventSchema = {
+      const requestBody: UsageEvent = {
         source: "engine",
-        action: item.action,
+        action,
         clientId: thirdwebClientId,
-        chainId,
-        walletAddress: item.input.fromAddress || undefined,
-        contractAddress: item.input.toAddress || undefined,
-        transactionValue: item.input.value || undefined,
-        transactionHash: item.input.transactionHash || undefined,
-        userOpHash: item.input.userOpHash || undefined,
-        errorCode: item.input.onChainTxStatus
-          ? item.input.onChainTxStatus === 0
-            ? "EXECUTION_REVERTED"
-            : undefined
-          : item.error?.reason || undefined,
-        functionName: item.input.functionName || undefined,
-        extension: item.input.extension || undefined,
-        retryCount: item.input.retryCount || undefined,
-        provider: item.input.provider || undefined,
-        msSinceSend: item.input.msSinceSend || undefined,
-        msSinceQueue: item.input.msSinceQueue || undefined,
+        chainId: input.chainId,
+        walletAddress: input.from,
+        contractAddress: input.to,
+        transactionValue: input.value?.toString(),
+        transactionHash: input.transactionHash,
+        userOpHash: input.userOpHash,
+        errorCode: input.onChainTxStatus === 0 ? "EXECUTION_REVERTED" : error,
+        functionName: input.functionName,
+        extension: input.extension,
+        retryCount: input.retryCount,
+        provider: input.provider,
+        msSinceQueue: input.msSinceQueue,
+        msSinceSend: input.msSinceSend,
       };
 
       fetch(env.CLIENT_ANALYTICS_URL, {
         method: "POST",
-        headers,
+        headers: ANALYTICS_DEFAULT_HEADERS,
         body: JSON.stringify(requestBody),
       }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
     } catch (e) {

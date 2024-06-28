@@ -1,33 +1,12 @@
 import { randomUUID } from "crypto";
 import { Address } from "thirdweb";
-import { Hex } from "viem";
-import { TransactionStatus } from "../../server/schemas/transaction";
-import { getAccount } from "../../utils/account";
-import { enqueueTransactionWebhooks } from "../../utils/webhook";
 import {
+  InsertedTransaction,
   QueuedTransaction,
-  enqueuePrepareTransaction,
-} from "../../worker/queues/prepareTransactionQueue";
-
-export interface InsertedTransaction {
-  chainId: number;
-  from: Address;
-  to?: Address;
-  data: Hex;
-  value?: bigint;
-
-  gas?: bigint;
-  gasPrice?: bigint;
-  maxFeePerGas?: bigint;
-  maxPriorityFeePerGas?: bigint;
-
-  // Offchain metadata
-  functionName?: string;
-  functionArgs?: any[];
-  deployedContractAddress?: string;
-  deployedContractType?: string;
-  extension?: string;
-}
+} from "../../server/utils/transaction";
+import { getAccount } from "../../utils/account";
+import { reportUsage } from "../../utils/usage";
+import { enqueuePrepareTransaction } from "../../worker/queues/prepareTransactionQueue";
 
 interface InsertTransactionData {
   insertedTransaction: InsertedTransaction;
@@ -93,25 +72,7 @@ export const insertTransaction = async (
   };
   await enqueuePrepareTransaction({ queuedTransaction });
 
-  // Handle webhooks + usage.
-  await enqueueTransactionWebhooks([
-    { queueId, status: TransactionStatus.Queued },
-  ]);
-  // @TODO: bring back usage
-  // reportUsage([
-  //   {
-  //     input: {
-  //       chainId: tx.chainId || undefined,
-  //       fromAddress: tx.fromAddress || undefined,
-  //       toAddress: tx.toAddress || undefined,
-  //       value: tx.value || undefined,
-  //       transactionHash: tx.transactionHash || undefined,
-  //       functionName: tx.functionName || undefined,
-  //       extension: tx.extension || undefined,
-  //     },
-  //     action: UsageEventTxActionEnum.QueueTx,
-  //   },
-  // ]);
+  reportUsage([{ action: "queue_tx", input: queuedTransaction }]);
 
   return queuedTransaction;
 };

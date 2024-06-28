@@ -1,7 +1,6 @@
 import {
   ContractEventLogs,
   ContractTransactionReceipts,
-  Transactions,
   Webhooks,
 } from "@prisma/client";
 import { Queue } from "bullmq";
@@ -29,13 +28,11 @@ export type EnqueueContractSubscriptionWebhookData = {
 
 export type EnqueueTransactionWebhookData = {
   type:
-    | WebhooksEventTypes.ALL_TX
-    | WebhooksEventTypes.QUEUED_TX
     | WebhooksEventTypes.SENT_TX
     | WebhooksEventTypes.MINED_TX
     | WebhooksEventTypes.ERRORED_TX
     | WebhooksEventTypes.CANCELLED_TX;
-  transaction: Transactions;
+  queueId: string;
 };
 
 // TODO: Add other webhook event types here.
@@ -52,8 +49,6 @@ export const enqueueWebhook = async (data: EnqueueWebhookData) => {
   switch (data.type) {
     case WebhooksEventTypes.CONTRACT_SUBSCRIPTION:
       return enqueueContractSubscriptionWebhook(data);
-    case WebhooksEventTypes.ALL_TX:
-    case WebhooksEventTypes.QUEUED_TX:
     case WebhooksEventTypes.SENT_TX:
     case WebhooksEventTypes.MINED_TX:
     case WebhooksEventTypes.ERRORED_TX:
@@ -132,7 +127,7 @@ const enqueueTransactionWebhook = async (
       jobId: getTransactionWebhookIdempotencyKey({
         webhook,
         eventType: data.type,
-        queueId: data.transaction.id,
+        queueId: data.queueId,
       }),
     });
   }

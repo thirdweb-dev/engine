@@ -1,30 +1,16 @@
 import { Queue } from "bullmq";
 import superjson from "superjson";
-import { Hex } from "viem";
-import { InsertedTransaction } from "../../db/transactions/insertTransaction";
+import { QueuedTransaction } from "../../server/utils/transaction";
 import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
-export const PREPARE_TRANSACTION_QUEUE_NAME = "prepare-transaction";
+export const PREPARE_TRANSACTION_QUEUE_NAME = "transactions-1-prepare";
 
 // Queue
 const _queue = new Queue<string>(PREPARE_TRANSACTION_QUEUE_NAME, {
   connection: redis,
   defaultJobOptions,
 });
-
-// QueuedTransaction is a raw transaction from the caller.
-// The transaction is not validated or prepared yet.
-export type QueuedTransaction = InsertedTransaction & {
-  // Offchain metadata
-  queueId: string;
-  idempotencyKey: string;
-  queuedAt: Date;
-
-  // Populated
-  data: Hex;
-  value: bigint;
-};
 
 export type PrepareTransactionData = {
   queuedTransaction: QueuedTransaction;

@@ -1,16 +1,17 @@
-import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../db/client";
-import { updateTx } from "../../../db/transactions/updateTx";
-import { getSdk } from "../../../utils/cache/getSdk";
+import { defineChain } from "thirdweb";
+import { WebhooksEventTypes } from "../../../schema/webhooks";
+import { getAccount } from "../../../utils/account";
+import { getBlockNumberish } from "../../../utils/block";
 import { msSince } from "../../../utils/date";
-import { parseTxError } from "../../../utils/errors";
-import { UsageEventTxActionEnum, reportUsage } from "../../../utils/usage";
-import { createCustomError } from "../../middleware/error";
+import { reportUsage } from "../../../utils/usage";
+import { enqueueConfirmTransaction } from "../../../worker/queues/confirmTransactionQueue";
+import { enqueueWebhook } from "../../../worker/queues/sendWebhookQueue";
+import { _populateTransaction } from "../../../worker/tasks/sendTransactionWorker";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { TransactionStatus } from "../../schemas/transaction";
+import { PreparedTransaction, SentTransaction } from "../../utils/transaction";
 
 // INPUT
 const requestBodySchema = Type.Object({
@@ -58,108 +59,70 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { queueId, maxFeePerGas, maxPriorityFeePerGas } = request.body;
 
-      const tx = await prisma.transactions.findUnique({
-        where: {
-          id: queueId,
-        },
-      });
-      if (!tx) {
-        throw createCustomError(
-          `Transaction not found with queueId ${queueId}`,
-          StatusCodes.NOT_FOUND,
-          "TX_NOT_FOUND",
-        );
-      }
-      if (
-        // Already mined.
-        tx.minedAt ||
-        // Not yet sent.
-        !tx.sentAt ||
-        // Missing expected values.
-        !tx.id ||
-        !tx.queuedAt ||
-        !tx.chainId ||
-        !tx.toAddress ||
-        !tx.fromAddress ||
-        !tx.data ||
-        !tx.value ||
-        !tx.nonce ||
-        !tx.maxFeePerGas ||
-        !tx.maxPriorityFeePerGas
-      ) {
-        throw createCustomError(
-          "Transaction is not in a valid state.",
-          StatusCodes.BAD_REQUEST,
-          "CANNOT_RETRY_TX",
-        );
-      }
+      // if (
+      //   // Already mined.
+      //   tx.minedAt ||
+      //   // Not yet sent.
+      //   !tx.sentAt ||
+      //   // Missing expected values.
+      //   !tx.id ||
+      //   !tx.queuedAt ||
+      //   !tx.chainId ||
+      //   !tx.toAddress ||
+      //   !tx.fromAddress ||
+      //   !tx.data ||
+      //   !tx.value ||
+      //   !tx.nonce ||
+      //   !tx.maxFeePerGas ||
+      //   !tx.maxPriorityFeePerGas
+      // ) {
+      //   throw createCustomError(
+      //     "Transaction is not in a valid state.",
+      //     StatusCodes.BAD_REQUEST,
+      //     "CANNOT_RETRY_TX",
+      //   );
+      // }
 
-      // Get signer.
-      const sdk = await getSdk({
-        chainId: Number(tx.chainId),
-        walletAddress: tx.fromAddress,
-      });
-      const signer = sdk.getSigner();
-      if (!signer) {
-        throw createCustomError(
-          "Backend wallet not found.",
-          StatusCodes.BAD_REQUEST,
-          "BACKEND_WALLET_NOT_FOUND",
-        );
-      }
+      // @ts-ignore
+      // @TODO populate this
+      const preparedTransaction: PreparedTransaction = {};
+      const { chainId, from } = preparedTransaction;
 
-      const blockNumber = await sdk.getProvider().getBlockNumber();
+      const chain = defineChain(chainId);
+      const populatedTransaction = await _populateTransaction(
+        preparedTransaction,
+      );
 
-      // Send transaction and get the transaction hash.
-      const txRequest = {
-        to: tx.toAddress,
-        from: tx.fromAddress,
-        data: tx.data,
-        value: tx.value,
-        nonce: tx.nonce,
-        maxFeePerGas: maxFeePerGas ?? tx.maxFeePerGas,
-        maxPriorityFeePerGas: maxPriorityFeePerGas ?? tx.maxPriorityFeePerGas,
+      // Send the transaction.
+      const account = await getAccount({ chainId, from });
+      const { transactionHash } = await account.sendTransaction(
+        populatedTransaction,
+      );
+
+      // Enqueue a ConfirmTransaction job.
+      console.log(
+        `Transaction sent with hash ${transactionHash}. Confirming transaction...`,
+      );
+      const sentTransaction: SentTransaction = {
+        ...preparedTransaction,
+        sentAt: new Date(),
+        sentAtBlock: await getBlockNumberish(chainId),
+        transactionHash,
       };
+      await enqueueConfirmTransaction({ sentTransaction });
 
-      let txResponse: TransactionResponse;
-      try {
-        txResponse = await signer.sendTransaction(txRequest);
-        if (!txResponse) {
-          throw "Missing transaction response.";
-        }
-      } catch (e) {
-        const errorMessage = await parseTxError(tx, e);
-        throw createCustomError(
-          errorMessage,
-          StatusCodes.BAD_REQUEST,
-          "TRANSACTION_RETRY_FAILED",
-        );
-      }
-      const transactionHash = txResponse.hash;
-
-      // Update DB.
-      await updateTx({
-        queueId: tx.id,
-        data: {
-          status: TransactionStatus.Sent,
-          transactionHash,
-          res: txRequest,
-          sentAt: new Date(),
-          sentAtBlockNumber: blockNumber,
-        },
+      // Send webhook and analytics.
+      await enqueueWebhook({
+        type: WebhooksEventTypes.SENT_TX,
+        queueId: sentTransaction.queueId,
       });
       reportUsage([
         {
-          action: UsageEventTxActionEnum.SendTx,
+          action: "send_tx",
           input: {
-            fromAddress: tx.fromAddress,
-            toAddress: tx.toAddress,
-            value: tx.value,
-            chainId: tx.chainId,
-            transactionHash,
-            functionName: tx.functionName || undefined,
-            extension: tx.extension || undefined,
-            msSinceQueue: msSince(new Date(tx.queuedAt)),
+            ...sentTransaction,
+            provider: chain.rpc,
+            msSinceQueue: msSince(sentTransaction.queuedAt),
           },
         },
       ]);

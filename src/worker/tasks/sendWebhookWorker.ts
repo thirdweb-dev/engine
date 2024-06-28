@@ -1,12 +1,7 @@
-import { Static } from "@sinclair/typebox";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { toEventLogSchema } from "../../server/schemas/eventLog";
-import {
-  toTransactionSchema,
-  transactionResponseSchema,
-} from "../../server/schemas/transaction";
 import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
 import { redis } from "../../utils/redis/redis";
 import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
@@ -45,15 +40,14 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       break;
     }
 
-    case WebhooksEventTypes.ALL_TX:
-    case WebhooksEventTypes.QUEUED_TX:
     case WebhooksEventTypes.SENT_TX:
     case WebhooksEventTypes.MINED_TX:
     case WebhooksEventTypes.ERRORED_TX:
     case WebhooksEventTypes.CANCELLED_TX: {
-      const webhookBody: Static<typeof transactionResponseSchema> =
-        toTransactionSchema(data.transaction);
-      resp = await sendWebhookRequest(webhook, webhookBody);
+      // @TODO
+      // const transaction = getTransaction(data.queueId);
+      // const webhookBody: Static<typeof transactionResponseSchema> = {};
+      // resp = await sendWebhookRequest(webhook, webhookBody);
       break;
     }
   }

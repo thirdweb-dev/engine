@@ -1,11 +1,10 @@
 import { Queue } from "bullmq";
 import superjson from "superjson";
-import { Hex } from "viem";
+import { SentTransaction } from "../../server/utils/transaction";
 import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
-import { PreparedTransaction } from "./sendTransactionQueue";
 
-export const CONFIRM_TRANSACTION_QUEUE_NAME = "confirm-transaction";
+export const CONFIRM_TRANSACTION_QUEUE_NAME = "transactions-3-confirm";
 
 // Queue
 const _queue = new Queue<string>(CONFIRM_TRANSACTION_QUEUE_NAME, {
@@ -19,13 +18,6 @@ const _queue = new Queue<string>(CONFIRM_TRANSACTION_QUEUE_NAME, {
     backoff: { type: "exponential", delay: 5_000 },
   },
 });
-
-// SentTransaction is a transaction that is submitted to RPC successfully.
-export type SentTransaction = PreparedTransaction & {
-  sentAt: Date;
-  sentAtBlock: bigint;
-  transactionHash: Hex;
-};
 
 export type ConfirmTransactionData = {
   sentTransaction: SentTransaction;
