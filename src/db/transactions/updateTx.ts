@@ -1,10 +1,9 @@
 import { BigNumber, ethers } from "ethers";
-import { PrismaTransaction } from "../../schema/prisma";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { getPrismaWithPostgresTx } from "../client";
+import { redis } from "../../utils/redis/redis";
 
 interface UpdateTxParams {
-  pgtx?: PrismaTransaction;
   queueId: string;
   data: UpdateTxData;
 }
@@ -45,28 +44,15 @@ type UpdateTxData =
       nonce?: number;
     };
 
-export const updateTx = async ({ pgtx, queueId, data }: UpdateTxParams) => {
-  const prisma = getPrismaWithPostgresTx(pgtx);
+export const updateTx = async ({ queueId, data }: UpdateTxParams) => {
   switch (data.status) {
     case TransactionStatus.Cancelled:
-      await prisma.transactions.update({
-        where: {
-          id: queueId,
-        },
-        data: {
-          cancelledAt: new Date(),
-        },
-      });
+      await redis.hset(queueId, "status", TransactionStatus.Cancelled);
+      //cancelledAt: new Date(),
       break;
     case TransactionStatus.Errored:
-      await prisma.transactions.update({
-        where: {
-          id: queueId,
-        },
-        data: {
-          errorMessage: data.errorMessage,
-        },
-      });
+      await redis.hset(queueId, "status", TransactionStatus.Errored);
+      //errorMessage: data.errorMessage,
       break;
     case TransactionStatus.Sent:
       await prisma.transactions.update({

@@ -1,6 +1,5 @@
 import { EVMWallet } from "@thirdweb-dev/wallets";
 import { getWalletDetails } from "../../db/wallets/getWalletDetails";
-import { PrismaTransaction } from "../../schema/prisma";
 import { WalletType } from "../../schema/wallet";
 import { getAwsKmsWallet } from "../../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsWallet } from "../../server/utils/wallets/getGcpKmsWallet";
@@ -10,14 +9,12 @@ import { getSmartWallet } from "../../server/utils/wallets/getSmartWallet";
 export const walletsCache = new Map<string, EVMWallet>();
 
 interface GetWalletParams {
-  pgtx?: PrismaTransaction;
   chainId: number;
   walletAddress: string;
   accountAddress?: string;
 }
 
 export const getWallet = async <TWallet extends EVMWallet>({
-  pgtx,
   chainId,
   walletAddress,
   accountAddress,
@@ -30,7 +27,6 @@ export const getWallet = async <TWallet extends EVMWallet>({
   }
 
   const walletDetails = await getWalletDetails({
-    pgtx,
     address: walletAddress,
   });
 

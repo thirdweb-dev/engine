@@ -48,14 +48,12 @@ export const networkResponseSchema = Type.Object({
 });
 
 interface GetSdkParams {
-  pgtx?: PrismaTransaction;
   chainId: number;
   walletAddress?: string;
   accountAddress?: string;
 }
 
 export const getSdk = async ({
-  pgtx,
   chainId,
   walletAddress,
   accountAddress,
@@ -119,7 +117,6 @@ export const getSdk = async ({
     });
   } else {
     const wallet = await getWallet({
-      pgtx,
       chainId,
       walletAddress,
       accountAddress,

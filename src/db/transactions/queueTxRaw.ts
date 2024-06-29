@@ -1,114 +1,111 @@
-import type { Prisma, Transactions } from "@prisma/client";
 import { v4 as uuid } from "uuid";
-import { PrismaTransaction } from "../../schema/prisma";
 import { TransactionStatus } from "../../server/schemas/transaction";
 import { simulateTx } from "../../server/utils/simulateTx";
 import { UsageEventTxActionEnum, reportUsage } from "../../utils/usage";
 import { sendWebhooks } from "../../utils/webhook";
-import { getPrismaWithPostgresTx } from "../client";
 import { getWalletDetails } from "../wallets/getWalletDetails";
+import { redis } from "../../utils/redis/redis";
+import {
+  AATransaction,
+  DeployTransaction,
+  EOATransaction,
+  TX_QUEUE_PENDING,
+  Transaction,
+  TxQueue,
+  TxQueueStatus,
+} from "../../constants/queue";
+import { logger } from "../../utils/logger";
 
-type QueueTxRawParams = Omit<
-  Prisma.TransactionsCreateInput,
-  "fromAddress" | "signerAddress"
-> &
-  (
-    | {
-        fromAddress: string;
-        signerAddress?: never;
-      }
-    | {
-        fromAddress?: never;
-        signerAddress: string;
-      }
-  ) & {
-    pgtx?: PrismaTransaction;
-    simulateTx?: boolean;
-    idempotencyKey?: string;
-    gas?: string;
-  };
+export const queueTxRaw = async (
+  tx: EOATransaction | AATransaction | DeployTransaction,
+  simulateTx: boolean = false,
+): Promise<TxQueue> => {
+  let walletDetails;
 
-export const queueTxRaw = async ({
-  pgtx,
-  simulateTx: shouldSimulate,
-  idempotencyKey,
-  ...tx
-}: QueueTxRawParams): Promise<Transactions> => {
-  const prisma = getPrismaWithPostgresTx(pgtx);
+  if ("fromAddress" in tx) {
+    walletDetails = await getWalletDetails({
+      address: tx.fromAddress,
+    });
+  } else if ("signerAddress" in tx) {
+    walletDetails = await getWalletDetails({
+      address: tx.signerAddress,
+    });
+  } else {
+    throw new Error("Invalid transaction missing fromAddress or signerAddress");
+  }
 
-  const walletDetails = await getWalletDetails({
-    pgtx,
-    address: (tx.fromAddress || tx.signerAddress) as string,
+  logger({
+    level: "debug",
+    message: `QeuueRawTx transaction for chain ${tx.chainId}`,
+    service: "server",
   });
 
   if (!walletDetails) {
-    throw new Error(
-      `No backend wallet found with address ${
-        tx.fromAddress || tx.signerAddress
-      }`,
-    );
+    throw new Error(`No backend wallet found with address`);
   }
 
-  if (shouldSimulate) {
+  if (simulateTx && false) {
     await simulateTx({ txRaw: tx });
   }
 
-  const insertData = {
-    ...tx,
-    id: uuid(),
-    fromAddress: tx.fromAddress?.toLowerCase(),
-    toAddress: tx.toAddress?.toLowerCase(),
-    target: tx.target?.toLowerCase(),
-    signerAddress: tx.signerAddress?.toLowerCase(),
-    accountAddress: tx.accountAddress?.toLowerCase(),
-    gasLimit: tx.gas,
-    gas: undefined,
+  const id = uuid();
+  const insertData: TxQueue = {
+    txn: tx,
+    id,
+    pendingAt: new Date(),
+    status: TxQueueStatus.Pending,
   };
 
-  let txRow: Transactions;
-  if (idempotencyKey) {
-    // Upsert the tx (insert if not exists).
-    txRow = await prisma.transactions.upsert({
-      where: { idempotencyKey },
-      create: {
-        ...insertData,
-        idempotencyKey,
-      },
-      update: {},
-    });
-  } else {
-    // Insert the tx.
-    txRow = await prisma.transactions.create({
-      data: {
-        ...insertData,
-        // Use queueId to ensure uniqueness.
-        idempotencyKey: insertData.id,
-      },
-    });
-  }
+  //let txRow: Transactions;
+  //TODO add idempotency key functionality back in
+  /*  if (idempotencyKey) {*/
+  /*// Upsert the tx (insert if not exists).*/
+  /*txRow = await prisma.transactions.upsert({*/
+  /*where: { idempotencyKey },*/
+  /*create: {*/
+  /*...insertData,*/
+  /*idempotencyKey,*/
+  /*},*/
+  /*update: {},*/
+  /*});*/
+  /*} else {*/
+  // Insert the tx.
+  redis.hset(
+    insertData.id,
+    "status",
+    insertData.status,
+    "txn",
+    JSON.stringify(insertData.txn),
+    "pendingAt",
+    insertData.pendingAt.toISOString(),
+  );
+  redis.rpush(TX_QUEUE_PENDING, insertData.id);
+  //}
 
   // Send queued webhook.
   sendWebhooks([
     {
-      queueId: txRow.id,
+      queueId: insertData.id,
       status: TransactionStatus.Queued,
     },
-  ]).catch((err) => {});
+  ]).catch((err) => {
+    console.error("Error sending webhooks", err);
+  });
 
-  reportUsage([
-    {
-      input: {
-        chainId: tx.chainId || undefined,
-        fromAddress: tx.fromAddress || undefined,
-        toAddress: tx.toAddress || undefined,
-        value: tx.value || undefined,
-        transactionHash: tx.transactionHash || undefined,
-        functionName: tx.functionName || undefined,
-        extension: tx.extension || undefined,
-      },
-      action: UsageEventTxActionEnum.QueueTx,
-    },
-  ]);
+  /*  reportUsage([*/
+  /*{*/
+  /*input: {*/
+  /*chainId: tx.chainId || undefined,*/
+  /*fromAddress: tx.fromAddress || undefined,*/
+  /*toAddress: tx.toAddress || undefined,*/
+  /*value: tx.value || undefined,*/
+  /*transactionHash: tx.transactionHash || undefined,*/
+  /*functionName: tx.functionName || undefined,*/
+  /*extension: tx.extension || undefined,*/
+  /*},*/
+  /*action: UsageEventTxActionEnum.QueueTx,*/
+  /*},*/
+  /*]);*/
 
-  return txRow;
+  return insertData;
 };

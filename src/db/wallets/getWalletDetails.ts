@@ -1,17 +1,11 @@
-import { PrismaTransaction } from "../../schema/prisma";
-import { getPrismaWithPostgresTx } from "../client";
+import { getPrismaWithPostgresTx, knex } from "../client";
 
 interface GetWalletDetailsParams {
-  pgtx?: PrismaTransaction;
   address: string;
 }
 
-export const getWalletDetails = async ({
-  pgtx,
-  address,
-}: GetWalletDetailsParams) => {
-  const prisma = getPrismaWithPostgresTx(pgtx);
-
+export const getWalletDetails = async ({ address }: GetWalletDetailsParams) => {
+  const prisma = getPrismaWithPostgresTx();
   return prisma.walletDetails.findUnique({
     where: {
       address: address.toLowerCase(),

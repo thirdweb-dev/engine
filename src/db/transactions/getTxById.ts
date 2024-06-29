@@ -1,34 +1,27 @@
 import { Static } from "@sinclair/typebox";
-import { PrismaTransaction } from "../../schema/prisma";
 import { transactionResponseSchema } from "../../server/schemas/transaction";
-import { getPrismaWithPostgresTx } from "../client";
 import { cleanTxs } from "./cleanTxs";
+import { redis } from "../../utils/redis/redis";
 
 interface GetTxByIdParams {
   queueId: string;
-  pgtx?: PrismaTransaction;
 }
 
-/**
- * @deprecated - Call prisma directly.
- */
 export const getTxById = async ({
-  pgtx,
   queueId,
 }: GetTxByIdParams): Promise<Static<
   typeof transactionResponseSchema
 > | null> => {
-  const prisma = getPrismaWithPostgresTx(pgtx);
-  const tx = await prisma.transactions.findUnique({
-    where: {
-      id: queueId,
-    },
-  });
+  const { status, txData } = await redis.hgetall(queueId);
+  console.log({ status, txData });
 
-  if (!tx) {
+  if (!status || !txData) {
     return null;
   }
 
-  const [cleanedTx] = cleanTxs([tx]);
+  const tx = JSON.parse(txData);
+  tx.status = status as any;
+
+  const [cleanedTx] = cleanTxs([JSON.parse(tx)]);
   return cleanedTx;
 };

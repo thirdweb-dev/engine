@@ -22,7 +22,7 @@ const host = `https://gg.furqan.sh:4435`;
 const backendWalletAddress = `0xa117e64D1Ced1F1e2A7089fca981f360e4ec1Eaa`;
 const nftTokenContractAddress = `0xfF86ba9194355EF12c0B950a3ed64047d40c49CF`;
 const thirdwebApiSecretKey = process.env.THIRDWEB_API_SECRET_KEY as string;
-const loadTestBatchSize = parseInt(process.env.LOAD_TEST_BATCH_SIZE || "30");
+const loadTestBatchSize = parseInt(process.env.LOAD_TEST_BATCH_SIZE || "1");
 const loadTestBatches = parseInt(process.env.LOAD_TEST_BATCHES || "1");
 
 const main = async () => {
