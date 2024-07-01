@@ -231,7 +231,7 @@ const formatDecodedLog = async (args: {
     if (name && name in logArgs) {
       res[name] = {
         type,
-        value: (logArgs[name] as any).toString(),
+        value: JSON.stringify(logArgs[name]),
       };
     }
   }
