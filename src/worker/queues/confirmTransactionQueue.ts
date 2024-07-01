@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import superjson from "superjson";
-import { SentTransaction } from "../../server/utils/transaction";
 import { redis } from "../../utils/redis/redis";
+import { SentTransaction } from "../../utils/transaction/types";
 import { defaultJobOptions } from "./queues";
 
 export const CONFIRM_TRANSACTION_QUEUE_NAME = "transactions-3-confirm";
@@ -27,9 +27,11 @@ export const enqueueConfirmTransaction = async (
   data: ConfirmTransactionData,
 ) => {
   const serialized = superjson.stringify(data);
-  await _queue.add(data.sentTransaction.queueId, serialized, {
-    // Don't enqueue more than one job per `transactionHash`.
-    // An existing job should continue checking the same hash.
-    jobId: data.sentTransaction.transactionHash,
-  });
+  const jobId = _jobId(data.sentTransaction);
+  await _queue.add(data.sentTransaction.queueId, serialized, { jobId });
 };
+
+// Don't enqueue more than one job per `transactionHash`.
+// An existing job should continue checking the same hash.
+const _jobId = (sentTransaction: SentTransaction) =>
+  `${sentTransaction.transactionHash}`;

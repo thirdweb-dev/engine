@@ -3,7 +3,7 @@ import { constants } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address, NATIVE_TOKEN_ADDRESS, ZERO_ADDRESS, toWei } from "thirdweb";
-import { insertTransaction } from "../../../db/transactions/insertTransaction";
+import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -77,9 +77,6 @@ export async function transfer(fastify: FastifyInstance) {
         currencyAddress === ZERO_ADDRESS ||
         currencyAddress === NATIVE_TOKEN_ADDRESS
       ) {
-        // DEBUG
-        // await syncWalletNonce(chainId, walletAddress as Address);
-
         const value = toWei(amount);
 
         ({ queueId } = await insertTransaction({

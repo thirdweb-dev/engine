@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address } from "thirdweb";
-import { insertTransaction } from "../../../db/transactions/insertTransaction";
+import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import {
   requestQuerystringSchema,
   standardResponseSchema,

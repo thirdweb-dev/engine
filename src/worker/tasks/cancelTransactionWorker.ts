@@ -1,21 +1,19 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import { defineChain } from "thirdweb";
-import { WebhooksEventTypes } from "../../schema/webhooks";
-import {
-  CancelledTransaction,
-  sendCancellationTransaction,
-} from "../../server/utils/transaction";
+import { TransactionDB } from "../../db/transactions/db";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
+import { sendCancellationTransaction } from "../../utils/transaction/cancelTransaction";
+import { CancelledTransaction } from "../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import {
   CANCEL_TRANSACTION_QUEUE_NAME,
   CancelTransactionData,
 } from "../queues/cancelTransactionQueue";
 import { logWorkerEvents } from "../queues/queues";
-import { enqueueWebhook } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { sentTransaction } = superjson.parse<CancelTransactionData>(job.data);
@@ -34,17 +32,16 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     nonce,
   });
 
-  // @TODO: update DB.
   job.log(`Cancel transaction sent: ${transactionHash}`);
+
   const cancelledTransaction: CancelledTransaction = {
     ...sentTransaction,
+    status: "cancelled",
     transactionHash,
     cancelledAt: new Date(),
   };
-  await enqueueWebhook({
-    type: WebhooksEventTypes.CANCELLED_TX,
-    queueId: cancelledTransaction.queueId,
-  });
+  await TransactionDB.set(cancelledTransaction);
+  await enqueueTransactionWebhook(cancelledTransaction);
   _reportUsageSuccess(cancelledTransaction);
 };
 
@@ -57,10 +54,7 @@ const _reportUsageSuccess = (cancelledTransaction: CancelledTransaction) => {
         ...cancelledTransaction,
         provider: chain.rpc,
         msSinceQueue: msSince(cancelledTransaction.queuedAt),
-        msSinceSend:
-          "sentAt" in cancelledTransaction
-            ? msSince(cancelledTransaction.sentAt)
-            : undefined,
+        msSinceSend: msSince(cancelledTransaction.sentAt),
       },
     },
   ]);

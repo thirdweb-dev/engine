@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import superjson from "superjson";
-import { SentTransaction } from "../../server/utils/transaction";
 import { redis } from "../../utils/redis/redis";
+import { SentTransaction } from "../../utils/transaction/types";
 import { defaultJobOptions } from "./queues";
 
 export const CANCEL_TRANSACTION_QUEUE_NAME = "transactions-4-cancel";

@@ -2,16 +2,17 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { defineChain } from "thirdweb";
-import { WebhooksEventTypes } from "../../../schema/webhooks";
+import { TransactionDB } from "../../../db/transactions/db";
 import { getAccount } from "../../../utils/account";
 import { getBlockNumberish } from "../../../utils/block";
 import { msSince } from "../../../utils/date";
+import { SentTransaction } from "../../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
 import { reportUsage } from "../../../utils/usage";
 import { enqueueConfirmTransaction } from "../../../worker/queues/confirmTransactionQueue";
-import { enqueueWebhook } from "../../../worker/queues/sendWebhookQueue";
 import { _populateTransaction } from "../../../worker/tasks/sendTransactionWorker";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { PreparedTransaction, SentTransaction } from "../../utils/transaction";
 
 // INPUT
 const requestBodySchema = Type.Object({
@@ -59,39 +60,32 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { queueId, maxFeePerGas, maxPriorityFeePerGas } = request.body;
 
-      // if (
-      //   // Already mined.
-      //   tx.minedAt ||
-      //   // Not yet sent.
-      //   !tx.sentAt ||
-      //   // Missing expected values.
-      //   !tx.id ||
-      //   !tx.queuedAt ||
-      //   !tx.chainId ||
-      //   !tx.toAddress ||
-      //   !tx.fromAddress ||
-      //   !tx.data ||
-      //   !tx.value ||
-      //   !tx.nonce ||
-      //   !tx.maxFeePerGas ||
-      //   !tx.maxPriorityFeePerGas
-      // ) {
-      //   throw createCustomError(
-      //     "Transaction is not in a valid state.",
-      //     StatusCodes.BAD_REQUEST,
-      //     "CANNOT_RETRY_TX",
-      //   );
-      // }
+      const transaction = await TransactionDB.get(queueId);
+      if (!transaction) {
+        throw createCustomError(
+          "Transaction not found.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_FOUND",
+        );
+      }
 
-      // @ts-ignore
-      // @TODO populate this
-      const preparedTransaction: PreparedTransaction = {};
-      const { chainId, from } = preparedTransaction;
+      if (transaction.status !== "sent") {
+        // Cannot retry a transaction that has not been sent or already completed.
+        throw createCustomError(
+          "Transaction cannot be retried.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_CANNOT_BE_RETRIED",
+        );
+      }
 
-      const chain = defineChain(chainId);
-      const populatedTransaction = await _populateTransaction(
-        preparedTransaction,
-      );
+      const { chainId, from } = transaction;
+      const populatedTransaction = await _populateTransaction({
+        ...transaction,
+        maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
+        maxPriorityFeePerGas: maxPriorityFeePerGas
+          ? BigInt(maxPriorityFeePerGas)
+          : undefined,
+      });
 
       // Send the transaction.
       const account = await getAccount({ chainId, from });
@@ -104,28 +98,15 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         `Transaction sent with hash ${transactionHash}. Confirming transaction...`,
       );
       const sentTransaction: SentTransaction = {
-        ...preparedTransaction,
+        ...transaction,
         sentAt: new Date(),
         sentAtBlock: await getBlockNumberish(chainId),
         transactionHash,
       };
+      await TransactionDB.set(sentTransaction);
       await enqueueConfirmTransaction({ sentTransaction });
-
-      // Send webhook and analytics.
-      await enqueueWebhook({
-        type: WebhooksEventTypes.SENT_TX,
-        queueId: sentTransaction.queueId,
-      });
-      reportUsage([
-        {
-          action: "send_tx",
-          input: {
-            ...sentTransaction,
-            provider: chain.rpc,
-            msSinceQueue: msSince(sentTransaction.queuedAt),
-          },
-        },
-      ]);
+      await enqueueTransactionWebhook(sentTransaction);
+      _reportUsageSuccess(sentTransaction);
 
       reply.status(StatusCodes.OK).send({
         result: {
@@ -135,3 +116,17 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
     },
   });
 }
+
+const _reportUsageSuccess = (sentTransaction: SentTransaction) => {
+  const chain = defineChain(sentTransaction.chainId);
+  reportUsage([
+    {
+      action: "send_tx",
+      input: {
+        ...sentTransaction,
+        provider: chain.rpc,
+        msSinceQueue: msSince(sentTransaction.queuedAt),
+      },
+    },
+  ]);
+};

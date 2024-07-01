@@ -1,17 +1,15 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import { defineChain, eth_getTransactionReceipt, getRpcClient } from "thirdweb";
-import { WebhooksEventTypes } from "../../schema/webhooks";
-import {
-  ConfirmedTransaction,
-  SentTransaction,
-} from "../../server/utils/transaction";
+import { TransactionDB } from "../../db/transactions/db";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
+import { ConfirmedTransaction } from "../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import { enqueueCancelTransaction } from "../queues/cancelTransactionQueue";
 import {
@@ -20,7 +18,6 @@ import {
 } from "../queues/confirmTransactionQueue";
 import { logWorkerEvents } from "../queues/queues";
 import { enqueueSendTransaction } from "../queues/sendTransactionQueue";
-import { enqueueWebhook } from "../queues/sendWebhookQueue";
 
 // @TODO: move to DB config.
 const DEADLINE_IN_MS = 60 * 60 * 1000; // 1 hour
@@ -42,25 +39,31 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     chain,
   });
 
+  // Check if the transactions is no longer waiting to be confirmed.
+  const currentTransaction = await TransactionDB.get(sentTransaction.queueId);
+  if (currentTransaction?.status !== "sent") {
+    job.log(`Transaction is no longer waiting to be confirmed.`);
+    return;
+  }
+
   try {
     const receipt = await eth_getTransactionReceipt(rpcRequest, {
       hash: transactionHash,
     });
-    // @TODO: update DB.
+
     job.log("Receipt found. This transaction is confirmed.");
     const confirmedTransaction: ConfirmedTransaction = {
       ...sentTransaction,
+      status: "confirmed",
       confirmedAt: new Date(),
       confirmedAtBlock: receipt.blockNumber,
       type: receipt.type,
-      status: receipt.status,
+      onchainStatus: receipt.status,
       gasUsed: receipt.gasUsed,
       effectiveGasPrice: receipt.effectiveGasPrice,
     };
-    await enqueueWebhook({
-      type: WebhooksEventTypes.MINED_TX,
-      queueId: confirmedTransaction.queueId,
-    });
+    await TransactionDB.set(confirmedTransaction);
+    await enqueueTransactionWebhook(confirmedTransaction);
     _reportUsageSuccess(confirmedTransaction);
     return;
   } catch (e) {
@@ -71,27 +74,28 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     job.log(
       "Transaction is not confirmed after cancel deadline. Cancelling transaction...",
     );
-    await enqueueCancelTransaction({
-      sentTransaction,
-    });
+    await enqueueCancelTransaction({ sentTransaction });
     return;
   }
 
-  const blockNumber = await getBlockNumberish(chainId);
-  if (
-    blockNumber - sentTransaction.sentAtBlock >
-    config.minEllapsedBlocksBeforeRetry
-  ) {
-    job.log(
-      "Transaction is not confirmed before cancel deadline. Retrying transaction...",
-    );
-    await enqueueSendTransaction({
-      preparedTransaction: {
-        ...sentTransaction,
-        retryCount: sentTransaction.retryCount + 1,
-      },
-    });
-    return;
+  if (sentTransaction.retryCount < 10) {
+    const blockNumber = await getBlockNumberish(chainId);
+    if (
+      blockNumber - sentTransaction.sentAtBlock >
+      config.minEllapsedBlocksBeforeRetry
+    ) {
+      job.log(
+        "Transaction is not confirmed before cancel deadline. Retrying transaction...",
+      );
+      await enqueueSendTransaction({
+        preparedTransaction: {
+          ...sentTransaction,
+          status: "prepared",
+          retryCount: sentTransaction.retryCount + 1,
+        },
+      });
+      return;
+    }
   }
 
   job.log(
@@ -100,16 +104,16 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   throw new Error("NOT_CONFIRMED_YET");
 };
 
-const _reportUsageSuccess = (sentTransaction: SentTransaction) => {
-  const chain = defineChain(sentTransaction.chainId);
+const _reportUsageSuccess = (confirmedTransaction: ConfirmedTransaction) => {
+  const chain = defineChain(confirmedTransaction.chainId);
   reportUsage([
     {
       action: "mine_tx",
       input: {
-        ...sentTransaction,
+        ...confirmedTransaction,
         provider: chain.rpc,
-        msSinceQueue: msSince(sentTransaction.queuedAt),
-        msSinceSend: msSince(sentTransaction.sentAt),
+        msSinceQueue: msSince(confirmedTransaction.queuedAt),
+        msSinceSend: msSince(confirmedTransaction.sentAt),
       },
     },
   ]);

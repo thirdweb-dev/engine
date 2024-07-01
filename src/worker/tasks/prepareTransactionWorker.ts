@@ -1,20 +1,16 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
-import {
-  defineChain,
-  encode,
-  prepareTransaction,
-  simulateTransaction,
-} from "thirdweb";
+import { defineChain, prepareTransaction, simulateTransaction } from "thirdweb";
+import { TransactionDB } from "../../db/transactions/db";
 import { incrWalletNonce } from "../../db/wallets/walletNonce";
-import { WebhooksEventTypes } from "../../schema/webhooks";
-import {
-  ErroredTransaction,
-  PreparedTransaction,
-} from "../../server/utils/transaction";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
+import {
+  ErroredTransaction,
+  PreparedTransaction,
+} from "../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import {
   PREPARE_TRANSACTION_QUEUE_NAME,
@@ -22,7 +18,6 @@ import {
 } from "../queues/prepareTransactionQueue";
 import { logWorkerEvents } from "../queues/queues";
 import { enqueueSendTransaction } from "../queues/sendTransactionQueue";
-import { enqueueWebhook } from "../queues/sendWebhookQueue";
 import { getWithdrawValue } from "../utils/withdraw";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
@@ -74,32 +69,31 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   } catch (e) {
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
+      status: "errored",
       errorMessage: (e as any).toString(),
     };
-    // @TODO: update DB state.
+    job.log(`Transaction errored: ${superjson.stringify(erroredTransaction)}`);
+
+    await TransactionDB.set(erroredTransaction);
+    await enqueueTransactionWebhook(erroredTransaction);
     _reportUsageError(erroredTransaction);
-    await enqueueWebhook({
-      type: WebhooksEventTypes.ERRORED_TX,
-      queueId: erroredTransaction.queueId,
-    });
     return;
   }
 
   // @TODO: consider moving the nonce to the "sendTransaction" step.
   const nonce = await incrWalletNonce(chainId, from);
-  const encodedData = await encode(transaction);
 
   job.log(`Transaction prepared with nonce ${nonce}. Sending transaction...`);
   const preparedTransaction: PreparedTransaction = {
     ...queuedTransaction,
+    status: "prepared",
     nonce,
-    data: encodedData,
+    data, // @TODO: this may be undefined
     value,
     retryCount: 0,
   };
   await enqueueSendTransaction({ preparedTransaction });
-
-  // @TODO: update DB state
+  await TransactionDB.set(preparedTransaction);
 };
 
 const _reportUsageError = (erroredTransaction: ErroredTransaction) => {
