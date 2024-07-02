@@ -71,7 +71,7 @@ export const updateMinedUserOps = async () => {
               logger({
                 service: "worker",
                 level: "error",
-                message: `Failed to get receipt for UserOp ${userOp.id}`,
+                message: `Failed to get receipt for UserOp : ${userOp.id}`,
                 error,
               });
             }
