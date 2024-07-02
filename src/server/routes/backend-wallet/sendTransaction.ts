@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -76,32 +75,31 @@ export async function sendTransaction(fastify: FastifyInstance) {
       const chainId = await getChainIdFromChain(chain);
 
       let queueId: string;
-      if (accountAddress) {
-        const { id } = await queueTxRaw({
-          chainId: chainId.toString(),
-          signerAddress: fromAddress,
-          accountAddress,
-          target: toAddress,
-          data,
-          value,
-          simulateTx,
-          idempotencyKey,
-          ...txOverrides,
-        });
-        queueId = id;
-      } else {
-        const { id } = await queueTxRaw({
-          chainId: chainId.toString(),
-          fromAddress,
-          toAddress,
-          data,
-          value,
-          simulateTx,
-          idempotencyKey,
-          ...txOverrides,
-        });
-        queueId = id;
-      }
+      queueId = "@TODO: implement";
+      // if (accountAddress) {
+      //   ({ queueId } = await queueTxRaw({
+      //     chainId: chainId.toString(),
+      //     signerAddress: fromAddress,
+      //     accountAddress,
+      //     target: toAddress,
+      //     data,
+      //     value,
+      //     simulateTx,
+      //     idempotencyKey,
+      //     ...txOverrides,
+      //   }));
+      // } else {
+      //   ({ queueId } = await queueTxRaw({
+      //     chainId: chainId.toString(),
+      //     fromAddress,
+      //     toAddress,
+      //     data,
+      //     value,
+      //     simulateTx,
+      //     idempotencyKey,
+      //     ...txOverrides,
+      //   }));
+      // }
 
       reply.status(StatusCodes.OK).send({
         result: {

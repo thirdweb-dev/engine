@@ -1,8 +1,18 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { Hex, defineChain } from "thirdweb";
+import { TransactionDB } from "../../../db/transactions/db";
+import { getBlockNumberish } from "../../../utils/block";
+import { msSince } from "../../../utils/date";
+import { sendCancellationTransaction } from "../../../utils/transaction/cancelTransaction";
+import { CancelledTransaction } from "../../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
+import { reportUsage } from "../../../utils/usage";
+import { removePrepareTransaction } from "../../../worker/queues/prepareTransactionQueue";
+import { removeSendTransaction } from "../../../worker/queues/sendTransactionQueue";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { cancelTransactionAndUpdate } from "../../utils/transaction";
 
 // INPUT
 const requestBodySchema = Type.Object({
@@ -67,9 +77,64 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { queueId } = request.body;
 
-      const { message, transactionHash } = await cancelTransactionAndUpdate({
-        queueId,
-      });
+      const transaction = await TransactionDB.get(queueId);
+      if (!transaction) {
+        throw createCustomError(
+          "Transaction not found.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_FOUND",
+        );
+      }
+
+      let message = "Transaction successfully cancelled.";
+      let transactionHash: Hex = "0x";
+      switch (transaction.status) {
+        case "queued":
+          // Remove it from the PREPARE_TRANSACTION queue.
+          await removePrepareTransaction(transaction);
+          break;
+        case "prepared":
+          // Remove it from the SEND_TRANSACTION queue.
+          await removeSendTransaction(transaction);
+          break;
+        case "sent":
+          // Cancel a sent transaction with the same nonce.
+          const { chainId, from, nonce } = transaction;
+          transactionHash = await sendCancellationTransaction({
+            chainId,
+            from,
+            nonce,
+          });
+          break;
+
+        case "confirmed":
+        case "cancelled":
+        case "errored":
+          // Cannot cancel a transaction that is already completed.
+          throw createCustomError(
+            "Transaction cannot be cancelled.",
+            StatusCodes.BAD_REQUEST,
+            "TRANSACTION_CANNOT_BE_CANCELLED",
+          );
+      }
+
+      const cancelledTransaction: CancelledTransaction = {
+        ...transaction,
+        status: "cancelled",
+        sentAt: "sentAt" in transaction ? transaction.sentAt : new Date(),
+        sentAtBlock:
+          "sentAtBlock" in transaction
+            ? transaction.sentAtBlock
+            : await getBlockNumberish(transaction.chainId),
+        data: transaction.data ?? "0x",
+        nonce: "nonce" in transaction ? transaction.nonce : -1,
+        retryCount: "retryCount" in transaction ? transaction.retryCount : 0,
+        transactionHash,
+        cancelledAt: new Date(),
+      };
+      await TransactionDB.set(cancelledTransaction);
+      await enqueueTransactionWebhook(cancelledTransaction);
+      _reportUsageSuccess(cancelledTransaction);
 
       return reply.status(StatusCodes.OK).send({
         result: {
@@ -82,3 +147,18 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     },
   });
 }
+
+const _reportUsageSuccess = (cancelledTransaction: CancelledTransaction) => {
+  const chain = defineChain(cancelledTransaction.chainId);
+  reportUsage([
+    {
+      action: "cancel_tx",
+      input: {
+        ...cancelledTransaction,
+        provider: chain.rpc,
+        msSinceQueue: msSince(cancelledTransaction.queuedAt),
+        msSinceSend: msSince(cancelledTransaction.sentAt),
+      },
+    },
+  ]);
+};

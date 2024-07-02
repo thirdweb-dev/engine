@@ -1,0 +1,127 @@
+import { Job, Processor, Worker } from "bullmq";
+import superjson from "superjson";
+import { defineChain, toSerializableTransaction } from "thirdweb";
+import { getAccount } from "../../utils/account";
+import { getBlockNumberish } from "../../utils/block";
+import { msSince } from "../../utils/date";
+import { env } from "../../utils/env";
+import { redis } from "../../utils/redis/redis";
+import { thirdwebClient } from "../../utils/sdk";
+import {
+  PreparedTransaction,
+  SentTransaction,
+} from "../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
+import { reportUsage } from "../../utils/usage";
+import { enqueueConfirmTransaction } from "../queues/confirmTransactionQueue";
+import { logWorkerEvents } from "../queues/queues";
+import {
+  SEND_TRANSACTION_QUEUE_NAME,
+  SendTransactionData,
+} from "../queues/sendTransactionQueue";
+
+const handler: Processor<any, void, string> = async (job: Job<string>) => {
+  const { preparedTransaction } = superjson.parse<SendTransactionData>(
+    job.data,
+  );
+  const { chainId, from } = preparedTransaction;
+
+  // Validate required params.
+  if (!chainId || !from) {
+    job.log("Missing required args.");
+    return;
+  }
+
+  const populatedTransaction = await _populateTransaction(preparedTransaction);
+  job.log(
+    `Populated transaction: ${superjson.stringify(populatedTransaction)}`,
+  );
+
+  const account = await getAccount({ chainId, from });
+  const { transactionHash } = await account.sendTransaction(
+    populatedTransaction,
+  );
+
+  job.log(
+    `Transaction sent with hash ${transactionHash}. Confirming transaction...`,
+  );
+  const sentTransaction: SentTransaction = {
+    ...preparedTransaction,
+    status: "sent",
+    sentAt: new Date(),
+    sentAtBlock: await getBlockNumberish(chainId),
+    transactionHash,
+  };
+  await enqueueConfirmTransaction({ sentTransaction });
+  await enqueueTransactionWebhook(sentTransaction);
+  _reportUsageSuccess(sentTransaction);
+};
+
+export const _populateTransaction = async (
+  transaction: PreparedTransaction | SentTransaction,
+) => {
+  const {
+    chainId,
+    from,
+    to,
+    value,
+    data,
+    nonce,
+    gas,
+    gasPrice,
+    maxFeePerGas,
+    maxPriorityFeePerGas,
+  } = transaction;
+
+  const populatedTransaction = await toSerializableTransaction({
+    from,
+    transaction: {
+      client: thirdwebClient,
+      chain: defineChain(chainId),
+      to,
+      value,
+      data,
+      nonce,
+      gas,
+      gasPrice,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
+    },
+  });
+
+  // Double gas for retries.
+  if (transaction.retryCount > 0) {
+    if (populatedTransaction.gasPrice) {
+      populatedTransaction.gasPrice *= 2n;
+    }
+    if (populatedTransaction.maxFeePerGas) {
+      populatedTransaction.maxFeePerGas *= 2n;
+    }
+    if (populatedTransaction.maxFeePerGas) {
+      populatedTransaction.maxFeePerGas *= 2n;
+    }
+  }
+
+  return populatedTransaction;
+};
+
+const _reportUsageSuccess = (sentTransaction: SentTransaction) => {
+  const chain = defineChain(sentTransaction.chainId);
+  reportUsage([
+    {
+      action: "send_tx",
+      input: {
+        ...sentTransaction,
+        provider: chain.rpc,
+        msSinceQueue: msSince(sentTransaction.queuedAt),
+      },
+    },
+  ]);
+};
+
+// Worker
+const _worker = new Worker(SEND_TRANSACTION_QUEUE_NAME, handler, {
+  concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
+  connection: redis,
+});
+logWorkerEvents(_worker);

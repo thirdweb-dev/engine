@@ -2,6 +2,7 @@ import { SocketStream } from "@fastify/websocket";
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { TransactionDB } from "../../../db/transactions/db";
 import { getTxById } from "../../../db/transactions/getTxById";
 import { logger } from "../../../utils/logger";
 import { createCustomError } from "../../middleware/error";
@@ -79,19 +80,18 @@ export async function checkTxStatus(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { queueId } = request.params;
-      const returnData = await getTxById({ queueId });
 
-      if (!returnData) {
-        const error = createCustomError(
-          `Transaction not found with queueId ${queueId}`,
-          StatusCodes.NOT_FOUND,
-          "TX_NOT_FOUND",
+      const transaction = await TransactionDB.get(queueId);
+      if (!transaction) {
+        throw createCustomError(
+          "Transaction not found.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_FOUND",
         );
-        throw error;
       }
 
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        result: toTransactionSchema(transaction),
       });
     },
     wsHandler: async (connection: SocketStream, request) => {

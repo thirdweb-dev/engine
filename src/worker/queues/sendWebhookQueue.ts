@@ -1,7 +1,6 @@
 import {
   ContractEventLogs,
   ContractTransactionReceipts,
-  Transactions,
   Webhooks,
 } from "@prisma/client";
 import { Queue } from "bullmq";
@@ -15,12 +14,10 @@ import { defaultJobOptions } from "./queues";
 export const SEND_WEBHOOK_QUEUE_NAME = "send-webhook";
 
 // Queue
-const _queue = redis
-  ? new Queue<string>(SEND_WEBHOOK_QUEUE_NAME, {
-      connection: redis,
-      defaultJobOptions,
-    })
-  : null;
+const _queue = new Queue<string>(SEND_WEBHOOK_QUEUE_NAME, {
+  connection: redis,
+  defaultJobOptions,
+});
 
 export type EnqueueContractSubscriptionWebhookData = {
   type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION;
@@ -31,13 +28,11 @@ export type EnqueueContractSubscriptionWebhookData = {
 
 export type EnqueueTransactionWebhookData = {
   type:
-    | WebhooksEventTypes.ALL_TX
-    | WebhooksEventTypes.QUEUED_TX
     | WebhooksEventTypes.SENT_TX
     | WebhooksEventTypes.MINED_TX
     | WebhooksEventTypes.ERRORED_TX
     | WebhooksEventTypes.CANCELLED_TX;
-  transaction: Transactions;
+  queueId: string;
 };
 
 // TODO: Add other webhook event types here.
@@ -53,14 +48,12 @@ export interface WebhookJob {
 export const enqueueWebhook = async (data: EnqueueWebhookData) => {
   switch (data.type) {
     case WebhooksEventTypes.CONTRACT_SUBSCRIPTION:
-      return enqueueContractSubscriptionWebhook(data);
-    case WebhooksEventTypes.ALL_TX:
-    case WebhooksEventTypes.QUEUED_TX:
+      return _enqueueContractSubscriptionWebhook(data);
     case WebhooksEventTypes.SENT_TX:
     case WebhooksEventTypes.MINED_TX:
     case WebhooksEventTypes.ERRORED_TX:
     case WebhooksEventTypes.CANCELLED_TX:
-      return enqueueTransactionWebhook(data);
+      return _enqueueTransactionWebhook(data);
     default:
       logger({
         service: "worker",
@@ -74,10 +67,9 @@ export const enqueueWebhook = async (data: EnqueueWebhookData) => {
  * Contract Subscriptions webhooks
  */
 
-const enqueueContractSubscriptionWebhook = async (
+const _enqueueContractSubscriptionWebhook = async (
   data: EnqueueContractSubscriptionWebhookData,
 ) => {
-  if (!_queue) return;
   const { type, webhook, eventLog, transactionReceipt } = data;
   if (!eventLog && !transactionReceipt) {
     throw 'Must provide "eventLog" or "transactionReceipt".';
@@ -86,7 +78,7 @@ const enqueueContractSubscriptionWebhook = async (
   if (!webhook.revokedAt && type === webhook.eventType) {
     const job: WebhookJob = { data, webhook };
     const serialized = SuperJSON.stringify(job);
-    const idempotencyKey = getContractSubscriptionWebhookIdempotencyKey({
+    const idempotencyKey = _getContractSubscriptionWebhookIdempotencyKey({
       webhook,
       eventLog,
       transactionReceipt,
@@ -101,7 +93,7 @@ const enqueueContractSubscriptionWebhook = async (
  * Define an idempotency key that ensures a webhook URL will
  * receive an event log or transaction receipt at most once.
  */
-const getContractSubscriptionWebhookIdempotencyKey = (args: {
+const _getContractSubscriptionWebhookIdempotencyKey = (args: {
   webhook: Webhooks;
   eventLog?: ContractEventLogs;
   transactionReceipt?: ContractTransactionReceipts;
@@ -120,11 +112,9 @@ const getContractSubscriptionWebhookIdempotencyKey = (args: {
  * Transaction webhooks
  */
 
-const enqueueTransactionWebhook = async (
+const _enqueueTransactionWebhook = async (
   data: EnqueueTransactionWebhookData,
 ) => {
-  if (!_queue) return;
-
   const webhooks = [
     ...(await getWebhooksByEventType(WebhooksEventTypes.ALL_TX)),
     ...(await getWebhooksByEventType(data.type)),
@@ -134,16 +124,16 @@ const enqueueTransactionWebhook = async (
     const job: WebhookJob = { data, webhook };
     const serialized = SuperJSON.stringify(job);
     await _queue.add(`${data.type}:${webhook.id}`, serialized, {
-      jobId: getTransactionWebhookIdempotencyKey({
+      jobId: _getTransactionWebhookIdempotencyKey({
         webhook,
         eventType: data.type,
-        queueId: data.transaction.id,
+        queueId: data.queueId,
       }),
     });
   }
 };
 
-const getTransactionWebhookIdempotencyKey = (args: {
+const _getTransactionWebhookIdempotencyKey = (args: {
   webhook: Webhooks;
   eventType: WebhooksEventTypes;
   queueId: string;

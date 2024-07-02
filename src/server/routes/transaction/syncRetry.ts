@@ -1,16 +1,18 @@
-import { TransactionResponse } from "@ethersproject/abstract-provider";
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../db/client";
-import { updateTx } from "../../../db/transactions/updateTx";
-import { getSdk } from "../../../utils/cache/getSdk";
+import { defineChain } from "thirdweb";
+import { TransactionDB } from "../../../db/transactions/db";
+import { getAccount } from "../../../utils/account";
+import { getBlockNumberish } from "../../../utils/block";
 import { msSince } from "../../../utils/date";
-import { parseTxError } from "../../../utils/errors";
-import { UsageEventTxActionEnum, reportUsage } from "../../../utils/usage";
+import { SentTransaction } from "../../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
+import { reportUsage } from "../../../utils/usage";
+import { enqueueConfirmTransaction } from "../../../worker/queues/confirmTransactionQueue";
+import { _populateTransaction } from "../../../worker/tasks/sendTransactionWorker";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { TransactionStatus } from "../../schemas/transaction";
 
 // INPUT
 const requestBodySchema = Type.Object({
@@ -58,111 +60,53 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { queueId, maxFeePerGas, maxPriorityFeePerGas } = request.body;
 
-      const tx = await prisma.transactions.findUnique({
-        where: {
-          id: queueId,
-        },
-      });
-      if (!tx) {
+      const transaction = await TransactionDB.get(queueId);
+      if (!transaction) {
         throw createCustomError(
-          `Transaction not found with queueId ${queueId}`,
-          StatusCodes.NOT_FOUND,
-          "TX_NOT_FOUND",
-        );
-      }
-      if (
-        // Already mined.
-        tx.minedAt ||
-        // Not yet sent.
-        !tx.sentAt ||
-        // Missing expected values.
-        !tx.id ||
-        !tx.queuedAt ||
-        !tx.chainId ||
-        !tx.toAddress ||
-        !tx.fromAddress ||
-        !tx.data ||
-        !tx.value ||
-        !tx.nonce ||
-        !tx.maxFeePerGas ||
-        !tx.maxPriorityFeePerGas
-      ) {
-        throw createCustomError(
-          "Transaction is not in a valid state.",
+          "Transaction not found.",
           StatusCodes.BAD_REQUEST,
-          "CANNOT_RETRY_TX",
+          "TRANSACTION_NOT_FOUND",
         );
       }
 
-      // Get signer.
-      const sdk = await getSdk({
-        chainId: Number(tx.chainId),
-        walletAddress: tx.fromAddress,
-      });
-      const signer = sdk.getSigner();
-      if (!signer) {
+      if (transaction.status !== "sent") {
+        // Cannot retry a transaction that has not been sent or already completed.
         throw createCustomError(
-          "Backend wallet not found.",
+          "Transaction cannot be retried.",
           StatusCodes.BAD_REQUEST,
-          "BACKEND_WALLET_NOT_FOUND",
+          "TRANSACTION_CANNOT_BE_RETRIED",
         );
       }
 
-      const blockNumber = await sdk.getProvider().getBlockNumber();
+      const { chainId, from } = transaction;
+      const populatedTransaction = await _populateTransaction({
+        ...transaction,
+        maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
+        maxPriorityFeePerGas: maxPriorityFeePerGas
+          ? BigInt(maxPriorityFeePerGas)
+          : undefined,
+      });
 
-      // Send transaction and get the transaction hash.
-      const txRequest = {
-        to: tx.toAddress,
-        from: tx.fromAddress,
-        data: tx.data,
-        value: tx.value,
-        nonce: tx.nonce,
-        maxFeePerGas: maxFeePerGas ?? tx.maxFeePerGas,
-        maxPriorityFeePerGas: maxPriorityFeePerGas ?? tx.maxPriorityFeePerGas,
+      // Send the transaction.
+      const account = await getAccount({ chainId, from });
+      const { transactionHash } = await account.sendTransaction(
+        populatedTransaction,
+      );
+
+      // Enqueue a ConfirmTransaction job.
+      console.log(
+        `Transaction sent with hash ${transactionHash}. Confirming transaction...`,
+      );
+      const sentTransaction: SentTransaction = {
+        ...transaction,
+        sentAt: new Date(),
+        sentAtBlock: await getBlockNumberish(chainId),
+        transactionHash,
       };
-
-      let txResponse: TransactionResponse;
-      try {
-        txResponse = await signer.sendTransaction(txRequest);
-        if (!txResponse) {
-          throw "Missing transaction response.";
-        }
-      } catch (e) {
-        const errorMessage = await parseTxError(tx, e);
-        throw createCustomError(
-          errorMessage,
-          StatusCodes.BAD_REQUEST,
-          "TRANSACTION_RETRY_FAILED",
-        );
-      }
-      const transactionHash = txResponse.hash;
-
-      // Update DB.
-      await updateTx({
-        queueId: tx.id,
-        data: {
-          status: TransactionStatus.Sent,
-          transactionHash,
-          res: txRequest,
-          sentAt: new Date(),
-          sentAtBlockNumber: blockNumber,
-        },
-      });
-      reportUsage([
-        {
-          action: UsageEventTxActionEnum.SendTx,
-          input: {
-            fromAddress: tx.fromAddress,
-            toAddress: tx.toAddress,
-            value: tx.value,
-            chainId: tx.chainId,
-            transactionHash,
-            functionName: tx.functionName || undefined,
-            extension: tx.extension || undefined,
-            msSinceQueue: msSince(new Date(tx.queuedAt)),
-          },
-        },
-      ]);
+      await TransactionDB.set(sentTransaction);
+      await enqueueConfirmTransaction({ sentTransaction });
+      await enqueueTransactionWebhook(sentTransaction);
+      _reportUsageSuccess(sentTransaction);
 
       reply.status(StatusCodes.OK).send({
         result: {
@@ -172,3 +116,17 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
     },
   });
 }
+
+const _reportUsageSuccess = (sentTransaction: SentTransaction) => {
+  const chain = defineChain(sentTransaction.chainId);
+  reportUsage([
+    {
+      action: "send_tx",
+      input: {
+        ...sentTransaction,
+        provider: chain.rpc,
+        msSinceQueue: msSince(sentTransaction.queuedAt),
+      },
+    },
+  ]);
+};

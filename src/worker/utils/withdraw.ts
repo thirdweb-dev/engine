@@ -1,38 +1,36 @@
-import { defineChain, prepareTransaction } from "thirdweb";
+import { Address, defineChain, prepareTransaction } from "thirdweb";
 import { estimateGasCost } from "thirdweb/transaction";
 import { getWalletBalance } from "thirdweb/wallets";
 import { thirdwebClient } from "../../utils/sdk";
 
 interface GetWithdrawValueParams {
   chainId: number;
-  fromAddress: string;
-  toAddress: string;
+  from: Address;
+  to: Address;
 }
 
 export const getWithdrawValue = async ({
   chainId,
-  fromAddress,
-  toAddress,
+  from,
+  to,
 }: GetWithdrawValueParams): Promise<bigint> => {
   const chain = defineChain(chainId);
 
   // Get wallet balance.
   const { value: balanceWei } = await getWalletBalance({
-    address: fromAddress,
+    address: from,
     client: thirdwebClient,
     chain,
   });
 
   // Estimate gas for a transfer.
-  const transferTx = prepareTransaction({
+  const transaction = prepareTransaction({
     value: BigInt(1),
-    to: toAddress,
+    to,
     chain,
     client: thirdwebClient,
   });
-  const { wei: transferCostWei } = await estimateGasCost({
-    transaction: transferTx,
-  });
+  const { wei: transferCostWei } = await estimateGasCost({ transaction });
 
   // Add a 20% buffer for gas variance.
   const buffer = BigInt(Math.round(Number(transferCostWei) * 0.2));

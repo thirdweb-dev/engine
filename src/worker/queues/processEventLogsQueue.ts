@@ -8,15 +8,13 @@ import { defaultJobOptions } from "./queues";
 export const PROCESS_EVENT_LOGS_QUEUE_NAME = "process-event-logs";
 
 // Queue
-const _queue = redis
-  ? new Queue<string>(PROCESS_EVENT_LOGS_QUEUE_NAME, {
-      connection: redis,
-      defaultJobOptions: {
-        ...defaultJobOptions,
-        attempts: 0,
-      },
-    })
-  : null;
+const _queue = new Queue<string>(PROCESS_EVENT_LOGS_QUEUE_NAME, {
+  connection: redis,
+  defaultJobOptions: {
+    ...defaultJobOptions,
+    attempts: 0,
+  },
+});
 
 // Each job handles a block range for a given chain, filtered by addresses + events.
 export type EnqueueProcessEventLogsData = {
@@ -32,8 +30,6 @@ export type EnqueueProcessEventLogsData = {
 export const enqueueProcessEventLogs = async (
   data: EnqueueProcessEventLogsData,
 ) => {
-  if (!_queue) return;
-
   const serialized = SuperJSON.stringify(data);
   // e.g. 8453:14423125-14423685
   const jobName = `${data.chainId}:${data.fromBlock}-${data.toBlock}`;
