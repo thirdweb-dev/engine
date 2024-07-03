@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../utils/cache/getContract";
-import { RoyaltySchema } from "../../../../schemas/contract";
+import { royaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -17,7 +17,7 @@ import { getChainIdFromChain } from "../../../../utils/chain";
 // INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  ...RoyaltySchema.properties,
+  ...royaltySchema.properties,
   token_id: Type.String({
     description: "The token ID to set the royalty info for.",
   }),

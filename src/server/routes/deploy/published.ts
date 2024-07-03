@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { isAddress } from "thirdweb";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { contractDeployBasicSchema } from "../../schemas/contract";
 import {
   publishedDeployParamSchema,
   standardResponseSchema,
@@ -15,14 +16,10 @@ import { getChainIdFromChain } from "../../utils/chain";
 // INPUTS
 const requestSchema = publishedDeployParamSchema;
 const requestBodySchema = Type.Object({
+  ...contractDeployBasicSchema.properties,
   constructorParams: Type.Array(Type.Any(), {
     description: "Constructor arguments for the deployment.",
   }),
-  version: Type.Optional(
-    Type.String({
-      description: "Version of the contract to deploy. Defaults to latest.",
-    }),
-  ),
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -67,7 +64,14 @@ export async function deployPublished(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, publisher, contractName } = request.params;
-      const { constructorParams, version, txOverrides } = request.body;
+      const {
+        constructorParams,
+        version,
+        txOverrides,
+        saltForProxyDeploy,
+        forceDirectDeploy,
+        compilerOptions,
+      } = request.body;
       const chainId = await getChainIdFromChain(chain);
       const {
         "x-backend-wallet-address": walletAddress,
@@ -81,6 +85,11 @@ export async function deployPublished(fastify: FastifyInstance) {
         contractName,
         constructorParams,
         version,
+        {
+          saltForProxyDeploy,
+          forceDirectDeploy,
+          compilerOptions,
+        },
       );
       const _deployedAddress = await tx.simulate();
       const deployedAddress = isAddress(_deployedAddress)
