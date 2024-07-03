@@ -231,7 +231,7 @@ const formatDecodedLog = async (args: {
     if (name && name in logArgs) {
       res[name] = {
         type,
-        value: (logArgs[name] as any).toString(),
+        value: logArgToString(logArgs[name]),
       };
     }
   }
@@ -272,6 +272,19 @@ const getBlockTimestamps = async (
     res[dedupe[i]] = blocks[i];
   }
   return res;
+};
+
+const logArgToString = (arg: any): string => {
+  if (arg === null) {
+    return "";
+  }
+  if (typeof arg === "object") {
+    return Object.values(arg).map(logArgToString).join(",");
+  }
+  if (Array.isArray(arg)) {
+    return arg.map(logArgToString).join(",");
+  }
+  return arg.toString();
 };
 
 // Worker

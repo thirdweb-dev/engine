@@ -2,7 +2,7 @@ const CANCEL_DEADLINE_MS = 1000 * 60 * 60; // 1 hour
 
 export const updateMinedUserOps = async () => {
   // try {
-  //   const sendWebhookForQueueIds: TransactionWebhookData[] = [];
+  //   const sendWebhookForQueueIds: WebhookData[] = [];
   //   const reportUsageForQueueIds: ReportUsageParams[] = [];
   //   await prisma.$transaction(
   //     async (pgtx) => {
@@ -41,8 +41,7 @@ export const updateMinedUserOps = async () => {
   //             logger({
   //               service: "worker",
   //               level: "error",
-  //               queueId: userOp.id,
-  //               message: "Failed to get receipt for UserOp",
+  //               message: `Failed to get receipt for UserOp : ${userOp.id}`,
   //               error,
   //             });
   //           }
@@ -127,14 +126,13 @@ export const updateMinedUserOps = async () => {
   //               provider: signer.httpRpcClient.bundlerUrl,
   //               msSinceSend: msSince(userOp.sentAt!),
   //             },
-  //             action: UsageEventType.MineTx,
+  //             action: UsageEventTxActionEnum.MineTx,
   //           });
   //         } catch (err) {
   //           logger({
   //             service: "worker",
   //             level: "error",
-  //             queueId: userOp.id,
-  //             message: "Failed to update receipt for UserOp ",
+  //             message: `Failed to update receipt for UserOp : ${userOp.id}`,
   //             error: err,
   //           });
   //         }
@@ -145,7 +143,7 @@ export const updateMinedUserOps = async () => {
   //       timeout: 5 * 60 * 1000, // 5 minutes
   //     },
   //   );
-  //   await enqueueTransactionWebhooks(sendWebhookForQueueIds);
+  //   await sendWebhooks(sendWebhookForQueueIds);
   //   reportUsage(reportUsageForQueueIds);
   // } catch (err) {
   //   logger({
