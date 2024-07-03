@@ -95,11 +95,28 @@ export const eventsQuerystringSchema = Type.Object(
   },
 );
 
-export const RoyaltySchema = Type.Object({
+export const royaltySchema = Type.Object({
   seller_fee_basis_points: Type.Number({
     description: "The royalty fee in BPS (basis points). 100 = 1%.",
   }),
   fee_recipient: Type.String({
     description: "The wallet address that will receive the royalty fees.",
   }),
+});
+
+export const contractDeployBasicSchema = Type.Object({
+  version: Type.Optional(
+    Type.String({
+      description: "Version of the contract to deploy. Defaults to latest.",
+    }),
+  ),
+  forceDirectDeploy: Type.Optional(Type.Boolean()),
+  saltForProxyDeploy: Type.Optional(Type.String()),
+  compilerOptions: Type.Optional(
+    Type.Object({
+      compilerType: Type.Enum(Type.Literal("solc"), Type.Literal("zksolc")),
+      compilerVersion: Type.Optional(Type.String()),
+      evmVersion: Type.Optional(Type.String()),
+    }),
+  ),
 });
