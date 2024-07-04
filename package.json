@@ -36,7 +36,7 @@
     "@fastify/type-provider-typebox": "^3.2.0",
     "@fastify/websocket": "^8.2.0",
     "@google-cloud/kms": "^4.4.0",
-    "@prisma/client": "^5.14.0-dev.65",
+    "@prisma/client": "^5.16.1",
     "@sinclair/typebox": "^0.31.28",
     "@t3-oss/env-core": "^0.6.0",
     "@thirdweb-dev/auth": "^4.1.87",

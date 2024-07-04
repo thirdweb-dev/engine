@@ -101,7 +101,6 @@ export async function simulateTransaction(fastify: FastifyInstance) {
         functionArgs: args,
         data: data as Hex | undefined,
         value: value ? BigInt(value) : 0n,
-        retryCount: 0,
       };
 
       const error = await simulateQueuedTransaction(queuedTransaction);

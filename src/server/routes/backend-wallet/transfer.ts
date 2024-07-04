@@ -30,7 +30,7 @@ const requestBodySchema = Type.Object({
   }),
   currencyAddress: Type.String({
     description: "Address of the token to transfer",
-    default: [constants.AddressZero],
+    default: constants.AddressZero,
   }),
   amount: Type.String({
     description: "The amount of tokens to transfer",
@@ -104,7 +104,6 @@ export async function transfer(fastify: FastifyInstance) {
             ...gasOverrides,
 
             functionName: "transfer",
-            functionArgs: [to, amount, currencyAddress],
             extension: "none",
           },
           idempotencyKey,

@@ -15,15 +15,17 @@ import {
 } from "../queues/cancelTransactionQueue";
 import { logWorkerEvents } from "../queues/queues";
 
+/**
+ * The CANCEL_TRANSACTION worker is responsible for:
+ * - Sending a null transaction to consume a transaction's nonce
+ */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { queueId } = superjson.parse<CancelTransactionData>(job.data);
 
   // Assert valid transaction state.
   const sentTransaction = await TransactionDB.get(queueId);
   if (sentTransaction?.status !== "sent") {
-    job.log(
-      `Invalid transaction state: ${superjson.stringify(sentTransaction)}`,
-    );
+    job.log(`Invalid transaction state: ${JSON.stringify(sentTransaction)}`);
     return;
   }
 
@@ -41,7 +43,6 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const cancelledTransaction: CancelledTransaction = {
     ...sentTransaction,
     status: "cancelled",
-    transactionHash,
     cancelledAt: new Date(),
   };
   await TransactionDB.set(cancelledTransaction);

@@ -11,7 +11,6 @@ import {
 // Init workers.
 import "./tasks/cancelTransactionWorker";
 import "./tasks/mineTransactionWorker";
-import "./tasks/prepareTransactionWorker";
 import "./tasks/processEventLogsWorker";
 import "./tasks/processTransactionReceiptsWorker";
 import "./tasks/sendTransactionWorker";

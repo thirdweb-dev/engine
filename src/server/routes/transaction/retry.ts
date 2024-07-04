@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
-import { QueuedTransaction } from "../../../utils/transaction/types";
+import { SentTransaction } from "../../../utils/transaction/types";
 import { enqueueSendTransaction } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -70,19 +70,18 @@ export async function retryTransaction(fastify: FastifyInstance) {
         );
       }
 
-      const preparedTransaction: QueuedTransaction = {
+      // Override the gas settings.
+      const sentTransaction: SentTransaction = {
         ...transaction,
-        status: "queued",
-        retryCount: transaction.retryCount + 1,
         maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
         maxPriorityFeePerGas: maxPriorityFeePerGas
           ? BigInt(maxPriorityFeePerGas)
           : undefined,
       };
-      await TransactionDB.set(preparedTransaction);
+      await TransactionDB.set(sentTransaction);
       await enqueueSendTransaction({
-        queueId: preparedTransaction.queueId,
-        retryCount: preparedTransaction.retryCount,
+        queueId: sentTransaction.queueId,
+        retryCount: sentTransaction.retryCount + 1,
       });
 
       reply.status(StatusCodes.OK).send({

@@ -12,9 +12,10 @@ export class TransactionDB {
    * @param transaction
    */
   static set = async (transaction: AnyTransaction) => {
-    await redis.setex(
+    await redis.set(
       this.key(transaction.queueId),
       superjson.stringify(transaction),
+      "EX",
       this.STORAGE_TTL_SECONDS,
     );
   };

@@ -24,19 +24,56 @@ import {
   SendTransactionData,
 } from "../queues/sendTransactionQueue";
 
+/**
+ * The SEND_TRANSACTION worker is responsible for:
+ * - simulating a transaction
+ * - acquiring a nonce (or re-using an existing one)
+ * - preparing gas settings
+ * - sending the transaction to RPC
+ */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const { queueId } = superjson.parse<SendTransactionData>(job.data);
+  const { queueId, retryCount } = superjson.parse<SendTransactionData>(
+    job.data,
+  );
 
-  // Assert valid transaction state.
-  const queuedTransaction = await TransactionDB.get(queueId);
-  if (queuedTransaction?.status !== "queued") {
-    job.log(
-      `Invalid transaction state: ${superjson.stringify(queuedTransaction)}`,
-    );
-    return;
+  let sentTransaction: SentTransaction | null = null;
+  const transaction = await TransactionDB.get(queueId);
+  switch (transaction?.status) {
+    case "queued":
+      // Send a transaction for the first time.
+      sentTransaction = await _handleQueuedTransaction(job, transaction);
+      break;
+    case "sent":
+      // Retry a stuck transaction.
+      sentTransaction = await _handleSentTransaction(
+        job,
+        transaction,
+        retryCount,
+      );
+      break;
+    default:
+      job.log(`Invalid transaction state: ${JSON.stringify(transaction)}`);
+      return;
   }
 
-  // Simulate transaction and drop transactions that are expected to fail onchain.
+  if (sentTransaction) {
+    await TransactionDB.set(sentTransaction);
+    await enqueueMineTransaction({ queueId: sentTransaction.queueId });
+    await enqueueTransactionWebhook(sentTransaction);
+    _reportUsageSuccess(sentTransaction);
+
+    const transactionHash = sentTransaction.sentTransactionHashes.at(-1);
+    job.log(`Transaction sent: ${transactionHash}.`);
+  }
+};
+
+const _handleQueuedTransaction = async (
+  job: Job,
+  queuedTransaction: QueuedTransaction,
+): Promise<SentTransaction | null> => {
+  const { chainId, from } = queuedTransaction;
+
+  // Drop transactions that are expected to fail onchain.
   const simulationError = await simulateQueuedTransaction(queuedTransaction);
   if (simulationError) {
     const erroredTransaction: ErroredTransaction = {
@@ -45,106 +82,90 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       errorMessage: simulationError,
     };
     await TransactionDB.set(erroredTransaction);
-    await enqueueMineTransaction({ queueId: erroredTransaction.queueId });
     await enqueueTransactionWebhook(erroredTransaction);
     _reportUsageError(erroredTransaction);
-    return;
+    return null;
   }
 
   // Prepare nonce + gas settings.
-  const populatedTransaction = await populateTransaction(queuedTransaction);
-  job.log(
-    `Populated transaction: ${superjson.stringify(populatedTransaction)}`,
-  );
-
-  // Send the populated transaction and handle side effects.
-  const sentTransaction = await sendPopulatedTransaction({
-    preparedTransaction: queuedTransaction,
-    populatedTransaction,
-  });
-  job.log(`Transaction sent with hash ${sentTransaction.transactionHash}.`);
-};
-
-export const populateTransaction = async (transaction: QueuedTransaction) => {
-  const {
-    chainId,
-    from,
-    to,
-    value,
-    data,
-    gas,
-    gasPrice,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
-  } = transaction;
-
-  // Re-use existing nonce or get the next available one.
-  const nonce = transaction.nonce ?? (await incrWalletNonce(chainId, from));
-
+  const nonce = await incrWalletNonce(chainId, from);
   const populatedTransaction = await toSerializableTransaction({
     from,
     transaction: {
       client: thirdwebClient,
       chain: defineChain(chainId),
-      to,
-      value,
-      data,
+      ...queuedTransaction,
       nonce,
-      gas,
-      gasPrice,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
     },
   });
+  job.log(
+    `Populated transaction: ${superjson.stringify(populatedTransaction)}`,
+  );
 
-  // Double gas for retries.
-  if (transaction.retryCount > 0) {
-    if (populatedTransaction.gasPrice) {
-      populatedTransaction.gasPrice *= 2n;
-    }
-    if (populatedTransaction.maxFeePerGas) {
-      populatedTransaction.maxFeePerGas *= 2n;
-    }
-    if (populatedTransaction.maxFeePerGas) {
-      populatedTransaction.maxFeePerGas *= 2n;
-    }
-  }
-
-  return populatedTransaction;
-};
-
-export const sendPopulatedTransaction = async (args: {
-  preparedTransaction: QueuedTransaction;
-  populatedTransaction: Awaited<ReturnType<typeof populateTransaction>>;
-}) => {
-  const { preparedTransaction, populatedTransaction } = args;
-
-  if (!populatedTransaction.nonce) {
-    throw new Error("Nonce not set.");
-  }
-
-  const account = await getAccount({
-    chainId: preparedTransaction.chainId,
-    from: preparedTransaction.from,
-  });
+  // Send transaction to RPC.
+  const account = await getAccount({ chainId, from });
   const { transactionHash } = await account.sendTransaction(
     populatedTransaction,
   );
 
-  const sentTransaction: SentTransaction = {
-    ...preparedTransaction,
-    nonce: populatedTransaction.nonce,
+  return {
+    ...queuedTransaction,
     status: "sent",
+    nonce,
+    retryCount: 0,
     sentAt: new Date(),
-    sentAtBlock: await getBlockNumberish(preparedTransaction.chainId),
-    transactionHash,
+    sentAtBlock: await getBlockNumberish(chainId),
+    sentTransactionHashes: [transactionHash],
   };
-  await TransactionDB.set(sentTransaction);
-  await enqueueMineTransaction({ queueId: sentTransaction.queueId });
-  await enqueueTransactionWebhook(sentTransaction);
-  _reportUsageSuccess(sentTransaction);
+};
 
-  return sentTransaction;
+const _handleSentTransaction = async (
+  job: Job,
+  sentTransaction: SentTransaction,
+  retryCount: number,
+): Promise<SentTransaction> => {
+  const { chainId, from } = sentTransaction;
+
+  // Prepare gas settings. Re-use existing nonce.
+  const populatedTransaction = await toSerializableTransaction({
+    from,
+    transaction: {
+      client: thirdwebClient,
+      chain: defineChain(chainId),
+      ...sentTransaction,
+    },
+  });
+  // Double gas for retries.
+  if (populatedTransaction.gasPrice) {
+    populatedTransaction.gasPrice *= 2n;
+  }
+  if (populatedTransaction.maxFeePerGas) {
+    populatedTransaction.maxFeePerGas *= 2n;
+  }
+  if (populatedTransaction.maxPriorityFeePerGas) {
+    populatedTransaction.maxPriorityFeePerGas *= 2n;
+  }
+
+  job.log(
+    `Populated transaction: ${superjson.stringify(populatedTransaction)}`,
+  );
+
+  // Send transaction to RPC.
+  const account = await getAccount({ chainId, from });
+  const { transactionHash } = await account.sendTransaction(
+    populatedTransaction,
+  );
+
+  return {
+    ...sentTransaction,
+    retryCount,
+    sentAt: new Date(),
+    sentAtBlock: await getBlockNumberish(chainId),
+    sentTransactionHashes: [
+      ...sentTransaction.sentTransactionHashes,
+      transactionHash,
+    ],
+  };
 };
 
 const _reportUsageSuccess = (sentTransaction: SentTransaction) => {

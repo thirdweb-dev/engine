@@ -29,6 +29,6 @@ export const removeSendTransaction = async (data: SendTransactionData) => {
   }
 };
 
-// Allow re-enqueing the same queueId if resubmitting.
+// Allow enqueing the same queueId for multiple retries.
 const _jobId = (data: SendTransactionData) =>
   `${data.queueId}:${data.retryCount}`;

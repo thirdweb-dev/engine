@@ -130,9 +130,9 @@ export async function cancelTransaction(fastify: FastifyInstance) {
             ? transaction.sentAtBlock
             : await getBlockNumberish(transaction.chainId),
         data: transaction.data ?? "0x",
-        nonce: "nonce" in transaction ? transaction.nonce ?? -1 : -1,
+        nonce: "nonce" in transaction ? transaction.nonce : -1,
         retryCount: "retryCount" in transaction ? transaction.retryCount : 0,
-        transactionHash,
+        sentTransactionHashes: [transactionHash],
         cancelledAt: new Date(),
       };
       await TransactionDB.set(cancelledTransaction);

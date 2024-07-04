@@ -232,7 +232,7 @@ export const toTransactionSchema = (
     toAddress: transaction.to ?? null,
     data: transaction.data ?? null,
     value: transaction.value.toString(),
-    nonce: "nonce" in transaction ? transaction.nonce ?? null : null,
+    nonce: "nonce" in transaction ? transaction.nonce : null,
     deployedContractAddress: transaction.deployedContractAddress ?? null,
     deployedContractType: transaction.deployedContractType ?? null,
     functionName: transaction.functionName ?? null,

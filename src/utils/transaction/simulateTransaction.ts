@@ -1,4 +1,3 @@
-import superjson from "superjson";
 import {
   PreparedTransaction,
   defineChain,
@@ -66,9 +65,7 @@ export const simulateQueuedTransaction = async (
     });
   } else {
     throw new Error(
-      `Transaction cannot be simulated: ${superjson.stringify(
-        queuedTransaction,
-      )}`,
+      `Transaction cannot be simulated: ${JSON.stringify(queuedTransaction)}`,
     );
   }
 

@@ -27,4 +27,6 @@ export const enqueueMineTransaction = async (data: MineTransactionData) => {
   await _queue.add(_jobId(data), serialized, { jobId: _jobId(data) });
 };
 
+// There must be a worker to poll the result for every transaction hash,
+// even for the same queueId. This handles if any retried transactions succeed.
 const _jobId = (data: MineTransactionData) => data.queueId;

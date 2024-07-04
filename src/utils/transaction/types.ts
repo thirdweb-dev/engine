@@ -37,24 +37,24 @@ export type QueuedTransaction = InsertedTransaction & {
   queueId: string;
   queuedAt: Date;
   value: bigint;
-  nonce?: number;
   data?: Hex;
-  retryCount: number;
 };
 
 // SentTransaction has been submitted to RPC successfully.
 export type SentTransaction = Omit<QueuedTransaction, "status"> & {
   status: "sent";
 
+  retryCount: number;
   nonce: number;
   sentAt: Date;
   sentAtBlock: bigint;
-  transactionHash: Hex;
+  sentTransactionHashes: Hex[];
 };
 
 export type MinedTransaction = Omit<SentTransaction, "status"> & {
   status: "mined";
 
+  transactionHash: Hex;
   minedAt: Date;
   minedAtBlock: bigint;
   transactionType: TransactionType;

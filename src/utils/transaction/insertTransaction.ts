@@ -25,7 +25,7 @@ export const insertTransaction = async (
   args: InsertTransactionData,
 ): Promise<string> => {
   const { insertedTransaction, idempotencyKey, shouldSimulate = false } = args;
-  const { chainId, from, to, data, value, extension } = insertedTransaction;
+  const { chainId, from, to, value, extension } = insertedTransaction;
 
   const account = await getAccount({ chainId, from });
   if (!account) {
@@ -48,7 +48,6 @@ export const insertTransaction = async (
     queueId,
     queuedAt: new Date(),
     value: value ?? 0n,
-    retryCount: 0,
   };
   if (extension === "withdraw") {
     queuedTransaction.value = await getWithdrawValue(queuedTransaction);
@@ -69,7 +68,7 @@ export const insertTransaction = async (
   await TransactionDB.set(queuedTransaction);
   await enqueueSendTransaction({
     queueId: queuedTransaction.queueId,
-    retryCount: queuedTransaction.retryCount,
+    retryCount: 0,
   });
 
   reportUsage([{ action: "queue_tx", input: queuedTransaction }]);

@@ -9,10 +9,6 @@ import {
   SentTransaction,
 } from "../../../utils/transaction/types";
 import { reportUsage } from "../../../utils/usage";
-import {
-  populateTransaction,
-  sendPopulatedTransaction,
-} from "../../../worker/tasks/sendTransactionWorker";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
@@ -87,13 +83,8 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           : undefined,
       };
 
-      const populatedTransaction = await populateTransaction(
-        preparedTransaction,
-      );
-      const { transactionHash } = await sendPopulatedTransaction({
-        preparedTransaction,
-        populatedTransaction,
-      });
+      // @TODO: implement
+      const transactionHash = "0x...";
 
       reply.status(StatusCodes.OK).send({
         result: {
