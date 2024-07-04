@@ -1,11 +1,10 @@
-import { Hex } from "thirdweb";
-import { Address, TransactionType } from "viem";
+import { Address, Hex } from "thirdweb";
+import { TransactionType } from "viem";
 
 export type AnyTransaction =
   | QueuedTransaction
-  | PreparedTransaction
   | SentTransaction
-  | ConfirmedTransaction
+  | MinedTransaction
   | CancelledTransaction
   | ErroredTransaction;
 
@@ -31,40 +30,34 @@ export type InsertedTransaction = {
   extension?: string;
 };
 
-// QueuedTransaction is a transaction added to the queue.
+// QueuedTransaction is a transaction added to the queue. No preparation has been done yet.
 export type QueuedTransaction = InsertedTransaction & {
   status: "queued";
 
   queueId: string;
-  idempotencyKey: string;
   queuedAt: Date;
   value: bigint;
-};
-
-// PreparedTransaction has been simulated with partial onchain details set.
-export type PreparedTransaction = Omit<QueuedTransaction, "status"> & {
-  status: "prepared";
-
-  data: Hex;
-  nonce: number;
+  nonce?: number;
+  data?: Hex;
   retryCount: number;
 };
 
 // SentTransaction has been submitted to RPC successfully.
-export type SentTransaction = Omit<PreparedTransaction, "status"> & {
+export type SentTransaction = Omit<QueuedTransaction, "status"> & {
   status: "sent";
 
+  nonce: number;
   sentAt: Date;
   sentAtBlock: bigint;
   transactionHash: Hex;
 };
 
-export type ConfirmedTransaction = Omit<SentTransaction, "status"> & {
-  status: "confirmed";
+export type MinedTransaction = Omit<SentTransaction, "status"> & {
+  status: "mined";
 
-  confirmedAt: Date;
-  confirmedAtBlock: bigint;
-  type: TransactionType;
+  minedAt: Date;
+  minedAtBlock: bigint;
+  transactionType: TransactionType;
   onchainStatus: "success" | "reverted";
   gasUsed: bigint;
   effectiveGasPrice: bigint;

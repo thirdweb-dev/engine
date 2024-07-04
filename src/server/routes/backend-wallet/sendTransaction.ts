@@ -1,6 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { Address, Hex } from "thirdweb";
+import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -72,34 +74,35 @@ export async function sendTransaction(fastify: FastifyInstance) {
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+
+      // Standardize
+
       const chainId = await getChainIdFromChain(chain);
 
       let queueId: string;
-      queueId = "@TODO: implement";
-      // if (accountAddress) {
-      //   ({ queueId } = await queueTxRaw({
-      //     chainId: chainId.toString(),
-      //     signerAddress: fromAddress,
-      //     accountAddress,
-      //     target: toAddress,
-      //     data,
-      //     value,
-      //     simulateTx,
-      //     idempotencyKey,
-      //     ...txOverrides,
-      //   }));
-      // } else {
-      //   ({ queueId } = await queueTxRaw({
-      //     chainId: chainId.toString(),
-      //     fromAddress,
-      //     toAddress,
-      //     data,
-      //     value,
-      //     simulateTx,
-      //     idempotencyKey,
-      //     ...txOverrides,
-      //   }));
-      // }
+      if (accountAddress) {
+        throw new Error("@TODO: Unimplemented");
+      } else {
+        queueId = await insertTransaction({
+          insertedTransaction: {
+            chainId,
+            from: fromAddress as Address,
+            to: toAddress as Address | undefined,
+            data: data as Hex,
+            value: BigInt(value),
+
+            gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
+            maxFeePerGas: txOverrides?.maxFeePerGas
+              ? BigInt(txOverrides.maxFeePerGas)
+              : undefined,
+            maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
+              ? BigInt(txOverrides.maxPriorityFeePerGas)
+              : undefined,
+          },
+          shouldSimulate: simulateTx,
+          idempotencyKey,
+        });
+      }
 
       reply.status(StatusCodes.OK).send({
         result: {

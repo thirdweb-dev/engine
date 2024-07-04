@@ -1,10 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { retryTx } from "../../../db/transactions/retryTx";
+import { TransactionDB } from "../../../db/transactions/db";
+import { QueuedTransaction } from "../../../utils/transaction/types";
+import { enqueueSendTransaction } from "../../../worker/queues/sendTransactionQueue";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-// INPUT
 const requestBodySchema = Type.Object({
   queueId: Type.String({
     description: "Transaction queue ID",
@@ -14,7 +16,6 @@ const requestBodySchema = Type.Object({
   maxPriorityFeePerGas: Type.String(),
 });
 
-// OUTPUT
 export const responseBodySchema = Type.Object({
   result: Type.Object({
     message: Type.String(),
@@ -47,14 +48,41 @@ export async function retryTransaction(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
+      deprecated: true,
+      hide: true,
     },
     handler: async (request, reply) => {
       const { queueId, maxFeePerGas, maxPriorityFeePerGas } = request.body;
 
-      await retryTx({
-        queueId: queueId,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
+      const transaction = await TransactionDB.get(queueId);
+      if (!transaction) {
+        throw createCustomError(
+          "Transaction not found.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_FOUND",
+        );
+      }
+      if (transaction.status !== "sent") {
+        throw createCustomError(
+          "Transaction cannot be retried.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_CANNOT_BE_RETRIED",
+        );
+      }
+
+      const preparedTransaction: QueuedTransaction = {
+        ...transaction,
+        status: "queued",
+        retryCount: transaction.retryCount + 1,
+        maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
+        maxPriorityFeePerGas: maxPriorityFeePerGas
+          ? BigInt(maxPriorityFeePerGas)
+          : undefined,
+      };
+      await TransactionDB.set(preparedTransaction);
+      await enqueueSendTransaction({
+        queueId: preparedTransaction.queueId,
+        retryCount: preparedTransaction.retryCount,
       });
 
       reply.status(StatusCodes.OK).send({

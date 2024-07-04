@@ -1,12 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { v4 } from "uuid";
-import { prisma } from "../../../db/client";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
 import { walletHeaderSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
   chain: Type.String(),
@@ -57,39 +55,15 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
+      hide: true,
+      deprecated: true,
     },
     handler: async (request, reply) => {
-      const { chain } = request.params;
-      const txs = request.body;
-      // The batch endpoint does not support idempotency keys.
-      const { "x-backend-wallet-address": fromAddress } =
-        request.headers as Static<typeof walletHeaderSchema>;
-      const chainId = await getChainIdFromChain(chain);
-
-      const groupId = v4();
-      const data = txs.map((tx) => ({
-        groupId,
-        id: v4(),
-        chainId: chainId.toString(),
-        fromAddress: fromAddress.toLowerCase(),
-        toAddress: tx.toAddress?.toLowerCase(),
-        data: tx.data,
-        value: tx.value || tx.txOverrides?.value,
-        gasLimit: tx.txOverrides?.gas,
-        maxFeePerGas: tx.txOverrides?.maxFeePerGas,
-        maxPriorityFeePerGas: tx.txOverrides?.maxPriorityFeePerGas,
-      }));
-
-      await prisma.transactions.createMany({
-        data,
-      });
-
-      reply.status(StatusCodes.OK).send({
-        result: {
-          groupId,
-          queueIds: data.map((tx) => tx.id.toString()),
-        },
-      });
+      throw createCustomError(
+        "This endpoint is deprecated",
+        StatusCodes.GONE,
+        "ENDPOINT_DEPRECATED",
+      );
     },
   });
 }

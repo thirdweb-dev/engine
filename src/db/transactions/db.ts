@@ -7,43 +7,10 @@ export class TransactionDB {
 
   private static key = (queueId: string) => `transaction-db:${queueId}`;
 
-  // /**
-  //  * Inserts a new transaction.
-  //  * @param transaction
-  //  * @throws if the key already exists.
-  //  */
-  // static createIfNotExists = async (transaction: AnyTransaction) => {
-  //   const key = this.key(transaction.queueId);
-  //   const ok = await redis.set(
-  //     key,
-  //     superjson.stringify(transaction),
-  //     "EX",
-  //     this.STORAGE_TTL_SECONDS,
-  //     "NX",
-  //   );
-  //   if (!ok) {
-  //     throw new Error(`Key already exists: ${key}`);
-  //   }
-  // };
-
-  // /**
-  //  * Updates an existing transaction.
-  //  * @param transaction
-  //  * @throws if the key doesn't exist.
-  //  */
-  // static update = async (transaction: AnyTransaction) => {
-  //   const key = this.key(transaction.queueId);
-  //   const ok = await redis.set(
-  //     key,
-  //     superjson.stringify(transaction),
-  //     "KEEPTTL",
-  //     "XX",
-  //   );
-  //   if (!ok) {
-  //     throw new Error(`Key does not exist: ${key}`);
-  //   }
-  // };
-
+  /**
+   * Inserts or replaces a transaction.
+   * @param transaction
+   */
   static set = async (transaction: AnyTransaction) => {
     await redis.setex(
       this.key(transaction.queueId),

@@ -30,7 +30,7 @@ export const queueTx = async ({
   idempotencyKey,
   txOverrides,
 }: QueueTxParams) => {
-  return "@TODO: implement";
+  throw new Error("@TODO: Unimplemented.");
 
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
   // const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;

@@ -2,7 +2,16 @@ import { Static, Type } from "@sinclair/typebox";
 import { constants } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, NATIVE_TOKEN_ADDRESS, ZERO_ADDRESS, toWei } from "thirdweb";
+import {
+  Address,
+  NATIVE_TOKEN_ADDRESS,
+  ZERO_ADDRESS,
+  defineChain,
+  getContract,
+  toWei,
+} from "thirdweb";
+import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
+import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import {
   requestQuerystringSchema,
@@ -62,38 +71,37 @@ export async function transfer(fastify: FastifyInstance) {
         txOverrides,
       } = request.body;
       const {
-        "x-backend-wallet-address": _walletAddress,
+        "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
       } = request.headers as Static<typeof walletHeaderSchema>;
       const { simulateTx } = request.query;
 
       // Resolve inputs.
-      const chainId = await getChainIdFromChain(chain);
-      const walletAddress = _walletAddress.toLowerCase();
       const currencyAddress = _currencyAddress.toLowerCase();
+      const chainId = await getChainIdFromChain(chain);
+      const gasOverrides = {
+        gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
+        maxFeePerGas: txOverrides?.maxFeePerGas
+          ? BigInt(txOverrides.maxFeePerGas)
+          : undefined,
+        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
+          ? BigInt(txOverrides.maxPriorityFeePerGas)
+          : undefined,
+      };
 
       let queueId: string;
       if (
         currencyAddress === ZERO_ADDRESS ||
         currencyAddress === NATIVE_TOKEN_ADDRESS
       ) {
-        const value = toWei(amount);
-
-        ({ queueId } = await insertTransaction({
+        queueId = await insertTransaction({
           insertedTransaction: {
             chainId,
             from: walletAddress as Address,
             to: to as Address,
             data: "0x",
-            value,
-
-            gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
-            maxFeePerGas: txOverrides?.maxFeePerGas
-              ? BigInt(txOverrides.maxFeePerGas)
-              : undefined,
-            maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
-              ? BigInt(txOverrides.maxPriorityFeePerGas)
-              : undefined,
+            value: toWei(amount),
+            ...gasOverrides,
 
             functionName: "transfer",
             functionArgs: [to, amount, currencyAddress],
@@ -101,30 +109,33 @@ export async function transfer(fastify: FastifyInstance) {
           },
           idempotencyKey,
           shouldSimulate: simulateTx,
-        }));
+        });
       } else {
-        throw "@TODO: implement";
-        // const contract = await getContract({
-        //   chainId,
-        //   contractAddress: currencyAddress,
-        //   walletAddress,
-        // });
+        const chain = defineChain(chainId);
+        const contract = getContract({
+          client: thirdwebClient,
+          chain,
+          address: currencyAddress,
+        });
 
-        // const { displayValue } = await fetchCurrencyValue(
-        //   sdk.getProvider(),
-        //   currencyAddress,
-        //   normalizedValue,
-        // );
-        // const tx = await contract.erc20.transfer.prepare(to, displayValue);
+        const transaction = transferERC20({ contract, to, amount });
 
-        // queueId = await queueTx({
-        //   tx,
-        //   chainId,
-        //   extension: "erc20",
-        //   simulateTx,
-        //   idempotencyKey,
-        //   txOverrides,
-        // });
+        queueId = await insertTransaction({
+          insertedTransaction: {
+            chainId,
+            from: walletAddress as Address,
+            to: to as Address,
+            // data: transaction.data,
+            value: 0n,
+            ...gasOverrides,
+
+            // functionName: "transfer",
+            // functionArgs: [to, amount, currencyAddress],
+            extension: "erc20",
+          },
+          idempotencyKey,
+          shouldSimulate: simulateTx,
+        });
       }
 
       reply.status(StatusCodes.OK).send({

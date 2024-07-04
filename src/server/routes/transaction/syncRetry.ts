@@ -3,14 +3,16 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { defineChain } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
-import { getAccount } from "../../../utils/account";
-import { getBlockNumberish } from "../../../utils/block";
 import { msSince } from "../../../utils/date";
-import { SentTransaction } from "../../../utils/transaction/types";
-import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
+import {
+  QueuedTransaction,
+  SentTransaction,
+} from "../../../utils/transaction/types";
 import { reportUsage } from "../../../utils/usage";
-import { enqueueConfirmTransaction } from "../../../worker/queues/confirmTransactionQueue";
-import { _populateTransaction } from "../../../worker/tasks/sendTransactionWorker";
+import {
+  populateTransaction,
+  sendPopulatedTransaction,
+} from "../../../worker/tasks/sendTransactionWorker";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
@@ -68,9 +70,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           "TRANSACTION_NOT_FOUND",
         );
       }
-
       if (transaction.status !== "sent") {
-        // Cannot retry a transaction that has not been sent or already completed.
         throw createCustomError(
           "Transaction cannot be retried.",
           StatusCodes.BAD_REQUEST,
@@ -78,35 +78,22 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         );
       }
 
-      const { chainId, from } = transaction;
-      const populatedTransaction = await _populateTransaction({
+      const preparedTransaction: QueuedTransaction = {
         ...transaction,
+        status: "queued",
         maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
         maxPriorityFeePerGas: maxPriorityFeePerGas
           ? BigInt(maxPriorityFeePerGas)
           : undefined,
-      });
-
-      // Send the transaction.
-      const account = await getAccount({ chainId, from });
-      const { transactionHash } = await account.sendTransaction(
-        populatedTransaction,
-      );
-
-      // Enqueue a ConfirmTransaction job.
-      console.log(
-        `Transaction sent with hash ${transactionHash}. Confirming transaction...`,
-      );
-      const sentTransaction: SentTransaction = {
-        ...transaction,
-        sentAt: new Date(),
-        sentAtBlock: await getBlockNumberish(chainId),
-        transactionHash,
       };
-      await TransactionDB.set(sentTransaction);
-      await enqueueConfirmTransaction({ sentTransaction });
-      await enqueueTransactionWebhook(sentTransaction);
-      _reportUsageSuccess(sentTransaction);
+
+      const populatedTransaction = await populateTransaction(
+        preparedTransaction,
+      );
+      const { transactionHash } = await sendPopulatedTransaction({
+        preparedTransaction,
+        populatedTransaction,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

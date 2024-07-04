@@ -4,12 +4,12 @@ import { StatusCodes } from "http-status-codes";
 import { Hex, defineChain } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getBlockNumberish } from "../../../utils/block";
+import { getConfig } from "../../../utils/cache/getConfig";
 import { msSince } from "../../../utils/date";
 import { sendCancellationTransaction } from "../../../utils/transaction/cancelTransaction";
 import { CancelledTransaction } from "../../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
 import { reportUsage } from "../../../utils/usage";
-import { removePrepareTransaction } from "../../../worker/queues/prepareTransactionQueue";
 import { removeSendTransaction } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -90,12 +90,15 @@ export async function cancelTransaction(fastify: FastifyInstance) {
       let transactionHash: Hex = "0x";
       switch (transaction.status) {
         case "queued":
-          // Remove it from the PREPARE_TRANSACTION queue.
-          await removePrepareTransaction(transaction);
-          break;
-        case "prepared":
-          // Remove it from the SEND_TRANSACTION queue.
-          await removeSendTransaction(transaction);
+          // Remove all retries from the SEND_TRANSACTION queue.
+          const config = await getConfig();
+          for (
+            let retryCount = 0;
+            retryCount < config.maxRetriesPerTx;
+            retryCount++
+          ) {
+            await removeSendTransaction({ queueId, retryCount });
+          }
           break;
         case "sent":
           // Cancel a sent transaction with the same nonce.
@@ -107,7 +110,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
           });
           break;
 
-        case "confirmed":
+        case "mined":
         case "cancelled":
         case "errored":
           // Cannot cancel a transaction that is already completed.
@@ -127,7 +130,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
             ? transaction.sentAtBlock
             : await getBlockNumberish(transaction.chainId),
         data: transaction.data ?? "0x",
-        nonce: "nonce" in transaction ? transaction.nonce : -1,
+        nonce: "nonce" in transaction ? transaction.nonce ?? -1 : -1,
         retryCount: "retryCount" in transaction ? transaction.retryCount : 0,
         transactionHash,
         cancelledAt: new Date(),

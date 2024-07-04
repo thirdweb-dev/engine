@@ -3,7 +3,6 @@ import {
   newConfigurationListener,
   updatedConfigurationListener,
 } from "./listeners/configListener";
-import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
 import {
   newWebhooksListener,
   updatedWebhooksListener,
@@ -11,7 +10,7 @@ import {
 
 // Init workers.
 import "./tasks/cancelTransactionWorker";
-import "./tasks/confirmTransactionWorker";
+import "./tasks/mineTransactionWorker";
 import "./tasks/prepareTransactionWorker";
 import "./tasks/processEventLogsWorker";
 import "./tasks/processTransactionReceiptsWorker";
@@ -19,9 +18,6 @@ import "./tasks/sendTransactionWorker";
 import "./tasks/sendWebhookWorker";
 
 export const initWorker = async () => {
-  // Delete completed transactions older than 24 hours.
-  await deleteProcessedTx();
-
   // Listen for new & updated configuration data.
   await newConfigurationListener();
   await updatedConfigurationListener();

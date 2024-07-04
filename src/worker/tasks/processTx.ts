@@ -1,19 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Transactions } from ".prisma/client";
 import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import { UserWallet } from "@thirdweb-dev/sdk";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
-import { RpcResponse } from "viem/_types/utils/rpc";
 import { WalletBalanceWebhookSchema } from "../../schema/webhooks";
 import { getConfig } from "../../utils/cache/getConfig";
 import { sendBalanceWebhook } from "../../utils/webhook";
-
-type RpcResponseData = {
-  tx: Transactions;
-  txRequest: ethers.providers.TransactionRequest;
-  rpcResponse: RpcResponse;
-};
 
 export const processTx = async () => {
   // try {

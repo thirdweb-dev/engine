@@ -3,11 +3,13 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
-import { getTxById } from "../../../db/transactions/getTxById";
 import { logger } from "../../../utils/logger";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import {
+  TransactionSchema,
+  toTransactionSchema,
+} from "../../schemas/transaction";
 import {
   findOrAddWSConnectionInSharedState,
   formatSocketMessage,
@@ -27,7 +29,7 @@ const requestSchema = Type.Object({
 
 // OUTPUT
 export const responseBodySchema = Type.Object({
-  result: transactionResponseSchema,
+  result: TransactionSchema,
 });
 
 responseBodySchema.example = {
@@ -106,7 +108,8 @@ export async function checkTxStatus(fastify: FastifyInstance) {
 
       findOrAddWSConnectionInSharedState(connection, queueId, request);
 
-      const returnData = await getTxById({ queueId });
+      const transaction = await TransactionDB.get(queueId);
+      const returnData = transaction ? toTransactionSchema(transaction) : null;
 
       const { message, closeConnection } =
         await getStatusMessageAndConnectionStatus(returnData);

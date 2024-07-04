@@ -9,7 +9,7 @@ export const enqueueTransactionWebhook = async (
   const type =
     status === "sent"
       ? WebhooksEventTypes.SENT_TX
-      : status === "confirmed"
+      : status === "mined"
       ? WebhooksEventTypes.MINED_TX
       : status === "cancelled"
       ? WebhooksEventTypes.CANCELLED_TX

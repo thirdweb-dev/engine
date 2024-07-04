@@ -1,14 +1,28 @@
-import { Transactions } from "@prisma/client";
 import { Static, Type } from "@sinclair/typebox";
+import superjson from "superjson";
+import { type TransactionType } from "viem";
+import { AnyTransaction } from "../../../utils/transaction/types";
 
-// @TODO: rename to TransactionSchema
-export const transactionResponseSchema = Type.Object({
+export const TransactionSchema = Type.Object({
   queueId: Type.Union([
     Type.String({
       description: "An identifier for an enqueued blockchain write call",
     }),
     Type.Null(),
   ]),
+  status: Type.Union(
+    [
+      Type.Literal("queued"),
+      Type.Literal("sent"),
+      Type.Literal("mined"),
+      Type.Literal("errored"),
+      Type.Literal("cancelled"),
+    ],
+    {
+      description: "The current state of the transaction.",
+      examples: ["queued", "sent", "mined", "errored", "cancelled"],
+    },
+  ),
   chainId: Type.Union([
     Type.String({
       description: "The chain ID for the transaction",
@@ -142,13 +156,6 @@ export const transactionResponseSchema = Type.Object({
     }),
     Type.Null(),
   ]),
-  status: Type.Union([
-    Type.String({
-      description: "The transaction status",
-      examples: ["processed", "queued", "sent", "errored", "mined"],
-    }),
-    Type.Null(),
-  ]),
   retryCount: Type.Number({
     description: "The number of retry attempts",
   }),
@@ -186,37 +193,98 @@ export const transactionResponseSchema = Type.Object({
   onChainTxStatus: Type.Union([Type.Number(), Type.Null()]),
 });
 
-export enum TransactionStatus {
-  // Tx was received and waiting to be processed.
-  Queued = "queued",
-  // Tx was submitted to mempool.
-  Sent = "sent",
-  // Tx (userOp for smart account) was submitted to mempool.
-  UserOpSent = "user-op-sent",
-  // Tx failed before submitting to mempool.
-  Errored = "errored",
-  // Tx was successfully mined onchain. Note: The tx may have "reverted" onchain.
-  Mined = "mined",
-  // Tx was cancelled and will not be re-attempted.
-  Cancelled = "cancelled",
-}
-
 export const toTransactionSchema = (
-  transaction: Transactions,
-): Static<typeof transactionResponseSchema> => ({
-  ...transaction,
-  queueId: transaction.id,
-  queuedAt: transaction.queuedAt.toISOString(),
-  sentAt: transaction.sentAt?.toISOString() || null,
-  minedAt: transaction.minedAt?.toISOString() || null,
-  cancelledAt: transaction.cancelledAt?.toISOString() || null,
-  status: transaction.errorMessage
-    ? TransactionStatus.Errored
-    : transaction.minedAt
-    ? TransactionStatus.Mined
-    : transaction.cancelledAt
-    ? TransactionStatus.Cancelled
-    : transaction.sentAt
-    ? TransactionStatus.Sent
-    : TransactionStatus.Queued,
-});
+  transaction: AnyTransaction,
+): Static<typeof TransactionSchema> => {
+  // Helper resolver methods.
+  const resolveTransactionType = (type: TransactionType) => {
+    switch (type) {
+      case "eip2930":
+        return 1;
+      case "eip1559":
+        return 2;
+      case "eip4844":
+        return 3;
+      default:
+        return 0;
+    }
+  };
+
+  const resolveOnchainStatus = (onchainStatus: "success" | "reverted") =>
+    onchainStatus === "success" ? 1 : 0;
+
+  const resolveFunctionArgs = (functionArgs?: any[]) => {
+    if (functionArgs) {
+      const { json } = superjson.serialize(transaction.functionArgs);
+      if (json) {
+        return json.toString();
+      }
+    }
+    return null;
+  };
+
+  return {
+    queueId: transaction.queueId,
+    status: transaction.status,
+
+    chainId: transaction.chainId.toString(),
+    fromAddress: transaction.from,
+    toAddress: transaction.to ?? null,
+    data: transaction.data ?? null,
+    value: transaction.value.toString(),
+    nonce: "nonce" in transaction ? transaction.nonce ?? null : null,
+    deployedContractAddress: transaction.deployedContractAddress ?? null,
+    deployedContractType: transaction.deployedContractType ?? null,
+    functionName: transaction.functionName ?? null,
+    functionArgs: resolveFunctionArgs(transaction.functionArgs),
+    extension: transaction.extension ?? null,
+
+    gasLimit: transaction.gas?.toString() ?? null,
+    gasPrice: transaction.gasPrice?.toString() ?? null,
+    maxFeePerGas: transaction.maxFeePerGas?.toString() ?? null,
+    maxPriorityFeePerGas: transaction.maxPriorityFeePerGas?.toString() ?? null,
+    transactionType:
+      "transactionType" in transaction
+        ? resolveTransactionType(transaction.transactionType)
+        : null,
+    transactionHash:
+      "transactionHash" in transaction ? transaction.transactionHash : null,
+    queuedAt: transaction.queuedAt.toISOString(),
+    sentAt: "sentAt" in transaction ? transaction.sentAt.toISOString() : null,
+    minedAt:
+      "minedAt" in transaction ? transaction.minedAt.toISOString() : null,
+    cancelledAt:
+      "cancelledAt" in transaction
+        ? transaction.cancelledAt.toISOString()
+        : null,
+    errorMessage:
+      "errorMessage" in transaction ? transaction.errorMessage : null,
+    sentAtBlockNumber:
+      "sentAtBlock" in transaction ? Number(transaction.sentAtBlock) : null,
+    blockNumber:
+      "minedAtBlock" in transaction ? Number(transaction.minedAtBlock) : null,
+    retryCount: "retryCount" in transaction ? transaction.retryCount : 0,
+    onChainTxStatus:
+      "onchainStatus" in transaction
+        ? resolveOnchainStatus(transaction.onchainStatus)
+        : null,
+
+    // @TODO: handle userOps
+    signerAddress: null,
+    accountAddress: null,
+    target: null,
+    sender: null,
+    initCode: null,
+    callData: null,
+    callGasLimit: null,
+    verificationGasLimit: null,
+    preVerificationGas: null,
+    paymasterAndData: null,
+    userOpHash: null,
+
+    // Deprecated
+    retryGasValues: null,
+    retryMaxFeePerGas: null,
+    retryMaxPriorityFeePerGas: null,
+  };
+};

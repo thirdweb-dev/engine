@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getQueueStatus } from "../../../db/transactions/getQueueStatus";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const QuerySchema = Type.Object({
@@ -37,7 +36,10 @@ export async function queueStatus(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const { walletAddress } = req.query;
 
-      const { queued, pending } = await getQueueStatus({ walletAddress });
+      // @TODO: implement
+      const queued = 0;
+      const pending = 0;
+
       res.status(StatusCodes.OK).send({
         result: {
           queued,

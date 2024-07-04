@@ -16,14 +16,18 @@ import {
 import { logWorkerEvents } from "../queues/queues";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const { sentTransaction } = superjson.parse<CancelTransactionData>(job.data);
-  const { chainId, from, nonce } = sentTransaction;
+  const { queueId } = superjson.parse<CancelTransactionData>(job.data);
 
-  // Validate required params.
-  if (!chainId || !from || !nonce) {
-    job.log("Missing required args.");
+  // Assert valid transaction state.
+  const sentTransaction = await TransactionDB.get(queueId);
+  if (sentTransaction?.status !== "sent") {
+    job.log(
+      `Invalid transaction state: ${superjson.stringify(sentTransaction)}`,
+    );
     return;
   }
+
+  const { chainId, from, nonce } = sentTransaction;
 
   const transactionHash = await sendCancellationTransaction({
     chainId,

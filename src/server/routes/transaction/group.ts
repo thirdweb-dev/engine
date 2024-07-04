@@ -1,18 +1,18 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getTxsByGroupId } from "../../../db/transactions/getTxsByGroupId";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import { TransactionSchema } from "../../schemas/transaction";
 
 const ParamsSchema = Type.Object({
   groupId: Type.String(),
 });
 
 const responseBodySchema = Type.Object({
-  result: Type.Array(transactionResponseSchema),
+  result: Type.Array(TransactionSchema),
 });
 
+// @deprecated
 export async function checkGroupStatus(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
@@ -30,13 +30,12 @@ export async function checkGroupStatus(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
+      deprecated: true,
+      hide: true,
     },
     handler: async (req, res) => {
-      const { groupId } = req.params;
-      const txs = await getTxsByGroupId({ groupId });
-
       res.status(StatusCodes.OK).send({
-        result: txs,
+        result: [],
       });
     },
   });

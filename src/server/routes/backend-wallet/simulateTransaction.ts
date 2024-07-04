@@ -1,14 +1,17 @@
 import { Static, Type } from "@sinclair/typebox";
+import { randomUUID } from "crypto";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../utils/cache/getContract";
+import { Address, Hex } from "thirdweb";
+import { simulateQueuedTransaction } from "../../../utils/transaction/simulateTransaction";
+import { QueuedTransaction } from "../../../utils/transaction/types";
+import { createCustomError } from "../../middleware/error";
 import {
   simulateResponseSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { walletWithAAHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-import { SimulateTxParams, simulateTx } from "../../utils/simulateTx";
 
 // INPUT
 const ParamsSchema = Type.Object({
@@ -75,46 +78,41 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      // Destruct core params
       const { chain } = request.params;
       const { toAddress, value, functionName, args, data } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
 
-      // Get decoded tx simulate args
-      let simulateArgs: SimulateTxParams;
-      if (functionName && args) {
-        const contract = await getContract({
-          chainId,
-          contractAddress: toAddress,
-          walletAddress,
-          accountAddress,
-        });
-        const tx = contract.prepare(functionName, args, {
-          value: value ?? "0",
-        });
-        simulateArgs = { tx };
-      }
-      // Get raw tx simulate args
-      else {
-        simulateArgs = {
-          txRaw: {
-            chainId: chainId.toString(),
-            fromAddress: walletAddress,
-            toAddress,
-            data,
-            value,
-          },
-        };
+      // @TODO: handle userops
+
+      const queuedTransaction: QueuedTransaction = {
+        status: "queued",
+        queueId: randomUUID(),
+        queuedAt: new Date(),
+
+        chainId,
+        from: walletAddress as Address,
+        to: toAddress as Address,
+        functionName,
+        functionArgs: args,
+        data: data as Hex | undefined,
+        value: value ? BigInt(value) : 0n,
+        retryCount: 0,
+      };
+
+      const error = await simulateQueuedTransaction(queuedTransaction);
+      if (error) {
+        throw createCustomError(
+          error,
+          StatusCodes.BAD_REQUEST,
+          "FAILED_SIMULATION",
+        );
       }
 
-      // Simulate raw tx
-      await simulateTx(simulateArgs);
-
-      // Return success
       reply.status(StatusCodes.OK).send({
         result: {
           success: true,

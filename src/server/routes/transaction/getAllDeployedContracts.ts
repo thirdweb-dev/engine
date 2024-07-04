@@ -1,12 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllTxs } from "../../../db/transactions/getAllTxs";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import { TransactionSchema } from "../../schemas/transaction";
 
-// INPUT
 const requestQuerySchema = Type.Object({
   page: Type.String({
     description:
@@ -20,20 +18,11 @@ const requestQuerySchema = Type.Object({
     examples: ["10"],
     default: "10",
   }),
-  // filter: Type.Optional(
-  //   Type.Union([Type.Enum(TransactionStatus), Type.Literal("all")], {
-  //     description:
-  //       "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
-  //     examples: ["all", "submitted", "processed", "errored", "mined", "queued"],
-  //     default: "all",
-  //   }),
-  // ),
 });
 
-// OUTPUT
 export const responseBodySchema = Type.Object({
   result: Type.Object({
-    transactions: Type.Array(transactionResponseSchema),
+    transactions: Type.Array(TransactionSchema),
     totalCount: Type.Number(),
   }),
 });
@@ -105,17 +94,15 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
         );
         throw customError;
       }
-      const txsData = await getAllTxs({
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
-        // filter: filter && filter !== "all" ? filter : undefined,
-        extensions: ["deploy-prebuilt", "deploy-published"],
-      });
+
+      // @TODO: implement
+      const transactions: Static<typeof TransactionSchema>[] = [];
+      const totalCount = 0;
 
       reply.status(StatusCodes.OK).send({
         result: {
-          transactions: txsData.transactions,
-          totalCount: txsData.totalCount,
+          transactions,
+          totalCount,
         },
       });
     },
