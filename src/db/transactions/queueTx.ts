@@ -1,9 +1,10 @@
 import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
+import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
+import { Address } from "thirdweb";
 import type { ContractExtension } from "../../schema/extension";
-import { PrismaTransaction } from "../../schema/prisma";
+import { insertTransaction } from "../../utils/transaction/insertTransaction";
 
 interface QueueTxParams {
-  pgtx?: PrismaTransaction;
   tx: Transaction<any> | DeployTransaction;
   chainId: number;
   extension: ContractExtension;
@@ -20,7 +21,6 @@ interface QueueTxParams {
 }
 
 export const queueTx = async ({
-  pgtx,
   tx,
   chainId,
   extension,
@@ -30,58 +30,82 @@ export const queueTx = async ({
   idempotencyKey,
   txOverrides,
 }: QueueTxParams) => {
-  throw new Error("@TODO: Unimplemented.");
+  // Transaction Details
+  const functionName = tx.getMethod();
+  const encodedData = tx.encode();
+  const value = BigInt(await tx.getValue().toString());
+  const functionArgs = tx.getArgs();
+  const baseTransaction = {
+    chainId,
+    value,
+    data: encodedData as unknown as `0x${string}`,
+    functionName,
+    functionArgs,
+    extension,
+  };
 
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
-  // const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
-  // const txData = {
-  //   chainId: chainId.toString(),
-  //   functionName: tx.getMethod(),
-  //   functionArgs: JSON.stringify(tx.getArgs()),
-  //   extension,
-  //   deployedContractAddress: deployedContractAddress,
-  //   deployedContractType: deployedContractType,
-  //   data: tx.encode(),
-  //   value: BigNumber.from(await tx.getValue()).toHexString(),
-  //   ...txOverrides,
-  // };
+  const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
 
-  // if (isUserOp) {
-  //   const signerAddress = await (
-  //     tx.getSigner as ERC4337EthersSigner
-  //   ).originalSigner.getAddress();
-  //   const accountAddress = await tx.getSignerAddress();
-  //   const target = tx.getTarget();
+  if (isUserOp) {
+    const signerAddress = (
+      await (tx.getSigner as ERC4337EthersSigner).originalSigner.getAddress()
+    ).toLowerCase() as Address;
+    const accountAddress = (
+      await tx.getSignerAddress()
+    ).toLowerCase() as Address;
+    const target = tx.getTarget().toLowerCase() as Address;
 
-  //   const { queueId } = await queueTxRaw({
-  //     pgtx,
-  //     ...txData,
-  //     signerAddress,
-  //     accountAddress,
-  //     target,
-  //     simulateTx,
-  //     idempotencyKey,
-  //   });
+    const queueId = await insertTransaction({
+      insertedTransaction: {
+        ...baseTransaction,
+        deployedContractAddress,
+        deployedContractType,
+        signerAddress,
+        accountAddress,
+        target,
+        gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
+        maxFeePerGas: txOverrides?.maxFeePerGas
+          ? BigInt(txOverrides?.maxFeePerGas)
+          : undefined,
+        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
+          ? BigInt(txOverrides?.maxPriorityFeePerGas)
+          : undefined,
+        from: signerAddress,
+      },
+      idempotencyKey,
+      shouldSimulate: simulateTx,
+    });
 
-  //   return queueId;
-  // } else {
-  //   const fromAddress = await tx.getSignerAddress();
-  //   const toAddress =
-  //     tx.getTarget() === "0x0000000000000000000000000000000000000000" &&
-  //     txData.functionName === "deploy" &&
-  //     extension === "deploy-published"
-  //       ? null
-  //       : tx.getTarget();
+    return queueId;
+  } else {
+    const fromAddress = await tx.getSignerAddress();
+    const toAddress =
+      tx.getTarget() === "0x0000000000000000000000000000000000000000" &&
+      functionName === "deploy" &&
+      extension === "deploy-published"
+        ? null
+        : tx.getTarget();
 
-  //   const { queueId } = await queueTxRaw({
-  //     pgtx,
-  //     ...txData,
-  //     fromAddress,
-  //     toAddress,
-  //     simulateTx,
-  //     idempotencyKey,
-  //   });
+    const queueId = await insertTransaction({
+      insertedTransaction: {
+        ...baseTransaction,
+        deployedContractAddress,
+        deployedContractType,
+        from: fromAddress.toLowerCase() as Address,
+        to: toAddress?.toLowerCase() as Address,
+        gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
+        maxFeePerGas: txOverrides?.maxFeePerGas
+          ? BigInt(txOverrides?.maxFeePerGas)
+          : undefined,
+        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
+          ? BigInt(txOverrides?.maxPriorityFeePerGas)
+          : undefined,
+      },
+      idempotencyKey,
+      shouldSimulate: simulateTx,
+    });
 
-  //   return queueId;
-  // }
+    return queueId;
+  }
 };

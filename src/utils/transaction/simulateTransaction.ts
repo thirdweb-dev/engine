@@ -29,13 +29,20 @@ export const simulateQueuedTransaction = async (
     gasPrice,
     maxFeePerGas,
     maxPriorityFeePerGas,
+    signerAddress,
+    accountAddress,
+    target,
+    from,
   } = queuedTransaction;
 
   const chain = defineChain(chainId);
 
   let transaction: PreparedTransaction;
-  // Resolve data.
-  if (data) {
+  if (to && from && accountAddress && signerAddress && target) {
+    // To-do: Add support for UserOperation.
+    throw new Error("UserOperation is not supported.");
+  } else if (data) {
+    // Resolve data.
     transaction = prepareTransaction({
       client: thirdwebClient,
       chain,

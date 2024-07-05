@@ -15,8 +15,6 @@ export class TransactionDB {
     await redis.set(
       this.key(transaction.queueId),
       superjson.stringify(transaction),
-      "EX",
-      this.STORAGE_TTL_SECONDS,
     );
   };
 

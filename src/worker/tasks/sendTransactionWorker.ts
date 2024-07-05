@@ -24,18 +24,10 @@ import {
   SendTransactionData,
 } from "../queues/sendTransactionQueue";
 
-/**
- * The SEND_TRANSACTION worker is responsible for:
- * - simulating a transaction
- * - acquiring a nonce (or re-using an existing one)
- * - preparing gas settings
- * - sending the transaction to RPC
- */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { queueId, retryCount } = superjson.parse<SendTransactionData>(
     job.data,
   );
-
   let sentTransaction: SentTransaction | null = null;
   const transaction = await TransactionDB.get(queueId);
   switch (transaction?.status) {
@@ -82,6 +74,7 @@ const _handleQueuedTransaction = async (
       errorMessage: simulationError,
     };
     await TransactionDB.set(erroredTransaction);
+    await enqueueMineTransaction({ queueId: erroredTransaction.queueId });
     await enqueueTransactionWebhook(erroredTransaction);
     _reportUsageError(erroredTransaction);
     return null;

@@ -93,6 +93,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
         status: "queued",
         queueId: randomUUID(),
         queuedAt: new Date(),
+        retryCount: 0,
 
         chainId,
         from: walletAddress as Address,

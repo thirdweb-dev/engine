@@ -6,6 +6,7 @@ import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
+import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { MinedTransaction } from "../../utils/transaction/types";
@@ -56,8 +57,9 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   for (const result of receiptResults) {
     if (result.status === "fulfilled") {
       const receipt = result.value;
-
-      job.log(`Receipt found: ${JSON.stringify(receipt)}`);
+      job.log(
+        `Receipt found: ${sentTransaction.queueId} - ${receipt.transactionHash} `,
+      );
       const minedTransaction: MinedTransaction = {
         ...sentTransaction,
         status: "mined",
@@ -72,6 +74,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       await TransactionDB.set(minedTransaction);
       await enqueueTransactionWebhook(minedTransaction);
       _reportUsageSuccess(minedTransaction);
+      logger({
+        level: "info",
+        message: `Transaction mined [${sentTransaction.queueId}] - [${receipt.transactionHash}]`,
+        service: "worker",
+      });
       return;
     }
   }
@@ -92,6 +99,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       (await getBlockNumberish(chainId)) - sentTransaction.sentAtBlock;
     if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
       job.log("Transaction is unmined before timeout. Retrying transaction...");
+      logger({
+        level: "warn",
+        message: `Transaction is unmined before timeout: ${sentTransaction.queueId} - ${sentTransaction.sentTransactionHashes[0]} `,
+        service: "worker",
+      });
       await enqueueSendTransaction({
         queueId: sentTransaction.queueId,
         retryCount: sentTransaction.retryCount + 1,

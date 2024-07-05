@@ -28,12 +28,26 @@ export type InsertedTransaction = {
   deployedContractAddress?: string;
   deployedContractType?: string;
   extension?: string;
+
+  // User Operation
+  signerAddress?: Address;
+  accountAddress?: Address;
+  target?: Address;
+  sender?: Address;
+  initCode?: string;
+  callData?: string;
+  callGasLimit?: string;
+  verificationGasLimit?: string;
+  preVerificationGas?: string;
+  paymasterAndData?: string;
+  userOpHash?: `0x${string}`;
 };
 
 // QueuedTransaction is a transaction added to the queue. No preparation has been done yet.
 export type QueuedTransaction = InsertedTransaction & {
   status: "queued";
 
+  retryCount: number;
   queueId: string;
   queuedAt: Date;
   value: bigint;
@@ -44,7 +58,6 @@ export type QueuedTransaction = InsertedTransaction & {
 export type SentTransaction = Omit<QueuedTransaction, "status"> & {
   status: "sent";
 
-  retryCount: number;
   nonce: number;
   sentAt: Date;
   sentAtBlock: bigint;
