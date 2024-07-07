@@ -6,6 +6,9 @@
   "main": "src/server/index.ts",
   "author": "thirdweb engineering <eng@thirdweb.com>",
   "type": "module",
+  "engines": {
+   "node": ">=18.19.0 <18.20.0"
+  },
   "scripts": {
     "docker": "docker compose --env-file ./.env up --remove-orphans",
     "docker:build": "docker compose build --no-cache",
