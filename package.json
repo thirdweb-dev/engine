@@ -17,7 +17,7 @@
     "generate:sdk": "npx tsx ./src/scripts/generate-sdk && cd ./sdk && yarn build",
     "prisma:setup:dev": "npx tsx ./src/scripts/setup-db.ts",
     "prisma:setup:prod": "npx tsx ./dist/scripts/setup-db.js",
-    "start": "yarn prisma:setup:prod && yarn start:run",
+    "start": "yarn copy-files && yarn prisma:setup:prod && yarn start:run",
     "start:run": "node --experimental-specifier-resolution=node ./dist/index.js",
     "start:docker": "docker compose build && docker compose --env-file ./.env up --remove-orphans",
     "docker-build-run": "docker compose build --no-cache && docker compose --env-file ./.env up --remove-orphans",
