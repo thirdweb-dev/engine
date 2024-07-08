@@ -333,22 +333,38 @@ const handleAccessToken = async (
   req: FastifyRequest,
   getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"],
 ): Promise<AuthResponse> => {
+  let token: Awaited<ReturnType<typeof getAccessToken>> = null;
+
   try {
-    const token = await getAccessToken({ jwt });
-    if (token && token.revokedAt === null) {
-      const user = await getUser(req);
-      if (
-        user?.session?.permissions === Permission.Owner ||
-        user?.session?.permissions === Permission.Admin
-      ) {
-        return { isAuthed: true, user };
-      }
-    }
+    token = await getAccessToken({ jwt });
   } catch (e) {
     // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
+    return { isAuthed: false };
   }
 
-  return { isAuthed: false };
+  if (!token || token.revokedAt) {
+    return { isAuthed: false };
+  }
+
+  const user = await getUser(req);
+
+  if (
+    user?.session?.permissions !== Permission.Owner &&
+    user?.session?.permissions !== Permission.Admin
+  ) {
+    return { isAuthed: false };
+  }
+
+  const isIpInAllowlist = await checkIpInAllowlist(req);
+
+  if (!isIpInAllowlist) {
+    return {
+      isAuthed: false,
+      error: "Unauthorized IP address",
+    };
+  }
+
+  return { isAuthed: true, user };
 };
 
 /**
@@ -448,4 +464,29 @@ const hashRequestBody = (req: FastifyRequest): string => {
   return createHash("sha256")
     .update(JSON.stringify(req.body), "utf8")
     .digest("hex");
+};
+
+/**
+ * Check if the request IP is in the allowlist.
+ * Fetches cached config if available.
+ * env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
+ * @param req FastifyRequest
+ * @returns boolean
+ * @async
+ */
+const checkIpInAllowlist = async (req: FastifyRequest) => {
+  const config = await getConfig();
+
+  // can be simplified to:
+  // !(config.ipAllowlist.length > 0 && !config.ipAllowlist.includes(req.ip))
+  // but it's more readable this way
+
+  if (config.ipAllowlist.length > 0) {
+    if (config.ipAllowlist.includes(req.ip)) {
+      return true;
+    }
+    return false;
+  }
+
+  return true;
 };
