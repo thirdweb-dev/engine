@@ -248,6 +248,15 @@ const handleWebsocketAuth = async (
     // Set as a header for `getUsers` to parse the token.
     req.headers.authorization = `Bearer ${jwt}`;
     const user = await getUser(req);
+
+    const isIpInAllowlist = await checkIpInAllowlist(req);
+    if (!isIpInAllowlist) {
+      return {
+        isAuthed: false,
+        error: "Unauthorized IP address",
+      };
+    }
+
     if (
       user?.session?.permissions === Permission.Owner ||
       user?.session?.permissions === Permission.Admin
