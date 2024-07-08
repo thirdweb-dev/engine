@@ -305,6 +305,11 @@ const handleKeypairAuth = async (
       throw error;
     }
 
+    const isIpInAllowlist = await checkIpInAllowlist(req);
+    if (!isIpInAllowlist) {
+      error = "Unauthorized IP address";
+      throw error;
+    }
     return { isAuthed: true };
   } catch (e) {
     if (e instanceof jsonwebtoken.TokenExpiredError) {
