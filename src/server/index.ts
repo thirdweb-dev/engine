@@ -49,6 +49,7 @@ export const initServer = async () => {
   const server: FastifyInstance = fastify({
     connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
+    trustProxy: env.TRUST_PROXY,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
