@@ -3,7 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
 import { SentTransaction } from "../../../utils/transaction/types";
-import { enqueueSendTransaction } from "../../../worker/queues/sendTransactionQueue";
+import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
@@ -79,7 +79,7 @@ export async function retryTransaction(fastify: FastifyInstance) {
           : undefined,
       };
       await TransactionDB.set(sentTransaction);
-      await enqueueSendTransaction({
+      await SendTransactionQueue.add({
         queueId: sentTransaction.queueId,
         retryCount: sentTransaction.retryCount + 1,
       });

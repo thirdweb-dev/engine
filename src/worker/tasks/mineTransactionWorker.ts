@@ -12,13 +12,13 @@ import { thirdwebClient } from "../../utils/sdk";
 import { MinedTransaction } from "../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
-import { enqueueCancelTransaction } from "../queues/cancelTransactionQueue";
+import { CancelTransactionQueue } from "../queues/cancelTransactionQueue";
 import {
-  MINE_TRANSACTION_QUEUE_NAME,
   MineTransactionData,
+  MineTransactionQueue,
 } from "../queues/mineTransactionQueue";
 import { logWorkerEvents } from "../queues/queues";
-import { enqueueSendTransaction } from "../queues/sendTransactionQueue";
+import { SendTransactionQueue } from "../queues/sendTransactionQueue";
 
 // @TODO: move to DB config.
 const MINE_TIMEOUT_IN_MS = 60 * 60 * 1000; // 1 hour
@@ -88,7 +88,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // Cancel the transaction if the timeout is exceeded.
   if (msSince(sentTransaction.sentAt) > MINE_TIMEOUT_IN_MS) {
     job.log("Transaction is unmined after timeout. Cancelling transaction...");
-    await enqueueCancelTransaction({ queueId: sentTransaction.queueId });
+    await CancelTransactionQueue.add({ queueId: sentTransaction.queueId });
     return;
   }
 
@@ -104,7 +104,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         message: `Transaction is unmined before timeout: ${sentTransaction.queueId} - ${sentTransaction.sentTransactionHashes[0]} `,
         service: "worker",
       });
-      await enqueueSendTransaction({
+      await SendTransactionQueue.add({
         queueId: sentTransaction.queueId,
         retryCount: sentTransaction.retryCount + 1,
       });
@@ -135,7 +135,7 @@ const _reportUsageSuccess = (minedTransaction: MinedTransaction) => {
 };
 
 // Worker
-const _worker = new Worker(MINE_TRANSACTION_QUEUE_NAME, handler, {
+const _worker = new Worker(MineTransactionQueue.name, handler, {
   concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });

@@ -17,11 +17,11 @@ import {
 } from "../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
-import { enqueueMineTransaction } from "../queues/mineTransactionQueue";
+import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerEvents } from "../queues/queues";
 import {
-  SEND_TRANSACTION_QUEUE_NAME,
   SendTransactionData,
+  SendTransactionQueue,
 } from "../queues/sendTransactionQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
@@ -50,7 +50,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
   if (sentTransaction) {
     await TransactionDB.set(sentTransaction);
-    await enqueueMineTransaction({ queueId: sentTransaction.queueId });
+    await MineTransactionQueue.add({ queueId: sentTransaction.queueId });
     await enqueueTransactionWebhook(sentTransaction);
     _reportUsageSuccess(sentTransaction);
 
@@ -74,7 +74,6 @@ const _handleQueuedTransaction = async (
       errorMessage: simulationError,
     };
     await TransactionDB.set(erroredTransaction);
-    await enqueueMineTransaction({ queueId: erroredTransaction.queueId });
     await enqueueTransactionWebhook(erroredTransaction);
     _reportUsageError(erroredTransaction);
     return null;
@@ -189,7 +188,7 @@ const _reportUsageError = (erroredTransaction: ErroredTransaction) => {
 };
 
 // Worker
-const _worker = new Worker(SEND_TRANSACTION_QUEUE_NAME, handler, {
+const _worker = new Worker(SendTransactionQueue.name, handler, {
   concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });

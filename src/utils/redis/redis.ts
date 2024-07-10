@@ -3,6 +3,7 @@ import { env } from "../env";
 import { logger } from "../logger";
 
 export const redis = new Redis(env.REDIS_URL, {
+  enableAutoPipelining: true,
   maxRetriesPerRequest: null,
 });
 

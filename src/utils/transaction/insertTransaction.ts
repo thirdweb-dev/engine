@@ -3,7 +3,7 @@ import { defineChain, estimateGasCost, prepareTransaction } from "thirdweb";
 import { getWalletBalance } from "thirdweb/wallets";
 import { TransactionDB } from "../../db/transactions/db";
 import { createCustomError } from "../../server/middleware/error";
-import { enqueueSendTransaction } from "../../worker/queues/sendTransactionQueue";
+import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
 import { thirdwebClient } from "../sdk";
 import { reportUsage } from "../usage";
 import { simulateQueuedTransaction } from "./simulateTransaction";
@@ -51,7 +51,7 @@ export const insertTransaction = async (
   }
 
   await TransactionDB.set(queuedTransaction);
-  await enqueueSendTransaction({
+  await SendTransactionQueue.add({
     queueId: queuedTransaction.queueId,
     retryCount: 0,
   });

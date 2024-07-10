@@ -10,8 +10,8 @@ import { CancelledTransaction } from "../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import {
-  CANCEL_TRANSACTION_QUEUE_NAME,
   CancelTransactionData,
+  CancelTransactionQueue,
 } from "../queues/cancelTransactionQueue";
 import { logWorkerEvents } from "../queues/queues";
 
@@ -66,7 +66,7 @@ const _reportUsageSuccess = (cancelledTransaction: CancelledTransaction) => {
 };
 
 // Worker
-const _worker = new Worker(CANCEL_TRANSACTION_QUEUE_NAME, handler, {
+const _worker = new Worker(CancelTransactionQueue.name, handler, {
   concurrency: env.CANCEL_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });

@@ -10,7 +10,7 @@ import { sendCancellationTransaction } from "../../../utils/transaction/cancelTr
 import { CancelledTransaction } from "../../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
 import { reportUsage } from "../../../utils/usage";
-import { removeSendTransaction } from "../../../worker/queues/sendTransactionQueue";
+import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
@@ -97,7 +97,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
             retryCount < config.maxRetriesPerTx;
             retryCount++
           ) {
-            await removeSendTransaction({ queueId, retryCount });
+            await SendTransactionQueue.remove({ queueId, retryCount });
           }
           break;
         case "sent":
