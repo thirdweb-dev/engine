@@ -72,6 +72,7 @@ export const env = createEnv({
       .nonnegative()
       .default(0),
     REDIS_URL: z.string(),
+    READ_ONLY: boolSchema("false"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -96,6 +97,7 @@ export const env = createEnv({
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
+    READ_ONLY: process.env.READ_ONLY,
   },
   onValidationError: (error: ZodError) => {
     console.error(
