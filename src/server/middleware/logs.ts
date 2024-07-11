@@ -1,5 +1,4 @@
 import { FastifyInstance } from "fastify";
-import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
 export const withRequestLogs = async (server: FastifyInstance) => {
@@ -25,14 +24,6 @@ export const withRequestLogs = async (server: FastifyInstance) => {
           message: "Not Found",
         });
       }
-    }
-
-    if (env.READ_ONLY && request.method !== "GET") {
-      return reply.status(405).send({
-        statusCode: 405,
-        error: "Read Only Mode. Method Not Allowed",
-        message: "Read Only Mode. Method Not Allowed",
-      });
     }
   });
 
