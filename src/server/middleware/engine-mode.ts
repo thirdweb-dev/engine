@@ -2,8 +2,8 @@ import { FastifyInstance } from "fastify";
 import { env } from "../../utils/env";
 
 export const withEnforceEngineMode = async (server: FastifyInstance) => {
-  server.addHook("onRequest", async (request, reply) => {
-    if (env.ENGINE_MODE === "sandbox") {
+  if (env.ENGINE_MODE === "sandbox") {
+    server.addHook("onRequest", async (request, reply) => {
       if (request.method !== "GET") {
         return reply.status(405).send({
           statusCode: 405,
@@ -11,6 +11,6 @@ export const withEnforceEngineMode = async (server: FastifyInstance) => {
           message: "Read Only Mode. Method Not Allowed",
         });
       }
-    }
-  });
+    });
+  }
 };
