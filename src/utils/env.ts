@@ -72,6 +72,7 @@ export const env = createEnv({
       .nonnegative()
       .default(0),
     REDIS_URL: z.string(),
+    ENGINE_MODE: z.enum(["sandbox", "unrestricted"]).default("unrestricted"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -96,6 +97,7 @@ export const env = createEnv({
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
+    ENGINE_MODE: process.env.ENGINE_MODE,
   },
   onValidationError: (error: ZodError) => {
     console.error(
