@@ -5,7 +5,7 @@ import { isDatabaseHealthy } from "../../../db/client";
 import { env } from "../../../utils/env";
 import { redis } from "../../../utils/redis/redis";
 
-type EngineFeature = "KEYPAIR_AUTH" | "CONTRACT_SUBSCRIPTIONS";
+type EngineFeature = "KEYPAIR_AUTH" | "CONTRACT_SUBSCRIPTIONS" | "IP_ALLOWLIST";
 
 const ReplySchemaOk = Type.Object({
   status: Type.String(),
@@ -15,6 +15,8 @@ const ReplySchemaOk = Type.Object({
     Type.Union([
       Type.Literal("KEYPAIR_AUTH"),
       Type.Literal("CONTRACT_SUBSCRIPTIONS"),
+      Type.Literal("CONTRACT_SUBSCRIPTIONS"),
+      Type.Literal("IP_ALLOWLIST"),
     ]),
   ),
 });
@@ -61,7 +63,8 @@ export async function healthCheck(fastify: FastifyInstance) {
 }
 
 const getFeatures = (): EngineFeature[] => {
-  const features: EngineFeature[] = [];
+  // IP Allowlist is always available as a feature, but added as a feature for backwards compatibility.
+  const features: EngineFeature[] = ["IP_ALLOWLIST"];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
   // Contract Subscriptions requires Redis.
