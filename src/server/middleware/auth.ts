@@ -253,7 +253,8 @@ const handleWebsocketAuth = async (
     if (!isIpInAllowlist) {
       return {
         isAuthed: false,
-        error: "Unauthorized IP address",
+        error:
+          "Unauthorized IP Address. See: https://thirdweb.com/dashboard/engine",
       };
     }
 
@@ -316,7 +317,8 @@ const handleKeypairAuth = async (
 
     const isIpInAllowlist = await checkIpInAllowlist(req);
     if (!isIpInAllowlist) {
-      error = "Unauthorized IP address";
+      error =
+        "Unauthorized IP Address. See: https://thirdweb.com/dashboard/engine";
       throw error;
     }
     return { isAuthed: true };
@@ -374,7 +376,8 @@ const handleAccessToken = async (
   if (!isIpInAllowlist) {
     return {
       isAuthed: false,
-      error: "Unauthorized IP address",
+      error:
+        "Unauthorized IP Address. See: https://thirdweb.com/dashboard/engine",
     };
   }
 
