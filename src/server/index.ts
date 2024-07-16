@@ -64,7 +64,7 @@ export const initServer = async () => {
   await withExpress(server);
   await withOpenApi(server);
   await withRoutes(server);
-  await withServerUsageReporting(server);
+  withServerUsageReporting(server);
 
   await server.ready();
 

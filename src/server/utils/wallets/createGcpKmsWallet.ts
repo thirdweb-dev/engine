@@ -12,7 +12,13 @@ export const createGcpKmsWallet = async ({
   label,
 }: CreateGcpKmsWallet): Promise<string> => {
   const config = await getConfig();
-  if (config.walletConfiguration.type !== WalletType.gcpKms) {
+  if (
+    !config?.walletConfiguration?.gcpApplicationProjectId ||
+    !config?.walletConfiguration?.gcpKmsLocationId ||
+    !config?.walletConfiguration?.gcpKmsKeyRingId ||
+    !config?.walletConfiguration?.gcpApplicationCredentialEmail ||
+    !config?.walletConfiguration?.gcpApplicationCredentialPrivateKey
+  ) {
     throw new Error(`Server was not configured for GCP KMS wallet creation`);
   }
 

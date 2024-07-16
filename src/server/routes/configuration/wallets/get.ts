@@ -6,25 +6,15 @@ import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const responseBodySchema = Type.Object({
-  result: Type.Union([
-    Type.Object({
-      type: Type.Literal(WalletType.local),
-    }),
-    Type.Object({
-      type: Type.Literal(WalletType.awsKms),
-      awsAccessKeyId: Type.String(),
-      awsRegion: Type.String(),
-      // Omit awsSecretAccessKey
-    }),
-    Type.Object({
-      type: Type.Literal(WalletType.gcpKms),
-      gcpApplicationProjectId: Type.String(),
-      gcpKmsLocationId: Type.String(),
-      gcpKmsKeyRingId: Type.String(),
-      gcpApplicationCredentialEmail: Type.String(),
-      // Omit gcpApplicationCredentialPrivateKey
-    }),
-  ]),
+  result: Type.Object({
+    awsAccessKeyId: Type.Optional(Type.String()),
+    awsRegion: Type.Optional(Type.String()),
+    gcpApplicationProjectId: Type.Optional(Type.String()),
+    gcpKmsLocationId: Type.Optional(Type.String()),
+    gcpKmsKeyRingId: Type.Optional(Type.String()),
+    gcpApplicationCredentialEmail: Type.Optional(Type.String()),
+    // Omit gcpApplicationCredentialPrivateKey
+  }),
 });
 
 export async function getWalletsConfiguration(fastify: FastifyInstance) {

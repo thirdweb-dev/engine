@@ -89,6 +89,9 @@ model WalletDetails {
   gcpKmsKeyVersionId String? @map("gcpKmsKeyVersionId") @db.VarChar(20)
   gcpKmsLocationId   String? @map("gcpKmsLocationId") @db.VarChar(20)
   gcpKmsResourcePath String? @map("gcpKmsResourcePath") @db.Text
+  // Smart
+  smartAccountEOAAddress String? @map("smartAccountEOAAddress")
+  smartAccountFactoryAddress String? @map("smartAccountFactoryAddress")
 
   @@map("wallet_details")
 }

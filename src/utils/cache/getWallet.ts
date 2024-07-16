@@ -5,9 +5,12 @@ import { WalletType } from "../../schema/wallet";
 import { getAwsKmsWallet } from "../../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsWallet } from "../../server/utils/wallets/getGcpKmsWallet";
 import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
-import { getSmartWallet } from "../../server/utils/wallets/getSmartWallet";
+import { getSmartBackendWallet } from "../../server/utils/wallets/getSmartBackendWallet";
+import { Account, smartWallet } from "thirdweb/wallets";
+import { defineChain } from "thirdweb";
 
 export const walletsCache = new Map<string, EVMWallet>();
+export const accountCache = new Map<string, Account>();
 
 interface GetWalletParams {
   pgtx?: PrismaTransaction;
@@ -21,7 +24,7 @@ export const getWallet = async <TWallet extends EVMWallet>({
   chainId,
   walletAddress,
   accountAddress,
-}: GetWalletParams): Promise<TWallet> => {
+}: GetWalletParams): Promise<TWallet | Account> => {
   const cacheKey = accountAddress
     ? `${chainId}-${walletAddress}-${accountAddress}`
     : `${chainId}-${walletAddress}`;
@@ -38,7 +41,8 @@ export const getWallet = async <TWallet extends EVMWallet>({
     throw new Error(`No configured wallet found with address ${walletAddress}`);
   }
 
-  let wallet: EVMWallet;
+  let wallet: EVMWallet | undefined;
+  let account: Account | undefined;
   switch (walletDetails.type) {
     case WalletType.awsKms:
       wallet = await getAwsKmsWallet({
@@ -54,25 +58,26 @@ export const getWallet = async <TWallet extends EVMWallet>({
     case WalletType.local:
       wallet = await getLocalWallet({ chainId, walletAddress });
       break;
+    case WalletType.smart:
+      account = await getSmartBackendWallet({ chainId, walletAddress });
+      break;
+
     default:
       throw new Error(
         `Wallet with address ${walletAddress} was configured with unknown wallet type ${walletDetails.type}`,
       );
   }
 
-  if (!accountAddress) {
+  if (account) {
+    accountCache.set(cacheKey, account);
+    return account;
+  }
+
+  if (wallet) {
     // If no account is specified, use the backend wallet itself
     walletsCache.set(cacheKey, wallet);
     return wallet as TWallet;
   }
 
-  // Otherwise, return the account with the backend wallet as the personal wallet
-  const smartWallet: EVMWallet = await getSmartWallet({
-    chainId,
-    backendWallet: wallet,
-    accountAddress: accountAddress,
-  });
-
-  walletsCache.set(cacheKey, smartWallet);
-  return smartWallet as TWallet;
+  throw new Error(`No wallet found for address ${walletAddress}`);
 };

@@ -11,7 +11,6 @@ export const getWalletDetails = async ({
   address,
 }: GetWalletDetailsParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
-
   return prisma.walletDetails.findUnique({
     where: {
       address: address.toLowerCase(),

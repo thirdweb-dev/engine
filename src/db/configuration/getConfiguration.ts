@@ -2,7 +2,6 @@ import { Configuration } from "@prisma/client";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { ethers } from "ethers";
 import { Config } from "../../schema/config";
-import { WalletType } from "../../schema/wallet";
 import { mandatoryAllowedCorsUrls } from "../../server/utils/cors-urls";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
@@ -62,7 +61,6 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
       contractSubscriptionsRequeryDelaySeconds:
         contractSubscriptionsRetryDelaySeconds,
       walletConfiguration: {
-        type: WalletType.awsKms,
         awsRegion,
         awsAccessKeyId,
         awsSecretAccessKey: decryptedSecretAccessKey,
@@ -110,7 +108,6 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
       contractSubscriptionsRequeryDelaySeconds:
         contractSubscriptionsRetryDelaySeconds,
       walletConfiguration: {
-        type: WalletType.gcpKms,
         gcpApplicationProjectId,
         gcpKmsLocationId,
         gcpKmsKeyRingId,
@@ -124,9 +121,7 @@ const withWalletConfig = async (config: Configuration): Promise<Config> => {
     ...restConfig,
     contractSubscriptionsRequeryDelaySeconds:
       contractSubscriptionsRetryDelaySeconds,
-    walletConfiguration: {
-      type: WalletType.local,
-    },
+    walletConfiguration: {},
   };
 };
 

@@ -8,6 +8,7 @@ interface CreateWalletDetailsParams {
   address: string;
   type: WalletType;
   label?: string;
+  encryptedJson?: string;
   awsKmsKeyId?: string;
   awsKmsArn?: string;
   gcpKmsKeyRingId?: string;
@@ -15,6 +16,8 @@ interface CreateWalletDetailsParams {
   gcpKmsKeyVersionId?: string;
   gcpKmsLocationId?: string;
   gcpKmsResourcePath?: string;
+  smartAccountEOAAddress?: string;
+  smartAccountFactoryAddress?: string;
 }
 
 export const createWalletDetails = async ({
@@ -22,6 +25,10 @@ export const createWalletDetails = async ({
   ...walletDetails
 }: CreateWalletDetailsParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
+  if (walletDetails.type === "smart") {
+    //deploy smart account
+    // if factory use that
+  }
 
   const wallet = await prisma.walletDetails.findUnique({
     where: {

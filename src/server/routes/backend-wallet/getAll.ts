@@ -37,6 +37,8 @@ responseSchema.example = {
       gcpKmsLocationId: null,
       gcpKmsKeyVersionId: null,
       gcpKmsResourcePath: null,
+      smartAccountEOAAddress: null,
+      smartAccountFactoryAddress: null,
     },
   ],
 };

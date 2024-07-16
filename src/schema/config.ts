@@ -14,23 +14,15 @@ export interface Config
     | "gcpApplicationCredentialPrivateKey"
     | "contractSubscriptionsRetryDelaySeconds"
   > {
-  walletConfiguration:
-    | {
-        type: WalletType.local;
-      }
-    | {
-        type: WalletType.awsKms;
-        awsAccessKeyId: string;
-        awsSecretAccessKey: string;
-        awsRegion: string;
-      }
-    | {
-        type: WalletType.gcpKms;
-        gcpApplicationProjectId: string;
-        gcpKmsLocationId: string;
-        gcpKmsKeyRingId: string;
-        gcpApplicationCredentialEmail: string;
-        gcpApplicationCredentialPrivateKey: string;
-      };
+  walletConfiguration: {
+    awsAccessKeyId?: string;
+    awsSecretAccessKey?: string;
+    awsRegion?: string;
+    gcpApplicationProjectId?: string;
+    gcpKmsLocationId?: string;
+    gcpKmsKeyRingId?: string;
+    gcpApplicationCredentialEmail?: string;
+    gcpApplicationCredentialPrivateKey?: string;
+  };
   contractSubscriptionsRequeryDelaySeconds: string;
 }
