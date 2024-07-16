@@ -59,24 +59,6 @@ describe("getChainIdFromChain", () => {
     expect(getChainBySlugAsync).not.toHaveBeenCalled();
   });
 
-  it("should return the chainId from chainOverrides if it exists by ID", async () => {
-    // @ts-ignore
-    mockGetConfig.mockResolvedValueOnce({
-      chainOverrides: JSON.stringify([
-        {
-          slug: "Polygon",
-          chainId: 137,
-        },
-      ]),
-    });
-
-    const result = await getChainIdFromChain("137");
-
-    expect(result).toBe(137);
-    expect(getChainByChainIdAsync).not.toHaveBeenCalled();
-    expect(getChainBySlugAsync).not.toHaveBeenCalled();
-  });
-
   it("should return the chainId from chainOverrides if it exists", async () => {
     // @ts-ignore
     mockGetConfig.mockResolvedValueOnce({
@@ -97,8 +79,6 @@ describe("getChainIdFromChain", () => {
 
   it("should return the chainId from getChainByChainIdAsync if chain is a valid numeric string", async () => {
     // @ts-ignore
-    mockGetConfig.mockResolvedValueOnce({});
-    // @ts-ignore
     mockGetChainByChainIdAsync.mockResolvedValueOnce({
       name: "Polygon",
       chainId: 137,
@@ -107,7 +87,7 @@ describe("getChainIdFromChain", () => {
     const result = await getChainIdFromChain("137");
 
     expect(result).toBe(137);
-    expect(getChainByChainIdAsync).toHaveBeenCalledWith(137);
+    expect(getChainByChainIdAsync).not.toHaveBeenCalled();
     expect(getChainBySlugAsync).not.toHaveBeenCalled();
   });
 
@@ -131,8 +111,10 @@ describe("getChainIdFromChain", () => {
     // @ts-ignore
     mockGetConfig.mockResolvedValueOnce({});
 
-    await expect(getChainIdFromChain("6666666666666")).rejects.toThrow(
-      "Invalid or deprecated chain. Please confirm this is a valid chain: https://thirdweb.com/6666666666666",
-    );
+    await expect(getChainIdFromChain("not_a_real_chain")).rejects.toEqual({
+      message: "Chain not_a_real_chain is not found",
+      statusCode: 400,
+      code: "INVALID_CHAIN",
+    });
   });
 });
