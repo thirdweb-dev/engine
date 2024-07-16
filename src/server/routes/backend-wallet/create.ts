@@ -53,6 +53,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, reply) => {
+      //TODO added type on body here, need dashboard update
       const { label, walletType = "smart" } = req.body;
 
       let walletAddress: string = "";
