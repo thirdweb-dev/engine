@@ -2,25 +2,23 @@ import {
   getChainByChainIdAsync,
   getChainBySlugAsync,
 } from "@thirdweb-dev/chains";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getChainIdFromChain } from "../server/utils/chain";
 import { getConfig } from "../utils/cache/getConfig";
 
 // Mock the external dependencies
-jest.mock("../utils/cache/getConfig");
-jest.mock("@thirdweb-dev/chains");
+vi.mock("../utils/cache/getConfig");
+vi.mock("@thirdweb-dev/chains");
 
-const mockGetConfig = getConfig as jest.MockedFunction<typeof getConfig>;
+const mockGetConfig = vi.mocked(getConfig);
 
-const mockGetChainByChainIdAsync =
-  getChainByChainIdAsync as jest.MockedFunction<typeof getChainByChainIdAsync>;
-const mockGetChainBySlugAsync = getChainBySlugAsync as jest.MockedFunction<
-  typeof getChainBySlugAsync
->;
+const mockGetChainByChainIdAsync = vi.mocked(getChainByChainIdAsync);
+const mockGetChainBySlugAsync = vi.mocked(getChainBySlugAsync);
 
 describe("getChainIdFromChain", () => {
   beforeEach(() => {
     // Clear all mock calls before each test
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("should return the chainId from chainOverrides if it exists by slug", async () => {

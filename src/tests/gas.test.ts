@@ -1,11 +1,11 @@
 import { Transactions } from ".prisma/client";
 import { getDefaultGasOverrides } from "@thirdweb-dev/sdk";
 import { BigNumber, ethers, providers } from "ethers";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getGasSettingsForRetry, multiplyGasOverrides } from "../utils/gas";
 
-jest.mock("@thirdweb-dev/sdk");
-const mockGetDefaultGasOverrides =
-  getDefaultGasOverrides as jest.MockedFunction<typeof getDefaultGasOverrides>;
+vi.mock("@thirdweb-dev/sdk");
+const mockGetDefaultGasOverrides = vi.mocked(getDefaultGasOverrides);
 
 describe("getGasSettingsForRetry", () => {
   let mockProvider: ethers.providers.StaticJsonRpcProvider;
@@ -24,7 +24,7 @@ describe("getGasSettingsForRetry", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("new gas settings for legacy gas format", async () => {

@@ -1,3 +1,5 @@
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken from "jsonwebtoken";
@@ -8,41 +10,35 @@ import { Permission } from "../server/schemas/auth";
 import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../utils/auth";
 import { getAccessToken } from "../utils/cache/accessToken";
 import { getAuthWallet } from "../utils/cache/authWallet";
+import { getConfig } from "../utils/cache/getConfig";
 import { getWebhooksByEventType } from "../utils/cache/getWebhook";
 import { getKeypair } from "../utils/cache/keypair";
 import { sendWebhookRequest } from "../utils/webhook";
 
-jest.mock("../utils/cache/accessToken");
-const mockGetAccessToken = getAccessToken as jest.MockedFunction<
-  typeof getAccessToken
->;
+vi.mock("../utils/cache/accessToken");
+const mockGetAccessToken = vi.mocked(getAccessToken);
 
-jest.mock("../db/permissions/getPermissions");
-const mockGetPermissions = getPermissions as jest.MockedFunction<
-  typeof getPermissions
->;
+vi.mock("../db/permissions/getPermissions");
+const mockGetPermissions = vi.mocked(getPermissions);
 
-jest.mock("../utils/cache/authWallet");
-const mockGetAuthWallet = getAuthWallet as jest.MockedFunction<
-  typeof getAuthWallet
->;
+vi.mock("../utils/cache/authWallet");
+const mockGetAuthWallet = vi.mocked(getAuthWallet);
 
-jest.mock("../utils/cache/getWebhook");
-const mockGetWebhook = getWebhooksByEventType as jest.MockedFunction<
-  typeof getWebhooksByEventType
->;
+vi.mock("../utils/cache/getWebhook");
+const mockGetWebhook = vi.mocked(getWebhooksByEventType);
 mockGetWebhook.mockResolvedValue([]);
 
-jest.mock("../utils/webhook");
-const mockSendWebhookRequest = sendWebhookRequest as jest.MockedFunction<
-  typeof sendWebhookRequest
->;
+vi.mock("../utils/webhook");
+const mockSendWebhookRequest = vi.mocked(sendWebhookRequest);
 
-jest.mock("../utils/auth");
-const mockHandleSiwe = handleSiwe as jest.MockedFunction<typeof handleSiwe>;
+vi.mock("../utils/auth");
+const mockHandleSiwe = vi.mocked(handleSiwe);
 
-jest.mock("../utils/cache/keypair");
-const mockGetKeypair = getKeypair as jest.MockedFunction<typeof getKeypair>;
+vi.mock("../utils/cache/keypair");
+const mockGetKeypair = vi.mocked(getKeypair);
+
+vi.mock("../utils/cache/getConfig");
+const mockGetConfig = vi.mocked(getConfig);
 
 let testAuthWallet: LocalWallet;
 beforeAll(async () => {
@@ -50,14 +46,22 @@ beforeAll(async () => {
   testAuthWallet = new LocalWallet();
   await testAuthWallet.generate();
   mockGetAuthWallet.mockResolvedValue(testAuthWallet);
+
+  const defaultConfig = await getConfig();
+
+  mockGetConfig.mockResolvedValue({
+    ...defaultConfig,
+    accessControlAllowOrigin: "*",
+    ipAllowlist: [],
+  });
 });
 
 describe("Static paths", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  const mockGetUser = jest.fn();
+  const mockGetUser = vi.fn();
 
   it("Static paths are authed", async () => {
     const pathsToTest = [
@@ -83,10 +87,10 @@ describe("Static paths", () => {
 
 describe("Relayer endpoints", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  const mockGetUser = jest.fn();
+  const mockGetUser = vi.fn();
 
   it("The 'relay transaction' endpoint is authed", async () => {
     const req: FastifyRequest = {
@@ -125,10 +129,10 @@ describe("Relayer endpoints", () => {
 
 describe("Websocket requests", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  const mockGetUser = jest.fn();
+  const mockGetUser = vi.fn();
 
   it("A websocket request with a valid access token is authed", async () => {
     mockGetAccessToken.mockResolvedValue({
@@ -175,8 +179,8 @@ describe("Websocket requests", () => {
     mockGetUser.mockReturnValue({ session: { permission: "none" } });
 
     const mockSocket = {
-      write: jest.fn(),
-      destroy: jest.fn(),
+      write: vi.fn(),
+      destroy: vi.fn(),
     };
 
     const req: FastifyRequest = {
@@ -213,8 +217,8 @@ describe("Websocket requests", () => {
     });
 
     const mockSocket = {
-      write: jest.fn(),
-      destroy: jest.fn(),
+      write: vi.fn(),
+      destroy: vi.fn(),
     };
 
     const req: FastifyRequest = {
@@ -236,8 +240,8 @@ describe("Websocket requests", () => {
     mockGetAccessToken.mockResolvedValue(null);
 
     const mockSocket = {
-      write: jest.fn(),
-      destroy: jest.fn(),
+      write: vi.fn(),
+      destroy: vi.fn(),
     };
 
     const req: FastifyRequest = {
@@ -258,10 +262,10 @@ describe("Websocket requests", () => {
 
 describe("Access tokens", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  const mockGetUser = jest.fn();
+  const mockGetUser = vi.fn();
 
   it("Valid access token with admin permissions is authed", async () => {
     const jwt = jsonwebtoken.sign(
@@ -386,7 +390,7 @@ describe("Access tokens", () => {
 
 describe("Keypair auth JWT", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   // Example ES256 keypair used only for unit tests.
@@ -402,7 +406,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
 -----END EC PRIVATE KEY-----`,
   } as const;
 
-  const mockGetUser = jest.fn();
+  const mockGetUser = vi.fn();
 
   it("Valid JWT signed by private key", async () => {
     mockGetKeypair.mockResolvedValue({
@@ -473,14 +477,8 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
   });
 
   it("Unrecognized public key", async () => {
-    mockGetKeypair.mockResolvedValue({
-      hash: "",
-      publicKey: testKeypair.public,
-      algorithm: "ES256",
-      label: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    // Get keypair returns null for an unrecognized public key
+    mockGetKeypair.mockResolvedValueOnce(null);
 
     // Sign an expired auth payload.
     const jwt = jsonwebtoken.sign(
@@ -543,10 +541,10 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
 
 describe("Dashboard JWT", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  const mockGetUser = jest.fn();
+  const mockGetUser = vi.fn();
   mockGetAccessToken.mockResolvedValue(null);
 
   it("Valid dashboard JWT with admin permission is authed", async () => {
@@ -637,10 +635,10 @@ describe("Dashboard JWT", () => {
 
 describe("thirdweb secret key", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  const mockGetUser = jest.fn();
+  const mockGetUser = vi.fn();
 
   it("Valid thirdweb secret key is authed", async () => {
     const req: FastifyRequest = {
@@ -659,10 +657,10 @@ describe("thirdweb secret key", () => {
 
 describe("auth webhooks", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  const mockGetUser = jest.fn();
+  const mockGetUser = vi.fn();
 
   it("A request that gets a 2xx from all auth webhooks is authed", async () => {
     mockGetWebhook.mockResolvedValue([

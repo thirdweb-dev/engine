@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { sanitizeOrigin } from "../server/middleware/cors/cors";
 
 describe("sanitizeOrigin", () => {
