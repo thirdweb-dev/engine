@@ -8,7 +8,7 @@ import { Permission } from "../server/schemas/auth";
 import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../utils/auth";
 import { getAccessToken } from "../utils/cache/accessToken";
 import { getAuthWallet } from "../utils/cache/authWallet";
-import { getWebhook } from "../utils/cache/getWebhook";
+import { getWebhooksByEventType } from "../utils/cache/getWebhook";
 import { getKeypair } from "../utils/cache/keypair";
 import { sendWebhookRequest } from "../utils/webhook";
 
@@ -28,7 +28,9 @@ const mockGetAuthWallet = getAuthWallet as jest.MockedFunction<
 >;
 
 jest.mock("../utils/cache/getWebhook");
-const mockGetWebhook = getWebhook as jest.MockedFunction<typeof getWebhook>;
+const mockGetWebhook = getWebhooksByEventType as jest.MockedFunction<
+  typeof getWebhooksByEventType
+>;
 mockGetWebhook.mockResolvedValue([]);
 
 jest.mock("../utils/webhook");
@@ -669,22 +671,34 @@ describe("auth webhooks", () => {
         url: "test-webhook-url",
         name: "auth webhook 1",
         eventType: WebhooksEventTypes.AUTH,
-        createdAt: new Date().toISOString(),
-        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        revokedAt: null,
+        secret: "random-secret",
       },
       {
         id: 2,
         url: "test-webhook-url",
         name: "auth webhook 2",
         eventType: WebhooksEventTypes.AUTH,
-        createdAt: new Date().toISOString(),
-        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        revokedAt: null,
+        secret: "random-secret-2",
       },
     ]);
 
     // Both auth webhooks return 2xx.
-    mockSendWebhookRequest.mockResolvedValueOnce(true);
-    mockSendWebhookRequest.mockResolvedValueOnce(true);
+    mockSendWebhookRequest.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      body: "test-1",
+    });
+    mockSendWebhookRequest.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      body: "test-2",
+    });
 
     const req: FastifyRequest = {
       method: "POST",
@@ -706,22 +720,34 @@ describe("auth webhooks", () => {
         url: "test-webhook-url",
         name: "auth webhook 1",
         eventType: WebhooksEventTypes.AUTH,
-        createdAt: new Date().toISOString(),
-        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        revokedAt: null,
+        secret: "random-secret",
       },
       {
-        id: 2,
+        id: 1,
         url: "test-webhook-url",
-        name: "auth webhook 2",
+        name: "auth webhook 1",
         eventType: WebhooksEventTypes.AUTH,
-        createdAt: new Date().toISOString(),
-        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        revokedAt: null,
+        secret: "random-secret",
       },
     ]);
 
-    // Both auth webhooks return 2xx.
-    mockSendWebhookRequest.mockResolvedValueOnce(true);
-    mockSendWebhookRequest.mockResolvedValueOnce(false);
+    // Both auth webhooks return 4xx.
+    mockSendWebhookRequest.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      body: "error-1",
+    });
+    mockSendWebhookRequest.mockResolvedValueOnce({
+      ok: false,
+      status: 401,
+      body: "error-2",
+    });
 
     const req: FastifyRequest = {
       method: "POST",
