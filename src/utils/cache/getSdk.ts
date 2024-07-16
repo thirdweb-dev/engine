@@ -124,6 +124,7 @@ export const getSdk = async ({
       walletAddress,
       accountAddress,
     });
+    //TODO check if wallet or account (if account then use smartAccount)
     sdk = await ThirdwebSDK.fromWallet(wallet, chainId, {
       secretKey: env.THIRDWEB_API_SECRET_KEY,
       supportedChains: config.chainOverrides ? RPC_OVERRIDES : undefined,

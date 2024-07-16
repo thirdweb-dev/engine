@@ -74,6 +74,7 @@ export const processTx = async () => {
           });
 
           if (tx.accountAddress && tx.signerAddress) {
+            //TODO Check if wallet type = smart or this existing condition
             userOpsToSend.push(tx);
           } else {
             txsToSend.push(tx);

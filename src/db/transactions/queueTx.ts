@@ -34,6 +34,7 @@ export const queueTx = async ({
   txOverrides,
 }: QueueTxParams) => {
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
+  // TODO check to see if sdk has smartaccount connected
   const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
   const txData = {
     chainId: chainId.toString(),
