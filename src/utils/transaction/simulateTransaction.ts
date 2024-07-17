@@ -8,6 +8,8 @@ import {
   resolveMethod,
   simulateTransaction,
 } from "thirdweb";
+import { Account } from "thirdweb/wallets";
+import { getAccount } from "../account";
 import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
 import { thirdwebClient } from "../sdk";
 import { QueuedTransaction } from "./types";
@@ -50,27 +52,13 @@ export const simulateQueuedTransaction = async (
       });
 
       // Prepare UserOperation Transaction
-      const preparedTransaction = prepareContractCall({
+      transaction = prepareContractCall({
         contract: targetContract,
         method: await resolveMethod(functionName),
         params: functionArgs ?? [],
         value: value,
         gas: gas,
       });
-
-      // Get Smart Wallet
-      const smartWallet = await getSmartWalletV5({
-        from,
-        chain,
-        accountAddress,
-      });
-
-      await simulateTransaction({
-        transaction: preparedTransaction,
-        account: smartWallet,
-      });
-
-      return null;
     } catch (error: any) {
       return error.toString();
     }
@@ -110,9 +98,25 @@ export const simulateQueuedTransaction = async (
   }
 
   try {
-    await simulateTransaction({ transaction });
+    let account: Account | undefined;
+    if (from && accountAddress) {
+      account = await getSmartWalletV5({
+        from,
+        chain,
+        accountAddress,
+      });
+    } else {
+      account = await getAccount({
+        chainId,
+        from,
+      });
+    }
+
+    // Always use an account to simulate the transaction.
+    // to catch any errors related to funds
+    await simulateTransaction({ transaction, account });
     return null;
   } catch (e: any) {
-    return e.toString();
+    return `message : ${e.message} - code: ${e.code}`;
   }
 };
