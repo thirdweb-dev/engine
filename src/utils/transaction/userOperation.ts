@@ -6,7 +6,6 @@ import {
   prepareContractCall,
   readContract,
   resolveMethod,
-  simulateTransaction,
 } from "thirdweb";
 import {
   UserOperation,
@@ -76,13 +75,14 @@ export const generateSignedUserOperation = async (
   });
 
   // Prepare Transaction
-  const preparedTransaction = await prepareContractCall({
+  const preparedTransaction = prepareContractCall({
     contract: targetContract,
-    method: await resolveMethod(functionName),
+    method: resolveMethod(functionName),
     params: functionArgs,
     value,
   });
 
+  // Change this with resolvePromisedValue
   const toAddress =
     typeof preparedTransaction.to === "function"
       ? await preparedTransaction.to()
@@ -110,15 +110,8 @@ export const generateSignedUserOperation = async (
     accountAddress,
   });
 
-  // Simulate Transaction
-  // ToDo: Check if this is necessary
-  // Ideally this stop the UserOp to fail silently
-  await simulateTransaction({
-    transaction: preparedTransaction,
-    account: smartWallet,
-  });
-
   // Create Unsigned UserOperation
+  // Todo: Future expose a way to skip paymaster
   let unsignedOp = await createUnsignedUserOp({
     transaction: userOpCall,
     accountContract: smartAccountContract,

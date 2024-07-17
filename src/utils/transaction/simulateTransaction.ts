@@ -41,7 +41,6 @@ export const simulateQueuedTransaction = async (
 
   let transaction: PreparedTransaction;
   if (from && accountAddress && signerAddress && target && functionName) {
-    // To-do: Add support for UserOperation.
     try {
       // Resolve Target Contract
       const targetContract = getContract({

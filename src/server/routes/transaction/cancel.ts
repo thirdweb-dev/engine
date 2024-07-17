@@ -106,7 +106,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
           transactionHash = await sendCancellationTransaction({
             chainId,
             from,
-            nonce,
+            nonce: Number(nonce),
           });
           break;
 

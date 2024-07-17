@@ -22,7 +22,7 @@ export const sendCancellationTransaction = async (
       to: from,
       data: "0x",
       value: 0n,
-      nonce,
+      nonce: Number(nonce),
     },
   });
 

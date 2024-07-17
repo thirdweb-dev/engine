@@ -89,6 +89,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           maxPriorityFeePerGas: maxPriorityFeePerGas
             ? BigInt(maxPriorityFeePerGas)
             : undefined,
+          nonce: Number(transaction.nonce),
         },
       });
 

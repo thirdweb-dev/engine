@@ -35,7 +35,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     chainId,
     from,
     // Crucial: Set the same transaction's nonce.
-    nonce,
+    nonce: Number(nonce),
   });
 
   job.log(`Cancel transaction sent: ${transactionHash}`);
