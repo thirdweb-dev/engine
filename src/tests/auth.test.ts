@@ -298,6 +298,10 @@ describe("Websocket requests", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+    expect(result.error).toEqual(
+      "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+    );
   });
 });
 
