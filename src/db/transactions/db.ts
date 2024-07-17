@@ -33,7 +33,7 @@ import { AnyTransaction } from "../../utils/transaction/types";
 export class TransactionDB {
   private static transactionDetailsKey = (queueId: string) =>
     `transaction:${queueId}`;
-  private static queuedTransactionsKey = `transaction:queued`;
+  // private static queuedTransactionsKey = `transaction:queued`;
   private static minedTransactionsKey = `transaction:mined`;
   private static cancelledTransactionsKey = `transaction:cancelled`;
   private static erroredTransactionsKey = `transaction:errored`;
@@ -97,23 +97,46 @@ export class TransactionDB {
     (await redis.exists(this.transactionDetailsKey(queueId))) > 0;
 
   /**
-   * Returns completed queueIds between a time range.
-   * @param from
-   * @returns
+   * Deletes transactions between a time range.
+   * @param from Date?
+   * @param to Date?
+   * @returns string[] List of queueIds
    */
-  static getCompleted = async (args: {
-    from: Date;
-    to: Date;
-  }): Promise<string[]> => {
+  static purgeTransactions = async (args: { from?: Date; to?: Date }) => {
     const { from, to } = args;
-    const start = from ? toSeconds(from) : 0;
-    const end = to ? toSeconds(to) : "+inf";
+    const min = from ? toSeconds(from) : 0;
+    const max = to ? toSeconds(to) : "+inf";
 
+    const pipeline = redis.pipeline();
+
+    // Delete transaction details.
+    const queueIds = await this._getCompletedQueueIds(min, max);
+    const transactionDetailsKeys = queueIds.map(this.transactionDetailsKey);
+    pipeline.del(...transactionDetailsKeys);
+
+    // Delete per-status sorted sets.
+    pipeline.zremrangebyscore(this.minedTransactionsKey, min, max);
+    pipeline.zremrangebyscore(this.cancelledTransactionsKey, min, max);
+    pipeline.zremrangebyscore(this.erroredTransactionsKey, min, max);
+
+    await pipeline.exec();
+  };
+
+  /**
+   * Returns completed queue IDs between a start and end timestamp (seconds).
+   * @param min number - Start timestamp in seconds
+   * @param max number - End timestamp in seconds
+   * @returns string[] - List of queueIds
+   */
+  private static _getCompletedQueueIds = async (
+    min: number | string,
+    max: number | string,
+  ): Promise<string[]> => {
     const pipelineResult = await redis
       .pipeline()
-      .zrange(this.minedTransactionsKey, start, end, "BYSCORE")
-      .zrange(this.cancelledTransactionsKey, start, end, "BYSCORE")
-      .zrange(this.erroredTransactionsKey, start, end, "BYSCORE")
+      .zrange(this.minedTransactionsKey, min, max, "BYSCORE")
+      .zrange(this.cancelledTransactionsKey, min, max, "BYSCORE")
+      .zrange(this.erroredTransactionsKey, min, max, "BYSCORE")
       .exec();
 
     const queueIds: string[] = [];
@@ -121,12 +144,10 @@ export class TransactionDB {
       for (const [error, zrangeResult] of pipelineResult) {
         if (error) {
           throw new Error(`TransactionDB.getCompleted: ${error.message}`);
-        } else {
-          queueIds.push(...(zrangeResult as string[]));
         }
+        queueIds.push(...(zrangeResult as string[]));
       }
     }
-
     return queueIds;
   };
 }
