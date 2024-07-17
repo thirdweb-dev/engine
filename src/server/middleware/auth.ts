@@ -254,7 +254,7 @@ const handleWebsocketAuth = async (
       return {
         isAuthed: false,
         error:
-          "Unauthorized IP Address. See: https://thirdweb.com/dashboard/engine",
+          "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
       };
     }
 
@@ -318,7 +318,7 @@ const handleKeypairAuth = async (
     const isIpInAllowlist = await checkIpInAllowlist(req);
     if (!isIpInAllowlist) {
       error =
-        "Unauthorized IP Address. See: https://thirdweb.com/dashboard/engine";
+        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security";
       throw error;
     }
     return { isAuthed: true };
@@ -377,7 +377,7 @@ const handleAccessToken = async (
     return {
       isAuthed: false,
       error:
-        "Unauthorized IP Address. See: https://thirdweb.com/dashboard/engine",
+        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
     };
   }
 
@@ -494,16 +494,9 @@ const hashRequestBody = (req: FastifyRequest): string => {
 const checkIpInAllowlist = async (req: FastifyRequest) => {
   const config = await getConfig();
 
-  // can be simplified to:
-  // !(config.ipAllowlist.length > 0 && !config.ipAllowlist.includes(req.ip))
-  // but it's more readable this way
-
-  if (config.ipAllowlist.length > 0) {
-    if (config.ipAllowlist.includes(req.ip)) {
-      return true;
-    }
-    return false;
+  if (config.ipAllowlist.length === 0) {
+    return true;
   }
 
-  return true;
+  return config.ipAllowlist.includes(req.ip);
 };

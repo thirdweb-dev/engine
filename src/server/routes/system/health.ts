@@ -15,7 +15,6 @@ const ReplySchemaOk = Type.Object({
     Type.Union([
       Type.Literal("KEYPAIR_AUTH"),
       Type.Literal("CONTRACT_SUBSCRIPTIONS"),
-      Type.Literal("CONTRACT_SUBSCRIPTIONS"),
       Type.Literal("IP_ALLOWLIST"),
     ]),
   ),

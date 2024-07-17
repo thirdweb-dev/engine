@@ -10,7 +10,7 @@ const requestBodySchema = Type.Object({
   ips: Type.Array(
     Type.String({
       minLength: 7,
-      description: "IP Address as a string",
+      description: "IP address as a string",
     }),
     {
       description: "Array of IP addresses to allowlist",
@@ -33,8 +33,7 @@ export async function setIpAllowlist(fastify: FastifyInstance) {
     url: "/configuration/ip-allowlist",
     schema: {
       summary: "Set IP Allowlist",
-      description:
-        "Replaces the IP Allowlist array to allow client-side calls to Engine",
+      description: "Replaces the IP Allowlist array to allow calls to Engine",
       tags: ["Configuration"],
       operationId: "setIpAllowlist",
       body: requestBodySchema,
@@ -45,8 +44,6 @@ export async function setIpAllowlist(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const ips = req.body.ips.map((ip) => ip.trim());
-
-      // Add required domains and dedupe.
       const dedupe = Array.from(new Set([...ips]));
 
       await updateConfiguration({
