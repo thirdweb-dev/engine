@@ -76,6 +76,7 @@ export const env = createEnv({
     SEND_TRANSACTION_QUEUE_CONCURRENCY: z.number().default(100),
     CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.number().default(100),
     CANCEL_TRANSACTION_QUEUE_CONCURRENCY: z.number().default(100),
+    ENGINE_MODE: z.enum(["sandbox", "unrestricted"]).default("unrestricted"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -108,6 +109,7 @@ export const env = createEnv({
       process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     CANCEL_TRANSACTION_QUEUE_CONCURRENCY:
       process.env.CANCEL_TRANSACTION_QUEUE_CONCURRENCY,
+    ENGINE_MODE: process.env.ENGINE_MODE,
   },
   onValidationError: (error: ZodError) => {
     console.error(

@@ -106,6 +106,10 @@ export const withAuth = async (server: FastifyInstance) => {
   // Note: in the onRequest hook, request.body will always be undefined, because the body parsing happens before the preValidation hook.
   // https://fastify.dev/docs/latest/Reference/Hooks/#onrequest
   server.addHook("preValidation", async (req, res) => {
+    // Skip auth check in sandbox mode
+    if (env.ENGINE_MODE === "sandbox") {
+      return;
+    }
     let message =
       "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/access-tokens";
 

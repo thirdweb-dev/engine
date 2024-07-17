@@ -46,7 +46,7 @@ Engine is an open-source, backend HTTP server that provides a production-ready i
 
 ### Self-host
 
-Host Engine on your own instructure for free. [View self-host instructions](https://portal.thirdweb.com/engine/self-host).
+Host Engine on your own infrastructure for free. [View self-host instructions](https://portal.thirdweb.com/engine/self-host).
 
 Other deployment options:
 
