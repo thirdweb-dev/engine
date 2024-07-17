@@ -33,7 +33,7 @@ import { AnyTransaction } from "../../utils/transaction/types";
 export class TransactionDB {
   private static transactionDetailsKey = (queueId: string) =>
     `transaction:${queueId}`;
-  // private static queuedTransactionsKey = `transaction:queued`;
+  private static queuedTransactionsKey = `transaction:queued`;
   private static minedTransactionsKey = `transaction:mined`;
   private static cancelledTransactionsKey = `transaction:cancelled`;
   private static erroredTransactionsKey = `transaction:errored`;
@@ -52,6 +52,13 @@ export class TransactionDB {
       );
 
     switch (transaction.status) {
+      case "queued":
+        pipeline.zadd(
+          this.queuedTransactionsKey,
+          toSeconds(transaction.queuedAt),
+          transaction.queueId,
+        );
+        break;
       case "mined":
         pipeline.zadd(
           this.minedTransactionsKey,
@@ -75,17 +82,40 @@ export class TransactionDB {
         break;
     }
 
-    await redis.pipeline().exec();
+    await pipeline.exec();
   };
 
   /**
-   * Gets a transaction by queueId.
+   * Gets transaction details by queueId.
    * @param queueId
-   * @returns transaction, or null if not found.
+   * @returns AnyTransaction, or null if not found.
    */
   static get = async (queueId: string): Promise<AnyTransaction | null> => {
     const val = await redis.get(this.transactionDetailsKey(queueId));
     return val ? superjson.parse(val) : null;
+  };
+
+  /**
+   * Gets multiple transaction details by a list of queueIds.
+   * Skips any queueIds that aren't found.
+   * @param queueIds
+   * @returns AnyTransaction[]
+   */
+  static bulkGet = async (queueIds: string[]): Promise<AnyTransaction[]> => {
+    if (queueIds.length === 0) {
+      return [];
+    }
+
+    const keys = queueIds.map(this.transactionDetailsKey);
+    const vals = await redis.mget(...keys);
+
+    const result: AnyTransaction[] = [];
+    for (const val of vals) {
+      if (val) {
+        result.push(superjson.parse(val));
+      }
+    }
+    return result;
   };
 
   /**
@@ -95,6 +125,31 @@ export class TransactionDB {
    */
   static exists = async (queueId: string): Promise<boolean> =>
     (await redis.exists(this.transactionDetailsKey(queueId))) > 0;
+
+  static listByStatus = async (args: {
+    status: "queued" | "mined" | "cancelled" | "errored";
+    page: number;
+    limit: number;
+  }): Promise<{ transactions: AnyTransaction[]; totalCount: number }> => {
+    const { status, page, limit } = args;
+    const start = (page - 1) * limit;
+    const end = start + limit - 1;
+
+    const key =
+      status === "mined"
+        ? this.minedTransactionsKey
+        : status === "cancelled"
+        ? this.cancelledTransactionsKey
+        : status === "errored"
+        ? this.erroredTransactionsKey
+        : this.queuedTransactionsKey;
+
+    const queueIds = await redis.zrevrange(key, start, end);
+    const transactions = await this.bulkGet(queueIds);
+    const totalCount = await redis.zcard(key);
+
+    return { transactions, totalCount };
+  };
 
   /**
    * Deletes transactions between a time range.
@@ -114,7 +169,7 @@ export class TransactionDB {
     const transactionDetailsKeys = queueIds.map(this.transactionDetailsKey);
     pipeline.del(...transactionDetailsKeys);
 
-    // Delete per-status sorted sets.
+    // Delete per-status sorted sets. Do not purge queued transactions.
     pipeline.zremrangebyscore(this.minedTransactionsKey, min, max);
     pipeline.zremrangebyscore(this.cancelledTransactionsKey, min, max);
     pipeline.zremrangebyscore(this.erroredTransactionsKey, min, max);

@@ -1,14 +1,16 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { defineChain } from "thirdweb";
+import { defineChain, toSerializableTransaction } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
+import { getAccount } from "../../../utils/account";
+import { getBlockNumberish } from "../../../utils/block";
 import { msSince } from "../../../utils/date";
-import {
-  QueuedTransaction,
-  SentTransaction,
-} from "../../../utils/transaction/types";
+import { thirdwebClient } from "../../../utils/sdk";
+import { SentTransaction } from "../../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
 import { reportUsage } from "../../../utils/usage";
+import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
@@ -74,17 +76,47 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         );
       }
 
-      const preparedTransaction: QueuedTransaction = {
-        ...transaction,
-        status: "queued",
-        maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
-        maxPriorityFeePerGas: maxPriorityFeePerGas
-          ? BigInt(maxPriorityFeePerGas)
-          : undefined,
-      };
+      const { chainId, from } = transaction;
 
-      // @TODO: implement
-      const transactionHash = "0x...";
+      // Prepare transaction.
+      const populatedTransaction = await toSerializableTransaction({
+        from,
+        transaction: {
+          client: thirdwebClient,
+          chain: defineChain(chainId),
+          ...transaction,
+          maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
+          maxPriorityFeePerGas: maxPriorityFeePerGas
+            ? BigInt(maxPriorityFeePerGas)
+            : undefined,
+        },
+      });
+
+      // Send transaction.
+      const account = await getAccount({ chainId, from });
+      const { transactionHash } = await account.sendTransaction(
+        populatedTransaction,
+      );
+
+      // Update state if the send was successful.
+      const sentTransaction: SentTransaction = {
+        ...transaction,
+        retryCount: transaction.retryCount + 1,
+        sentAt: new Date(),
+        sentAtBlock: await getBlockNumberish(chainId),
+        sentTransactionHashes: [
+          ...transaction.sentTransactionHashes,
+          transactionHash,
+        ],
+        gas: populatedTransaction.gas,
+        gasPrice: populatedTransaction.gasPrice,
+        maxFeePerGas: populatedTransaction.maxFeePerGas,
+        maxPriorityFeePerGas: populatedTransaction.maxPriorityFeePerGas,
+      };
+      await TransactionDB.set(sentTransaction);
+      await MineTransactionQueue.add({ queueId: sentTransaction.queueId });
+      await enqueueTransactionWebhook(sentTransaction);
+      _reportUsageSuccess(sentTransaction);
 
       reply.status(StatusCodes.OK).send({
         result: {
