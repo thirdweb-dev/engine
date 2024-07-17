@@ -75,7 +75,7 @@ export class TransactionDB {
         break;
     }
 
-    await redis.pipeline().exec();
+    await pipeline.exec();
   };
 
   /**
