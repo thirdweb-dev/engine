@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getSdk } from "../../../../utils/cache/getSdk";
+import { contractDeployBasicSchema } from "../../../schemas/contract";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
@@ -23,11 +24,7 @@ const requestBodySchema = Type.Object({
     ...commonPlatformFeeSchema.properties,
     ...commonTrustedForwarderSchema.properties,
   }),
-  version: Type.Optional(
-    Type.String({
-      description: "Version of the contract to deploy. Defaults to latest.",
-    }),
-  ),
+  ...contractDeployBasicSchema.properties,
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -66,7 +63,14 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { contractMetadata, version, txOverrides } = request.body;
+      const {
+        contractMetadata,
+        version,
+        txOverrides,
+        saltForProxyDeploy,
+        forceDirectDeploy,
+        compilerOptions,
+      } = request.body;
       const chainId = await getChainIdFromChain(chain);
       const {
         "x-backend-wallet-address": walletAddress,
@@ -79,6 +83,11 @@ export async function deployPrebuiltMarketplaceV3(fastify: FastifyInstance) {
         "marketplace-v3",
         contractMetadata,
         version,
+        {
+          saltForProxyDeploy,
+          forceDirectDeploy,
+          compilerOptions,
+        },
       );
       const deployedAddress = await tx.simulate();
 

@@ -34,6 +34,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     job.data,
   );
   let sentTransaction: SentTransaction | null = null;
+
   const transaction = await TransactionDB.get(queueId);
   switch (transaction?.status) {
     case "queued":
@@ -135,6 +136,10 @@ const _handleQueuedTransaction = async (
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(chainId),
     sentTransactionHashes: [transactionHash],
+    gas: populatedTransaction.gas,
+    gasPrice: populatedTransaction.gasPrice,
+    maxFeePerGas: populatedTransaction.maxFeePerGas,
+    maxPriorityFeePerGas: populatedTransaction.maxPriorityFeePerGas,
   };
 };
 
@@ -185,6 +190,10 @@ const _handleSentTransaction = async (
       ...sentTransaction.sentTransactionHashes,
       transactionHash,
     ],
+    gas: populatedTransaction.gas,
+    gasPrice: populatedTransaction.gasPrice,
+    maxFeePerGas: populatedTransaction.maxFeePerGas,
+    maxPriorityFeePerGas: populatedTransaction.maxPriorityFeePerGas,
   };
 };
 

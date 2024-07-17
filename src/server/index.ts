@@ -10,6 +10,7 @@ import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listeners/updateTxListener";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
+import { withEnforceEngineMode } from "./middleware/engine-mode";
 import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
@@ -57,6 +58,7 @@ export const initServer = async () => {
   await withCors(server);
   await withRequestLogs(server);
   await withErrorHandler(server);
+  await withEnforceEngineMode(server);
   await withWebSocket(server);
   await withAuth(server);
   await withExpress(server);

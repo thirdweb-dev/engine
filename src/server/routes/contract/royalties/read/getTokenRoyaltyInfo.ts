@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../utils/cache/getContract";
-import { RoyaltySchema } from "../../../../schemas/contract";
+import { royaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -15,7 +15,7 @@ const requestSchema = Type.Object({
 });
 // OUTPUT
 const responseSchema = Type.Object({
-  result: RoyaltySchema,
+  result: royaltySchema,
 });
 
 responseSchema.examples = [
