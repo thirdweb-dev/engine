@@ -1,5 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import superjson from "superjson";
+import { Address, Hex } from "thirdweb";
 import { type TransactionType } from "viem";
 import { AnyTransaction } from "../../../utils/transaction/types";
 
@@ -61,6 +62,9 @@ export const TransactionSchema = Type.Object({
   ]),
   nonce: Type.Union([
     Type.Number({
+      description: "The nonce used by the backend wallet for this transaction",
+    }),
+    Type.String({
       description: "The nonce used by the backend wallet for this transaction",
     }),
     Type.Null(),
@@ -191,6 +195,18 @@ export const TransactionSchema = Type.Object({
   functionName: Type.Union([Type.String(), Type.Null()]),
   functionArgs: Type.Union([Type.String(), Type.Null()]),
   onChainTxStatus: Type.Union([Type.Number(), Type.Null()]),
+  effectiveGasPrice: Type.Union([
+    Type.String({
+      description: "Effective Gas Price",
+    }),
+    Type.Null(),
+  ]),
+  cumulativeGasUsed: Type.Union([
+    Type.String({
+      description: "Cumulative Gas Used",
+    }),
+    Type.Null(),
+  ]),
 });
 
 export const toTransactionSchema = (
@@ -217,7 +233,7 @@ export const toTransactionSchema = (
     if (functionArgs) {
       const { json } = superjson.serialize(transaction.functionArgs);
       if (json) {
-        return json.toString();
+        return JSON.stringify(json);
       }
     }
     return null;
@@ -268,19 +284,31 @@ export const toTransactionSchema = (
       "onchainStatus" in transaction
         ? resolveOnchainStatus(transaction.onchainStatus)
         : null,
+    effectiveGasPrice:
+      "effectiveGasPrice" in transaction
+        ? transaction.effectiveGasPrice.toString()
+        : null,
+    cumulativeGasUsed:
+      "cumulativeGasUsed" in transaction
+        ? transaction.cumulativeGasUsed.toString()
+        : null,
 
-    // @TODO: handle userOps
-    signerAddress: null,
-    accountAddress: null,
-    target: null,
-    sender: null,
+    // User Operation
+    signerAddress: transaction.from,
+    accountAddress:
+      "accountAddress" in transaction
+        ? (transaction.accountAddress as Address)
+        : null,
+    target: "target" in transaction ? (transaction.target as Address) : null,
+    sender: "sender" in transaction ? (transaction.sender as Address) : null,
     initCode: null,
     callData: null,
     callGasLimit: null,
     verificationGasLimit: null,
     preVerificationGas: null,
     paymasterAndData: null,
-    userOpHash: null,
+    userOpHash:
+      "userOpHash" in transaction ? (transaction.userOpHash as Hex) : null,
 
     // Deprecated
     retryGasValues: null,

@@ -87,9 +87,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      // @TODO: handle userops
-
-      const queuedTransaction: QueuedTransaction = {
+      let queuedTransaction: QueuedTransaction = {
         status: "queued",
         queueId: randomUUID(),
         queuedAt: new Date(),
@@ -103,6 +101,15 @@ export async function simulateTransaction(fastify: FastifyInstance) {
         data: data as Hex | undefined,
         value: value ? BigInt(value) : 0n,
       };
+
+      if (accountAddress) {
+        queuedTransaction = {
+          ...queuedTransaction,
+          accountAddress: accountAddress as Address,
+          target: toAddress as Address,
+          signerAddress: walletAddress as Address,
+        };
+      }
 
       const error = await simulateQueuedTransaction(queuedTransaction);
       if (error) {

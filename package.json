@@ -69,7 +69,7 @@
     "pino-pretty": "^10.0.0",
     "prisma": "5.14.0-dev.61",
     "superjson": "^2.2.1",
-    "thirdweb": "^5.29.6",
+    "thirdweb": "^5.35.0",
     "uuid": "^9.0.1",
     "zod": "^3.23.8"
   },

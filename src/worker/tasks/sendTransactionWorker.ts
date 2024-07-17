@@ -1,6 +1,7 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import { defineChain, toSerializableTransaction } from "thirdweb";
+import { bundleUserOp } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
 import { incrWalletNonce } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
@@ -15,6 +16,10 @@ import {
   QueuedTransaction,
   SentTransaction,
 } from "../../utils/transaction/types";
+import {
+  generateSignedUserOperation,
+  isUserOperation,
+} from "../../utils/transaction/userOperation";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
@@ -64,6 +69,7 @@ const _handleQueuedTransaction = async (
   queuedTransaction: QueuedTransaction,
 ): Promise<SentTransaction | null> => {
   const { chainId, from } = queuedTransaction;
+  const chain = defineChain(chainId);
 
   // Drop transactions that are expected to fail onchain.
   const simulationError = await simulateQueuedTransaction(queuedTransaction);
@@ -78,14 +84,35 @@ const _handleQueuedTransaction = async (
     _reportUsageError(erroredTransaction);
     return null;
   }
+  const isUserOp = isUserOperation(queuedTransaction);
+  if (isUserOp) {
+    const signedUserOp = await generateSignedUserOperation(queuedTransaction);
+    const userOpHash = await bundleUserOp({
+      userOp: signedUserOp,
+      options: {
+        chain,
+        client: thirdwebClient,
+      },
+    });
 
+    return {
+      ...queuedTransaction,
+      status: "sent",
+      nonce: signedUserOp.nonce.toString(),
+      retryCount: 0,
+      sentAt: new Date(),
+      sentAtBlock: await getBlockNumberish(chainId),
+      userOpHash,
+      sentTransactionHashes: [],
+    };
+  }
   // Prepare nonce + gas settings.
   const nonce = await incrWalletNonce(chainId, from);
   const populatedTransaction = await toSerializableTransaction({
     from,
     transaction: {
       client: thirdwebClient,
-      chain: defineChain(chainId),
+      chain,
       ...queuedTransaction,
       nonce,
     },
@@ -125,6 +152,7 @@ const _handleSentTransaction = async (
       client: thirdwebClient,
       chain: defineChain(chainId),
       ...sentTransaction,
+      nonce: Number(sentTransaction.nonce),
     },
   });
   // Double gas for retries.

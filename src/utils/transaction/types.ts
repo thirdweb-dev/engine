@@ -34,13 +34,7 @@ export type InsertedTransaction = {
   accountAddress?: Address;
   target?: Address;
   sender?: Address;
-  initCode?: string;
-  callData?: string;
-  callGasLimit?: string;
-  verificationGasLimit?: string;
-  preVerificationGas?: string;
-  paymasterAndData?: string;
-  userOpHash?: `0x${string}`;
+  userOpHash?: Hex;
 };
 
 // QueuedTransaction is a transaction added to the queue. No preparation has been done yet.
@@ -58,7 +52,7 @@ export type QueuedTransaction = InsertedTransaction & {
 export type SentTransaction = Omit<QueuedTransaction, "status"> & {
   status: "sent";
 
-  nonce: number;
+  nonce: number | string;
   sentAt: Date;
   sentAtBlock: bigint;
   sentTransactionHashes: Hex[];
@@ -74,6 +68,7 @@ export type MinedTransaction = Omit<SentTransaction, "status"> & {
   onchainStatus: "success" | "reverted";
   gasUsed: bigint;
   effectiveGasPrice: bigint;
+  cumulativeGasUsed: bigint;
 };
 
 // ErroredTransaction received an error before or while sending to RPC.

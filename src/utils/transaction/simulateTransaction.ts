@@ -1,4 +1,5 @@
 import {
+  Address,
   PreparedTransaction,
   defineChain,
   getContract,
@@ -7,6 +8,7 @@ import {
   resolveMethod,
   simulateTransaction,
 } from "thirdweb";
+import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
 import { thirdwebClient } from "../sdk";
 import { QueuedTransaction } from "./types";
 
@@ -38,9 +40,41 @@ export const simulateQueuedTransaction = async (
   const chain = defineChain(chainId);
 
   let transaction: PreparedTransaction;
-  if (to && from && accountAddress && signerAddress && target) {
+  if (from && accountAddress && signerAddress && target && functionName) {
     // To-do: Add support for UserOperation.
-    throw new Error("UserOperation is not supported.");
+    try {
+      // Resolve Target Contract
+      const targetContract = getContract({
+        client: thirdwebClient,
+        chain,
+        address: target as Address,
+      });
+
+      // Prepare UserOperation Transaction
+      const preparedTransaction = prepareContractCall({
+        contract: targetContract,
+        method: await resolveMethod(functionName),
+        params: functionArgs ?? [],
+        value: value,
+        gas: gas,
+      });
+
+      // Get Smart Wallet
+      const smartWallet = await getSmartWalletV5({
+        from,
+        chain,
+        accountAddress,
+      });
+
+      await simulateTransaction({
+        transaction: preparedTransaction,
+        account: smartWallet,
+      });
+
+      return null;
+    } catch (error: any) {
+      return error.toString();
+    }
   } else if (data) {
     // Resolve data.
     transaction = prepareTransaction({
