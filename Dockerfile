@@ -1,4 +1,4 @@
-FROM node:18.19-alpine AS base
+FROM node:20-alpine AS base
 
 # Install tini & build dependencies
 RUN apk add --no-cache tini && \
