@@ -45,7 +45,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
       return reply.status(StatusCodes.BAD_REQUEST).send({
         error: {
           code: "BAD_REQUEST",
-          message: "code=INVALID_ARGUMENT",
+          message: "INVALID_ARGUMENT",
           reason: error.message,
           statusCode: 400,
           stack: env.NODE_ENV !== "production" ? error.stack : undefined,
