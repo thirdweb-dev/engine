@@ -258,6 +258,49 @@ describe("Websocket requests", () => {
     expect(mockSocket.write).toHaveBeenCalledTimes(1);
     expect(mockSocket.destroy).toHaveBeenCalledTimes(1);
   });
+
+  it("A websocket request with IP outside of IP Allowlist is not authed", async () => {
+    mockGetAccessToken.mockResolvedValue({
+      id: "my-access-token",
+      tokenMask: "",
+      walletAddress: "0x0000000000000000000000000123",
+      createdAt: new Date(),
+      expiresAt: new Date(),
+      revokedAt: null,
+      isAccessToken: true,
+      label: "test access token",
+    });
+
+    mockGetUser.mockReturnValue({
+      session: { permissions: Permission.Admin },
+    });
+
+    const mockSocket = {
+      write: vi.fn(),
+      destroy: vi.fn(),
+    };
+
+    const defaultConfig = await getConfig();
+    mockGetConfig.mockResolvedValueOnce({
+      ...defaultConfig,
+      accessControlAllowOrigin: "*",
+      ipAllowlist: ["123.123.1.1"],
+    });
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { upgrade: "WEBSOCKET" },
+      query: { token: "my-access-token" },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    console.log(result);
+
+    expect(result.isAuthed).toBeFalsy();
+  });
 });
 
 describe("Access tokens", () => {
@@ -385,6 +428,50 @@ describe("Access tokens", () => {
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeFalsy();
+  });
+
+  it("Request from IP outside allowlist is not authed", async () => {
+    const jwt = jsonwebtoken.sign(
+      { iss: await testAuthWallet.getAddress() },
+      "test",
+    );
+
+    const defaultConfig = await getConfig();
+    mockGetConfig.mockResolvedValueOnce({
+      ...defaultConfig,
+      accessControlAllowOrigin: "*",
+      ipAllowlist: ["123.123.1.1"],
+    });
+
+    mockGetAccessToken.mockResolvedValue({
+      id: "my-access-token",
+      tokenMask: "",
+      walletAddress: "0x0000000000000000000000000123",
+      createdAt: new Date(),
+      expiresAt: new Date(),
+      revokedAt: null,
+      isAccessToken: true,
+      label: "test access token",
+    });
+
+    mockGetUser.mockReturnValue({
+      session: { permissions: Permission.Admin },
+    });
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: `Bearer ${jwt}` },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.user).toBeUndefined();
+    expect(result.error).toEqual(
+      "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+    );
   });
 });
 
@@ -537,6 +624,49 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
       'Error parsing "Authorization" header. See: https://portal.thirdweb.com/engine/features/access-tokens',
     );
   });
+
+  it("IP outside of IP Allowlist", async () => {
+    const defaultConfig = await getConfig();
+    mockGetConfig.mockResolvedValueOnce({
+      ...defaultConfig,
+      accessControlAllowOrigin: "*",
+      ipAllowlist: ["123.123.1.1"],
+    });
+
+    mockGetKeypair.mockResolvedValue({
+      hash: "",
+      publicKey: testKeypair.public,
+      algorithm: "ES256",
+      label: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    // Sign a valid auth payload.
+    const jwt = jsonwebtoken.sign(
+      { iss: testKeypair.public },
+      testKeypair.private,
+      {
+        algorithm: "ES256",
+        expiresIn: "20s",
+      },
+    );
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: `Bearer ${jwt}` },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeFalsy();
+    expect(result.error).toEqual(
+      "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+    );
+    expect(result.user).toBeUndefined();
+  });
 });
 
 describe("Dashboard JWT", () => {
@@ -565,6 +695,38 @@ describe("Dashboard JWT", () => {
       // @ts-ignore
       raw: {},
     };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeTruthy();
+    expect(result.user).not.toBeUndefined();
+  });
+
+  it("Request with valid dashboard JWT but IP outside allowlist is still authed", async () => {
+    const jwt = jsonwebtoken.sign({ iss: THIRDWEB_DASHBOARD_ISSUER }, "test");
+    mockHandleSiwe.mockResolvedValue({
+      address: "0x0000000000000000000000000123",
+    });
+    mockGetPermissions.mockResolvedValue({
+      walletAddress: "0x0000000000000000000000000123",
+      permissions: Permission.Admin,
+      label: null,
+    });
+
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: `Bearer ${jwt}` },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const defaultConfig = await getConfig();
+
+    mockGetConfig.mockResolvedValueOnce({
+      ...defaultConfig,
+      accessControlAllowOrigin: "*",
+      ipAllowlist: ["123.123.1.1"],
+    });
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
@@ -648,6 +810,28 @@ describe("thirdweb secret key", () => {
       // @ts-ignore
       raw: {},
     };
+
+    const result = await onRequest({ req, getUser: mockGetUser });
+    expect(result.isAuthed).toBeTruthy();
+    expect(result.user).not.toBeUndefined();
+  });
+
+  it("Request with valid thirdweb secret key but IP outside allowlist is still authed", async () => {
+    const req: FastifyRequest = {
+      method: "POST",
+      url: "/backend-wallets/get-all",
+      headers: { authorization: "Bearer my-thirdweb-secret-key" },
+      // @ts-ignore
+      raw: {},
+    };
+
+    const defaultConfig = await getConfig();
+
+    mockGetConfig.mockResolvedValueOnce({
+      ...defaultConfig,
+      accessControlAllowOrigin: "*",
+      ipAllowlist: ["123.123.1.1"],
+    });
 
     const result = await onRequest({ req, getUser: mockGetUser });
     expect(result.isAuthed).toBeTruthy();
