@@ -297,8 +297,6 @@ describe("Websocket requests", () => {
     };
 
     const result = await onRequest({ req, getUser: mockGetUser });
-    console.log(result);
-
     expect(result.isAuthed).toBeFalsy();
   });
 });
