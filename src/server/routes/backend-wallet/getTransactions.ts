@@ -1,8 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { TransactionDB } from "../../../db/transactions/db";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { TransactionSchema } from "../../schemas/transaction";
+import {
+  TransactionSchema,
+  toTransactionSchema,
+} from "../../schemas/transaction";
 import { walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -33,15 +37,23 @@ export async function getAllTransactions(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { chain, walletAddress } = req.params;
+      const { chain, walletAddress: _walletAddress } = req.params;
       const chainId = await getChainIdFromChain(chain);
+      const walletAddress = _walletAddress.toLowerCase();
 
-      // @TODO: implement
-      const transactions: Static<typeof TransactionSchema>[] = [];
+      // @TODO: This query is not optimized. Cap the results to the most recent 1000 total transactions for performance reasons.
+      const { transactions } = await TransactionDB.listByStatus({
+        status: "queued",
+        page: 1,
+        limit: 1000,
+      });
+      const filtered = transactions.filter(
+        (t) => t.chainId === chainId && t.from === walletAddress,
+      );
 
       res.status(StatusCodes.OK).send({
         result: {
-          transactions,
+          transactions: filtered.map(toTransactionSchema),
         },
       });
     },
