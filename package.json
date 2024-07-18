@@ -2,10 +2,7 @@
   "name": "web3-api",
   "version": "0.1.0",
   "license": "Apache-2.0",
-  "engines": {
-    "node": "20.x"
-  },
-  "description": "thirdweb's web3-api server",
+  "description": "thirdweb Engine",
   "main": "src/server/index.ts",
   "author": "thirdweb engineering <eng@thirdweb.com>",
   "type": "module",
@@ -21,7 +18,7 @@
     "prisma:setup:dev": "npx tsx ./src/scripts/setup-db.ts",
     "prisma:setup:prod": "npx tsx ./dist/scripts/setup-db.js",
     "start": "yarn prisma:setup:prod && yarn start:run",
-    "start:run": "node ./dist/index.js",
+    "start:run": "node --experimental-specifier-resolution=node ./dist/index.js",
     "start:docker": "docker compose build && docker compose --env-file ./.env up --remove-orphans",
     "docker-build-run": "docker compose build --no-cache && docker compose --env-file ./.env up --remove-orphans",
     "copy-files": "copyfiles -u 2 ./src/prisma/* ./dist/prisma/ && copyfiles -u 3 ./src/prisma/migrations/**/*.sql ./dist/prisma/migrations/",
