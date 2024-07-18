@@ -43,7 +43,7 @@ export const insertTransaction = async (
     const error = await simulateQueuedTransaction(queuedTransaction);
     if (error) {
       throw createCustomError(
-        `Simulation failed: ${error}`,
+        `Simulation failed: ${error.replace(/[\r\n]+/g, " --- ")}`,
         400,
         "BAD_REQUEST",
       );
