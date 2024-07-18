@@ -38,51 +38,76 @@ export class TransactionDB {
   private static cancelledTransactionsKey = `transaction:cancelled`;
   private static erroredTransactionsKey = `transaction:errored`;
 
+  static COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS = 2 * 24 * 60 * 60; // 2 days
+
   /**
-   * Inserts or replaces a transaction.
-   * Updates relevant keys.
+   * Inserts or replaces a transaction details.
+   * Also adds to the appropriate "status" sorted set.
+   * Sets a TTL for completed statuses (mined, cancelled, errored).
+   *
    * @param transaction
    */
   static set = async (transaction: AnyTransaction) => {
-    const pipeline = redis
-      .pipeline()
-      .set(
-        this.transactionDetailsKey(transaction.queueId),
-        superjson.stringify(transaction),
-      );
-
     switch (transaction.status) {
       case "queued":
-        pipeline.zadd(
-          this.queuedTransactionsKey,
-          toSeconds(transaction.queuedAt),
-          transaction.queueId,
-        );
-        break;
-      case "mined":
-        pipeline.zadd(
-          this.minedTransactionsKey,
-          toSeconds(transaction.minedAt),
-          transaction.queueId,
-        );
-        break;
-      case "cancelled":
-        pipeline.zadd(
-          this.cancelledTransactionsKey,
-          toSeconds(transaction.cancelledAt),
-          transaction.queueId,
-        );
-        break;
-      case "errored":
-        pipeline.zadd(
-          this.erroredTransactionsKey,
-          toSeconds(new Date()),
-          transaction.queueId,
-        );
-        break;
-    }
+        return redis
+          .pipeline()
+          .set(
+            this.transactionDetailsKey(transaction.queueId),
+            superjson.stringify(transaction),
+          )
+          .zadd(
+            this.queuedTransactionsKey,
+            toSeconds(transaction.queuedAt),
+            transaction.queueId,
+          )
+          .exec();
 
-    await pipeline.exec();
+      case "mined":
+        return redis
+          .pipeline()
+          .setex(
+            this.transactionDetailsKey(transaction.queueId),
+            this.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS,
+            superjson.stringify(transaction),
+          )
+          .zadd(
+            this.minedTransactionsKey,
+            toSeconds(transaction.minedAt),
+            transaction.queueId,
+          )
+          .exec();
+
+      case "cancelled":
+        return redis
+          .pipeline()
+          .setex(
+            this.transactionDetailsKey(transaction.queueId),
+            this.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS,
+            superjson.stringify(transaction),
+          )
+          .zadd(
+            this.cancelledTransactionsKey,
+            toSeconds(transaction.cancelledAt),
+            transaction.queueId,
+          )
+          .exec();
+
+      case "errored":
+        return redis
+          .pipeline()
+          .setex(
+            this.transactionDetailsKey(transaction.queueId),
+            this.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS,
+            superjson.stringify(transaction),
+          )
+          .zadd(
+            this.erroredTransactionsKey,
+            toSeconds(new Date()),
+            transaction.queueId,
+          )
+          .exec();
+    }
   };
 
   /**
@@ -126,6 +151,13 @@ export class TransactionDB {
   static exists = async (queueId: string): Promise<boolean> =>
     (await redis.exists(this.transactionDetailsKey(queueId))) > 0;
 
+  /**
+   * Lists all transaction details by status.
+   * @param status "queued" | "mined" | "cancelled" | "errored"
+   * @param page
+   * @param limit
+   * @returns
+   */
   static listByStatus = async (args: {
     status: "queued" | "mined" | "cancelled" | "errored";
     page: number;
@@ -162,48 +194,13 @@ export class TransactionDB {
     const min = from ? toSeconds(from) : 0;
     const max = to ? toSeconds(to) : "+inf";
 
-    const pipeline = redis.pipeline();
-
-    // Delete transaction details.
-    const queueIds = await this._getCompletedQueueIds(min, max);
-    const transactionDetailsKeys = queueIds.map(this.transactionDetailsKey);
-    pipeline.del(...transactionDetailsKeys);
-
     // Delete per-status sorted sets. Do not purge queued transactions.
-    pipeline.zremrangebyscore(this.minedTransactionsKey, min, max);
-    pipeline.zremrangebyscore(this.cancelledTransactionsKey, min, max);
-    pipeline.zremrangebyscore(this.erroredTransactionsKey, min, max);
-
-    await pipeline.exec();
-  };
-
-  /**
-   * Returns completed queue IDs between a start and end timestamp (seconds).
-   * @param min number - Start timestamp in seconds
-   * @param max number - End timestamp in seconds
-   * @returns string[] - List of queueIds
-   */
-  private static _getCompletedQueueIds = async (
-    min: number | string,
-    max: number | string,
-  ): Promise<string[]> => {
-    const pipelineResult = await redis
+    await redis
       .pipeline()
-      .zrange(this.minedTransactionsKey, min, max, "BYSCORE")
-      .zrange(this.cancelledTransactionsKey, min, max, "BYSCORE")
-      .zrange(this.erroredTransactionsKey, min, max, "BYSCORE")
+      .zremrangebyscore(this.minedTransactionsKey, min, max)
+      .zremrangebyscore(this.cancelledTransactionsKey, min, max)
+      .zremrangebyscore(this.erroredTransactionsKey, min, max)
       .exec();
-
-    const queueIds: string[] = [];
-    if (pipelineResult) {
-      for (const [error, zrangeResult] of pipelineResult) {
-        if (error) {
-          throw new Error(`TransactionDB.getCompleted: ${error.message}`);
-        }
-        queueIds.push(...(zrangeResult as string[]));
-      }
-    }
-    return queueIds;
   };
 }
 
