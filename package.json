@@ -2,6 +2,9 @@
   "name": "web3-api",
   "version": "0.1.0",
   "license": "Apache-2.0",
+  "engines": {
+    "node": "20.x"
+  },
   "description": "thirdweb's web3-api server",
   "main": "src/server/index.ts",
   "author": "thirdweb engineering <eng@thirdweb.com>",

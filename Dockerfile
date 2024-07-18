@@ -69,7 +69,7 @@ RUN apk update && apk upgrade
 ##############################
 
 # Production stage
-FROM node:18.19-alpine AS prod
+FROM node:20-alpine AS prod
 
 # Setting ENV variables for image information
 ARG ENGINE_VERSION
