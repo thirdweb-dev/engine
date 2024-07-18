@@ -73,9 +73,6 @@ export const getAllTxs = async ({
   const totalCountPromise: Promise<number> = prisma.transactions.count({
     where: {
       ...filterQuery,
-      queuedAt: {
-        gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      },
     },
   });
 
@@ -83,9 +80,6 @@ export const getAllTxs = async ({
   const txsPromise: Promise<Transactions[]> = prisma.transactions.findMany({
     where: {
       ...filterQuery,
-      queuedAt: {
-        gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-      },
     },
     orderBy: [
       {
