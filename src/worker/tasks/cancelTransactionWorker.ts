@@ -1,7 +1,7 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
-import { defineChain } from "thirdweb";
 import { TransactionDB } from "../../db/transactions/db";
+import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
@@ -47,11 +47,13 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   };
   await TransactionDB.set(cancelledTransaction);
   await enqueueTransactionWebhook(cancelledTransaction);
-  _reportUsageSuccess(cancelledTransaction);
+  await _reportUsageSuccess(cancelledTransaction);
 };
 
-const _reportUsageSuccess = (cancelledTransaction: CancelledTransaction) => {
-  const chain = defineChain(cancelledTransaction.chainId);
+const _reportUsageSuccess = async (
+  cancelledTransaction: CancelledTransaction,
+) => {
+  const chain = await getChain(cancelledTransaction.chainId);
   reportUsage([
     {
       action: "cancel_tx",

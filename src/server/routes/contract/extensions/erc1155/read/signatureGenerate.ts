@@ -1,11 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex, defineChain, getContract } from "thirdweb";
+import { Address, Hex, getContract } from "thirdweb";
 import { NFTInput } from "thirdweb/dist/types/utils/nft/parseNft";
 import { generateMintSignature } from "thirdweb/extensions/erc1155";
 import { getAccount } from "../../../../../../utils/account";
 import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
+import { getChain } from "../../../../../../utils/chain";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { createCustomError } from "../../../../../middleware/error";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
@@ -157,7 +158,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
 
         const contract = getContract({
           client: thirdwebClient,
-          chain: defineChain(chainId),
+          chain: await getChain(chainId),
           address: contractAddress,
         });
         const account = await getAccount({

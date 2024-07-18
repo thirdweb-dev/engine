@@ -1,4 +1,5 @@
-import { defineChain, eth_blockNumber, getRpcClient } from "thirdweb";
+import { eth_blockNumber, getRpcClient } from "thirdweb";
+import { getChain } from "./chain";
 import { redis } from "./redis/redis";
 import { thirdwebClient } from "./sdk";
 
@@ -10,7 +11,7 @@ import { thirdwebClient } from "./sdk";
  * @returns bigint - The latest block number.
  */
 export const getBlockNumberish = async (chainId: number): Promise<bigint> => {
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain,

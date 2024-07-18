@@ -1,9 +1,5 @@
-import {
-  Address,
-  defineChain,
-  eth_getTransactionCount,
-  getRpcClient,
-} from "thirdweb";
+import { Address, eth_getTransactionCount, getRpcClient } from "thirdweb";
+import { getChain } from "../../utils/chain";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 
@@ -30,7 +26,7 @@ export const syncWalletNonce = async (
 ): Promise<number> => {
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
-    chain: defineChain(chainId),
+    chain: await getChain(chainId),
   });
 
   // The next unused nonce = transactionCount.

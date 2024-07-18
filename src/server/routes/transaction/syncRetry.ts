@@ -1,10 +1,11 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { defineChain, toSerializableTransaction } from "thirdweb";
+import { toSerializableTransaction } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getAccount } from "../../../utils/account";
 import { getBlockNumberish } from "../../../utils/block";
+import { getChain } from "../../../utils/chain";
 import { msSince } from "../../../utils/date";
 import { thirdwebClient } from "../../../utils/sdk";
 import { SentTransaction } from "../../../utils/transaction/types";
@@ -83,7 +84,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
         from,
         transaction: {
           client: thirdwebClient,
-          chain: defineChain(chainId),
+          chain: await getChain(chainId),
           ...transaction,
           maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
           maxPriorityFeePerGas: maxPriorityFeePerGas
@@ -117,7 +118,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
       await TransactionDB.set(sentTransaction);
       await MineTransactionQueue.add({ queueId: sentTransaction.queueId });
       await enqueueTransactionWebhook(sentTransaction);
-      _reportUsageSuccess(sentTransaction);
+      await _reportUsageSuccess(sentTransaction);
 
       reply.status(StatusCodes.OK).send({
         result: {
@@ -128,8 +129,8 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
   });
 }
 
-const _reportUsageSuccess = (sentTransaction: SentTransaction) => {
-  const chain = defineChain(sentTransaction.chainId);
+const _reportUsageSuccess = async (sentTransaction: SentTransaction) => {
+  const chain = await getChain(sentTransaction.chainId);
   reportUsage([
     {
       action: "send_tx",

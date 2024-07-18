@@ -1,7 +1,6 @@
 import {
   Address,
   PreparedTransaction,
-  defineChain,
   getContract,
   prepareContractCall,
   prepareTransaction,
@@ -11,6 +10,7 @@ import {
 import { Account } from "thirdweb/wallets";
 import { getAccount } from "../account";
 import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
+import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
 import { QueuedTransaction } from "./types";
 
@@ -39,7 +39,7 @@ export const simulateQueuedTransaction = async (
     from,
   } = queuedTransaction;
 
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
 
   let transaction: PreparedTransaction;
   if (from && accountAddress && signerAddress && target && functionName) {

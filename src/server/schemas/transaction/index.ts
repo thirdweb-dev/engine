@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import superjson from "superjson";
 import { Address, Hex } from "thirdweb";
-import { type TransactionType } from "viem";
 import { AnyTransaction } from "../../../utils/transaction/types";
 
 export const TransactionSchema = Type.Object({
@@ -213,28 +212,45 @@ export const toTransactionSchema = (
   transaction: AnyTransaction,
 ): Static<typeof TransactionSchema> => {
   // Helper resolver methods.
-  const resolveTransactionType = (type: TransactionType) => {
-    switch (type) {
-      case "eip2930":
-        return 1;
-      case "eip1559":
-        return 2;
-      case "eip4844":
-        return 3;
-      default:
-        return 0;
+  const resolveTransactionType = () => {
+    if (transaction.status === "mined") {
+      switch (transaction.transactionType) {
+        case "eip2930":
+          return 1;
+        case "eip1559":
+          return 2;
+        case "eip4844":
+          return 3;
+        default:
+          return 0;
+      }
     }
+    return null;
   };
 
-  const resolveOnchainStatus = (onchainStatus: "success" | "reverted") =>
-    onchainStatus === "success" ? 1 : 0;
+  const resolveOnchainStatus = () => {
+    if (transaction.status === "mined") {
+      return transaction.onchainStatus === "success" ? 1 : 0;
+    }
+    return null;
+  };
 
-  const resolveFunctionArgs = (functionArgs?: any[]) => {
-    if (functionArgs) {
+  const resolveFunctionArgs = () => {
+    if (transaction.functionArgs) {
       const { json } = superjson.serialize(transaction.functionArgs);
       if (json) {
         return JSON.stringify(json);
       }
+    }
+    return null;
+  };
+
+  const resolveTransactionHash = (): string | null => {
+    switch (transaction.status) {
+      case "sent":
+        return transaction.sentTransactionHashes.at(-1) ?? null;
+      case "mined":
+        return transaction.transactionHash;
     }
     return null;
   };
@@ -252,19 +268,15 @@ export const toTransactionSchema = (
     deployedContractAddress: transaction.deployedContractAddress ?? null,
     deployedContractType: transaction.deployedContractType ?? null,
     functionName: transaction.functionName ?? null,
-    functionArgs: resolveFunctionArgs(transaction.functionArgs),
+    functionArgs: resolveFunctionArgs(),
     extension: transaction.extension ?? null,
 
     gasLimit: transaction.gas?.toString() ?? null,
     gasPrice: transaction.gasPrice?.toString() ?? null,
     maxFeePerGas: transaction.maxFeePerGas?.toString() ?? null,
     maxPriorityFeePerGas: transaction.maxPriorityFeePerGas?.toString() ?? null,
-    transactionType:
-      "transactionType" in transaction
-        ? resolveTransactionType(transaction.transactionType)
-        : null,
-    transactionHash:
-      "transactionHash" in transaction ? transaction.transactionHash : null,
+    transactionType: resolveTransactionType(),
+    transactionHash: resolveTransactionHash(),
     queuedAt: transaction.queuedAt.toISOString(),
     sentAt: "sentAt" in transaction ? transaction.sentAt.toISOString() : null,
     minedAt:
@@ -280,10 +292,7 @@ export const toTransactionSchema = (
     blockNumber:
       "minedAtBlock" in transaction ? Number(transaction.minedAtBlock) : null,
     retryCount: "retryCount" in transaction ? transaction.retryCount : 0,
-    onChainTxStatus:
-      "onchainStatus" in transaction
-        ? resolveOnchainStatus(transaction.onchainStatus)
-        : null,
+    onChainTxStatus: resolveOnchainStatus(),
     effectiveGasPrice:
       "effectiveGasPrice" in transaction
         ? transaction.effectiveGasPrice.toString()

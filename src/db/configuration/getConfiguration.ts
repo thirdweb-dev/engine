@@ -1,18 +1,19 @@
 import { Configuration } from "@prisma/client";
+import { Static } from "@sinclair/typebox";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { ethers } from "ethers";
+import { Chain } from "thirdweb";
 import { ParsedConfig } from "../../schema/config";
 import { WalletType } from "../../schema/wallet";
 import { mandatoryAllowedCorsUrls } from "../../server/utils/cors-urls";
+import { networkResponseSchema } from "../../utils/cache/getSdk";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";
 
-const withWalletConfig = async (
-  config: Configuration,
-): Promise<ParsedConfig> => {
+const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // We destructure the config to omit wallet related fields to prevent direct access
   const {
     awsAccessKeyId,
@@ -26,6 +27,31 @@ const withWalletConfig = async (
     contractSubscriptionsRetryDelaySeconds,
     ...restConfig
   } = config;
+
+  // Parse "chainOverrides" JSON to an array of Chain[] items.
+  let chainOverridesParsed: Chain[] = [];
+  if (config.chainOverrides) {
+    try {
+      const parsed: Static<typeof networkResponseSchema>[] = JSON.parse(
+        config.chainOverrides,
+      );
+      chainOverridesParsed = parsed.map(
+        (chain): Chain => ({
+          id: chain.chainId,
+          name: chain.name,
+          rpc: chain.rpc[0],
+          nativeCurrency: chain.nativeCurrency,
+          testnet: chain.testnet ? true : undefined,
+        }),
+      );
+    } catch (e) {
+      logger({
+        service: "server",
+        level: "error",
+        message: `Failed parsing chainOverrides: ${e}`,
+      });
+    }
+  }
 
   // TODO: Remove backwards compatibility with next breaking change
   if (awsAccessKeyId && awsSecretAccessKey && awsRegion) {
@@ -63,6 +89,7 @@ const withWalletConfig = async (
       ...restConfig,
       contractSubscriptionsRequeryDelaySeconds:
         contractSubscriptionsRetryDelaySeconds,
+      chainOverridesParsed,
       walletConfiguration: {
         type: WalletType.awsKms,
         awsRegion,
@@ -111,6 +138,7 @@ const withWalletConfig = async (
       ...restConfig,
       contractSubscriptionsRequeryDelaySeconds:
         contractSubscriptionsRetryDelaySeconds,
+      chainOverridesParsed,
       walletConfiguration: {
         type: WalletType.gcpKms,
         gcpApplicationProjectId,
@@ -126,6 +154,7 @@ const withWalletConfig = async (
     ...restConfig,
     contractSubscriptionsRequeryDelaySeconds:
       contractSubscriptionsRetryDelaySeconds,
+    chainOverridesParsed,
     walletConfiguration: {
       type: WalletType.local,
     },
@@ -195,6 +224,6 @@ export const getConfiguration = async (): Promise<ParsedConfig> => {
     });
   }
 
-  const result = await withWalletConfig(config);
+  const result = await toParsedConfig(config);
   return result;
 };

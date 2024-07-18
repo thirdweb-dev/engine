@@ -6,11 +6,10 @@ let _config: ParsedConfig | null = null;
 export const getConfig = async (
   retrieveFromCache = true,
 ): Promise<ParsedConfig> => {
-  if (_config && retrieveFromCache) {
-    return _config;
+  if (!_config || !retrieveFromCache) {
+    _config = await getConfiguration();
   }
 
-  _config = await getConfiguration();
   return _config;
 };
 

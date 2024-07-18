@@ -6,11 +6,11 @@ import {
   Address,
   NATIVE_TOKEN_ADDRESS,
   ZERO_ADDRESS,
-  defineChain,
   getContract,
   toWei,
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
+import { getChain } from "../../../utils/chain";
 import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import {
@@ -110,7 +110,7 @@ export async function transfer(fastify: FastifyInstance) {
           shouldSimulate: simulateTx,
         });
       } else {
-        const chain = defineChain(chainId);
+        const chain = await getChain(chainId);
         const contract = getContract({
           client: thirdwebClient,
           chain,
