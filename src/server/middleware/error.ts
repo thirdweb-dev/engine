@@ -40,6 +40,32 @@ export const withErrorHandler = async (server: FastifyInstance) => {
       error,
     });
 
+    // v4 : Contract Prepare Error Handler
+    if (error.message.includes("code=INVALID_ARGUMENT")) {
+      return reply.status(StatusCodes.BAD_REQUEST).send({
+        error: {
+          code: "BAD_REQUEST",
+          message: "INVALID_ARGUMENT",
+          reason: error.message,
+          statusCode: 400,
+          stack: env.NODE_ENV !== "production" ? error.stack : undefined,
+        },
+      });
+    }
+
+    // v4: Zod Typings Errors
+    if (error.message.toLowerCase().includes("invalid input")) {
+      return reply.status(StatusCodes.BAD_REQUEST).send({
+        error: {
+          code: "BAD_REQUEST",
+          message: "Invalid input",
+          reason: JSON.parse(error.message),
+          statusCode: 400,
+          stack: env.NODE_ENV !== "production" ? error.stack : undefined,
+        },
+      });
+    }
+
     if ("statusCode" in error && "code" in error) {
       // Transform unexpected errors into a standard payload
       const statusCode = error.statusCode ?? StatusCodes.INTERNAL_SERVER_ERROR;
