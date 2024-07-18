@@ -1,23 +1,19 @@
 import { getConfiguration } from "../../db/configuration/getConfiguration";
-import { Config } from "../../schema/config";
+import { ParsedConfig } from "../../schema/config";
 
-const cacheKey = "config";
-export const configCache = new Map<string, Config>();
+let _config: ParsedConfig | null = null;
 
-export const getConfig = async (retrieveFromCache = true): Promise<Config> => {
-  if (
-    configCache.has(cacheKey) &&
-    configCache.get(cacheKey) &&
-    retrieveFromCache
-  ) {
-    const config = configCache.get(cacheKey) as Config;
-
-    if (config.authDomain && config.authWalletEncryptedJson) {
-      return config;
-    }
+export const getConfig = async (
+  retrieveFromCache = true,
+): Promise<ParsedConfig> => {
+  if (_config && retrieveFromCache) {
+    return _config;
   }
 
-  const configData = await getConfiguration();
-  configCache.set(cacheKey, configData);
-  return configData;
+  _config = await getConfiguration();
+  return _config;
+};
+
+export const invalidateConfig = () => {
+  _config = null;
 };

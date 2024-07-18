@@ -1,7 +1,8 @@
 import { Configuration } from "@prisma/client";
+import { Chain } from "thirdweb";
 import { WalletType } from "./wallet";
 
-export interface Config
+export interface ParsedConfig
   extends Omit<
     Configuration,
     | "awsAccessKeyId"
@@ -33,4 +34,5 @@ export interface Config
         gcpApplicationCredentialPrivateKey: string;
       };
   contractSubscriptionsRequeryDelaySeconds: string;
+  chainOverridesParsed: Chain[];
 }

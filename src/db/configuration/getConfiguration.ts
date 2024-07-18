@@ -1,7 +1,7 @@
 import { Configuration } from "@prisma/client";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { ethers } from "ethers";
-import { Config } from "../../schema/config";
+import { ParsedConfig } from "../../schema/config";
 import { WalletType } from "../../schema/wallet";
 import { mandatoryAllowedCorsUrls } from "../../server/utils/cors-urls";
 import { decrypt } from "../../utils/crypto";
@@ -10,7 +10,9 @@ import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";
 
-const withWalletConfig = async (config: Configuration): Promise<Config> => {
+const withWalletConfig = async (
+  config: Configuration,
+): Promise<ParsedConfig> => {
   // We destructure the config to omit wallet related fields to prevent direct access
   const {
     awsAccessKeyId,
@@ -139,7 +141,7 @@ const createAuthWalletEncryptedJson = async () => {
   });
 };
 
-export const getConfiguration = async (): Promise<Config> => {
+export const getConfiguration = async (): Promise<ParsedConfig> => {
   let config = await prisma.configuration.findUnique({
     where: {
       id: "default",
@@ -193,5 +195,6 @@ export const getConfiguration = async (): Promise<Config> => {
     });
   }
 
-  return withWalletConfig(config);
+  const result = await withWalletConfig(config);
+  return result;
 };
