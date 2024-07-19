@@ -1,3 +1,4 @@
+import "./polyfill";
 import { initServer } from "./server";
 import { initWorker } from "./worker";
 
