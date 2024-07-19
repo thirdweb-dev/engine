@@ -16,6 +16,15 @@ services:
           cpus: "2"
           memory: 2G
 
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
   engine:
     build:
       dockerfile: Dockerfile
@@ -27,6 +36,7 @@ services:
       - 3005:3005
     depends_on:
       - db
+      - redis
     deploy:
       resources:
         limits:
@@ -38,3 +48,4 @@ services:
 
 volumes:
   db_data:
+  redis_data:

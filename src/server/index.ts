@@ -50,6 +50,9 @@ export const initServer = async () => {
   const server: FastifyInstance = fastify({
     connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
+    // env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
+    // See: https://fastify.dev/docs/latest/Reference/Server/#trustproxy
+    trustProxy: env.TRUST_PROXY,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
