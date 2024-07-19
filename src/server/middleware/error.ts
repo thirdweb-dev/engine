@@ -40,7 +40,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
       error,
     });
 
-    // v4 : Contract Prepare Error Handler
+    // v4 : Contract Prepare : Invalid Argument Error
     if (error.message.includes("code=INVALID_ARGUMENT")) {
       return reply.status(StatusCodes.BAD_REQUEST).send({
         error: {
