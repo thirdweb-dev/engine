@@ -17,7 +17,7 @@ async function main() {
     );
 
     execSync(
-      "yarn openapi --input ./openapi.json --output ./sdk/src --name Engine",
+      "npx openapi --input ./openapi.json --output ./sdk/src --name Engine",
     );
 
     const code = fs

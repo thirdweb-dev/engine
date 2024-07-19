@@ -1,4 +1,4 @@
-FROM node:18.19-alpine AS base
+FROM node:20.15-alpine AS base
 
 # Install tini & build dependencies
 RUN apk add --no-cache tini && \
@@ -18,7 +18,8 @@ COPY package*.json yarn*.lock ./
 COPY . .
 
 # Install dependencies for both development and production
-RUN yarn install --frozen-lockfile --network-timeout 1000000
+RUN npm config set timeout 1000000
+RUN npm install --package-lock-only
 
 WORKDIR /app/src/https
 
@@ -44,7 +45,7 @@ RUN npm install -g nodemon
 # Use tini as entrypoint to handle killing processes
 ENTRYPOINT ["/sbin/tini", "--"]
 
-CMD [ "sh", "-c","yarn prisma:setup:dev && yarn dev:run" ]
+CMD [ "sh", "-c","npm run prisma:setup:dev && npm run dev:run" ]
 
 ##############################
 ##############################
@@ -56,10 +57,10 @@ WORKDIR /app
 
 # Build the project
 RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip && \
-    yarn build && \
-    yarn copy-files && \
+    npm run build && \
+    npm run copy-files && \
     rm -rf node_modules && \
-    yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
+    npm install --production=true --package-lock-only && \
     apk del build-dependencies
 
 # Upgrade packages
@@ -82,7 +83,7 @@ RUN apk add --no-cache tini
 WORKDIR /app
 ENV NODE_ENV="production" \
     PATH=/app/node_modules/.bin:$PATH
-    
+
 EXPOSE 3005
 
 # Copy package.json and yarn.lock files
@@ -98,4 +99,4 @@ COPY --from=base /app/src/https ./dist/https
 
 # Use tini as entrypoint to handle killing processes
 ENTRYPOINT ["/sbin/tini", "--"]
-CMD [ "yarn", "start"]
+CMD [ "npm", "run", "start"]
