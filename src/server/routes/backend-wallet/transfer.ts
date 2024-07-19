@@ -11,6 +11,7 @@ import {
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { getChain } from "../../../utils/chain";
+import { resolvePromisedValue } from "../../../utils/resolvePromisedValue";
 import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import {
@@ -123,14 +124,16 @@ export async function transfer(fastify: FastifyInstance) {
           insertedTransaction: {
             chainId,
             from: walletAddress as Address,
-            to: to as Address,
-            // data: transaction.data,
+            to: (await resolvePromisedValue(transaction.to)) as
+              | Address
+              | undefined,
+            data: await resolvePromisedValue(transaction.data),
             value: 0n,
             ...gasOverrides,
 
-            // functionName: "transfer",
-            // functionArgs: [to, amount, currencyAddress],
             extension: "erc20",
+            functionName: "transfer",
+            functionArgs: [to, amount, currencyAddress],
           },
           idempotencyKey,
           shouldSimulate: simulateTx,

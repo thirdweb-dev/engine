@@ -112,11 +112,10 @@ export const simulateQueuedTransaction = async (
       });
     }
 
-    // Always use an account to simulate the transaction.
-    // to catch any errors related to funds
+    // Use an account to simulate the transaction to catch fund errors.
     await simulateTransaction({ transaction, account });
     return null;
   } catch (e: any) {
-    return `message : ${e.message} - code: ${e.code}`;
+    return `message: ${e.message} - code: ${e.code}`;
   }
 };

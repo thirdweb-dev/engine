@@ -75,6 +75,7 @@ const _handleQueuedTransaction = async (
 
   // Drop transactions that are expected to fail onchain.
   const simulationError = await simulateQueuedTransaction(queuedTransaction);
+  console.log("\n\n\n[DEBUG] simulationError", simulationError);
   if (simulationError) {
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
@@ -107,6 +108,8 @@ const _handleQueuedTransaction = async (
       sentAtBlock: await getBlockNumberish(chainId),
       userOpHash,
       sentTransactionHashes: [],
+      maxFeePerGas: signedUserOp.maxFeePerGas,
+      maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
     };
   }
 

@@ -48,66 +48,59 @@ export class TransactionDB {
    * @param transaction
    */
   static set = async (transaction: AnyTransaction) => {
+    const pipeline = redis.pipeline();
+
+    const shouldExpire = ["mined", "cancelled", "errored"].includes(
+      transaction.status,
+    );
+    if (shouldExpire) {
+      pipeline.setex(
+        this.transactionDetailsKey(transaction.queueId),
+        this.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS,
+        superjson.stringify(transaction),
+      );
+    } else {
+      pipeline.set(
+        this.transactionDetailsKey(transaction.queueId),
+        superjson.stringify(transaction),
+      );
+    }
+
     switch (transaction.status) {
       case "queued":
-        return redis
-          .pipeline()
-          .set(
-            this.transactionDetailsKey(transaction.queueId),
-            superjson.stringify(transaction),
-          )
-          .zadd(
-            this.queuedTransactionsKey,
-            toSeconds(transaction.queuedAt),
-            transaction.queueId,
-          )
-          .exec();
+        pipeline.zadd(
+          this.queuedTransactionsKey,
+          toSeconds(transaction.queuedAt),
+          transaction.queueId,
+        );
+        break;
 
       case "mined":
-        return redis
-          .pipeline()
-          .setex(
-            this.transactionDetailsKey(transaction.queueId),
-            this.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS,
-            superjson.stringify(transaction),
-          )
-          .zadd(
-            this.minedTransactionsKey,
-            toSeconds(transaction.minedAt),
-            transaction.queueId,
-          )
-          .exec();
+        pipeline.zadd(
+          this.minedTransactionsKey,
+          toSeconds(transaction.minedAt),
+          transaction.queueId,
+        );
+        break;
 
       case "cancelled":
-        return redis
-          .pipeline()
-          .setex(
-            this.transactionDetailsKey(transaction.queueId),
-            this.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS,
-            superjson.stringify(transaction),
-          )
-          .zadd(
-            this.cancelledTransactionsKey,
-            toSeconds(transaction.cancelledAt),
-            transaction.queueId,
-          )
-          .exec();
+        pipeline.zadd(
+          this.cancelledTransactionsKey,
+          toSeconds(transaction.cancelledAt),
+          transaction.queueId,
+        );
+        break;
 
       case "errored":
-        return redis
-          .pipeline()
-          .setex(
-            this.transactionDetailsKey(transaction.queueId),
-            this.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS,
-            superjson.stringify(transaction),
-          )
-          .zadd(
-            this.erroredTransactionsKey,
-            toSeconds(new Date()),
-            transaction.queueId,
-          )
-          .exec();
+        pipeline.zadd(
+          this.erroredTransactionsKey,
+          toSeconds(new Date()),
+          transaction.queueId,
+        );
+        break;
     }
+
+    await pipeline.exec();
   };
 
   /**

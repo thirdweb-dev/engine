@@ -35,7 +35,7 @@ export type EnqueueTransactionWebhookData = {
   queueId: string;
 };
 
-// TODO: Add other webhook event types here.
+// Add other webhook event types here.
 type EnqueueWebhookData =
   | EnqueueContractSubscriptionWebhookData
   | EnqueueTransactionWebhookData;
