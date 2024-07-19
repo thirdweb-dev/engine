@@ -12,7 +12,10 @@ export class CancelTransactionQueue {
 
   private static q = new Queue<string>(this.name, {
     connection: redis,
-    defaultJobOptions,
+    defaultJobOptions: {
+      ...defaultJobOptions,
+      attempts: 10,
+    },
   });
 
   static add = async (data: CancelTransactionData) => {

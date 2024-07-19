@@ -34,17 +34,18 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { queueId, retryCount } = superjson.parse<SendTransactionData>(
     job.data,
   );
-  let sentTransaction: SentTransaction | null = null;
 
   const transaction = await TransactionDB.get(queueId);
+
+  let resultTransaction: SentTransaction | ErroredTransaction;
   switch (transaction?.status) {
     case "queued":
       // Send a transaction for the first time.
-      sentTransaction = await _handleQueuedTransaction(job, transaction);
+      resultTransaction = await _handleQueuedTransaction(job, transaction);
       break;
     case "sent":
       // Retry a stuck transaction.
-      sentTransaction = await _handleSentTransaction(
+      resultTransaction = await _handleSentTransaction(
         job,
         transaction,
         retryCount,
@@ -55,39 +56,39 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       return;
   }
 
-  if (sentTransaction) {
-    await TransactionDB.set(sentTransaction);
-    await MineTransactionQueue.add({ queueId: sentTransaction.queueId });
-    await enqueueTransactionWebhook(sentTransaction);
-    await _reportUsageSuccess(sentTransaction);
+  // Handle the resulting "sent" or "errored" transaction.
+  await TransactionDB.set(resultTransaction);
+  await enqueueTransactionWebhook(resultTransaction);
 
-    const transactionHash = sentTransaction.sentTransactionHashes.at(-1);
+  if (resultTransaction.status === "sent") {
+    const transactionHash = resultTransaction.sentTransactionHashes.at(-1);
     job.log(`Transaction sent: ${transactionHash}.`);
+    await MineTransactionQueue.add({ queueId: resultTransaction.queueId });
+    await _reportUsageSuccess(resultTransaction);
+  } else if (resultTransaction.status === "errored") {
+    _reportUsageError(resultTransaction);
   }
 };
 
 const _handleQueuedTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
-): Promise<SentTransaction | null> => {
+): Promise<SentTransaction | ErroredTransaction> => {
   const { chainId, from } = queuedTransaction;
   const chain = await getChain(chainId);
 
-  // Drop transactions that are expected to fail onchain.
-  const simulationError = await simulateQueuedTransaction(queuedTransaction);
-  console.log("\n\n\n[DEBUG] simulationError", simulationError);
-  if (simulationError) {
-    const erroredTransaction: ErroredTransaction = {
+  // Use the simulation error for a clearer error message, if available.
+  const simulateError = await simulateQueuedTransaction(queuedTransaction);
+  if (simulateError) {
+    console.log("[DEBUG] failed simulation!!", simulateError);
+    return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: simulationError,
-    };
-    await TransactionDB.set(erroredTransaction);
-    await enqueueTransactionWebhook(erroredTransaction);
-    _reportUsageError(erroredTransaction);
-    return null;
+      errorMessage: simulateError,
+    } satisfies ErroredTransaction;
   }
 
+  // Handle sending an AA user operation.
   const isUserOp = isUserOperation(queuedTransaction);
   if (isUserOp) {
     const signedUserOp = await generateSignedUserOperation(queuedTransaction);
@@ -110,23 +111,25 @@ const _handleQueuedTransaction = async (
       sentTransactionHashes: [],
       maxFeePerGas: signedUserOp.maxFeePerGas,
       maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
-    };
+    } satisfies SentTransaction;
   }
 
   // Prepare nonce + gas settings.
-  const nonce = await incrWalletNonce(chainId, from);
-  const populatedTransaction = await toSerializableTransaction({
+  let populatedTransaction: Awaited<
+    ReturnType<typeof toSerializableTransaction>
+  >;
+  populatedTransaction = await toSerializableTransaction({
     from,
     transaction: {
       client: thirdwebClient,
       chain,
       ...queuedTransaction,
-      nonce,
     },
   });
-  job.log(
-    `Populated transaction: ${superjson.stringify(populatedTransaction)}`,
-  );
+  job.log(`Populated transaction: ${JSON.stringify(populatedTransaction)}`);
+
+  // If the transaction is likely to succeed onchain, increment the nonce.
+  populatedTransaction.nonce = await incrWalletNonce(chainId, from);
 
   // Send transaction to RPC.
   const account = await getAccount({ chainId, from });
@@ -137,7 +140,7 @@ const _handleQueuedTransaction = async (
   return {
     ...queuedTransaction,
     status: "sent",
-    nonce,
+    nonce: populatedTransaction.nonce,
     retryCount: 0,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(chainId),
@@ -146,14 +149,14 @@ const _handleQueuedTransaction = async (
     gasPrice: populatedTransaction.gasPrice,
     maxFeePerGas: populatedTransaction.maxFeePerGas,
     maxPriorityFeePerGas: populatedTransaction.maxPriorityFeePerGas,
-  };
+  } satisfies SentTransaction;
 };
 
 const _handleSentTransaction = async (
   job: Job,
   sentTransaction: SentTransaction,
   retryCount: number,
-): Promise<SentTransaction> => {
+): Promise<SentTransaction | ErroredTransaction> => {
   const { chainId, from } = sentTransaction;
 
   // Prepare gas settings. Re-use existing nonce.
@@ -236,3 +239,23 @@ const _worker = new Worker(SendTransactionQueue.name, handler, {
   connection: redis,
 });
 logWorkerEvents(_worker);
+
+// If a transaction fails to send after all retries, error it.
+_worker.on("failed", async (job: Job<string> | undefined, error: Error) => {
+  if (job && job.attemptsMade === job.opts.attempts) {
+    job.log(`Transaction errored: ${error.message}`);
+
+    const { queueId } = superjson.parse<SendTransactionData>(job.data);
+    const transaction = await TransactionDB.get(queueId);
+    if (transaction) {
+      const erroredTransaction: ErroredTransaction = {
+        ...transaction,
+        status: "errored",
+        errorMessage: error.message,
+      };
+      await TransactionDB.set(erroredTransaction);
+      await enqueueTransactionWebhook(erroredTransaction);
+      _reportUsageError(erroredTransaction);
+    }
+  }
+});

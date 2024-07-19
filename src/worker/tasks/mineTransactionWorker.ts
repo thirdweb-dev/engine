@@ -161,13 +161,6 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
   // Else the transaction is not mined yet.
 
-  // Cancel the transaction if the timeout is exceeded.
-  if (msSince(sentTransaction.sentAt) > MINE_TIMEOUT_IN_MS) {
-    job.log("Transaction is unmined after timeout. Cancelling transaction...");
-    await CancelTransactionQueue.add({ queueId: sentTransaction.queueId });
-    return;
-  }
-
   // Retry the transaction.
   const config = await getConfig();
   if (sentTransaction.retryCount < config.maxRetriesPerTx) {
@@ -229,3 +222,12 @@ const _worker = new Worker(MineTransactionQueue.name, handler, {
   connection: redis,
 });
 logWorkerEvents(_worker);
+
+// If a transaction fails to mine after all retries, cancel it.
+_worker.on("failed", async (job: Job<string> | undefined) => {
+  if (job && job.attemptsMade === job.opts.attempts) {
+    const { queueId } = superjson.parse<MineTransactionData>(job.data);
+    job.log("Transaction is unmined after timeout. Cancelling transaction...");
+    await CancelTransactionQueue.add({ queueId });
+  }
+});
