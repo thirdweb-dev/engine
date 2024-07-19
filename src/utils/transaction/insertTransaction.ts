@@ -1,9 +1,10 @@
 import { randomUUID } from "crypto";
-import { defineChain, estimateGasCost, prepareTransaction } from "thirdweb";
+import { estimateGasCost, prepareTransaction } from "thirdweb";
 import { getWalletBalance } from "thirdweb/wallets";
 import { TransactionDB } from "../../db/transactions/db";
 import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
+import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
 import { reportUsage } from "../usage";
 import { simulateQueuedTransaction } from "./simulateTransaction";
@@ -68,7 +69,7 @@ const getWithdrawValue = async (
     throw new Error('Missing "to".');
   }
 
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
 
   // Get wallet balance.
   const { value: balanceWei } = await getWalletBalance({

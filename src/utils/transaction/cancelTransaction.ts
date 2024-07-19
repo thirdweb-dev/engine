@@ -1,5 +1,6 @@
-import { Address, defineChain, toSerializableTransaction } from "thirdweb";
+import { Address, toSerializableTransaction } from "thirdweb";
 import { getAccount } from "../account";
+import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
 
 interface CancellableTransaction {
@@ -13,7 +14,7 @@ export const sendCancellationTransaction = async (
 ) => {
   const { chainId, from, nonce } = transaction;
 
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
   const populatedTransaction = await toSerializableTransaction({
     from,
     transaction: {

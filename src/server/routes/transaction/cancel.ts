@@ -1,10 +1,11 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Hex, defineChain } from "thirdweb";
+import { Hex } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getBlockNumberish } from "../../../utils/block";
 import { getConfig } from "../../../utils/cache/getConfig";
+import { getChain } from "../../../utils/chain";
 import { msSince } from "../../../utils/date";
 import { sendCancellationTransaction } from "../../../utils/transaction/cancelTransaction";
 import { CancelledTransaction } from "../../../utils/transaction/types";
@@ -137,7 +138,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
       };
       await TransactionDB.set(cancelledTransaction);
       await enqueueTransactionWebhook(cancelledTransaction);
-      _reportUsageSuccess(cancelledTransaction);
+      await _reportUsageSuccess(cancelledTransaction);
 
       return reply.status(StatusCodes.OK).send({
         result: {
@@ -151,8 +152,10 @@ export async function cancelTransaction(fastify: FastifyInstance) {
   });
 }
 
-const _reportUsageSuccess = (cancelledTransaction: CancelledTransaction) => {
-  const chain = defineChain(cancelledTransaction.chainId);
+const _reportUsageSuccess = async (
+  cancelledTransaction: CancelledTransaction,
+) => {
+  const chain = await getChain(cancelledTransaction.chainId);
   reportUsage([
     {
       action: "cancel_tx",

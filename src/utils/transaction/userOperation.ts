@@ -1,7 +1,6 @@
 import {
   Address,
   Hex,
-  defineChain,
   getContract,
   prepareContractCall,
   readContract,
@@ -15,6 +14,7 @@ import {
 } from "thirdweb/wallets/smart";
 import { getAccount } from "../account";
 import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
+import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
 import { QueuedTransaction } from "./types";
 
@@ -44,7 +44,7 @@ export const generateSignedUserOperation = async (
     throw new Error("Invalid UserOperation parameters");
   }
 
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
 
   // Resolve Target Contract
   const targetContract = getContract({

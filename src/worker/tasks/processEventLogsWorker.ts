@@ -7,7 +7,6 @@ import {
   Chain,
   PreparedEvent,
   ThirdwebContract,
-  defineChain,
   eth_getBlockByHash,
   getContract,
   getContractEvents,
@@ -19,6 +18,7 @@ import { Hash } from "viem";
 import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
@@ -115,7 +115,7 @@ const getLogs = async ({
     return [];
   }
 
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
   // Store a reference to `contract` so ABI fetches are cached.
   const addressConfig: Record<
     Address,

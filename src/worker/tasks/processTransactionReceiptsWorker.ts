@@ -5,7 +5,6 @@ import superjson from "superjson";
 import {
   Address,
   ThirdwebContract,
-  defineChain,
   eth_getBlockByNumber,
   eth_getTransactionReceipt,
   getContract,
@@ -15,6 +14,7 @@ import { resolveContractAbi } from "thirdweb/contract";
 import { Abi, Hash, decodeFunctionData } from "viem";
 import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
@@ -95,7 +95,7 @@ const getFormattedTransactionReceipts = async ({
     return [];
   }
 
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain,

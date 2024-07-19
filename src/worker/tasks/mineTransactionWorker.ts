@@ -2,7 +2,6 @@ import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
   Address,
-  defineChain,
   eth_getTransactionByHash,
   eth_getTransactionReceipt,
   getRpcClient,
@@ -11,6 +10,7 @@ import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
+import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -51,7 +51,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     return;
   }
   const { chainId, sentTransactionHashes, userOpHash } = sentTransaction;
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain,
@@ -112,7 +112,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
     await TransactionDB.set(minedTransaction);
     await enqueueTransactionWebhook(minedTransaction);
-    _reportUsageSuccess(minedTransaction);
+    await _reportUsageSuccess(minedTransaction);
     logger({
       level: "info",
       message: `UserOp Transaction mined [${sentTransaction.queueId}] - [${minedTransaction.transactionHash}]`,
@@ -149,7 +149,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       };
       await TransactionDB.set(minedTransaction);
       await enqueueTransactionWebhook(minedTransaction);
-      _reportUsageSuccess(minedTransaction);
+      await _reportUsageSuccess(minedTransaction);
       logger({
         level: "info",
         message: `Transaction mined [${sentTransaction.queueId}] - [${receipt.transactionHash}]`,
@@ -195,8 +195,8 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   throw new Error("NOT_CONFIRMED_YET");
 };
 
-const _reportUsageSuccess = (minedTransaction: MinedTransaction) => {
-  const chain = defineChain(minedTransaction.chainId);
+const _reportUsageSuccess = async (minedTransaction: MinedTransaction) => {
+  const chain = await getChain(minedTransaction.chainId);
   reportUsage([
     {
       action: "mine_tx",

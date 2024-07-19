@@ -1,11 +1,12 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
-import { defineChain, toSerializableTransaction } from "thirdweb";
+import { toSerializableTransaction } from "thirdweb";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
 import { incrWalletNonce } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
+import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
@@ -58,7 +59,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     await TransactionDB.set(sentTransaction);
     await MineTransactionQueue.add({ queueId: sentTransaction.queueId });
     await enqueueTransactionWebhook(sentTransaction);
-    _reportUsageSuccess(sentTransaction);
+    await _reportUsageSuccess(sentTransaction);
 
     const transactionHash = sentTransaction.sentTransactionHashes.at(-1);
     job.log(`Transaction sent: ${transactionHash}.`);
@@ -70,10 +71,11 @@ const _handleQueuedTransaction = async (
   queuedTransaction: QueuedTransaction,
 ): Promise<SentTransaction | null> => {
   const { chainId, from } = queuedTransaction;
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
 
   // Drop transactions that are expected to fail onchain.
   const simulationError = await simulateQueuedTransaction(queuedTransaction);
+  console.log("\n\n\n[DEBUG] simulationError", simulationError);
   if (simulationError) {
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
@@ -85,6 +87,7 @@ const _handleQueuedTransaction = async (
     _reportUsageError(erroredTransaction);
     return null;
   }
+
   const isUserOp = isUserOperation(queuedTransaction);
   if (isUserOp) {
     const signedUserOp = await generateSignedUserOperation(queuedTransaction);
@@ -105,8 +108,11 @@ const _handleQueuedTransaction = async (
       sentAtBlock: await getBlockNumberish(chainId),
       userOpHash,
       sentTransactionHashes: [],
+      maxFeePerGas: signedUserOp.maxFeePerGas,
+      maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
     };
   }
+
   // Prepare nonce + gas settings.
   const nonce = await incrWalletNonce(chainId, from);
   const populatedTransaction = await toSerializableTransaction({
@@ -155,7 +161,7 @@ const _handleSentTransaction = async (
     from,
     transaction: {
       client: thirdwebClient,
-      chain: defineChain(chainId),
+      chain: await getChain(chainId),
       ...sentTransaction,
       nonce: Number(sentTransaction.nonce),
     },
@@ -197,8 +203,8 @@ const _handleSentTransaction = async (
   };
 };
 
-const _reportUsageSuccess = (sentTransaction: SentTransaction) => {
-  const chain = defineChain(sentTransaction.chainId);
+const _reportUsageSuccess = async (sentTransaction: SentTransaction) => {
+  const chain = await getChain(sentTransaction.chainId);
   reportUsage([
     {
       action: "send_tx",
