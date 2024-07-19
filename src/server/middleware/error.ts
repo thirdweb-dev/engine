@@ -63,14 +63,14 @@ const isZodError = (err: unknown): boolean => {
   );
 };
 
-function isEthersError(error: any): boolean {
+const isEthersError = (error: any): boolean => {
   return (
     error &&
     typeof error === "object" &&
     "code" in error &&
     ETHERS_ERROR_CODES.includes(error.code)
   );
-}
+};
 
 export const withErrorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler(
