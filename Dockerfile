@@ -26,12 +26,12 @@ RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
     -passout pass:thirdweb-engine && \
     chmod 600 key.pem cert.pem
 
-WORKDIR /app
-
 ##############################
 ##############################
 
 FROM base AS local
+
+WORKDIR /app
 
 EXPOSE 3005
 ENV NODE_ENV="local"
@@ -52,7 +52,7 @@ WORKDIR /app
 
 # Build the project
 RUN rm -rf node_modules && \
-    npm install --omit=dev && \
+    npm ci --omit=dev && \
     apk del build-dependencies
 
 ##############################
@@ -70,8 +70,8 @@ RUN apk add --no-cache tini
 
 # Set the working directory
 WORKDIR /app
-ENV NODE_ENV="production"
-    # PATH=/app/node_modules/.bin:$PATH
+ENV NODE_ENV="production" \
+    PATH=/app/node_modules/.bin:$PATH
 
 EXPOSE 3005
 
