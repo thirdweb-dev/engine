@@ -4,25 +4,63 @@ import { BigNumber } from "ethers";
 // NFTInput format compatible with v5 SDK
 export const nftInputSchema = Type.Partial(
   Type.Object({
-    name: Type.String(),
-    description: Type.String(),
-    image: Type.String(),
-    animation_url: Type.String(),
-    external_url: Type.String(),
-    background_color: Type.String(),
-    properties: Type.Any(),
+    name: Type.String({
+      description: "The name of the NFT",
+    }),
+    description: Type.String({
+      description: "The description of the NFT",
+    }),
+    image: Type.String({
+      description: "The image of the NFT",
+    }),
+    animation_url: Type.String({
+      description: "The animation url of the NFT",
+    }),
+    external_url: Type.String({
+      description: "The external url of the NFT",
+    }),
+    background_color: Type.String({
+      description: "The background color of the NFT",
+    }),
+    properties: Type.Any({
+      description: "The properties of the NFT",
+    }),
   }),
 );
 
 export const nftMetadataInputSchema = Type.Object({
-  name: Type.Optional(Type.Union([Type.String(), Type.Number(), Type.Null()])),
-  description: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  image: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  external_url: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  animation_url: Type.Optional(Type.Union([Type.String(), Type.Null()])),
-  properties: Type.Optional(Type.Any()),
-  attributes: Type.Optional(Type.Any()),
-  background_color: Type.Optional(Type.Union([Type.String(), Type.Null()])),
+  name: Type.Optional({
+    description: "The name of the NFT",
+    ...Type.Union([Type.String(), Type.Number(), Type.Null()]),
+  }),
+  description: Type.Optional({
+    description: "The description of the NFT",
+    ...Type.Union([Type.String(), Type.Null()]),
+  }),
+  image: Type.Optional({
+    ...Type.Union([Type.String(), Type.Null()]),
+    description: "The image of the NFT",
+  }),
+  external_url: Type.Optional({
+    ...Type.Union([Type.String(), Type.Null()]),
+    description: "The external url of the NFT",
+  }),
+  animation_url: Type.Optional({
+    ...Type.Union([Type.String(), Type.Null()]),
+    description: "The animation url of the NFT",
+  }),
+  properties: Type.Optional({
+    ...Type.Any(),
+    description: "The properties of the NFT",
+  }),
+  attributes: Type.Optional({
+    ...Type.Any(),
+    description: "The attributes of the NFT",
+  }),
+  background_color: Type.Optional({
+    ...Type.Union([Type.String(), Type.Null()]),
+    description: "The background color of the NFT",
+  }),
 });
 
 export const nftMetadataSchema = Type.Object(

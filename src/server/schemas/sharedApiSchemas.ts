@@ -6,7 +6,7 @@ import { StatusCodes } from "http-status-codes";
 
 export const baseReplyErrorSchema = Type.Object({
   message: Type.Optional(Type.String()),
-  reason: Type.Optional(Type.String()),
+  reason: Type.Optional(Type.Any()),
   code: Type.Optional(Type.String()),
   stack: Type.Optional(Type.String()),
   statusCode: Type.Optional(Type.Number()),
