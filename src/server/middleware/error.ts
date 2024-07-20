@@ -21,7 +21,8 @@ export const createCustomError = (
   code,
 });
 
-const ETHERS_ERROR_CODES = [
+// https://github.com/ethers-io/ethers.js/blob/main/src.ts/utils/errors.ts
+const ETHERS_ERROR_CODES = new Set([
   // Generic Errors
   "UNKNOWN_ERROR",
   "NOT_IMPLEMENTED",
@@ -53,7 +54,7 @@ const ETHERS_ERROR_CODES = [
 
   // User Interaction
   "ACTION_REJECTED",
-];
+]);
 
 export const createCustomDateTimestampError = (key: string): CustomError => {
   return createCustomError(
@@ -77,7 +78,7 @@ const isEthersError = (error: any): boolean => {
     error &&
     typeof error === "object" &&
     "code" in error &&
-    ETHERS_ERROR_CODES.includes(error.code)
+    ETHERS_ERROR_CODES.has(error.code)
   );
 };
 
