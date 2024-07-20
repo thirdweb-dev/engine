@@ -1,23 +1,15 @@
-FROM node:20.15-alpine AS base
+FROM node:20.15-alpine3.20 AS base
 
 # Install tini & build dependencies
 RUN apk add --no-cache tini && \
-    apk --no-cache --virtual build-dependencies add g++ make py3-pip openssl
+    apk --no-cache --virtual build-dependencies add openssl && \
+    apk del build-dependencies
 
 # Upgrade packages
 RUN apk update && apk upgrade
 
 # Set the working directory
 WORKDIR /app
-
-# Copy package.json and yarn.lock files
-COPY package*.json package-lock.json ./
-
-# Copy the entire project directory
-COPY . .
-
-# Install dependencies for both development and production
-RUN npm config set fetch-timeout 1000000
 
 WORKDIR /app/src/https
 
@@ -45,42 +37,37 @@ CMD [ "sh", "-c","npm run prisma:setup:dev && npm run dev:run" ]
 ##############################
 ##############################
 
-# Production Node Modules stage
-FROM base AS prod-dependencies
-
-WORKDIR /app
-
-# Build the project
-RUN rm -rf node_modules && \
-    npm ci --omit=dev && \
-    apk del build-dependencies
 
 ##############################
 ##############################
 
 # Production stage
-FROM node:20.15-alpine AS prod
+FROM node:20.15-alpine3.20 AS prod
+
+# Set the working directory
+WORKDIR /app
+
+EXPOSE 3005
+
+# Copy files
+COPY . .
 
 # Setting ENV variables for image information
 ARG ENGINE_VERSION
 ENV ENGINE_VERSION=${ENGINE_VERSION}
+ENV NODE_ENV="production"
 
 # Install tini
-RUN apk add --no-cache tini
+RUN apk add --no-cache tini && \
+    apk --no-cache --virtual build-dependencies add g++ make py3-pip && \
+    rm -rf node_modules && \
+    npm ci --omit=dev && \
+    apk del build-dependencies
 
-# Set the working directory
-WORKDIR /app
-ENV NODE_ENV="production" \
-    PATH=/app/node_modules/.bin:$PATH
+# Upgrade packages
+RUN apk update && apk upgrade
 
-EXPOSE 3005
-
-# Copy package.json and yarn.lock files
-COPY package*.json package-lock.json ./
-
-# Copy only production dependencies from the prod-dependencies stage
-COPY --from=prod-dependencies /app/node_modules ./node_modules
-COPY --from=prod-dependencies /app/. .
+ENV PATH=/app/node_modules/.bin:$PATH
 
 # Use tini as entrypoint to handle killing processes
 ENTRYPOINT ["/sbin/tini", "--"]
