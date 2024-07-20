@@ -8,13 +8,6 @@ services:
     ports:
       - "5432:5432"
     deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 2G
-        reservations:
-          cpus: "2"
-          memory: 2G
 
   redis:
     container_name: redis
@@ -24,6 +17,20 @@ services:
       - 6379:6379
     volumes:
       - redis_data:/data
+
+  bullboard:
+    container_name: bullboard
+    image: deadly0/bull-board:latest
+    restart: always
+    ports:
+      - 3333:3000
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_USE_TLS: "false"
+      BULL_PREFIX: bull
+    depends_on:
+      - redis
 
   engine:
     build:

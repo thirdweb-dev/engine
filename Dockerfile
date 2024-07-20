@@ -10,16 +10,14 @@ RUN apk update && apk upgrade
 # Set the working directory
 WORKDIR /app
 
-
 # Copy package.json and yarn.lock files
-COPY package*.json yarn*.lock ./
+COPY package*.json package-lock.json ./
 
 # Copy the entire project directory
 COPY . .
 
 # Install dependencies for both development and production
-RUN npm config set timeout 1000000
-RUN npm install --package-lock-only
+RUN npm config set fetch-timeout 1000000
 
 WORKDIR /app/src/https
 
@@ -29,9 +27,6 @@ RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
     chmod 600 key.pem cert.pem
 
 WORKDIR /app
-
-# Clean up build dependencies
-RUN apk del build-dependencies
 
 ##############################
 ##############################
@@ -56,11 +51,8 @@ FROM base AS prod-dependencies
 WORKDIR /app
 
 # Build the project
-RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip && \
-    npm run build && \
-    npm run copy-files && \
-    rm -rf node_modules && \
-    npm install --production=true --package-lock-only && \
+RUN rm -rf node_modules && \
+    npm install --omit=dev && \
     apk del build-dependencies
 
 # Upgrade packages
@@ -70,7 +62,7 @@ RUN apk update && apk upgrade
 ##############################
 
 # Production stage
-FROM node:18.19-alpine AS prod
+FROM node:20.15-alpine AS prod
 
 # Setting ENV variables for image information
 ARG ENGINE_VERSION
@@ -87,15 +79,11 @@ ENV NODE_ENV="production" \
 EXPOSE 3005
 
 # Copy package.json and yarn.lock files
-COPY package*.json yarn*.lock ./
-
-# Replace the schema path in the package.json file
-RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/prisma/schema.prisma"_g' package.json
+COPY package*.json package-lock.json ./
 
 # Copy only production dependencies from the prod-dependencies stage
 COPY --from=prod-dependencies /app/node_modules ./node_modules
-COPY --from=prod-dependencies /app/dist ./dist
-COPY --from=base /app/src/https ./dist/https
+COPY --from=prod-dependencies /app/. .
 
 # Use tini as entrypoint to handle killing processes
 ENTRYPOINT ["/sbin/tini", "--"]

@@ -12,10 +12,7 @@ const main = async () => {
       );
     `;
 
-  const schema =
-    process.env.NODE_ENV === "production"
-      ? `./dist/prisma/schema.prisma`
-      : `./src/prisma/schema.prisma`;
+  const schema = `./src/prisma/schema.prisma`;
 
   if (hasWalletsTable) {
     execSync(`npx prisma migrate reset --force --schema ${schema}`, {
