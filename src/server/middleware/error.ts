@@ -22,6 +22,7 @@ export const createCustomError = (
 });
 
 const ETHERS_ERROR_CODES = [
+  // Generic Errors
   "UNKNOWN_ERROR",
   "NOT_IMPLEMENTED",
   "UNSUPPORTED_OPERATION",
@@ -30,12 +31,18 @@ const ETHERS_ERROR_CODES = [
   "TIMEOUT",
   "BAD_DATA",
   "CANCELLED",
+
+  // Operational Errors
   "BUFFER_OVERRUN",
   "NUMERIC_FAULT",
+
+  // Argument Errors
   "INVALID_ARGUMENT",
   "MISSING_ARGUMENT",
   "UNEXPECTED_ARGUMENT",
   "VALUE_MISMATCH",
+
+  // Blockchain Errors
   "CALL_EXCEPTION",
   "INSUFFICIENT_FUNDS",
   "NONCE_EXPIRED",
@@ -43,6 +50,8 @@ const ETHERS_ERROR_CODES = [
   "TRANSACTION_REPLACED",
   "UNCONFIGURED_NAME",
   "OFFCHAIN_FAULT",
+
+  // User Interaction
   "ACTION_REJECTED",
 ];
 
@@ -87,7 +96,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
         return reply.status(StatusCodes.BAD_REQUEST).send({
           error: {
             code: "BAD_REQUEST",
-            message: (error as any).code,
+            message: "code" in error ? error.code : error.message,
             reason: error.message,
             statusCode: 400,
             stack: env.NODE_ENV !== "production" ? error.stack : undefined,
