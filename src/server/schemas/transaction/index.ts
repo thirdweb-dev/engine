@@ -1,6 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
-import superjson from "superjson";
 import { Address, Hex } from "thirdweb";
+import { stringify } from "thirdweb/utils";
 import { AnyTransaction } from "../../../utils/transaction/types";
 
 export const TransactionSchema = Type.Object({
@@ -235,15 +235,8 @@ export const toTransactionSchema = (
     return null;
   };
 
-  const resolveFunctionArgs = () => {
-    if (transaction.functionArgs) {
-      const { json } = superjson.serialize(transaction.functionArgs);
-      if (json) {
-        return JSON.stringify(json);
-      }
-    }
-    return null;
-  };
+  const resolveFunctionArgs = () =>
+    transaction.functionArgs ? stringify(transaction.functionArgs) : null;
 
   const resolveTransactionHash = (): string | null => {
     switch (transaction.status) {

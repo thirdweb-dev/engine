@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import SuperJSON from "superjson";
+import superjson from "superjson";
 import { Address } from "thirdweb";
 import { getConfig } from "../../utils/cache/getConfig";
 import { redis } from "../../utils/redis/redis";
@@ -35,7 +35,7 @@ export const enqueueProcessTransactionReceipts = async (
 ) => {
   if (!_queue) return;
 
-  const serialized = SuperJSON.stringify(data);
+  const serialized = superjson.stringify(data);
   // e.g. 8453:14423125-14423685
   const jobName = `${data.chainId}:${data.fromBlock}-${data.toBlock}`;
   const { contractSubscriptionsRequeryDelaySeconds } = await getConfig();

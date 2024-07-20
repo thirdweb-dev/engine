@@ -7,6 +7,7 @@ import {
   resolveMethod,
   simulateTransaction,
 } from "thirdweb";
+import { stringify } from "thirdweb/utils";
 import { Account } from "thirdweb/wallets";
 import { getAccount } from "../account";
 import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
@@ -93,29 +94,30 @@ export const simulateQueuedTransaction = async (
     });
   } else {
     throw new Error(
-      `Transaction cannot be simulated: ${JSON.stringify(queuedTransaction)}`,
+      `Transaction cannot be simulated: ${stringify(queuedTransaction)}`,
     );
   }
 
-  try {
-    let account: Account | undefined;
-    if (from && accountAddress) {
-      account = await getSmartWalletV5({
-        from,
-        chain,
-        accountAddress,
-      });
-    } else {
-      account = await getAccount({
-        chainId,
-        from,
-      });
-    }
+  let account: Account | undefined;
+  if (from && accountAddress) {
+    account = await getSmartWalletV5({
+      from,
+      chain,
+      accountAddress,
+    });
+  } else {
+    account = await getAccount({
+      chainId,
+      from,
+    });
+  }
 
+  try {
     // Use an account to simulate the transaction to catch fund errors.
     await simulateTransaction({ transaction, account });
     return null;
   } catch (e: any) {
-    return `message: ${e.message} - code: ${e.code}`;
+    // Error should be of type TransactionError in the thirdweb SDK.
+    return `${e.name}: ${e.message}`;
   }
 };

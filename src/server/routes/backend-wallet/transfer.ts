@@ -10,10 +10,13 @@ import {
   toWei,
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
+import { isContractDeployed } from "thirdweb/utils";
 import { getChain } from "../../../utils/chain";
 import { resolvePromisedValue } from "../../../utils/resolvePromisedValue";
 import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
+import { InsertedTransaction } from "../../../utils/transaction/types";
+import { createCustomError } from "../../middleware/error";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -75,7 +78,7 @@ export async function transfer(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
       } = request.headers as Static<typeof walletHeaderSchema>;
-      const { simulateTx } = request.query;
+      const { simulateTx: shouldSimulate } = request.query;
 
       // Resolve inputs.
       const currencyAddress = _currencyAddress.toLowerCase();
@@ -90,55 +93,61 @@ export async function transfer(fastify: FastifyInstance) {
           : undefined,
       };
 
-      let queueId: string;
+      let insertedTransaction: InsertedTransaction;
       if (
         currencyAddress === ZERO_ADDRESS ||
         currencyAddress === NATIVE_TOKEN_ADDRESS
       ) {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            chainId,
-            from: walletAddress as Address,
-            to: to as Address,
-            data: "0x",
-            value: toWei(amount),
-            ...gasOverrides,
-
-            functionName: "transfer",
-            extension: "none",
-          },
-          idempotencyKey,
-          shouldSimulate: simulateTx,
-        });
+        insertedTransaction = {
+          chainId,
+          from: walletAddress as Address,
+          to: to as Address,
+          data: "0x",
+          value: toWei(amount),
+          extension: "none",
+          functionName: "transfer",
+          ...gasOverrides,
+        };
       } else {
-        const chain = await getChain(chainId);
         const contract = getContract({
           client: thirdwebClient,
-          chain,
+          chain: await getChain(chainId),
           address: currencyAddress,
         });
 
+        // Assert a valid contract. This call is cached.
+        // @TODO: Replace with isTransferSupported
+        const isValid = await isContractDeployed(contract);
+        if (!isValid) {
+          throw createCustomError(
+            "Invalid currency contract.",
+            StatusCodes.BAD_REQUEST,
+            "INVALID_CONTRACT",
+          );
+        }
+
         const transaction = transferERC20({ contract, to, amount });
 
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            chainId,
-            from: walletAddress as Address,
-            to: (await resolvePromisedValue(transaction.to)) as
-              | Address
-              | undefined,
-            data: await resolvePromisedValue(transaction.data),
-            value: 0n,
-            ...gasOverrides,
-
-            extension: "erc20",
-            functionName: "transfer",
-            functionArgs: [to, amount, currencyAddress],
-          },
-          idempotencyKey,
-          shouldSimulate: simulateTx,
-        });
+        insertedTransaction = {
+          chainId,
+          from: walletAddress as Address,
+          to: (await resolvePromisedValue(transaction.to)) as
+            | Address
+            | undefined,
+          data: await resolvePromisedValue(transaction.data),
+          value: 0n,
+          extension: "erc20",
+          functionName: "transfer",
+          functionArgs: [to, amount, currencyAddress],
+          ...gasOverrides,
+        };
       }
+
+      const queueId = await insertTransaction({
+        insertedTransaction,
+        idempotencyKey,
+        shouldSimulate,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

@@ -1,5 +1,6 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
+import { stringify } from "thirdweb/utils";
 import { TransactionDB } from "../../db/transactions/db";
 import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
@@ -25,7 +26,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // Assert valid transaction state.
   const sentTransaction = await TransactionDB.get(queueId);
   if (sentTransaction?.status !== "sent") {
-    job.log(`Invalid transaction state: ${JSON.stringify(sentTransaction)}`);
+    job.log(`Invalid transaction state: ${stringify(sentTransaction)}`);
     return;
   }
 

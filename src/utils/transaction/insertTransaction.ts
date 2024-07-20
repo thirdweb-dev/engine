@@ -21,12 +21,14 @@ export const insertTransaction = async (
 ): Promise<string> => {
   const { insertedTransaction, idempotencyKey, shouldSimulate = false } = args;
   const { value, extension } = insertedTransaction;
+
   // The queueId is the idempotency key. Default to a random UUID (no idempotency).
   const queueId = idempotencyKey ?? randomUUID();
   if (await TransactionDB.exists(queueId)) {
     // No-op. Return the existing queueId.
     return queueId;
   }
+
   const queuedTransaction: QueuedTransaction = {
     ...insertedTransaction,
     status: "queued",

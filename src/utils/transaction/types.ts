@@ -34,7 +34,6 @@ export type InsertedTransaction = {
   accountAddress?: Address;
   target?: Address;
   sender?: Address;
-  userOpHash?: Hex;
 };
 
 // QueuedTransaction is a transaction added to the queue. No preparation has been done yet.
@@ -49,14 +48,17 @@ export type QueuedTransaction = InsertedTransaction & {
 };
 
 // SentTransaction has been submitted to RPC successfully.
-export type SentTransaction = Omit<QueuedTransaction, "status"> & {
-  status: "sent";
+export type SentTransaction =
+  | (Omit<QueuedTransaction, "status"> & {
+      status: "sent";
 
-  nonce: number | string;
-  sentAt: Date;
-  sentAtBlock: bigint;
-  sentTransactionHashes: Hex[];
-};
+      sentAt: Date;
+      sentAtBlock: bigint;
+    }) &
+      (
+        | { nonce: number; sentTransactionHashes: Hex[] }
+        | { userOpNonce: string; userOpHash: Hex }
+      );
 
 export type MinedTransaction = Omit<SentTransaction, "status"> & {
   status: "mined";

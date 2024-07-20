@@ -1,6 +1,7 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import { toSerializableTransaction } from "thirdweb";
+import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
 import { incrWalletNonce } from "../../db/wallets/walletNonce";
@@ -52,7 +53,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       );
       break;
     default:
-      job.log(`Invalid transaction state: ${JSON.stringify(transaction)}`);
+      job.log(`Invalid transaction state: ${stringify(transaction)}`);
       return;
   }
 
@@ -61,8 +62,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   await enqueueTransactionWebhook(resultTransaction);
 
   if (resultTransaction.status === "sent") {
-    const transactionHash = resultTransaction.sentTransactionHashes.at(-1);
-    job.log(`Transaction sent: ${transactionHash}.`);
+    job.log(`Transaction sent: ${stringify(resultTransaction)}.`);
     await MineTransactionQueue.add({ queueId: resultTransaction.queueId });
     await _reportUsageSuccess(resultTransaction);
   } else if (resultTransaction.status === "errored") {
@@ -77,15 +77,13 @@ const _handleQueuedTransaction = async (
   const { chainId, from } = queuedTransaction;
   const chain = await getChain(chainId);
 
-  // Use the simulation error for a clearer error message, if available.
   const simulateError = await simulateQueuedTransaction(queuedTransaction);
   if (simulateError) {
-    console.log("[DEBUG] failed simulation!!", simulateError);
     return {
       ...queuedTransaction,
       status: "errored",
       errorMessage: simulateError,
-    } satisfies ErroredTransaction;
+    };
   }
 
   // Handle sending an AA user operation.
@@ -103,22 +101,18 @@ const _handleQueuedTransaction = async (
     return {
       ...queuedTransaction,
       status: "sent",
-      nonce: signedUserOp.nonce.toString(),
+      userOpNonce: signedUserOp.nonce.toString(),
+      userOpHash,
       retryCount: 0,
       sentAt: new Date(),
       sentAtBlock: await getBlockNumberish(chainId),
-      userOpHash,
-      sentTransactionHashes: [],
       maxFeePerGas: signedUserOp.maxFeePerGas,
       maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
-    } satisfies SentTransaction;
+    };
   }
 
   // Prepare nonce + gas settings.
-  let populatedTransaction: Awaited<
-    ReturnType<typeof toSerializableTransaction>
-  >;
-  populatedTransaction = await toSerializableTransaction({
+  const populatedTransaction = await toSerializableTransaction({
     from,
     transaction: {
       client: thirdwebClient,
@@ -126,9 +120,9 @@ const _handleQueuedTransaction = async (
       ...queuedTransaction,
     },
   });
-  job.log(`Populated transaction: ${JSON.stringify(populatedTransaction)}`);
+  job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
 
-  // If the transaction is likely to succeed onchain, increment the nonce.
+  // If likely to succeed onchain, increment the nonce.
   populatedTransaction.nonce = await incrWalletNonce(chainId, from);
 
   // Send transaction to RPC.
@@ -141,15 +135,15 @@ const _handleQueuedTransaction = async (
     ...queuedTransaction,
     status: "sent",
     nonce: populatedTransaction.nonce,
+    sentTransactionHashes: [transactionHash],
     retryCount: 0,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(chainId),
-    sentTransactionHashes: [transactionHash],
     gas: populatedTransaction.gas,
     gasPrice: populatedTransaction.gasPrice,
     maxFeePerGas: populatedTransaction.maxFeePerGas,
     maxPriorityFeePerGas: populatedTransaction.maxPriorityFeePerGas,
-  } satisfies SentTransaction;
+  };
 };
 
 const _handleSentTransaction = async (
@@ -158,15 +152,18 @@ const _handleSentTransaction = async (
   retryCount: number,
 ): Promise<SentTransaction | ErroredTransaction> => {
   const { chainId, from } = sentTransaction;
+  if (!("nonce" in sentTransaction)) {
+    throw new Error("Missing 'nonce' when retrying transaction.");
+  }
 
-  // Prepare gas settings. Re-use existing nonce.
   const populatedTransaction = await toSerializableTransaction({
     from,
     transaction: {
       client: thirdwebClient,
       chain: await getChain(chainId),
       ...sentTransaction,
-      nonce: Number(sentTransaction.nonce),
+      // Redundant but explicitly re-use the existing nonce.
+      nonce: sentTransaction.nonce,
     },
   });
   // Double gas for retries.
@@ -179,10 +176,7 @@ const _handleSentTransaction = async (
   if (populatedTransaction.maxPriorityFeePerGas) {
     populatedTransaction.maxPriorityFeePerGas *= 2n;
   }
-
-  job.log(
-    `Populated transaction: ${superjson.stringify(populatedTransaction)}`,
-  );
+  job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
 
   // Send transaction to RPC.
   const account = await getAccount({ chainId, from });

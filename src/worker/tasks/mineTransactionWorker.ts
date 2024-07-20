@@ -6,6 +6,7 @@ import {
   eth_getTransactionReceipt,
   getRpcClient,
 } from "thirdweb";
+import { stringify } from "thirdweb/utils";
 import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
 import { getBlockNumberish } from "../../utils/block";
@@ -19,6 +20,7 @@ import { thirdwebClient } from "../../utils/sdk";
 import {
   ErroredTransaction,
   MinedTransaction,
+  SentTransaction,
 } from "../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
@@ -29,9 +31,6 @@ import {
 } from "../queues/mineTransactionQueue";
 import { logWorkerEvents } from "../queues/queues";
 import { SendTransactionQueue } from "../queues/sendTransactionQueue";
-
-// @TODO: move to DB config.
-const MINE_TIMEOUT_IN_MS = 60 * 60 * 1000; // 1 hour
 
 /**
  * The MINE_TRANSACTION worker is responsible for:
@@ -45,147 +44,30 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // Assert valid transaction state.
   const sentTransaction = await TransactionDB.get(queueId);
   if (sentTransaction?.status !== "sent") {
-    job.log(
-      `Invalid transaction state: ${superjson.stringify(sentTransaction)}`,
-    );
+    job.log(`Invalid transaction state: ${stringify(sentTransaction)}`);
     return;
   }
-  const { chainId, sentTransactionHashes, userOpHash } = sentTransaction;
-  const chain = await getChain(chainId);
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain,
-  });
 
-  if (userOpHash) {
-    const userOpReceiptRaw = await getUserOpReceiptRaw({
-      client: thirdwebClient,
-      chain,
-      userOpHash,
-    });
+  // Handle user operation or EOA transaction.
+  let resultTransaction: MinedTransaction | null;
+  if ("userOpHash" in sentTransaction) {
+    resultTransaction = await _handleUserOp(job, sentTransaction);
+  } else {
+    resultTransaction = await _handleTransaction(job, sentTransaction);
+  }
 
-    if (!userOpReceiptRaw) {
-      if (msSince(sentTransaction.sentAt) > MINE_TIMEOUT_IN_MS) {
-        job.log(
-          "Transaction is unmined after timeout. Erroring transaction...",
-        );
-        const erroredTransaction: ErroredTransaction = {
-          ...sentTransaction,
-          status: "errored",
-          errorMessage: "Transaction Timed out.",
-        };
-        await TransactionDB.set(erroredTransaction);
-        await enqueueTransactionWebhook(erroredTransaction);
-        _reportUsageError(erroredTransaction);
-        return;
-      }
-      job.log(
-        "Transaction is not confirmed before retry deadline. Check again later...",
-      );
-      throw new Error("NOT_CONFIRMED_YET");
-    }
-
-    const transaction = await eth_getTransactionByHash(rpcRequest, {
-      hash: userOpReceiptRaw.receipt.transactionHash,
-    });
-
-    const transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
-      hash: transaction.hash,
-    });
-
-    const minedTransaction: MinedTransaction = {
-      ...sentTransaction,
-      status: "mined",
-      transactionHash: transactionReceipt.transactionHash,
-      minedAt: new Date(),
-      minedAtBlock: transactionReceipt.blockNumber,
-      transactionType: transactionReceipt.type,
-      onchainStatus: transactionReceipt.status,
-      gasUsed: transactionReceipt.gasUsed,
-      effectiveGasPrice: transactionReceipt.effectiveGasPrice,
-      gas: transactionReceipt.gasUsed,
-      cumulativeGasUsed: transactionReceipt.cumulativeGasUsed,
-      userOpHash,
-      nonce: userOpReceiptRaw.nonce.toString(),
-      sender: userOpReceiptRaw.sender as Address,
-    };
-
-    await TransactionDB.set(minedTransaction);
-    await enqueueTransactionWebhook(minedTransaction);
-    await _reportUsageSuccess(minedTransaction);
+  // Handle a successfully mined transaction.
+  if (resultTransaction?.status === "mined") {
+    await TransactionDB.set(resultTransaction);
+    await enqueueTransactionWebhook(resultTransaction);
+    await _reportUsageSuccess(resultTransaction);
     logger({
       level: "info",
-      message: `UserOp Transaction mined [${sentTransaction.queueId}] - [${minedTransaction.transactionHash}]`,
+      queueId: resultTransaction.queueId,
+      message: `Transaction mined [${resultTransaction.transactionHash}]`,
       service: "worker",
     });
-    return;
   }
-
-  // Check all sent transaction hashes since any retry could succeed.
-  const receiptResults = await Promise.allSettled(
-    sentTransactionHashes.map((hash) =>
-      eth_getTransactionReceipt(rpcRequest, { hash }),
-    ),
-  );
-
-  // If any receipts are found, this transaction is mined.
-  for (const result of receiptResults) {
-    if (result.status === "fulfilled") {
-      const receipt = result.value;
-      job.log(
-        `Receipt found: ${sentTransaction.queueId} - ${receipt.transactionHash} `,
-      );
-      const minedTransaction: MinedTransaction = {
-        ...sentTransaction,
-        status: "mined",
-        transactionHash: receipt.transactionHash,
-        minedAt: new Date(),
-        minedAtBlock: receipt.blockNumber,
-        transactionType: receipt.type,
-        onchainStatus: receipt.status,
-        gasUsed: receipt.gasUsed,
-        effectiveGasPrice: receipt.effectiveGasPrice,
-        cumulativeGasUsed: receipt.cumulativeGasUsed,
-      };
-      await TransactionDB.set(minedTransaction);
-      await enqueueTransactionWebhook(minedTransaction);
-      await _reportUsageSuccess(minedTransaction);
-      logger({
-        level: "info",
-        message: `Transaction mined [${sentTransaction.queueId}] - [${receipt.transactionHash}]`,
-        service: "worker",
-      });
-      return;
-    }
-  }
-
-  // Else the transaction is not mined yet.
-
-  // Retry the transaction.
-  const config = await getConfig();
-  if (sentTransaction.retryCount < config.maxRetriesPerTx) {
-    const ellapsedBlocks =
-      (await getBlockNumberish(chainId)) - sentTransaction.sentAtBlock;
-    if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
-      job.log("Transaction is unmined before timeout. Retrying transaction...");
-      logger({
-        level: "warn",
-        message: `Transaction is unmined before timeout: ${sentTransaction.queueId} - ${sentTransaction.sentTransactionHashes[0]} `,
-        service: "worker",
-      });
-      await SendTransactionQueue.add({
-        queueId: sentTransaction.queueId,
-        retryCount: sentTransaction.retryCount + 1,
-      });
-      return;
-    }
-  }
-
-  // Otherwise throw to check again later.
-  job.log(
-    "Transaction is not confirmed before retry deadline. Check again later...",
-  );
-  throw new Error("NOT_CONFIRMED_YET");
 };
 
 const _reportUsageSuccess = async (minedTransaction: MinedTransaction) => {
@@ -216,6 +98,124 @@ const _reportUsageError = (erroredTransaction: ErroredTransaction) => {
   ]);
 };
 
+const _handleTransaction = async (
+  job: Job,
+  sentTransaction: SentTransaction,
+): Promise<MinedTransaction | null> => {
+  if (!("sentTransactionHashes" in sentTransaction)) {
+    throw "Missing 'sentTransactionHashes' when mining transaction.";
+  }
+  const { queueId, chainId, sentTransactionHashes } = sentTransaction;
+
+  const chain = await getChain(chainId);
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain,
+  });
+
+  // Check all sent transaction hashes since any retry could succeed.
+  const receiptResults = await Promise.allSettled(
+    sentTransactionHashes.map((hash) =>
+      eth_getTransactionReceipt(rpcRequest, { hash }),
+    ),
+  );
+
+  // If any receipts are found, this transaction is mined.
+  for (const result of receiptResults) {
+    if (result.status === "fulfilled") {
+      const receipt = result.value;
+      job.log(`Receipt found: ${receipt.transactionHash} `);
+      return {
+        ...sentTransaction,
+        status: "mined",
+        transactionHash: receipt.transactionHash,
+        minedAt: new Date(),
+        minedAtBlock: receipt.blockNumber,
+        transactionType: receipt.type,
+        onchainStatus: receipt.status,
+        gasUsed: receipt.gasUsed,
+        effectiveGasPrice: receipt.effectiveGasPrice,
+        cumulativeGasUsed: receipt.cumulativeGasUsed,
+      };
+    }
+  }
+
+  // Else the transaction is not mined yet.
+
+  // Retry the transaction (after some initial delay).
+  const config = await getConfig();
+  if (sentTransaction.retryCount < config.maxRetriesPerTx) {
+    const ellapsedBlocks =
+      (await getBlockNumberish(chainId)) - sentTransaction.sentAtBlock;
+    if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
+      job.log("Transaction is unmined before timeout. Retrying transaction...");
+      logger({
+        level: "warn",
+        queueId,
+        message: `Transaction is unmined before timeout: ${sentTransaction.sentTransactionHashes[0]} `,
+        service: "worker",
+      });
+      await SendTransactionQueue.add({
+        queueId,
+        retryCount: sentTransaction.retryCount + 1,
+      });
+      return null;
+    }
+  }
+
+  // If the transaction is not mined yet, throw to retry later.
+  job.log("Transaction is not mined yet. Check again later...");
+  throw new Error("NOT_CONFIRMED_YET");
+};
+
+const _handleUserOp = async (
+  job: Job,
+  sentTransaction: SentTransaction,
+): Promise<MinedTransaction> => {
+  if (!("userOpHash" in sentTransaction)) {
+    throw new Error("Missing 'userOpHash' when mining user operation.");
+  }
+
+  const { chainId, userOpHash } = sentTransaction;
+  const chain = await getChain(chainId);
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain,
+  });
+
+  const userOpReceiptRaw = await getUserOpReceiptRaw({
+    client: thirdwebClient,
+    chain,
+    userOpHash,
+  });
+  if (userOpReceiptRaw) {
+    const transaction = await eth_getTransactionByHash(rpcRequest, {
+      hash: userOpReceiptRaw.receipt.transactionHash,
+    });
+    const transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
+      hash: transaction.hash,
+    });
+    return {
+      ...sentTransaction,
+      status: "mined",
+      transactionHash: transactionReceipt.transactionHash,
+      minedAt: new Date(),
+      minedAtBlock: transactionReceipt.blockNumber,
+      transactionType: transactionReceipt.type,
+      onchainStatus: transactionReceipt.status,
+      gasUsed: transactionReceipt.gasUsed,
+      effectiveGasPrice: transactionReceipt.effectiveGasPrice,
+      gas: transactionReceipt.gasUsed,
+      cumulativeGasUsed: transactionReceipt.cumulativeGasUsed,
+      sender: userOpReceiptRaw.sender as Address,
+    };
+  }
+
+  // If the transaction is not mined yet, throw to retry later.
+  job.log("Transaction is not mined yet. Check again later...");
+  throw new Error("NOT_CONFIRMED_YET");
+};
+
 // Worker
 const _worker = new Worker(MineTransactionQueue.name, handler, {
   concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
@@ -227,7 +227,30 @@ logWorkerEvents(_worker);
 _worker.on("failed", async (job: Job<string> | undefined) => {
   if (job && job.attemptsMade === job.opts.attempts) {
     const { queueId } = superjson.parse<MineTransactionData>(job.data);
-    job.log("Transaction is unmined after timeout. Cancelling transaction...");
-    await CancelTransactionQueue.add({ queueId });
+
+    const sentTransaction = await TransactionDB.get(queueId);
+    if (sentTransaction?.status !== "sent") {
+      job.log(`Invalid transaction state: ${stringify(sentTransaction)}`);
+      return;
+    }
+
+    if ("userOpHash" in sentTransaction) {
+      // If userOp, set as errored.
+      job.log("Transaction is unmined after timeout. Erroring transaction...");
+      const erroredTransaction: ErroredTransaction = {
+        ...sentTransaction,
+        status: "errored",
+        errorMessage: "Transaction Timed out.",
+      };
+      await TransactionDB.set(erroredTransaction);
+      await enqueueTransactionWebhook(erroredTransaction);
+      _reportUsageError(erroredTransaction);
+    } else {
+      // If EOA transaction, enqueue a cancel job.
+      job.log(
+        "Transaction is unmined after timeout. Cancelling transaction...",
+      );
+      await CancelTransactionQueue.add({ queueId });
+    }
   }
 });
