@@ -122,6 +122,8 @@ import { checkGroupStatus } from "./transaction/group";
 
 // Indexer
 import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
+import { getIpAllowlist } from "./configuration/ip/get";
+import { setIpAllowlist } from "./configuration/ip/set";
 import { getContractEventLogs } from "./contract/events/getContractEventLogs";
 import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
 import { pageEventLogs } from "./contract/events/paginateEventLogs";
@@ -171,6 +173,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(updateCacheConfiguration);
   await fastify.register(getContractSubscriptionsConfiguration);
   await fastify.register(updateContractSubscriptionsConfiguration);
+  await fastify.register(getIpAllowlist);
+  await fastify.register(setIpAllowlist);
 
   // Webhooks
   await fastify.register(getAllWebhooksData);

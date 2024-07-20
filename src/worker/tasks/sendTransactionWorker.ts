@@ -25,7 +25,6 @@ import {
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
-import { logWorkerEvents } from "../queues/queues";
 import {
   SendTransactionData,
   SendTransactionQueue,
@@ -232,7 +231,6 @@ const _worker = new Worker(SendTransactionQueue.name, handler, {
   concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });
-logWorkerEvents(_worker);
 
 // If a transaction fails to send after all retries, error it.
 _worker.on("failed", async (job: Job<string> | undefined, error: Error) => {

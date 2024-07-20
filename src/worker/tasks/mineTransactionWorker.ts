@@ -29,7 +29,6 @@ import {
   MineTransactionData,
   MineTransactionQueue,
 } from "../queues/mineTransactionQueue";
-import { logWorkerEvents } from "../queues/queues";
 import { SendTransactionQueue } from "../queues/sendTransactionQueue";
 
 /**
@@ -159,7 +158,7 @@ const _handleTransaction = async (
         queueId,
         retryCount: sentTransaction.retryCount + 1,
       });
-      return null;
+      // After retrying, do not return. Throw because this job continues to mine this queueId.
     }
   }
 
@@ -221,7 +220,6 @@ const _worker = new Worker(MineTransactionQueue.name, handler, {
   concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });
-logWorkerEvents(_worker);
 
 // If a transaction fails to mine after all retries, cancel it.
 _worker.on("failed", async (job: Job<string> | undefined) => {

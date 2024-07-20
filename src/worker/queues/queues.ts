@@ -9,7 +9,7 @@ export const defaultJobOptions: JobsOptions = {
   // Purges completed jobs past 500 or 5 days.
   removeOnComplete: {
     age: 60 * 60 * 24 * 5,
-    count: 500,
+    count: 1000,
   },
 };
 
