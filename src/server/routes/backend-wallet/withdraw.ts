@@ -55,6 +55,7 @@ export async function withdraw(fastify: FastifyInstance) {
 
       const queueId = await insertTransaction({
         insertedTransaction: {
+          isUserOp: false,
           chainId,
           from: walletAddress as Address,
           to: toAddress as Address,

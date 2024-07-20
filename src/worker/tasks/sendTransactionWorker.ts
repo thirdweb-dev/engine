@@ -100,7 +100,8 @@ const _handleQueuedTransaction = async (
     return {
       ...queuedTransaction,
       status: "sent",
-      userOpNonce: signedUserOp.nonce.toString(),
+      isUserOp: true,
+      nonce: signedUserOp.nonce.toString(),
       userOpHash,
       retryCount: 0,
       sentAt: new Date(),
@@ -133,6 +134,7 @@ const _handleQueuedTransaction = async (
   return {
     ...queuedTransaction,
     status: "sent",
+    isUserOp: false,
     nonce: populatedTransaction.nonce,
     sentTransactionHashes: [transactionHash],
     retryCount: 0,
@@ -151,8 +153,8 @@ const _handleSentTransaction = async (
   retryCount: number,
 ): Promise<SentTransaction | ErroredTransaction> => {
   const { chainId, from } = sentTransaction;
-  if (!("nonce" in sentTransaction)) {
-    throw new Error("Missing 'nonce' when retrying transaction.");
+  if (sentTransaction.isUserOp) {
+    throw new Error("Cannot retry a userOp.");
   }
 
   const populatedTransaction = await toSerializableTransaction({

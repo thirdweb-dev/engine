@@ -34,6 +34,7 @@ export type InsertedTransaction = {
   accountAddress?: Address;
   target?: Address;
   sender?: Address;
+  isUserOp: boolean;
 };
 
 // QueuedTransaction is a transaction added to the queue. No preparation has been done yet.
@@ -56,11 +57,18 @@ export type SentTransaction =
       sentAtBlock: bigint;
     }) &
       (
-        | { nonce: number; sentTransactionHashes: Hex[] }
-        | { userOpNonce: string; userOpHash: Hex }
+        | { isUserOp: false; nonce: number; sentTransactionHashes: Hex[] }
+        | { isUserOp: true; nonce: string; userOpHash: Hex }
       );
 
-export type MinedTransaction = Omit<SentTransaction, "status"> & {
+// This type allows extending SentTransaction to support the ORed fields.
+type _SentTransactionEOA = SentTransaction & { isUserOp: false };
+type _SentTransactionUserOp = SentTransaction & { isUserOp: true };
+
+export type MinedTransaction = (
+  | Omit<_SentTransactionEOA, "status">
+  | Omit<_SentTransactionUserOp, "status">
+) & {
   status: "mined";
 
   transactionHash: Hex;
@@ -82,7 +90,10 @@ export type ErroredTransaction = Omit<QueuedTransaction, "status"> & {
 };
 
 // CancelledTransaction has been cancelled either via API or after some deadline.
-export type CancelledTransaction = Omit<SentTransaction, "status"> & {
+export type CancelledTransaction = (
+  | Omit<_SentTransactionEOA, "status">
+  | Omit<_SentTransactionUserOp, "status">
+) & {
   status: "cancelled";
 
   cancelledAt: Date;

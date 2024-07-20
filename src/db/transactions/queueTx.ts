@@ -59,6 +59,7 @@ export const queueTx = async ({
     const queueId = await insertTransaction({
       insertedTransaction: {
         ...baseTransaction,
+        isUserOp: true,
         deployedContractAddress,
         deployedContractType,
         signerAddress,
@@ -90,6 +91,7 @@ export const queueTx = async ({
     const queueId = await insertTransaction({
       insertedTransaction: {
         ...baseTransaction,
+        isUserOp: false,
         deployedContractAddress,
         deployedContractType,
         from: fromAddress.toLowerCase() as Address,

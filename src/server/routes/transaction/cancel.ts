@@ -1,7 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Hex } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getBlockNumberish } from "../../../utils/block";
 import { getConfig } from "../../../utils/cache/getConfig";
@@ -88,9 +87,9 @@ export async function cancelTransaction(fastify: FastifyInstance) {
       }
 
       let message = "Transaction successfully cancelled.";
-      let transactionHash: Hex = "0x";
-      switch (transaction.status) {
-        case "queued":
+      let cancelledTransaction: CancelledTransaction | null = null;
+      if (!transaction.isUserOp) {
+        if (transaction.status === "queued") {
           // Remove all retries from the SEND_TRANSACTION queue.
           const config = await getConfig();
           for (
@@ -100,42 +99,44 @@ export async function cancelTransaction(fastify: FastifyInstance) {
           ) {
             await SendTransactionQueue.remove({ queueId, retryCount });
           }
-          break;
-        case "sent":
+
+          cancelledTransaction = {
+            ...transaction,
+            status: "cancelled",
+            cancelledAt: new Date(),
+            sentAt: new Date(),
+            sentAtBlock: await getBlockNumberish(transaction.chainId),
+
+            isUserOp: false,
+            nonce: -1,
+            sentTransactionHashes: [],
+          };
+        } else if (transaction.status === "sent") {
           // Cancel a sent transaction with the same nonce.
           const { chainId, from, nonce } = transaction;
-          transactionHash = await sendCancellationTransaction({
+          const transactionHash = await sendCancellationTransaction({
             chainId,
             from,
-            nonce: Number(nonce),
+            nonce,
           });
-          break;
-
-        case "mined":
-        case "cancelled":
-        case "errored":
-          // Cannot cancel a transaction that is already completed.
-          throw createCustomError(
-            "Transaction cannot be cancelled.",
-            StatusCodes.BAD_REQUEST,
-            "TRANSACTION_CANNOT_BE_CANCELLED",
-          );
+          cancelledTransaction = {
+            ...transaction,
+            status: "cancelled",
+            cancelledAt: new Date(),
+            sentTransactionHashes: [transactionHash],
+          };
+        }
       }
 
-      const cancelledTransaction: CancelledTransaction = {
-        ...transaction,
-        status: "cancelled",
-        sentAt: "sentAt" in transaction ? transaction.sentAt : new Date(),
-        sentAtBlock:
-          "sentAtBlock" in transaction
-            ? transaction.sentAtBlock
-            : await getBlockNumberish(transaction.chainId),
-        data: transaction.data ?? "0x",
-        nonce: "nonce" in transaction ? transaction.nonce : -1,
-        retryCount: "retryCount" in transaction ? transaction.retryCount : 0,
-        sentTransactionHashes: [transactionHash],
-        cancelledAt: new Date(),
-      };
+      if (!cancelledTransaction) {
+        throw createCustomError(
+          "Transaction cannot be cancelled.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_CANNOT_BE_CANCELLED",
+        );
+      }
+
+      // A queued or sent transaction was successfully cancelled.
       await TransactionDB.set(cancelledTransaction);
       await enqueueTransactionWebhook(cancelledTransaction);
       await _reportUsageSuccess(cancelledTransaction);
@@ -145,7 +146,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
           queueId,
           status: "success",
           message,
-          transactionHash,
+          transactionHash: cancelledTransaction.sentTransactionHashes.at(-1),
         },
       });
     },

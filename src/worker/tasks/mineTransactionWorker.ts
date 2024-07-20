@@ -49,7 +49,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
   // Handle user operation or EOA transaction.
   let resultTransaction: MinedTransaction | null;
-  if ("userOpHash" in sentTransaction) {
+  if (sentTransaction.isUserOp) {
     resultTransaction = await _handleUserOp(job, sentTransaction);
   } else {
     resultTransaction = await _handleTransaction(job, sentTransaction);
@@ -99,11 +99,8 @@ const _reportUsageError = (erroredTransaction: ErroredTransaction) => {
 
 const _handleTransaction = async (
   job: Job,
-  sentTransaction: SentTransaction,
+  sentTransaction: SentTransaction & { isUserOp: false },
 ): Promise<MinedTransaction | null> => {
-  if (!("sentTransactionHashes" in sentTransaction)) {
-    throw "Missing 'sentTransactionHashes' when mining transaction.";
-  }
   const { queueId, chainId, sentTransactionHashes } = sentTransaction;
 
   const chain = await getChain(chainId);
@@ -169,12 +166,8 @@ const _handleTransaction = async (
 
 const _handleUserOp = async (
   job: Job,
-  sentTransaction: SentTransaction,
+  sentTransaction: SentTransaction & { isUserOp: true },
 ): Promise<MinedTransaction> => {
-  if (!("userOpHash" in sentTransaction)) {
-    throw new Error("Missing 'userOpHash' when mining user operation.");
-  }
-
   const { chainId, userOpHash } = sentTransaction;
   const chain = await getChain(chainId);
   const rpcRequest = getRpcClient({
@@ -232,7 +225,7 @@ _worker.on("failed", async (job: Job<string> | undefined) => {
       return;
     }
 
-    if ("userOpHash" in sentTransaction) {
+    if (sentTransaction.isUserOp) {
       // If userOp, set as errored.
       job.log("Transaction is unmined after timeout. Erroring transaction...");
       const erroredTransaction: ErroredTransaction = {

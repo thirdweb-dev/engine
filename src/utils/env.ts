@@ -118,3 +118,6 @@ export const env = createEnv({
     throw new Error("Invalid environment variables");
   },
 });
+
+console.log("[DEBUG] env", env);
+throw "done";

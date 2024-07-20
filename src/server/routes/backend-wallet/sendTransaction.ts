@@ -85,6 +85,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       } else {
         queueId = await insertTransaction({
           insertedTransaction: {
+            isUserOp: false,
             chainId,
             from: fromAddress as Address,
             to: toAddress as Address | undefined,

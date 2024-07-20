@@ -99,6 +99,7 @@ export async function transfer(fastify: FastifyInstance) {
         currencyAddress === NATIVE_TOKEN_ADDRESS
       ) {
         insertedTransaction = {
+          isUserOp: false,
           chainId,
           from: walletAddress as Address,
           to: to as Address,
@@ -129,6 +130,7 @@ export async function transfer(fastify: FastifyInstance) {
         const transaction = transferERC20({ contract, to, amount });
 
         insertedTransaction = {
+          isUserOp: false,
           chainId,
           from: walletAddress as Address,
           to: (await resolvePromisedValue(transaction.to)) as

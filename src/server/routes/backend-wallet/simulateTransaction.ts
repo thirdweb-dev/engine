@@ -100,21 +100,23 @@ export async function simulateTransaction(fastify: FastifyInstance) {
         functionArgs: args,
         data: data as Hex | undefined,
         value: value ? BigInt(value) : 0n,
+
+        ...(accountAddress
+          ? {
+              isUserOp: true,
+              accountAddress: accountAddress as Address,
+              target: toAddress as Address,
+              signerAddress: walletAddress as Address,
+            }
+          : {
+              isUserOp: false,
+            }),
       };
 
-      if (accountAddress) {
-        queuedTransaction = {
-          ...queuedTransaction,
-          accountAddress: accountAddress as Address,
-          target: toAddress as Address,
-          signerAddress: walletAddress as Address,
-        };
-      }
-
-      const error = await simulateQueuedTransaction(queuedTransaction);
-      if (error) {
+      const simulateError = await simulateQueuedTransaction(queuedTransaction);
+      if (simulateError) {
         throw createCustomError(
-          error,
+          simulateError,
           StatusCodes.BAD_REQUEST,
           "FAILED_SIMULATION",
         );

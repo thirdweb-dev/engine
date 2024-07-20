@@ -25,7 +25,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
   // Assert valid transaction state.
   const sentTransaction = await TransactionDB.get(queueId);
-  if (sentTransaction?.status !== "sent") {
+  if (
+    !sentTransaction ||
+    sentTransaction.status !== "sent" ||
+    sentTransaction.isUserOp
+  ) {
     job.log(`Invalid transaction state: ${stringify(sentTransaction)}`);
     return;
   }
@@ -36,7 +40,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     chainId,
     from,
     // Crucial: Set the same transaction's nonce.
-    nonce: Number(nonce),
+    nonce,
   });
 
   job.log(`Cancel transaction sent: ${transactionHash}`);

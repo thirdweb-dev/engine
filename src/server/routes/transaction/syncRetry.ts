@@ -69,7 +69,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           "TRANSACTION_NOT_FOUND",
         );
       }
-      if (transaction.status !== "sent") {
+      if (transaction.status !== "sent" || transaction.isUserOp) {
         throw createCustomError(
           "Transaction cannot be retried.",
           StatusCodes.BAD_REQUEST,
@@ -90,7 +90,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           maxPriorityFeePerGas: maxPriorityFeePerGas
             ? BigInt(maxPriorityFeePerGas)
             : undefined,
-          nonce: Number(transaction.nonce),
+          nonce: transaction.nonce,
         },
       });
 
