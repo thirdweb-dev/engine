@@ -17,15 +17,10 @@ const responseSchema = Type.Object({
 });
 
 responseSchema.example = {
-  result: [
-    {
-      chain: "ethereum",
-      contractAddress: "0x....",
-      webhook: {
-        url: "https://...",
-      },
-    },
-  ],
+  result: {
+    message: `Blocks were added for backfilling!`,
+    status: "success",
+  },
 };
 
 const paramsSchema = Type.Object({
