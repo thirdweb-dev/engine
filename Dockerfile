@@ -2,21 +2,19 @@ FROM node:20.15-alpine3.20 AS base
 
 # Install tini & build dependencies
 RUN apk add --no-cache tini && \
-    apk --no-cache --virtual build-dependencies add openssl && \
-    apk del build-dependencies
+    apk --no-cache --virtual build-dependencies add openssl
 
 # Upgrade packages
 RUN apk update && apk upgrade
 
 # Set the working directory
-WORKDIR /app
-
 WORKDIR /app/src/https
 
 RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
     -passout pass:thirdweb-engine && \
-    chmod 600 key.pem cert.pem
+    chmod 600 key.pem cert.pem && \
+    apk del build-dependencies
 
 ##############################
 ##############################
@@ -42,7 +40,7 @@ CMD [ "sh", "-c","npm run prisma:setup:dev && npm run dev:run" ]
 ##############################
 
 # Production stage
-FROM node:20.15-alpine3.20 AS prod
+FROM base AS prod
 
 # Set the working directory
 WORKDIR /app
