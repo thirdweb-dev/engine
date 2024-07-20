@@ -55,9 +55,6 @@ RUN rm -rf node_modules && \
     npm install --omit=dev && \
     apk del build-dependencies
 
-# Upgrade packages
-RUN apk update && apk upgrade
-
 ##############################
 ##############################
 
@@ -73,8 +70,8 @@ RUN apk add --no-cache tini
 
 # Set the working directory
 WORKDIR /app
-ENV NODE_ENV="production" \
-    PATH=/app/node_modules/.bin:$PATH
+ENV NODE_ENV="production"
+    # PATH=/app/node_modules/.bin:$PATH
 
 EXPOSE 3005
 
