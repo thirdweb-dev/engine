@@ -1,4 +1,5 @@
 import superjson from "superjson";
+import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { AnyTransaction } from "../../utils/transaction/types";
 
@@ -38,8 +39,6 @@ export class TransactionDB {
   private static cancelledTransactionsKey = `transaction:cancelled`;
   private static erroredTransactionsKey = `transaction:errored`;
 
-  static COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS = 2 * 24 * 60 * 60; // 2 days
-
   /**
    * Inserts or replaces a transaction details.
    * Also adds to the appropriate "status" sorted set.
@@ -54,9 +53,10 @@ export class TransactionDB {
       transaction.status,
     );
     if (shouldExpire) {
+      const ttlSeconds = env.PRUNE_TRANSACTIONS * 24 * 60 * 60;
       pipeline.setex(
         this.transactionDetailsKey(transaction.queueId),
-        this.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS,
+        ttlSeconds,
         superjson.stringify(transaction),
       );
     } else {
