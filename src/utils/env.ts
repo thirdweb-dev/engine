@@ -61,7 +61,13 @@ export const env = createEnv({
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
     TRUST_PROXY: z.boolean().default(false),
-    PRUNE_TRANSACTIONS: boolSchema("true"),
+    PRUNE_TRANSACTIONS: z
+      .union([
+        z.literal("true").transform(() => 7),
+        z.literal("false").transform(() => 0),
+        z.coerce.number().int(),
+      ])
+      .default(7),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),

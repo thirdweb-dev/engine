@@ -21,7 +21,9 @@ export const createCustomError = (
   code,
 });
 
-const ETHERS_ERROR_CODES = [
+// https://github.com/ethers-io/ethers.js/blob/main/src.ts/utils/errors.ts
+const ETHERS_ERROR_CODES = new Set([
+  // Generic Errors
   "UNKNOWN_ERROR",
   "NOT_IMPLEMENTED",
   "UNSUPPORTED_OPERATION",
@@ -30,12 +32,18 @@ const ETHERS_ERROR_CODES = [
   "TIMEOUT",
   "BAD_DATA",
   "CANCELLED",
+
+  // Operational Errors
   "BUFFER_OVERRUN",
   "NUMERIC_FAULT",
+
+  // Argument Errors
   "INVALID_ARGUMENT",
   "MISSING_ARGUMENT",
   "UNEXPECTED_ARGUMENT",
   "VALUE_MISMATCH",
+
+  // Blockchain Errors
   "CALL_EXCEPTION",
   "INSUFFICIENT_FUNDS",
   "NONCE_EXPIRED",
@@ -43,8 +51,21 @@ const ETHERS_ERROR_CODES = [
   "TRANSACTION_REPLACED",
   "UNCONFIGURED_NAME",
   "OFFCHAIN_FAULT",
+
+  // User Interaction
   "ACTION_REJECTED",
-];
+]);
+
+export const createCustomDateTimestampError = (key: string): CustomError => {
+  return createCustomError(
+    `Invalid ${key} Value. Needs to new Date() / new Date().toISOstring() / new Date().getTime() / Unix Epoch`,
+    404,
+    "INVALID_DATE_TIME",
+  );
+};
+
+const flipObject = (data: any) =>
+  Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
 
 const isZodError = (err: unknown): boolean => {
   return Boolean(
@@ -57,20 +78,9 @@ const isEthersError = (error: any): boolean => {
     error &&
     typeof error === "object" &&
     "code" in error &&
-    ETHERS_ERROR_CODES.includes(error.code)
+    ETHERS_ERROR_CODES.has(error.code)
   );
 };
-
-export const createCustomDateTimestampError = (key: string): CustomError => {
-  return createCustomError(
-    `Invalid ${key} Value. Needs to new Date() / new Date().toISOstring() / new Date().getTime() / Unix Epoch`,
-    404,
-    "INVALID_DATE_TIME",
-  );
-};
-
-const flipObject = (data: any) =>
-  Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
 
 export const withErrorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler(
@@ -87,7 +97,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
         return reply.status(StatusCodes.BAD_REQUEST).send({
           error: {
             code: "BAD_REQUEST",
-            message: (error as any).code,
+            message: "code" in error ? error.code : error.message,
             reason: error.message,
             statusCode: 400,
             stack: env.NODE_ENV !== "production" ? error.stack : undefined,
@@ -121,7 +131,6 @@ export const withErrorHandler = async (server: FastifyInstance) => {
         });
       }
 
-      // Handle Custom Errors
       if ("statusCode" in error && "code" in error) {
         // Transform unexpected errors into a standard payload
         const statusCode =
@@ -132,7 +141,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
           StatusCodes.INTERNAL_SERVER_ERROR;
 
         const message = error.message ?? ReasonPhrases.INTERNAL_SERVER_ERROR;
-        return reply.status(statusCode).send({
+        reply.status(statusCode).send({
           error: {
             code,
             message,
@@ -140,17 +149,17 @@ export const withErrorHandler = async (server: FastifyInstance) => {
             stack: env.NODE_ENV !== "production" ? error.stack : undefined,
           },
         });
+      } else {
+        // Handle non-custom errors
+        reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+          error: {
+            statusCode: 500,
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
+            stack: env.NODE_ENV !== "production" ? error.stack : undefined,
+          },
+        });
       }
-
-      // Handle non-custom errors
-      return reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        error: {
-          statusCode: 500,
-          code: "INTERNAL_SERVER_ERROR",
-          message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
-          stack: env.NODE_ENV !== "production" ? error.stack : undefined,
-        },
-      });
     },
   );
 };
