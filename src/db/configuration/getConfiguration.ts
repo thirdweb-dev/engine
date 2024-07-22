@@ -178,7 +178,7 @@ export const getConfiguration = async (): Promise<Config> => {
       update: {},
     });
   } else if (!config.authDomain && !config.authWalletEncryptedJson) {
-    // TODO: Use a more generic method to fill missing fields
+    // TODO: Use a more generic method to fill in missing fields
     config = await updateConfiguration({
       authDomain: "thirdweb.com",
       authWalletEncryptedJson: await createAuthWalletEncryptedJson(),
