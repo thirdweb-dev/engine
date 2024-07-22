@@ -63,13 +63,11 @@ export const insertTransaction = async (
   return queueId;
 };
 
+// This logic is more accurate in the worker, but withdraws are generally not used programmatically during high volume.
 const getWithdrawValue = async (
   queuedTransaction: QueuedTransaction,
 ): Promise<bigint> => {
-  const { chainId, from, to } = queuedTransaction;
-  if (!to) {
-    throw new Error('Missing "to".');
-  }
+  const { chainId, from } = queuedTransaction;
 
   const chain = await getChain(chainId);
 
@@ -82,15 +80,15 @@ const getWithdrawValue = async (
 
   // Estimate gas for a transfer.
   const transaction = prepareTransaction({
-    value: BigInt(1),
-    to,
     chain,
     client: thirdwebClient,
+    value: 1n, // dummy value
+    to: from, // dummy value
   });
   const { wei: transferCostWei } = await estimateGasCost({ transaction });
 
-  // Add a 20% buffer for gas variance.
-  const buffer = BigInt(Math.round(Number(transferCostWei) * 0.2));
+  // Add a +50% buffer for gas variance.
+  const buffer = transferCostWei / 2n;
 
   return balanceWei - transferCostWei - buffer;
 };

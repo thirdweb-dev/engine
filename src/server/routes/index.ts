@@ -46,6 +46,7 @@ import { extractFunctions } from "./contract/metadata/functions";
 import { createBackendWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
+import { getBackendWalletNonce } from "./backend-wallet/getNonce";
 import { importBackendWallet } from "./backend-wallet/import";
 import { sendTransaction } from "./backend-wallet/sendTransaction";
 import { transfer } from "./backend-wallet/transfer";
@@ -107,6 +108,7 @@ import { revokeRelayer } from "./relayer/revoke";
 
 // System
 import { getAllTransactions } from "./backend-wallet/getTransactions";
+import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
 import { simulateTransaction } from "./backend-wallet/simulateTransaction";
 import { withdraw } from "./backend-wallet/withdraw";
@@ -152,6 +154,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(signMessage);
   await fastify.register(signTypedData);
   await fastify.register(getAllTransactions);
+  await fastify.register(resetBackendWalletNonces);
+  await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
 
   // Configuration

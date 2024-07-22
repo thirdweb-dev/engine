@@ -1,16 +1,16 @@
 import { Job, Processor, Worker } from "bullmq";
 import { TransactionDB } from "../../db/transactions/db";
+import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { PURGE_TRANSACTIONS_QUEUE_NAME } from "../queues/purgeTransactionsQueue";
 import { logWorkerEvents } from "../queues/queues";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const purgeBeforeDate =
-    Date.now() - TransactionDB.COMPLETED_TRANSACTIONS_MAX_AGE_SECONDS * 1000;
+  // Purge transactions up to `PRUNE_TRANSACTIONS` days ago.
+  const to = new Date();
+  to.setDate(to.getDate() - env.PRUNE_TRANSACTIONS);
 
-  await TransactionDB.purgeTransactions({
-    to: new Date(purgeBeforeDate),
-  });
+  await TransactionDB.purgeTransactions({ to });
 };
 
 // Worker

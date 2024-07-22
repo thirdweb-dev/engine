@@ -160,7 +160,9 @@ const _handleTransaction = async (
   }
 
   // If the transaction is not mined yet, throw to retry later.
-  job.log("Transaction is not mined yet. Check again later...");
+  job.log(
+    `Transaction is not mined yet (${sentTransactionHashes}). Check again later...`,
+  );
   throw new Error("NOT_CONFIRMED_YET");
 };
 
