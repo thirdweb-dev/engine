@@ -233,7 +233,7 @@ const handlePublicEndpoints = (req: FastifyRequest): AuthResponse => {
 };
 
 /**
- * Handle websocket request: auth via access token
+ * Handle websocket request: auth via an access token
  * Allow a request that provides a non-revoked access token for an owner/admin
  * Handle websocket auth separately.
  * @param req FastifyRequest
