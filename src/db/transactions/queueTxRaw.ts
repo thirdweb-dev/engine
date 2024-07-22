@@ -67,7 +67,7 @@ export const queueTxRaw = async ({
 
   let txRow: Transactions;
   if (idempotencyKey) {
-    // Upsert the tx (insert if not exists).
+    // Upsert the tx (insert if not exist).
     txRow = await prisma.transactions.upsert({
       where: { idempotencyKey },
       create: {
