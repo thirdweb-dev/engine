@@ -1,10 +1,9 @@
 import { Job, Processor, Worker } from "bullmq";
-import { BigNumber } from "ethers";
-import { getContractAddress } from "ethers/lib/utils";
 import superjson from "superjson";
-import { toSerializableTransaction } from "thirdweb";
+import { Address, toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
+import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
 import { incrWalletNonce } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
@@ -134,14 +133,14 @@ const _handleQueuedTransaction = async (
   );
 
   // Get the contract deployed Address when using deploy-published extension.
-  let deployedContractAddress: string | undefined;
+  let deployedContractAddress: Address | undefined;
   if (
     queuedTransaction.extension === "deploy-published" &&
     queuedTransaction.functionName === "deploy"
   ) {
     deployedContractAddress = getContractAddress({
       from: queuedTransaction.from,
-      nonce: BigNumber.from(populatedTransaction.nonce!),
+      nonce: BigInt(populatedTransaction.nonce),
     });
   }
 
@@ -158,7 +157,8 @@ const _handleQueuedTransaction = async (
     gasPrice: populatedTransaction.gasPrice,
     maxFeePerGas: populatedTransaction.maxFeePerGas,
     maxPriorityFeePerGas: populatedTransaction.maxPriorityFeePerGas,
-    deployedContractAddress,
+    deployedContractAddress:
+      queuedTransaction.deployedContractAddress ?? deployedContractAddress,
   };
 };
 
