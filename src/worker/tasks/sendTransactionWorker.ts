@@ -1,4 +1,6 @@
 import { Job, Processor, Worker } from "bullmq";
+import { BigNumber } from "ethers";
+import { getContractAddress } from "ethers/lib/utils";
 import superjson from "superjson";
 import { toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
@@ -131,6 +133,18 @@ const _handleQueuedTransaction = async (
     populatedTransaction,
   );
 
+  // Get the contract deployed Address when using deploy-published extension.
+  let deployedContractAddress: string | undefined;
+  if (
+    queuedTransaction.extension === "deploy-published" &&
+    queuedTransaction.functionName === "deploy"
+  ) {
+    deployedContractAddress = getContractAddress({
+      from: queuedTransaction.from,
+      nonce: BigNumber.from(populatedTransaction.nonce!),
+    });
+  }
+
   return {
     ...queuedTransaction,
     status: "sent",
@@ -144,6 +158,7 @@ const _handleQueuedTransaction = async (
     gasPrice: populatedTransaction.gasPrice,
     maxFeePerGas: populatedTransaction.maxFeePerGas,
     maxPriorityFeePerGas: populatedTransaction.maxPriorityFeePerGas,
+    deployedContractAddress,
   };
 };
 
