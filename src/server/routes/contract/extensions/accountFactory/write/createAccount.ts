@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { Address } from "thirdweb";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
@@ -76,10 +77,10 @@ export const createAccount = async (fastify: FastifyInstance) => {
         extraData,
       );
       const deployedAddress =
-        await contract.accountFactory.predictAccountAddress(
+        (await contract.accountFactory.predictAccountAddress(
           adminAddress,
           extraData,
-        );
+        )) as Address;
 
       const queueId = await queueTx({
         tx,

@@ -3,6 +3,7 @@ import superjson from "superjson";
 import { Hex, toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
+import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
 import {
   addUnusedNonce,
@@ -153,6 +154,10 @@ const _handleQueuedTransaction = async (
     gasPrice: populatedTransaction.gasPrice,
     maxFeePerGas: populatedTransaction.maxFeePerGas,
     maxPriorityFeePerGas: populatedTransaction.maxPriorityFeePerGas,
+    deployedContractAddress: _resolveDeployedContractAddress(
+      queuedTransaction,
+      nonce,
+    ),
   };
 };
 
@@ -235,6 +240,25 @@ const _reportUsageError = (erroredTransaction: ErroredTransaction) => {
       error: erroredTransaction.errorMessage,
     },
   ]);
+};
+
+const _resolveDeployedContractAddress = (
+  queuedTransaction: QueuedTransaction,
+  nonce: number,
+) => {
+  if (queuedTransaction.deployedContractAddress) {
+    return queuedTransaction.deployedContractAddress;
+  }
+
+  if (
+    queuedTransaction.extension === "deploy-published" &&
+    queuedTransaction.functionName === "deploy"
+  ) {
+    return getContractAddress({
+      from: queuedTransaction.from,
+      nonce: BigInt(nonce),
+    });
+  }
 };
 
 // Worker

@@ -25,7 +25,7 @@ export type InsertedTransaction = {
   maxPriorityFeePerGas?: bigint;
 
   // Offchain metadata
-  deployedContractAddress?: string;
+  deployedContractAddress?: Address;
   deployedContractType?: string;
   extension?: string;
 

@@ -10,7 +10,7 @@ interface QueueTxParams {
   chainId: number;
   extension: ContractExtension;
   // TODO: These shouldn't be in here
-  deployedContractAddress?: string;
+  deployedContractAddress?: Address;
   deployedContractType?: string;
   simulateTx?: boolean;
   idempotencyKey?: string;
