@@ -182,7 +182,7 @@ export class TransactionDB {
    * @param to Date?
    * @returns string[] List of queueIds
    */
-  static purgeTransactions = async (args: { from?: Date; to?: Date }) => {
+  static pruneTransactions = async (args: { from?: Date; to?: Date }) => {
     const { from, to } = args;
     const min = from ? toSeconds(from) : 0;
     const max = to ? toSeconds(to) : "+inf";

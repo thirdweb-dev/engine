@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address, Hex } from "thirdweb";
+import { maybeBigInt } from "../../../utils/primitiveTypes";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import {
   requestQuerystringSchema,
@@ -92,13 +93,11 @@ export async function sendTransaction(fastify: FastifyInstance) {
             data: data as Hex,
             value: BigInt(value),
 
-            gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
-            maxFeePerGas: txOverrides?.maxFeePerGas
-              ? BigInt(txOverrides.maxFeePerGas)
-              : undefined,
-            maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
-              ? BigInt(txOverrides.maxPriorityFeePerGas)
-              : undefined,
+            gas: maybeBigInt(txOverrides?.gas),
+            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+            maxPriorityFeePerGas: maybeBigInt(
+              txOverrides?.maxPriorityFeePerGas,
+            ),
           },
           shouldSimulate: simulateTx,
           idempotencyKey,

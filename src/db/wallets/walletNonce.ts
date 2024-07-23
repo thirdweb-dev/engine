@@ -3,32 +3,83 @@ import { getChain } from "../../utils/chain";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 
-const nonceKey = (chainId: number, walletAddress: Address) =>
+/**
+ * !IMPORTANT
+ *
+ * The nonce stored is the LAST USED NONCE.
+ * To get the next available nonce, use `incrWalletNonce()`.
+ */
+
+const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${walletAddress}`;
 
+const unusedNoncesKey = (chainId: number, walletAddress: Address) =>
+  `nonce-unused:${chainId}:${walletAddress}`;
+
 /**
- * Increment to get the next unused nonce.
- * If a nonce is acquired this way, it must be used for an onchain transaction
- * (or cancelled onchain).
+ * Acquire an unused nonce.
+ * This should be used to send an EOA transaction with this nonce.
  * @param chainId
  * @param walletAddress
  * @returns number - The next unused nonce value for this wallet.
  */
-export const incrWalletNonce = async (
+export const getAndUpdateNonce = async (
   chainId: number,
   walletAddress: Address,
 ) => {
-  const key = nonceKey(chainId, walletAddress);
-  let nonce = await redis.incr(key);
+  // Acquire an unused nonce, if any.
+  let nonce = await getAndUpdateLowestUnusedNonce(chainId, walletAddress);
+  if (nonce) {
+    return nonce;
+  }
+
+  // Else increment the last used nonce.
+  const key = lastUsedNonceKey(chainId, walletAddress);
+  nonce = await redis.incr(key);
   if (nonce === 1) {
     // If INCR returned 1, the nonce was not set.
     // This may be a newly imported wallet. Sync and return the onchain nonce.
-    nonce = await _syncWalletNonce(chainId, walletAddress);
+    return await _syncNonce(chainId, walletAddress);
   }
   return nonce;
 };
 
-const _syncWalletNonce = async (
+/**
+ * Adds an unused nonce that can be reused by a future transaction.
+ * This should be used if the current transaction that acquired this nonce is not valid.
+ * @param chainId
+ * @param walletAddress
+ * @param nonce
+ */
+export const addUnusedNonce = async (
+  chainId: number,
+  walletAddress: Address,
+  nonce: number,
+) => {
+  const key = unusedNoncesKey(chainId, walletAddress);
+  await redis.zadd(key, nonce, nonce);
+};
+
+/**
+ * Acquires the lowest unused nonce.
+ * @param chainId
+ * @param walletAddress
+ * @returns
+ */
+export const getAndUpdateLowestUnusedNonce = async (
+  chainId: number,
+  walletAddress: Address,
+) => {
+  const key = unusedNoncesKey(chainId, walletAddress);
+  const res = await redis.zpopmin(key);
+  if (res.length > 0) {
+    // res will be [value, score] where the score is the nonce.
+    return parseInt(res[1]);
+  }
+  return null;
+};
+
+const _syncNonce = async (
   chainId: number,
   walletAddress: Address,
 ): Promise<number> => {
@@ -42,7 +93,7 @@ const _syncWalletNonce = async (
     address: walletAddress,
   });
 
-  const key = nonceKey(chainId, walletAddress);
+  const key = lastUsedNonceKey(chainId, walletAddress);
   await redis.set(key, transactionCount);
   return transactionCount;
 };
@@ -55,11 +106,8 @@ const _syncWalletNonce = async (
  * @param walletAddress
  * @returns number - The last used nonce value for this wallet.
  */
-export const getWalletNonce = async (
-  chainId: number,
-  walletAddress: Address,
-) => {
-  const key = nonceKey(chainId, walletAddress);
+export const getNonce = async (chainId: number, walletAddress: Address) => {
+  const key = lastUsedNonceKey(chainId, walletAddress);
   const nonce = await redis.get(key);
   return nonce ? parseInt(nonce) : 0;
 };
@@ -67,7 +115,7 @@ export const getWalletNonce = async (
 /**
  * Delete all wallet nonces. Useful when the get out of sync.
  */
-export const deleteWalletNonces = async () => {
+export const deleteAllNonces = async () => {
   const keys = await redis.keys("nonce:*");
   if (keys.length > 0) {
     await redis.del(keys);

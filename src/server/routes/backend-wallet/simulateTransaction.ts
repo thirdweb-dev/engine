@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address, Hex } from "thirdweb";
-import { simulateQueuedTransaction } from "../../../utils/transaction/simulateTransaction";
+import { simulateQueuedTransaction } from "../../../utils/transaction/simulateQueuedTransaction";
 import { QueuedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import {
@@ -15,7 +15,10 @@ import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUT
 const ParamsSchema = Type.Object({
-  chain: Type.String(),
+  chain: Type.String({
+    examples: ["80002"],
+    description: "Chain ID",
+  }),
 });
 
 const simulateRequestBodySchema = Type.Object({
@@ -25,7 +28,7 @@ const simulateRequestBodySchema = Type.Object({
   value: Type.Optional(
     Type.String({
       examples: ["0"],
-      description: "The amount of native currency",
+      description: "The amount of native currency in wei",
     }),
   ),
   // Decoded transaction args

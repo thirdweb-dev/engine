@@ -22,7 +22,7 @@ import {
   EnqueueProcessTransactionReceiptsData,
   PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME,
 } from "../queues/processTransactionReceiptsQueue";
-import { logWorkerEvents } from "../queues/queues";
+import { logWorkerExceptions } from "../queues/queues";
 import { enqueueWebhook } from "../queues/sendWebhookQueue";
 import { getContractId } from "../utils/contractId";
 import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
@@ -218,4 +218,4 @@ const _worker = new Worker(PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME, handler, {
   concurrency: 5,
   connection: redis,
 });
-logWorkerEvents(_worker);
+logWorkerExceptions(_worker);

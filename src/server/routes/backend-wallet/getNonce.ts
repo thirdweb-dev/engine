@@ -2,7 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address } from "thirdweb";
-import { getWalletNonce } from "../../../db/wallets/walletNonce";
+import { getNonce } from "../../../db/wallets/walletNonce";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
@@ -43,7 +43,7 @@ export const getBackendWalletNonce = async (fastify: FastifyInstance) => {
     handler: async (req, reply) => {
       const { chain, walletAddress } = req.params;
       const chainId = await getChainIdFromChain(chain);
-      const nonce = await getWalletNonce(chainId, walletAddress as Address);
+      const nonce = await getNonce(chainId, walletAddress as Address);
 
       reply.status(StatusCodes.OK).send({
         result: {

@@ -5212,10 +5212,10 @@ builtin-status-codes@^3.0.0:
   resolved "https://registry.yarnpkg.com/builtin-status-codes/-/builtin-status-codes-3.0.0.tgz#85982878e21b98e1c66425e03d0174788f569ee8"
   integrity sha512-HpGFw18DgFWlncDfjTa2rcQ4W88O1mC8e8yZ2AvQY5KDaktSTwo+KRf6nHK6FRI5FyRyb/5T6+TSxfP7QyGsmQ==
 
-bullmq@^5.7.8:
-  version "5.7.14"
-  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.7.14.tgz#562eeff93589d0145c6973d14650dcf913bd444e"
-  integrity sha512-ESAQlJGU1W+qp5xTgx5XR+4svqCqGGZNlwkn83K0A0c2FL0x+d9mpX9KmENyb9pt5G6fplFWq8RFebajUYRH4g==
+bullmq@^5.10.3:
+  version "5.10.3"
+  resolved "https://registry.yarnpkg.com/bullmq/-/bullmq-5.10.3.tgz#655d5bc8621ad5fc78f94559206024e3b7639088"
+  integrity sha512-kJZTTPs5WNcNdkqyECXEckgXy7RZgf75emzbiJ+2Q4fKHDvLbeEnbveGwYxncNaJQMcsu6gjr6eHIgMMzD3gSw==
   dependencies:
     cron-parser "^4.6.0"
     ioredis "^5.4.1"

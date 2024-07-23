@@ -10,9 +10,9 @@ import {
   toWei,
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
-import { isContractDeployed } from "thirdweb/utils";
+import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
 import { getChain } from "../../../utils/chain";
-import { resolvePromisedValue } from "../../../utils/resolvePromisedValue";
+import { maybeBigInt } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import { InsertedTransaction } from "../../../utils/transaction/types";
@@ -84,13 +84,9 @@ export async function transfer(fastify: FastifyInstance) {
       const currencyAddress = _currencyAddress.toLowerCase();
       const chainId = await getChainIdFromChain(chain);
       const gasOverrides = {
-        gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
-        maxFeePerGas: txOverrides?.maxFeePerGas
-          ? BigInt(txOverrides.maxFeePerGas)
-          : undefined,
-        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
-          ? BigInt(txOverrides.maxPriorityFeePerGas)
-          : undefined,
+        gas: maybeBigInt(txOverrides?.gas),
+        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
       };
 
       let insertedTransaction: InsertedTransaction;

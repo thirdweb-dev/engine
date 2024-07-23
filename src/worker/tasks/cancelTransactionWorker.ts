@@ -14,7 +14,7 @@ import {
   CancelTransactionData,
   CancelTransactionQueue,
 } from "../queues/cancelTransactionQueue";
-import { logWorkerEvents } from "../queues/queues";
+import { logWorkerExceptions } from "../queues/queues";
 
 /**
  * The CANCEL_TRANSACTION worker is responsible for:
@@ -33,7 +33,6 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     job.log(`Invalid transaction state: ${stringify(sentTransaction)}`);
     return;
   }
-
   const { chainId, from, nonce } = sentTransaction;
 
   const transactionHash = await sendCancellationTransaction({
@@ -77,4 +76,4 @@ const _worker = new Worker(CancelTransactionQueue.name, handler, {
   concurrency: env.CANCEL_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });
-logWorkerEvents(_worker);
+logWorkerExceptions(_worker);

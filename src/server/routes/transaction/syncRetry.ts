@@ -7,6 +7,7 @@ import { getAccount } from "../../../utils/account";
 import { getBlockNumberish } from "../../../utils/block";
 import { getChain } from "../../../utils/chain";
 import { msSince } from "../../../utils/date";
+import { maybeBigInt } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { SentTransaction } from "../../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
@@ -49,7 +50,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
     schema: {
       summary: "Retry transaction (synchronous)",
       description:
-        "Synchronously retry a transaction with updated gas settings.",
+        "Retry a transaction with updated gas settings. Blocks until the transaction is mined or errors.",
       tags: ["Transaction"],
       operationId: "syncRetry",
       body: requestBodySchema,
@@ -86,10 +87,8 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           client: thirdwebClient,
           chain: await getChain(chainId),
           ...transaction,
-          maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
-          maxPriorityFeePerGas: maxPriorityFeePerGas
-            ? BigInt(maxPriorityFeePerGas)
-            : undefined,
+          maxFeePerGas: maybeBigInt(maxFeePerGas),
+          maxPriorityFeePerGas: maybeBigInt(maxPriorityFeePerGas),
           nonce: transaction.nonce,
         },
       });

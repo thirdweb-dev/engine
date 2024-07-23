@@ -7,6 +7,7 @@ import { generateMintSignature } from "thirdweb/extensions/erc1155";
 import { getAccount } from "../../../../../../utils/account";
 import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
 import { getChain } from "../../../../../../utils/chain";
+import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { createCustomError } from "../../../../../middleware/error";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
@@ -178,9 +179,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
             royaltyBps,
             primarySaleRecipient,
             pricePerToken,
-            pricePerTokenWei: pricePerTokenWei
-              ? BigInt(pricePerTokenWei)
-              : undefined,
+            pricePerTokenWei: maybeBigInt(pricePerTokenWei),
             currency,
             validityStartTimestamp: new Date(validityStartTimestamp * 1000),
             validityEndTimestamp: validityEndTimestamp

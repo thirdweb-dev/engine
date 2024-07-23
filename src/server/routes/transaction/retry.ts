@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
+import { maybeBigInt } from "../../../utils/primitiveTypes";
 import { SentTransaction } from "../../../utils/transaction/types";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
@@ -73,10 +74,8 @@ export async function retryTransaction(fastify: FastifyInstance) {
       // Override the gas settings.
       const sentTransaction: SentTransaction = {
         ...transaction,
-        maxFeePerGas: maxFeePerGas ? BigInt(maxFeePerGas) : undefined,
-        maxPriorityFeePerGas: maxPriorityFeePerGas
-          ? BigInt(maxPriorityFeePerGas)
-          : undefined,
+        maxFeePerGas: maybeBigInt(maxFeePerGas),
+        maxPriorityFeePerGas: maybeBigInt(maxPriorityFeePerGas),
       };
       await TransactionDB.set(sentTransaction);
       await SendTransactionQueue.add({

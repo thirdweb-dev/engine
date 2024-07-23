@@ -1,13 +1,9 @@
 import { randomUUID } from "crypto";
-import { estimateGasCost, prepareTransaction } from "thirdweb";
-import { getWalletBalance } from "thirdweb/wallets";
 import { TransactionDB } from "../../db/transactions/db";
 import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
-import { getChain } from "../chain";
-import { thirdwebClient } from "../sdk";
 import { reportUsage } from "../usage";
-import { simulateQueuedTransaction } from "./simulateTransaction";
+import { simulateQueuedTransaction } from "./simulateQueuedTransaction";
 import { InsertedTransaction, QueuedTransaction } from "./types";
 
 interface InsertTransactionData {
@@ -37,9 +33,6 @@ export const insertTransaction = async (
     value: value ?? 0n,
     retryCount: 0,
   };
-  if (extension === "withdraw") {
-    queuedTransaction.value = await getWithdrawValue(queuedTransaction);
-  }
 
   // Simulate the transaction.
   if (shouldSimulate) {
@@ -61,34 +54,4 @@ export const insertTransaction = async (
 
   reportUsage([{ action: "queue_tx", input: queuedTransaction }]);
   return queueId;
-};
-
-// This logic is more accurate in the worker, but withdraws are generally not used programmatically during high volume.
-const getWithdrawValue = async (
-  queuedTransaction: QueuedTransaction,
-): Promise<bigint> => {
-  const { chainId, from } = queuedTransaction;
-
-  const chain = await getChain(chainId);
-
-  // Get wallet balance.
-  const { value: balanceWei } = await getWalletBalance({
-    address: from,
-    client: thirdwebClient,
-    chain,
-  });
-
-  // Estimate gas for a transfer.
-  const transaction = prepareTransaction({
-    chain,
-    client: thirdwebClient,
-    value: 1n, // dummy value
-    to: from, // dummy value
-  });
-  const { wei: transferCostWei } = await estimateGasCost({ transaction });
-
-  // Add a +50% buffer for gas variance.
-  const buffer = transferCostWei / 2n;
-
-  return balanceWei - transferCostWei - buffer;
 };

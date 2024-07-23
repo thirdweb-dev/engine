@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteWalletNonces } from "../../../db/wallets/walletNonce";
+import { deleteAllNonces } from "../../../db/wallets/walletNonce";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const responseSchema = Type.Object({
@@ -34,7 +34,7 @@ export const resetBackendWalletNonces = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, reply) => {
-      await deleteWalletNonces();
+      await deleteAllNonces();
 
       reply.status(StatusCodes.OK).send({
         result: {

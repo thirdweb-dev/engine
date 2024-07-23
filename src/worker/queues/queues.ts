@@ -13,13 +13,18 @@ export const defaultJobOptions: JobsOptions = {
   },
 };
 
-export const logWorkerEvents = (worker: Worker) => {
+export const logWorkerExceptions = (worker: Worker) => {
   worker.on("failed", (job: Job | undefined, err: Error) => {
+    if (!job) {
+      return;
+    }
+
+    job.log(`Job failed: ${err.message}`);
     logger({
       level: "error",
-      message: `[${worker.name}] Failed: ${
-        job?.id ?? "<no job ID>"
-      } , Job Data: ${job?.data}, with error: ${err.message} ${
+      message: `[${worker.name}] Job failed. jobId="${job.id}" data="${
+        job.data
+      }", error="${err.message}" ${
         env.NODE_ENV === "development" ? err.stack : ""
       }`,
       service: "worker",

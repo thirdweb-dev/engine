@@ -10,9 +10,11 @@ import {
 
 // Init workers.
 import "./tasks/cancelTransactionWorker";
+import "./tasks/cancelUnusedNoncesWorker";
 import "./tasks/mineTransactionWorker";
 import "./tasks/processEventLogsWorker";
 import "./tasks/processTransactionReceiptsWorker";
+import "./tasks/pruneTransactionsWorker";
 import "./tasks/sendTransactionWorker";
 import "./tasks/sendWebhookWorker";
 

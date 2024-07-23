@@ -1,10 +1,13 @@
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
-import { toSerializableTransaction } from "thirdweb";
+import { Hex, toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
-import { incrWalletNonce } from "../../db/wallets/walletNonce";
+import {
+  addUnusedNonce,
+  getAndUpdateNonce,
+} from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
@@ -12,19 +15,17 @@ import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
-import { simulateQueuedTransaction } from "../../utils/transaction/simulateTransaction";
+import { simulateQueuedTransaction } from "../../utils/transaction/simulateQueuedTransaction";
 import {
   ErroredTransaction,
   QueuedTransaction,
   SentTransaction,
 } from "../../utils/transaction/types";
-import {
-  generateSignedUserOperation,
-  isUserOperation,
-} from "../../utils/transaction/userOperation";
+import { generateSignedUserOperation } from "../../utils/transaction/userOperation";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
+import { logWorkerExceptions } from "../queues/queues";
 import {
   SendTransactionData,
   SendTransactionQueue,
@@ -86,8 +87,7 @@ const _handleQueuedTransaction = async (
   }
 
   // Handle sending an AA user operation.
-  const isUserOp = isUserOperation(queuedTransaction);
-  if (isUserOp) {
+  if (queuedTransaction.isUserOp) {
     const signedUserOp = await generateSignedUserOperation(queuedTransaction);
     const userOpHash = await bundleUserOp({
       userOp: signedUserOp,
@@ -122,20 +122,29 @@ const _handleQueuedTransaction = async (
   });
   job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
 
-  // If likely to succeed onchain, increment the nonce.
-  populatedTransaction.nonce = await incrWalletNonce(chainId, from);
+  // Acquire an unused nonce for this transaction.
+  const nonce = await getAndUpdateNonce(chainId, from);
 
   // Send transaction to RPC.
-  const account = await getAccount({ chainId, from });
-  const { transactionHash } = await account.sendTransaction(
-    populatedTransaction,
-  );
+  let transactionHash: Hex;
+  try {
+    const account = await getAccount({ chainId, from });
+    const sendTransactionResult = await account.sendTransaction({
+      ...populatedTransaction,
+      nonce,
+    });
+    transactionHash = sendTransactionResult.transactionHash;
+  } catch (e) {
+    // This transaction was rejected by RPC. Release the nonce to be reused by
+    await addUnusedNonce(chainId, from, nonce);
+    throw e;
+  }
 
   return {
     ...queuedTransaction,
     status: "sent",
     isUserOp: false,
-    nonce: populatedTransaction.nonce,
+    nonce,
     sentTransactionHashes: [transactionHash],
     retryCount: 0,
     sentAt: new Date(),
@@ -233,6 +242,7 @@ const _worker = new Worker(SendTransactionQueue.name, handler, {
   concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
   connection: redis,
 });
+logWorkerExceptions(_worker);
 
 // If a transaction fails to send after all retries, error it.
 _worker.on("failed", async (job: Job<string> | undefined, error: Error) => {

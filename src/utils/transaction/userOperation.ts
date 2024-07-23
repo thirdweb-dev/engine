@@ -6,6 +6,7 @@ import {
   readContract,
   resolveMethod,
 } from "thirdweb";
+import { resolvePromisedValue } from "thirdweb/utils";
 import {
   UserOperation,
   createUnsignedUserOp,
@@ -82,19 +83,9 @@ export const generateSignedUserOperation = async (
     value,
   });
 
-  // Change this with resolvePromisedValue
-  const toAddress =
-    typeof preparedTransaction.to === "function"
-      ? await preparedTransaction.to()
-      : preparedTransaction.to;
-  const txValue =
-    typeof preparedTransaction.value === "function"
-      ? await preparedTransaction.value()
-      : preparedTransaction.value;
-  const txData =
-    typeof preparedTransaction.data === "function"
-      ? await preparedTransaction.data()
-      : preparedTransaction.data;
+  const toAddress = await resolvePromisedValue(preparedTransaction.to);
+  const txValue = await resolvePromisedValue(preparedTransaction.value);
+  const txData = await resolvePromisedValue(preparedTransaction.data);
 
   // Prepare UserOperation Call
   const userOpCall = prepareContractCall({

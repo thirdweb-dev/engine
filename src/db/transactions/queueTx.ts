@@ -2,6 +2,7 @@ import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { Address } from "thirdweb";
 import type { ContractExtension } from "../../schema/extension";
+import { maybeBigInt } from "../../utils/primitiveTypes";
 import { insertTransaction } from "../../utils/transaction/insertTransaction";
 
 interface QueueTxParams {
@@ -65,13 +66,9 @@ export const queueTx = async ({
         signerAddress,
         accountAddress,
         target,
-        gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
-        maxFeePerGas: txOverrides?.maxFeePerGas
-          ? BigInt(txOverrides?.maxFeePerGas)
-          : undefined,
-        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
-          ? BigInt(txOverrides?.maxPriorityFeePerGas)
-          : undefined,
+        gas: maybeBigInt(txOverrides?.gas),
+        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
         from: signerAddress,
       },
       idempotencyKey,
@@ -96,13 +93,9 @@ export const queueTx = async ({
         deployedContractType,
         from: fromAddress.toLowerCase() as Address,
         to: toAddress?.toLowerCase() as Address,
-        gas: txOverrides?.gas ? BigInt(txOverrides.gas) : undefined,
-        maxFeePerGas: txOverrides?.maxFeePerGas
-          ? BigInt(txOverrides?.maxFeePerGas)
-          : undefined,
-        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas
-          ? BigInt(txOverrides?.maxPriorityFeePerGas)
-          : undefined,
+        gas: maybeBigInt(txOverrides?.gas),
+        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
       },
       idempotencyKey,
       shouldSimulate: simulateTx,

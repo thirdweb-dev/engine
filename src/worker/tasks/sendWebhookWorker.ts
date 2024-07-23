@@ -11,7 +11,7 @@ import {
 import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
 import { redis } from "../../utils/redis/redis";
 import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
-import { logWorkerEvents } from "../queues/queues";
+import { logWorkerExceptions } from "../queues/queues";
 import {
   SEND_WEBHOOK_QUEUE_NAME,
   WebhookJob,
@@ -75,4 +75,4 @@ const _worker = new Worker(SEND_WEBHOOK_QUEUE_NAME, handler, {
   concurrency: 10,
   connection: redis,
 });
-logWorkerEvents(_worker);
+logWorkerExceptions(_worker);
