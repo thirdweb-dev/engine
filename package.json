@@ -1,5 +1,5 @@
 {
-  "name": "web3-api",
+  "name": "engine",
   "version": "0.1.0",
   "license": "Apache-2.0",
   "description": "thirdweb Engine",
@@ -52,6 +52,7 @@
     "cookie-parser": "^1.4.6",
     "copyfiles": "^2.4.1",
     "cron-parser": "^4.9.0",
+    "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.0.3",
     "ethers": "5",
