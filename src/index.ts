@@ -12,7 +12,7 @@ main();
 
 // Adding handlers for `uncaughtException` & `unhandledRejection`
 // Needs to be root level of your application to ensure it
-// catches any unhandled exceptions that occur throughout
+// catches any unhandledRejections or uncaughtException that occur throughout
 // entire codebase
 
 process.on("uncaughtException", (err) => {
