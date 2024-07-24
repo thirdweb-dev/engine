@@ -9,7 +9,6 @@ import {
 } from "./listeners/webhookListener";
 
 // Init workers.
-import "./tasks/cancelTransactionWorker";
 import "./tasks/cancelUnusedNoncesWorker";
 import "./tasks/mineTransactionWorker";
 import "./tasks/processEventLogsWorker";

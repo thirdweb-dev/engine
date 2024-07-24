@@ -29,20 +29,21 @@ import {
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-// INPUTS
 const requestSchema = Type.Omit(walletWithAddressParamSchema, [
   "walletAddress",
 ]);
 const requestBodySchema = Type.Object({
   to: Type.String({
-    description: "Address of the wallet to transfer to",
+    description: "The recipient wallet address.",
   }),
   currencyAddress: Type.String({
-    description: "Address of the token to transfer",
+    description:
+      "The token address to transfer. Set to for the chain's native currency.",
     default: constants.AddressZero,
   }),
   amount: Type.String({
-    description: "The amount of tokens to transfer",
+    description:
+      'The amount in ether to transfer. Example: "0.1" to send 0.1 ETH.',
   }),
   ...txOverridesWithValueSchema.properties,
 });
@@ -59,7 +60,7 @@ export async function transfer(fastify: FastifyInstance) {
     schema: {
       summary: "Transfer tokens",
       description:
-        "Transfer native or ERC20 tokens from this wallet to another wallet",
+        "Transfer native currency or ERC20 tokens to another wallet.",
       tags: ["Backend Wallet"],
       operationId: "transfer",
       params: requestSchema,

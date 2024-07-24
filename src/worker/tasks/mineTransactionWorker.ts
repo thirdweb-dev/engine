@@ -9,6 +9,7 @@ import {
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
+import { releaseNonce } from "../../db/wallets/walletNonce";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getChain } from "../../utils/chain";
@@ -24,7 +25,6 @@ import {
 } from "../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
-import { CancelTransactionQueue } from "../queues/cancelTransactionQueue";
 import {
   MineTransactionData,
   MineTransactionQueue,
@@ -227,23 +227,24 @@ _worker.on("failed", async (job: Job<string> | undefined) => {
       return;
     }
 
-    if (sentTransaction.isUserOp) {
-      // If userOp, set as errored.
-      job.log("Transaction is unmined after timeout. Erroring transaction...");
-      const erroredTransaction: ErroredTransaction = {
-        ...sentTransaction,
-        status: "errored",
-        errorMessage: "Transaction Timed out.",
-      };
-      await TransactionDB.set(erroredTransaction);
-      await enqueueTransactionWebhook(erroredTransaction);
-      _reportUsageError(erroredTransaction);
-    } else {
-      // If EOA transaction, enqueue a cancel job.
-      job.log(
-        "Transaction is unmined after timeout. Cancelling transaction...",
+    job.log("Transaction is unmined after timeout. Erroring transaction...");
+    const erroredTransaction: ErroredTransaction = {
+      ...sentTransaction,
+      status: "errored",
+      errorMessage: "Transaction timed out.",
+    };
+    await TransactionDB.set(erroredTransaction);
+    await enqueueTransactionWebhook(erroredTransaction);
+    _reportUsageError(erroredTransaction);
+
+    if (!sentTransaction.isUserOp) {
+      // Release the nonce to allow another transaction to acquire it.
+      job.log(`Releasing nonce ${sentTransaction.nonce}.`);
+      await releaseNonce(
+        sentTransaction.chainId,
+        sentTransaction.from,
+        sentTransaction.nonce,
       );
-      await CancelTransactionQueue.add({ queueId });
     }
   }
 });

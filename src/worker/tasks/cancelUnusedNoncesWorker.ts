@@ -30,7 +30,14 @@ const handler: Processor<any, void, string> = async (_: Job<string>) => {
             nonce,
           });
           success.push(nonce);
-        } catch (e) {
+        } catch (e: unknown) {
+          // If the error suggests the nonce is already used, do not release the nonce.
+          if (isNonceUsedOnchain(e)) {
+            success.push(nonce);
+            continue;
+          }
+
+          // Otherwise release the nonce so it can be re-used or cancelled again later.
           await releaseNonce(chainId, walletAddress, nonce);
           fail.push(nonce);
         }
@@ -63,6 +70,20 @@ const getAndDeleteUnusedNonces = async (key: string) => {
 `;
   const results = (await redis.eval(script, 0, key)) as string[];
   return results.map(parseInt);
+};
+
+/**
+ * Returns true if the error suggests the nonce is used onchain.
+ * @param error
+ * @returns
+ */
+const isNonceUsedOnchain = (error: unknown) => {
+  if (error instanceof Error) {
+    if (error.message.toLowerCase().includes("nonce too low")) {
+      return true;
+    }
+  }
+  return false;
 };
 
 // Worker

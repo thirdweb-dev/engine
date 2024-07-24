@@ -17,6 +17,7 @@ export class MineTransactionQueue {
       // Delay confirming the tx by 500ms.
       delay: 500,
       // Check in 5s, 10s, 20s, 40s, 80s, 160s, 320s, 640s, 1280s, 2560s (~45 minutes)
+      // This needs to be long enough to handle transactions stuck in mempool for a while.
       attempts: 10,
       backoff: { type: "exponential", delay: 5_000 },
     },
