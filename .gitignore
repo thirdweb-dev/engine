@@ -148,3 +148,6 @@ credentials
 
 # SSL Local Certs folder
 https
+
+# Auto generated OpenAPI file
+openapi.json
