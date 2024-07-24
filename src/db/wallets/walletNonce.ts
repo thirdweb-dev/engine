@@ -48,10 +48,6 @@ export const releaseNonce = async (
   walletAddress: Address,
   nonce: number,
 ) => {
-  if (isNaN(nonce) || nonce < 3) {
-    throw new Error(`**** NONCE IS BAD WHY???: ${nonce}`);
-  }
-
   const key = unusedNoncesKey(chainId, walletAddress);
   await redis.rpush(key, nonce);
 };
