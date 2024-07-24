@@ -148,7 +148,7 @@ const _handleTransaction = async (
       logger({
         level: "warn",
         queueId,
-        message: `Transaction is unmined before timeout: ${sentTransaction.sentTransactionHashes[0]} `,
+        message: `Transaction is unmined before timeout: ${sentTransaction.sentTransactionHashes[0]}`,
         service: "worker",
       });
       await SendTransactionQueue.add({

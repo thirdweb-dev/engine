@@ -6,10 +6,10 @@ export const defaultJobOptions: JobsOptions = {
   attempts: 3,
   // Retries after 5s, 10s, 20s.
   backoff: { type: "exponential", delay: 5_000 },
-  // Purges completed jobs past 500 or 5 days.
+  // Purges completed jobs past 2000 or 5 days.
   removeOnComplete: {
-    age: 60 * 60 * 24 * 5,
-    count: 1000,
+    age: 60 * 60 * 24 * 7,
+    count: 2000,
   },
 };
 

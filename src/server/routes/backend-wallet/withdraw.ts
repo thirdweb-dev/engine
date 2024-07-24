@@ -16,10 +16,13 @@ import {
   requestQuerystringSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
+import {
+  walletHeaderSchema,
+  walletWithAddressParamSchema,
+} from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const ParamsSchema = Type.Omit(walletParamSchema, ["walletAddress"]);
+const ParamsSchema = Type.Omit(walletWithAddressParamSchema, ["walletAddress"]);
 
 const requestBodySchema = Type.Object({
   toAddress: Type.String({

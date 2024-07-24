@@ -2,12 +2,12 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address } from "thirdweb";
-import { getNonce } from "../../../db/wallets/walletNonce";
+import { inspectNonce } from "../../../db/wallets/walletNonce";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletParamSchema } from "../../schemas/wallet";
+import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const requestSchema = walletParamSchema;
+const requestSchema = walletWithAddressParamSchema;
 
 const responseSchema = Type.Object({
   result: Type.Object({
@@ -43,7 +43,7 @@ export const getBackendWalletNonce = async (fastify: FastifyInstance) => {
     handler: async (req, reply) => {
       const { chain, walletAddress } = req.params;
       const chainId = await getChainIdFromChain(chain);
-      const nonce = await getNonce(chainId, walletAddress as Address);
+      const nonce = await inspectNonce(chainId, walletAddress as Address);
 
       reply.status(StatusCodes.OK).send({
         result: {

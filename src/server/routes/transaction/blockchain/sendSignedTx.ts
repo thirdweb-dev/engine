@@ -6,11 +6,8 @@ import { getChain } from "../../../../utils/chain";
 import { thirdwebClient } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { walletChainParamSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
-
-const ParamsSchema = Type.Object({
-  chain: Type.String(),
-});
 
 const requestBodySchema = Type.Object({
   signedTransaction: Type.String(),
@@ -24,7 +21,7 @@ const responseBodySchema = Type.Object({
 
 export async function sendSignedTransaction(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof ParamsSchema>;
+    Params: Static<typeof walletChainParamSchema>;
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
@@ -35,7 +32,7 @@ export async function sendSignedTransaction(fastify: FastifyInstance) {
       description: "Send a signed transaction",
       tags: ["Transaction"],
       operationId: "sendRawTransaction",
-      params: ParamsSchema,
+      params: walletChainParamSchema,
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,

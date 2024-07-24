@@ -3,7 +3,7 @@ import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import { FastifyInstance } from "fastify";
 import { Address, Hex } from "thirdweb";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
-import { walletParamSchema } from "../server/schemas/wallet";
+import { walletWithAddressParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
 import { env } from "./env";
 import { logger } from "./logger";
@@ -67,7 +67,8 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
     }
 
     const requestParams = request?.params as
-      | (Static<typeof contractParamSchema> & Static<typeof walletParamSchema>)
+      | (Static<typeof contractParamSchema> &
+          Static<typeof walletWithAddressParamSchema>)
       | undefined;
 
     const chainId = requestParams?.chain

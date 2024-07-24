@@ -1,14 +1,16 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { createCustomError } from "../../middleware/error";
+import { Address, Hex } from "thirdweb";
+import { maybeBigInt } from "../../../utils/primitiveTypes";
+import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
-import { walletHeaderSchema } from "../../schemas/wallet";
-
-const ParamsSchema = Type.Object({
-  chain: Type.String(),
-});
+import {
+  walletChainParamSchema,
+  walletHeaderSchema,
+} from "../../schemas/wallet";
+import { getChainIdFromChain } from "../../utils/chain";
 
 const requestBodySchema = Type.Array(
   Type.Object({
@@ -29,14 +31,13 @@ const requestBodySchema = Type.Array(
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
-    groupId: Type.String(),
     queueIds: Type.Array(Type.String()),
   }),
 });
 
 export async function sendTransactionBatch(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof ParamsSchema>;
+    Params: Static<typeof walletChainParamSchema>;
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
@@ -48,22 +49,50 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
         "Send a batch of raw transactions with transaction parameters",
       tags: ["Backend Wallet"],
       operationId: "sendTransactionBatch",
-      params: ParamsSchema,
+      params: walletChainParamSchema,
       body: requestBodySchema,
       headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
-      hide: true,
-      deprecated: true,
     },
     handler: async (request, reply) => {
-      throw createCustomError(
-        "This endpoint is deprecated",
-        StatusCodes.GONE,
-        "ENDPOINT_DEPRECATED",
-      );
+      const { chain } = request.params;
+      const { "x-backend-wallet-address": fromAddress } =
+        request.headers as Static<typeof walletHeaderSchema>;
+      const chainId = await getChainIdFromChain(chain);
+
+      const transactionRequests = request.body;
+
+      const queueIds: string[] = [];
+      for (const transactionRequest of transactionRequests) {
+        const { toAddress, data, value, txOverrides } = transactionRequest;
+
+        const queueId = await insertTransaction({
+          insertedTransaction: {
+            isUserOp: false,
+            chainId,
+            from: fromAddress as Address,
+            to: toAddress as Address | undefined,
+            data: data as Hex,
+            value: BigInt(value),
+
+            gas: maybeBigInt(txOverrides?.gas),
+            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+            maxPriorityFeePerGas: maybeBigInt(
+              txOverrides?.maxPriorityFeePerGas,
+            ),
+          },
+        });
+        queueIds.push(queueId);
+      }
+
+      reply.status(StatusCodes.OK).send({
+        result: {
+          queueIds,
+        },
+      });
     },
   });
 }

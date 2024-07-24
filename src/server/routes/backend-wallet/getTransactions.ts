@@ -7,10 +7,10 @@ import {
   TransactionSchema,
   toTransactionSchema,
 } from "../../schemas/transaction";
-import { walletParamSchema } from "../../schemas/wallet";
+import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const ParamsSchema = walletParamSchema;
+const ParamsSchema = walletWithAddressParamSchema;
 
 const responseBodySchema = Type.Object({
   result: Type.Object({

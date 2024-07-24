@@ -5,10 +5,7 @@ import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
-import {
-  addUnusedNonce,
-  getAndUpdateNonce,
-} from "../../db/wallets/walletNonce";
+import { acquireNonce, releaseNonce } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
@@ -124,7 +121,7 @@ const _handleQueuedTransaction = async (
   job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
 
   // Acquire an unused nonce for this transaction.
-  const nonce = await getAndUpdateNonce(chainId, from);
+  const nonce = await acquireNonce(chainId, from);
 
   // Send transaction to RPC.
   let transactionHash: Hex;
@@ -136,8 +133,8 @@ const _handleQueuedTransaction = async (
     });
     transactionHash = sendTransactionResult.transactionHash;
   } catch (e) {
-    // This transaction was rejected by RPC. Release the nonce to be reused by
-    await addUnusedNonce(chainId, from, nonce);
+    // This transaction was rejected by RPC. Release the nonce to be reused by a future transaction.
+    await releaseNonce(chainId, from, nonce);
     throw e;
   }
 

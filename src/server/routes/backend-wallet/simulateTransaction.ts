@@ -10,16 +10,11 @@ import {
   simulateResponseSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletWithAAHeaderSchema } from "../../schemas/wallet";
+import {
+  walletChainParamSchema,
+  walletWithAAHeaderSchema,
+} from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-
-// INPUT
-const ParamsSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID",
-  }),
-});
 
 const simulateRequestBodySchema = Type.Object({
   toAddress: Type.String({
@@ -58,10 +53,9 @@ const simulateRequestBodySchema = Type.Object({
   ),
 });
 
-// LOGIC
 export async function simulateTransaction(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof ParamsSchema>;
+    Params: Static<typeof walletChainParamSchema>;
     Body: Static<typeof simulateRequestBodySchema>;
     Reply: Static<typeof simulateResponseSchema>;
   }>({
@@ -72,7 +66,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       description: "Simulate a transaction with transaction parameters",
       tags: ["Backend Wallet"],
       operationId: "simulateTransaction",
-      params: ParamsSchema,
+      params: walletChainParamSchema,
       body: simulateRequestBodySchema,
       headers: walletWithAAHeaderSchema,
       response: {

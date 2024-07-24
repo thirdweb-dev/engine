@@ -23,11 +23,16 @@ import {
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
-import { walletHeaderSchema, walletParamSchema } from "../../schemas/wallet";
+import {
+  walletHeaderSchema,
+  walletWithAddressParamSchema,
+} from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
-const requestSchema = Type.Omit(walletParamSchema, ["walletAddress"]);
+const requestSchema = Type.Omit(walletWithAddressParamSchema, [
+  "walletAddress",
+]);
 const requestBodySchema = Type.Object({
   to: Type.String({
     description: "Address of the wallet to transfer to",
