@@ -32,16 +32,10 @@ export const generateSignedUserOperation = async (
     accountAddress,
     target,
     from,
+    data,
   } = queuedTransaction;
 
-  if (
-    !from ||
-    !accountAddress ||
-    !signerAddress ||
-    !target ||
-    !functionName ||
-    !functionArgs
-  ) {
+  if (!from || !accountAddress || !signerAddress || !target) {
     throw new Error("Invalid UserOperation parameters");
   }
 
@@ -76,16 +70,33 @@ export const generateSignedUserOperation = async (
   });
 
   // Prepare Transaction
-  const preparedTransaction = prepareContractCall({
-    contract: targetContract,
-    method: resolveMethod(functionName),
-    params: functionArgs,
-    value,
-  });
+  let preparedTransaction:
+    | Awaited<ReturnType<typeof prepareContractCall>>
+    | undefined;
 
-  const toAddress = await resolvePromisedValue(preparedTransaction.to);
-  const txValue = await resolvePromisedValue(preparedTransaction.value);
-  const txData = await resolvePromisedValue(preparedTransaction.data);
+  let toAddress: string | undefined;
+  let txValue: bigint | undefined;
+  let txData: Hex | undefined;
+
+  // Handle UserOp Requests with FunctionName & Args
+  if (functionName && functionArgs) {
+    preparedTransaction = prepareContractCall({
+      contract: targetContract,
+      method: resolveMethod(functionName),
+      params: functionArgs,
+      value,
+    });
+    toAddress = await resolvePromisedValue(preparedTransaction.to);
+    txValue = await resolvePromisedValue(preparedTransaction.value);
+    txData = await resolvePromisedValue(preparedTransaction.data);
+  } // Handle UserOp Requests with Data & Target
+  else if (data && target) {
+    toAddress = target;
+    txValue = value || 0n;
+    txData = data;
+  } else {
+    throw new Error("Invalid UserOperation parameters");
+  }
 
   // Prepare UserOperation Call
   const userOpCall = prepareContractCall({
@@ -145,15 +156,4 @@ export const generateSignedUserOperation = async (
 
   // Return Signed UserOperation
   return signedUserOp;
-};
-
-export const isUserOperation = (
-  queuedTransaction: QueuedTransaction,
-): boolean => {
-  const { from, accountAddress, signerAddress, target, functionName } =
-    queuedTransaction;
-
-  return Boolean(
-    from && accountAddress && signerAddress && target && functionName,
-  );
 };

@@ -43,7 +43,26 @@ export const simulateQueuedTransaction = async (
   const chain = await getChain(chainId);
 
   let transaction: PreparedTransaction;
-  if (from && accountAddress && signerAddress && target && functionName) {
+  if (data) {
+    // Resolve data.
+    transaction = prepareTransaction({
+      client: thirdwebClient,
+      chain,
+      to,
+      data,
+      value,
+      gas,
+      gasPrice,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
+    });
+  } else if (
+    from &&
+    accountAddress &&
+    signerAddress &&
+    target &&
+    functionName
+  ) {
     try {
       // Resolve Target Contract
       const targetContract = getContract({
@@ -63,19 +82,6 @@ export const simulateQueuedTransaction = async (
     } catch (error: any) {
       return error.toString();
     }
-  } else if (data) {
-    // Resolve data.
-    transaction = prepareTransaction({
-      client: thirdwebClient,
-      chain,
-      to,
-      data,
-      value,
-      gas,
-      gasPrice,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-    });
   } else if (to && functionName && functionArgs) {
     const contract = getContract({
       client: thirdwebClient,

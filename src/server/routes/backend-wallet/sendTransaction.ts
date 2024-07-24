@@ -79,7 +79,27 @@ export async function sendTransaction(fastify: FastifyInstance) {
 
       let queueId: string;
       if (accountAddress) {
-        throw new Error("@TODO: Unimplemented");
+        queueId = await insertTransaction({
+          insertedTransaction: {
+            isUserOp: true,
+            chainId,
+            from: fromAddress as Address,
+            to: toAddress as Address | undefined,
+            data: data as Hex,
+            value: BigInt(value),
+            accountAddress: accountAddress as Address,
+            signerAddress: fromAddress as Address,
+            target: toAddress as Address | undefined,
+
+            gas: maybeBigInt(txOverrides?.gas),
+            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+            maxPriorityFeePerGas: maybeBigInt(
+              txOverrides?.maxPriorityFeePerGas,
+            ),
+          },
+          shouldSimulate: simulateTx,
+          idempotencyKey,
+        });
       } else {
         queueId = await insertTransaction({
           insertedTransaction: {
