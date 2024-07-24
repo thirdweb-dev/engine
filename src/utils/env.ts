@@ -79,9 +79,9 @@ export const env = createEnv({
       .nonnegative()
       .default(0),
     REDIS_URL: z.string(),
-    SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(100),
-    CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(100),
-    CANCEL_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(100),
+    SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1000),
+    CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1000),
+    CANCEL_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1000),
     ENGINE_MODE: z.enum(["sandbox", "unrestricted"]).default("unrestricted"),
   },
   clientPrefix: "NEVER_USED",

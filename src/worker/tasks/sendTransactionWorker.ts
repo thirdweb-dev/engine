@@ -11,6 +11,7 @@ import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
+import { prettifyError } from "../../utils/error";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { simulateQueuedTransaction } from "../../utils/transaction/simulateQueuedTransaction";
@@ -276,7 +277,7 @@ _worker.on("failed", async (job: Job<string> | undefined, error: Error) => {
       const erroredTransaction: ErroredTransaction = {
         ...transaction,
         status: "errored",
-        errorMessage: error.message,
+        errorMessage: await prettifyError(transaction, error),
       };
       await TransactionDB.set(erroredTransaction);
       await enqueueTransactionWebhook(erroredTransaction);

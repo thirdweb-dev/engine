@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { Address } from "thirdweb";
 import { TransactionDB } from "../../db/transactions/db";
 import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
@@ -16,7 +17,6 @@ export const insertTransaction = async (
   args: InsertTransactionData,
 ): Promise<string> => {
   const { insertedTransaction, idempotencyKey, shouldSimulate = false } = args;
-  const { value, extension } = insertedTransaction;
 
   // The queueId is the idempotency key. Default to a random UUID (no idempotency).
   const queueId = idempotencyKey ?? randomUUID();
@@ -30,8 +30,11 @@ export const insertTransaction = async (
     status: "queued",
     queueId,
     queuedAt: new Date(),
-    value: value ?? 0n,
     retryCount: 0,
+
+    from: insertedTransaction.from.toLowerCase() as Address,
+    to: insertedTransaction.to?.toLowerCase() as Address | undefined,
+    value: insertedTransaction.value ?? 0n,
   };
 
   // Simulate the transaction.

@@ -13,15 +13,15 @@ import { getAccount } from "../account";
 import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
 import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
-import { QueuedTransaction } from "./types";
+import { AnyTransaction } from "./types";
 
 /**
  * Simulate the queued transaction.
- * @param queuedTransaction
+ * @param transaction
  * @throws if there is a simulation error
  */
 export const simulateQueuedTransaction = async (
-  queuedTransaction: QueuedTransaction,
+  transaction: AnyTransaction,
 ): Promise<string | null> => {
   const {
     chainId,
@@ -38,11 +38,11 @@ export const simulateQueuedTransaction = async (
     accountAddress,
     target,
     from,
-  } = queuedTransaction;
+  } = transaction;
 
   const chain = await getChain(chainId);
 
-  let transaction: PreparedTransaction;
+  let preparedTransaction: PreparedTransaction;
   if (from && accountAddress && signerAddress && target && functionName) {
     try {
       // Resolve Target Contract
@@ -53,7 +53,7 @@ export const simulateQueuedTransaction = async (
       });
 
       // Prepare UserOperation Transaction
-      transaction = prepareContractCall({
+      preparedTransaction = prepareContractCall({
         contract: targetContract,
         method: await resolveMethod(functionName),
         params: functionArgs ?? [],
@@ -65,7 +65,7 @@ export const simulateQueuedTransaction = async (
     }
   } else if (data) {
     // Resolve data.
-    transaction = prepareTransaction({
+    preparedTransaction = prepareTransaction({
       client: thirdwebClient,
       chain,
       to,
@@ -82,7 +82,7 @@ export const simulateQueuedTransaction = async (
       chain,
       address: to,
     });
-    transaction = await prepareContractCall({
+    preparedTransaction = await prepareContractCall({
       contract,
       method: resolveMethod(functionName),
       params: functionArgs,
@@ -94,7 +94,7 @@ export const simulateQueuedTransaction = async (
     });
   } else {
     throw new Error(
-      `Transaction cannot be simulated: ${stringify(queuedTransaction)}`,
+      `Transaction cannot be simulated: ${stringify(transaction)}`,
     );
   }
 
@@ -114,7 +114,10 @@ export const simulateQueuedTransaction = async (
 
   try {
     // Use an account to simulate the transaction to catch fund errors.
-    await simulateTransaction({ transaction, account });
+    await simulateTransaction({
+      transaction: preparedTransaction,
+      account,
+    });
     return null;
   } catch (e: any) {
     // Error should be of type TransactionError in the thirdweb SDK.
