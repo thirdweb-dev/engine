@@ -1,11 +1,18 @@
 import "./polyfill";
 import { initServer } from "./server";
+import { env } from "./utils/env";
 import { logger } from "./utils/logger";
 import { initWorker } from "./worker";
 
 const main = async () => {
-  initServer();
-  initWorker();
+  if (env.ENGINE_MODE === "server_only") {
+    initServer();
+  } else if (env.ENGINE_MODE === "worker_only") {
+    initWorker();
+  } else {
+    initServer();
+    initWorker();
+  }
 };
 
 main();
