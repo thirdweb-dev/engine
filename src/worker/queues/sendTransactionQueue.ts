@@ -13,7 +13,10 @@ export class SendTransactionQueue {
 
   private static q = new Queue<string>(this.name, {
     connection: redis,
-    defaultJobOptions,
+    defaultJobOptions: {
+      ...defaultJobOptions,
+      attempts: 5,
+    },
   });
 
   // Allow enqueing the same queueId for multiple retries.

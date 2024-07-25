@@ -37,15 +37,13 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
           });
           success.push(nonce);
         } catch (e: unknown) {
-          // If the error suggests the nonce is already used, do not release the nonce.
-          if (isNonceUsedOnchain(e)) {
+          // Release the nonce if it has not expired.
+          if (isEthersErrorCode(e, ethers.errors.NONCE_EXPIRED)) {
             ignore.push(nonce);
-            continue;
+          } else {
+            await releaseNonce(chainId, walletAddress, nonce);
+            fail.push(nonce);
           }
-
-          // Otherwise release the nonce so it can be re-used or cancelled again later.
-          await releaseNonce(chainId, walletAddress, nonce);
-          fail.push(nonce);
         }
       }
 
@@ -74,18 +72,6 @@ const getAndDeleteUnusedNonces = async (key: string) => {
 `;
   const results = (await redis.eval(script, 0, key)) as string[];
   return results.map(parseInt);
-};
-
-/**
- * Returns true if the error suggests the nonce is used onchain.
- * @param error
- * @returns true if the nonce is already used.
- */
-const isNonceUsedOnchain = (error: unknown) => {
-  if (isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
-    return true;
-  }
-  return false;
 };
 
 // Worker

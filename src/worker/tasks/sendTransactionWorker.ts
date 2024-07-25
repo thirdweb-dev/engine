@@ -1,8 +1,10 @@
 import { Job, Processor, Worker } from "bullmq";
+import { ethers } from "ethers";
 import superjson from "superjson";
 import { Hex, toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
+import type { TransactionSerializable } from "viem";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
 import { acquireNonce, releaseNonce } from "../../db/wallets/walletNonce";
@@ -12,9 +14,9 @@ import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { prettifyError } from "../../utils/error";
+import { isEthersErrorCode } from "../../utils/ethers";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
-import { simulateQueuedTransaction } from "../../utils/transaction/simulateQueuedTransaction";
 import {
   ErroredTransaction,
   QueuedTransaction,
@@ -76,15 +78,6 @@ const _handleQueuedTransaction = async (
   const { chainId, from } = queuedTransaction;
   const chain = await getChain(chainId);
 
-  const simulateError = await simulateQueuedTransaction(queuedTransaction);
-  if (simulateError) {
-    return {
-      ...queuedTransaction,
-      status: "errored",
-      errorMessage: simulateError,
-    };
-  }
-
   // Handle sending an AA user operation.
   if (queuedTransaction.isUserOp) {
     const signedUserOp = await generateSignedUserOperation(queuedTransaction);
@@ -110,33 +103,45 @@ const _handleQueuedTransaction = async (
     };
   }
 
-  // Prepare nonce + gas settings.
-  const populatedTransaction = await toSerializableTransaction({
-    from,
-    transaction: {
-      client: thirdwebClient,
-      chain,
+  let populatedTransaction: TransactionSerializable;
+  try {
+    populatedTransaction = await toSerializableTransaction({
+      from,
+      transaction: {
+        client: thirdwebClient,
+        chain,
+        ...queuedTransaction,
+      },
+    });
+  } catch (error: unknown) {
+    // If the transaction will revert, error.message contains the human-readable error.
+    const errorMessage = (error as Error)?.message ?? `${error}`;
+    return {
       ...queuedTransaction,
-    },
-  });
-  job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
+      status: "errored",
+      errorMessage,
+    };
+  }
 
   // Acquire an unused nonce for this transaction.
   const nonce = await acquireNonce(chainId, from);
+  populatedTransaction.nonce = nonce;
+  job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
 
   // Send transaction to RPC.
   let transactionHash: Hex;
   try {
     const account = await getAccount({ chainId, from });
-    const sendTransactionResult = await account.sendTransaction({
-      ...populatedTransaction,
-      nonce,
-    });
+    const sendTransactionResult = await account.sendTransaction(
+      populatedTransaction,
+    );
     transactionHash = sendTransactionResult.transactionHash;
-  } catch (e) {
-    // This transaction was rejected by RPC. Release the nonce to be reused by a future transaction.
-    await releaseNonce(chainId, from, nonce);
-    throw e;
+  } catch (error: unknown) {
+    // Release the nonce if it has not expired.
+    if (!isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
+      await releaseNonce(chainId, from, nonce);
+    }
+    throw error;
   }
 
   return {
