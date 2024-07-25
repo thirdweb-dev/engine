@@ -109,7 +109,7 @@ export const env = createEnv({
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
     ENGINE_MODE: process.env.ENGINE_MODE,
-    GLOBAL_RATE_LIMIT_PER_MIN: process.env.RATE_LIMIT_PER_MIN,
+    GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
   },
   onValidationError: (error: ZodError) => {
     console.error(
