@@ -62,6 +62,7 @@ export const initServer = async () => {
   await withRequestLogs(server);
   await withErrorHandler(server);
   await withEnforceEngineMode(server);
+  await withRateLimit(server);
   await withWebSocket(server);
   await withAuth(server);
   await withExpress(server);
