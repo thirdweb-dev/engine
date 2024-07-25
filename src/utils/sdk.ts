@@ -1,5 +1,5 @@
 import { sha256HexSync } from "@thirdweb-dev/crypto";
-import { Chain, createThirdwebClient, getRpcClient } from "thirdweb";
+import { createThirdwebClient } from "thirdweb";
 import { env } from "./env";
 
 export const thirdwebClientId = sha256HexSync(
@@ -12,21 +12,6 @@ export const thirdwebClient = createThirdwebClient({
     rpc: { maxBatchSize: 50 },
   },
 });
-
-/**
- * Share rpcRequest objects to reuse cached data.
- */
-const _rpcClientByChain: Record<number, ReturnType<typeof getRpcClient>> = {};
-
-export const getRpcRequest = (chain: Chain) => {
-  if (!(chain.id in _rpcClientByChain)) {
-    _rpcClientByChain[chain.id] = getRpcClient({
-      client: thirdwebClient,
-      chain,
-    });
-  }
-  return _rpcClientByChain[chain.id];
-};
 
 /**
  * Helper functions to handle v4 -> v5 SDK migration.

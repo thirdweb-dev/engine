@@ -10,6 +10,7 @@ import {
   eth_getBlockByHash,
   getContract,
   getContractEvents,
+  getRpcClient,
   prepareEvent,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
@@ -20,7 +21,7 @@ import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
-import { getRpcRequest, thirdwebClient } from "../../utils/sdk";
+import { thirdwebClient } from "../../utils/sdk";
 import {
   EnqueueProcessEventLogsData,
   PROCESS_EVENT_LOGS_QUEUE_NAME,
@@ -249,7 +250,7 @@ const getBlockTimestamps = async (
 ): Promise<Record<Hash, Date>> => {
   const now = new Date();
   const dedupe = Array.from(new Set(blockHashes));
-  const rpcRequest = getRpcRequest(chain);
+  const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
 
   const blocks = await Promise.all(
     dedupe.map(async (blockHash) => {

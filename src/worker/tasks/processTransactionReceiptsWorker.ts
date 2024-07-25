@@ -8,6 +8,7 @@ import {
   eth_getBlockByNumber,
   eth_getTransactionReceipt,
   getContract,
+  getRpcClient,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import { Abi, Hash, decodeFunctionData } from "viem";
@@ -16,7 +17,7 @@ import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
-import { getRpcRequest, thirdwebClient } from "../../utils/sdk";
+import { thirdwebClient } from "../../utils/sdk";
 import {
   EnqueueProcessTransactionReceiptsData,
   PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME,
@@ -95,7 +96,7 @@ const getFormattedTransactionReceipts = async ({
   }
 
   const chain = await getChain(chainId);
-  const rpcRequest = getRpcRequest(chain);
+  const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
 
   // Get array of block numbers between `fromBlock` and `toBlock` inclusive.
   const blockRange: bigint[] = [];

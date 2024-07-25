@@ -1,7 +1,7 @@
-import { Address, eth_getTransactionCount } from "thirdweb";
+import { Address, eth_getTransactionCount, getRpcClient } from "thirdweb";
 import { getChain } from "../../utils/chain";
 import { redis } from "../../utils/redis/redis";
-import { getRpcRequest } from "../../utils/sdk";
+import { thirdwebClient } from "../../utils/sdk";
 
 // Data type: String
 const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
@@ -68,7 +68,10 @@ const _syncNonce = async (
   chainId: number,
   walletAddress: Address,
 ): Promise<number> => {
-  const rpcRequest = getRpcRequest(await getChain(chainId));
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain: await getChain(chainId),
+  });
 
   // The next unused nonce = transactionCount.
   const transactionCount = await eth_getTransactionCount(rpcRequest, {
