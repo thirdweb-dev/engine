@@ -57,8 +57,7 @@ RUN apt-get install -y g++ make python3-pip && \
     yarn build && \
     yarn copy-files && \
     rm -rf node_modules && \
-    yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
-    apt del build-dependencies
+    yarn install --production=true --frozen-lockfile --network-timeout 1000000
 
 
 ##############################
