@@ -79,7 +79,9 @@ export const env = createEnv({
       .nonnegative()
       .default(0),
     REDIS_URL: z.string(),
-    ENGINE_MODE: z.enum(["sandbox", "unrestricted"]).default("unrestricted"),
+    ENGINE_MODE: z
+      .enum(["default", "sandbox", "server_only", "worker_only"])
+      .default("default"),
   },
   clientPrefix: "NEVER_USED",
   client: {},
