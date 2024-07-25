@@ -5,6 +5,7 @@ RUN apt-get -y update && apt-get -y upgrade
 
 # Install tini & build dependencies
 RUN apt-get install -y g++ make python3-pip openssl
+
 # Set the working directory
 WORKDIR /app
 
@@ -70,8 +71,11 @@ FROM node:18.20-slim AS prod
 ARG ENGINE_VERSION
 ENV ENGINE_VERSION=${ENGINE_VERSION}
 
-# Install tini
-# RUN apt-get install -y tini
+# Upgrade packages
+RUN apt-get -y update && apt-get -y upgrade
+
+# Install openssl
+RUN apt-get install -y openssl
 
 # Set the working directory
 WORKDIR /app
