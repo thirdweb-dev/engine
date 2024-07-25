@@ -30,8 +30,12 @@ import { logWorkerEvents } from "../queues/queues";
 import { enqueueWebhook } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const { chainId, filters, fromBlock, toBlock } =
-    superjson.parse<EnqueueProcessEventLogsData>(job.data);
+  const {
+    chainId,
+    filters = [],
+    fromBlock,
+    toBlock,
+  } = superjson.parse<EnqueueProcessEventLogsData>(job.data);
 
   const logs = await getLogs({
     chainId,
