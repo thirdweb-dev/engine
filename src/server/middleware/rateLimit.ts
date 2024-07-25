@@ -9,8 +9,10 @@ export const withRateLimit = async (server: FastifyInstance) => {
     const epochTimeInMinutes = Math.floor(new Date().getTime() / (1000 * 60));
     const key = `rate-limit:global:${epochTimeInMinutes}`;
     const count = await redis.incr(key);
+    redis.expire(key, 2 * 60);
+
     if (count > env.GLOBAL_RATE_LIMIT_PER_MIN) {
-      return createCustomError(
+      throw createCustomError(
         `Too many requests. Please reduce your calls to ${env.GLOBAL_RATE_LIMIT_PER_MIN} requests/minute or update the "GLOBAL_RATE_LIMIT_PER_MIN" env var.`,
         StatusCodes.TOO_MANY_REQUESTS,
         "TOO_MANY_REQUESTS",
