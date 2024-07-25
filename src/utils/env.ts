@@ -82,6 +82,7 @@ export const env = createEnv({
     ENGINE_MODE: z
       .enum(["default", "sandbox", "server_only", "worker_only"])
       .default("default"),
+    GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -108,6 +109,7 @@ export const env = createEnv({
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
     ENGINE_MODE: process.env.ENGINE_MODE,
+    GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
   },
   onValidationError: (error: ZodError) => {
     console.error(
