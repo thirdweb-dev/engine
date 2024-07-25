@@ -1,9 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { eth_sendRawTransaction, getRpcClient, isHex } from "thirdweb";
+import { eth_sendRawTransaction, isHex } from "thirdweb";
 import { getChain } from "../../../../utils/chain";
-import { thirdwebClient } from "../../../../utils/sdk";
+import { getRpcRequest } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { walletChainParamSchema } from "../../../schemas/wallet";
@@ -52,12 +52,9 @@ export async function sendSignedTransaction(fastify: FastifyInstance) {
         );
       }
 
-      const rpc = getRpcClient({
-        chain: await getChain(chainId),
-        client: thirdwebClient,
-      });
+      const rpcRequest = getRpcRequest(await getChain(chainId));
       const transactionHash = await eth_sendRawTransaction(
-        rpc,
+        rpcRequest,
         signedTransaction,
       );
 

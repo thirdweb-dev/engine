@@ -1,7 +1,7 @@
-import { eth_blockNumber, getRpcClient } from "thirdweb";
+import { eth_blockNumber } from "thirdweb";
 import { getChain } from "./chain";
 import { redis } from "./redis/redis";
-import { thirdwebClient } from "./sdk";
+import { getRpcRequest } from "./sdk";
 
 /**
  * Returns the latest block number. Falls back to the last known block number.
@@ -11,16 +11,12 @@ import { thirdwebClient } from "./sdk";
  * @returns bigint - The latest block number.
  */
 export const getBlockNumberish = async (chainId: number): Promise<bigint> => {
-  const chain = await getChain(chainId);
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain,
-  });
+  const rpcRequest = getRpcRequest(await getChain(chainId));
 
   const key = `latestBlock:${chainId}`;
   try {
     const blockNumber = await eth_blockNumber(rpcRequest);
-    // Non-blocking cache.
+    // Non-blocking update to cache.
     redis.set(key, blockNumber.toString()).catch((e) => {});
     return blockNumber;
   } catch (e) {

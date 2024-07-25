@@ -4,7 +4,6 @@ import {
   Address,
   eth_getTransactionByHash,
   eth_getTransactionReceipt,
-  getRpcClient,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
@@ -17,7 +16,7 @@ import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
-import { thirdwebClient } from "../../utils/sdk";
+import { getRpcRequest, thirdwebClient } from "../../utils/sdk";
 import {
   ErroredTransaction,
   MinedTransaction,
@@ -103,13 +102,8 @@ const _handleTransaction = async (
 ): Promise<MinedTransaction | null> => {
   const { queueId, chainId, sentTransactionHashes } = sentTransaction;
 
-  const chain = await getChain(chainId);
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain,
-  });
-
   // Check all sent transaction hashes since any retry could succeed.
+  const rpcRequest = getRpcRequest(await getChain(chainId));
   const receiptResults = await Promise.allSettled(
     sentTransactionHashes.map((hash) =>
       eth_getTransactionReceipt(rpcRequest, { hash }),
@@ -172,10 +166,6 @@ const _handleUserOp = async (
 ): Promise<MinedTransaction> => {
   const { chainId, userOpHash } = sentTransaction;
   const chain = await getChain(chainId);
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain,
-  });
 
   const userOpReceiptRaw = await getUserOpReceiptRaw({
     client: thirdwebClient,
@@ -183,6 +173,7 @@ const _handleUserOp = async (
     userOpHash,
   });
   if (userOpReceiptRaw) {
+    const rpcRequest = getRpcRequest(chain);
     const transaction = await eth_getTransactionByHash(rpcRequest, {
       hash: userOpReceiptRaw.receipt.transactionHash,
     });

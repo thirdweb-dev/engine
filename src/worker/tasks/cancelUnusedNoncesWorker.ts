@@ -1,6 +1,8 @@
 import { Job, Processor, Worker } from "bullmq";
+import { ethers } from "ethers";
 import { Address } from "thirdweb";
 import { releaseNonce } from "../../db/wallets/walletNonce";
+import { isEthersErrorCode } from "../../utils/ethers";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { sendCancellationTransaction } from "../../utils/transaction/cancelTransaction";
@@ -13,15 +15,19 @@ import { logWorkerExceptions } from "../queues/queues";
  * - Cancel the transaction.
  * - If failed, add it back to the unused nonces list.
  */
-const handler: Processor<any, void, string> = async (_: Job<string>) => {
+const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const keys = await redis.keys("nonce-unused:*");
+
   for (const key of keys) {
     const { chainId, walletAddress } = fromUnusedNoncesKey(key);
 
     const unusedNonces = await getAndDeleteUnusedNonces(key);
+    job.log(`Found unused nonces: key=${key} nonces=${unusedNonces}`);
+
     if (unusedNonces.length > 0) {
       const success: number[] = [];
       const fail: number[] = [];
+      const ignore: number[] = [];
       for (const nonce of unusedNonces) {
         try {
           await sendCancellationTransaction({
@@ -33,7 +39,7 @@ const handler: Processor<any, void, string> = async (_: Job<string>) => {
         } catch (e: unknown) {
           // If the error suggests the nonce is already used, do not release the nonce.
           if (isNonceUsedOnchain(e)) {
-            success.push(nonce);
+            ignore.push(nonce);
             continue;
           }
 
@@ -43,11 +49,9 @@ const handler: Processor<any, void, string> = async (_: Job<string>) => {
         }
       }
 
-      logger({
-        level: "info",
-        message: `Cancelling nonces for ${key}. success=${success} fail=${fail}`,
-        service: "worker",
-      });
+      const message = `Cancelling nonces for ${key}. success=${success} fail=${fail} ignored=${ignore}`;
+      job.log(message);
+      logger({ level: "info", message, service: "worker" });
     }
   }
 };
@@ -75,13 +79,11 @@ const getAndDeleteUnusedNonces = async (key: string) => {
 /**
  * Returns true if the error suggests the nonce is used onchain.
  * @param error
- * @returns
+ * @returns true if the nonce is already used.
  */
 const isNonceUsedOnchain = (error: unknown) => {
-  if (error instanceof Error) {
-    if (error.message.toLowerCase().includes("nonce too low")) {
-      return true;
-    }
+  if (isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
+    return true;
   }
   return false;
 };
