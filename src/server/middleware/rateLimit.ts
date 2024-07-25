@@ -11,7 +11,7 @@ export const withRateLimit = async (server: FastifyInstance) => {
     const count = await redis.incr(key);
     if (count > env.GLOBAL_RATE_LIMIT_PER_MIN) {
       return createCustomError(
-        `Too many requests to this Engine. Please reduce your calls to ${env.GLOBAL_RATE_LIMIT_PER_MIN} requests/minute or update the "GLOBAL_RATE_LIMIT_PER_MIN" env var.`,
+        `Too many requests. Please reduce your calls to ${env.GLOBAL_RATE_LIMIT_PER_MIN} requests/minute or update the "GLOBAL_RATE_LIMIT_PER_MIN" env var.`,
         StatusCodes.TOO_MANY_REQUESTS,
         "TOO_MANY_REQUESTS",
       );

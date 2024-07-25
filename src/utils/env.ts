@@ -80,7 +80,7 @@ export const env = createEnv({
       .default(0),
     REDIS_URL: z.string(),
     ENGINE_MODE: z.enum(["sandbox", "unrestricted"]).default("unrestricted"),
-    GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(200 * 60),
+    GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
   },
   clientPrefix: "NEVER_USED",
   client: {},
