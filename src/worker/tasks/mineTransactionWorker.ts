@@ -234,6 +234,8 @@ _worker.on("failed", async (job: Job<string> | undefined) => {
 
     if (!sentTransaction.isUserOp) {
       // Release the nonce to allow another transaction to acquire it.
+      // Unlikely but probably case: The transaction is mined immediately after
+      // another transaction was submitted with this nonce.
       job.log(`Releasing nonce ${sentTransaction.nonce}.`);
       await releaseNonce(
         sentTransaction.chainId,
