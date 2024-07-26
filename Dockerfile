@@ -1,11 +1,10 @@
-FROM node:18.19-alpine AS base
-
-# Install tini & build dependencies
-RUN apk add --no-cache tini && \
-    apk --no-cache --virtual build-dependencies add g++ make py3-pip openssl
+FROM node:18.20-slim AS base
 
 # Upgrade packages
-RUN apk update && apk upgrade
+RUN apt-get -y update && apt-get -y upgrade
+
+# Install tini & build dependencies
+RUN apt-get install -y g++ make python3-pip openssl
 
 # Set the working directory
 WORKDIR /app
@@ -30,7 +29,7 @@ RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
 WORKDIR /app
 
 # Clean up build dependencies
-RUN apk del build-dependencies
+# RUN apt del build-dependencies
 
 ##############################
 ##############################
@@ -40,9 +39,6 @@ FROM base AS local
 EXPOSE 3005
 ENV NODE_ENV="local"
 RUN npm install -g nodemon
-
-# Use tini as entrypoint to handle killing processes
-ENTRYPOINT ["/sbin/tini", "--"]
 
 CMD [ "sh", "-c","yarn prisma:setup:dev && yarn dev:run" ]
 
@@ -54,29 +50,32 @@ FROM base AS prod-dependencies
 
 WORKDIR /app
 
+# Upgrade packages
+RUN apt-get -y update && apt-get -y upgrade
+
 # Build the project
-RUN apk --no-cache --virtual build-dependencies add g++ make py3-pip && \
+RUN apt-get install -y g++ make python3-pip && \
     yarn build && \
     yarn copy-files && \
     rm -rf node_modules && \
-    yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
-    apk del build-dependencies
+    yarn install --production=true --frozen-lockfile --network-timeout 1000000
 
-# Upgrade packages
-RUN apk update && apk upgrade
 
 ##############################
 ##############################
 
 # Production stage
-FROM node:18.19-alpine AS prod
+FROM node:18.20-slim AS prod
 
 # Setting ENV variables for image information
 ARG ENGINE_VERSION
 ENV ENGINE_VERSION=${ENGINE_VERSION}
 
-# Install tini
-RUN apk add --no-cache tini
+# Upgrade packages
+RUN apt-get -y update && apt-get -y upgrade
+
+# Install openssl
+RUN apt-get install -y openssl
 
 # Set the working directory
 WORKDIR /app
@@ -96,6 +95,4 @@ COPY --from=prod-dependencies /app/node_modules ./node_modules
 COPY --from=prod-dependencies /app/dist ./dist
 COPY --from=base /app/src/https ./dist/https
 
-# Use tini as entrypoint to handle killing processes
-ENTRYPOINT ["/sbin/tini", "--"]
 CMD [ "yarn", "start"]

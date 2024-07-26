@@ -81,7 +81,10 @@ export const env = createEnv({
     REDIS_URL: z.string(),
     SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1500),
     CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1500),
-    ENGINE_MODE: z.enum(["sandbox", "unrestricted"]).default("unrestricted"),
+    ENGINE_MODE: z
+      .enum(["default", "sandbox", "server_only", "worker_only"])
+      .default("default"),
+    GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -112,6 +115,7 @@ export const env = createEnv({
     CONFIRM_TRANSACTION_QUEUE_CONCURRENCY:
       process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     ENGINE_MODE: process.env.ENGINE_MODE,
+    GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
   },
   onValidationError: (error: ZodError) => {
     console.error(

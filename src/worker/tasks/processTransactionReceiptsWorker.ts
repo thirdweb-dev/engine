@@ -28,8 +28,12 @@ import { getContractId } from "../utils/contractId";
 import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const { chainId, filters, fromBlock, toBlock } =
-    superjson.parse<EnqueueProcessTransactionReceiptsData>(job.data);
+  const {
+    chainId,
+    filters = [],
+    fromBlock,
+    toBlock,
+  } = superjson.parse<EnqueueProcessTransactionReceiptsData>(job.data);
 
   const receipts = await getFormattedTransactionReceipts({
     chainId,
