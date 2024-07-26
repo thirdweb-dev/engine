@@ -6,6 +6,14 @@ import { createCustomError } from "./error";
 
 export const withRateLimit = async (server: FastifyInstance) => {
   server.addHook("onRequest", async (request, reply) => {
+    if (
+      request.url === "/" ||
+      request.url === "/system/health" ||
+      request.url === "/json"
+    ) {
+      return;
+    }
+
     const epochTimeInMinutes = Math.floor(new Date().getTime() / (1000 * 60));
     const key = `rate-limit:global:${epochTimeInMinutes}`;
     const count = await redis.incr(key);
