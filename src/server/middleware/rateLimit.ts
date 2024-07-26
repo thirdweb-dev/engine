@@ -6,11 +6,7 @@ import { createCustomError } from "./error";
 
 export const withRateLimit = async (server: FastifyInstance) => {
   server.addHook("onRequest", async (request, reply) => {
-    if (
-      request.url === "/" ||
-      request.url === "/system/health" ||
-      request.url === "/json"
-    ) {
+    if (request.url === "/" || request.url === "/json") {
       return;
     }
 
