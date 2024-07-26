@@ -1,3 +1,4 @@
+import assert from "assert";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
@@ -32,10 +33,9 @@ import {
 import { SendTransactionQueue } from "../queues/sendTransactionQueue";
 
 /**
- * The MINE_TRANSACTION worker is responsible for:
- * - checking if this transaction has completed
- * - getting the receipt for this transaction hash
- * - deciding to cancel or retry the transaction
+ * Check if the submitted transaction or userOp is mined onchain.
+ *
+ * If an EOA transaction is not mined after some time, resend it.
  */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { queueId } = superjson.parse<MineTransactionData>(job.data);
@@ -47,16 +47,21 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     return;
   }
 
-  // Handle user operation or EOA transaction.
+  // MinedTransaction = the transaction or userOp was mined.
+  // null = the transaction or userOp is not yet mined.
   let resultTransaction: MinedTransaction | null;
   if (sentTransaction.isUserOp) {
-    resultTransaction = await _handleUserOp(job, sentTransaction);
+    resultTransaction = await _mineUserOp(job, sentTransaction);
   } else {
-    resultTransaction = await _handleTransaction(job, sentTransaction);
+    resultTransaction = await _mineTransaction(job, sentTransaction);
   }
 
-  // Handle a successfully mined transaction.
-  if (resultTransaction?.status === "mined") {
+  if (!resultTransaction) {
+    job.log(`Transaction is not mined yet. Check again later...`);
+    throw new Error("NOT_CONFIRMED_YET");
+  }
+
+  if (resultTransaction.status === "mined") {
     await TransactionDB.set(resultTransaction);
     await enqueueTransactionWebhook(resultTransaction);
     await _reportUsageSuccess(resultTransaction);
@@ -97,13 +102,15 @@ const _reportUsageError = (erroredTransaction: ErroredTransaction) => {
   ]);
 };
 
-const _handleTransaction = async (
+const _mineTransaction = async (
   job: Job,
-  sentTransaction: SentTransaction & { isUserOp: false },
+  sentTransaction: SentTransaction,
 ): Promise<MinedTransaction | null> => {
+  assert(!sentTransaction.isUserOp);
+
   const { queueId, chainId, sentTransactionHashes } = sentTransaction;
 
-  // Check all sent transaction hashes since any retry could succeed.
+  // Check all sent transaction hashes since any of them might succeed.
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain: await getChain(chainId),
@@ -114,7 +121,7 @@ const _handleTransaction = async (
     ),
   );
 
-  // If any receipts are found, this transaction is mined.
+  // This transaction is mined if any receipt is found.
   for (const result of receiptResults) {
     if (result.status === "fulfilled") {
       const receipt = result.value;
@@ -138,36 +145,33 @@ const _handleTransaction = async (
 
   // Retry the transaction (after some initial delay).
   const config = await getConfig();
-  if (sentTransaction.retryCount < config.maxRetriesPerTx) {
+  if (sentTransaction.resendCount < config.maxRetriesPerTx) {
     const ellapsedBlocks =
       (await getBlockNumberish(chainId)) - sentTransaction.sentAtBlock;
     if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
-      job.log("Transaction is unmined before timeout. Retrying transaction...");
+      job.log(`Retrying transaction after ${ellapsedBlocks} blocks`);
       logger({
+        service: "worker",
         level: "warn",
         queueId,
-        message: `Transaction is unmined before timeout: ${sentTransaction.sentTransactionHashes[0]}`,
-        service: "worker",
+        message: `Retrying transaction after ${ellapsedBlocks} blocks`,
       });
       await SendTransactionQueue.add({
         queueId,
-        retryCount: sentTransaction.retryCount + 1,
+        resendCount: sentTransaction.resendCount + 1,
       });
-      // After retrying, do not return. Throw because this job continues to mine this queueId.
     }
   }
 
-  // If the transaction is not mined yet, throw to retry later.
-  job.log(
-    `Transaction is not mined yet (${sentTransactionHashes}). Check again later...`,
-  );
-  throw new Error("NOT_CONFIRMED_YET");
+  return null;
 };
 
-const _handleUserOp = async (
+const _mineUserOp = async (
   job: Job,
-  sentTransaction: SentTransaction & { isUserOp: true },
-): Promise<MinedTransaction> => {
+  sentTransaction: SentTransaction,
+): Promise<MinedTransaction | null> => {
+  assert(sentTransaction.isUserOp);
+
   const { chainId, userOpHash } = sentTransaction;
   const chain = await getChain(chainId);
 
@@ -176,33 +180,37 @@ const _handleUserOp = async (
     chain,
     userOpHash,
   });
-  if (userOpReceiptRaw) {
-    const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
-    const transaction = await eth_getTransactionByHash(rpcRequest, {
-      hash: userOpReceiptRaw.receipt.transactionHash,
-    });
-    const transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
-      hash: transaction.hash,
-    });
-    return {
-      ...sentTransaction,
-      status: "mined",
-      transactionHash: transactionReceipt.transactionHash,
-      minedAt: new Date(),
-      minedAtBlock: transactionReceipt.blockNumber,
-      transactionType: transactionReceipt.type,
-      onchainStatus: transactionReceipt.status,
-      gasUsed: transactionReceipt.gasUsed,
-      effectiveGasPrice: transactionReceipt.effectiveGasPrice,
-      gas: transactionReceipt.gasUsed,
-      cumulativeGasUsed: transactionReceipt.cumulativeGasUsed,
-      sender: userOpReceiptRaw.sender as Address,
-    };
+  if (!userOpReceiptRaw) {
+    return null;
   }
 
-  // If the transaction is not mined yet, throw to retry later.
-  job.log("Transaction is not mined yet. Check again later...");
-  throw new Error("NOT_CONFIRMED_YET");
+  const { transactionHash } = userOpReceiptRaw.receipt;
+  job.log(
+    `Found transactionHash ${transactionHash} from userOpHash ${userOpHash}.`,
+  );
+
+  const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
+  const transaction = await eth_getTransactionByHash(rpcRequest, {
+    hash: transactionHash,
+  });
+  const transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
+    hash: transaction.hash,
+  });
+
+  return {
+    ...sentTransaction,
+    status: "mined",
+    transactionHash: transactionReceipt.transactionHash,
+    minedAt: new Date(),
+    minedAtBlock: transactionReceipt.blockNumber,
+    transactionType: transactionReceipt.type,
+    onchainStatus: transactionReceipt.status,
+    gasUsed: transactionReceipt.gasUsed,
+    effectiveGasPrice: transactionReceipt.effectiveGasPrice,
+    gas: transactionReceipt.gasUsed,
+    cumulativeGasUsed: transactionReceipt.cumulativeGasUsed,
+    sender: userOpReceiptRaw.sender as Address,
+  };
 };
 
 // Worker
@@ -211,7 +219,7 @@ const _worker = new Worker(MineTransactionQueue.name, handler, {
   connection: redis,
 });
 
-// If a transaction fails to mine after all retries, cancel it.
+// If a transaction fails to mine after all retries, set it as errored and release the nonce.
 _worker.on("failed", async (job: Job<string> | undefined) => {
   if (job && job.attemptsMade === job.opts.attempts) {
     const { queueId } = superjson.parse<MineTransactionData>(job.data);
@@ -222,21 +230,20 @@ _worker.on("failed", async (job: Job<string> | undefined) => {
       return;
     }
 
-    job.log("Transaction is unmined after timeout. Erroring transaction...");
     const erroredTransaction: ErroredTransaction = {
       ...sentTransaction,
       status: "errored",
       errorMessage: "Transaction timed out.",
     };
+    job.log(`Transaction timed out: ${stringify(erroredTransaction)}`);
+
     await TransactionDB.set(erroredTransaction);
     await enqueueTransactionWebhook(erroredTransaction);
     _reportUsageError(erroredTransaction);
 
     if (!sentTransaction.isUserOp) {
-      // Release the nonce to allow another transaction to acquire it.
-      // Unlikely but probably case: The transaction is mined immediately after
-      // another transaction was submitted with this nonce.
-      job.log(`Releasing nonce ${sentTransaction.nonce}.`);
+      // Release the nonce to allow it to be reused or cancelled.
+      job.log(`Releasing nonce: ${sentTransaction.nonce}`);
       await releaseNonce(
         sentTransaction.chainId,
         sentTransaction.from,

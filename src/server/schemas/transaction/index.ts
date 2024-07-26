@@ -287,7 +287,7 @@ export const toTransactionSchema = (
       "sentAtBlock" in transaction ? Number(transaction.sentAtBlock) : null,
     blockNumber:
       "minedAtBlock" in transaction ? Number(transaction.minedAtBlock) : null,
-    retryCount: "retryCount" in transaction ? transaction.retryCount : 0,
+    retryCount: "retryCount" in transaction ? transaction.resendCount : 0,
     onChainTxStatus: resolveOnchainStatus(),
     effectiveGasPrice:
       "effectiveGasPrice" in transaction

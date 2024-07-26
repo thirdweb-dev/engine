@@ -102,7 +102,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
       // Update state if the send was successful.
       const sentTransaction: SentTransaction = {
         ...transaction,
-        retryCount: transaction.retryCount + 1,
+        resendCount: transaction.resendCount + 1,
         sentAt: new Date(),
         sentAtBlock: await getBlockNumberish(chainId),
         sentTransactionHashes: [

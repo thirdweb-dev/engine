@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
-import { Address } from "thirdweb";
 import { TransactionDB } from "../../db/transactions/db";
 import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
+import { normalizeAddress } from "../primitiveTypes";
 import { reportUsage } from "../usage";
 import { simulateQueuedTransaction } from "./simulateQueuedTransaction";
 import { InsertedTransaction, QueuedTransaction } from "./types";
@@ -13,16 +13,26 @@ interface InsertTransactionData {
   shouldSimulate?: boolean;
 }
 
+/**
+ * Enqueue a transaction to be submitted onchain.
+ *
+ * @param args
+ * @returns queueId
+ */
 export const insertTransaction = async (
   args: InsertTransactionData,
 ): Promise<string> => {
   const { insertedTransaction, idempotencyKey, shouldSimulate = false } = args;
 
-  // The queueId is the idempotency key. Default to a random UUID (no idempotency).
-  const queueId = idempotencyKey ?? randomUUID();
-  if (await TransactionDB.exists(queueId)) {
-    // No-op. Return the existing queueId.
-    return queueId;
+  // The queueId uniquely represents an enqueued transaction.
+  // It's also used as the idempotency key (default = no idempotence).
+  let queueId: string = randomUUID();
+  if (idempotencyKey) {
+    queueId = idempotencyKey;
+    if (await TransactionDB.exists(queueId)) {
+      // No-op. Return the existing queueId.
+      return queueId;
+    }
   }
 
   const queuedTransaction: QueuedTransaction = {
@@ -30,10 +40,15 @@ export const insertTransaction = async (
     status: "queued",
     queueId,
     queuedAt: new Date(),
-    retryCount: 0,
+    resendCount: 0,
 
-    from: insertedTransaction.from.toLowerCase() as Address,
-    to: insertedTransaction.to?.toLowerCase() as Address | undefined,
+    // Standardize address formats.
+    from: normalizeAddress(insertedTransaction.from),
+    to: normalizeAddress(insertedTransaction.to),
+    signerAddress: normalizeAddress(insertedTransaction.signerAddress),
+    accountAddress: normalizeAddress(insertedTransaction.accountAddress),
+    target: normalizeAddress(insertedTransaction.target),
+    sender: normalizeAddress(insertedTransaction.sender),
     value: insertedTransaction.value ?? 0n,
   };
 
@@ -52,9 +67,9 @@ export const insertTransaction = async (
   await TransactionDB.set(queuedTransaction);
   await SendTransactionQueue.add({
     queueId: queuedTransaction.queueId,
-    retryCount: 0,
+    resendCount: 0,
   });
-
   reportUsage([{ action: "queue_tx", input: queuedTransaction }]);
+
   return queueId;
 };

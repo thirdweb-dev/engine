@@ -12,7 +12,7 @@ import {
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
 import { getChain } from "../../../utils/chain";
-import { maybeBigInt } from "../../../utils/primitiveTypes";
+import { maybeBigInt, normalizeAddress } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import { InsertedTransaction } from "../../../utils/transaction/types";
@@ -87,7 +87,7 @@ export async function transfer(fastify: FastifyInstance) {
       const { simulateTx: shouldSimulate } = request.query;
 
       // Resolve inputs.
-      const currencyAddress = _currencyAddress.toLowerCase();
+      const currencyAddress = normalizeAddress(_currencyAddress);
       const chainId = await getChainIdFromChain(chain);
       const gasOverrides = {
         gas: maybeBigInt(txOverrides?.gas),

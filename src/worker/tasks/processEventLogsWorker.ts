@@ -20,6 +20,7 @@ import { getContractSubscriptionsByChainId } from "../../db/contractSubscription
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
+import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -174,7 +175,7 @@ const getLogs = async ({
       async (log): Promise<Prisma.ContractEventLogsCreateInput> => ({
         chainId,
         blockNumber: Number(log.blockNumber),
-        contractAddress: log.address.toLowerCase(),
+        contractAddress: normalizeAddress(log.address),
         transactionHash: log.transactionHash,
         topic0: log.topics[0],
         topic1: log.topics[1],
@@ -183,8 +184,7 @@ const getLogs = async ({
         data: log.data,
         eventName: log.eventName,
         decodedLog: await formatDecodedLog({
-          contract:
-            addressConfig[log.address.toLowerCase() as Address].contract,
+          contract: addressConfig[normalizeAddress(log.address)].contract,
           eventName: log.eventName,
           logArgs: log.args as Record<string, unknown>,
         }),

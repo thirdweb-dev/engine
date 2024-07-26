@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
+import { normalizeAddress } from "../../../utils/primitiveTypes";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   TransactionSchema,
@@ -39,7 +40,7 @@ export async function getAllTransactions(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const { chain, walletAddress: _walletAddress } = req.params;
       const chainId = await getChainIdFromChain(chain);
-      const walletAddress = _walletAddress.toLowerCase();
+      const walletAddress = normalizeAddress(_walletAddress);
 
       // @TODO: This query is not optimized. Cap the results to the most recent 1000 total transactions for performance reasons.
       const { transactions } = await TransactionDB.listByStatus({

@@ -93,11 +93,11 @@ export async function cancelTransaction(fastify: FastifyInstance) {
           // Remove all retries from the SEND_TRANSACTION queue.
           const config = await getConfig();
           for (
-            let retryCount = 0;
-            retryCount < config.maxRetriesPerTx;
-            retryCount++
+            let resendCount = 0;
+            resendCount < config.maxRetriesPerTx;
+            resendCount++
           ) {
-            await SendTransactionQueue.remove({ queueId, retryCount });
+            await SendTransactionQueue.remove({ queueId, resendCount });
           }
 
           cancelledTransaction = {

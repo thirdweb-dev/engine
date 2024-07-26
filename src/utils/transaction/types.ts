@@ -10,6 +10,7 @@ export type AnyTransaction =
 
 // InsertedTransaction is the raw input from the caller.
 export type InsertedTransaction = {
+  isUserOp: boolean;
   chainId: number;
   from: Address;
   to?: Address;
@@ -34,14 +35,13 @@ export type InsertedTransaction = {
   accountAddress?: Address;
   target?: Address;
   sender?: Address;
-  isUserOp: boolean;
 };
 
 // QueuedTransaction is a transaction added to the queue. No preparation has been done yet.
 export type QueuedTransaction = InsertedTransaction & {
   status: "queued";
 
-  retryCount: number;
+  resendCount: number;
   queueId: string;
   queuedAt: Date;
   value: bigint;

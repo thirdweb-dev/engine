@@ -1,15 +1,22 @@
 import { Address, eth_getTransactionCount, getRpcClient } from "thirdweb";
 import { getChain } from "../../utils/chain";
+import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 
-// Data type: String
+/**
+ * The "last used nonce" stores the last nonce submitted onchain.
+ * Example: "25"
+ */
 const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
-  `nonce:${chainId}:${walletAddress}`;
+  `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
 
-// Data type: Array of String
+/**
+ * The "unused nonces" list stores unsorted nonces to be reused or cancelled.
+ * Example: [ "25", "23", "24" ]
+ */
 const unusedNoncesKey = (chainId: number, walletAddress: Address) =>
-  `nonce-unused:${chainId}:${walletAddress}`;
+  `nonce-unused:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
  * Acquire an unused nonce.
@@ -89,7 +96,7 @@ const _syncNonce = async (
  * Use `incrWalletNonce` if using this nonce to send a transaction.
  * @param chainId
  * @param walletAddress
- * @returns number - The last used nonce value for this wallet.
+ * @returns number
  */
 export const inspectNonce = async (chainId: number, walletAddress: Address) => {
   const key = lastUsedNonceKey(chainId, walletAddress);

@@ -1,3 +1,4 @@
+import assert from "assert";
 import { Job, Processor, Worker } from "bullmq";
 import { ethers } from "ethers";
 import superjson from "superjson";
@@ -32,30 +33,37 @@ import {
   SendTransactionQueue,
 } from "../queues/sendTransactionQueue";
 
+/**
+ * Submit a transaction to RPC (EOA transactions) or bundler (userOps).
+ *
+ * This worker also handles retried EOA transactions.
+ */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const { queueId, retryCount } = superjson.parse<SendTransactionData>(
+  const { queueId, resendCount } = superjson.parse<SendTransactionData>(
     job.data,
   );
 
   const transaction = await TransactionDB.get(queueId);
+  if (!transaction) {
+    job.log(`Invalid transaction state: ${stringify(transaction)}`);
+    return;
+  }
 
+  // SentTransaction = the transaction or userOp was submitted successfully.
+  // ErroredTransaction = the transaction failed and should not be re-attempted.
+  // A thrown exception indicates a retry-able error occurred (e.g. RPC outage).
   let resultTransaction: SentTransaction | ErroredTransaction;
-  switch (transaction?.status) {
-    case "queued":
-      // Send a transaction for the first time.
-      resultTransaction = await _handleQueuedTransaction(job, transaction);
-      break;
-    case "sent":
-      // Retry a stuck transaction.
-      resultTransaction = await _handleSentTransaction(
-        job,
-        transaction,
-        retryCount,
-      );
-      break;
-    default:
-      job.log(`Invalid transaction state: ${stringify(transaction)}`);
-      return;
+  if (transaction.status === "queued") {
+    if (transaction.isUserOp) {
+      resultTransaction = await _sendUserOp(job, transaction);
+    } else {
+      resultTransaction = await _sendTransaction(job, transaction);
+    }
+  } else if (transaction.status === "sent") {
+    resultTransaction = await _resendTransaction(job, transaction, resendCount);
+  } else {
+    job.log(`Invalid transaction state: ${stringify(transaction)}`);
+    return;
   }
 
   // Handle the resulting "sent" or "errored" transaction.
@@ -71,38 +79,48 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 };
 
-const _handleQueuedTransaction = async (
+const _sendUserOp = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
 ): Promise<SentTransaction | ErroredTransaction> => {
+  assert(queuedTransaction.isUserOp);
+
+  const chain = await getChain(queuedTransaction.chainId);
+  const signedUserOp = await generateSignedUserOperation(queuedTransaction);
+  const userOpHash = await bundleUserOp({
+    userOp: signedUserOp,
+    options: {
+      chain,
+      client: thirdwebClient,
+    },
+  });
+  job.log(`Sent transaction: ${userOpHash}`);
+
+  return {
+    ...queuedTransaction,
+    isUserOp: true,
+    status: "sent",
+    nonce: signedUserOp.nonce.toString(),
+    userOpHash,
+    sentAt: new Date(),
+    sentAtBlock: await getBlockNumberish(queuedTransaction.chainId),
+    maxFeePerGas: signedUserOp.maxFeePerGas,
+    maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
+  };
+};
+
+const _sendTransaction = async (
+  job: Job,
+  queuedTransaction: QueuedTransaction,
+): Promise<SentTransaction | ErroredTransaction> => {
+  assert(!queuedTransaction.isUserOp);
+
   const { chainId, from } = queuedTransaction;
   const chain = await getChain(chainId);
 
-  // Handle sending an AA user operation.
-  if (queuedTransaction.isUserOp) {
-    const signedUserOp = await generateSignedUserOperation(queuedTransaction);
-    const userOpHash = await bundleUserOp({
-      userOp: signedUserOp,
-      options: {
-        chain,
-        client: thirdwebClient,
-      },
-    });
-
-    return {
-      ...queuedTransaction,
-      status: "sent",
-      isUserOp: true,
-      nonce: signedUserOp.nonce.toString(),
-      userOpHash,
-      retryCount: 0,
-      sentAt: new Date(),
-      sentAtBlock: await getBlockNumberish(chainId),
-      maxFeePerGas: signedUserOp.maxFeePerGas,
-      maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
-    };
-  }
-
+  // Populate the transaction to resolve gas values.
+  // This call throws if the execution would be reverted.
+  // The nonce is _not_ set yet.
   let populatedTransaction: TransactionSerializable;
   try {
     populatedTransaction = await toSerializableTransaction({
@@ -113,9 +131,9 @@ const _handleQueuedTransaction = async (
         ...queuedTransaction,
       },
     });
-  } catch (error: unknown) {
+  } catch (e: unknown) {
     // If the transaction will revert, error.message contains the human-readable error.
-    const errorMessage = (error as Error)?.message ?? `${error}`;
+    const errorMessage = (e as Error)?.message ?? `${e}`;
     return {
       ...queuedTransaction,
       status: "errored",
@@ -126,9 +144,11 @@ const _handleQueuedTransaction = async (
   // Acquire an unused nonce for this transaction.
   const nonce = await acquireNonce(chainId, from);
   populatedTransaction.nonce = nonce;
-  job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
+
+  job.log(`Sending transaction: ${stringify(populatedTransaction)}`);
 
   // Send transaction to RPC.
+  // This call throws if the RPC rejects the transaction.
   let transactionHash: Hex;
   try {
     const account = await getAccount({ chainId, from });
@@ -136,6 +156,7 @@ const _handleQueuedTransaction = async (
       populatedTransaction,
     );
     transactionHash = sendTransactionResult.transactionHash;
+    job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
     // Release the nonce if it has not expired.
     if (!isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
@@ -150,7 +171,7 @@ const _handleQueuedTransaction = async (
     isUserOp: false,
     nonce,
     sentTransactionHashes: [transactionHash],
-    retryCount: 0,
+    resendCount: 0,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(chainId),
     gas: populatedTransaction.gas,
@@ -164,27 +185,23 @@ const _handleQueuedTransaction = async (
   };
 };
 
-const _handleSentTransaction = async (
+const _resendTransaction = async (
   job: Job,
   sentTransaction: SentTransaction,
-  retryCount: number,
+  resendCount: number,
 ): Promise<SentTransaction | ErroredTransaction> => {
-  const { chainId, from } = sentTransaction;
-  if (sentTransaction.isUserOp) {
-    throw new Error("Cannot retry a userOp.");
-  }
+  assert(!sentTransaction.isUserOp);
 
+  // Populate the transaction with double gas.
+  const { chainId, from } = sentTransaction;
   const populatedTransaction = await toSerializableTransaction({
     from,
     transaction: {
       client: thirdwebClient,
       chain: await getChain(chainId),
       ...sentTransaction,
-      // Redundant but explicitly re-use the existing nonce.
-      nonce: sentTransaction.nonce,
     },
   });
-  // Double gas for retries.
   if (populatedTransaction.gasPrice) {
     populatedTransaction.gasPrice *= 2n;
   }
@@ -194,9 +211,13 @@ const _handleSentTransaction = async (
   if (populatedTransaction.maxPriorityFeePerGas) {
     populatedTransaction.maxPriorityFeePerGas *= 2n;
   }
-  job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
+
+  // Important: Don't acquire a different nonce.
+
+  job.log(`Sending transaction: ${stringify(populatedTransaction)}`);
 
   // Send transaction to RPC.
+  // This call throws if the RPC rejects the transaction.
   const account = await getAccount({ chainId, from });
   const { transactionHash } = await account.sendTransaction(
     populatedTransaction,
@@ -204,7 +225,7 @@ const _handleSentTransaction = async (
 
   return {
     ...sentTransaction,
-    retryCount,
+    resendCount,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(chainId),
     sentTransactionHashes: [
@@ -274,8 +295,6 @@ logWorkerExceptions(_worker);
 // If a transaction fails to send after all retries, error it.
 _worker.on("failed", async (job: Job<string> | undefined, error: Error) => {
   if (job && job.attemptsMade === job.opts.attempts) {
-    job.log(`Transaction errored: ${error.message}`);
-
     const { queueId } = superjson.parse<SendTransactionData>(job.data);
     const transaction = await TransactionDB.get(queueId);
     if (transaction) {
@@ -284,6 +303,8 @@ _worker.on("failed", async (job: Job<string> | undefined, error: Error) => {
         status: "errored",
         errorMessage: await prettifyError(transaction, error),
       };
+      job.log(`Transaction errored: ${stringify(erroredTransaction)}`);
+
       await TransactionDB.set(erroredTransaction);
       await enqueueTransactionWebhook(erroredTransaction);
       _reportUsageError(erroredTransaction);

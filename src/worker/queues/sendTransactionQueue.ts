@@ -5,7 +5,7 @@ import { defaultJobOptions } from "./queues";
 
 export type SendTransactionData = {
   queueId: string;
-  retryCount: number;
+  resendCount: number;
 };
 
 export class SendTransactionQueue {
@@ -21,7 +21,7 @@ export class SendTransactionQueue {
 
   // Allow enqueing the same queueId for multiple retries.
   private static _jobId = (data: SendTransactionData) =>
-    `${data.queueId}:${data.retryCount}`;
+    `${data.queueId}:${data.resendCount}`;
 
   static add = async (data: SendTransactionData) => {
     const serialized = superjson.stringify(data);

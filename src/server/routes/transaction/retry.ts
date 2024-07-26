@@ -80,7 +80,7 @@ export async function retryTransaction(fastify: FastifyInstance) {
       await TransactionDB.set(sentTransaction);
       await SendTransactionQueue.add({
         queueId: sentTransaction.queueId,
-        retryCount: sentTransaction.retryCount + 1,
+        resendCount: sentTransaction.resendCount + 1,
       });
 
       reply.status(StatusCodes.OK).send({

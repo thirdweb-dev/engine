@@ -16,6 +16,7 @@ import { bulkInsertContractTransactionReceipts } from "../../db/contractTransact
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
+import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -142,11 +143,11 @@ const getFormattedTransactionReceipts = async ({
 
     const receipts: Prisma.ContractTransactionReceiptsCreateInput[] = [];
     for (const transaction of block.transactions) {
-      const toAddress = transaction.to?.toLowerCase() as Address | undefined;
-      if (!toAddress) {
+      if (!transaction.to) {
         // This transaction is a contract deployment.
         continue;
       }
+      const toAddress = normalizeAddress(transaction.to);
       const config = addressConfig[toAddress];
       if (!config) {
         // This transaction is not to a subscribed address.
@@ -180,7 +181,7 @@ const getFormattedTransactionReceipts = async ({
         transactionHash: receipt.transactionHash.toLowerCase(),
         timestamp: new Date(Number(block.timestamp) * 1000),
         to: toAddress,
-        from: receipt.from.toLowerCase(),
+        from: normalizeAddress(receipt.from),
         value: transaction.value.toString(),
         data: transaction.input,
         functionName,
