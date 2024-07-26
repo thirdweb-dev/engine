@@ -1,8 +1,9 @@
 import "./polyfill";
-import { initServer } from "./server";
-import { env } from "./utils/env";
-import { logger } from "./utils/logger";
-import { initWorker } from "./worker";
+import {initServer} from "./server";
+import {env} from "./utils/env";
+import {logger} from "./utils/logger";
+import './utils/tracer';
+import {initWorker} from "./worker";
 
 const main = async () => {
   if (env.ENGINE_MODE === "server_only") {
