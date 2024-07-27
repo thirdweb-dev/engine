@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address, Hex } from "thirdweb";
-import { simulateQueuedTransaction } from "../../../utils/transaction/simulateQueuedTransaction";
+import { doSimulateTransaction } from "../../../utils/transaction/simulateQueuedTransaction";
 import { QueuedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import {
@@ -110,7 +110,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
             }),
       };
 
-      const simulateError = await simulateQueuedTransaction(queuedTransaction);
+      const simulateError = await doSimulateTransaction(queuedTransaction);
       if (simulateError) {
         throw createCustomError(
           simulateError,

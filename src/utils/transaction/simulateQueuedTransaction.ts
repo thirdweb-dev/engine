@@ -20,7 +20,7 @@ import { AnyTransaction } from "./types";
  * @param transaction
  * @throws if there is a simulation error
  */
-export const simulateQueuedTransaction = async (
+export const doSimulateTransaction = async (
   transaction: AnyTransaction,
 ): Promise<string | null> => {
   const {

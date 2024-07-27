@@ -12,24 +12,27 @@ const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
- * The "unused nonces" list stores unsorted nonces to be reused or cancelled.
+ * The "recycled nonces" list stores unsorted nonces to be reused or cancelled.
  * Example: [ "25", "23", "24" ]
  */
-const unusedNoncesKey = (chainId: number, walletAddress: Address) =>
-  `nonce-unused:${chainId}:${normalizeAddress(walletAddress)}`;
+const recycledNoncesKey = (chainId: number, walletAddress: Address) =>
+  `nonce-recycled:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
  * Acquire an unused nonce.
  * This should be used to send an EOA transaction with this nonce.
  * @param chainId
  * @param walletAddress
- * @returns number - The next unused nonce value for this wallet.
+ * @returns number
  */
-export const acquireNonce = async (chainId: number, walletAddress: Address) => {
-  // Acquire an unused nonce, if any.
-  let nonce = await _acquireUnusedNonce(chainId, walletAddress);
+export const acquireNonce = async (
+  chainId: number,
+  walletAddress: Address,
+): Promise<{ nonce: number; isRecycledNonce: boolean }> => {
+  // Acquire an recylced nonce, if any.
+  let nonce = await _acquireRecycledNonce(chainId, walletAddress);
   if (nonce !== null) {
-    return nonce;
+    return { nonce, isRecycledNonce: true };
   }
 
   // Else increment the last used nonce.
@@ -37,14 +40,14 @@ export const acquireNonce = async (chainId: number, walletAddress: Address) => {
   nonce = await redis.incr(key);
   if (nonce === 1) {
     // If INCR returned 1, the nonce was not set.
-    // This may be a newly imported wallet. Sync and return the onchain nonce.
-    return await _syncNonce(chainId, walletAddress);
+    // This may be a newly imported wallet.
+    nonce = await _syncNonce(chainId, walletAddress);
   }
-  return nonce;
+  return { nonce, isRecycledNonce: false };
 };
 
 /**
- * Adds an unused nonce that can be reused by a future transaction.
+ * Recycles a nonce to be used by a future transaction.
  * This should be used if the current transaction that acquired this nonce is not valid.
  * @param chainId
  * @param walletAddress
@@ -55,18 +58,21 @@ export const releaseNonce = async (
   walletAddress: Address,
   nonce: number,
 ) => {
-  const key = unusedNoncesKey(chainId, walletAddress);
+  const key = recycledNoncesKey(chainId, walletAddress);
   await redis.rpush(key, nonce);
 };
 
 /**
- * Acquires an unused nonce.
+ * Acquires a recycled nonce that is unused.
  * @param chainId
  * @param walletAddress
  * @returns
  */
-const _acquireUnusedNonce = async (chainId: number, walletAddress: Address) => {
-  const key = unusedNoncesKey(chainId, walletAddress);
+const _acquireRecycledNonce = async (
+  chainId: number,
+  walletAddress: Address,
+) => {
+  const key = recycledNoncesKey(chainId, walletAddress);
   const res = await redis.lpop(key);
   return res ? parseInt(res) : null;
 };
@@ -87,7 +93,14 @@ const _syncNonce = async (
 
   const key = lastUsedNonceKey(chainId, walletAddress);
   await redis.set(key, transactionCount);
-  return transactionCount;
+
+  // Set last used nonce to transactionCount - 1.
+  // But don't lower the Redis nonce.
+
+  // @TODO:
+  // Set to max(value, transactionCount-1) -> 6
+
+  return await redis.incr(key);
 };
 
 /**
@@ -110,7 +123,7 @@ export const inspectNonce = async (chainId: number, walletAddress: Address) => {
 export const deleteAllNonces = async () => {
   const keys = [
     ...(await redis.keys("nonce:*")),
-    ...(await redis.keys("nonce-unused:*")),
+    ...(await redis.keys("nonce-recycled:*")),
   ];
   if (keys.length > 0) {
     await redis.del(keys);

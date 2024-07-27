@@ -10,13 +10,10 @@ import { CANCEL_UNUSED_NONCES_QUEUE_NAME } from "../queues/cancelUnusedNoncesQue
 import { logWorkerExceptions } from "../queues/queues";
 
 /**
- * Responsibilities:
- * - Loop through each unused nonce in all wallets.
- * - Cancel the transaction.
- * - If failed, add it back to the unused nonces list.
+ * Sends a cancel transaction for all recycled nonces.
  */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const keys = await redis.keys("nonce-unused:*");
+  const keys = await redis.keys("nonce-recycled:*");
 
   for (const key of keys) {
     const { chainId, walletAddress } = fromUnusedNoncesKey(key);
@@ -41,6 +38,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
           if (isEthersErrorCode(e, ethers.errors.NONCE_EXPIRED)) {
             ignore.push(nonce);
           } else {
+            job.log(`Releasing nonce: ${nonce}`);
             await releaseNonce(chainId, walletAddress, nonce);
             fail.push(nonce);
           }
@@ -49,7 +47,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
       const message = `Cancelling nonces for ${key}. success=${success} fail=${fail} ignored=${ignore}`;
       job.log(message);
-      logger({ level: "info", message, service: "worker" });
+      logger({ service: "worker", level: "info", message });
     }
   }
 };

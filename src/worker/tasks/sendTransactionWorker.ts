@@ -142,9 +142,9 @@ const _sendTransaction = async (
   }
 
   // Acquire an unused nonce for this transaction.
-  const nonce = await acquireNonce(chainId, from);
+  const { nonce, isRecycledNonce } = await acquireNonce(chainId, from);
+  job.log(`Acquired nonce ${nonce}. isRecycledNonce=${isRecycledNonce}`);
   populatedTransaction.nonce = nonce;
-
   job.log(`Sending transaction: ${stringify(populatedTransaction)}`);
 
   // Send transaction to RPC.
@@ -160,6 +160,7 @@ const _sendTransaction = async (
   } catch (error: unknown) {
     // Release the nonce if it has not expired.
     if (!isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
+      job.log(`Releasing nonce: ${nonce}`);
       await releaseNonce(chainId, from, nonce);
     }
     throw error;
@@ -200,6 +201,10 @@ const _resendTransaction = async (
       client: thirdwebClient,
       chain: await getChain(chainId),
       ...sentTransaction,
+      // Unset gas values so it can be re-populated.
+      gasPrice: undefined,
+      maxFeePerGas: undefined,
+      maxPriorityFeePerGas: undefined,
     },
   });
   if (populatedTransaction.gasPrice) {

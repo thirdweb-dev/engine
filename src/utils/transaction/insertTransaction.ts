@@ -4,7 +4,7 @@ import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
 import { normalizeAddress } from "../primitiveTypes";
 import { reportUsage } from "../usage";
-import { simulateQueuedTransaction } from "./simulateQueuedTransaction";
+import { doSimulateTransaction } from "./simulateQueuedTransaction";
 import { InsertedTransaction, QueuedTransaction } from "./types";
 
 interface InsertTransactionData {
@@ -54,7 +54,7 @@ export const insertTransaction = async (
 
   // Simulate the transaction.
   if (shouldSimulate) {
-    const error = await simulateQueuedTransaction(queuedTransaction);
+    const error = await doSimulateTransaction(queuedTransaction);
     if (error) {
       throw createCustomError(
         `Simulation failed: ${error.replace(/[\r\n]+/g, " --- ")}`,

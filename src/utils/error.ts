@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { getChainMetadata } from "thirdweb/chains";
 import { getChain } from "./chain";
 import { isEthersErrorCode } from "./ethers";
-import { simulateQueuedTransaction } from "./transaction/simulateQueuedTransaction";
+import { doSimulateTransaction } from "./transaction/simulateQueuedTransaction";
 import { AnyTransaction } from "./transaction/types";
 
 export const prettifyError = async (
@@ -17,7 +17,7 @@ export const prettifyError = async (
     }
 
     if (isEthersErrorCode(error, ethers.errors.UNPREDICTABLE_GAS_LIMIT)) {
-      const simulateError = await simulateQueuedTransaction(transaction);
+      const simulateError = await doSimulateTransaction(transaction);
       if (simulateError) {
         return simulateError;
       }
