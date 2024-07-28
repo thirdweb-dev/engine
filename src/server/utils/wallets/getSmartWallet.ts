@@ -1,6 +1,7 @@
 import { EVMWallet, SmartWallet } from "@thirdweb-dev/wallets";
 import { getContract } from "../../../utils/cache/getContract";
 import { env } from "../../../utils/env";
+import { redis } from "../../../utils/redis";
 
 interface GetSmartWalletParams {
   chainId: number;
@@ -14,13 +15,28 @@ export const getSmartWallet = async ({
   accountAddress,
 }: GetSmartWalletParams) => {
   let factoryAddress: string;
+
   try {
-    const contract = await getContract({
-      chainId,
-      contractAddress: accountAddress,
-    });
-    factoryAddress = await contract.call("factory");
+    // Note: This is a temporary solution to use cached deployed address's factory address from create-account
+    // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
+    if (redis) {
+      factoryAddress = await redis.get(`account-factory:${accountAddress.toLowerCase()}`);
+    }
   } catch {
+  }
+
+  try {
+    if (!factoryAddress) {
+      const contract = await getContract({
+        chainId,
+        contractAddress: accountAddress,
+      });
+      factoryAddress = await contract.call("factory");
+    }
+  } catch {
+  }
+
+  if (!factoryAddress) {
     throw new Error(
       `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
     );
