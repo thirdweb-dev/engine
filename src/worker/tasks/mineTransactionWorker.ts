@@ -10,7 +10,7 @@ import {
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
-import { releaseNonce } from "../../db/wallets/walletNonce";
+import { recycleNonce } from "../../db/wallets/walletNonce";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getChain } from "../../utils/chain";
@@ -108,13 +108,15 @@ const _mineTransaction = async (
 ): Promise<MinedTransaction | null> => {
   assert(!sentTransaction.isUserOp);
 
-  const { queueId, chainId, sentTransactionHashes } = sentTransaction;
+  const { queueId, chainId, sentTransactionHashes, sentAtBlock, resendCount } =
+    sentTransaction;
 
   // Check all sent transaction hashes since any of them might succeed.
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain: await getChain(chainId),
   });
+  job.log(`Mining transactionHashes: ${sentTransactionHashes}`);
   const receiptResults = await Promise.allSettled(
     sentTransactionHashes.map((hash) =>
       eth_getTransactionReceipt(rpcRequest, { hash }),
@@ -125,7 +127,7 @@ const _mineTransaction = async (
   for (const result of receiptResults) {
     if (result.status === "fulfilled") {
       const receipt = result.value;
-      job.log(`Receipt found: ${receipt.transactionHash} `);
+      job.log(`Found receipt on block ${receipt.blockNumber}.`);
       return {
         ...sentTransaction,
         status: "mined",
@@ -145,20 +147,17 @@ const _mineTransaction = async (
 
   // Retry the transaction (after some initial delay).
   const config = await getConfig();
-  if (sentTransaction.resendCount < config.maxRetriesPerTx) {
-    const ellapsedBlocks =
-      (await getBlockNumberish(chainId)) - sentTransaction.sentAtBlock;
+  if (resendCount < config.maxRetriesPerTx) {
+    const blockNumber = await getBlockNumberish(chainId);
+    const ellapsedBlocks = blockNumber - sentAtBlock;
     if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
-      job.log(`Retrying transaction after ${ellapsedBlocks} blocks`);
-      logger({
-        service: "worker",
-        level: "warn",
-        queueId,
-        message: `Retrying transaction after ${ellapsedBlocks} blocks`,
-      });
+      const message = `Retrying transaction after ${ellapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentAtBlock}`;
+      job.log(message);
+      logger({ service: "worker", level: "info", queueId, message });
+
       await SendTransactionQueue.add({
         queueId,
-        resendCount: sentTransaction.resendCount + 1,
+        resendCount: resendCount + 1,
       });
     }
   }
@@ -175,6 +174,7 @@ const _mineUserOp = async (
   const { chainId, userOpHash } = sentTransaction;
   const chain = await getChain(chainId);
 
+  job.log(`Mining userOpHash: ${userOpHash}`);
   const userOpReceiptRaw = await getUserOpReceiptRaw({
     client: thirdwebClient,
     chain,
@@ -185,30 +185,28 @@ const _mineUserOp = async (
   }
 
   const { transactionHash } = userOpReceiptRaw.receipt;
-  job.log(
-    `Found transactionHash ${transactionHash} from userOpHash ${userOpHash}.`,
-  );
+  job.log(`Found transactionHash: ${transactionHash}`);
 
   const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
   const transaction = await eth_getTransactionByHash(rpcRequest, {
     hash: transactionHash,
   });
-  const transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
+  const receipt = await eth_getTransactionReceipt(rpcRequest, {
     hash: transaction.hash,
   });
 
   return {
     ...sentTransaction,
     status: "mined",
-    transactionHash: transactionReceipt.transactionHash,
+    transactionHash: receipt.transactionHash,
     minedAt: new Date(),
-    minedAtBlock: transactionReceipt.blockNumber,
-    transactionType: transactionReceipt.type,
-    onchainStatus: transactionReceipt.status,
-    gasUsed: transactionReceipt.gasUsed,
-    effectiveGasPrice: transactionReceipt.effectiveGasPrice,
-    gas: transactionReceipt.gasUsed,
-    cumulativeGasUsed: transactionReceipt.cumulativeGasUsed,
+    minedAtBlock: receipt.blockNumber,
+    transactionType: receipt.type,
+    onchainStatus: receipt.status,
+    gasUsed: receipt.gasUsed,
+    effectiveGasPrice: receipt.effectiveGasPrice,
+    gas: receipt.gasUsed,
+    cumulativeGasUsed: receipt.cumulativeGasUsed,
     sender: userOpReceiptRaw.sender as Address,
   };
 };
@@ -243,8 +241,8 @@ _worker.on("failed", async (job: Job<string> | undefined) => {
 
     if (!sentTransaction.isUserOp) {
       // Release the nonce to allow it to be reused or cancelled.
-      job.log(`Releasing nonce: ${sentTransaction.nonce}`);
-      await releaseNonce(
+      job.log(`Recycling nonce: ${sentTransaction.nonce}`);
+      await recycleNonce(
         sentTransaction.chainId,
         sentTransaction.from,
         sentTransaction.nonce,

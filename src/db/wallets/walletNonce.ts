@@ -53,7 +53,7 @@ export const acquireNonce = async (
  * @param walletAddress
  * @param nonce
  */
-export const releaseNonce = async (
+export const recycleNonce = async (
   chainId: number,
   walletAddress: Address,
   nonce: number,
@@ -93,14 +93,7 @@ const _syncNonce = async (
 
   const key = lastUsedNonceKey(chainId, walletAddress);
   await redis.set(key, transactionCount);
-
-  // Set last used nonce to transactionCount - 1.
-  // But don't lower the Redis nonce.
-
-  // @TODO:
-  // Set to max(value, transactionCount-1) -> 6
-
-  return await redis.incr(key);
+  return transactionCount;
 };
 
 /**

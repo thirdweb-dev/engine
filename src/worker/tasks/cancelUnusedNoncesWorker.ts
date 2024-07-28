@@ -1,7 +1,7 @@
 import { Job, Processor, Worker } from "bullmq";
 import { ethers } from "ethers";
 import { Address } from "thirdweb";
-import { releaseNonce } from "../../db/wallets/walletNonce";
+import { recycleNonce } from "../../db/wallets/walletNonce";
 import { isEthersErrorCode } from "../../utils/ethers";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
@@ -38,8 +38,8 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
           if (isEthersErrorCode(e, ethers.errors.NONCE_EXPIRED)) {
             ignore.push(nonce);
           } else {
-            job.log(`Releasing nonce: ${nonce}`);
-            await releaseNonce(chainId, walletAddress, nonce);
+            job.log(`Recycling nonce: ${nonce}`);
+            await recycleNonce(chainId, walletAddress, nonce);
             fail.push(nonce);
           }
         }

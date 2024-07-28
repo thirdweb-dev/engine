@@ -1,5 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
-import { Address, Hex } from "thirdweb";
+import { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { AnyTransaction } from "../../../utils/transaction/types";
 
@@ -300,12 +300,9 @@ export const toTransactionSchema = (
 
     // User Operation
     signerAddress: transaction.from,
-    accountAddress:
-      "accountAddress" in transaction
-        ? (transaction.accountAddress as Address)
-        : null,
-    target: "target" in transaction ? (transaction.target as Address) : null,
-    sender: "sender" in transaction ? (transaction.sender as Address) : null,
+    accountAddress: transaction.accountAddress ?? null,
+    target: transaction.target ?? null,
+    sender: transaction.sender ?? null,
     initCode: null,
     callData: null,
     callGasLimit: null,

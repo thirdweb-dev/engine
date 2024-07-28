@@ -8,7 +8,7 @@ import { bundleUserOp } from "thirdweb/wallets/smart";
 import type { TransactionSerializable } from "viem";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
-import { acquireNonce, releaseNonce } from "../../db/wallets/walletNonce";
+import { acquireNonce, recycleNonce } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
@@ -51,8 +51,9 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
   // SentTransaction = the transaction or userOp was submitted successfully.
   // ErroredTransaction = the transaction failed and should not be re-attempted.
+  // null = the transaction attemped to resend but was not needed. Ignore.
   // A thrown exception indicates a retry-able error occurred (e.g. RPC outage).
-  let resultTransaction: SentTransaction | ErroredTransaction;
+  let resultTransaction: SentTransaction | ErroredTransaction | null;
   if (transaction.status === "queued") {
     if (transaction.isUserOp) {
       resultTransaction = await _sendUserOp(job, transaction);
@@ -66,16 +67,18 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     return;
   }
 
-  // Handle the resulting "sent" or "errored" transaction.
-  await TransactionDB.set(resultTransaction);
-  await enqueueTransactionWebhook(resultTransaction);
+  if (resultTransaction) {
+    // Handle the resulting "sent" or "errored" transaction.
+    await TransactionDB.set(resultTransaction);
+    await enqueueTransactionWebhook(resultTransaction);
 
-  if (resultTransaction.status === "sent") {
-    job.log(`Transaction sent: ${stringify(resultTransaction)}.`);
-    await MineTransactionQueue.add({ queueId: resultTransaction.queueId });
-    await _reportUsageSuccess(resultTransaction);
-  } else if (resultTransaction.status === "errored") {
-    _reportUsageError(resultTransaction);
+    if (resultTransaction.status === "sent") {
+      job.log(`Transaction sent: ${stringify(resultTransaction)}.`);
+      await MineTransactionQueue.add({ queueId: resultTransaction.queueId });
+      await _reportUsageSuccess(resultTransaction);
+    } else if (resultTransaction.status === "errored") {
+      _reportUsageError(resultTransaction);
+    }
   }
 };
 
@@ -158,10 +161,10 @@ const _sendTransaction = async (
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
-    // Release the nonce if it has not expired.
+    // NONCE_EXPIRED indicates the nonce was already used onchain. Do not recycle it.
     if (!isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
-      job.log(`Releasing nonce: ${nonce}`);
-      await releaseNonce(chainId, from, nonce);
+      job.log(`Recycling nonce: ${nonce}`);
+      await recycleNonce(chainId, from, nonce);
     }
     throw error;
   }
@@ -190,7 +193,7 @@ const _resendTransaction = async (
   job: Job,
   sentTransaction: SentTransaction,
   resendCount: number,
-): Promise<SentTransaction | ErroredTransaction> => {
+): Promise<SentTransaction | null> => {
   assert(!sentTransaction.isUserOp);
 
   // Populate the transaction with double gas.
@@ -223,10 +226,32 @@ const _resendTransaction = async (
 
   // Send transaction to RPC.
   // This call throws if the RPC rejects the transaction.
-  const account = await getAccount({ chainId, from });
-  const { transactionHash } = await account.sendTransaction(
-    populatedTransaction,
-  );
+  let transactionHash: Hex;
+  try {
+    const account = await getAccount({ chainId, from });
+    const sendTransactionResult = await account.sendTransaction(
+      populatedTransaction,
+    );
+    transactionHash = sendTransactionResult.transactionHash;
+    job.log(`Sent transaction: ${transactionHash}`);
+  } catch (error: unknown) {
+    // NONCE_EXPIRED indicates that this transaction was already mined.
+    // This is not an error.
+    if (!isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
+      job.log(
+        `Nonce used. This transaction was likely already mined. Do not resend.`,
+      );
+      return null;
+    }
+    // REPLACEMENT_UNDERPRICED indicates the mempool is already aware of this transaction
+    // with >= gas fees. Wait for that one to be mined instead.
+    // This is not an error.
+    if (!isEthersErrorCode(error, ethers.errors.REPLACEMENT_UNDERPRICED)) {
+      job.log("A pending transaction exists with >= gas fees. Do not resend.");
+      return null;
+    }
+    throw error;
+  }
 
   return {
     ...sentTransaction,

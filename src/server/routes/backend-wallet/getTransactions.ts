@@ -42,11 +42,11 @@ export async function getAllTransactions(fastify: FastifyInstance) {
       const chainId = await getChainIdFromChain(chain);
       const walletAddress = normalizeAddress(_walletAddress);
 
-      // @TODO: This query is not optimized. Cap the results to the most recent 1000 total transactions for performance reasons.
+      // @TODO: This query is not optimized. Cap the results to the most recent 10k total transactions for performance reasons.
       const { transactions } = await TransactionDB.listByStatus({
         status: "queued",
         page: 1,
-        limit: 1000,
+        limit: 10_000,
       });
       const filtered = transactions.filter(
         (t) => t.chainId === chainId && t.from === walletAddress,
