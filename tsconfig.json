@@ -10,7 +10,8 @@
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": "src"
   },
   "ts-node": {
     "esm": true,
