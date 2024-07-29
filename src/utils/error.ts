@@ -26,3 +26,13 @@ export const prettifyError = async (
 
   return error.message;
 };
+
+export const isNonceAlreadyUsedError = (error: unknown) =>
+  (error instanceof Error &&
+    error.message.toLowerCase().includes("nonce too low")) ||
+  isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED);
+
+export const isReplacementGasFeeTooLow = (error: unknown) =>
+  (error instanceof Error &&
+    error.message.toLowerCase().includes("replacement fee too low")) ||
+  isEthersErrorCode(error, ethers.errors.REPLACEMENT_UNDERPRICED);

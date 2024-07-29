@@ -1,6 +1,5 @@
 import assert from "assert";
 import { Job, Processor, Worker } from "bullmq";
-import { ethers } from "ethers";
 import superjson from "superjson";
 import { Hex, toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
@@ -14,8 +13,11 @@ import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
-import { prettifyError } from "../../utils/error";
-import { isEthersErrorCode } from "../../utils/ethers";
+import {
+  isNonceAlreadyUsedError,
+  isReplacementGasFeeTooLow,
+  prettifyError,
+} from "../../utils/error";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -75,7 +77,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     if (resultTransaction.status === "sent") {
       job.log(`Transaction sent: ${stringify(resultTransaction)}.`);
       await MineTransactionQueue.add({ queueId: resultTransaction.queueId });
-      await _reportUsageSuccess(resultTransaction);
+
+      // Report usage only on the first transaction send.
+      if (transaction.status === "queued") {
+        await _reportUsageSuccess(resultTransaction);
+      }
     } else if (resultTransaction.status === "errored") {
       _reportUsageError(resultTransaction);
     }
@@ -161,8 +167,7 @@ const _sendTransaction = async (
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
-    // NONCE_EXPIRED indicates the nonce was already used onchain. Do not recycle it.
-    if (!isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
+    if (!isNonceAlreadyUsedError(error)) {
       job.log(`Recycling nonce: ${nonce}`);
       await recycleNonce(chainId, from, nonce);
     }
@@ -234,19 +239,14 @@ const _resendTransaction = async (
     );
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
-  } catch (error: unknown) {
-    // NONCE_EXPIRED indicates that this transaction was already mined.
-    // This is not an error.
-    if (!isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED)) {
+  } catch (error) {
+    if (isNonceAlreadyUsedError(error)) {
       job.log(
-        `Nonce used. This transaction was likely already mined. Do not resend.`,
+        "Nonce used. This transaction was likely already mined. Do not resend.",
       );
       return null;
     }
-    // REPLACEMENT_UNDERPRICED indicates the mempool is already aware of this transaction
-    // with >= gas fees. Wait for that one to be mined instead.
-    // This is not an error.
-    if (!isEthersErrorCode(error, ethers.errors.REPLACEMENT_UNDERPRICED)) {
+    if (isReplacementGasFeeTooLow(error)) {
       job.log("A pending transaction exists with >= gas fees. Do not resend.");
       return null;
     }

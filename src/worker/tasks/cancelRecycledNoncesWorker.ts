@@ -1,12 +1,11 @@
 import { Job, Processor, Worker } from "bullmq";
-import { ethers } from "ethers";
 import { Address } from "thirdweb";
 import { recycleNonce } from "../../db/wallets/walletNonce";
-import { isEthersErrorCode } from "../../utils/ethers";
+import { isNonceAlreadyUsedError } from "../../utils/error";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { sendCancellationTransaction } from "../../utils/transaction/cancelTransaction";
-import { CANCEL_UNUSED_NONCES_QUEUE_NAME } from "../queues/cancelUnusedNoncesQueue";
+import { CANCEL_RECYCLED_NONCES_QUEUE_NAME } from "../queues/cancelRecycledNoncesQueue";
 import { logWorkerExceptions } from "../queues/queues";
 
 /**
@@ -33,9 +32,9 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
             nonce,
           });
           success.push(nonce);
-        } catch (e: unknown) {
+        } catch (error: unknown) {
           // Release the nonce if it has not expired.
-          if (isEthersErrorCode(e, ethers.errors.NONCE_EXPIRED)) {
+          if (isNonceAlreadyUsedError(error)) {
             ignore.push(nonce);
           } else {
             job.log(`Recycling nonce: ${nonce}`);
@@ -73,7 +72,7 @@ const getAndDeleteUnusedNonces = async (key: string) => {
 };
 
 // Worker
-const _worker = new Worker(CANCEL_UNUSED_NONCES_QUEUE_NAME, handler, {
+const _worker = new Worker(CANCEL_RECYCLED_NONCES_QUEUE_NAME, handler, {
   concurrency: 1,
   connection: redis,
 });
