@@ -6,15 +6,8 @@ import { PRUNE_TRANSACTIONS_QUEUE_NAME } from "../queues/pruneTransactionsQueue"
 import { logWorkerExceptions } from "../queues/queues";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  // Purge transactions up to `PRUNE_TRANSACTIONS` days ago.
-  const to = new Date();
-  to.setDate(to.getDate() - env.PRUNE_TRANSACTIONS);
-  await TransactionDB.pruneTransactionLists({ to });
-  job.log(`Pruned transaction lists to ${to.toLocaleString()}.`);
-
-  // Prune transactions DB to the most recent `PRUNE_TRANSACTIONS_COUNT`.
-  const numPruned = await TransactionDB.pruneTransactionDetails(
-    env.PRUNE_TRANSACTIONS_KEEP_COUNT,
+  const numPruned = await TransactionDB.pruneTransactionDetailsAndLists(
+    env.TRANSACTION_HISTORY_COUNT,
   );
   job.log(`Pruned ${numPruned} transaction details.`);
 };

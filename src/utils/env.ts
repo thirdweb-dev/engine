@@ -65,16 +65,9 @@ export const env = createEnv({
     // to avoid running out of memory. If this limit is reached, keys are evicted
     // with a "allkeys-lru" policy (removes least recently used keys).
     REDIS_MAXMEMORY: z.string().default("900mb"),
-    PRUNE_TRANSACTIONS: z
-      .union([
-        z.literal("true").transform(() => 7),
-        z.literal("false").transform(() => 0),
-        z.coerce.number().int(),
-      ])
-      .default(7),
-    // PRUNE_TRANSACTIONS_KEEP_COUNT defines the max transaction details to keep.
+    // TRANSACTION_HISTORY_COUNT defines the max transaction details to keep.
     // In testing, storing about 400k consumes 1GB memory.
-    PRUNE_TRANSACTIONS_KEEP_COUNT: z.coerce.number().default(400_000),
+    TRANSACTION_HISTORY_COUNT: z.coerce.number().default(400_000),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
@@ -109,8 +102,7 @@ export const env = createEnv({
     ENABLE_HTTPS: process.env.ENABLE_HTTPS,
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
     TRUST_PROXY: process.env.TRUST_PROXY,
-    PRUNE_TRANSACTIONS: process.env.PRUNE_TRANSACTIONS,
-    PRUNE_TRANSACTIONS_KEEP_COUNT: process.env.PRUNE_TRANSACTIONS_KEEP_COUNT,
+    TRANSACTION_HISTORY_COUNT: process.env.TRANSACTION_HISTORY_COUNT,
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,

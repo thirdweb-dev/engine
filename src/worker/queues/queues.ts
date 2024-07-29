@@ -10,7 +10,7 @@ export const defaultJobOptions: JobsOptions = {
     count: 10_000,
   },
   // Purge failed jobs.
-  // These limits should be high to debug Redis instances.
+  // These limits should be sufficiently high to debug/retry.
   removeOnFail: {
     age: 30 * 24 * 60 * 60,
     count: 100_000,

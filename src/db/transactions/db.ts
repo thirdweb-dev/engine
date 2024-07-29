@@ -128,7 +128,7 @@ export class TransactionDB {
    */
   static bulkDelete = async (queueIds: string[]) => {
     if (queueIds.length === 0) {
-      return [];
+      return 0;
     }
 
     const keys = queueIds.map(this.transactionDetailsKey);
@@ -176,38 +176,26 @@ export class TransactionDB {
   };
 
   /**
-   * Deletes transactions between a time range.
-   * @param from Date?
-   * @param to Date?
+   * Prunes transaction details and lists, keeping the latest `keep` amount/
+   * @param keep number - The max recent transactions to not prune.
+   * @returns number - The number of transactions pruned.
    */
-  static pruneTransactionLists = async (args: { from?: Date; to?: Date }) => {
-    const { from, to } = args;
-    const min = from ? toSeconds(from) : 0;
-    const max = to ? toSeconds(to) : "+inf";
+  static pruneTransactionDetailsAndLists = async (keep: number) => {
+    // Delete up to `keep - 1` index, inclusive.
+    const stop = -keep - 1;
 
-    // Delete per-status sorted sets.
+    const queueIds = await redis.zrange(this.queuedTransactionsKey, 0, stop);
+    const numPruned = await this.bulkDelete(queueIds);
+
     await redis
       .pipeline()
-      .zremrangebyscore(this.queuedTransactionsKey, min, max)
-      .zremrangebyscore(this.minedTransactionsKey, min, max)
-      .zremrangebyscore(this.cancelledTransactionsKey, min, max)
-      .zremrangebyscore(this.erroredTransactionsKey, min, max)
+      .zremrangebyrank(this.queuedTransactionsKey, 0, stop)
+      .zremrangebyrank(this.minedTransactionsKey, 0, stop)
+      .zremrangebyrank(this.cancelledTransactionsKey, 0, stop)
+      .zremrangebyrank(this.erroredTransactionsKey, 0, stop)
       .exec();
-  };
 
-  /**
-   * Prunes transaction details after `keep` transactions.
-   * Example: `keep=100` prunes all transaction details except the most recent 100.
-   * @param keep number - The count of recent transactions to not prune. All older transactions are pruned.
-   * @returns number - The number of transaction details pruned.
-   */
-  static pruneTransactionDetails = async (keep: number) => {
-    const queueIds = await redis.zrange(
-      this.queuedTransactionsKey,
-      0,
-      -keep - 1,
-    );
-    return await this.bulkDelete(queueIds);
+    return numPruned;
   };
 }
 
