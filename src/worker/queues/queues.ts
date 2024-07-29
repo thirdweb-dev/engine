@@ -3,13 +3,17 @@ import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
 export const defaultJobOptions: JobsOptions = {
-  attempts: 3,
-  // Retries after 5s, 10s, 20s.
-  backoff: { type: "exponential", delay: 5_000 },
-  // Purges completed jobs.
+  attempts: 0,
+  // Purges successful jobs.
   removeOnComplete: {
-    age: 60 * 60 * 24 * 7,
+    age: 7 * 24 * 60 * 60,
     count: 10_000,
+  },
+  // Purge failed jobs.
+  // These limits should be high to debug Redis instances.
+  removeOnFail: {
+    age: 30 * 24 * 60 * 60,
+    count: 100_000,
   },
 };
 

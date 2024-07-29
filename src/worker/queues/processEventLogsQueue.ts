@@ -10,10 +10,7 @@ export const PROCESS_EVENT_LOGS_QUEUE_NAME = "process-event-logs";
 // Queue
 const _queue = new Queue<string>(PROCESS_EVENT_LOGS_QUEUE_NAME, {
   connection: redis,
-  defaultJobOptions: {
-    ...defaultJobOptions,
-    attempts: 0,
-  },
+  defaultJobOptions,
 });
 
 // Each job handles a block range for a given chain, filtered by addresses + events.

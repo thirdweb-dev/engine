@@ -13,13 +13,13 @@ export class MineTransactionQueue {
   private static q = new Queue<string>(this.name, {
     connection: redis,
     defaultJobOptions: {
-      ...defaultJobOptions,
       // Delay confirming the tx by 500ms.
       delay: 500,
       // Retry after 2s, 4s, 8s, 16s, 32s, 64s, 128s, 256s, 512s, 1024s (17 minutes)
       // This needs to be long enough to handle transactions stuck in mempool.
       attempts: 10,
       backoff: { type: "exponential", delay: 2_000 },
+      ...defaultJobOptions,
     },
   });
 

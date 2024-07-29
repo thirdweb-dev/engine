@@ -12,10 +12,7 @@ export const PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME =
 const _queue = redis
   ? new Queue<string>(PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME, {
       connection: redis,
-      defaultJobOptions: {
-        ...defaultJobOptions,
-        attempts: 0,
-      },
+      defaultJobOptions,
     })
   : null;
 

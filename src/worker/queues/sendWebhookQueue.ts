@@ -16,7 +16,11 @@ export const SEND_WEBHOOK_QUEUE_NAME = "send-webhook";
 // Queue
 const _queue = new Queue<string>(SEND_WEBHOOK_QUEUE_NAME, {
   connection: redis,
-  defaultJobOptions,
+  defaultJobOptions: {
+    ...defaultJobOptions,
+    attempts: 3,
+    backoff: { type: "exponential", delay: 5_000 },
+  },
 });
 
 export type EnqueueContractSubscriptionWebhookData = {
