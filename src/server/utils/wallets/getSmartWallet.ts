@@ -14,12 +14,12 @@ export const getSmartWallet = async ({
   backendWallet,
   accountAddress,
 }: GetSmartWalletParams) => {
-  let factoryAddress: string;
+  let factoryAddress: string = "";
 
   try {
     // Note: This is a temporary solution to use cached deployed address's factory address from create-account
     // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
-    factoryAddress = await redis.get(`account-factory:${accountAddress.toLowerCase()}`);
+    factoryAddress = (await redis.get(`account-factory:${accountAddress.toLowerCase()}`)) || "";
   } catch {
   }
 
