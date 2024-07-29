@@ -82,7 +82,7 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { page, limit } = request.query;
 
-      const { transactions } = await TransactionDB.listByStatus({
+      const { transactions } = await TransactionDB.getTransactionListByStatus({
         status: "queued",
         page,
         limit,

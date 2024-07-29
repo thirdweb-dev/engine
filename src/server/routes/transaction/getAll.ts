@@ -103,11 +103,12 @@ export async function getAllTx(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { page, limit } = request.query;
 
-      const { transactions, totalCount } = await TransactionDB.listByStatus({
-        status: "queued",
-        page,
-        limit,
-      });
+      const { transactions, totalCount } =
+        await TransactionDB.getTransactionListByStatus({
+          status: "queued",
+          page,
+          limit,
+        });
 
       reply.status(StatusCodes.OK).send({
         result: {

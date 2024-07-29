@@ -43,7 +43,7 @@ export async function getAllTransactions(fastify: FastifyInstance) {
       const walletAddress = normalizeAddress(_walletAddress);
 
       // @TODO: This query is not optimized. Cap the results to the most recent 10k total transactions for performance reasons.
-      const { transactions } = await TransactionDB.listByStatus({
+      const { transactions } = await TransactionDB.getTransactionListByStatus({
         status: "queued",
         page: 1,
         limit: 10_000,

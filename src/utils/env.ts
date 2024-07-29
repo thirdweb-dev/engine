@@ -61,6 +61,10 @@ export const env = createEnv({
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
     TRUST_PROXY: z.boolean().default(false),
+    // REDIS_MAXMEMORY should be set below the amount of memory Redis has available
+    // to avoid running out of memory. If this limit is reached, keys are evicted
+    // with a "allkeys-lru" policy (removes least recently used keys).
+    REDIS_MAXMEMORY: z.string().default("900mb"),
     PRUNE_TRANSACTIONS: z
       .union([
         z.literal("true").transform(() => 7),
@@ -68,6 +72,9 @@ export const env = createEnv({
         z.coerce.number().int(),
       ])
       .default(7),
+    // PRUNE_TRANSACTIONS_KEEP_COUNT defines the max transaction details to keep.
+    // In testing, storing about 400k consumes 1GB memory.
+    PRUNE_TRANSACTIONS_KEEP_COUNT: z.coerce.number().default(400_000),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
@@ -79,8 +86,8 @@ export const env = createEnv({
       .nonnegative()
       .default(0),
     REDIS_URL: z.string(),
-    SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1500),
-    CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1500),
+    SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(2000),
+    CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(2000),
     ENGINE_MODE: z
       .enum(["default", "sandbox", "server_only", "worker_only"])
       .default("default"),
@@ -103,6 +110,7 @@ export const env = createEnv({
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
     TRUST_PROXY: process.env.TRUST_PROXY,
     PRUNE_TRANSACTIONS: process.env.PRUNE_TRANSACTIONS,
+    PRUNE_TRANSACTIONS_KEEP_COUNT: process.env.PRUNE_TRANSACTIONS_KEEP_COUNT,
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
@@ -116,6 +124,7 @@ export const env = createEnv({
       process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     ENGINE_MODE: process.env.ENGINE_MODE,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
+    REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
   },
   onValidationError: (error: ZodError) => {
     console.error(

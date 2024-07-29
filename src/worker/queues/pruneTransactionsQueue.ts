@@ -13,5 +13,5 @@ _queue.setGlobalConcurrency(1);
 _queue.add("hourly-cron", "", {
   repeat: { pattern: "*/10 * * * *" },
   // Use a constant jobId to not insert multiple repeatable jobs.
-  jobId: "billing-reporter-hourly-cron",
+  jobId: "prune-transactions-cron",
 });

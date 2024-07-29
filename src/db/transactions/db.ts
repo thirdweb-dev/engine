@@ -1,5 +1,4 @@
 import superjson from "superjson";
-import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { AnyTransaction } from "../../utils/transaction/types";
 
@@ -42,29 +41,15 @@ export class TransactionDB {
   /**
    * Inserts or replaces a transaction details.
    * Also adds to the appropriate "status" sorted set.
-   * Sets a TTL for completed statuses (mined, cancelled, errored).
-   *
    * @param transaction
    */
   static set = async (transaction: AnyTransaction) => {
-    const pipeline = redis.pipeline();
-
-    const shouldExpire = ["mined", "cancelled", "errored"].includes(
-      transaction.status,
-    );
-    if (shouldExpire) {
-      const ttlSeconds = env.PRUNE_TRANSACTIONS * 24 * 60 * 60;
-      pipeline.setex(
-        this.transactionDetailsKey(transaction.queueId),
-        ttlSeconds,
-        superjson.stringify(transaction),
-      );
-    } else {
-      pipeline.set(
+    const pipeline = redis
+      .pipeline()
+      .set(
         this.transactionDetailsKey(transaction.queueId),
         superjson.stringify(transaction),
       );
-    }
 
     switch (transaction.status) {
       case "queued":
@@ -137,6 +122,20 @@ export class TransactionDB {
   };
 
   /**
+   * Deletes multiple transaction details by a list of queueIds.
+   * @param queueIds
+   * @returns number - The number of transaction details deleted.
+   */
+  static bulkDelete = async (queueIds: string[]) => {
+    if (queueIds.length === 0) {
+      return [];
+    }
+
+    const keys = queueIds.map(this.transactionDetailsKey);
+    return await redis.unlink(...keys);
+  };
+
+  /**
    * Check if a transaction exists.
    * @param queueId
    * @returns true if the transaction exists, else false.
@@ -151,7 +150,7 @@ export class TransactionDB {
    * @param limit
    * @returns
    */
-  static listByStatus = async (args: {
+  static getTransactionListByStatus = async (args: {
     status: "queued" | "mined" | "cancelled" | "errored";
     page: number;
     limit: number;
@@ -180,20 +179,35 @@ export class TransactionDB {
    * Deletes transactions between a time range.
    * @param from Date?
    * @param to Date?
-   * @returns string[] List of queueIds
    */
-  static pruneTransactions = async (args: { from?: Date; to?: Date }) => {
+  static pruneTransactionLists = async (args: { from?: Date; to?: Date }) => {
     const { from, to } = args;
     const min = from ? toSeconds(from) : 0;
     const max = to ? toSeconds(to) : "+inf";
 
-    // Delete per-status sorted sets. Do not purge queued transactions.
+    // Delete per-status sorted sets.
     await redis
       .pipeline()
+      .zremrangebyscore(this.queuedTransactionsKey, min, max)
       .zremrangebyscore(this.minedTransactionsKey, min, max)
       .zremrangebyscore(this.cancelledTransactionsKey, min, max)
       .zremrangebyscore(this.erroredTransactionsKey, min, max)
       .exec();
+  };
+
+  /**
+   * Prunes transaction details after `keep` transactions.
+   * Example: `keep=100` prunes all transaction details except the most recent 100.
+   * @param keep number - The count of recent transactions to not prune. All older transactions are pruned.
+   * @returns number - The number of transaction details pruned.
+   */
+  static pruneTransactionDetails = async (keep: number) => {
+    const queueIds = await redis.zrange(
+      this.queuedTransactionsKey,
+      0,
+      -keep - 1,
+    );
+    return await this.bulkDelete(queueIds);
   };
 }
 
