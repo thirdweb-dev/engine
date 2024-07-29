@@ -95,9 +95,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
 
       // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
       // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
-      if (redis) {
-        await redis.set(`account-factory:${deployedAddress.toLowerCase()}`, contractAddress, 'EX', 7 * 24 * 60 * 60);
-      }
+      await redis.set(`account-factory:${deployedAddress.toLowerCase()}`, contractAddress, 'EX', 7 * 24 * 60 * 60);
 
       reply.status(StatusCodes.OK).send({
         result: {

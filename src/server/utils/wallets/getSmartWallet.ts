@@ -19,27 +19,22 @@ export const getSmartWallet = async ({
   try {
     // Note: This is a temporary solution to use cached deployed address's factory address from create-account
     // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
-    if (redis) {
-      factoryAddress = await redis.get(`account-factory:${accountAddress.toLowerCase()}`);
-    }
+    factoryAddress = await redis.get(`account-factory:${accountAddress.toLowerCase()}`);
   } catch {
   }
 
-  try {
-    if (!factoryAddress) {
+  if (!factoryAddress) {
+    try {
       const contract = await getContract({
         chainId,
         contractAddress: accountAddress,
       });
       factoryAddress = await contract.call("factory");
+    } catch {
+      throw new Error(
+        `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
+      );
     }
-  } catch {
-  }
-
-  if (!factoryAddress) {
-    throw new Error(
-      `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
-    );
   }
 
   const smartWallet = new SmartWallet({
