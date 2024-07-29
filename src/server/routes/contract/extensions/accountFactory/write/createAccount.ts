@@ -12,7 +12,7 @@ import {
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
 import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-import { redis } from "../../../../../utils/redis";
+import { redis } from "../../../../../../utils/redis/redis";
 
 const requestBodySchema = Type.Object({
   adminAddress: Type.String({
