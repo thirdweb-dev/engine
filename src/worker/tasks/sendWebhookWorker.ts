@@ -12,10 +12,7 @@ import { toTransactionReceiptSchema } from "../../server/schemas/transactionRece
 import { redis } from "../../utils/redis/redis";
 import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
 import { logWorkerExceptions } from "../queues/queues";
-import {
-  SEND_WEBHOOK_QUEUE_NAME,
-  WebhookJob,
-} from "../queues/sendWebhookQueue";
+import { SendWebhookQueue, WebhookJob } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);
@@ -70,9 +67,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 };
 
-// Worker
-const _worker = new Worker(SEND_WEBHOOK_QUEUE_NAME, handler, {
-  concurrency: 10,
-  connection: redis,
-});
-logWorkerExceptions(_worker);
+// Must be explicitly called for the worker to run on this host.
+export const initSendWebhookWorker = () => {
+  const _worker = new Worker(SendWebhookQueue.q.name, handler, {
+    concurrency: 10,
+    connection: redis,
+  });
+  logWorkerExceptions(_worker);
+};

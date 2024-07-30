@@ -315,29 +315,31 @@ const _resolveDeployedContractAddress = (
   }
 };
 
-// Worker
-const _worker = new Worker(SendTransactionQueue.name, handler, {
-  concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
-  connection: redis,
-});
-logWorkerExceptions(_worker);
+// Must be explicitly called for the worker to run on this host.
+export const initSendTransactionWorker = () => {
+  const _worker = new Worker(SendTransactionQueue.q.name, handler, {
+    concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
+    connection: redis,
+  });
+  logWorkerExceptions(_worker);
 
-// If a transaction fails to send after all retries, error it.
-_worker.on("failed", async (job: Job<string> | undefined, error: Error) => {
-  if (job && job.attemptsMade === job.opts.attempts) {
-    const { queueId } = superjson.parse<SendTransactionData>(job.data);
-    const transaction = await TransactionDB.get(queueId);
-    if (transaction) {
-      const erroredTransaction: ErroredTransaction = {
-        ...transaction,
-        status: "errored",
-        errorMessage: await prettifyError(transaction, error),
-      };
-      job.log(`Transaction errored: ${stringify(erroredTransaction)}`);
+  // If a transaction fails to send after all retries, error it.
+  _worker.on("failed", async (job: Job<string> | undefined, error: Error) => {
+    if (job && job.attemptsMade === job.opts.attempts) {
+      const { queueId } = superjson.parse<SendTransactionData>(job.data);
+      const transaction = await TransactionDB.get(queueId);
+      if (transaction) {
+        const erroredTransaction: ErroredTransaction = {
+          ...transaction,
+          status: "errored",
+          errorMessage: await prettifyError(transaction, error),
+        };
+        job.log(`Transaction errored: ${stringify(erroredTransaction)}`);
 
-      await TransactionDB.set(erroredTransaction);
-      await enqueueTransactionWebhook(erroredTransaction);
-      _reportUsageError(erroredTransaction);
+        await TransactionDB.set(erroredTransaction);
+        await enqueueTransactionWebhook(erroredTransaction);
+        _reportUsageError(erroredTransaction);
+      }
     }
-  }
-});
+  });
+};

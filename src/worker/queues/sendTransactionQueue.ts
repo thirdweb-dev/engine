@@ -9,7 +9,7 @@ export type SendTransactionData = {
 };
 
 export class SendTransactionQueue {
-  public static name = "transactions-1-send";
+  private static name = "transactions-1-send";
 
   static q = new Queue<string>(this.name, {
     connection: redis,

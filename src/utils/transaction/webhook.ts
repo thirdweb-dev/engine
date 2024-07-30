@@ -1,5 +1,5 @@
 import { WebhooksEventTypes } from "../../schema/webhooks";
-import { enqueueWebhook } from "../../worker/queues/sendWebhookQueue";
+import { SendWebhookQueue } from "../../worker/queues/sendWebhookQueue";
 import { AnyTransaction } from "./types";
 
 export const enqueueTransactionWebhook = async (
@@ -16,9 +16,7 @@ export const enqueueTransactionWebhook = async (
       : status === "errored"
       ? WebhooksEventTypes.ERRORED_TX
       : null;
-
-  if (!type) {
-    return;
+  if (type) {
+    await SendWebhookQueue.enqueueWebhook({ type, queueId });
   }
-  await enqueueWebhook({ type, queueId });
 };

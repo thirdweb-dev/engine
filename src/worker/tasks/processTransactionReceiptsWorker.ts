@@ -21,10 +21,10 @@ import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
   EnqueueProcessTransactionReceiptsData,
-  PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME,
+  ProcessTransactionReceiptsQueue,
 } from "../queues/processTransactionReceiptsQueue";
 import { logWorkerExceptions } from "../queues/queues";
-import { enqueueWebhook } from "../queues/sendWebhookQueue";
+import { SendWebhookQueue } from "../queues/sendWebhookQueue";
 import { getContractId } from "../utils/contractId";
 import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
 
@@ -62,7 +62,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     const webhooks =
       webhooksByContractAddress[transactionReceipt.contractAddress] ?? [];
     for (const webhook of webhooks) {
-      await enqueueWebhook({
+      await SendWebhookQueue.enqueueWebhook({
         type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
         webhook,
         transactionReceipt,
@@ -215,9 +215,11 @@ const getFunctionName = async (args: {
   return decoded.functionName;
 };
 
-// Worker
-const _worker = new Worker(PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME, handler, {
-  concurrency: 5,
-  connection: redis,
-});
-logWorkerExceptions(_worker);
+// Must be explicitly called for the worker to run on this host.
+export const initProcessTransactionReceiptsWorker = () => {
+  const _worker = new Worker(ProcessTransactionReceiptsQueue.q.name, handler, {
+    concurrency: 5,
+    connection: redis,
+  });
+  logWorkerExceptions(_worker);
+};

@@ -7,17 +7,23 @@ import {
   newWebhooksListener,
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
-
-// Init workers.
-import "./tasks/cancelRecycledNoncesWorker";
-import "./tasks/mineTransactionWorker";
-import "./tasks/processEventLogsWorker";
-import "./tasks/processTransactionReceiptsWorker";
-import "./tasks/pruneTransactionsWorker";
-import "./tasks/sendTransactionWorker";
-import "./tasks/sendWebhookWorker";
+import { initCancelRecycledNoncesWorker } from "./tasks/cancelRecycledNoncesWorker";
+import { initMineTransactionWorker } from "./tasks/mineTransactionWorker";
+import { initProcessEventLogsWorker } from "./tasks/processEventLogsWorker";
+import { initProcessTransactionReceiptsWorker } from "./tasks/processTransactionReceiptsWorker";
+import { initPruneTransactionsWorker } from "./tasks/pruneTransactionsWorker";
+import { initSendTransactionWorker } from "./tasks/sendTransactionWorker";
+import { initSendWebhookWorker } from "./tasks/sendWebhookWorker";
 
 export const initWorker = async () => {
+  initCancelRecycledNoncesWorker();
+  initProcessEventLogsWorker();
+  initProcessTransactionReceiptsWorker();
+  initPruneTransactionsWorker();
+  initSendTransactionWorker();
+  initMineTransactionWorker();
+  initSendWebhookWorker();
+
   // Listen for new & updated configuration data.
   await newConfigurationListener();
   await updatedConfigurationListener();

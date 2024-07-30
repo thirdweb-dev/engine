@@ -1,20 +1,25 @@
 import { Queue } from "bullmq";
+import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
-const CANCEL_RECYCLED_NONCES_QUEUE_NAME = "cancel-recycled-nonces";
+export class CancelRecycledNoncesQueue {
+  private static name = "cancel-recycled-nonces";
 
-export const cancelRecycledNoncesQueue = new Queue<string>(
-  CANCEL_RECYCLED_NONCES_QUEUE_NAME,
-  {
+  static q = new Queue<string>(this.name, {
     connection: redis,
     defaultJobOptions,
-  },
-);
+  });
 
-cancelRecycledNoncesQueue.setGlobalConcurrency(1);
-cancelRecycledNoncesQueue.add("hourly-cron", "", {
-  repeat: { pattern: "* * * * *" },
-  // Use a constant jobId to not insert multiple repeatable jobs.
-  jobId: "cancel-recycled-nonces-cron",
-});
+  constructor() {
+    if (env.ENGINE_MODE === "server_only") {
+      return;
+    }
+
+    CancelRecycledNoncesQueue.q.setGlobalConcurrency(1);
+    CancelRecycledNoncesQueue.q.add("cron", "", {
+      repeat: { pattern: "* * * * *" },
+      jobId: "cron",
+    });
+  }
+}

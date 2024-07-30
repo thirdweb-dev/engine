@@ -211,42 +211,44 @@ const _mineUserOp = async (
   };
 };
 
-// Worker
-const _worker = new Worker(MineTransactionQueue.name, handler, {
-  concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
-  connection: redis,
-});
+// Must be explicitly called for the worker to run on this host.
+export const initMineTransactionWorker = () => {
+  const _worker = new Worker(MineTransactionQueue.q.name, handler, {
+    concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
+    connection: redis,
+  });
 
-// If a transaction fails to mine after all retries, set it as errored and release the nonce.
-_worker.on("failed", async (job: Job<string> | undefined) => {
-  if (job && job.attemptsMade === job.opts.attempts) {
-    const { queueId } = superjson.parse<MineTransactionData>(job.data);
+  // If a transaction fails to mine after all retries, set it as errored and release the nonce.
+  _worker.on("failed", async (job: Job<string> | undefined) => {
+    if (job && job.attemptsMade === job.opts.attempts) {
+      const { queueId } = superjson.parse<MineTransactionData>(job.data);
 
-    const sentTransaction = await TransactionDB.get(queueId);
-    if (sentTransaction?.status !== "sent") {
-      job.log(`Invalid transaction state: ${stringify(sentTransaction)}`);
-      return;
+      const sentTransaction = await TransactionDB.get(queueId);
+      if (sentTransaction?.status !== "sent") {
+        job.log(`Invalid transaction state: ${stringify(sentTransaction)}`);
+        return;
+      }
+
+      const erroredTransaction: ErroredTransaction = {
+        ...sentTransaction,
+        status: "errored",
+        errorMessage: "Transaction timed out.",
+      };
+      job.log(`Transaction timed out: ${stringify(erroredTransaction)}`);
+
+      await TransactionDB.set(erroredTransaction);
+      await enqueueTransactionWebhook(erroredTransaction);
+      _reportUsageError(erroredTransaction);
+
+      if (!sentTransaction.isUserOp) {
+        // Release the nonce to allow it to be reused or cancelled.
+        job.log(`Recycling nonce: ${sentTransaction.nonce}`);
+        await recycleNonce(
+          sentTransaction.chainId,
+          sentTransaction.from,
+          sentTransaction.nonce,
+        );
+      }
     }
-
-    const erroredTransaction: ErroredTransaction = {
-      ...sentTransaction,
-      status: "errored",
-      errorMessage: "Transaction timed out.",
-    };
-    job.log(`Transaction timed out: ${stringify(erroredTransaction)}`);
-
-    await TransactionDB.set(erroredTransaction);
-    await enqueueTransactionWebhook(erroredTransaction);
-    _reportUsageError(erroredTransaction);
-
-    if (!sentTransaction.isUserOp) {
-      // Release the nonce to allow it to be reused or cancelled.
-      job.log(`Recycling nonce: ${sentTransaction.nonce}`);
-      await recycleNonce(
-        sentTransaction.chainId,
-        sentTransaction.from,
-        sentTransaction.nonce,
-      );
-    }
-  }
-});
+  });
+};

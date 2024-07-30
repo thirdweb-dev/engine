@@ -5,8 +5,17 @@ import { isNonceAlreadyUsedError } from "../../utils/error";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { sendCancellationTransaction } from "../../utils/transaction/cancelTransaction";
-import { cancelRecycledNoncesQueue } from "../queues/cancelRecycledNoncesQueue";
+import { CancelRecycledNoncesQueue } from "../queues/cancelRecycledNoncesQueue";
 import { logWorkerExceptions } from "../queues/queues";
+
+// Must be explicitly called for the worker to run on this host.
+export const initCancelRecycledNoncesWorker = () => {
+  const _worker = new Worker(CancelRecycledNoncesQueue.q.name, handler, {
+    connection: redis,
+    concurrency: 1,
+  });
+  logWorkerExceptions(_worker);
+};
 
 /**
  * Sends a cancel transaction for all recycled nonces.
@@ -70,10 +79,3 @@ const getAndDeleteUnusedNonces = async (key: string) => {
   const results = (await redis.eval(script, 0, key)) as string[];
   return results.map(parseInt);
 };
-
-// Worker
-const _worker = new Worker(cancelRecycledNoncesQueue.name, handler, {
-  concurrency: 1,
-  connection: redis,
-});
-logWorkerExceptions(_worker);

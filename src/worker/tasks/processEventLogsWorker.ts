@@ -25,10 +25,10 @@ import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
   EnqueueProcessEventLogsData,
-  PROCESS_EVENT_LOGS_QUEUE_NAME,
+  ProcessEventsLogQueue,
 } from "../queues/processEventLogsQueue";
 import { logWorkerExceptions } from "../queues/queues";
-import { enqueueWebhook } from "../queues/sendWebhookQueue";
+import { SendWebhookQueue } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const {
@@ -61,7 +61,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   for (const eventLog of insertedLogs) {
     const webhooks = webhooksByContractAddress[eventLog.contractAddress] ?? [];
     for (const webhook of webhooks) {
-      await enqueueWebhook({
+      await SendWebhookQueue.enqueueWebhook({
         type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
         webhook,
         eventLog,
@@ -287,9 +287,11 @@ const logArgToString = (arg: any): string => {
   return arg.toString();
 };
 
-// Worker
-const _worker = new Worker(PROCESS_EVENT_LOGS_QUEUE_NAME, handler, {
-  concurrency: 5,
-  connection: redis,
-});
-logWorkerExceptions(_worker);
+// Must be explicitly called for the worker to run on this host.
+export const initProcessEventLogsWorker = () => {
+  const _worker = new Worker(ProcessEventsLogQueue.q.name, handler, {
+    concurrency: 5,
+    connection: redis,
+  });
+  logWorkerExceptions(_worker);
+};

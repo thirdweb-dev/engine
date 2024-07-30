@@ -2,7 +2,7 @@ import { Job, Processor, Worker } from "bullmq";
 import { TransactionDB } from "../../db/transactions/db";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
-import { PRUNE_TRANSACTIONS_QUEUE_NAME } from "../queues/pruneTransactionsQueue";
+import { PruneTransactionsQueue } from "../queues/pruneTransactionsQueue";
 import { logWorkerExceptions } from "../queues/queues";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
@@ -12,9 +12,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   job.log(`Pruned ${numPruned} transaction details.`);
 };
 
-// Worker
-const _worker = new Worker(PRUNE_TRANSACTIONS_QUEUE_NAME, handler, {
-  concurrency: 1,
-  connection: redis,
-});
-logWorkerExceptions(_worker);
+// Must be explicitly called for the worker to run on this host.
+export const initPruneTransactionsWorker = () => {
+  const _worker = new Worker(PruneTransactionsQueue.q.name, handler, {
+    concurrency: 1,
+    connection: redis,
+  });
+  logWorkerExceptions(_worker);
+};
