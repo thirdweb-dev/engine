@@ -38,9 +38,7 @@ export interface WebhookJob {
 }
 
 export class SendWebhookQueue {
-  private static name = "send-webhook";
-
-  static q = new Queue<string>(this.name, {
+  static q = new Queue<string>("send-webhook", {
     connection: redis,
     defaultJobOptions: {
       ...defaultJobOptions,

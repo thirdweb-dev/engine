@@ -17,9 +17,7 @@ export type EnqueueProcessEventLogsData = {
 };
 
 export class ProcessEventsLogQueue {
-  private static name = "process-event-logs";
-
-  static q = new Queue<string>(this.name, {
+  static q = new Queue<string>("process-event-logs", {
     connection: redis,
     defaultJobOptions,
   });

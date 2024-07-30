@@ -17,9 +17,7 @@ export type EnqueueProcessTransactionReceiptsData = {
 };
 
 export class ProcessTransactionReceiptsQueue {
-  private static name = "process-transaction-receipts";
-
-  static q = new Queue<string>(this.name, {
+  static q = new Queue<string>("process-transaction-receipts", {
     connection: redis,
     defaultJobOptions,
   });

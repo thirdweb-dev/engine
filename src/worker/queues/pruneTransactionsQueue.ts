@@ -4,9 +4,7 @@ import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
 export class PruneTransactionsQueue {
-  private static name = "prune-transactions";
-
-  static q = new Queue<string>(this.name, {
+  static q = new Queue<string>("prune-transactions", {
     connection: redis,
     defaultJobOptions,
   });

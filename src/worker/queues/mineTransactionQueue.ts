@@ -8,9 +8,7 @@ export type MineTransactionData = {
 };
 
 export class MineTransactionQueue {
-  private static name = "transactions-2-mine";
-
-  static q = new Queue<string>(this.name, {
+  static q = new Queue<string>("transactions-2-mine", {
     connection: redis,
     defaultJobOptions: {
       ...defaultJobOptions,

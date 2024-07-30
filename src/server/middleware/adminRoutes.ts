@@ -8,6 +8,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../utils/env";
 import { CancelRecycledNoncesQueue } from "../../worker/queues/cancelRecycledNoncesQueue";
+import { MigratePostgresTransactionsQueue } from "../../worker/queues/migratePostgresTransactionsQueue";
 import { MineTransactionQueue } from "../../worker/queues/mineTransactionQueue";
 import { ProcessEventsLogQueue } from "../../worker/queues/processEventLogsQueue";
 import { ProcessTransactionReceiptsQueue } from "../../worker/queues/processTransactionReceiptsQueue";
@@ -26,6 +27,7 @@ const QUEUES: Queue[] = [
   MineTransactionQueue.q,
   CancelRecycledNoncesQueue.q,
   PruneTransactionsQueue.q,
+  MigratePostgresTransactionsQueue.q,
 ];
 
 export const withAdminRoutes = async (fastify: FastifyInstance) => {

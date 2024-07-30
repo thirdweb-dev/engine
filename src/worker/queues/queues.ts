@@ -12,7 +12,7 @@ export const defaultJobOptions: JobsOptions = {
   // Purge failed jobs.
   // These limits should be sufficiently high to debug/retry.
   removeOnFail: {
-    age: 30 * 24 * 60 * 60,
+    age: 7 * 24 * 60 * 60,
     count: 100_000,
   },
 };
