@@ -9,10 +9,12 @@ services:
     restart: always
     env_file:
       - .env
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - 5432:5432
     deploy:
       resources:
         limits:
@@ -24,7 +26,7 @@ services:
 
   redis:
     container_name: redis
-    image: redislabs/redis:7.4.2-216
+    image: redis:7.2
     restart: always
     ports:
       - 6379:6379
