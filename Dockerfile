@@ -1,4 +1,4 @@
-FROM node:18.20-slim as base
+FROM node:18.20-slim AS base
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN apt-get -y update && \
 ##############################
 
 # Generate cert for local https
-FROM base as certs
+FROM base AS certs
 
 WORKDIR /app/src/https
 
@@ -29,7 +29,10 @@ RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
 ##############################
 ##############################
 
-FROM base as build
+FROM base AS build
+
+# Install Python3-Pip
+RUN apt-get -y install python3-pip
 
 # Copy the entire project directory
 COPY . .
@@ -46,7 +49,7 @@ RUN yarn install --frozen-lockfile --production=false --network-timeout 1000000 
 ##############################
 ##############################
 
-FROM base as prod
+FROM base AS prod
 
 EXPOSE 3005
 
