@@ -10,7 +10,6 @@ import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
 import { getContractAddress } from "ethers/lib/utils";
-import { redis } from "utils/redis/redis";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
@@ -25,6 +24,7 @@ import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { parseTxError } from "../../utils/errors";
 import { logger } from "../../utils/logger";
+import { redis } from "../../utils/redis/redis";
 import {
   ReportUsageParams,
   UsageEventTxActionEnum,

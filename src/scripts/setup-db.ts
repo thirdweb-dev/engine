@@ -5,17 +5,14 @@ const main = async () => {
   const [{ exists: hasWalletsTable }]: [{ exists: boolean }] =
     await prisma.$queryRaw`
       SELECT EXISTS (
-        SELECT 1 
-        FROM   pg_tables 
+        SELECT 1
+        FROM   pg_tables
         WHERE  schemaname = 'public'
         AND    tablename = 'wallets'
       );
     `;
 
-  const schema =
-    process.env.NODE_ENV === "production"
-      ? `./dist/prisma/schema.prisma`
-      : `./src/prisma/schema.prisma`;
+  const schema = `./src/prisma/schema.prisma`;
 
   if (hasWalletsTable) {
     execSync(`yarn prisma migrate reset --force --schema ${schema}`, {

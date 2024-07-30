@@ -1,6 +1,0 @@
-services:
-  engine:
-    build:
-      context: .
-      target: prod
-    image: thirdweb/engine:0.1.0

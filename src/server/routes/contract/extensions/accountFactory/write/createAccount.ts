@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { redis } from "../../../../../../utils/redis/redis";
 import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import {
   contractParamSchema,
@@ -12,7 +13,6 @@ import {
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
 import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-import { redis } from "utils/redis/redis";
 
 const requestBodySchema = Type.Object({
   adminAddress: Type.String({
