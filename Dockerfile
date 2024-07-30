@@ -1,98 +1,67 @@
 FROM node:18.20-slim AS base
 
-# Upgrade packages
-RUN apt-get -y update && apt-get -y upgrade
-
-# Install tini & build dependencies
-RUN apt-get install -y g++ make python3-pip openssl
-
-# Set the working directory
 WORKDIR /app
 
+# Upgrade packages
+RUN apt-get -y update && \
+    apt-get -y upgrade && \
+    apt-get -y install libssl-dev
 
-# Copy package.json and yarn.lock files
-COPY package*.json yarn*.lock ./
+##############################
+##############################
+##############################
+##############################
 
-# Copy the entire project directory
-COPY . .
-
-# Install dependencies for both development and production
-RUN yarn install --frozen-lockfile --network-timeout 1000000
+# Generate cert for local https
+FROM base AS certs
 
 WORKDIR /app/src/https
+
+RUN apt-get -y install openssl
 
 RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
     -passout pass:thirdweb-engine && \
     chmod 600 key.pem cert.pem
 
-WORKDIR /app
-
-# Clean up build dependencies
-# RUN apt del build-dependencies
-
+##############################
+##############################
 ##############################
 ##############################
 
-FROM base AS local
+FROM base AS build
+
+# Install Python3-Pip
+RUN apt-get -y install python3-pip
+
+# Copy the entire project directory
+COPY . .
+
+# Install dependencies for both development and production (May need devDependencies to build)
+# Build the project
+# Prune dev dependencies from the packages
+RUN yarn install --frozen-lockfile --production=false --network-timeout 1000000 && \
+    yarn build && \
+    yarn install --frozen-lockfile --production=true --network-timeout 1000000
+
+##############################
+##############################
+##############################
+##############################
+
+FROM base AS prod
 
 EXPOSE 3005
-ENV NODE_ENV="local"
-RUN npm install -g nodemon
 
-CMD [ "sh", "-c","yarn prisma:setup:dev && yarn dev:run" ]
-
-##############################
-##############################
-
-# Production Node Modules stage
-FROM base AS prod-dependencies
-
-WORKDIR /app
-
-# Upgrade packages
-RUN apt-get -y update && apt-get -y upgrade
-
-# Build the project
-RUN apt-get install -y g++ make python3-pip && \
-    yarn build && \
-    yarn copy-files && \
-    rm -rf node_modules && \
-    yarn install --production=true --frozen-lockfile --network-timeout 1000000
-
-
-##############################
-##############################
-
-# Production stage
-FROM node:18.20-slim AS prod
-
-# Setting ENV variables for image information
 ARG ENGINE_VERSION
 ENV ENGINE_VERSION=${ENGINE_VERSION}
-
-# Upgrade packages
-RUN apt-get -y update && apt-get -y upgrade
-
-# Install openssl
-RUN apt-get install -y openssl
-
-# Set the working directory
-WORKDIR /app
 ENV NODE_ENV="production" \
     PATH=/app/node_modules/.bin:$PATH
-    
-EXPOSE 3005
 
-# Copy package.json and yarn.lock files
-COPY package*.json yarn*.lock ./
+COPY --from=certs /app/src/https ./dist/https
+COPY --from=build /app/package.json .
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/src/prisma/* ./src/prisma/
+COPY --from=build /app/dist ./dist
 
-# Replace the schema path in the package.json file
-RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/prisma/schema.prisma"_g' package.json
-
-# Copy only production dependencies from the prod-dependencies stage
-COPY --from=prod-dependencies /app/node_modules ./node_modules
-COPY --from=prod-dependencies /app/dist ./dist
-COPY --from=base /app/src/https ./dist/https
-
-CMD [ "yarn", "start"]
+ENTRYPOINT [ "yarn", "start"]

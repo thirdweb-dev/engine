@@ -85,6 +85,7 @@ export const env = createEnv({
       .enum(["default", "sandbox", "server_only", "worker_only"])
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
+    DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -102,6 +103,7 @@ export const env = createEnv({
     ENABLE_HTTPS: process.env.ENABLE_HTTPS,
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
     TRUST_PROXY: process.env.TRUST_PROXY,
+    REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
     TRANSACTION_HISTORY_COUNT: process.env.TRANSACTION_HISTORY_COUNT,
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
@@ -116,7 +118,7 @@ export const env = createEnv({
       process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     ENGINE_MODE: process.env.ENGINE_MODE,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
-    REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
+    DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
   },
   onValidationError: (error: ZodError) => {
     console.error(
