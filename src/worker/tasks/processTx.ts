@@ -9,6 +9,8 @@ import {
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
+import { getContractAddress } from "ethers/lib/utils";
+import { redis } from "utils/redis/redis";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
@@ -35,7 +37,6 @@ import {
 } from "../../utils/webhook";
 import { randomNonce } from "../utils/nonce";
 import { getWithdrawValue } from "../utils/withdraw";
-import { getContractAddress } from "ethers/lib/utils";
 
 type RpcResponseData = {
   tx: Transactions;
@@ -381,6 +382,38 @@ export const processTx = async () => {
               walletAddress: tx.signerAddress!,
               accountAddress: tx.accountAddress!,
             });
+
+            // Check if the Smart Account is deployed onchain before sending the user op
+            // check Redis cache for account deployed code
+            const cachedAccountDeployedCode = await redis.get(
+              `account-deployed:${tx.accountAddress!.toLowerCase()}`,
+            );
+
+            // if not found in cache, fetch from chain and set in cache once
+            if (!cachedAccountDeployedCode) {
+              const accountDeployedCode = await sdk
+                .getProvider()
+                .getCode(tx.accountAddress!);
+
+              if (accountDeployedCode === "0x") {
+                logger({
+                  service: "worker",
+                  level: "warn",
+                  queueId: tx.id,
+                  message: `Account not deployed. Skipping`,
+                });
+
+                return;
+              }
+
+              await redis.set(
+                `account-deployed:${tx.accountAddress!.toLowerCase()}`,
+                accountDeployedCode,
+                "EX",
+                60 * 60 * 24,
+              );
+            }
+
             const signer = sdk.getSigner() as ERC4337EthersSigner;
 
             const nonce = randomNonce();
