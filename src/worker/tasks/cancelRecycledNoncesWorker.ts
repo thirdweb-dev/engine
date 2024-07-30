@@ -5,7 +5,7 @@ import { isNonceAlreadyUsedError } from "../../utils/error";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { sendCancellationTransaction } from "../../utils/transaction/cancelTransaction";
-import { CANCEL_RECYCLED_NONCES_QUEUE_NAME } from "../queues/cancelRecycledNoncesQueue";
+import { cancelRecycledNoncesQueue } from "../queues/cancelRecycledNoncesQueue";
 import { logWorkerExceptions } from "../queues/queues";
 
 /**
@@ -72,7 +72,7 @@ const getAndDeleteUnusedNonces = async (key: string) => {
 };
 
 // Worker
-const _worker = new Worker(CANCEL_RECYCLED_NONCES_QUEUE_NAME, handler, {
+const _worker = new Worker(cancelRecycledNoncesQueue.name, handler, {
   concurrency: 1,
   connection: redis,
 });

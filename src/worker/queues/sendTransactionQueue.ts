@@ -11,7 +11,7 @@ export type SendTransactionData = {
 export class SendTransactionQueue {
   public static name = "transactions-1-send";
 
-  private static q = new Queue<string>(this.name, {
+  static q = new Queue<string>(this.name, {
     connection: redis,
     defaultJobOptions: {
       ...defaultJobOptions,

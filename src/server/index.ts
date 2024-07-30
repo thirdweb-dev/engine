@@ -8,9 +8,9 @@ import { env } from "../utils/env";
 import { logger } from "../utils/logger";
 import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listeners/updateTxListener";
-import { withAuth } from "./middleware/auth";
+import { withAdminRoutes } from "./middleware/adminRoutes";
 import { withCors } from "./middleware/cors";
-import { withEnforceEngineMode } from "./middleware/engine-mode";
+import { withEnforceEngineMode } from "./middleware/engineMode";
 import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
@@ -65,11 +65,13 @@ export const initServer = async () => {
   await withEnforceEngineMode(server);
   await withRateLimit(server);
   await withWebSocket(server);
-  await withAuth(server);
+  // DEBUG
+  // await withAuth(server);
   await withExpress(server);
   await withOpenApi(server);
   await withRoutes(server);
   await withServerUsageReporting(server);
+  await withAdminRoutes(server);
 
   await server.ready();
 

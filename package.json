@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.398.0",
+    "@bull-board/fastify": "^5.21.1",
     "@fastify/cookie": "^8.3.0",
     "@fastify/express": "^2.3.0",
     "@fastify/swagger": "^8.9.0",
@@ -38,6 +39,7 @@
     "@fastify/websocket": "^8.2.0",
     "@google-cloud/kms": "^4.4.0",
     "@prisma/client": "^5.16.1",
+    "@queuedash/api": "^2.1.0",
     "@sinclair/typebox": "^0.31.28",
     "@t3-oss/env-core": "^0.6.0",
     "@thirdweb-dev/auth": "^4.1.87",

@@ -30,3 +30,12 @@ redis.on("ready", () => {
     service: "worker",
   });
 });
+
+export const isRedisReachable = async () => {
+  try {
+    await redis.ping();
+    return true;
+  } catch (error) {
+    return false;
+  }
+};

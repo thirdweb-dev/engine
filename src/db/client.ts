@@ -22,7 +22,7 @@ export const knex = pg({
   acquireConnectionTimeout: 30000,
 } as Knex.Config);
 
-export const isDatabaseHealthy = async (): Promise<boolean> => {
+export const isDatabaseReachable = async () => {
   try {
     await prisma.walletDetails.findFirst();
     return true;
