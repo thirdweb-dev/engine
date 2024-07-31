@@ -45,6 +45,8 @@ type RpcResponseData = {
 };
 
 export const processTx = async () => {
+  logger({ service: "worker", level: "info", message: "[processTx] Start" });
+
   try {
     const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
@@ -52,28 +54,14 @@ export const processTx = async () => {
       async (pgtx) => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
         const txs = await getQueuedTxs({ pgtx });
-
         if (txs.length === 0) {
           return;
         }
-
-        logger({
-          service: "worker",
-          level: "info",
-          message: `Received ${txs.length} transactions to process`,
-        });
 
         // 2. Sort transactions and user operations.
         const txsToSend: Transactions[] = [];
         const userOpsToSend: Transactions[] = [];
         for (const tx of txs) {
-          logger({
-            service: "worker",
-            level: "info",
-            queueId: tx.id,
-            message: `Processing`,
-          });
-
           if (tx.accountAddress && tx.signerAddress) {
             userOpsToSend.push(tx);
           } else {
@@ -90,6 +78,14 @@ export const processTx = async () => {
           } else {
             txsByWallet[key] = [tx];
           }
+        });
+
+        logger({
+          service: "worker",
+          level: "info",
+          message: `[processTx] Found ${txsToSend.length} transactions and ${
+            userOpsToSend.length
+          } userOps across ${Object.keys(txsByWallet).length}.`,
         });
 
         // 4. Send transaction batches in parallel.
@@ -516,7 +512,17 @@ export const processTx = async () => {
           }
         });
 
+        logger({
+          service: "worker",
+          level: "info",
+          message: `[processTx] Awaiting transactions/userOps promises...`,
+        });
         await Promise.all([...sentTxs, ...sentUserOps]);
+        logger({
+          service: "worker",
+          level: "info",
+          message: `[processTx] Transactions/userOps completed.`,
+        });
       },
       {
         // TODO: Should be dynamic with the batch size.
@@ -534,6 +540,8 @@ export const processTx = async () => {
       error: err,
     });
   }
+
+  logger({ service: "worker", level: "info", message: "[processTx] Done" });
 };
 
 const alertOnBackendWalletLowBalance = async (wallet: UserWallet) => {
