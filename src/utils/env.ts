@@ -83,6 +83,10 @@ export const env = createEnv({
       .enum(["default", "sandbox", "server_only", "worker_only"])
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
+
+    // Experimental flags may change behavior in non-major versions.
+    // Be cautious if using in a production environment.
+    EXPERIMENTAL__REMOVE_ERROR_SIMULATION: z.coerce.boolean().default(true),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -110,6 +114,9 @@ export const env = createEnv({
     REDIS_URL: process.env.REDIS_URL,
     ENGINE_MODE: process.env.ENGINE_MODE,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
+
+    EXPERIMENTAL__REMOVE_ERROR_SIMULATION:
+      process.env.EXPERIMENTAL__REMOVE_ERROR_SIMULATION,
   },
   onValidationError: (error: ZodError) => {
     console.error(
