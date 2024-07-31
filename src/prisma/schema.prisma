@@ -160,6 +160,8 @@ model Transactions {
   sentAtBlockNumber         Int?      @map("sentAtBlockNumber")
   blockNumber               Int?      @map("blockNumber")
 
+  @@index([queuedAt])
+  @@index([sentAt])
   @@map("transactions")
 }
 
