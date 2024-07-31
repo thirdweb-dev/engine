@@ -24,11 +24,11 @@ export class MineTransactionQueue {
 
   // There must be a worker to poll the result for every transaction hash,
   // even for the same queueId. This handles if any retried transactions succeed.
-  private static _jobId = (data: MineTransactionData) => data.queueId;
+  static jobId = (data: MineTransactionData) => data.queueId;
 
   static add = async (data: MineTransactionData) => {
     const serialized = superjson.stringify(data);
-    const jobId = this._jobId(data);
+    const jobId = this.jobId(data);
     await this.q.add(jobId, serialized, { jobId });
   };
 

@@ -18,18 +18,18 @@ export class SendTransactionQueue {
   });
 
   // Allow enqueing the same queueId for multiple retries.
-  private static _jobId = (data: SendTransactionData) =>
+  static jobId = (data: SendTransactionData) =>
     `${data.queueId}:${data.resendCount}`;
 
   static add = async (data: SendTransactionData) => {
     const serialized = superjson.stringify(data);
-    const jobId = this._jobId(data);
+    const jobId = this.jobId(data);
     await this.q.add(jobId, serialized, { jobId });
   };
 
   static remove = async (data: SendTransactionData) => {
     try {
-      await this.q.remove(this._jobId(data));
+      await this.q.remove(this.jobId(data));
     } catch (e) {
       // Job is currently running.
     }

@@ -120,9 +120,9 @@ import { getTxHashReceipt } from "./transaction/blockchain/getTxReceipt";
 import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
 import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
-import { checkGroupStatus } from "./transaction/group";
 
 // Indexer
+import { getTransactionDetails } from "./admin/transaction";
 import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
 import { getIpAllowlist } from "./configuration/ip/get";
 import { setIpAllowlist } from "./configuration/ip/set";
@@ -246,7 +246,6 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkTxStatus);
   await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
-  await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
   await fastify.register(syncRetryTransaction);
   await fastify.register(cancelTransaction);
@@ -287,4 +286,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getContractEventLogs);
   await fastify.register(getEventLogs);
   await fastify.register(pageEventLogs);
+
+  // Admin
+  await fastify.register(getTransactionDetails);
 };
