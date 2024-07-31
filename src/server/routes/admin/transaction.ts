@@ -116,7 +116,6 @@ const getJobDetails = async (args: {
   queue: Queue;
   jobId: string;
 }): Promise<Static<typeof jobSchema> | null> => {
-  console.log("[DEBUG] args", args);
   const { queue, jobId } = args;
   const job = await queue.getJob(jobId);
   if (!job) {
