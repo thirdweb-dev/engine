@@ -114,6 +114,11 @@ export const processTx = async () => {
             chainId,
             address: walletAddress,
           });
+          logger({
+            service: "worker",
+            level: "info",
+            message: `[processTx] Got DB nonce ${dbNonceData?.nonce} for ${walletAddress}.`,
+          });
 
           // For each wallet address, check the nonce in database and the mempool
           const [mempoolNonceData, gasOverrides, sentAtBlockNumber] =
@@ -122,6 +127,11 @@ export const processTx = async () => {
               getDefaultGasOverrides(provider),
               provider.getBlockNumber(),
             ]);
+          logger({
+            service: "worker",
+            level: "info",
+            message: `[processTx] Got Redis nonce ${mempoolNonceData} for ${walletAddress}.`,
+          });
 
           // - Take the larger of the nonces, and update database nonce to mempool value if mempool is greater
           let startNonce: BigNumber;
@@ -140,10 +150,15 @@ export const processTx = async () => {
             startNonce = dbNonce;
           }
 
+          logger({
+            service: "worker",
+            level: "info",
+            message: `[processTx] Sending ${txsToSend.length} transactions from wallet ${walletAddress}.`,
+          });
+
           const rpcResponses: RpcResponseData[] = [];
           let txIndex = 0;
           let nonceIncrement = 0;
-
           while (txIndex < txsToSend.length) {
             const nonce = startNonce.add(nonceIncrement);
             const tx = txsToSend[txIndex];
@@ -289,11 +304,18 @@ export const processTx = async () => {
             }
           }
 
+          const nextUnusedNonce = startNonce.add(nonceIncrement).toNumber();
           await updateWalletNonce({
             pgtx,
             address: walletAddress,
             chainId,
-            nonce: startNonce.add(nonceIncrement).toNumber(),
+            nonce: nextUnusedNonce,
+          });
+
+          logger({
+            service: "worker",
+            level: "info",
+            message: `[processTx] Updated nonce to ${nextUnusedNonce} for ${walletAddress}.`,
           });
 
           // Update DB state in parallel.
