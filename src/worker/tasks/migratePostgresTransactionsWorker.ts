@@ -1,7 +1,7 @@
 import { Transactions } from "@prisma/client";
 import assert from "assert";
 import { Job, Processor, Worker } from "bullmq";
-import { Address, Hex } from "thirdweb";
+import { Hex } from "thirdweb";
 import { getPrismaWithPostgresTx, prisma } from "../../db/client";
 import { TransactionDB } from "../../db/transactions/db";
 import { PrismaTransaction } from "../../schema/prisma";
@@ -18,70 +18,6 @@ import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import { SendTransactionQueue } from "../queues/sendTransactionQueue";
 
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  // Migrate sent transactions from PostgresDB -> Redis queue.
-  await prisma.$transaction(async (pgtx) => {
-    const sentTransactionRows = await getSentPostgresTransactions(pgtx);
-    const toCancel: string[] = [];
-
-    for (const row of sentTransactionRows) {
-      const queueId = row.idempotencyKey;
-
-      // Update DB, enqueue a "MineTransaction" job, and cancel the transaction in DB.
-      try {
-        const sentTransaction = toSentTransaction(row);
-        await TransactionDB.set(sentTransaction);
-        await MineTransactionQueue.add({ queueId });
-        toCancel.push(queueId);
-        job.log(`Migrated sent transaction ${queueId}.`);
-      } catch (e) {
-        const errorMessage = `Error migrating sent transaction: ${e}`;
-        job.log(errorMessage);
-        logger({
-          service: "worker",
-          level: "error",
-          queueId,
-          message: errorMessage,
-        });
-      }
-    }
-
-    await cancelPostgresTransactions({ pgtx, queueIds: toCancel });
-    job.log(`Done migrating ${toCancel.length} sent transactions.`);
-  });
-
-  // Migrate queued transactions from PostgresDB -> Redis queue.
-  await prisma.$transaction(async (pgtx) => {
-    const queuedTransactionRows = await getQueuedPostgresTransactions(pgtx);
-    const toCancel: string[] = [];
-
-    for (const row of queuedTransactionRows) {
-      const queueId = row.idempotencyKey;
-
-      // Update DB, enqueue a "MineTransaction" job, and cancel the transaction in DB.
-      try {
-        const queuedTransaction = toQueuedTransaction(row);
-        await TransactionDB.set(queuedTransaction);
-        await SendTransactionQueue.add({ queueId, resendCount: 0 });
-        toCancel.push(queueId);
-        job.log(`Migrated queued transaction ${queueId}.`);
-      } catch (e) {
-        const errorMessage = `Error migrating sent transaction: ${e}`;
-        job.log(errorMessage);
-        logger({
-          service: "worker",
-          level: "error",
-          queueId,
-          message: errorMessage,
-        });
-      }
-
-      await cancelPostgresTransactions({ pgtx, queueIds: toCancel });
-      job.log(`Done migrating ${toCancel.length} queued transactions.`);
-    }
-  });
-};
-
 // Must be explicitly called for the worker to run on this host.
 export const initMigratePostgresTransactionsWorker = async () => {
   const config = await getConfig();
@@ -97,6 +33,72 @@ export const initMigratePostgresTransactionsWorker = async () => {
     concurrency: 1,
   });
   logWorkerExceptions(_worker);
+};
+
+export const sleep = async (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms, null));
+
+const handler: Processor<any, void, string> = async (job: Job<string>) => {
+  // Migrate sent transactions from PostgresDB -> Redis queue.
+  await prisma.$transaction(async (pgtx) => {
+    const sentTransactionRows = await getSentPostgresTransactions(pgtx);
+    const toCancel: string[] = [];
+
+    for (const row of sentTransactionRows) {
+      // Update DB, enqueue a "MineTransaction" job, and cancel the transaction in DB.
+      try {
+        const sentTransaction = toSentTransaction(row);
+        await TransactionDB.set(sentTransaction);
+        await MineTransactionQueue.add({ queueId: sentTransaction.queueId });
+        toCancel.push(row.id);
+        job.log(`Migrated sent transaction ${row.id}.`);
+      } catch (e) {
+        const errorMessage = `Error migrating sent transaction: ${e}`;
+        job.log(errorMessage);
+        logger({
+          service: "worker",
+          level: "error",
+          queueId: row.id,
+          message: errorMessage,
+        });
+      }
+    }
+
+    await cancelPostgresTransactions({ pgtx, queueIds: toCancel });
+    job.log(`Done migrating ${toCancel.length} sent transactions.`);
+  });
+
+  // Migrate queued transactions from PostgresDB -> Redis queue.
+  await prisma.$transaction(async (pgtx) => {
+    const queuedTransactionRows = await getQueuedPostgresTransactions(pgtx);
+    const toCancel: string[] = [];
+
+    for (const row of queuedTransactionRows) {
+      // Update DB, enqueue a "MineTransaction" job, and cancel the transaction in DB.
+      try {
+        const queuedTransaction = toQueuedTransaction(row);
+        await TransactionDB.set(queuedTransaction);
+        await SendTransactionQueue.add({
+          queueId: queuedTransaction.queueId,
+          resendCount: 0,
+        });
+        toCancel.push(row.id);
+        job.log(`Migrated queued transaction ${row.id}.`);
+      } catch (e) {
+        const errorMessage = `Error migrating sent transaction: ${e}`;
+        job.log(errorMessage);
+        logger({
+          service: "worker",
+          level: "error",
+          queueId: row.id,
+          message: errorMessage,
+        });
+      }
+
+      await cancelPostgresTransactions({ pgtx, queueIds: toCancel });
+      job.log(`Done migrating ${toCancel.length} queued transactions.`);
+    }
+  });
 };
 
 const cancelPostgresTransactions = async ({
@@ -187,6 +189,7 @@ const toSentTransaction = (row: Transactions): SentTransaction => {
 
 const toQueuedTransaction = (row: Transactions): QueuedTransaction => {
   assert(row.fromAddress);
+  assert(row.data);
 
   return {
     status: "queued",
@@ -197,10 +200,10 @@ const toQueuedTransaction = (row: Transactions): QueuedTransaction => {
     isUserOp: !!row.accountAddress,
     chainId: parseInt(row.chainId),
     from: normalizeAddress(row.fromAddress),
-    to: normalizeAddress(row.toAddress ?? undefined),
+    to: normalizeAddress(row.toAddress),
     value: row.value ? BigInt(row.value) : 0n,
 
-    data: (row.data as Hex) ?? undefined,
+    data: row.data as Hex,
     functionName: row.functionName ?? undefined,
     functionArgs: row.functionArgs?.split(","),
 
@@ -210,15 +213,14 @@ const toQueuedTransaction = (row: Transactions): QueuedTransaction => {
     maxPriorityFeePerGas: maybeBigInt(row.maxPriorityFeePerGas ?? undefined),
 
     // Offchain metadata
-    deployedContractAddress:
-      (row.deployedContractAddress as Address) ?? undefined,
+    deployedContractAddress: normalizeAddress(row.deployedContractAddress),
     deployedContractType: row.deployedContractType ?? undefined,
     extension: row.extension ?? undefined,
 
     // User Operation
-    signerAddress: normalizeAddress(row.signerAddress ?? undefined),
-    accountAddress: normalizeAddress(row.accountAddress ?? undefined),
-    target: normalizeAddress(row.target ?? undefined),
-    sender: normalizeAddress(row.sender ?? undefined),
+    signerAddress: normalizeAddress(row.signerAddress),
+    accountAddress: normalizeAddress(row.accountAddress),
+    target: normalizeAddress(row.target),
+    sender: normalizeAddress(row.sender),
   };
 };

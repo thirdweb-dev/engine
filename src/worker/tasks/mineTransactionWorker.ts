@@ -208,6 +208,7 @@ const _mineUserOp = async (
     gas: receipt.gasUsed,
     cumulativeGasUsed: receipt.cumulativeGasUsed,
     sender: userOpReceiptRaw.sender as Address,
+    nonce: userOpReceiptRaw.nonce.toString(),
   };
 };
 

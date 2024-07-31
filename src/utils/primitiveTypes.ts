@@ -7,6 +7,9 @@ export function normalizeAddress(val: Address): Address;
 export function normalizeAddress(val: Address | undefined): Address | undefined;
 export function normalizeAddress(val: string): Address;
 export function normalizeAddress(val: string | undefined): Address | undefined;
-export function normalizeAddress(val?: string | Address): Address | undefined {
+export function normalizeAddress(val: string | null): undefined;
+export function normalizeAddress(
+  val?: string | Address | null,
+): Address | undefined {
   return val ? (val.toLowerCase() as Address) : undefined;
 }
