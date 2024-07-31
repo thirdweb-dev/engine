@@ -61,7 +61,13 @@ export const env = createEnv({
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
     TRUST_PROXY: z.boolean().default(false),
-    PRUNE_TRANSACTIONS: boolSchema("true"),
+    PRUNE_TRANSACTIONS: z
+      .union([
+        z.literal("true").transform(() => 7),
+        z.literal("false").transform(() => 0),
+        z.coerce.number().int(),
+      ])
+      .default(7),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
@@ -73,7 +79,11 @@ export const env = createEnv({
       .nonnegative()
       .default(0),
     REDIS_URL: z.string(),
-    ENGINE_MODE: z.enum(["sandbox", "unrestricted"]).default("unrestricted"),
+    ENGINE_MODE: z
+      .enum(["default", "sandbox", "server_only", "worker_only"])
+      .default("default"),
+    GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
+    DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -100,6 +110,8 @@ export const env = createEnv({
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
     ENGINE_MODE: process.env.ENGINE_MODE,
+    GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
+    DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
   },
   onValidationError: (error: ZodError) => {
     console.error(
