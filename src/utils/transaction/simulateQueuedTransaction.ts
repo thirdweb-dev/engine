@@ -1,10 +1,6 @@
 import {
-  Address,
   PreparedTransaction,
-  getContract,
-  prepareContractCall,
   prepareTransaction,
-  resolveMethod,
   simulateTransaction,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
@@ -26,15 +22,12 @@ export const doSimulateTransaction = async (
   const {
     chainId,
     to,
-    functionName,
-    functionArgs,
     data,
     value,
     gas,
     gasPrice,
     maxFeePerGas,
     maxPriorityFeePerGas,
-    signerAddress,
     accountAddress,
     target,
     from,
@@ -43,55 +36,13 @@ export const doSimulateTransaction = async (
   const chain = await getChain(chainId);
 
   let preparedTransaction: PreparedTransaction;
-  if (data) {
+  if (data && (to || target)) {
     // Resolve data.
     preparedTransaction = prepareTransaction({
       client: thirdwebClient,
       chain,
-      to,
+      to: to ?? target,
       data,
-      value,
-      gas,
-      gasPrice,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-    });
-  } else if (
-    from &&
-    accountAddress &&
-    signerAddress &&
-    target &&
-    functionName
-  ) {
-    try {
-      // Resolve Target Contract
-      const targetContract = getContract({
-        client: thirdwebClient,
-        chain,
-        address: target as Address,
-      });
-
-      // Prepare UserOperation Transaction
-      preparedTransaction = prepareContractCall({
-        contract: targetContract,
-        method: await resolveMethod(functionName),
-        params: functionArgs ?? [],
-        value: value,
-        gas: gas,
-      });
-    } catch (error: any) {
-      return error.toString();
-    }
-  } else if (to && functionName && functionArgs) {
-    const contract = getContract({
-      client: thirdwebClient,
-      chain,
-      address: to,
-    });
-    preparedTransaction = await prepareContractCall({
-      contract,
-      method: resolveMethod(functionName),
-      params: functionArgs,
       value,
       gas,
       gasPrice,

@@ -30,6 +30,11 @@ services:
     restart: always
     ports:
       - 6379:6379
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1024M
     volumes:
       - redis_data:/data
 

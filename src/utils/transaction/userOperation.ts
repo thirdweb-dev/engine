@@ -4,9 +4,7 @@ import {
   getContract,
   prepareContractCall,
   readContract,
-  resolveMethod,
 } from "thirdweb";
-import { resolvePromisedValue } from "thirdweb/utils";
 import {
   UserOperation,
   createUnsignedUserOp,
@@ -14,7 +12,6 @@ import {
   signUserOp,
 } from "thirdweb/wallets/smart";
 import { getAccount } from "../account";
-import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
 import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
 import { QueuedTransaction } from "./types";
@@ -24,8 +21,6 @@ export const generateSignedUserOperation = async (
 ): Promise<UserOperation> => {
   const {
     chainId,
-    functionName,
-    functionArgs,
     value,
     gas,
     signerAddress,
@@ -40,13 +35,6 @@ export const generateSignedUserOperation = async (
   }
 
   const chain = await getChain(chainId);
-
-  // Resolve Target Contract
-  const targetContract = getContract({
-    client: thirdwebClient,
-    chain,
-    address: target as Address,
-  });
 
   // Resolve Smart-Account Contract
   const smartAccountContract = getContract({
@@ -69,28 +57,12 @@ export const generateSignedUserOperation = async (
     address: accountFactoryAddress as Address,
   });
 
-  // Prepare Transaction
-  let preparedTransaction:
-    | Awaited<ReturnType<typeof prepareContractCall>>
-    | undefined;
-
   let toAddress: string | undefined;
   let txValue: bigint | undefined;
   let txData: Hex | undefined;
 
-  // Handle UserOp Requests with FunctionName & Args
-  if (functionName && functionArgs) {
-    preparedTransaction = prepareContractCall({
-      contract: targetContract,
-      method: resolveMethod(functionName),
-      params: functionArgs,
-      value,
-    });
-    toAddress = await resolvePromisedValue(preparedTransaction.to);
-    txValue = await resolvePromisedValue(preparedTransaction.value);
-    txData = await resolvePromisedValue(preparedTransaction.data);
-  } // Handle UserOp Requests with Data & Target
-  else if (data && target) {
+  // Handle UserOp Requests
+  if (data && target) {
     toAddress = target;
     txValue = value || 0n;
     txData = data;
@@ -103,13 +75,6 @@ export const generateSignedUserOperation = async (
     contract: smartAccountContract,
     method: "function execute(address, uint256, bytes)",
     params: [toAddress || "", txValue || 0n, txData || "0x"],
-  });
-
-  // Get Smart Wallet
-  const smartWallet = await getSmartWalletV5({
-    from,
-    chain,
-    accountAddress,
   });
 
   // Create Unsigned UserOperation

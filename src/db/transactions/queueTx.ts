@@ -18,6 +18,7 @@ interface QueueTxParams {
     gas?: string;
     maxFeePerGas?: string;
     maxPriorityFeePerGas?: string;
+    value?: string;
   };
 }
 
@@ -34,7 +35,9 @@ export const queueTx = async ({
   // Transaction Details
   const functionName = tx.getMethod();
   const encodedData = tx.encode();
-  const value = BigInt(await tx.getValue().toString());
+  const value = maybeBigInt(
+    txOverrides?.value ?? (await tx.getValue().toString()),
+  );
   const functionArgs = tx.getArgs();
   const baseTransaction = {
     chainId,
@@ -43,6 +46,9 @@ export const queueTx = async ({
     functionName,
     functionArgs,
     extension,
+    gas: maybeBigInt(txOverrides?.gas),
+    maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+    maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
   };
 
   // TODO: We need a much safer way of detecting if the transaction should be a user operation
@@ -62,9 +68,6 @@ export const queueTx = async ({
         signerAddress,
         accountAddress: normalizeAddress(await tx.getSignerAddress()),
         target: normalizeAddress(tx.getTarget()),
-        gas: maybeBigInt(txOverrides?.gas),
-        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
       },
       idempotencyKey,
       shouldSimulate: simulateTx,
@@ -85,9 +88,6 @@ export const queueTx = async ({
         to: normalizeAddress(
           isPublishedContractDeploy ? undefined : tx.getTarget(),
         ),
-        gas: maybeBigInt(txOverrides?.gas),
-        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
       },
       idempotencyKey,
       shouldSimulate: simulateTx,
