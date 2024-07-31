@@ -40,7 +40,24 @@ responseBodySchema.example = {
     raw: {
       queueId: "9eb88b00-f04f-409b-9df7-7dcc9003bc35",
     },
-    logs: ["Log line 1", "Log line 2"],
+    jobs: [
+      {
+        queue: "transactions-1-send",
+        jobId: "430235bb-4430-47d2-9373-845454f2375e:0",
+        timestamp: "2024-07-30T22:02:14.057Z",
+        processedOn: "2024-07-30T22:02:14.062Z",
+        finishedOn: "2024-07-30T22:02:14.832Z",
+        lines: ["..."],
+      },
+      {
+        queue: "transactions-2-mine",
+        jobId: "430235bb-4430-47d2-9373-845454f2375e",
+        timestamp: "2024-07-30T22:02:14.828Z",
+        processedOn: "2024-07-30T22:02:17.748Z",
+        finishedOn: "2024-07-30T22:02:17.977Z",
+        lines: ["..."],
+      },
+    ],
   },
 };
 
