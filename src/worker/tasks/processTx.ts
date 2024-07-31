@@ -130,7 +130,7 @@ export const processTx = async () => {
           logger({
             service: "worker",
             level: "info",
-            message: `[processTx] Got Redis nonce ${mempoolNonceData} for ${walletAddress}.`,
+            message: `[processTx] Got onchain nonce ${mempoolNonceData} for ${walletAddress}.`,
           });
 
           // - Take the larger of the nonces, and update database nonce to mempool value if mempool is greater
