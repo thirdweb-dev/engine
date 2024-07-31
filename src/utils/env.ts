@@ -83,6 +83,7 @@ export const env = createEnv({
       .enum(["default", "sandbox", "server_only", "worker_only"])
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
+    DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
 
     // Experimental flags may change behavior in non-major versions.
     // Be cautious if using in a production environment.
@@ -114,6 +115,7 @@ export const env = createEnv({
     REDIS_URL: process.env.REDIS_URL,
     ENGINE_MODE: process.env.ENGINE_MODE,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
+    DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
 
     EXPERIMENTAL__REMOVE_ERROR_SIMULATION:
       process.env.EXPERIMENTAL__REMOVE_ERROR_SIMULATION,

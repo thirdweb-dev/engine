@@ -2,6 +2,7 @@ import "./polyfill";
 import { initServer } from "./server";
 import { env } from "./utils/env";
 import { logger } from "./utils/logger";
+import "./utils/tracer";
 import { initWorker } from "./worker";
 
 const main = async () => {

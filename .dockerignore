@@ -3,10 +3,11 @@ npm-debug.log
 Dockerfile
 .dockerignore
 .env
+.env*
 yarn-error.log
 .husky
 docker-compose*.yml
-Dockerfile
+Dockerfile*
 .DS_Store
 swagger.yml
 test
@@ -15,3 +16,6 @@ test
 .gitignore
 .git
 .coverage
+dist
+docs
+.vscode
