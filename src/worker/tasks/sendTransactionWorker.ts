@@ -7,7 +7,11 @@ import { bundleUserOp } from "thirdweb/wallets/smart";
 import type { TransactionSerializable } from "viem";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
-import { acquireNonce, recycleNonce } from "../../db/wallets/walletNonce";
+import {
+  acquireNonce,
+  recycleNonce,
+  syncNonce,
+} from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
@@ -167,6 +171,12 @@ const _sendTransaction = async (
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
+    // If NonceAlreadyUsedError, rebase the nonce and retry.
+    if (isNonceAlreadyUsedError(error)) {
+      const resyncNonce = await syncNonce(chainId, from);
+      job.log(`Resynced nonce to ${resyncNonce}.`);
+      console.log("::Debug Log:: resyncNonce:", resyncNonce);
+    }
     if (!isNonceAlreadyUsedError(error)) {
       job.log(`Recycling nonce: ${nonce}`);
       await recycleNonce(chainId, from, nonce);
