@@ -24,7 +24,7 @@ export const initMigratePostgresTransactionsWorker = async () => {
   if (config.minedTxListenerCronSchedule) {
     MigratePostgresTransactionsQueue.q.add("cron", "", {
       repeat: { pattern: config.minedTxListenerCronSchedule },
-      jobId: "cron",
+      jobId: "migrate-postgres-transactions-cron",
     });
   }
 

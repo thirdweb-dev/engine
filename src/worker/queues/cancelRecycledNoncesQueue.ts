@@ -10,9 +10,5 @@ export class CancelRecycledNoncesQueue {
 
   constructor() {
     CancelRecycledNoncesQueue.q.setGlobalConcurrency(1);
-    CancelRecycledNoncesQueue.q.add("cron", "", {
-      repeat: { pattern: "* * * * *" },
-      jobId: "cron",
-    });
   }
 }

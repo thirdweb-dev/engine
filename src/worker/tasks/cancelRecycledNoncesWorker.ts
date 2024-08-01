@@ -10,6 +10,11 @@ import { logWorkerExceptions } from "../queues/queues";
 
 // Must be explicitly called for the worker to run on this host.
 export const initCancelRecycledNoncesWorker = () => {
+  CancelRecycledNoncesQueue.q.add("cron", "", {
+    repeat: { pattern: "* * * * *" },
+    jobId: "cancel-recycled-nonces-cron",
+  });
+
   const _worker = new Worker(CancelRecycledNoncesQueue.q.name, handler, {
     connection: redis,
     concurrency: 1,

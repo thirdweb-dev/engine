@@ -14,6 +14,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 
 // Must be explicitly called for the worker to run on this host.
 export const initPruneTransactionsWorker = () => {
+  PruneTransactionsQueue.q.add("cron", "", {
+    repeat: { pattern: "*/10 * * * *" },
+    jobId: "prune-transactions-cron",
+  });
+
   const _worker = new Worker(PruneTransactionsQueue.q.name, handler, {
     concurrency: 1,
     connection: redis,
