@@ -160,6 +160,9 @@ model Transactions {
   sentAtBlockNumber         Int?      @map("sentAtBlockNumber")
   blockNumber               Int?      @map("blockNumber")
 
+  @@index([sentAt, minedAt, cancelledAt, errorMessage, queuedAt])
+  @@index([sentAt, accountAddress, userOpHash, minedAt, errorMessage, retryCount])
+  @@index([sentAt, transactionHash, accountAddress, minedAt, errorMessage, nonce])
   @@map("transactions")
 }
 
