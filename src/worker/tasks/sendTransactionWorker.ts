@@ -175,7 +175,6 @@ const _sendTransaction = async (
     if (isNonceAlreadyUsedError(error)) {
       const resyncNonce = await syncNonce(chainId, from);
       job.log(`Resynced nonce to ${resyncNonce}.`);
-      console.log("::Debug Log:: resyncNonce:", resyncNonce);
     }
     if (!isNonceAlreadyUsedError(error)) {
       job.log(`Recycling nonce: ${nonce}`);
