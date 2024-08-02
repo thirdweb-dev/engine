@@ -116,7 +116,7 @@ export const processTx = async () => {
           });
           logger({
             service: "worker",
-            level: "info",
+            level: "debug",
             message: `[processTx] Got DB nonce ${dbNonceData?.nonce} for ${walletAddress}.`,
           });
 
@@ -129,7 +129,7 @@ export const processTx = async () => {
             ]);
           logger({
             service: "worker",
-            level: "info",
+            level: "debug",
             message: `[processTx] Got onchain nonce ${mempoolNonceData} for ${walletAddress}.`,
           });
 
@@ -152,7 +152,7 @@ export const processTx = async () => {
 
           logger({
             service: "worker",
-            level: "info",
+            level: "debug",
             message: `[processTx] Sending ${txsToSend.length} transactions from wallet ${walletAddress}.`,
           });
 
@@ -314,7 +314,7 @@ export const processTx = async () => {
 
           logger({
             service: "worker",
-            level: "info",
+            level: "debug",
             message: `[processTx] Updated nonce to ${nextUnusedNonce} for ${walletAddress}.`,
           });
 
@@ -536,7 +536,7 @@ export const processTx = async () => {
 
         logger({
           service: "worker",
-          level: "info",
+          level: "debug",
           message: `[processTx] Awaiting transactions/userOps promises...`,
         });
         await Promise.all([...sentTxs, ...sentUserOps]);
