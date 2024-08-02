@@ -13,7 +13,6 @@ import { getSmartWallet } from "../server/utils/wallets/getSmartWallet";
 import { getChain } from "./chain";
 
 export const _accountsCache = new Map<string, Account>();
-export const _providerCache = new Map<number, providers.JsonRpcProvider>();
 
 export const getAccount = async (args: {
   chainId: number;
@@ -56,17 +55,9 @@ export const getAccount = async (args: {
       throw new Error(`Wallet type not supported: ${walletDetails.type}`);
   }
 
-  // Get chain rpc provider.
-  let provider = _providerCache.get(chainId);
-  if (!provider) {
-    const chain = await getChain(chainId);
-
-    provider = new providers.JsonRpcProvider(chain.rpc);
-    _providerCache.set(chainId, provider);
-  }
-
   // Get smart wallet if `accountAddress` is provided.
   let signer: Signer;
+
   if (accountAddress) {
     const smartWallet = await getSmartWallet({
       chainId,
@@ -78,9 +69,18 @@ export const getAccount = async (args: {
     signer = await wallet.getSigner();
   }
 
-  const connectedSigner = signer.connect(provider);
+  if (walletDetails.type === WalletType.awsKms) {
+    // Get chain rpc provider.
+    const chain = await getChain(chainId);
+    console.log("received chain in to account", chain);
+    const provider = new providers.JsonRpcProvider(chain.rpc);
+    console.log("provider in to account", provider);
+
+    signer = signer.connect(provider);
+  }
+
   const account = await ethers5Adapter.signer.fromEthers({
-    signer: connectedSigner,
+    signer,
   });
 
   // Set cache.

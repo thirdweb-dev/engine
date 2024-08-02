@@ -1,6 +1,5 @@
 import assert from "assert";
-import type { Chain } from "viem";
-import { anvil } from "viem/chains";
+import { defineChain, type Chain } from "viem";
 
 assert(process.env.ENGINE_URL, "ENGINE_URL is required");
 assert(process.env.ENGINE_ACCESS_TOKEN, "ENGINE_ACCESS_TOKEN is required");
@@ -16,8 +15,23 @@ export const CONFIG: Config = {
   // USE_LOCAL_CHAIN: true,
   // CHAIN: arbitrumSepolia,
 
-  USE_LOCAL_CHAIN: true,
-  CHAIN: anvil,
+  USE_LOCAL_CHAIN: false,
+  CHAIN: defineChain({
+    id: 1993,
+    name: "B3 Sepolia Testnet",
+    testnet: true,
+    rpcUrls: {
+      default: {
+        http: ["https://sepolia.b3.fun/http"],
+        webSocket: ["wss://sepolia.b3.fun/ws"],
+      },
+    },
+    nativeCurrency: {
+      name: "Ether",
+      symbol: "ETH",
+      decimals: 18,
+    },
+  }),
 
   TRANSACTION_COUNT: 500,
   TRANSACTIONS_PER_BATCH: 100,
