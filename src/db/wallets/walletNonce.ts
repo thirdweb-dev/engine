@@ -8,7 +8,7 @@ import { thirdwebClient } from "../../utils/sdk";
  * The "last used nonce" stores the last nonce submitted onchain.
  * Example: "25"
  */
-const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
+export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
@@ -121,4 +121,37 @@ export const deleteAllNonces = async () => {
   if (keys.length > 0) {
     await redis.del(keys);
   }
+};
+
+/**
+ * Resync the nonce i.e., max of transactionCount +1 and lastUsedNonce.
+ * @param chainId
+ * @param walletAddress
+ */
+export const rebaseNonce = async (chainId: number, walletAddress: Address) => {
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain: await getChain(chainId),
+  });
+
+  // The next unused nonce = transactionCount.
+  const transactionCount = await eth_getTransactionCount(rpcRequest, {
+    address: walletAddress,
+  });
+
+  // Lua script to set nonce as max(transactionCount, redis.get(lastUsedNonceKey))
+  const script = `
+    local transactionCount = tonumber(ARGV[1])
+    local lastUsedNonce = tonumber(redis.call('get', KEYS[1]))
+    local nextNonce = math.max(transactionCount, lastUsedNonce)
+    redis.call('set', KEYS[1], nextNonce)
+    return nextNonce
+  `;
+  const nextNonce = await redis.eval(
+    script,
+    1,
+    lastUsedNonceKey(chainId, normalizeAddress(walletAddress)),
+    transactionCount.toString(),
+  );
+  return nextNonce;
 };
