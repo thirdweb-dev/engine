@@ -48,7 +48,9 @@ export const getEngineBackendWallet = async (engine: Engine) => {
   const res = await engine.backendWallet.getAll();
   if (res.result.length === 0) {
     console.log("Creating backend wallet");
-    const newWallet = await engine.backendWallet.create();
+    const newWallet = await engine.backendWallet.create({
+      label: "Backend Wallet",
+    });
     console.log("Created new wallet", newWallet.result.walletAddress);
 
     return getAddress(newWallet.result.walletAddress);
