@@ -9,8 +9,8 @@ import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
 import {
   acquireNonce,
+  rebaseNonce,
   recycleNonce,
-  syncNonce,
 } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
@@ -173,10 +173,9 @@ const _sendTransaction = async (
   } catch (error: unknown) {
     // If NonceAlreadyUsedError, rebase the nonce and retry.
     if (isNonceAlreadyUsedError(error)) {
-      const resyncNonce = await syncNonce(chainId, from);
+      const resyncNonce = await rebaseNonce(chainId, from);
       job.log(`Resynced nonce to ${resyncNonce}.`);
-    }
-    if (!isNonceAlreadyUsedError(error)) {
+    } else {
       job.log(`Recycling nonce: ${nonce}`);
       await recycleNonce(chainId, from, nonce);
     }
