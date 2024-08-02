@@ -16,11 +16,15 @@ export const sendNoOpTransaction = async (
   try {
     const {
       result: { queueId },
-    } = await engine.backendWallet.transfer("anvil", backendWallet, {
-      amount: "0",
-      currencyAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
-      to: backendWallet,
-    });
+    } = await engine.backendWallet.transfer(
+      CONFIG.CHAIN.id.toString(),
+      backendWallet,
+      {
+        amount: "0",
+        currencyAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        to: backendWallet,
+      },
+    );
     return queueId;
   } catch (e) {
     console.error("Error sending NoOp transaction:", e);
@@ -35,7 +39,7 @@ export const sendMintToTransaction = async (
 ) => {
   try {
     const res = await engine.erc721.mintTo(
-      "anvil",
+      CONFIG.CHAIN.id.toString(),
       nftContractAddress,
       backendWallet,
       {
