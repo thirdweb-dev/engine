@@ -1,5 +1,6 @@
 import { Address, eth_getTransactionCount, getRpcClient } from "thirdweb";
 import { getChain } from "../../utils/chain";
+import { logger } from "../../utils/logger";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
@@ -58,6 +59,14 @@ export const recycleNonce = async (
   walletAddress: Address,
   nonce: number,
 ) => {
+  if (isNaN(nonce)) {
+    logger({
+      level: "warn",
+      message: `[recycleNonce] Invalid nonce: ${nonce}`,
+      service: "worker",
+    });
+    return;
+  }
   const key = recycledNoncesKey(chainId, walletAddress);
   await redis.rpush(key, nonce);
 };
