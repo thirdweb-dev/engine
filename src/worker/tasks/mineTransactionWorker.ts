@@ -197,7 +197,7 @@ const _mineTransaction = async (
       recycledNoncesKey(chainId, sentTransaction.from),
       sentTransaction.nonce,
     );
-    if (!postionInList) {
+    if (postionInList === null) {
       await recycleNonce(
         sentTransaction.chainId,
         sentTransaction.from,
