@@ -69,7 +69,7 @@ export const getAccount = async (args: {
     signer = await wallet.getSigner();
   }
 
-  if (walletDetails.type === WalletType.awsKms) {
+  if (walletDetails.type !== WalletType.local) {
     // Get chain rpc provider.
     const chain = await getChain(chainId);
     const provider = new providers.JsonRpcProvider(chain.rpc);

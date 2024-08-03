@@ -10,6 +10,7 @@ import {
 import { initCancelRecycledNoncesWorker } from "./tasks/cancelRecycledNoncesWorker";
 import { initMigratePostgresTransactionsWorker } from "./tasks/migratePostgresTransactionsWorker";
 import { initMineTransactionWorker } from "./tasks/mineTransactionWorker";
+import { initNonceResyncWorker } from "./tasks/nonceResyncWorker";
 import { initProcessEventLogsWorker } from "./tasks/processEventLogsWorker";
 import { initProcessTransactionReceiptsWorker } from "./tasks/processTransactionReceiptsWorker";
 import { initPruneTransactionsWorker } from "./tasks/pruneTransactionsWorker";
@@ -17,6 +18,8 @@ import { initSendTransactionWorker } from "./tasks/sendTransactionWorker";
 import { initSendWebhookWorker } from "./tasks/sendWebhookWorker";
 
 export const initWorker = async () => {
+  console.log("::Debug Log:: inside worker/index.ts, initWorker()");
+
   initCancelRecycledNoncesWorker();
   initProcessEventLogsWorker();
   initProcessTransactionReceiptsWorker();
@@ -25,6 +28,11 @@ export const initWorker = async () => {
   initMineTransactionWorker();
   initSendWebhookWorker();
   await initMigratePostgresTransactionsWorker();
+  console.log(
+    "::Debug Log:: inside worker/index.ts, initWorker(), after initMigratePostgresTransactionsWorker()",
+  );
+
+  await initNonceResyncWorker();
 
   // Listen for new & updated configuration data.
   await newConfigurationListener();

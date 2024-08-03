@@ -10,7 +10,7 @@ import {
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
-import { recycleNonce } from "../../db/wallets/walletNonce";
+import { recycleNonce, recycledNoncesKey } from "../../db/wallets/walletNonce";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getChain } from "../../utils/chain";
@@ -128,6 +128,19 @@ const _mineTransaction = async (
     if (result.status === "fulfilled") {
       const receipt = result.value;
       job.log(`Found receipt on block ${receipt.blockNumber}.`);
+
+      // removed nonce from sentnonce set
+      const removed = await redis.srem(
+        `sentnonce:${receipt.from.toLowerCase()}:${chainId}`,
+        sentTransaction.nonce,
+      );
+
+      console.log(
+        "::Debug Log:: inside mineTransactionWorker.ts, _mineTransaction(), receipt:",
+        sentTransaction.nonce,
+        removed,
+      );
+
       return {
         ...sentTransaction,
         status: "mined",
@@ -159,6 +172,37 @@ const _mineTransaction = async (
         queueId,
         resendCount: resendCount + 1,
       });
+    }
+  } else {
+    const erroredTransaction: ErroredTransaction = {
+      ...sentTransaction,
+      status: "errored",
+      errorMessage: "Transaction timed out.",
+    };
+    job.log(`Transaction timed out: ${stringify(erroredTransaction)}`);
+
+    await TransactionDB.set(erroredTransaction);
+    await enqueueTransactionWebhook(erroredTransaction);
+    _reportUsageError(erroredTransaction);
+
+    // Release the nonce to allow it to be reused or cancelled.
+    job.log(`Recycling nonce: ${sentTransaction.nonce}`);
+
+    await redis.srem(
+      `sentnonce:${sentTransaction.from.toLowerCase()}:${chainId}`,
+      sentTransaction.nonce,
+    );
+
+    const postionInList = await redis.lpos(
+      recycledNoncesKey(chainId, sentTransaction.from),
+      sentTransaction.nonce,
+    );
+    if (!postionInList) {
+      await recycleNonce(
+        sentTransaction.chainId,
+        sentTransaction.from,
+        sentTransaction.nonce,
+      );
     }
   }
 

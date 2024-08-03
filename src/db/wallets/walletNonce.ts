@@ -15,7 +15,7 @@ export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
  * The "recycled nonces" list stores unsorted nonces to be reused or cancelled.
  * Example: [ "25", "23", "24" ]
  */
-const recycledNoncesKey = (chainId: number, walletAddress: Address) =>
+export const recycledNoncesKey = (chainId: number, walletAddress: Address) =>
   `nonce-recycled:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
@@ -138,12 +138,17 @@ export const rebaseNonce = async (chainId: number, walletAddress: Address) => {
   const transactionCount = await eth_getTransactionCount(rpcRequest, {
     address: walletAddress,
   });
+  console.log("::Debug Log:: transactionCount: ", transactionCount);
+  console.log(
+    "::Debug Log:: lastUsedNonceKey Value: ",
+    await redis.get(lastUsedNonceKey(chainId, normalizeAddress(walletAddress))),
+  );
 
-  // Lua script to set nonce as max(transactionCount, redis.get(lastUsedNonceKey))
+  // Lua script to set nonce as max
   const script = `
     local transactionCount = tonumber(ARGV[1])
     local lastUsedNonce = tonumber(redis.call('get', KEYS[1]))
-    local nextNonce = math.max(transactionCount, lastUsedNonce)
+    local nextNonce = math.max(transactionCount-1, lastUsedNonce)
     redis.call('set', KEYS[1], nextNonce)
     return nextNonce
   `;
