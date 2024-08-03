@@ -74,6 +74,8 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       return;
     }
 
+    // Check if nonce exists in sentnonce set
+    // If not, recycle nonce
     for (let _nonce = transactionCount; _nonce < dbNonceCount; _nonce++) {
       if (isNaN(_nonce)) {
         continue;
@@ -86,6 +88,8 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         }`,
         service: "worker",
       });
+
+      // If nonce does not exist in sentnonce:* set, check if it exists in recycle list
       if (!exists) {
         const positionInList = await redis.lpos(
           recycledNoncesKey(chainId, walletAddress),
@@ -97,6 +101,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
           service: "worker",
         });
 
+        // If nonce does not exist in recycle list, recycle nonce
         if (positionInList === null) {
           job.log(`Recycle nonce ${_nonce}`);
           // recycle nonce
