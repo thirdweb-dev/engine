@@ -11,7 +11,7 @@ export class NonceResyncQueue {
   constructor() {
     NonceResyncQueue.q.setGlobalConcurrency(1);
 
-    // The cron job is defined in `initMigratePostgresTransactionsWorker`
+    // The cron job is defined in `initNonceResyncWorker`
     // because it requires an async call to query configuration.
   }
 }
