@@ -7,6 +7,7 @@ import {
 } from "../../db/wallets/walletNonce";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getChain } from "../../utils/chain";
+import { logger } from "../../utils/logger";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
@@ -17,11 +18,6 @@ import { logWorkerExceptions } from "../queues/queues";
 export const initNonceResyncWorker = async () => {
   const config = await getConfig();
   if (config.minedTxListenerCronSchedule) {
-    console.log(
-      "::Debug Log:: inside nonceResyncWorker.ts, initNonceResyncWorker()",
-      config.minedTxListenerCronSchedule,
-    );
-
     NonceResyncQueue.q.add("cron", "", {
       repeat: { pattern: config.minedTxListenerCronSchedule },
       jobId: "nonce-resync-cron",
@@ -57,58 +53,60 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       address: walletAddress,
     });
 
-    // Get Pending Nonce
+    // Get DB Nonce
     const dbNonceCount = Number(
       await redis.get(lastUsedNonceKey(chainId, walletAddress)),
     );
     job.log(`onchain Nonce: ${transactionCount} and DBNonce: ${dbNonceCount}`);
-    console.log(
-      `onchain Nonce: ${transactionCount} and DBNonce: ${dbNonceCount}`,
-    );
+    logger({
+      level: "debug",
+      message: `[nonceResyncWorker] onchain Nonce: ${transactionCount} and DBNonce: ${dbNonceCount}`,
+      service: "worker",
+    });
 
-    if (dbNonceCount < transactionCount - 1) {
-      const difference = transactionCount - dbNonceCount - 1;
-      for (let i = 0; i < difference; i++) {
-        const nonce = dbNonceCount + i + 1;
-        await recycleNonce(chainId, walletAddress, nonce);
-      }
+    if (transactionCount >= dbNonceCount + 1) {
+      job.log(`No need to resync nonce for ${walletAddress}`);
+      logger({
+        level: "debug",
+        message: `[nonceResyncWorker] No need to resync nonce for ${walletAddress}`,
+        service: "worker",
+      });
+      return;
     }
 
     for (let _nonce = transactionCount; _nonce < dbNonceCount; _nonce++) {
       if (isNaN(_nonce)) {
         continue;
       }
-      console.log(
-        "::Debug Log:: NonceResyncWorker.ts, handler() - _nonce: ",
-        _nonce,
-      );
-
       const exists = await redis.sismember(sentNonceKey, _nonce.toString());
-      console.log(
-        "::Debug Log:: NonceResyncWorker.ts, handler() - exists: ",
-        exists,
-      );
+      logger({
+        level: "debug",
+        message: `[nonceResyncWorker] Nonce ${_nonce} Exists in sentnonce Set:  ${
+          exists === 1
+        }`,
+        service: "worker",
+      });
       if (!exists) {
-        const existsInRecycleNonce = await redis.lpos(
+        const positionInList = await redis.lpos(
           recycledNoncesKey(chainId, walletAddress),
           _nonce.toString(),
         );
-        console.log(
-          "::Debug Log:: Position of nonce in recycle list:",
-          existsInRecycleNonce,
-        );
+        logger({
+          level: "debug",
+          message: `[nonceResyncWorker] Position of nonce in recycle list: ${positionInList}`,
+          service: "worker",
+        });
 
-        if (!existsInRecycleNonce) {
-          console.log(
-            "::Debug Log:: NonceResyncWorker.ts, handler() - existsInRecycleNonce: ",
-            existsInRecycleNonce,
-          );
-
+        if (positionInList === null) {
           job.log(`Recycle nonce ${_nonce}`);
           // recycle nonce
           await recycleNonce(chainId, walletAddress, _nonce);
         } else {
-          console.log(`::Debug Log:: Nonce ${_nonce} already in recycle list`);
+          logger({
+            level: "debug",
+            message: `[nonceResyncWorker] Nonce ${_nonce} already in recycle list`,
+            service: "worker",
+          });
         }
       }
     }

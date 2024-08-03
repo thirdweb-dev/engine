@@ -138,11 +138,6 @@ export const rebaseNonce = async (chainId: number, walletAddress: Address) => {
   const transactionCount = await eth_getTransactionCount(rpcRequest, {
     address: walletAddress,
   });
-  console.log("::Debug Log:: transactionCount: ", transactionCount);
-  console.log(
-    "::Debug Log:: lastUsedNonceKey Value: ",
-    await redis.get(lastUsedNonceKey(chainId, normalizeAddress(walletAddress))),
-  );
 
   // Lua script to set nonce as max
   const script = `

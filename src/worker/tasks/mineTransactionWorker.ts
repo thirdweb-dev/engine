@@ -135,11 +135,11 @@ const _mineTransaction = async (
         sentTransaction.nonce,
       );
 
-      console.log(
-        "::Debug Log:: inside mineTransactionWorker.ts, _mineTransaction(), receipt:",
-        sentTransaction.nonce,
-        removed,
-      );
+      logger({
+        level: "debug",
+        message: `[mineTransactionWorker] Removed nonce ${sentTransaction.nonce} from sentnonce set: ${removed}`,
+        service: "worker",
+      });
 
       return {
         ...sentTransaction,

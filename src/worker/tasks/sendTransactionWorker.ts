@@ -171,8 +171,6 @@ const _sendTransaction = async (
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
-    console.log("::Debug Log:: error", error);
-
     // If NonceAlreadyUsedError, rebase the nonce and retry.
     if (isNonceAlreadyUsedError(error)) {
       const resyncNonce = await rebaseNonce(chainId, from);
@@ -185,12 +183,6 @@ const _sendTransaction = async (
   }
 
   // Add the nonce to sentnonce:<wallet>:<chainId> set.
-  console.log(
-    "::Debug Log:: sentnonce:",
-    `sentnonce:${from}:${chainId}`,
-    nonce,
-  );
-
   await redis.sadd(`sentnonce:${from}:${chainId}`, nonce);
 
   return {

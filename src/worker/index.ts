@@ -18,8 +18,6 @@ import { initSendTransactionWorker } from "./tasks/sendTransactionWorker";
 import { initSendWebhookWorker } from "./tasks/sendWebhookWorker";
 
 export const initWorker = async () => {
-  console.log("::Debug Log:: inside worker/index.ts, initWorker()");
-
   initCancelRecycledNoncesWorker();
   initProcessEventLogsWorker();
   initProcessTransactionReceiptsWorker();
@@ -28,9 +26,6 @@ export const initWorker = async () => {
   initMineTransactionWorker();
   initSendWebhookWorker();
   await initMigratePostgresTransactionsWorker();
-  console.log(
-    "::Debug Log:: inside worker/index.ts, initWorker(), after initMigratePostgresTransactionsWorker()",
-  );
 
   await initNonceResyncWorker();
 
