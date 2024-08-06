@@ -63,6 +63,18 @@ export const removeSentNonce = async (
 };
 
 /**
+ * Check if a nonce is in the sent nonces set.
+ */
+export const isSentNonce = async (
+  chainId: number,
+  walletAddress: Address,
+  nonce: number,
+) => {
+  const key = sentNoncesKey(chainId, walletAddress);
+  return !!(await redis.sismember(key, nonce.toString()));
+};
+
+/**
  * Acquire an unused nonce.
  * This should be used to send an EOA transaction with this nonce.
  * @param chainId
