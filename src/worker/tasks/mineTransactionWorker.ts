@@ -10,7 +10,7 @@ import {
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
-import { recycleNonce, recycledNoncesKey } from "../../db/wallets/walletNonce";
+import { recycleNonce, removeSentNonce } from "../../db/wallets/walletNonce";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getChain } from "../../utils/chain";
@@ -129,9 +129,9 @@ const _mineTransaction = async (
       const receipt = result.value;
       job.log(`Found receipt on block ${receipt.blockNumber}.`);
 
-      // removed nonce from sentnonce set
-      const removed = await redis.srem(
-        `sentnonce:${receipt.from.toLowerCase()}:${chainId}`,
+      const removed = await removeSentNonce(
+        sentTransaction.chainId,
+        sentTransaction.from,
         sentTransaction.nonce,
       );
 
@@ -188,22 +188,17 @@ const _mineTransaction = async (
     // Release the nonce to allow it to be reused or cancelled.
     job.log(`Recycling nonce: ${sentTransaction.nonce}`);
 
-    await redis.srem(
-      `sentnonce:${sentTransaction.from.toLowerCase()}:${chainId}`,
+    await removeSentNonce(
+      sentTransaction.chainId,
+      sentTransaction.from,
       sentTransaction.nonce,
     );
 
-    const postionInList = await redis.lpos(
-      recycledNoncesKey(chainId, sentTransaction.from),
+    await recycleNonce(
+      sentTransaction.chainId,
+      sentTransaction.from,
       sentTransaction.nonce,
     );
-    if (postionInList === null) {
-      await recycleNonce(
-        sentTransaction.chainId,
-        sentTransaction.from,
-        sentTransaction.nonce,
-      );
-    }
   }
 
   return null;

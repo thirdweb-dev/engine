@@ -9,6 +9,7 @@ import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
 import {
   acquireNonce,
+  addSentNonce,
   rebaseNonce,
   recycleNonce,
 } from "../../db/wallets/walletNonce";
@@ -182,8 +183,7 @@ const _sendTransaction = async (
     throw error;
   }
 
-  // Add the nonce to sentnonce:<wallet>:<chainId> set.
-  await redis.sadd(`sentnonce:${from}:${chainId}`, nonce);
+  await addSentNonce(chainId, from, nonce);
 
   return {
     ...queuedTransaction,

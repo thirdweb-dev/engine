@@ -3,12 +3,11 @@ import { eth_getTransactionCount, getRpcClient } from "thirdweb";
 import {
   lastUsedNonceKey,
   recycleNonce,
-  recycledNoncesKey,
+  splitSentNoncesKey,
 } from "../../db/wallets/walletNonce";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
-import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { NonceResyncQueue } from "../queues/nonceResyncQueue";
@@ -34,14 +33,18 @@ export const initNonceResyncWorker = async () => {
 export const sleep = async (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms, null));
 
+/**
+ * Resyncs nonces for all wallets.
+ * This worker should be run periodically to ensure that nonces are not skipped.
+ * It checks the onchain nonce for each wallet and recycles any missing nonces.
+ */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const sentnonceKeys = await redis.keys("*sentnonce*");
-  job.log(`Found ${sentnonceKeys.length} sentnonce keys`);
+  const sentNoncesKeys = await redis.keys("*nonce-sent*");
+  job.log(`Found ${sentNoncesKeys.length} nonce-sent* keys`);
 
-  for (const sentNonceKey of sentnonceKeys) {
-    const _splittedKeys = sentNonceKey.split(":");
-    const walletAddress = normalizeAddress(_splittedKeys[1]);
-    const chainId = parseInt(_splittedKeys[2]);
+  for (const sentNonceKey of sentNoncesKeys) {
+    const { chainId, walletAddress } = splitSentNoncesKey(sentNonceKey);
+
     // Check blockchain for nonce
     const rpcRequest = getRpcClient({
       client: thirdwebClient,
@@ -57,7 +60,9 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     const dbNonceCount = Number(
       await redis.get(lastUsedNonceKey(chainId, walletAddress)),
     );
-    job.log(`onchain Nonce: ${transactionCount} and DBNonce: ${dbNonceCount}`);
+    job.log(
+      `[wallet ${walletAddress}] onchain Nonce: ${transactionCount} and DBNonce: ${dbNonceCount}`,
+    );
     logger({
       level: "debug",
       message: `[nonceResyncWorker] onchain Nonce: ${transactionCount} and DBNonce: ${dbNonceCount}`,
@@ -74,7 +79,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       return;
     }
 
-    // Check if nonce exists in sentnonce set
+    // Check if nonce exists in nonce-sent set
     // If not, recycle nonce
     for (let _nonce = transactionCount; _nonce < dbNonceCount; _nonce++) {
       if (isNaN(_nonce)) {
@@ -89,30 +94,9 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         service: "worker",
       });
 
-      // If nonce does not exist in sentnonce:* set, check if it exists in recycle list
+      // If nonce does not exist in nonce-sent set, recycle it
       if (!exists) {
-        const positionInList = await redis.lpos(
-          recycledNoncesKey(chainId, walletAddress),
-          _nonce.toString(),
-        );
-        logger({
-          level: "debug",
-          message: `[nonceResyncWorker] Position of nonce in recycle list: ${positionInList}`,
-          service: "worker",
-        });
-
-        // If nonce does not exist in recycle list, recycle nonce
-        if (positionInList === null) {
-          job.log(`Recycle nonce ${_nonce}`);
-          // recycle nonce
-          await recycleNonce(chainId, walletAddress, _nonce);
-        } else {
-          logger({
-            level: "debug",
-            message: `[nonceResyncWorker] Nonce ${_nonce} already in recycle list`,
-            service: "worker",
-          });
-        }
+        await recycleNonce(chainId, walletAddress, _nonce);
       }
     }
   }

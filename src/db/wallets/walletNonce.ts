@@ -13,11 +13,54 @@ export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
- * The "recycled nonces" list stores unsorted nonces to be reused or cancelled.
+ * The "recycled nonces" set stores unsorted nonces to be reused or cancelled.
  * Example: [ "25", "23", "24" ]
  */
 export const recycledNoncesKey = (chainId: number, walletAddress: Address) =>
   `nonce-recycled:${chainId}:${normalizeAddress(walletAddress)}`;
+
+/**
+ * The "sent nonces" set stores nonces that have been sent on chain but not yet mined.
+ *
+ * Example: [ "25", "23", "24" ]
+ *
+ * The `nonceResyncWorker` periodically fetches the onchain transaction count for each wallet (a),
+ * compares it to the last nonce sent (b), and for every nonce between b and a,
+ * it recycles the nonce if the nonce is not in this set.
+ */
+export const sentNoncesKey = (chainId: number, walletAddress: Address) =>
+  `nonce-sent:${chainId}:${normalizeAddress(walletAddress)}`;
+
+export const splitSentNoncesKey = (key: string) => {
+  const _splittedKeys = key.split(":");
+  const walletAddress = normalizeAddress(_splittedKeys[2]);
+  const chainId = parseInt(_splittedKeys[1]);
+  return { walletAddress, chainId };
+};
+
+/**
+ * Adds a nonce to the sent nonces set (`nonce-sent:${chainId}:${walletAddress}`).
+ */
+export const addSentNonce = async (
+  chainId: number,
+  walletAddress: Address,
+  nonce: number,
+) => {
+  const key = sentNoncesKey(chainId, walletAddress);
+  await redis.sadd(key, nonce.toString());
+};
+
+/**
+ * Removes a nonce from the sent nonces set (`nonce-sent:${chainId}:${walletAddress}`).
+ */
+export const removeSentNonce = async (
+  chainId: number,
+  walletAddress: Address,
+  nonce: number,
+) => {
+  const key = sentNoncesKey(chainId, walletAddress);
+  await redis.srem(key, nonce.toString());
+};
 
 /**
  * Acquire an unused nonce.
@@ -68,7 +111,7 @@ export const recycleNonce = async (
     return;
   }
   const key = recycledNoncesKey(chainId, walletAddress);
-  await redis.rpush(key, nonce);
+  await redis.sadd(key, nonce.toString());
 };
 
 /**
@@ -82,7 +125,7 @@ const _acquireRecycledNonce = async (
   walletAddress: Address,
 ) => {
   const key = recycledNoncesKey(chainId, walletAddress);
-  const res = await redis.lpop(key);
+  const res = await redis.spop(key);
   return res ? parseInt(res) : null;
 };
 
