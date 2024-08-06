@@ -39,7 +39,7 @@ export const sleep = async (ms: number) =>
  * It checks the onchain nonce for each wallet and recycles any missing nonces.
  */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const sentNoncesKeys = await redis.keys("*nonce-sent*");
+  const sentNoncesKeys = await redis.keys("nonce-sent*");
   job.log(`Found ${sentNoncesKeys.length} nonce-sent* keys`);
 
   for (const sentNonceKey of sentNoncesKeys) {
