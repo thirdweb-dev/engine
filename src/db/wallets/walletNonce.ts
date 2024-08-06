@@ -59,7 +59,8 @@ export const removeSentNonce = async (
   nonce: number,
 ) => {
   const key = sentNoncesKey(chainId, walletAddress);
-  await redis.srem(key, nonce.toString());
+  const removed = await redis.srem(key, nonce.toString());
+  return removed === 1;
 };
 
 /**

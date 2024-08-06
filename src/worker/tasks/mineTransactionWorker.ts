@@ -137,7 +137,7 @@ const _mineTransaction = async (
 
       logger({
         level: "debug",
-        message: `[mineTransactionWorker] Removed nonce ${sentTransaction.nonce} from sentnonce set: ${removed}`,
+        message: `[mineTransactionWorker] Removed nonce ${sentTransaction.nonce} from nonce-sent set: ${removed}`,
         service: "worker",
       });
 

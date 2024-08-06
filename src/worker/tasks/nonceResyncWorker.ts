@@ -105,7 +105,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       const exists = await isSentNonce(chainId, walletAddress, _nonce);
       logger({
         level: "debug",
-        message: `[nonceResyncWorker] nonce ${_nonce} exists in nonse-sent set: ${exists}`,
+        message: `[nonceResyncWorker] nonce ${_nonce} exists in nonce-sent set: ${exists}`,
         service: "worker",
       });
 
