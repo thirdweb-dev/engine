@@ -28,7 +28,6 @@ export const setup = async (): Promise<SetupResult> => {
 
   const publicClient = setupPublicClient();
   const engine = setupEngine();
-  // const backendWallet = "0x7c243d1475da6fe0eeb8d1c4ee4510af35cf7cd5";
   const backendWallet = await getEngineBackendWallet(engine);
   let testClient;
 
