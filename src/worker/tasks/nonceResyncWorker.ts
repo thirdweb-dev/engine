@@ -1,7 +1,8 @@
 import { Job, Processor, Worker } from "bullmq";
 import { eth_getTransactionCount, getRpcClient } from "thirdweb";
 import {
-  lastUsedNonceKey,
+  inspectNonce,
+  isSentNonce,
   recycleNonce,
   splitSentNoncesKey,
 } from "../../db/wallets/walletNonce";
@@ -30,13 +31,12 @@ export const initNonceResyncWorker = async () => {
   logWorkerExceptions(_worker);
 };
 
-export const sleep = async (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms, null));
-
 /**
  * Resyncs nonces for all wallets.
  * This worker should be run periodically to ensure that nonces are not skipped.
  * It checks the onchain nonce for each wallet and recycles any missing nonces.
+ *
+ * This is to unblock a wallet that has been stuck due to one or more skipped nonces.
  */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const sentNoncesKeys = await redis.keys("nonce-sent*");
@@ -45,31 +45,46 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   for (const sentNonceKey of sentNoncesKeys) {
     const { chainId, walletAddress } = splitSentNoncesKey(sentNonceKey);
 
-    // Check blockchain for nonce
     const rpcRequest = getRpcClient({
       client: thirdwebClient,
       chain: await getChain(chainId),
     });
 
-    // The next unused nonce = transactionCount.
-    const transactionCount = await eth_getTransactionCount(rpcRequest, {
-      address: walletAddress,
-    });
+    const [transactionCount, lastUsedNonceDb] = await Promise.all([
+      eth_getTransactionCount(rpcRequest, {
+        address: walletAddress,
+      }),
+      inspectNonce(chainId, walletAddress),
+    ]);
 
-    // Get DB Nonce
-    const dbNonceCount = Number(
-      await redis.get(lastUsedNonceKey(chainId, walletAddress)),
-    );
+    if (isNaN(transactionCount)) {
+      job.log(
+        `Received invalid onchain transaction count for ${walletAddress}: ${transactionCount}`,
+      );
+
+      logger({
+        level: "error",
+        message: `[nonceResyncWorker] Received invalid onchain transaction count for ${walletAddress}: ${transactionCount}`,
+        service: "worker",
+      });
+
+      return;
+    }
+
+    const lastUsedNonceOnchain = transactionCount - 1;
+
     job.log(
-      `[wallet ${walletAddress}] onchain Nonce: ${transactionCount} and DBNonce: ${dbNonceCount}`,
+      `${walletAddress} last used onchain nonce: ${lastUsedNonceOnchain} and last used db nonce: ${lastUsedNonceDb}`,
     );
     logger({
       level: "debug",
-      message: `[nonceResyncWorker] onchain Nonce: ${transactionCount} and DBNonce: ${dbNonceCount}`,
+      message: `[nonceResyncWorker] last used onchain nonce: ${transactionCount} and last used db nonce: ${lastUsedNonceDb}`,
       service: "worker",
     });
 
-    if (transactionCount >= dbNonceCount + 1) {
+    // If the last used nonce onchain is the same as or ahead of the last used nonce in the db,
+    // There is no need to resync the nonce.
+    if (lastUsedNonceOnchain >= lastUsedNonceDb) {
       job.log(`No need to resync nonce for ${walletAddress}`);
       logger({
         level: "debug",
@@ -79,18 +94,18 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       return;
     }
 
-    // Check if nonce exists in nonce-sent set
-    // If not, recycle nonce
-    for (let _nonce = transactionCount; _nonce < dbNonceCount; _nonce++) {
-      if (isNaN(_nonce)) {
-        continue;
-      }
-      const exists = await redis.sismember(sentNonceKey, _nonce.toString());
+    //  for each nonce between last used db nonce and last used onchain nonce
+    //    check if nonce exists in nonce-sent set
+    //    if it does not exist, recycle it
+    for (
+      let _nonce = lastUsedNonceOnchain + 1;
+      _nonce < lastUsedNonceDb;
+      _nonce++
+    ) {
+      const exists = await isSentNonce(chainId, walletAddress, _nonce);
       logger({
         level: "debug",
-        message: `[nonceResyncWorker] Nonce ${_nonce} Exists in sentnonce Set:  ${
-          exists === 1
-        }`,
+        message: `[nonceResyncWorker] nonce ${_nonce} exists in nonse-sent set: ${exists}`,
         service: "worker",
       });
 
