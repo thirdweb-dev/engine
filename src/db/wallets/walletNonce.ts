@@ -143,7 +143,7 @@ export const rebaseNonce = async (chainId: number, walletAddress: Address) => {
   const script = `
     local transactionCount = tonumber(ARGV[1])
     local lastUsedNonce = tonumber(redis.call('get', KEYS[1]))
-    local nextNonce = math.max(transactionCount, lastUsedNonce)
+    local nextNonce = math.max(transactionCount-1, lastUsedNonce)
     redis.call('set', KEYS[1], nextNonce)
     return nextNonce
   `;
