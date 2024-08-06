@@ -155,7 +155,6 @@ const _mineTransaction = async (
       };
     }
   }
-
   // Else the transaction is not mined yet.
 
   // Retry the transaction (after some initial delay).
@@ -173,32 +172,6 @@ const _mineTransaction = async (
         resendCount: resendCount + 1,
       });
     }
-  } else {
-    const erroredTransaction: ErroredTransaction = {
-      ...sentTransaction,
-      status: "errored",
-      errorMessage: "Transaction timed out.",
-    };
-    job.log(`Transaction timed out: ${stringify(erroredTransaction)}`);
-
-    await TransactionDB.set(erroredTransaction);
-    await enqueueTransactionWebhook(erroredTransaction);
-    _reportUsageError(erroredTransaction);
-
-    // Release the nonce to allow it to be reused or cancelled.
-    job.log(`Recycling nonce: ${sentTransaction.nonce}`);
-
-    await removeSentNonce(
-      sentTransaction.chainId,
-      sentTransaction.from,
-      sentTransaction.nonce,
-    );
-
-    await recycleNonce(
-      sentTransaction.chainId,
-      sentTransaction.from,
-      sentTransaction.nonce,
-    );
   }
 
   return null;
@@ -219,6 +192,7 @@ const _mineUserOp = async (
     chain,
     userOpHash,
   });
+
   if (!userOpReceiptRaw) {
     return null;
   }
@@ -282,8 +256,16 @@ export const initMineTransactionWorker = () => {
 
       if (!sentTransaction.isUserOp) {
         // Release the nonce to allow it to be reused or cancelled.
-        job.log(`Recycling nonce: ${sentTransaction.nonce}`);
+        job.log(
+          `Recycling nonce and removing from nonce-sent: ${sentTransaction.nonce}`,
+        );
         await recycleNonce(
+          sentTransaction.chainId,
+          sentTransaction.from,
+          sentTransaction.nonce,
+        );
+
+        await removeSentNonce(
           sentTransaction.chainId,
           sentTransaction.from,
           sentTransaction.nonce,
