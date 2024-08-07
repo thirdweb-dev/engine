@@ -9,6 +9,7 @@ import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
 import {
   acquireNonce,
+  addSentNonce,
   rebaseNonce,
   recycleNonce,
 } from "../../db/wallets/walletNonce";
@@ -171,8 +172,9 @@ const _sendTransaction = async (
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
-    // If NonceAlreadyUsedError, rebase the nonce and retry.
-    if (isNonceAlreadyUsedError(error)) {
+    // If NonceAlreadyUsedError, which can also manifest as a ReplacementGasFeeTooLowError,
+    // recycle the nonce and retry the transaction.
+    if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
       const resyncNonce = await rebaseNonce(chainId, from);
       job.log(`Resynced nonce to ${resyncNonce}.`);
     } else {
@@ -181,6 +183,8 @@ const _sendTransaction = async (
     }
     throw error;
   }
+
+  await addSentNonce(chainId, from, nonce);
 
   return {
     ...queuedTransaction,

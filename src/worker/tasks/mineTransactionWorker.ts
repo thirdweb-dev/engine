@@ -10,7 +10,7 @@ import {
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
-import { recycleNonce } from "../../db/wallets/walletNonce";
+import { recycleNonce, removeSentNonce } from "../../db/wallets/walletNonce";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getChain } from "../../utils/chain";
@@ -128,6 +128,19 @@ const _mineTransaction = async (
     if (result.status === "fulfilled") {
       const receipt = result.value;
       job.log(`Found receipt on block ${receipt.blockNumber}.`);
+
+      const removed = await removeSentNonce(
+        sentTransaction.chainId,
+        sentTransaction.from,
+        sentTransaction.nonce,
+      );
+
+      logger({
+        level: "debug",
+        message: `[mineTransactionWorker] Removed nonce ${sentTransaction.nonce} from nonce-sent set: ${removed}`,
+        service: "worker",
+      });
+
       return {
         ...sentTransaction,
         status: "mined",
@@ -142,7 +155,6 @@ const _mineTransaction = async (
       };
     }
   }
-
   // Else the transaction is not mined yet.
 
   // Retry the transaction (after some initial delay).
@@ -180,6 +192,7 @@ const _mineUserOp = async (
     chain,
     userOpHash,
   });
+
   if (!userOpReceiptRaw) {
     return null;
   }
@@ -243,8 +256,16 @@ export const initMineTransactionWorker = () => {
 
       if (!sentTransaction.isUserOp) {
         // Release the nonce to allow it to be reused or cancelled.
-        job.log(`Recycling nonce: ${sentTransaction.nonce}`);
+        job.log(
+          `Recycling nonce and removing from nonce-sent: ${sentTransaction.nonce}`,
+        );
         await recycleNonce(
+          sentTransaction.chainId,
+          sentTransaction.from,
+          sentTransaction.nonce,
+        );
+
+        await removeSentNonce(
           sentTransaction.chainId,
           sentTransaction.from,
           sentTransaction.nonce,

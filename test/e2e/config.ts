@@ -11,6 +11,21 @@ export const CONFIG: Config = {
 
   USE_LOCAL_CHAIN: true,
   CHAIN: anvil,
+  // CHAIN: defineChain({
+  //   name: "B3 Sepolia",
+  //   id: 1993,
+  //   rpcUrls: {
+  //     default: {
+  //       http: ["https://sepolia.b3.fun/http"],
+  //       webSocket: ["wss://sepolia.b3.fun/ws"],
+  //     },
+  //   },
+  //   nativeCurrency: {
+  //     name: "Ether",
+  //     symbol: "ETH",
+  //     decimals: 18,
+  //   },
+  // }),
 
   TRANSACTION_COUNT: 500,
   TRANSACTIONS_PER_BATCH: 100,
