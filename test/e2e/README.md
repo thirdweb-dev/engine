@@ -4,7 +4,7 @@
 2. Check `config.ts` to configure the test suite.
 3. Run `bun test` within the directory to run the tests.
 
-Note: make sure `engine` is running, and `anvil` is installed if running the tests on a local environment. (You can get the latest version of `anvil` by installing [`forge`](https://book.getfoundry.sh/getting-started/installation))
+Note: make sure `engine` is running, and `anvil` is installed if running the tests on a local environment. (You can get the latest version of `anvil` by installing [`foundry`](https://book.getfoundry.sh/getting-started/installation))
 
 ## Running tests
 The test suite depends on a local SDK to run tests. To run the tests, you need to generate the SDK. To do this, run the following command from the root of the repository:
