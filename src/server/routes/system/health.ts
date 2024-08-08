@@ -1,9 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { isDatabaseHealthy } from "../../../db/client";
+import { isDatabaseReachable } from "../../../db/client";
 import { env } from "../../../utils/env";
-import { redis } from "../../../utils/redis/redis";
+import { isRedisReachable, redis } from "../../../utils/redis/redis";
+import { createCustomError } from "../../middleware/error";
 
 type EngineFeature = "KEYPAIR_AUTH" | "CONTRACT_SUBSCRIPTIONS" | "IP_ALLOWLIST";
 
@@ -44,11 +45,20 @@ export async function healthCheck(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const db = await isDatabaseHealthy();
-      if (!db) {
-        return res.status(StatusCodes.SERVICE_UNAVAILABLE).send({
-          error: "The database is unreachable.",
-        });
+      if (!(await isDatabaseReachable())) {
+        throw createCustomError(
+          "The database is unreachable.",
+          StatusCodes.SERVICE_UNAVAILABLE,
+          "FAILED_HEALTHCHECK",
+        );
+      }
+
+      if (!(await isRedisReachable())) {
+        throw createCustomError(
+          "Redis is unreachable.",
+          StatusCodes.SERVICE_UNAVAILABLE,
+          "FAILED_HEALTHCHECK",
+        );
       }
 
       res.status(StatusCodes.OK).send({

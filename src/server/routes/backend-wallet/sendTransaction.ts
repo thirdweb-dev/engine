@@ -1,19 +1,20 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
+import { Address, Hex } from "thirdweb";
+import { maybeBigInt } from "../../../utils/primitiveTypes";
+import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import { txOverridesSchema } from "../../schemas/txOverrides";
-import { walletWithAAHeaderSchema } from "../../schemas/wallet";
+import {
+  walletChainParamSchema,
+  walletWithAAHeaderSchema,
+} from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-
-const ParamsSchema = Type.Object({
-  chain: Type.String(),
-});
 
 const requestBodySchema = Type.Object({
   toAddress: Type.Optional(
@@ -43,7 +44,7 @@ requestBodySchema.examples = [
 
 export async function sendTransaction(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof ParamsSchema>;
+    Params: Static<typeof walletChainParamSchema>;
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof transactionWritesResponseSchema>;
     Querystring: Static<typeof requestQuerystringSchema>;
@@ -55,7 +56,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       description: "Send a transaction with transaction parameters",
       tags: ["Backend Wallet"],
       operationId: "sendTransaction",
-      params: ParamsSchema,
+      params: walletChainParamSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
@@ -73,34 +74,51 @@ export async function sendTransaction(fastify: FastifyInstance) {
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
 
       let queueId: string;
       if (accountAddress) {
-        const { id } = await queueTxRaw({
-          chainId: chainId.toString(),
-          signerAddress: fromAddress,
-          accountAddress,
-          target: toAddress,
-          data,
-          value,
-          simulateTx,
+        queueId = await insertTransaction({
+          insertedTransaction: {
+            isUserOp: true,
+            chainId,
+            from: fromAddress as Address,
+            to: toAddress as Address | undefined,
+            data: data as Hex,
+            value: BigInt(value),
+            accountAddress: accountAddress as Address,
+            signerAddress: fromAddress as Address,
+            target: toAddress as Address | undefined,
+
+            gas: maybeBigInt(txOverrides?.gas),
+            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+            maxPriorityFeePerGas: maybeBigInt(
+              txOverrides?.maxPriorityFeePerGas,
+            ),
+          },
+          shouldSimulate: simulateTx,
           idempotencyKey,
-          ...txOverrides,
         });
-        queueId = id;
       } else {
-        const { id } = await queueTxRaw({
-          chainId: chainId.toString(),
-          fromAddress,
-          toAddress,
-          data,
-          value,
-          simulateTx,
+        queueId = await insertTransaction({
+          insertedTransaction: {
+            isUserOp: false,
+            chainId,
+            from: fromAddress as Address,
+            to: toAddress as Address | undefined,
+            data: data as Hex,
+            value: BigInt(value),
+
+            gas: maybeBigInt(txOverrides?.gas),
+            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+            maxPriorityFeePerGas: maybeBigInt(
+              txOverrides?.maxPriorityFeePerGas,
+            ),
+          },
+          shouldSimulate: simulateTx,
           idempotencyKey,
-          ...txOverrides,
         });
-        queueId = id;
       }
 
       reply.status(StatusCodes.OK).send({

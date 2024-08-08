@@ -1,8 +1,18 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { TransactionDB } from "../../../db/transactions/db";
+import { getBlockNumberish } from "../../../utils/block";
+import { getConfig } from "../../../utils/cache/getConfig";
+import { getChain } from "../../../utils/chain";
+import { msSince } from "../../../utils/date";
+import { sendCancellationTransaction } from "../../../utils/transaction/cancelTransaction";
+import { CancelledTransaction } from "../../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
+import { reportUsage } from "../../../utils/usage";
+import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { cancelTransactionAndUpdate } from "../../utils/transaction";
 
 // INPUT
 const requestBodySchema = Type.Object({
@@ -67,18 +77,95 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { queueId } = request.body;
 
-      const { message, transactionHash } = await cancelTransactionAndUpdate({
-        queueId,
-      });
+      const transaction = await TransactionDB.get(queueId);
+      if (!transaction) {
+        throw createCustomError(
+          "Transaction not found.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_FOUND",
+        );
+      }
+
+      let message = "Transaction successfully cancelled.";
+      let cancelledTransaction: CancelledTransaction | null = null;
+      if (!transaction.isUserOp) {
+        if (transaction.status === "queued") {
+          // Remove all retries from the SEND_TRANSACTION queue.
+          const config = await getConfig();
+          for (
+            let resendCount = 0;
+            resendCount < config.maxRetriesPerTx;
+            resendCount++
+          ) {
+            await SendTransactionQueue.remove({ queueId, resendCount });
+          }
+
+          cancelledTransaction = {
+            ...transaction,
+            status: "cancelled",
+            cancelledAt: new Date(),
+            sentAt: new Date(),
+            sentAtBlock: await getBlockNumberish(transaction.chainId),
+
+            isUserOp: false,
+            nonce: -1,
+            sentTransactionHashes: [],
+          };
+        } else if (transaction.status === "sent") {
+          // Cancel a sent transaction with the same nonce.
+          const { chainId, from, nonce } = transaction;
+          const transactionHash = await sendCancellationTransaction({
+            chainId,
+            from,
+            nonce,
+          });
+          cancelledTransaction = {
+            ...transaction,
+            status: "cancelled",
+            cancelledAt: new Date(),
+            sentTransactionHashes: [transactionHash],
+          };
+        }
+      }
+
+      if (!cancelledTransaction) {
+        throw createCustomError(
+          "Transaction cannot be cancelled.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_CANNOT_BE_CANCELLED",
+        );
+      }
+
+      // A queued or sent transaction was successfully cancelled.
+      await TransactionDB.set(cancelledTransaction);
+      await enqueueTransactionWebhook(cancelledTransaction);
+      await _reportUsageSuccess(cancelledTransaction);
 
       return reply.status(StatusCodes.OK).send({
         result: {
           queueId,
           status: "success",
           message,
-          transactionHash,
+          transactionHash: cancelledTransaction.sentTransactionHashes.at(-1),
         },
       });
     },
   });
 }
+
+const _reportUsageSuccess = async (
+  cancelledTransaction: CancelledTransaction,
+) => {
+  const chain = await getChain(cancelledTransaction.chainId);
+  reportUsage([
+    {
+      action: "cancel_tx",
+      input: {
+        ...cancelledTransaction,
+        provider: chain.rpc,
+        msSinceQueue: msSince(cancelledTransaction.queuedAt),
+        msSinceSend: msSince(cancelledTransaction.sentAt),
+      },
+    },
+  ]);
+};

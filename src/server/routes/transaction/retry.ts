@@ -1,10 +1,13 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { retryTx } from "../../../db/transactions/retryTx";
+import { TransactionDB } from "../../../db/transactions/db";
+import { maybeBigInt } from "../../../utils/primitiveTypes";
+import { SentTransaction } from "../../../utils/transaction/types";
+import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-// INPUT
 const requestBodySchema = Type.Object({
   queueId: Type.String({
     description: "Transaction queue ID",
@@ -14,7 +17,6 @@ const requestBodySchema = Type.Object({
   maxPriorityFeePerGas: Type.String(),
 });
 
-// OUTPUT
 export const responseBodySchema = Type.Object({
   result: Type.Object({
     message: Type.String(),
@@ -47,14 +49,38 @@ export async function retryTransaction(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
+      deprecated: true,
+      hide: true,
     },
     handler: async (request, reply) => {
       const { queueId, maxFeePerGas, maxPriorityFeePerGas } = request.body;
 
-      await retryTx({
-        queueId: queueId,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
+      const transaction = await TransactionDB.get(queueId);
+      if (!transaction) {
+        throw createCustomError(
+          "Transaction not found.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_FOUND",
+        );
+      }
+      if (transaction.status !== "sent") {
+        throw createCustomError(
+          "Transaction cannot be retried.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_CANNOT_BE_RETRIED",
+        );
+      }
+
+      // Override the gas settings.
+      const sentTransaction: SentTransaction = {
+        ...transaction,
+        maxFeePerGas: maybeBigInt(maxFeePerGas),
+        maxPriorityFeePerGas: maybeBigInt(maxPriorityFeePerGas),
+      };
+      await TransactionDB.set(sentTransaction);
+      await SendTransactionQueue.add({
+        queueId: sentTransaction.queueId,
+        resendCount: sentTransaction.resendCount + 1,
       });
 
       reply.status(StatusCodes.OK).send({

@@ -134,6 +134,10 @@ yarn-error.log
 .yarn/install-state.gz
 .pnp.*
 
+# yalc cache
+.yalc
+yalc.lock
+
 swagger.yml
 worker/distWorker/
 .DS_Store
@@ -144,3 +148,6 @@ credentials
 
 # SSL Local Certs folder
 https
+
+# Auto generated OpenAPI file
+openapi.json

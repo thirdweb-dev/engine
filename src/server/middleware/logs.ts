@@ -17,7 +17,11 @@ export const withRequestLogs = async (server: FastifyInstance) => {
     }
 
     if (process.env.NODE_ENV === "production") {
-      if (request.routerPath?.includes("static")) {
+      if (
+        request.routerPath?.includes("static") &&
+        // Bullboard requires access to static bundle files
+        !request.routerPath?.startsWith("/admin/queues")
+      ) {
         return reply.status(404).send({
           statusCode: 404,
           error: "Not Found",

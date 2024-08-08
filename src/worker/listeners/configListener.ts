@@ -3,9 +3,6 @@ import { getConfig } from "../../utils/cache/getConfig";
 import { clearCacheCron } from "../../utils/cron/clearCacheCron";
 import { logger } from "../../utils/logger";
 import { chainIndexerListener } from "./chainIndexerListener";
-import { minedTxListener } from "./minedTxListener";
-import { queuedTxListener } from "./queuedTxListener";
-import { retryTxListener } from "./retryTxListener";
 
 export const newConfigurationListener = async (): Promise<void> => {
   logger({
@@ -80,9 +77,6 @@ export const updatedConfigurationListener = async (): Promise<void> => {
         message: `Updated configuration data`,
       });
       await getConfig(false);
-      await queuedTxListener();
-      await minedTxListener();
-      await retryTxListener();
       await clearCacheCron("worker");
       await chainIndexerListener();
     },

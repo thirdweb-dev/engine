@@ -1,20 +1,18 @@
 import { Static } from "@sinclair/typebox";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
+import { TransactionDB } from "../../db/transactions/db";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { toEventLogSchema } from "../../server/schemas/eventLog";
 import {
+  TransactionSchema,
   toTransactionSchema,
-  transactionResponseSchema,
 } from "../../server/schemas/transaction";
 import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
 import { redis } from "../../utils/redis/redis";
 import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
-import { logWorkerEvents } from "../queues/queues";
-import {
-  SEND_WEBHOOK_QUEUE_NAME,
-  WebhookJob,
-} from "../queues/sendWebhookQueue";
+import { logWorkerExceptions } from "../queues/queues";
+import { SendWebhookQueue, WebhookJob } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);
@@ -45,14 +43,17 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       break;
     }
 
-    case WebhooksEventTypes.ALL_TX:
-    case WebhooksEventTypes.QUEUED_TX:
     case WebhooksEventTypes.SENT_TX:
     case WebhooksEventTypes.MINED_TX:
     case WebhooksEventTypes.ERRORED_TX:
     case WebhooksEventTypes.CANCELLED_TX: {
-      const webhookBody: Static<typeof transactionResponseSchema> =
-        toTransactionSchema(data.transaction);
+      const transaction = await TransactionDB.get(data.queueId);
+      if (!transaction) {
+        job.log("Transaction not found.");
+        return;
+      }
+      const webhookBody: Static<typeof TransactionSchema> =
+        toTransactionSchema(transaction);
       resp = await sendWebhookRequest(webhook, webhookBody);
       break;
     }
@@ -66,12 +67,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 };
 
-// Worker
-let _worker: Worker | null = null;
-if (redis) {
-  _worker = new Worker(SEND_WEBHOOK_QUEUE_NAME, handler, {
+// Must be explicitly called for the worker to run on this host.
+export const initSendWebhookWorker = () => {
+  const _worker = new Worker(SendWebhookQueue.q.name, handler, {
     concurrency: 10,
     connection: redis,
   });
-  logWorkerEvents(_worker);
-}
+  logWorkerExceptions(_worker);
+};

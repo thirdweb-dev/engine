@@ -5,7 +5,6 @@ import superjson from "superjson";
 import {
   Address,
   ThirdwebContract,
-  defineChain,
   eth_getBlockByNumber,
   eth_getTransactionReceipt,
   getContract,
@@ -15,15 +14,17 @@ import { resolveContractAbi } from "thirdweb/contract";
 import { Abi, Hash, decodeFunctionData } from "viem";
 import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
+import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
   EnqueueProcessTransactionReceiptsData,
-  PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME,
+  ProcessTransactionReceiptsQueue,
 } from "../queues/processTransactionReceiptsQueue";
-import { logWorkerEvents } from "../queues/queues";
-import { enqueueWebhook } from "../queues/sendWebhookQueue";
+import { logWorkerExceptions } from "../queues/queues";
+import { SendWebhookQueue } from "../queues/sendWebhookQueue";
 import { getContractId } from "../utils/contractId";
 import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
 
@@ -61,7 +62,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     const webhooks =
       webhooksByContractAddress[transactionReceipt.contractAddress] ?? [];
     for (const webhook of webhooks) {
-      await enqueueWebhook({
+      await SendWebhookQueue.enqueueWebhook({
         type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
         webhook,
         transactionReceipt,
@@ -99,11 +100,8 @@ const getFormattedTransactionReceipts = async ({
     return [];
   }
 
-  const chain = defineChain(chainId);
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain,
-  });
+  const chain = await getChain(chainId);
+  const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
 
   // Get array of block numbers between `fromBlock` and `toBlock` inclusive.
   const blockRange: bigint[] = [];
@@ -145,11 +143,11 @@ const getFormattedTransactionReceipts = async ({
 
     const receipts: Prisma.ContractTransactionReceiptsCreateInput[] = [];
     for (const transaction of block.transactions) {
-      const toAddress = transaction.to?.toLowerCase() as Address | undefined;
-      if (!toAddress) {
+      if (!transaction.to) {
         // This transaction is a contract deployment.
         continue;
       }
+      const toAddress = normalizeAddress(transaction.to);
       const config = addressConfig[toAddress];
       if (!config) {
         // This transaction is not to a subscribed address.
@@ -183,7 +181,7 @@ const getFormattedTransactionReceipts = async ({
         transactionHash: receipt.transactionHash.toLowerCase(),
         timestamp: new Date(Number(block.timestamp) * 1000),
         to: toAddress,
-        from: receipt.from.toLowerCase(),
+        from: normalizeAddress(receipt.from),
         value: transaction.value.toString(),
         data: transaction.input,
         functionName,
@@ -217,12 +215,11 @@ const getFunctionName = async (args: {
   return decoded.functionName;
 };
 
-// Worker
-let _worker: Worker | null = null;
-if (redis) {
-  _worker = new Worker(PROCESS_TRANSACTION_RECEIPTS_QUEUE_NAME, handler, {
+// Must be explicitly called for the worker to run on this host.
+export const initProcessTransactionReceiptsWorker = () => {
+  const _worker = new Worker(ProcessTransactionReceiptsQueue.q.name, handler, {
     concurrency: 5,
     connection: redis,
   });
-  logWorkerEvents(_worker);
-}
+  logWorkerExceptions(_worker);
+};

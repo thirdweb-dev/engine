@@ -8,6 +8,9 @@ export const thirdwebClientId = sha256HexSync(
 
 export const thirdwebClient = createThirdwebClient({
   secretKey: env.THIRDWEB_API_SECRET_KEY,
+  config: {
+    rpc: { maxBatchSize: 50 },
+  },
 });
 
 /**

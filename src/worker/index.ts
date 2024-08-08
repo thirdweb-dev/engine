@@ -3,38 +3,40 @@ import {
   newConfigurationListener,
   updatedConfigurationListener,
 } from "./listeners/configListener";
-import { pruneCompletedTransactions } from "./listeners/deleteProcessedTx";
-import { minedTxListener } from "./listeners/minedTxListener";
-import { queuedTxListener } from "./listeners/queuedTxListener";
-import { retryTxListener } from "./listeners/retryTxListener";
 import {
   newWebhooksListener,
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
-import "./tasks/processEventLogsWorker";
-import "./tasks/processTransactionReceiptsWorker";
-import "./tasks/sendWebhookWorker";
+import { initCancelRecycledNoncesWorker } from "./tasks/cancelRecycledNoncesWorker";
+import { initMigratePostgresTransactionsWorker } from "./tasks/migratePostgresTransactionsWorker";
+import { initMineTransactionWorker } from "./tasks/mineTransactionWorker";
+import { initNonceResyncWorker } from "./tasks/nonceResyncWorker";
+import { initProcessEventLogsWorker } from "./tasks/processEventLogsWorker";
+import { initProcessTransactionReceiptsWorker } from "./tasks/processTransactionReceiptsWorker";
+import { initPruneTransactionsWorker } from "./tasks/pruneTransactionsWorker";
+import { initSendTransactionWorker } from "./tasks/sendTransactionWorker";
+import { initSendWebhookWorker } from "./tasks/sendWebhookWorker";
 
 export const initWorker = async () => {
-  // Listen for queued transactions to process
-  await queuedTxListener();
+  initCancelRecycledNoncesWorker();
+  initProcessEventLogsWorker();
+  initProcessTransactionReceiptsWorker();
+  initPruneTransactionsWorker();
+  initSendTransactionWorker();
+  initMineTransactionWorker();
+  initSendWebhookWorker();
+  await initMigratePostgresTransactionsWorker();
 
-  // Poll for transactions stuck in mempool to retry
-  await retryTxListener();
+  await initNonceResyncWorker();
 
-  // Poll for mined transactions to update database
-  await minedTxListener();
-
-  // Delete completed transactions after some age.
-  await pruneCompletedTransactions();
-
-  // Listen for new & updated configuration data
+  // Listen for new & updated configuration data.
   await newConfigurationListener();
   await updatedConfigurationListener();
 
-  // Listen for new & updated webhooks data
+  // Listen for new & updated webhooks data.
   await newWebhooksListener();
   await updatedWebhooksListener();
 
+  // Contract subscriptions.
   await chainIndexerListener();
 };

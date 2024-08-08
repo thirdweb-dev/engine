@@ -6,13 +6,9 @@ import {
   currencyValueSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletParamSchema } from "../../schemas/wallet";
+import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-// INPUTS
-const requestSchema = walletParamSchema;
-
-// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Object({
     walletAddress: Type.String(),
@@ -33,7 +29,7 @@ responseSchema.example = {
 
 export async function getBalance(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof requestSchema>;
+    Params: Static<typeof walletWithAddressParamSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
@@ -43,7 +39,7 @@ export async function getBalance(fastify: FastifyInstance) {
       description: "Get the native balance for a backend wallet.",
       tags: ["Backend Wallet"],
       operationId: "getBalance",
-      params: requestSchema,
+      params: walletWithAddressParamSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

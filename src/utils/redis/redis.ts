@@ -3,30 +3,26 @@ import { env } from "../env";
 import { logger } from "../logger";
 
 export const redis = new Redis(env.REDIS_URL, {
+  enableAutoPipelining: true,
   maxRetriesPerRequest: null,
 });
-
-redis.on("error", (err) => () => {
+try {
+  await redis.config("SET", "maxmemory", env.REDIS_MAXMEMORY);
+} catch (error) {
   logger({
     level: "error",
-    message: `Redis error: ${err}`,
+    message: `Initializing Redis: ${error}`,
+    service: "worker",
+  });
+}
+
+redis.on("error", (error) => () => {
+  logger({
+    level: "error",
+    message: `Redis error: ${error}`,
     service: "worker",
   });
 });
-redis.on("connect", () =>
-  logger({
-    level: "info",
-    message: "Redis connected",
-    service: "worker",
-  }),
-);
-redis.on("reconnecting", () =>
-  logger({
-    level: "info",
-    message: "Redis reconnecting",
-    service: "worker",
-  }),
-);
 redis.on("ready", () => {
   logger({
     level: "info",
@@ -34,3 +30,12 @@ redis.on("ready", () => {
     service: "worker",
   });
 });
+
+export const isRedisReachable = async () => {
+  try {
+    await redis.ping();
+    return true;
+  } catch (error) {
+    return false;
+  }
+};

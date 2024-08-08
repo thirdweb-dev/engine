@@ -1,12 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getQueueStatus } from "../../../db/transactions/getQueueStatus";
+import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
+import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-
-const QuerySchema = Type.Object({
-  walletAddress: Type.Optional(Type.String()),
-});
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
@@ -17,7 +14,6 @@ const responseBodySchema = Type.Object({
 
 export async function queueStatus(fastify: FastifyInstance) {
   fastify.route<{
-    Querystring: Static<typeof QuerySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
@@ -28,16 +24,15 @@ export async function queueStatus(fastify: FastifyInstance) {
       description: "Check the status of the queue",
       tags: ["System"],
       operationId: "queueStatus",
-      querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {
-      const { walletAddress } = req.query;
+      const queued = await SendTransactionQueue.length();
+      const pending = await MineTransactionQueue.length();
 
-      const { queued, pending } = await getQueueStatus({ walletAddress });
       res.status(StatusCodes.OK).send({
         result: {
           queued,

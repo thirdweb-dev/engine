@@ -1,17 +1,16 @@
 import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
-import { BigNumber } from "ethers";
+import { Address, ZERO_ADDRESS } from "thirdweb";
 import type { ContractExtension } from "../../schema/extension";
-import { PrismaTransaction } from "../../schema/prisma";
-import { queueTxRaw } from "./queueTxRaw";
+import { maybeBigInt, normalizeAddress } from "../../utils/primitiveTypes";
+import { insertTransaction } from "../../utils/transaction/insertTransaction";
 
 interface QueueTxParams {
-  pgtx?: PrismaTransaction;
   tx: Transaction<any> | DeployTransaction;
   chainId: number;
   extension: ContractExtension;
   // TODO: These shouldn't be in here
-  deployedContractAddress?: string;
+  deployedContractAddress?: Address;
   deployedContractType?: string;
   simulateTx?: boolean;
   idempotencyKey?: string;
@@ -19,11 +18,11 @@ interface QueueTxParams {
     gas?: string;
     maxFeePerGas?: string;
     maxPriorityFeePerGas?: string;
+    value?: string;
   };
 }
 
 export const queueTx = async ({
-  pgtx,
   tx,
   chainId,
   extension,
@@ -33,54 +32,65 @@ export const queueTx = async ({
   idempotencyKey,
   txOverrides,
 }: QueueTxParams) => {
-  // TODO: We need a much safer way of detecting if the transaction should be a user operation
-  const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
-  const txData = {
-    chainId: chainId.toString(),
-    functionName: tx.getMethod(),
-    functionArgs: JSON.stringify(tx.getArgs()),
+  // Transaction Details
+  const functionName = tx.getMethod();
+  const encodedData = tx.encode();
+  const value = maybeBigInt(
+    txOverrides?.value ?? (await tx.getValue().toString()),
+  );
+  const functionArgs = tx.getArgs();
+  const baseTransaction = {
+    chainId,
+    value,
+    data: encodedData as unknown as `0x${string}`,
+    functionName,
+    functionArgs,
     extension,
-    deployedContractAddress: deployedContractAddress,
-    deployedContractType: deployedContractType,
-    data: tx.encode(),
-    value: BigNumber.from(await tx.getValue()).toHexString(),
-    ...txOverrides,
+    gas: maybeBigInt(txOverrides?.gas),
+    maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+    maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
   };
 
+  // TODO: We need a much safer way of detecting if the transaction should be a user operation
+  const isUserOp = !!(tx.getSigner as ERC4337EthersSigner).erc4337provider;
+
   if (isUserOp) {
-    const signerAddress = await (
-      tx.getSigner as ERC4337EthersSigner
-    ).originalSigner.getAddress();
-    const accountAddress = await tx.getSignerAddress();
-    const target = tx.getTarget();
+    const signer = (tx.getSigner as ERC4337EthersSigner).originalSigner;
+    const signerAddress = normalizeAddress(await signer.getAddress());
 
-    const { id: queueId } = await queueTxRaw({
-      pgtx,
-      ...txData,
-      signerAddress,
-      accountAddress,
-      target,
-      simulateTx,
+    return await insertTransaction({
+      insertedTransaction: {
+        ...baseTransaction,
+        isUserOp: true,
+        deployedContractAddress,
+        deployedContractType,
+        from: signerAddress,
+        signerAddress,
+        accountAddress: normalizeAddress(await tx.getSignerAddress()),
+        target: normalizeAddress(tx.getTarget()),
+      },
       idempotencyKey,
+      shouldSimulate: simulateTx,
     });
-
-    return queueId;
   } else {
-    const fromAddress = await tx.getSignerAddress();
-    const toAddress =
-      tx.getTarget() === "0x0000000000000000000000000000000000000000" &&
-      txData.functionName === "deploy" &&
-      extension === "deploy-published"
-        ? null
-        : tx.getTarget();
+    const isPublishedContractDeploy =
+      tx.getTarget() === ZERO_ADDRESS &&
+      functionName === "deploy" &&
+      extension === "deploy-published";
 
-    const { id: queueId } = await queueTxRaw({
-      pgtx,
-      ...txData,
-      fromAddress,
-      toAddress,
-      simulateTx,
+    const queueId = await insertTransaction({
+      insertedTransaction: {
+        ...baseTransaction,
+        isUserOp: false,
+        deployedContractAddress,
+        deployedContractType,
+        from: normalizeAddress(await tx.getSignerAddress()),
+        to: normalizeAddress(
+          isPublishedContractDeploy ? undefined : tx.getTarget(),
+        ),
+      },
       idempotencyKey,
+      shouldSimulate: simulateTx,
     });
 
     return queueId;

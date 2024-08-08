@@ -1,17 +1,22 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllTxsByWallet } from "../../../db/transactions/getAllTxsByWallet";
+import { TransactionDB } from "../../../db/transactions/db";
+import { env } from "../../../utils/env";
+import { normalizeAddress } from "../../../utils/primitiveTypes";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
-import { walletParamSchema } from "../../schemas/wallet";
+import {
+  TransactionSchema,
+  toTransactionSchema,
+} from "../../schemas/transaction";
+import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const ParamsSchema = walletParamSchema;
+const ParamsSchema = walletWithAddressParamSchema;
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
-    transactions: Type.Array(transactionResponseSchema),
+    transactions: Type.Array(TransactionSchema),
   }),
 });
 
@@ -34,13 +39,22 @@ export async function getAllTransactions(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { chain, walletAddress } = req.params;
+      const { chain, walletAddress: _walletAddress } = req.params;
       const chainId = await getChainIdFromChain(chain);
-      const transactions = await getAllTxsByWallet({ walletAddress, chainId });
+      const walletAddress = normalizeAddress(_walletAddress);
+
+      const { transactions } = await TransactionDB.getTransactionListByStatus({
+        status: "queued",
+        page: 1,
+        limit: env.TRANSACTION_HISTORY_COUNT,
+      });
+      const filtered = transactions.filter(
+        (t) => t.chainId === chainId && t.from === walletAddress,
+      );
 
       res.status(StatusCodes.OK).send({
         result: {
-          transactions,
+          transactions: filtered.map(toTransactionSchema),
         },
       });
     },

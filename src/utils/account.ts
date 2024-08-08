@@ -1,5 +1,6 @@
 import { EVMWallet } from "@thirdweb-dev/wallets";
-import { Signer } from "ethers";
+import { Signer, providers } from "ethers";
+
 import { Address } from "thirdweb";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { Account } from "thirdweb/wallets";
@@ -9,6 +10,7 @@ import { getAwsKmsWallet } from "../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsWallet } from "../server/utils/wallets/getGcpKmsWallet";
 import { getLocalWallet } from "../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../server/utils/wallets/getSmartWallet";
+import { getChain } from "./chain";
 
 export const _accountsCache = new Map<string, Account>();
 
@@ -55,6 +57,7 @@ export const getAccount = async (args: {
 
   // Get smart wallet if `accountAddress` is provided.
   let signer: Signer;
+
   if (accountAddress) {
     const smartWallet = await getSmartWallet({
       chainId,
@@ -66,7 +69,17 @@ export const getAccount = async (args: {
     signer = await wallet.getSigner();
   }
 
-  const account = await ethers5Adapter.signer.fromEthers({ signer });
+  if (walletDetails.type !== WalletType.local) {
+    // Get chain rpc provider.
+    const chain = await getChain(chainId);
+    const provider = new providers.JsonRpcProvider(chain.rpc);
+
+    signer = signer.connect(provider);
+  }
+
+  const account = await ethers5Adapter.signer.fromEthers({
+    signer,
+  });
 
   // Set cache.
   _accountsCache.set(cacheKey, account);

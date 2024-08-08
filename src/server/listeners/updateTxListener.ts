@@ -1,6 +1,7 @@
 import { knex } from "../../db/client";
-import { getTxById } from "../../db/transactions/getTxById";
+import { TransactionDB } from "../../db/transactions/db";
 import { logger } from "../../utils/logger";
+import { toTransactionSchema } from "../schemas/transaction";
 import { subscriptionsData } from "../schemas/websocket";
 import {
   formatSocketMessage,
@@ -32,9 +33,8 @@ export const updateTxListener = async (): Promise<void> => {
       }
 
       const userSubscription = subscriptionsData[index];
-      const returnData = await getTxById({
-        queueId: parsedPayload.id,
-      });
+      const transaction = await TransactionDB.get(parsedPayload.id);
+      const returnData = transaction ? toTransactionSchema(transaction) : null;
 
       logger({
         service: "server",
