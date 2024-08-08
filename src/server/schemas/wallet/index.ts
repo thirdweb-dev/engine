@@ -5,7 +5,7 @@ export const walletHeaderSchema = Type.Object({
     description: "Backend wallet address",
     maxLength: 42,
     minLength: 42,
-    pattern: "^0x[0-9a-z]+",
+    pattern: "^0x[0-9a-zA-Z]+",
   }),
   "x-idempotency-key": Type.Optional(
     Type.String({
@@ -22,7 +22,7 @@ export const walletWithAAHeaderSchema = Type.Object({
       description: "Smart account address",
       maxLength: 42,
       minLength: 42,
-      pattern: "^0x[0-9a-z]+",
+      pattern: "^0x[0-9a-zA-Z]+",
     }),
   ),
 });
@@ -37,7 +37,7 @@ export const walletParamSchema = Type.Object({
     description: "Backend wallet address",
     maxLength: 42,
     minLength: 42,
-    pattern: "^0x[0-9a-z]+",
+    pattern: "^0x[0-9a-zA-Z]+",
   }),
 });
 
