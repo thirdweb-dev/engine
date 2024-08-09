@@ -53,6 +53,13 @@ export const TransactionSchema = Type.Object({
     }),
     Type.Null(),
   ]),
+  externalMetadata: Type.Union([
+    Type.String({
+      description:
+        "External metadata included in transaction request, to be returned to webhook listeners",
+    }),
+    Type.Null(),
+  ]),
   value: Type.Union([
     Type.String({
       description: "The amount of native currency to send",
@@ -266,6 +273,7 @@ export const toTransactionSchema = (
     functionName: transaction.functionName ?? null,
     functionArgs: resolveFunctionArgs(),
     extension: transaction.extension ?? null,
+    externalMetadata: transaction.externalMetadata ?? null,
 
     gasLimit: transaction.gas?.toString() ?? null,
     gasPrice: transaction.gasPrice?.toString() ?? null,

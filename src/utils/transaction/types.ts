@@ -30,6 +30,9 @@ export type InsertedTransaction = {
   deployedContractType?: string;
   extension?: string;
 
+  // Webhook metadata
+  externalMetadata?: string;
+
   // User Operation
   signerAddress?: Address;
   accountAddress?: Address;
