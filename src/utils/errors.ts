@@ -36,7 +36,10 @@ export const parseTxError = async (
       return `Insufficient ${chain.nativeCurrency?.symbol} on ${chain.name} in backend wallet ${tx.fromAddress}.`;
     }
 
-    if ((err as EthersError)?.code === ethers.errors.UNPREDICTABLE_GAS_LIMIT) {
+    if (
+      (err as EthersError)?.code === ethers.errors.UNPREDICTABLE_GAS_LIMIT &&
+      env.EXPERIMENTAL__REMOVE_ERROR_SIMULATION
+    ) {
       try {
         const transaction = prepareTransaction({
           to: tx.toAddress,

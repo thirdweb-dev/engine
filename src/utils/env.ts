@@ -84,6 +84,10 @@ export const env = createEnv({
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
     DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
+
+    // Experimental flags may change behavior in non-major versions.
+    // Be cautious if using in a production environment.
+    EXPERIMENTAL__REMOVE_ERROR_SIMULATION: z.coerce.boolean().default(true),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -112,6 +116,9 @@ export const env = createEnv({
     ENGINE_MODE: process.env.ENGINE_MODE,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
     DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
+
+    EXPERIMENTAL__REMOVE_ERROR_SIMULATION:
+      process.env.EXPERIMENTAL__REMOVE_ERROR_SIMULATION,
   },
   onValidationError: (error: ZodError) => {
     console.error(
