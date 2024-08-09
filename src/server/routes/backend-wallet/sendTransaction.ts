@@ -74,7 +74,8 @@ export async function sendTransaction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { toAddress, data, value, txOverrides } = request.body;
+      const { toAddress, data, value, txOverrides, externalMetadata } =
+        request.body;
       const { simulateTx } = request.query;
       const {
         "x-backend-wallet-address": fromAddress,
@@ -85,48 +86,32 @@ export async function sendTransaction(fastify: FastifyInstance) {
       const chainId = await getChainIdFromChain(chain);
 
       let queueId: string;
-      if (accountAddress) {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            isUserOp: true,
-            chainId,
-            from: fromAddress as Address,
-            to: toAddress as Address | undefined,
-            data: data as Hex,
-            value: BigInt(value),
-            accountAddress: accountAddress as Address,
-            signerAddress: fromAddress as Address,
-            target: toAddress as Address | undefined,
+      queueId = await insertTransaction({
+        insertedTransaction: {
+          isUserOp: !!accountAddress,
+          externalMetadata,
+          chainId,
+          from: fromAddress as Address,
+          to: toAddress as Address | undefined,
+          data: data as Hex,
+          value: BigInt(value),
 
-            gas: maybeBigInt(txOverrides?.gas),
-            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-            maxPriorityFeePerGas: maybeBigInt(
-              txOverrides?.maxPriorityFeePerGas,
-            ),
-          },
-          shouldSimulate: simulateTx,
-          idempotencyKey,
-        });
-      } else {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            isUserOp: false,
-            chainId,
-            from: fromAddress as Address,
-            to: toAddress as Address | undefined,
-            data: data as Hex,
-            value: BigInt(value),
+          // add AA specific fields if accountAddress is present
+          ...(accountAddress
+            ? {
+                accountAddress: accountAddress as Address,
+                signerAddress: fromAddress as Address,
+                target: toAddress as Address | undefined,
+              }
+            : {}),
 
-            gas: maybeBigInt(txOverrides?.gas),
-            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-            maxPriorityFeePerGas: maybeBigInt(
-              txOverrides?.maxPriorityFeePerGas,
-            ),
-          },
-          shouldSimulate: simulateTx,
-          idempotencyKey,
-        });
-      }
+          gas: maybeBigInt(txOverrides?.gas),
+          maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+          maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
+        },
+        shouldSimulate: simulateTx,
+        idempotencyKey,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
