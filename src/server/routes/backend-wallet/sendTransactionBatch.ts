@@ -8,7 +8,7 @@ import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
 import {
   walletChainParamSchema,
-  walletHeaderSchema,
+  walletWithAAHeaderSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -25,6 +25,12 @@ const requestBodySchema = Type.Array(
     value: Type.String({
       examples: ["10000000"],
     }),
+    externalMetadata: Type.Optional(
+      Type.String({
+        description:
+          "External metadata that is returned to webhook listeners. If used for JSON, we recommend base64 encoding a stringified JSON object.",
+      }),
+    ),
     ...txOverridesWithValueSchema.properties,
   }),
 );
@@ -51,7 +57,7 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
       operationId: "sendTransactionBatch",
       params: walletChainParamSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
@@ -59,24 +65,38 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { "x-backend-wallet-address": fromAddress } =
-        request.headers as Static<typeof walletHeaderSchema>;
+      const {
+        "x-backend-wallet-address": fromAddress,
+        "x-account-address": accountAddress,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
 
       const transactionRequests = request.body;
 
       const queueIds: string[] = [];
       for (const transactionRequest of transactionRequests) {
-        const { toAddress, data, value, txOverrides } = transactionRequest;
+        const { toAddress, data, value, txOverrides, externalMetadata } =
+          transactionRequest;
 
         const queueId = await insertTransaction({
           insertedTransaction: {
-            isUserOp: false,
+            isUserOp: !!accountAddress,
+            externalMetadata,
             chainId,
             from: fromAddress as Address,
             to: toAddress as Address | undefined,
             data: data as Hex,
             value: BigInt(value),
+
+            // add AA specific fields if accountAddress is present
+            ...(accountAddress
+              ? {
+                  accountAddress: accountAddress as Address,
+                  signerAddress: fromAddress as Address,
+                  target: toAddress as Address | undefined,
+                }
+              : {}),
 
             gas: maybeBigInt(txOverrides?.gas),
             maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
