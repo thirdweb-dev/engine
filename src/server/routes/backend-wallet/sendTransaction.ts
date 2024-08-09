@@ -28,9 +28,8 @@ const requestBodySchema = Type.Object({
   value: Type.String({
     examples: ["10000000"],
   }),
-  externalMetadata: Type.Optional(
+  metadata: Type.Optional(
     Type.String({
-      maxLength: 4096,
       description:
         "External metadata that is returned to webhook listeners. If used for JSON, we recommend base64 encoding a stringified JSON object.",
     }),

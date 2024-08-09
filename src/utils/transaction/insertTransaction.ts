@@ -42,7 +42,7 @@ export const insertTransaction = async (
     queuedAt: new Date(),
     resendCount: 0,
 
-    externalMetadata: insertedTransaction.externalMetadata,
+    metadata: insertedTransaction.metadata,
 
     // Standardize address formats.
     from: normalizeAddress(insertedTransaction.from),
