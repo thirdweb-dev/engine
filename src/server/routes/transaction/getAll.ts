@@ -40,6 +40,7 @@ responseBodySchema.example = {
         toAddress: "0x365b83d67d5539c6583b9c0266a548926bf216f4",
         data: "0xa9059cbb0000000000000000000000003ecdbf3b911d0e9052b64850693888b008e183730000000000000000000000000000000000000000000000000000000000000064",
         extension: "none",
+        externalMetadata: null,
         value: "0x00",
         nonce: 1758,
         gasLimit: "39580",
