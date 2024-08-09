@@ -31,7 +31,7 @@ export type InsertedTransaction = {
   extension?: string;
 
   // Webhook metadata
-  metadata?: string;
+  externalMetadata?: string;
 
   // User Operation
   signerAddress?: Address;
