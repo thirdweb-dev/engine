@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { sessionSchema } from "../../../../../schemas/account";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -17,6 +18,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 const requestBodySchema = Type.Object({
   ...sessionSchema.properties,
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -55,7 +57,8 @@ export const grantSession = async (fastify: FastifyInstance) => {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { signerAddress, txOverrides, ...permissions } = request.body;
+      const { signerAddress, txOverrides, externalMetadata, ...permissions } =
+        request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
@@ -87,6 +90,7 @@ export const grantSession = async (fastify: FastifyInstance) => {
         extension: "account",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

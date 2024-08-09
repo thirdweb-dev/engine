@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../schemas/commonTxBody";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -23,6 +24,7 @@ const requestBodySchema = Type.Object({
     description: "The address to revoke the role from",
   }),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 // OUTPUT
@@ -54,7 +56,7 @@ export async function revokeRole(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { role, address, txOverrides } = request.body;
+      const { role, address, txOverrides, externalMetadata } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -77,6 +79,7 @@ export async function revokeRole(fastify: FastifyInstance) {
         extension: "roles",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

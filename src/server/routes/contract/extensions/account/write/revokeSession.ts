@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -18,6 +19,7 @@ const requestBodySchema = Type.Object({
     description: "Address to revoke session from",
   }),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -52,7 +54,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { walletAddress, txOverrides } = request.body;
+      const { walletAddress, txOverrides, externalMetadata } = request.body;
       const {
         "x-backend-wallet-address": backendWalletAddress,
         "x-account-address": accountAddress,
@@ -74,6 +76,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
         extension: "account",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

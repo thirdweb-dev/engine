@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../../schemas/commonTxBody";
 import {
   marketplaceV3ContractParamSchema,
   requestQuerystringSchema,
@@ -21,6 +22,7 @@ const requestBodySchema = Type.Object({
       "The ID of the offer to accept. You can view all offers with getAll or getAllValid.",
   }),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -56,7 +58,7 @@ export async function offersAcceptOffer(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { offerId, txOverrides } = request.body;
+      const { offerId, txOverrides, externalMetadata } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -79,6 +81,7 @@ export async function offersAcceptOffer(fastify: FastifyInstance) {
         extension: "marketplace-v3-offers",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

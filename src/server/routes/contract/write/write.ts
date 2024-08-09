@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getContract } from "../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../schemas/commonTxBody";
 import { abiSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
@@ -32,6 +33,7 @@ const writeRequestBodySchema = Type.Object({
   ),
   ...txOverridesWithValueSchema.properties,
   abi: Type.Optional(Type.Array(abiSchema)),
+  ...commonTxBodySchema.properties,
 });
 
 // LOGIC
@@ -61,7 +63,8 @@ export async function writeToContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { functionName, args, txOverrides, abi } = request.body;
+      const { functionName, args, txOverrides, abi, externalMetadata } =
+        request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -90,6 +93,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         extension: "none",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../../schemas/commonTxBody";
 import {
   marketplaceV3ContractParamSchema,
   requestQuerystringSchema,
@@ -20,6 +21,7 @@ const requestBodySchema = Type.Object({
     description: "The ID of the listing you want to cancel.",
   }),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -56,7 +58,7 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { listingId, txOverrides } = request.body;
+      const { listingId, txOverrides, externalMetadata } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -79,6 +81,7 @@ export async function directListingsCancelListing(fastify: FastifyInstance) {
         extension: "marketplace-v3-direct-listings",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

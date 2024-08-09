@@ -17,6 +17,7 @@ import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import { InsertedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
+import { commonTxBodySchema } from "../../schemas/commonTxBody";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -24,7 +25,7 @@ import {
 } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
 import {
-  walletHeaderSchema,
+  walletWithAAHeaderSchema,
   walletWithAddressParamSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
@@ -45,6 +46,7 @@ const requestBodySchema = Type.Object({
     description:
       'The amount in ether to transfer. Example: "0.1" to send 0.1 ETH.',
   }),
+  ...commonTxBodySchema.properties,
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -65,7 +67,7 @@ export async function transfer(fastify: FastifyInstance) {
       operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -79,11 +81,13 @@ export async function transfer(fastify: FastifyInstance) {
         amount,
         currencyAddress: _currencyAddress,
         txOverrides,
+        externalMetadata,
       } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+        "x-account-address": accountAddress,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const { simulateTx: shouldSimulate } = request.query;
 
       // Resolve inputs.
@@ -109,6 +113,7 @@ export async function transfer(fastify: FastifyInstance) {
           value: toWei(amount),
           extension: "none",
           functionName: "transfer",
+          externalMetadata,
           ...gasOverrides,
         };
       } else {
@@ -143,6 +148,7 @@ export async function transfer(fastify: FastifyInstance) {
           extension: "erc20",
           functionName: "transfer",
           functionArgs: [to, amount, currencyAddress],
+          externalMetadata,
           ...gasOverrides,
         };
       }

@@ -7,6 +7,7 @@ import {
   claimConditionInputSchema,
   sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -24,6 +25,7 @@ const requestBodySchema = Type.Object({
   claimConditionInputs: Type.Array(claimConditionInputSchema),
   resetClaimEligibilityForAll: Type.Optional(Type.Boolean()),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 // LOGIC
@@ -54,8 +56,12 @@ export async function erc20SetClaimConditions(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { claimConditionInputs, resetClaimEligibilityForAll, txOverrides } =
-        request.body;
+      const {
+        claimConditionInputs,
+        resetClaimEligibilityForAll,
+        txOverrides,
+        externalMetadata,
+      } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -96,6 +102,7 @@ export async function erc20SetClaimConditions(fastify: FastifyInstance) {
         extension: "erc20",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

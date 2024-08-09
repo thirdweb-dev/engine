@@ -5,6 +5,7 @@ import { Address } from "thirdweb";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { redis } from "../../../../../../utils/redis/redis";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import {
   contractParamSchema,
@@ -25,6 +26,7 @@ const requestBodySchema = Type.Object({
     }),
   ),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -59,7 +61,8 @@ export const createAccount = async (fastify: FastifyInstance) => {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { adminAddress, extraData, txOverrides } = request.body;
+      const { adminAddress, extraData, txOverrides, externalMetadata } =
+        request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -92,11 +95,17 @@ export const createAccount = async (fastify: FastifyInstance) => {
         deployedContractType: "account",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
       // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
-      await redis.set(`account-factory:${deployedAddress.toLowerCase()}`, contractAddress, 'EX', 7 * 24 * 60 * 60);
+      await redis.set(
+        `account-factory:${deployedAddress.toLowerCase()}`,
+        contractAddress,
+        "EX",
+        7 * 24 * 60 * 60,
+      );
 
       reply.status(StatusCodes.OK).send({
         result: {

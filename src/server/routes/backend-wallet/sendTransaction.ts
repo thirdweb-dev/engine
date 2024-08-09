@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { Address, Hex } from "thirdweb";
 import { maybeBigInt } from "../../../utils/primitiveTypes";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
+import { commonTxBodySchema } from "../../schemas/commonTxBody";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -28,13 +29,7 @@ const requestBodySchema = Type.Object({
   value: Type.String({
     examples: ["10000000"],
   }),
-  externalMetadata: Type.Optional(
-    Type.String({
-      maxLength: 4096,
-      description:
-        "External metadata that is returned to webhook listeners. If used for JSON, we recommend base64 encoding a stringified JSON object.",
-    }),
-  ),
+  ...commonTxBodySchema.properties,
   ...txOverridesSchema.properties,
 });
 

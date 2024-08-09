@@ -7,6 +7,7 @@ import {
   claimConditionInputSchema,
   sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -29,6 +30,7 @@ const requestBodySchema = Type.Object({
     description: "Index of the claim condition to update",
   }),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 // LOGIC
@@ -59,7 +61,13 @@ export async function erc1155UpdateClaimConditions(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { tokenId, claimConditionInput, index, txOverrides } = request.body;
+      const {
+        tokenId,
+        claimConditionInput,
+        index,
+        txOverrides,
+        externalMetadata,
+      } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -103,6 +111,7 @@ export async function erc1155UpdateClaimConditions(fastify: FastifyInstance) {
         extension: "erc1155",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

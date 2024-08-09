@@ -1,8 +1,9 @@
-import { Static } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../../schemas/commonTxBody";
 import { englishAuctionInputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
 import {
   marketplaceV3ContractParamSchema,
@@ -10,11 +11,17 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
+import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;
-const requestBodySchema = englishAuctionInputSchema;
+const requestBodySchema = Type.Object({
+  ...englishAuctionInputSchema.properties,
+  ...commonTxBodySchema.properties,
+  ...txOverridesWithValueSchema.properties,
+});
 
 requestBodySchema.examples = [
   {
@@ -49,6 +56,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       operationId: "createAuction",
       params: requestSchema,
       body: requestBodySchema,
+      headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -69,11 +77,15 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
         endTimestamp,
         bidBufferBps,
         timeBufferInSeconds,
+        externalMetadata,
+        txOverrides,
       } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -100,6 +112,9 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
         chainId,
         simulateTx,
         extension: "marketplace-v3-english-auctions",
+        idempotencyKey,
+        txOverrides,
+        externalMetadata,
       });
       reply.status(StatusCodes.OK).send({
         result: {

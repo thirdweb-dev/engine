@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
@@ -20,6 +21,7 @@ const requestBodySchema = Type.Object({
     description: "The amount of tokens you want to burn",
   }),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 // Example for the Request Body
@@ -55,7 +57,7 @@ export async function erc20burn(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { amount, txOverrides } = request.body;
+      const { amount, txOverrides, externalMetadata } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -77,6 +79,7 @@ export async function erc20burn(fastify: FastifyInstance) {
         simulateTx,
         extension: "erc20",
         idempotencyKey,
+        externalMetadata,
         txOverrides,
       });
 

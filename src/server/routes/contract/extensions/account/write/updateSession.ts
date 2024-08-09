@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -20,6 +21,7 @@ const requestBodySchema = Type.Object({
   expirationDate: Type.Optional(Type.String()),
   nativeTokenLimitPerTransaction: Type.Optional(Type.String()),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -54,7 +56,8 @@ export const updateSession = async (fastify: FastifyInstance) => {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { signerAddress, txOverrides, ...permissions } = request.body;
+      const { signerAddress, txOverrides, externalMetadata, ...permissions } =
+        request.body;
       const { simulateTx } = request.query;
       const {
         "x-backend-wallet-address": walletAddress,
@@ -91,6 +94,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
         extension: "account",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

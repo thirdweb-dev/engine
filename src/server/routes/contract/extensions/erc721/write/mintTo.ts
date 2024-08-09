@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
@@ -22,6 +23,7 @@ const requestBodySchema = Type.Object({
   }),
   metadata: nftOrInputSchema,
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -61,7 +63,8 @@ export async function erc721mintTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { receiver, metadata, txOverrides } = request.body;
+      const { receiver, metadata, txOverrides, externalMetadata } =
+        request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -84,6 +87,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
         extension: "erc721",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

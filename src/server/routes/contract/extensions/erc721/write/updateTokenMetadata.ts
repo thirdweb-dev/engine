@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import { nftMetadataInputSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
@@ -22,6 +23,7 @@ const requestBodySchema = Type.Object({
   }),
   metadata: nftMetadataInputSchema,
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 // LOGIC

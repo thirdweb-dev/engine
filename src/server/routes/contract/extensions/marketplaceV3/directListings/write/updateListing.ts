@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../../schemas/commonTxBody";
 import { directListingV3InputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
 import {
   marketplaceV3ContractParamSchema,
@@ -22,6 +23,7 @@ const requestBodySchema = Type.Object({
   }),
   ...directListingV3InputSchema.properties,
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -68,6 +70,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
         startTimestamp,
         endTimestamp,
         txOverrides,
+        externalMetadata,
       } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
@@ -103,6 +106,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
         extension: "marketplace-v3-direct-listings",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

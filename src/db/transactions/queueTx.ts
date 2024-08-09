@@ -20,6 +20,7 @@ interface QueueTxParams {
     maxPriorityFeePerGas?: string;
     value?: string;
   };
+  externalMetadata?: string;
 }
 
 export const queueTx = async ({
@@ -31,6 +32,7 @@ export const queueTx = async ({
   simulateTx,
   idempotencyKey,
   txOverrides,
+  externalMetadata,
 }: QueueTxParams) => {
   // Transaction Details
   const functionName = tx.getMethod();
@@ -68,6 +70,7 @@ export const queueTx = async ({
         signerAddress,
         accountAddress: normalizeAddress(await tx.getSignerAddress()),
         target: normalizeAddress(tx.getTarget()),
+        externalMetadata,
       },
       idempotencyKey,
       shouldSimulate: simulateTx,
@@ -88,6 +91,7 @@ export const queueTx = async ({
         to: normalizeAddress(
           isPublishedContractDeploy ? undefined : tx.getTarget(),
         ),
+        externalMetadata,
       },
       idempotencyKey,
       shouldSimulate: simulateTx,

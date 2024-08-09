@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../schemas/commonTxBody";
 import { royaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,
@@ -22,6 +23,7 @@ const requestBodySchema = Type.Object({
     description: "The token ID to set the royalty info for.",
   }),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -62,8 +64,13 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { seller_fee_basis_points, fee_recipient, token_id, txOverrides } =
-        request.body;
+      const {
+        seller_fee_basis_points,
+        fee_recipient,
+        token_id,
+        txOverrides,
+        externalMetadata,
+      } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -92,6 +99,7 @@ export async function setTokenRoyaltyInfo(fastify: FastifyInstance) {
         extension: "none",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

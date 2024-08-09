@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import { nftAndSupplySchema } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
@@ -22,6 +23,7 @@ const requestBodySchema = Type.Object({
   }),
   metadataWithSupply: nftAndSupplySchema,
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -66,7 +68,8 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { receiver, metadataWithSupply, txOverrides } = request.body;
+      const { receiver, metadataWithSupply, txOverrides, externalMetadata } =
+        request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -92,6 +95,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
         extension: "erc1155",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({

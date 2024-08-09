@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { commonTxBodySchema } from "../../../../../schemas/commonTxBody";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
@@ -23,6 +24,7 @@ const requestBodySchema = Type.Object({
     description: "The number of tokens to give as allowance",
   }),
   ...txOverridesWithValueSchema.properties,
+  ...commonTxBodySchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -59,7 +61,8 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { spenderAddress, amount, txOverrides } = request.body;
+      const { spenderAddress, amount, txOverrides, externalMetadata } =
+        request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -85,6 +88,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
         extension: "erc20",
         idempotencyKey,
         txOverrides,
+        externalMetadata,
       });
 
       reply.status(StatusCodes.OK).send({
