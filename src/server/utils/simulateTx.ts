@@ -3,9 +3,10 @@ import {
   Transaction,
   TransactionError,
 } from "@thirdweb-dev/sdk";
-import { ethers } from "ethers";
-import { getSdk } from "../../utils/cache/getSdk";
+import { Hex, defineChain, getAddress, simulateTransaction } from "thirdweb";
+import { thirdwebClient } from "../../utils/sdk";
 import { createCustomError } from "../middleware/error";
+import { getChainIdFromChain } from "./chain";
 
 type SimulateTxRawParams = {
   chainId: string;
@@ -16,21 +17,24 @@ type SimulateTxRawParams = {
 };
 
 const simulateTxRaw = async (args: SimulateTxRawParams) => {
-  const sdk = await getSdk({ chainId: parseInt(args.chainId) });
-  const simulateResult = await sdk.getProvider().call({
-    to: `${args.toAddress}`,
-    from: `${args.fromAddress}`,
-    data: `${args.data}`,
-    value: `${args.value}`,
+  const { chainId, toAddress, fromAddress, data, value } = args;
+  const chainIdParsed = await getChainIdFromChain(chainId);
+
+  if (!toAddress) throw new Error("toAddress is required");
+  if (!fromAddress) throw new Error("fromAddress is required");
+
+  const simulateResult = await simulateTransaction({
+    transaction: {
+      chain: defineChain(chainIdParsed),
+      to: getAddress(toAddress),
+      data: data as Hex,
+      // from: getAddress(fromAddress),
+      client: thirdwebClient,
+    },
+    from: getAddress(fromAddress),
   });
-  if (simulateResult.length > 2) {
-    // '0x' is the success result value
-    const decoded = ethers.utils.defaultAbiCoder.decode(
-      ["string"],
-      ethers.utils.hexDataSlice(simulateResult, 4),
-    );
-    throw new Error(decoded[0]);
-  }
+
+  return simulateResult;
 };
 
 export type SimulateTxParams = {
