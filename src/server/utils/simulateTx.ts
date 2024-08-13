@@ -23,12 +23,12 @@ const simulateTxRaw = async (args: SimulateTxRawParams) => {
   if (!toAddress) throw new Error("toAddress is required");
   if (!fromAddress) throw new Error("fromAddress is required");
 
+  // simulateTransaction throws if transaction reverts
   const simulateResult = await simulateTransaction({
     transaction: {
       chain: defineChain(chainIdParsed),
       to: getAddress(toAddress),
       data: data as Hex,
-      // from: getAddress(fromAddress),
       client: thirdwebClient,
     },
     from: getAddress(fromAddress),
