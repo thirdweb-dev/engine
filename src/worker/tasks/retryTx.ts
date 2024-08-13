@@ -125,23 +125,6 @@ export const retryTx = async () => {
           },
         });
 
-        reportUsage([
-          {
-            input: {
-              fromAddress: tx.fromAddress || undefined,
-              toAddress: tx.toAddress || undefined,
-              value: tx.value || undefined,
-              chainId: tx.chainId,
-              functionName: tx.functionName || undefined,
-              extension: tx.extension || undefined,
-              retryCount: tx.retryCount + 1,
-              transactionHash: transactionResponse.hash || undefined,
-              provider: provider.connection.url,
-            },
-            action: UsageEventTxActionEnum.SendTx,
-          },
-        ]);
-
         logger({
           service: "worker",
           level: "info",
