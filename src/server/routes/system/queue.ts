@@ -52,13 +52,14 @@ export async function queueStatus(fastify: FastifyInstance) {
       // Get # queued and sent transactions.
       const { queued, pending } = await getQueueStatus({ walletAddress });
 
-      // Get sent/queued latency of last 1k txs.
+      // Get last 1k sent transactions.
       const recentTransactions = await prisma.transactions.findMany({
-        orderBy: {
-          queuedAt: "desc",
-        },
+        orderBy: { queuedAt: "desc" },
+        where: { sentAt: { not: null } },
         take: 1_000,
       });
+
+      // Get "queue -> send" and "queue -> mine" times.
       const msToSendArr: number[] = [];
       const msToMineArr: number[] = [];
       for (const transaction of recentTransactions) {
