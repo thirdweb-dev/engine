@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getAddress } from "thirdweb";
 import { getContractSubscription } from "../../../../db/contractSubscriptions/getContractSubscription";
 import { enqueueProcessEventLogs } from "../../../../worker/queues/processEventLogsQueue";
+import { enqueueProcessTransactionReceipts } from "../../../../worker/queues/processTransactionReceiptsQueue";
 import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
@@ -101,17 +102,33 @@ export async function backfillContractSubscriptions(fastify: FastifyInstance) {
         throw error;
       }
 
-      await enqueueProcessEventLogs({
-        chainId: contractSubscription.chainId,
-        filters: [
-          {
-            address: getAddress(contractSubscription.contractAddress),
-            events: contractSubscription.filterEvents,
-          },
-        ],
-        fromBlock,
-        toBlock,
-      });
+      if (contractSubscription.filterEvents.length > 0) {
+        await enqueueProcessEventLogs({
+          chainId: contractSubscription.chainId,
+          filters: [
+            {
+              address: getAddress(contractSubscription.contractAddress),
+              events: contractSubscription.filterEvents,
+            },
+          ],
+          fromBlock,
+          toBlock,
+        });
+      }
+
+      if (contractSubscription.filterFunctions.length > 0) {
+        await enqueueProcessTransactionReceipts({
+          chainId: contractSubscription.chainId,
+          filters: [
+            {
+              address: getAddress(contractSubscription.contractAddress),
+              functions: contractSubscription.filterFunctions,
+            },
+          ],
+          fromBlock,
+          toBlock,
+        });
+      }
 
       reply.status(StatusCodes.OK).send({
         result: {
