@@ -102,33 +102,29 @@ export async function backfillContractSubscriptions(fastify: FastifyInstance) {
         throw error;
       }
 
-      if (contractSubscription.filterEvents.length > 0) {
-        await enqueueProcessEventLogs({
-          chainId: contractSubscription.chainId,
-          filters: [
-            {
-              address: getAddress(contractSubscription.contractAddress),
-              events: contractSubscription.filterEvents,
-            },
-          ],
-          fromBlock,
-          toBlock,
-        });
-      }
+      await enqueueProcessEventLogs({
+        chainId: contractSubscription.chainId,
+        filters: [
+          {
+            address: getAddress(contractSubscription.contractAddress),
+            events: contractSubscription.filterEvents,
+          },
+        ],
+        fromBlock,
+        toBlock,
+      });
 
-      if (contractSubscription.filterFunctions.length > 0) {
-        await enqueueProcessTransactionReceipts({
-          chainId: contractSubscription.chainId,
-          filters: [
-            {
-              address: getAddress(contractSubscription.contractAddress),
-              functions: contractSubscription.filterFunctions,
-            },
-          ],
-          fromBlock,
-          toBlock,
-        });
-      }
+      await enqueueProcessTransactionReceipts({
+        chainId: contractSubscription.chainId,
+        filters: [
+          {
+            address: getAddress(contractSubscription.contractAddress),
+            functions: contractSubscription.filterFunctions,
+          },
+        ],
+        fromBlock,
+        toBlock,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
