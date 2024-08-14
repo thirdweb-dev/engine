@@ -1,7 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { prisma } from "../../../db/client";
 import { getQueueStatus } from "../../../db/transactions/getQueueStatus";
+import { getPercentile } from "../../../utils/math";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const QuerySchema = Type.Object({
@@ -12,6 +14,16 @@ const responseBodySchema = Type.Object({
   result: Type.Object({
     queued: Type.Number(),
     pending: Type.Number(),
+    latency: Type.Object({
+      msToSend: Type.Object({
+        p50: Type.Number(),
+        p90: Type.Number(),
+      }),
+      msToMine: Type.Object({
+        p50: Type.Number(),
+        p90: Type.Number(),
+      }),
+    }),
   }),
 });
 
@@ -37,11 +49,46 @@ export async function queueStatus(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const { walletAddress } = req.query;
 
+      // Get # queued and sent transactions.
       const { queued, pending } = await getQueueStatus({ walletAddress });
+
+      // Get last 1k sent transactions.
+      const recentTransactions = await prisma.transactions.findMany({
+        orderBy: { queuedAt: "desc" },
+        where: { sentAt: { not: null } },
+        take: 1_000,
+      });
+
+      // Get "queue -> send" and "queue -> mine" times.
+      const msToSendArr: number[] = [];
+      const msToMineArr: number[] = [];
+      for (const transaction of recentTransactions) {
+        const queuedAt = transaction.queuedAt.getTime();
+        const sentAt = transaction.sentAt?.getTime();
+        const minedAt = transaction.minedAt?.getTime();
+
+        if (sentAt) {
+          msToSendArr.push(sentAt - queuedAt);
+        }
+        if (minedAt) {
+          msToMineArr.push(minedAt - queuedAt);
+        }
+      }
+
       res.status(StatusCodes.OK).send({
         result: {
           queued,
           pending,
+          latency: {
+            msToSend: {
+              p50: getPercentile(msToSendArr, 50),
+              p90: getPercentile(msToSendArr, 90),
+            },
+            msToMine: {
+              p50: getPercentile(msToMineArr, 50),
+              p90: getPercentile(msToMineArr, 90),
+            },
+          },
         },
       });
     },
