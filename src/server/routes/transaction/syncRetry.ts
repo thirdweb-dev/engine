@@ -117,7 +117,6 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
       await TransactionDB.set(sentTransaction);
       await MineTransactionQueue.add({ queueId: sentTransaction.queueId });
       await enqueueTransactionWebhook(sentTransaction);
-      await _reportUsageSuccess(sentTransaction);
 
       reply.status(StatusCodes.OK).send({
         result: {
