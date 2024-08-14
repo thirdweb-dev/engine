@@ -32,29 +32,22 @@ const winstonLogger = createLogger({
     format.errors({ stack: true }),
     format.splat(),
     colorizeFormat(),
-    format.printf(({ timestamp, level, message }) => {
+    format.printf(({ level, message, timestamp, error }) => {
+      if (error) {
+        return `[${timestamp}] ${level}: ${message} - ${error.stack}`;
+      }
       return `[${timestamp}] ${level}: ${message}`;
     }),
   ),
   transports: [
     // Transport for stdout
     new transports.Console({
-      format: format.combine(
-        filterOnlyInfoAndWarn(),
-        format.printf(({ level, message, timestamp }) => {
-          return `[${timestamp}] ${level}: ${message}`;
-        }),
-      ),
+      format: format.combine(filterOnlyInfoAndWarn()),
       stderrLevels: [], // Don't log "error" to stdout
     }),
     // Transport for stderr
     new transports.Console({
-      format: format.combine(
-        filterOnlyErrors(),
-        format.printf(({ level, message, timestamp }) => {
-          return `[${timestamp}] ${level}: ${message}`;
-        }),
-      ),
+      format: format.combine(filterOnlyErrors()),
       stderrLevels: ["error"], // Ensure errors go to stderr
     }),
   ],
@@ -90,12 +83,9 @@ export const logger = ({
   if (data) {
     suffix += ` - ${JSON.stringify(data)}`;
   }
-  if (error) {
-    suffix += ` - ${error?.message || error}`;
-  }
 
   if (error) {
-    winstonLogger.error(`${prefix}${message}${suffix}`);
+    winstonLogger.error(`${prefix}${message}${suffix}`, { error });
   } else {
     winstonLogger.log(level, `${prefix}${message}${suffix}`);
   }
