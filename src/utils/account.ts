@@ -8,7 +8,10 @@ import { getWalletDetails } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
 import { getAwsKmsWallet } from "../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsWallet } from "../server/utils/wallets/getGcpKmsWallet";
-import { getLocalWallet } from "../server/utils/wallets/getLocalWallet";
+import {
+  getLocalWallet,
+  getLocalWalletAccount,
+} from "../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../server/utils/wallets/getSmartWallet";
 import { getChain } from "./chain";
 
@@ -49,6 +52,13 @@ export const getAccount = async (args: {
       });
       break;
     case WalletType.local:
+      // For non-AA
+      // @TODO: Update all wallets to use v5 sdk and avoid ethers.
+      if (!accountAddress) {
+        const account = await getLocalWalletAccount(from);
+        _accountsCache.set(cacheKey, account);
+        return account;
+      }
       wallet = await getLocalWallet({ chainId, walletAddress: from });
       break;
     default:
@@ -77,6 +87,7 @@ export const getAccount = async (args: {
     signer = signer.connect(provider);
   }
 
+  // @TODO: Move all wallets to use v5 SDK and avoid ethers adapter.
   const account = await ethers5Adapter.signer.fromEthers({
     signer,
   });

@@ -143,6 +143,8 @@ const _sendTransaction = async (
         client: thirdwebClient,
         chain,
         ...queuedTransaction,
+        // Stub the nonce because it will be overridden later.
+        nonce: 1,
       },
     });
   } catch (e: unknown) {
