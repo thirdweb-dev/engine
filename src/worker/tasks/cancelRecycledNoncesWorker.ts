@@ -77,7 +77,7 @@ const getAndDeleteUnusedNonces = async (key: string) => {
   // Returns all unused nonces for this key and deletes the key.
   const script = `
     local key = ARGV[1]
-    local members = redis.call('LRANGE', key, 0, -1)
+    local members = redis.call('SMEMBERS', key)
     redis.call('DEL', key)
     return members
 `;

@@ -1,5 +1,6 @@
 import { Address, eth_getTransactionCount, getRpcClient } from "thirdweb";
 import { getChain } from "../../utils/chain";
+import { logger } from "../../utils/logger";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
@@ -8,15 +9,71 @@ import { thirdwebClient } from "../../utils/sdk";
  * The "last used nonce" stores the last nonce submitted onchain.
  * Example: "25"
  */
-const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
+export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
- * The "recycled nonces" list stores unsorted nonces to be reused or cancelled.
+ * The "recycled nonces" set stores unsorted nonces to be reused or cancelled.
  * Example: [ "25", "23", "24" ]
  */
-const recycledNoncesKey = (chainId: number, walletAddress: Address) =>
+export const recycledNoncesKey = (chainId: number, walletAddress: Address) =>
   `nonce-recycled:${chainId}:${normalizeAddress(walletAddress)}`;
+
+/**
+ * The "sent nonces" set stores nonces that have been sent on chain but not yet mined.
+ *
+ * Example: [ "25", "23", "24" ]
+ *
+ * The `nonceResyncWorker` periodically fetches the onchain transaction count for each wallet (a),
+ * compares it to the last nonce sent (b), and for every nonce between b and a,
+ * it recycles the nonce if the nonce is not in this set.
+ */
+export const sentNoncesKey = (chainId: number, walletAddress: Address) =>
+  `nonce-sent:${chainId}:${normalizeAddress(walletAddress)}`;
+
+export const splitSentNoncesKey = (key: string) => {
+  const _splittedKeys = key.split(":");
+  const walletAddress = normalizeAddress(_splittedKeys[2]);
+  const chainId = parseInt(_splittedKeys[1]);
+  return { walletAddress, chainId };
+};
+
+/**
+ * Adds a nonce to the sent nonces set (`nonce-sent:${chainId}:${walletAddress}`).
+ */
+export const addSentNonce = async (
+  chainId: number,
+  walletAddress: Address,
+  nonce: number,
+) => {
+  const key = sentNoncesKey(chainId, walletAddress);
+  await redis.sadd(key, nonce.toString());
+};
+
+/**
+ * Removes a nonce from the sent nonces set (`nonce-sent:${chainId}:${walletAddress}`).
+ */
+export const removeSentNonce = async (
+  chainId: number,
+  walletAddress: Address,
+  nonce: number,
+) => {
+  const key = sentNoncesKey(chainId, walletAddress);
+  const removed = await redis.srem(key, nonce.toString());
+  return removed === 1;
+};
+
+/**
+ * Check if a nonce is in the sent nonces set.
+ */
+export const isSentNonce = async (
+  chainId: number,
+  walletAddress: Address,
+  nonce: number,
+) => {
+  const key = sentNoncesKey(chainId, walletAddress);
+  return !!(await redis.sismember(key, nonce.toString()));
+};
 
 /**
  * Acquire an unused nonce.
@@ -58,8 +115,16 @@ export const recycleNonce = async (
   walletAddress: Address,
   nonce: number,
 ) => {
+  if (isNaN(nonce)) {
+    logger({
+      level: "warn",
+      message: `[recycleNonce] Invalid nonce: ${nonce}`,
+      service: "worker",
+    });
+    return;
+  }
   const key = recycledNoncesKey(chainId, walletAddress);
-  await redis.rpush(key, nonce);
+  await redis.sadd(key, nonce.toString());
 };
 
 /**
@@ -73,7 +138,7 @@ const _acquireRecycledNonce = async (
   walletAddress: Address,
 ) => {
   const key = recycledNoncesKey(chainId, walletAddress);
-  const res = await redis.lpop(key);
+  const res = await redis.spop(key);
   return res ? parseInt(res) : null;
 };
 
@@ -121,4 +186,37 @@ export const deleteAllNonces = async () => {
   if (keys.length > 0) {
     await redis.del(keys);
   }
+};
+
+/**
+ * Resync the nonce i.e., max of transactionCount +1 and lastUsedNonce.
+ * @param chainId
+ * @param walletAddress
+ */
+export const rebaseNonce = async (chainId: number, walletAddress: Address) => {
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain: await getChain(chainId),
+  });
+
+  // The next unused nonce = transactionCount.
+  const transactionCount = await eth_getTransactionCount(rpcRequest, {
+    address: walletAddress,
+  });
+
+  // Lua script to set nonce as max
+  const script = `
+    local transactionCount = tonumber(ARGV[1])
+    local lastUsedNonce = tonumber(redis.call('get', KEYS[1]))
+    local nextNonce = math.max(transactionCount-1, lastUsedNonce)
+    redis.call('set', KEYS[1], nextNonce)
+    return nextNonce
+  `;
+  const nextNonce = await redis.eval(
+    script,
+    1,
+    lastUsedNonceKey(chainId, normalizeAddress(walletAddress)),
+    transactionCount.toString(),
+  );
+  return nextNonce;
 };

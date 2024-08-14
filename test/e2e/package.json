@@ -1,0 +1,18 @@
+{
+  "name": "e2e",
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsup": "^8.2.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "@thirdweb-dev/sdk": "^4.0.99",
+    "ethers": "5",
+    "thirdweb": "^5.43.2",
+    "viem": "^2.18.1"
+  }
+}

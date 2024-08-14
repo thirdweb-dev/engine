@@ -163,6 +163,7 @@ model Transactions {
   @@index([sentAt, minedAt, cancelledAt, errorMessage, queuedAt])
   @@index([sentAt, accountAddress, userOpHash, minedAt, errorMessage, retryCount])
   @@index([sentAt, transactionHash, accountAddress, minedAt, errorMessage, nonce])
+  @@index([queuedAt])
   @@map("transactions")
 }
 

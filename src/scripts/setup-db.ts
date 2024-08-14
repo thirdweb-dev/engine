@@ -12,7 +12,10 @@ const main = async () => {
       );
     `;
 
-  const schema = `./src/prisma/schema.prisma`;
+  const schema =
+    process.env.NODE_ENV === "production"
+      ? `./dist/prisma/schema.prisma`
+      : `./src/prisma/schema.prisma`;
 
   if (hasWalletsTable) {
     execSync(`yarn prisma migrate reset --force --schema ${schema}`, {
