@@ -38,6 +38,9 @@ export class TransactionDB {
   private static cancelledTransactionsKey = `transaction:cancelled`;
   private static erroredTransactionsKey = `transaction:errored`;
 
+  // ioredis has limits over 100k+ (source: https://github.com/redis/ioredis/issues/801).
+  private static REDIS_BATCH_SIZE = 100_000;
+
   /**
    * Inserts or replaces a transaction details.
    * Also adds to the appropriate "status" sorted set.
@@ -109,13 +112,17 @@ export class TransactionDB {
       return [];
     }
 
-    const keys = queueIds.map(this.transactionDetailsKey);
-    const vals = await redis.mget(...keys);
-
     const result: AnyTransaction[] = [];
-    for (const val of vals) {
-      if (val) {
-        result.push(superjson.parse(val));
+    for (let i = 0; i < queueIds.length; i += this.REDIS_BATCH_SIZE) {
+      const keys = queueIds
+        .slice(i, i + this.REDIS_BATCH_SIZE)
+        .map(this.transactionDetailsKey);
+      const vals = await redis.mget(...keys);
+
+      for (const val of vals) {
+        if (val) {
+          result.push(superjson.parse(val));
+        }
       }
     }
     return result;
@@ -131,8 +138,14 @@ export class TransactionDB {
       return 0;
     }
 
-    const keys = queueIds.map(this.transactionDetailsKey);
-    return await redis.unlink(...keys);
+    let numDeleted = 0;
+    for (let i = 0; i < queueIds.length; i += this.REDIS_BATCH_SIZE) {
+      const keys = queueIds
+        .slice(i, i + this.REDIS_BATCH_SIZE)
+        .map(this.transactionDetailsKey);
+      numDeleted += await redis.unlink(...keys);
+    }
+    return numDeleted;
   };
 
   /**
