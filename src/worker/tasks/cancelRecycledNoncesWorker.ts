@@ -75,12 +75,18 @@ const fromUnusedNoncesKey = (key: string) => {
 
 const getAndDeleteUnusedNonces = async (key: string) => {
   // Returns all unused nonces for this key and deletes the key.
-  const script = `
-    local key = ARGV[1]
-    local members = redis.call('SMEMBERS', key)
-    redis.call('DEL', key)
-    return members
-`;
-  const results = (await redis.eval(script, 0, key)) as string[];
-  return results.map(parseInt);
+  // Example response:
+  // [
+  //   [ null, [ '1', '2', '3', '4' ] ],
+  //   [ null, 1 ]
+  // ]
+  const multiResult = await redis.multi().smembers(key).del(key).exec();
+  if (!multiResult) {
+    throw new Error(`Error getting members of ${key}.`);
+  }
+  const [error, nonces] = multiResult[0];
+  if (error) {
+    throw new Error(`Error getting members of ${key}: ${error}`);
+  }
+  return (nonces as string[]).map((v) => parseInt(v));
 };
