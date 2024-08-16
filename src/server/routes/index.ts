@@ -123,6 +123,7 @@ import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { checkGroupStatus } from "./transaction/group";
 
 // Indexer
+import { removeBackendWallet } from "./backend-wallet/remove";
 import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
 import { getIpAllowlist } from "./configuration/ip/get";
 import { setIpAllowlist } from "./configuration/ip/set";
@@ -142,6 +143,7 @@ import { syncRetryTransaction } from "./transaction/syncRetry";
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
   await fastify.register(createBackendWallet);
+  await fastify.register(removeBackendWallet);
   await fastify.register(importBackendWallet);
   await fastify.register(updateBackendWallet);
   await fastify.register(getBalance);
