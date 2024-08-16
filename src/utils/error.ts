@@ -44,7 +44,10 @@ export const isNonceAlreadyUsedError = (error: unknown) => {
 export const isReplacementGasFeeTooLow = (error: unknown) => {
   const message = _parseMessage(error);
   if (message) {
-    return message.includes("replacement fee too low");
+    return (
+      message.includes("replacement fee too low") ||
+      message.includes("replacement transaction underpriced")
+    );
   }
   return isEthersErrorCode(error, ethers.errors.REPLACEMENT_UNDERPRICED);
 };
