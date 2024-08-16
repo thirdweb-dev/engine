@@ -123,6 +123,7 @@ export const recycleNonce = async (
     });
     return;
   }
+
   const key = recycledNoncesKey(chainId, walletAddress);
   await redis.sadd(key, nonce.toString());
 };

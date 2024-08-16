@@ -14,6 +14,8 @@ export class SendTransactionQueue {
     defaultJobOptions: {
       ...defaultJobOptions,
       attempts: 5,
+      // Retries in: 1s, 2s, 4s, 8s, 16s
+      backoff: { type: "exponential", delay: 1_000 },
     },
   });
 

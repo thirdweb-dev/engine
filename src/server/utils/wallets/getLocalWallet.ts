@@ -1,11 +1,15 @@
 import { Static } from "@sinclair/typebox";
 import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
 import { Chain, LocalWallet } from "@thirdweb-dev/wallets";
+import { Wallet } from "ethers";
+import { Address } from "thirdweb";
+import { Account, privateKeyToAccount } from "thirdweb/wallets";
 import { getWalletDetails } from "../../../db/wallets/getWalletDetails";
 import { getConfig } from "../../../utils/cache/getConfig";
 import { networkResponseSchema } from "../../../utils/cache/getSdk";
 import { env } from "../../../utils/env";
 import { logger } from "../../../utils/logger";
+import { thirdwebClient } from "../../../utils/sdk";
 import { LocalFileStorage } from "../storage/localStorage";
 
 interface GetLocalWalletParams {
@@ -85,4 +89,23 @@ export const getLocalWallet = async ({
   }
 
   return wallet;
+};
+
+export const getLocalWalletAccount = async (
+  walletAddress: Address,
+): Promise<Account> => {
+  const json = await new LocalFileStorage(walletAddress).getItem("");
+  if (!json) {
+    throw new Error(`Wallet not found for address ${walletAddress}`);
+  }
+
+  const wallet = await Wallet.fromEncryptedJson(
+    JSON.parse(json).data,
+    env.ENCRYPTION_PASSWORD,
+  );
+
+  return privateKeyToAccount({
+    client: thirdwebClient,
+    privateKey: wallet.privateKey,
+  });
 };
