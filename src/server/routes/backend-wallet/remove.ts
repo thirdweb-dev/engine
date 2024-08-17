@@ -3,11 +3,10 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address } from "thirdweb";
 import { deleteWalletDetails } from "../../../db/wallets/deleteWalletDetails";
-import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const requestSchema = Type.Object({
-  walletAddress: Type.Optional(Type.String()),
+  walletAddress: Type.String(),
 });
 
 const responseSchema = Type.Object({
@@ -34,7 +33,7 @@ export const removeBackendWallet = async (fastify: FastifyInstance) => {
       description:
         "Remove an existing backend wallet. NOTE: This is an irreversible action for local wallets. Ensure any funds are transferred out before removing a local wallet.",
       tags: ["Backend Wallet"],
-      operationId: "remove",
+      operationId: "removeBackendWallet",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -42,17 +41,9 @@ export const removeBackendWallet = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, reply) => {
-      const { walletAddress: _walletAddress } = req.params;
-      if (!_walletAddress) {
-        throw createCustomError(
-          'Missing "walletAddress".',
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-      }
+      const { walletAddress } = req.params;
 
-      const walletAddress = _walletAddress.toLowerCase() as Address;
-      await deleteWalletDetails(walletAddress);
+      await deleteWalletDetails(walletAddress as Address);
 
       reply.status(StatusCodes.OK).send({
         result: {
