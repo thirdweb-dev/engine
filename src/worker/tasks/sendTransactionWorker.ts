@@ -10,8 +10,8 @@ import { TransactionDB } from "../../db/transactions/db";
 import {
   acquireNonce,
   addSentNonce,
-  rebaseNonce,
   recycleNonce,
+  resyncNonce,
 } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
@@ -174,12 +174,13 @@ const _sendTransaction = async (
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
-    // If NonceAlreadyUsedError, which can also manifest as a ReplacementGasFeeTooLowError,
-    // recycle the nonce and retry the transaction.
+    // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
+    // correct the DB nonce.
     if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
-      const resyncNonce = await rebaseNonce(chainId, from);
-      job.log(`Resynced nonce to ${resyncNonce}.`);
+      const result = await resyncNonce(chainId, from);
+      job.log(`Resynced nonce to ${result}.`);
     } else {
+      // Otherwise this nonce is not used yet. Recycle it to be used by a future transaction.
       job.log(`Recycling nonce: ${nonce}`);
       await recycleNonce(chainId, from, nonce);
     }

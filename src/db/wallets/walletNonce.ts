@@ -194,7 +194,7 @@ export const deleteAllNonces = async () => {
  * @param chainId
  * @param walletAddress
  */
-export const rebaseNonce = async (chainId: number, walletAddress: Address) => {
+export const resyncNonce = async (chainId: number, walletAddress: Address) => {
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain: await getChain(chainId),
@@ -205,10 +205,10 @@ export const rebaseNonce = async (chainId: number, walletAddress: Address) => {
     address: walletAddress,
   });
 
-  // Lua script to set nonce as max
+  // Lua script to update the DB nonce only if the onchain nonce is higher.
   const script = `
     local transactionCount = tonumber(ARGV[1])
-    local lastUsedNonce = tonumber(redis.call('get', KEYS[1]))
+    local lastUsedNonce = tonumber(redis.call('get', KEYS[1])) or 0
     local nextNonce = math.max(transactionCount-1, lastUsedNonce)
     redis.call('set', KEYS[1], nextNonce)
     return nextNonce
