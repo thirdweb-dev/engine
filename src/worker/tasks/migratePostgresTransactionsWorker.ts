@@ -94,10 +94,10 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
           message: errorMessage,
         });
       }
-
-      await cancelPostgresTransactions({ pgtx, queueIds: toCancel });
-      job.log(`Done migrating ${toCancel.length} queued transactions.`);
     }
+
+    await cancelPostgresTransactions({ pgtx, queueIds: toCancel });
+    job.log(`Done migrating ${toCancel.length} queued transactions.`);
   });
 };
 
