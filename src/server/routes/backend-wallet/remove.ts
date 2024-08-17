@@ -5,7 +5,7 @@ import { Address } from "thirdweb";
 import { deleteWalletDetails } from "../../../db/wallets/deleteWalletDetails";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-const requestSchema = Type.Object({
+const requestParamSchema = Type.Object({
   walletAddress: Type.String(),
 });
 
@@ -23,7 +23,7 @@ responseSchema.example = {
 
 export const removeBackendWallet = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Params: Static<typeof requestSchema>;
+    Params: Static<typeof requestParamSchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "DELETE",
@@ -34,7 +34,7 @@ export const removeBackendWallet = async (fastify: FastifyInstance) => {
         "Remove an existing backend wallet. NOTE: This is an irreversible action for local wallets. Ensure any funds are transferred out before removing a local wallet.",
       tags: ["Backend Wallet"],
       operationId: "removeBackendWallet",
-      params: requestSchema,
+      params: requestParamSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
