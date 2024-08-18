@@ -213,11 +213,11 @@ export const resyncNonce = async (chainId: number, walletAddress: Address) => {
     redis.call('set', KEYS[1], nextNonce)
     return nextNonce
   `;
-  const nextNonce = await redis.eval(
+  const lastUsedNonce = await redis.eval(
     script,
     1,
     lastUsedNonceKey(chainId, normalizeAddress(walletAddress)),
     transactionCount.toString(),
   );
-  return nextNonce;
+  return lastUsedNonce;
 };
