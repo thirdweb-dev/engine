@@ -24,10 +24,7 @@ export const getBlockTimeSeconds = async (chainId: number) => {
     );
 
     const blocks = await Promise.all(
-      blockNumbers.map(async (blockNumber) => {
-        const block = await provider.getBlock(blockNumber);
-        return block;
-      }),
+      blockNumbers.map(blockNumber => provider.getBlock(blockNumber)),
     );
 
     let totalTimeDiff = 0;

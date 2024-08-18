@@ -166,12 +166,21 @@ const getLogs = async ({
 
   // Get timestamps for blocks.
   const blockHashes = allLogs.map((e) => e.blockHash);
-  const blockTimestamps = await getBlockTimestamps(chain, blockHashes);
+  const [blockTimestamps, decodedLogs] = await Promise.all([
+    getBlockTimestamps(chain, blockHashes),
+    Promise.all(allLogs.map(log => formatDecodedLog({
+      contract:
+        addressConfig[log.address.toLowerCase() as Address].contract,
+      eventName: log.eventName,
+      logArgs: log.args as Record<string, unknown>,
+    }))),
+  ]);
 
   // Transform logs into the DB schema.
   return await Promise.all(
-    allLogs.map(
-      async (log): Promise<Prisma.ContractEventLogsCreateInput> => ({
+    allLogs.map((log, index) => {
+      const decodedLog = decodedLogs[index];
+      return {
         chainId,
         blockNumber: Number(log.blockNumber),
         contractAddress: log.address.toLowerCase(),
@@ -182,17 +191,12 @@ const getLogs = async ({
         topic3: log.topics[3],
         data: log.data,
         eventName: log.eventName,
-        decodedLog: await formatDecodedLog({
-          contract:
-            addressConfig[log.address.toLowerCase() as Address].contract,
-          eventName: log.eventName,
-          logArgs: log.args as Record<string, unknown>,
-        }),
+        decodedLog,
         timestamp: blockTimestamps[log.blockHash],
         transactionIndex: log.transactionIndex,
         logIndex: log.logIndex,
-      }),
-    ),
+      }
+    }),
   );
 };
 
