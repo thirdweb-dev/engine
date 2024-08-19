@@ -81,7 +81,7 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
         });
         return;
       }
-      const result = await contract.erc721.getOwned(walletAddress);
+      const result = await contract.erc721.getOwned(wallet_address);
       reply.status(StatusCodes.OK).send({
         result,
       });
