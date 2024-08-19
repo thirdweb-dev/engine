@@ -12,7 +12,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 const requestQueryString = Type.Object({
-  walletAddress: Type.String({
+  wallet_address: Type.String({
     description: "The wallet address to get the merkle proofs for.",
   }),
 });
@@ -46,7 +46,7 @@ export async function erc20GetClaimerProofs(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { walletAddress } = request.query;
+      const { wallet_address } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -54,7 +54,7 @@ export async function erc20GetClaimerProofs(fastify: FastifyInstance) {
         contractAddress,
       });
       const returnData = await contract.erc20.claimConditions.getClaimerProofs(
-        walletAddress,
+        wallet_address,
       );
       reply.status(StatusCodes.OK).send({
         result: returnData,

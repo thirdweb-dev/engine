@@ -12,7 +12,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
-  walletAddress: Type.String({
+  wallet_address: Type.String({
     description: "Address of the wallet to get NFTs for",
     examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
@@ -67,14 +67,14 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { walletAddress } = request.query;
+      const { wallet_address } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
       // Check if the wallet has any tokens before querying getOwned
-      const balance = await contract.erc721.balanceOf(walletAddress);
+      const balance = await contract.erc721.balanceOf(wallet_address);
       if (balance.eq(0)) {
         reply.status(StatusCodes.OK).send({
           result: [],
