@@ -4,7 +4,6 @@ import superjson from "superjson";
 import { Hex, toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
-import type { TransactionSerializable } from "viem";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
 import {
@@ -136,7 +135,9 @@ const _sendTransaction = async (
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
   // The nonce is _not_ set yet.
-  let populatedTransaction: TransactionSerializable;
+  let populatedTransaction: Awaited<
+    ReturnType<typeof toSerializableTransaction>
+  >;
   try {
     populatedTransaction = await toSerializableTransaction({
       from: getChecksumAddress(from),
