@@ -1,4 +1,5 @@
-import { Address, getAddress } from "thirdweb";
+import { Address } from "thirdweb";
+import { checksumAddress } from "thirdweb/utils";
 
 export const maybeBigInt = (val?: string) => (val ? BigInt(val) : undefined);
 
@@ -22,7 +23,7 @@ export function getChecksumAddress(val: string | null): Address | undefined;
 export function getChecksumAddress(
   val?: string | Address | null,
 ): Address | undefined {
-  return val ? getAddress(val) : undefined;
+  return val ? checksumAddress(val) : undefined;
 }
 
 export function maybeDate(val: number): Date;
