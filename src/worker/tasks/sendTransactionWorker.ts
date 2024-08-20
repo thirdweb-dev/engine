@@ -23,6 +23,7 @@ import {
   isReplacementGasFeeTooLow,
   prettifyError,
 } from "../../utils/error";
+import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -138,7 +139,7 @@ const _sendTransaction = async (
   let populatedTransaction: TransactionSerializable;
   try {
     populatedTransaction = await toSerializableTransaction({
-      from,
+      from: getChecksumAddress(from),
       transaction: {
         client: thirdwebClient,
         chain,
@@ -219,7 +220,7 @@ const _resendTransaction = async (
   // Populate the transaction with double gas.
   const { chainId, from } = sentTransaction;
   const populatedTransaction = await toSerializableTransaction({
-    from,
+    from: getChecksumAddress(from),
     transaction: {
       client: thirdwebClient,
       chain: await getChain(chainId),

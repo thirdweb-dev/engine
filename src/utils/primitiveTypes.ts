@@ -1,4 +1,4 @@
-import { Address } from "thirdweb";
+import { Address, getAddress } from "thirdweb";
 
 export const maybeBigInt = (val?: string) => (val ? BigInt(val) : undefined);
 
@@ -12,6 +12,17 @@ export function normalizeAddress(
   val?: string | Address | null,
 ): Address | undefined {
   return val ? (val.toLowerCase() as Address) : undefined;
+}
+
+export function getChecksumAddress(val: Address): Address;
+export function getChecksumAddress(val?: Address): Address | undefined;
+export function getChecksumAddress(val: string): Address;
+export function getChecksumAddress(val?: string): Address | undefined;
+export function getChecksumAddress(val: string | null): undefined;
+export function getChecksumAddress(
+  val?: string | Address | null,
+): Address | undefined {
+  return val ? getAddress(val) : undefined;
 }
 
 export function maybeDate(val: number): Date;

@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 import { TransactionDB } from "../../db/transactions/db";
 import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
-import { normalizeAddress } from "../primitiveTypes";
+import { getChecksumAddress } from "../primitiveTypes";
 import { reportUsage } from "../usage";
 import { doSimulateTransaction } from "./simulateQueuedTransaction";
 import { InsertedTransaction, QueuedTransaction } from "./types";
@@ -42,13 +42,12 @@ export const insertTransaction = async (
     queuedAt: new Date(),
     resendCount: 0,
 
-    // Standardize address formats.
-    from: normalizeAddress(insertedTransaction.from),
-    to: normalizeAddress(insertedTransaction.to),
-    signerAddress: normalizeAddress(insertedTransaction.signerAddress),
-    accountAddress: normalizeAddress(insertedTransaction.accountAddress),
-    target: normalizeAddress(insertedTransaction.target),
-    sender: normalizeAddress(insertedTransaction.sender),
+    from: getChecksumAddress(insertedTransaction.from),
+    to: getChecksumAddress(insertedTransaction.to),
+    signerAddress: getChecksumAddress(insertedTransaction.signerAddress),
+    accountAddress: getChecksumAddress(insertedTransaction.accountAddress),
+    target: getChecksumAddress(insertedTransaction.target),
+    sender: getChecksumAddress(insertedTransaction.sender),
     value: insertedTransaction.value ?? 0n,
   };
 

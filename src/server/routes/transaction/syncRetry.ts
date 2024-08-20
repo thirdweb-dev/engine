@@ -7,7 +7,7 @@ import { getAccount } from "../../../utils/account";
 import { getBlockNumberish } from "../../../utils/block";
 import { getChain } from "../../../utils/chain";
 import { msSince } from "../../../utils/date";
-import { maybeBigInt } from "../../../utils/primitiveTypes";
+import { getChecksumAddress, maybeBigInt } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { SentTransaction } from "../../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
@@ -82,7 +82,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
 
       // Prepare transaction.
       const populatedTransaction = await toSerializableTransaction({
-        from,
+        from: getChecksumAddress(from),
         transaction: {
           client: thirdwebClient,
           chain: await getChain(chainId),

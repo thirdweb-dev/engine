@@ -38,20 +38,6 @@ services:
     volumes:
       - redis_data:/data
 
-  bullboard:
-    container_name: bullboard
-    image: deadly0/bull-board:3.2.6
-    restart: always
-    ports:
-      - 3333:3000
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_USE_TLS: "false"
-      BULL_PREFIX: bull
-    depends_on:
-      - redis
-
   engine:
     profiles:
       - engine
