@@ -13,7 +13,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const querystringSchema = Type.Object({
-  wallet_address: Type.String({
+  walletAddress: Type.String({
     description: "Address of the wallet to check token balance",
     examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
   }),
@@ -60,13 +60,13 @@ export async function erc20BalanceOf(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { wallet_address } = request.query;
+      const { walletAddress } = request.query;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc20.balanceOf(wallet_address);
+      const returnData = await contract.erc20.balanceOf(walletAddress);
       reply.status(StatusCodes.OK).send({
         result: {
           name: returnData.name,
