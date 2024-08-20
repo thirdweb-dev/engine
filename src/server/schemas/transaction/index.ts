@@ -290,11 +290,11 @@ export const toTransactionSchema = (
     retryCount: "retryCount" in transaction ? transaction.resendCount : 0,
     onChainTxStatus: resolveOnchainStatus(),
     effectiveGasPrice:
-      "effectiveGasPrice" in transaction
+      "effectiveGasPrice" in transaction && transaction.effectiveGasPrice
         ? transaction.effectiveGasPrice.toString()
         : null,
     cumulativeGasUsed:
-      "cumulativeGasUsed" in transaction
+      "cumulativeGasUsed" in transaction && transaction.cumulativeGasUsed
         ? transaction.cumulativeGasUsed.toString()
         : null,
 

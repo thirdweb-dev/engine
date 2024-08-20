@@ -77,8 +77,8 @@ export type MinedTransaction = (
   transactionType: TransactionType;
   onchainStatus: "success" | "reverted";
   gasUsed: bigint;
-  effectiveGasPrice: bigint;
-  cumulativeGasUsed: bigint;
+  effectiveGasPrice?: bigint;
+  cumulativeGasUsed?: bigint;
 };
 
 // ErroredTransaction received an error before or while sending to RPC.
