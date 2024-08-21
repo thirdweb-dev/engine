@@ -192,7 +192,6 @@ const _mineUserOp = async (
     chain,
     userOpHash,
   });
-
   if (!userOpReceiptRaw) {
     return null;
   }
@@ -215,7 +214,7 @@ const _mineUserOp = async (
     minedAt: new Date(),
     minedAtBlock: receipt.blockNumber,
     transactionType: receipt.type,
-    onchainStatus: receipt.status,
+    onchainStatus: userOpReceiptRaw.success ? "success" : "reverted",
     gasUsed: receipt.gasUsed,
     effectiveGasPrice: receipt.effectiveGasPrice,
     gas: receipt.gasUsed,

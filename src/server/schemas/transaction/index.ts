@@ -193,7 +193,13 @@ export const TransactionSchema = Type.Object({
   userOpHash: Type.Union([Type.String(), Type.Null()]),
   functionName: Type.Union([Type.String(), Type.Null()]),
   functionArgs: Type.Union([Type.String(), Type.Null()]),
+  // @deprecated
   onChainTxStatus: Type.Union([Type.Number(), Type.Null()]),
+  onchainStatus: Type.Union([
+    Type.Literal("success"),
+    Type.Literal("reverted"),
+    Type.Null(),
+  ]),
   effectiveGasPrice: Type.Union([
     Type.String({
       description: "Effective Gas Price",
@@ -228,7 +234,7 @@ export const toTransactionSchema = (
     return null;
   };
 
-  const resolveOnchainStatus = () => {
+  const resolveOnchainTxStatus = () => {
     if (transaction.status === "mined") {
       return transaction.onchainStatus === "success" ? 1 : 0;
     }
@@ -288,7 +294,9 @@ export const toTransactionSchema = (
     blockNumber:
       "minedAtBlock" in transaction ? Number(transaction.minedAtBlock) : null,
     retryCount: "retryCount" in transaction ? transaction.resendCount : 0,
-    onChainTxStatus: resolveOnchainStatus(),
+    onChainTxStatus: resolveOnchainTxStatus(),
+    onchainStatus:
+      "onchainStatus" in transaction ? transaction.onchainStatus : null,
     effectiveGasPrice:
       "effectiveGasPrice" in transaction && transaction.effectiveGasPrice
         ? transaction.effectiveGasPrice.toString()
