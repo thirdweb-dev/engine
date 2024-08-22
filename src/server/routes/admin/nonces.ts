@@ -26,23 +26,23 @@ export const responseBodySchema = Type.Object({
         description: "Chain ID",
         examples: [80002],
       }),
-      onchainNonce: Type.String({
+      onchainNonce: Type.Integer({
         description: "Last mined nonce",
-        examples: ["0"],
+        examples: [0],
       }),
-      lastUsedNonce: Type.String({
-        description: "Last incremented nonce sent to the blockchain",
-        examples: ["0"],
+      lastUsedNonce: Type.Integer({
+        description: "Last incremented nonce sent to the RPC",
+        examples: [0],
       }),
-      sentNonces: Type.Array(Type.String(), {
+      sentNonces: Type.Array(Type.Integer(), {
         description:
-          "Nonces that were successfully sent to the RPC but not mined yet",
-        examples: ["0"],
+          "Nonces that were successfully sent to the RPC but not mined yet (in descending order)",
+        examples: [[2, 1, 0]],
       }),
-      recycledNonces: Type.Array(Type.String(), {
-        examples: ["0"],
+      recycledNonces: Type.Array(Type.Integer(), {
+        examples: [[3, 2, 1]],
         description:
-          "Nonces that were acquired but failed to be sent to the blockchain, waiting to be recycled or cancelled",
+          "Nonces that were acquired but failed to be sent to the blockchain, waiting to be recycled or cancelled (in descending order)",
       }),
     }),
   ),
@@ -52,10 +52,10 @@ responseBodySchema.example = {
   result: [
     {
       walletAddress: "0xcedf3b4d8f7f1f7e0f7f0f7f0f7f0f7f0f7f0f7f",
-      onchainNonce: "2",
-      lastUsedNonce: "8",
-      recycledNonces: ["6", "7"],
-      chainId: 80001,
+      onchainNonce: 2,
+      lastUsedNonce: 8,
+      recycledNonces: [6, 7],
+      chainId: 80002,
     },
   ],
 };
@@ -134,10 +134,14 @@ export const getNonceDetails = async ({
     return {
       walletAddress: key.walletAddress,
       chainId: key.chainId,
-      onchainNonce: onchainNonces[index].toString(),
-      lastUsedNonce: (lastUsedNonceResult[1] as string | null) ?? "0",
-      sentNonces: sentNoncesResult[1] as string[],
-      recycledNonces: recycledNoncesResult[1] as string[],
+      onchainNonce: onchainNonces[index],
+      lastUsedNonce: parseInt(lastUsedNonceResult[1] as string) ?? 0,
+      sentNonces: (sentNoncesResult[1] as string[])
+        .map((nonce) => parseInt(nonce))
+        .sort((a, b) => b - a),
+      recycledNonces: (recycledNoncesResult[1] as string[])
+        .map((nonce) => parseInt(nonce))
+        .sort((a, b) => b - a),
     };
   });
 };
