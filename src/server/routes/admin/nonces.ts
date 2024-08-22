@@ -142,7 +142,7 @@ export const getNonceDetails = async ({
  *
  * @returns Array of lastUsedNonce keys for wallet address and chain combinations
  */
-const getLastUsedNonceKeys = async (
+export const getLastUsedNonceKeys = async (
   walletAddress?: string,
   chainId?: string,
 ): Promise<string[]> => {
@@ -155,7 +155,16 @@ const getLastUsedNonceKeys = async (
   return keys;
 };
 
-const getOnchainNonce = async (chainId: number, walletAddress: string) => {
+/*
+ * Get the last used nonce onchain
+ * @param chainId Chain ID
+ * @param walletAddress Wallet address
+ * @returns Next unused nonce
+ */
+export const getOnchainNonce = async (
+  chainId: number,
+  walletAddress: string,
+) => {
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain: await getChain(chainId),
@@ -164,8 +173,9 @@ const getOnchainNonce = async (chainId: number, walletAddress: string) => {
   // The next unused nonce = transactionCount.
   const transactionCount = await eth_getTransactionCount(rpcRequest, {
     address: walletAddress,
+    blockTag: "latest",
   });
 
-  const onchainNonce = transactionCount + 1;
+  const onchainNonce = transactionCount - 1;
   return onchainNonce;
 };
