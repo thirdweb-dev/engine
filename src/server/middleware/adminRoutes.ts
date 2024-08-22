@@ -8,9 +8,9 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../utils/env";
 import { CancelRecycledNoncesQueue } from "../../worker/queues/cancelRecycledNoncesQueue";
-import { LogQueue } from "../../worker/queues/logQueue";
 import { MigratePostgresTransactionsQueue } from "../../worker/queues/migratePostgresTransactionsQueue";
 import { MineTransactionQueue } from "../../worker/queues/mineTransactionQueue";
+import { NonceHealthCheckQueue } from "../../worker/queues/nonceHealthCheckQueue";
 import { NonceResyncQueue } from "../../worker/queues/nonceResyncQueue";
 import { ProcessEventsLogQueue } from "../../worker/queues/processEventLogsQueue";
 import { ProcessTransactionReceiptsQueue } from "../../worker/queues/processTransactionReceiptsQueue";
@@ -31,7 +31,7 @@ const QUEUES: Queue[] = [
   PruneTransactionsQueue.q,
   MigratePostgresTransactionsQueue.q,
   NonceResyncQueue.q,
-  LogQueue.q,
+  NonceHealthCheckQueue.q,
 ];
 
 export const withAdminRoutes = async (fastify: FastifyInstance) => {

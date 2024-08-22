@@ -11,7 +11,7 @@ import {
 } from "../../server/routes/admin/nonces";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
-import { LogQueue } from "../queues/logQueue";
+import { NonceHealthCheckQueue } from "../queues/nonceHealthCheckQueue";
 import { logWorkerExceptions } from "../queues/queues";
 
 // Configuration
@@ -59,13 +59,13 @@ interface WalletHealthStatus extends TimestampedWalletNonceDetails {
 }
 
 // Initialize the log worker
-export const initLogWorker = () => {
-  LogQueue.q.add("cron", "", {
+export const initNonceHealthCheckWorker = () => {
+  NonceHealthCheckQueue.q.add("cron", "", {
     repeat: { pattern: `*/${config.runFrequencySeconds} * * * * *` },
-    jobId: "log-cron",
+    jobId: "nonce-health-check-cron",
   });
 
-  const _worker = new Worker(LogQueue.q.name, handler, {
+  const _worker = new Worker(NonceHealthCheckQueue.q.name, handler, {
     connection: redis,
     concurrency: 1,
   });
