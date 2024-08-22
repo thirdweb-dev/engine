@@ -68,9 +68,11 @@ responseBodySchema.example = {
   ],
 };
 
+const walletWithAddressQuerySchema = Type.Partial(walletWithAddressParamSchema);
+
 export async function getNonceDetailsRoute(fastify: FastifyInstance) {
   fastify.route<{
-    Querystring: Static<typeof walletWithAddressParamSchema>;
+    Querystring: Static<typeof walletWithAddressQuerySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
@@ -80,7 +82,7 @@ export async function getNonceDetailsRoute(fastify: FastifyInstance) {
       description: "Get raw logs and details for a transaction by queueId.",
       tags: ["Admin"],
       operationId: "transactionDetails",
-      querystring: walletWithAddressParamSchema,
+      querystring: walletWithAddressQuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
