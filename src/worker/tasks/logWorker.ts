@@ -39,6 +39,7 @@ const logNonceDetails = async () => {
 
 const logQueueData = async () => {
   const queueData = await SendTransactionQueue.q.getJobCounts();
-
   const message = `[QUEUE] send-transaction: waiting:${queueData.waiting} active:${queueData.active} completed:${queueData.completed} failed:${queueData.failed}`;
+
+  logger({ service: "worker", level: "info", message });
 };
