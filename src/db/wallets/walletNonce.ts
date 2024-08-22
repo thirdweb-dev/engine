@@ -14,8 +14,23 @@ export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
- * The "recycled nonces" sorted set stores nonces to be reused or cancelled, sorted by nonce value.
- * Example: [ "23", "24", "25" ]
+ * Split the last used nonce key into chainId and walletAddress.
+ * @param key
+ * @returns { chainId: number, walletAddress: Address }
+ * @example
+ * splitLastUsedNonceKey("nonce:80001:0x1234...5678")
+ * // { chainId: 80001, walletAddress: "0x1234...5678" }
+ */
+export const splitLastUsedNonceKey = (key: string) => {
+  const _splittedKeys = key.split(":");
+  const walletAddress = normalizeAddress(_splittedKeys[2]);
+  const chainId = parseInt(_splittedKeys[1]);
+  return { walletAddress, chainId };
+};
+
+/**
+ * The "recycled nonces" set stores unsorted nonces to be reused or cancelled.
+ * Example: [ "25", "23", "24" ]
  */
 export const recycledNoncesKey = (chainId: number, walletAddress: Address) =>
   `nonce-recycled:${chainId}:${normalizeAddress(walletAddress)}`;

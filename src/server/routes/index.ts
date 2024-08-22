@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import { getNonceDetailsRoute } from "./admin/nonces";
 import { getTransactionDetails } from "./admin/transaction";
 import { createAccessToken } from "./auth/access-tokens/create";
 import { getAllAccessTokens } from "./auth/access-tokens/getAll";
@@ -261,4 +262,5 @@ export const withRoutes = async (fastify: FastifyInstance) => {
 
   // Admin
   await fastify.register(getTransactionDetails);
+  await fastify.register(getNonceDetailsRoute);
 };
