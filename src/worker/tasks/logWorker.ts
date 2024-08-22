@@ -313,41 +313,51 @@ function logHealthStatus(
 }
 
 // Get nonce details
-const getNonceDetails = async ({
+export const getNonceDetails = async ({
   walletAddress,
   chainId,
 }: {
   walletAddress?: string;
   chainId?: string;
-} = {}): Promise<WalletNonceDetails[]> => {
+} = {}) => {
   const lastUsedNonceKeys = await getLastUsedNonceKeys(walletAddress, chainId);
 
-  const result = await Promise.all(
-    lastUsedNonceKeys.map(async (key) => {
-      const { chainId, walletAddress } = splitLastUsedNonceKey(key);
+  const pipeline = redis.pipeline();
+  const onchainNoncePromises: Promise<number>[] = [];
 
-      const [
-        lastUsedNonce,
-        sentNoncesLength,
-        recycledNoncesLength,
-        onchainNonce,
-      ] = await Promise.all([
-        redis.get(lastUsedNonceKey(chainId, walletAddress)),
-        redis.scard(sentNoncesKey(chainId, walletAddress)),
-        redis.scard(recycledNoncesKey(chainId, walletAddress)),
-        getOnchainNonce(chainId, walletAddress),
-      ]);
+  const keyMap = lastUsedNonceKeys.map((key) => {
+    const { chainId, walletAddress } = splitLastUsedNonceKey(key);
 
-      return {
-        walletAddress,
-        onchainNonce: onchainNonce.toString(),
-        lastUsedNonce: lastUsedNonce ?? "0",
-        sentNoncesLength,
-        recycledNoncesLength,
-        chainId,
-      };
-    }),
-  );
+    pipeline.get(lastUsedNonceKey(chainId, walletAddress));
+    pipeline.scard(sentNoncesKey(chainId, walletAddress));
+    pipeline.scard(recycledNoncesKey(chainId, walletAddress));
 
-  return result;
+    onchainNoncePromises.push(getOnchainNonce(chainId, walletAddress));
+
+    return { chainId, walletAddress };
+  });
+
+  const [pipelineResults, onchainNonces] = await Promise.all([
+    pipeline.exec(),
+    Promise.all(onchainNoncePromises),
+  ]);
+
+  if (!pipelineResults) {
+    throw new Error("Failed to execute Redis pipeline");
+  }
+
+  return keyMap.map((key, index) => {
+    const pipelineOffset = index * 3;
+    const [lastUsedNonceResult, sentNoncesResult, recycledNoncesResult] =
+      pipelineResults.slice(pipelineOffset, pipelineOffset + 3);
+
+    return {
+      walletAddress: key.walletAddress,
+      chainId: key.chainId,
+      onchainNonce: onchainNonces[index].toString(),
+      lastUsedNonce: (lastUsedNonceResult[1] as string | null) ?? "0",
+      sentNoncesLength: sentNoncesResult[1] as number,
+      recycledNoncesLength: recycledNoncesResult[1] as number,
+    };
+  });
 };

@@ -22,6 +22,10 @@ export const responseBodySchema = Type.Object({
         description: "Backend Wallet Address",
         examples: ["0xcedf3b4d8f7f1f7e0f7f0f7f0f7f0f7f0f7f0f7f"],
       }),
+      chainId: Type.Number({
+        description: "Chain ID",
+        examples: [80002],
+      }),
       onchainNonce: Type.String({
         description: "Last mined nonce",
         examples: ["0"],
@@ -30,27 +34,15 @@ export const responseBodySchema = Type.Object({
         description: "Last incremented nonce sent to the blockchain",
         examples: ["0"],
       }),
-      sentNonces: Type.Array(
-        Type.String({
-          examples: ["0"],
-        }),
-        {
-          description:
-            "Nonces that were successfully sent to the blockchain but not mined yet.",
-        },
-      ),
-      recycledNonces: Type.Array(
-        Type.String({
-          examples: ["0"],
-        }),
-        {
-          description:
-            "Nonces that were acquired but failed to be sent to the blockchain, waiting to be recycled or cancelled.",
-        },
-      ),
-      chainId: Type.Number({
-        description: "Chain ID",
-        examples: [80001],
+      sentNonces: Type.Array(Type.String(), {
+        description:
+          "Nonces that were successfully sent to the RPC but not mined yet",
+        examples: ["0"],
+      }),
+      recycledNonces: Type.Array(Type.String(), {
+        examples: ["0"],
+        description:
+          "Nonces that were acquired but failed to be sent to the blockchain, waiting to be recycled or cancelled",
       }),
     }),
   ),
@@ -78,10 +70,11 @@ export async function getNonceDetailsRoute(fastify: FastifyInstance) {
     method: "GET",
     url: "/admin/nonces",
     schema: {
-      summary: "Get transaction details",
-      description: "Get raw logs and details for a transaction by queueId.",
+      summary: "Get nonce status details for wallets",
+      description:
+        "Admin route to get nonce status details for all wallets filtered by address and chain ",
       tags: ["Admin"],
-      operationId: "transactionDetails",
+      operationId: "nonceDetails",
       querystring: walletWithAddressQuerySchema,
       response: {
         ...standardResponseSchema,
@@ -109,30 +102,44 @@ export const getNonceDetails = async ({
 } = {}) => {
   const lastUsedNonceKeys = await getLastUsedNonceKeys(walletAddress, chainId);
 
-  const result = await Promise.all(
-    lastUsedNonceKeys.map(async (key) => {
-      const { chainId, walletAddress } = splitLastUsedNonceKey(key);
+  const pipeline = redis.pipeline();
+  const onchainNoncePromises: Promise<number>[] = [];
 
-      const [lastUsedNonce, sentNonces, recycledNonces, onchainNonce] =
-        await Promise.all([
-          redis.get(lastUsedNonceKey(chainId, walletAddress)),
-          redis.smembers(sentNoncesKey(chainId, walletAddress)),
-          redis.smembers(recycledNoncesKey(chainId, walletAddress)),
-          getOnchainNonce(chainId, walletAddress),
-        ]);
+  const keyMap = lastUsedNonceKeys.map((key) => {
+    const { chainId, walletAddress } = splitLastUsedNonceKey(key);
 
-      return {
-        walletAddress,
-        onchainNonce: onchainNonce.toString(),
-        lastUsedNonce: lastUsedNonce ?? "0",
-        sentNonces,
-        recycledNonces,
-        chainId,
-      };
-    }),
-  );
+    pipeline.get(lastUsedNonceKey(chainId, walletAddress));
+    pipeline.smembers(sentNoncesKey(chainId, walletAddress));
+    pipeline.smembers(recycledNoncesKey(chainId, walletAddress));
 
-  return result;
+    onchainNoncePromises.push(getOnchainNonce(chainId, walletAddress));
+
+    return { chainId, walletAddress };
+  });
+
+  const [pipelineResults, onchainNonces] = await Promise.all([
+    pipeline.exec(),
+    Promise.all(onchainNoncePromises),
+  ]);
+
+  if (!pipelineResults) {
+    throw new Error("Failed to execute Redis pipeline");
+  }
+
+  return keyMap.map((key, index) => {
+    const pipelineOffset = index * 3;
+    const [lastUsedNonceResult, sentNoncesResult, recycledNoncesResult] =
+      pipelineResults.slice(pipelineOffset, pipelineOffset + 3);
+
+    return {
+      walletAddress: key.walletAddress,
+      chainId: key.chainId,
+      onchainNonce: onchainNonces[index].toString(),
+      lastUsedNonce: (lastUsedNonceResult[1] as string | null) ?? "0",
+      sentNonces: sentNoncesResult[1] as string[],
+      recycledNonces: recycledNoncesResult[1] as string[],
+    };
+  });
 };
 
 /**
