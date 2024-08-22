@@ -1,12 +1,16 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getContract } from "thirdweb";
+import { isContractDeployed } from "thirdweb/utils";
 import { upsertChainIndexer } from "../../../../db/chainIndexers/upsertChainIndexer";
 import { createContractSubscription } from "../../../../db/contractSubscriptions/createContractSubscription";
 import { getContractSubscriptionsUniqueChainIds } from "../../../../db/contractSubscriptions/getContractSubscriptions";
 import { insertWebhook } from "../../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../../schema/webhooks";
 import { getSdk } from "../../../../utils/cache/getSdk";
+import { getChain } from "../../../../utils/chain";
+import { thirdwebClient } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import {
   contractSubscriptionSchema,
@@ -101,6 +105,21 @@ export async function addContractSubscription(fastify: FastifyInstance) {
           "Contract Subscriptions must parse event logs and/or receipts.",
           StatusCodes.BAD_REQUEST,
           "BAD_REQUEST",
+        );
+      }
+
+      // Assert a valid contract.
+      const contract = getContract({
+        client: thirdwebClient,
+        chain: await getChain(chainId),
+        address: contractAddress,
+      });
+      const isValid = await isContractDeployed(contract);
+      if (!isValid) {
+        throw createCustomError(
+          "Invalid contract.",
+          StatusCodes.BAD_REQUEST,
+          "INVALID_CONTRACT",
         );
       }
 
