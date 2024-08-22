@@ -122,6 +122,7 @@ import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 
 // Indexer
+import { getNonceDetailsRoute } from "./admin/nonces";
 import { getTransactionDetails } from "./admin/transaction";
 import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
 import { getIpAllowlist } from "./configuration/ip/get";
@@ -289,4 +290,5 @@ export const withRoutes = async (fastify: FastifyInstance) => {
 
   // Admin
   await fastify.register(getTransactionDetails);
+  await fastify.register(getNonceDetailsRoute);
 };
