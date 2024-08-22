@@ -22,42 +22,41 @@ Engine is an open-source, backend HTTP server that provides a production-ready i
     <img src="./docs/images/engine-overview.webp" alt="Overview" width="400">
 </p>
 
-## Quick links
+## Resources
 
+- [Get Engine hosted by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted)
 - [Documentation](https://portal.thirdweb.com/engine)
 - [Self-host instructions](https://portal.thirdweb.com/engine/self-host)
-- [Get Engine hosted by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted)
 
 ## Features
 
-- Managed backend wallets
+- 700+ transactions sent onchain per second (can fill up an EVM block!)
+- Managed backend wallets (local, KMS)
 - Contract calls and deployments ([all EVM blockchains](https://thirdweb.com/chainlist) + private subnets)
-- Parallel transactions with retries
-- Account abstraction with session tokens
-- Gasless transactions
+- Gas optimizations with retries
+- Smart account support with session tokens
+- Gasless transactions with relayers
 - Wallet and contract webhooks
 - And [much more!](https://portal.thirdweb.com/engine)
 
-## Get Engine
+## Setup
 
-### Self-host
-
-Host Engine on your own instructure for free. [View self-host instructions](https://portal.thirdweb.com/engine/self-host).
-
-Other deployment options:
-
-- [Deploy on Railway](https://railway.app/template/EASlyJ)
-
-### Cloud-host
-
-[Get Engine hosted and managed by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted).
+- [Get Engine hosted and managed by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted)
+- [Self-host Engine for free](https://portal.thirdweb.com/engine/self-host)
+- Other deployment options
+  - [Deploy on Railway](https://railway.app/template/fcEVay)
 
 ## Contributing
 
-We welcome contributions! See [How to contribute](./contributing.md).
+We welcome your contributions! See [how to contribute](./contributing.md).
+
+## We're hiring!
+
+[thirdweb is hiring engineers](https://careers.thirdweb.com/)! (Contributing is always a good way to get our attention. 😉)
 
 ## Get in touch
 
-- Support: [Join the Discord](https://discord.gg/thirdweb)
+- Community: [Join us on Discord](https://discord.gg/thirdweb)
+- Support: <https://thirdweb.com/support>
 - Twitter: [@thirdweb](https://twitter.com/thirdweb)
 - Report a vulnerability: security@thirdweb.com

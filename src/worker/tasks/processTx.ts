@@ -9,6 +9,7 @@ import {
 import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
 import { ethers } from "ethers";
 import { BigNumber } from "ethers/lib/ethers";
+import { getContractAddress } from "ethers/lib/utils";
 import { RpcResponse } from "viem/_types/utils/rpc";
 import { prisma } from "../../db/client";
 import { getQueuedTxs } from "../../db/transactions/getQueuedTxs";
@@ -23,6 +24,7 @@ import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { parseTxError } from "../../utils/errors";
 import { logger } from "../../utils/logger";
+import { redis } from "../../utils/redis/redis";
 import {
   ReportUsageParams,
   UsageEventTxActionEnum,
@@ -43,6 +45,8 @@ type RpcResponseData = {
 };
 
 export const processTx = async () => {
+  logger({ service: "worker", level: "info", message: "[processTx] Start" });
+
   try {
     const sendWebhookForQueueIds: WebhookData[] = [];
     const reportUsageForQueueIds: ReportUsageParams[] = [];
@@ -50,28 +54,14 @@ export const processTx = async () => {
       async (pgtx) => {
         // 1. Select a batch of transactions and lock the rows so no other workers pick them up
         const txs = await getQueuedTxs({ pgtx });
-
         if (txs.length === 0) {
           return;
         }
-
-        logger({
-          service: "worker",
-          level: "info",
-          message: `Received ${txs.length} transactions to process`,
-        });
 
         // 2. Sort transactions and user operations.
         const txsToSend: Transactions[] = [];
         const userOpsToSend: Transactions[] = [];
         for (const tx of txs) {
-          logger({
-            service: "worker",
-            level: "info",
-            queueId: tx.id,
-            message: `Processing`,
-          });
-
           if (tx.accountAddress && tx.signerAddress) {
             userOpsToSend.push(tx);
           } else {
@@ -88,6 +78,14 @@ export const processTx = async () => {
           } else {
             txsByWallet[key] = [tx];
           }
+        });
+
+        logger({
+          service: "worker",
+          level: "info",
+          message: `[processTx] Found ${txsToSend.length} transactions and ${
+            userOpsToSend.length
+          } userOps across ${Object.keys(txsByWallet).length}.`,
         });
 
         // 4. Send transaction batches in parallel.
@@ -116,6 +114,11 @@ export const processTx = async () => {
             chainId,
             address: walletAddress,
           });
+          logger({
+            service: "worker",
+            level: "debug",
+            message: `[processTx] Got DB nonce ${dbNonceData?.nonce} for ${walletAddress}.`,
+          });
 
           // For each wallet address, check the nonce in database and the mempool
           const [mempoolNonceData, gasOverrides, sentAtBlockNumber] =
@@ -124,6 +127,11 @@ export const processTx = async () => {
               getDefaultGasOverrides(provider),
               provider.getBlockNumber(),
             ]);
+          logger({
+            service: "worker",
+            level: "debug",
+            message: `[processTx] Got onchain nonce ${mempoolNonceData} for ${walletAddress}.`,
+          });
 
           // - Take the larger of the nonces, and update database nonce to mempool value if mempool is greater
           let startNonce: BigNumber;
@@ -142,10 +150,15 @@ export const processTx = async () => {
             startNonce = dbNonce;
           }
 
+          logger({
+            service: "worker",
+            level: "debug",
+            message: `[processTx] Sending ${txsToSend.length} transactions from wallet ${walletAddress}.`,
+          });
+
           const rpcResponses: RpcResponseData[] = [];
           let txIndex = 0;
           let nonceIncrement = 0;
-
           while (txIndex < txsToSend.length) {
             const nonce = startNonce.add(nonceIncrement);
             const tx = txsToSend[txIndex];
@@ -170,11 +183,27 @@ export const processTx = async () => {
                 ...gasOverrides,
               });
 
-              // TODO: We need to target specific cases
-              // Bump gas limit to avoid occasional out of gas errors
-              txRequest.gasLimit = txRequest.gasLimit
-                ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
-                : undefined;
+              // Gas limit override
+              if (tx.gasLimit) {
+                txRequest.gasLimit = BigNumber.from(tx.gasLimit);
+              } else {
+                // TODO: We need to target specific cases
+                // Bump gas limit to avoid occasional out of gas errors
+                txRequest.gasLimit = txRequest.gasLimit
+                  ? BigNumber.from(txRequest.gasLimit).mul(120).div(100)
+                  : undefined;
+              }
+
+              // Gas price overrides
+              if (tx.maxFeePerGas) {
+                txRequest.maxFeePerGas = BigNumber.from(tx.maxFeePerGas);
+              }
+
+              if (tx.maxPriorityFeePerGas) {
+                txRequest.maxPriorityFeePerGas = BigNumber.from(
+                  tx.maxPriorityFeePerGas,
+                );
+              }
 
               const signature = await signer.signTransaction(txRequest);
               const rpcRequest = {
@@ -275,11 +304,18 @@ export const processTx = async () => {
             }
           }
 
+          const nextUnusedNonce = startNonce.add(nonceIncrement).toNumber();
           await updateWalletNonce({
             pgtx,
             address: walletAddress,
             chainId,
-            nonce: startNonce.add(nonceIncrement).toNumber(),
+            nonce: nextUnusedNonce,
+          });
+
+          logger({
+            service: "worker",
+            level: "debug",
+            message: `[processTx] Updated nonce to ${nextUnusedNonce} for ${walletAddress}.`,
           });
 
           // Update DB state in parallel.
@@ -288,6 +324,16 @@ export const processTx = async () => {
               if (rpcResponse.result) {
                 // Transaction was successful.
                 const transactionHash = rpcResponse.result;
+                let contractAddress: string | undefined;
+                if (
+                  tx.extension === "deploy-published" &&
+                  tx.functionName === "deploy"
+                ) {
+                  contractAddress = getContractAddress({
+                    from: txRequest.from!,
+                    nonce: BigNumber.from(txRequest.nonce!),
+                  });
+                }
                 await updateTx({
                   pgtx,
                   queueId: tx.id,
@@ -297,6 +343,7 @@ export const processTx = async () => {
                     res: txRequest,
                     sentAt: new Date(),
                     sentAtBlockNumber: sentAtBlockNumber!,
+                    deployedContractAddress: contractAddress,
                   },
                 });
                 reportUsageForQueueIds.push({
@@ -353,6 +400,38 @@ export const processTx = async () => {
               walletAddress: tx.signerAddress!,
               accountAddress: tx.accountAddress!,
             });
+
+            // Check if the Smart Account is deployed onchain before sending the user op
+            // check Redis cache for account deployed code
+            const cachedAccountDeployedCode = await redis.get(
+              `account-deployed:${tx.accountAddress!.toLowerCase()}`,
+            );
+
+            // if not found in cache, fetch from chain and set in cache once
+            if (!cachedAccountDeployedCode) {
+              const accountDeployedCode = await sdk
+                .getProvider()
+                .getCode(tx.accountAddress!);
+
+              if (accountDeployedCode === "0x") {
+                logger({
+                  service: "worker",
+                  level: "warn",
+                  queueId: tx.id,
+                  message: `Account not deployed. Skipping`,
+                });
+
+                return;
+              }
+
+              await redis.set(
+                `account-deployed:${tx.accountAddress!.toLowerCase()}`,
+                accountDeployedCode,
+                "EX",
+                60 * 60 * 24,
+              );
+            }
+
             const signer = sdk.getSigner() as ERC4337EthersSigner;
 
             const nonce = randomNonce();
@@ -366,6 +445,24 @@ export const processTx = async () => {
                   nonce,
                 },
               );
+
+            // Temporary fix untill SDK allows us to do this
+            if (tx.gasLimit) {
+              unsignedOp.callGasLimit = BigNumber.from(tx.gasLimit);
+              unsignedOp.paymasterAndData = "0x";
+              const DUMMY_SIGNATURE =
+                "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
+              unsignedOp.signature = DUMMY_SIGNATURE;
+              const paymasterResult =
+                await signer.smartAccountAPI.paymasterAPI.getPaymasterAndData(
+                  unsignedOp,
+                );
+              const paymasterAndData = paymasterResult.paymasterAndData;
+              if (paymasterAndData && paymasterAndData !== "0x") {
+                unsignedOp.paymasterAndData = paymasterAndData;
+              }
+            }
+
             const userOp = await signer.smartAccountAPI.signUserOp(unsignedOp);
             const userOpHash = await signer.smartAccountAPI.getUserOpHash(
               userOp,
@@ -437,7 +534,17 @@ export const processTx = async () => {
           }
         });
 
+        logger({
+          service: "worker",
+          level: "debug",
+          message: `[processTx] Awaiting transactions/userOps promises...`,
+        });
         await Promise.all([...sentTxs, ...sentUserOps]);
+        logger({
+          service: "worker",
+          level: "info",
+          message: `[processTx] Transactions/userOps completed.`,
+        });
       },
       {
         // TODO: Should be dynamic with the batch size.
@@ -455,6 +562,8 @@ export const processTx = async () => {
       error: err,
     });
   }
+
+  logger({ service: "worker", level: "info", message: "[processTx] Done" });
 };
 
 const alertOnBackendWalletLowBalance = async (wallet: UserWallet) => {

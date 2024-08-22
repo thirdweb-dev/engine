@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { updateWalletDetails } from "../../../db/wallets/updateWalletDetails";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   walletAddress: Type.String(),
   label: Type.Optional(Type.String()),
 });
@@ -25,7 +25,7 @@ responseSchema.example = {
 
 export const updateBackendWallet = async (fastify: FastifyInstance) => {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
@@ -35,7 +35,7 @@ export const updateBackendWallet = async (fastify: FastifyInstance) => {
       description: "Update a backend wallet.",
       tags: ["Backend Wallet"],
       operationId: "update",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

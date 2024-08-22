@@ -1,20 +1,8 @@
 import { prisma } from "../client";
 
-interface RemoveContractSubscriptionParams {
-  chainId: number;
-  contractAddress: string;
-}
-
-export const deleteContractSubscription = async ({
-  chainId,
-  contractAddress,
-}: RemoveContractSubscriptionParams) => {
-  return prisma.contractSubscriptions.updateMany({
-    where: {
-      chainId,
-      contractAddress,
-      deletedAt: null,
-    },
+export const deleteContractSubscription = async (id: string) => {
+  return prisma.contractSubscriptions.update({
+    where: { id },
     data: {
       deletedAt: new Date(),
     },

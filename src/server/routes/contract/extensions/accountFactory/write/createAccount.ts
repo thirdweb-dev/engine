@@ -3,16 +3,18 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { redis } from "../../../../../../utils/redis/redis";
 import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import {
   contractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   adminAddress: Type.String({
     description: "The admin address to create an account for",
   }),
@@ -21,9 +23,10 @@ const BodySchema = Type.Object({
       description: "Extra data to add to use in creating the account address",
     }),
   ),
+  ...txOverridesWithValueSchema.properties,
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     adminAddress: "0x3ecdbf3b911d0e9052b64850693888b008e18373",
   },
@@ -33,7 +36,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
   fastify.route<{
     Params: Static<typeof contractParamSchema>;
     Reply: Static<typeof prebuiltDeployResponseSchema>;
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
     Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
@@ -44,8 +47,8 @@ export const createAccount = async (fastify: FastifyInstance) => {
       tags: ["Account Factory"],
       operationId: "createAccount",
       params: contractParamSchema,
-      headers: walletHeaderSchema,
-      body: BodySchema,
+      headers: walletWithAAHeaderSchema,
+      body: requestBodySchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -55,12 +58,12 @@ export const createAccount = async (fastify: FastifyInstance) => {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { adminAddress, extraData } = request.body;
+      const { adminAddress, extraData, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const contract = await getContract({
@@ -87,7 +90,12 @@ export const createAccount = async (fastify: FastifyInstance) => {
         deployedContractAddress: deployedAddress,
         deployedContractType: "account",
         idempotencyKey,
+        txOverrides,
       });
+
+      // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
+      // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
+      await redis.set(`account-factory:${deployedAddress.toLowerCase()}`, contractAddress, 'EX', 7 * 24 * 60 * 60);
 
       reply.status(StatusCodes.OK).send({
         result: {

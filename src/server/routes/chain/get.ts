@@ -23,18 +23,18 @@ const responseSchema = Type.Object({
 responseSchema.examples = [
   {
     result: {
-      name: "Mumbai",
+      name: "Polygon Amoy Testnet",
       chain: "Polygon",
-      rpc: ["https://mumbai.rpc.thirdweb.com/${THIRDWEB_API_SECRET_KEY}"],
+      rpc: ["https://80002.rpc.thirdweb.com/${THIRDWEB_API_SECRET_KEY}"],
       nativeCurrency: {
         name: "MATIC",
         symbol: "MATIC",
         decimals: 18,
       },
-      shortName: "maticmum",
-      chainId: 80001,
+      shortName: "polygonamoy",
+      chainId: 80002,
       testnet: true,
-      slug: "mumbai",
+      slug: "polygon-amoy-testnet",
     },
   },
 ];

@@ -8,46 +8,48 @@ generator client {
 }
 
 model Configuration {
-  id                             String  @id @default("default") @map("id")
+  id                                     String  @id @default("default") @map("id")
   // Chains
-  chainOverrides                 String? @map("chainOverrides")
+  chainOverrides                         String? @map("chainOverrides")
   // Tx Processing
-  minTxsToProcess                Int     @map("minTxsToProcess")
-  maxTxsToProcess                Int     @map("maxTxsToProcess")
+  minTxsToProcess                        Int     @map("minTxsToProcess")
+  maxTxsToProcess                        Int     @map("maxTxsToProcess")
   // Tx Updates
-  minedTxListenerCronSchedule    String? @map("minedTxsCronSchedule")
-  maxTxsToUpdate                 Int     @map("maxTxsToUpdate")
+  minedTxListenerCronSchedule            String? @map("minedTxsCronSchedule")
+  maxTxsToUpdate                         Int     @map("maxTxsToUpdate")
   // Tx Retries
-  retryTxListenerCronSchedule    String? @map("retryTxsCronSchedule")
-  minEllapsedBlocksBeforeRetry   Int     @map("minEllapsedBlocksBeforeRetry")
-  maxFeePerGasForRetries         String  @map("maxFeePerGasForRetries")
-  maxPriorityFeePerGasForRetries String  @map("maxPriorityFeePerGasForRetries")
-  maxRetriesPerTx                Int     @map("maxRetriesPerTx")
+  retryTxListenerCronSchedule            String? @map("retryTxsCronSchedule")
+  minEllapsedBlocksBeforeRetry           Int     @map("minEllapsedBlocksBeforeRetry")
+  maxFeePerGasForRetries                 String  @map("maxFeePerGasForRetries")
+  maxPriorityFeePerGasForRetries         String  @map("maxPriorityFeePerGasForRetries")
+  maxRetriesPerTx                        Int     @map("maxRetriesPerTx")
   // Contract Indexer Updates
-  indexerListenerCronSchedule    String? @map("indexerListenerCronSchedule")
-  maxBlocksToIndex               Int     @default(25) @map("maxBlocksToIndex")
-  cursorDelaySeconds             Int     @default(2) @map("cursorDelaySeconds")
+  indexerListenerCronSchedule            String? @map("indexerListenerCronSchedule")
+  maxBlocksToIndex                       Int     @default(25) @map("maxBlocksToIndex")
+  cursorDelaySeconds                     Int     @default(2) @map("cursorDelaySeconds")
+  contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
   // AWS
-  awsAccessKeyId                     String? @map("awsAccessKeyId")
-  awsSecretAccessKey                 String? @map("awsSecretAccessKey")
-  awsRegion                          String? @map("awsRegion")
+  awsAccessKeyId                     String?  @map("awsAccessKeyId")
+  awsSecretAccessKey                 String?  @map("awsSecretAccessKey")
+  awsRegion                          String?  @map("awsRegion")
   // GCP
-  gcpApplicationProjectId            String? @map("gcpApplicationProjectId")
-  gcpKmsLocationId                   String? @map("gcpKmsLocationId")
-  gcpKmsKeyRingId                    String? @map("gcpKmsKeyRingId")
-  gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail")
-  gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey")
+  gcpApplicationProjectId            String?  @map("gcpApplicationProjectId")
+  gcpKmsLocationId                   String?  @map("gcpKmsLocationId")
+  gcpKmsKeyRingId                    String?  @map("gcpKmsKeyRingId")
+  gcpApplicationCredentialEmail      String?  @map("gcpApplicationCredentialEmail")
+  gcpApplicationCredentialPrivateKey String?  @map("gcpApplicationCredentialPrivateKey")
   // Auth
-  authDomain                         String  @default("") @map("authDomain") // TODO: Remove defaults on major
-  authWalletEncryptedJson            String  @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
+  authDomain                         String   @default("") @map("authDomain") // TODO: Remove defaults on major
+  authWalletEncryptedJson            String   @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
   // Webhook
-  webhookUrl                         String? @map("webhookUrl")
-  webhookAuthBearerToken             String? @map("webhookAuthBearerToken")
+  webhookUrl                         String?  @map("webhookUrl")
+  webhookAuthBearerToken             String?  @map("webhookAuthBearerToken")
   // Wallet balance
-  minWalletBalance                   String  @default("20000000000000000") @map("minWalletBalance")
-  accessControlAllowOrigin           String  @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
-  clearCacheCronSchedule             String  @default("*/30 * * * * *") @map("clearCacheCronSchedule")
+  minWalletBalance                   String   @default("20000000000000000") @map("minWalletBalance")
+  accessControlAllowOrigin           String   @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
+  ipAllowlist                        String[] @default([]) @map("ipAllowlist")
+  clearCacheCronSchedule             String   @default("*/30 * * * * *") @map("clearCacheCronSchedule")
 
   @@map("configuration")
 }
@@ -158,18 +160,23 @@ model Transactions {
   sentAtBlockNumber         Int?      @map("sentAtBlockNumber")
   blockNumber               Int?      @map("blockNumber")
 
+  @@index([sentAt, minedAt, cancelledAt, errorMessage, queuedAt])
+  @@index([sentAt, accountAddress, userOpHash, minedAt, errorMessage, retryCount])
+  @@index([sentAt, transactionHash, accountAddress, minedAt, errorMessage, nonce])
+  @@index([queuedAt])
   @@map("transactions")
 }
 
 model Webhooks {
-  id        Int       @id @default(autoincrement()) @map("id")
-  name      String?   @map("name")
-  url       String    @map("url")
-  secret    String    @map("secret")
-  eventType String    @map("evenType")
-  createdAt DateTime  @default(now()) @map("createdAt")
-  updatedAt DateTime  @updatedAt @map("updatedAt")
-  revokedAt DateTime? @map("revokedAt")
+  id                    Int                     @id @default(autoincrement()) @map("id")
+  name                  String?                 @map("name")
+  url                   String                  @map("url")
+  secret                String                  @map("secret")
+  eventType             String                  @map("evenType")
+  createdAt             DateTime                @default(now()) @map("createdAt")
+  updatedAt             DateTime                @updatedAt @map("updatedAt")
+  revokedAt             DateTime?               @map("revokedAt")
+  ContractSubscriptions ContractSubscriptions[]
 
   @@map("webhooks")
 }
@@ -186,13 +193,20 @@ model Relayers {
 }
 
 model ContractSubscriptions {
-  id              String @id @default(uuid()) @map("id")
-  chainId         Int
-  contractAddress String
+  id                         String   @id @default(uuid()) @map("id")
+  chainId                    Int
+  contractAddress            String
+  webhookId                  Int?
+  processEventLogs           Boolean  @default(true)
+  filterEvents               String[] @default([]) // empty array = no filter
+  processTransactionReceipts Boolean  @default(true)
+  filterFunctions            String[] @default([]) // empty array = no filter
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+
+  webhook Webhooks? @relation(fields: [webhookId], references: [id], onDelete: SetNull)
 
   // optimize distinct lookups
   @@index([chainId])
@@ -237,6 +251,7 @@ model ContractTransactionReceipts {
   blockHash       String
   timestamp       DateTime
   data            String
+  functionName    String?
 
   to               String
   from             String

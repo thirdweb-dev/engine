@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../../db/client";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Array(
     Type.Object({
       walletAddress: Type.String(),
@@ -16,7 +16,7 @@ const ReplySchema = Type.Object({
 
 export async function getAllPermissions(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/auth/permissions/get-all",
@@ -27,7 +27,7 @@ export async function getAllPermissions(fastify: FastifyInstance) {
       operationId: "getAll",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

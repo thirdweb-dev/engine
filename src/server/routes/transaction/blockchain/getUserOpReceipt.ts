@@ -16,7 +16,7 @@ const requestSchema = Type.Object({
     pattern: "^0x([A-Fa-f0-9]{64})$",
   }),
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain ID or name",
   }),
 });
@@ -26,7 +26,7 @@ export const responseBodySchema = Type.Object({
   // TODO: Use Type.Any() instead of strict typing.
   // UserOp receipts from different providers/chains may not have a consistent response,
   // so Engine would prefer to return _any_ result than fail due to strict typing errors.
-  result: Type.Union([Type.Any(), Type.Null()]),
+  result: Type.Any(),
 });
 
 responseBodySchema.example = {

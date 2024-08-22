@@ -1,12 +1,16 @@
+import { Webhooks } from "@prisma/client";
 import crypto from "crypto";
-import { getTxByIds } from "../db/transactions/getTxByIds";
+import { getTransactionsByQueueIds } from "../db/transactions/getTxByIds";
 import {
-  SanitizedWebHooksSchema,
   WalletBalanceWebhookSchema,
   WebhooksEventTypes,
 } from "../schema/webhooks";
-import { TransactionStatus } from "../server/schemas/transaction";
-import { getWebhook } from "./cache/getWebhook";
+import {
+  TransactionStatus,
+  toTransactionSchema,
+} from "../server/schemas/transaction";
+import { enqueueWebhook } from "../worker/queues/sendWebhookQueue";
+import { getWebhooksByEventType } from "./cache/getWebhook";
 import { logger } from "./logger";
 
 let balanceNotificationLastSentAt = -1;
@@ -22,7 +26,7 @@ export const generateSignature = (
 };
 
 export const createWebhookRequestHeaders = async (
-  webhookConfig: SanitizedWebHooksSchema,
+  webhook: Webhooks,
   body: Record<string, any>,
 ): Promise<HeadersInit> => {
   const headers: {
@@ -36,11 +40,11 @@ export const createWebhookRequestHeaders = async (
     "Content-Type": "application/json",
   };
 
-  if (webhookConfig.secret) {
+  if (webhook.secret) {
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    const signature = generateSignature(body, timestamp, webhookConfig.secret);
+    const signature = generateSignature(body, timestamp, webhook.secret);
 
-    headers["Authorization"] = `Bearer ${webhookConfig.secret}`;
+    headers["Authorization"] = `Bearer ${webhook.secret}`;
     headers["x-engine-signature"] = signature;
     headers["x-engine-timestamp"] = timestamp;
   }
@@ -48,37 +52,35 @@ export const createWebhookRequestHeaders = async (
   return headers;
 };
 
+export interface WebhookResponse {
+  ok: boolean;
+  status: number;
+  body: string;
+}
+
 export const sendWebhookRequest = async (
-  webhookConfig: SanitizedWebHooksSchema,
+  webhook: Webhooks,
   body: Record<string, any>,
-): Promise<boolean> => {
+): Promise<WebhookResponse> => {
   try {
-    const headers = await createWebhookRequestHeaders(webhookConfig, body);
-    const response = await fetch(webhookConfig?.url, {
+    const headers = await createWebhookRequestHeaders(webhook, body);
+    const resp = await fetch(webhook.url, {
       method: "POST",
       headers: headers,
       body: JSON.stringify(body),
     });
 
-    if (!response.ok) {
-      logger({
-        service: "server",
-        level: "error",
-        message: `[sendWebhook] Webhook request error: ${response.status} ${response.statusText}`,
-      });
-
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    logger({
-      service: "server",
-      level: "error",
-      message: `[sendWebhook] Webhook request error: ${error}`,
-      error,
-    });
-    return false;
+    return {
+      ok: resp.ok,
+      status: resp.status,
+      body: await resp.text(),
+    };
+  } catch (e: any) {
+    return {
+      ok: false,
+      status: 500,
+      body: e.toString(),
+    };
   }
 };
 
@@ -87,60 +89,28 @@ export interface WebhookData {
   status: TransactionStatus;
 }
 
-export const sendWebhooks = async (webhooks: WebhookData[]) => {
-  const queueIds = webhooks.map((webhook) => webhook.queueId);
-  const txs = await getTxByIds({ queueIds });
-  if (!txs || txs.length === 0) {
-    return;
-  }
+export const sendWebhooks = async (data: WebhookData[]) => {
+  const queueIds = data.map((d) => d.queueId);
+  const transactions = await getTransactionsByQueueIds(queueIds);
 
-  const webhooksWithTxs = webhooks
-    .map((webhook) => {
-      const tx = txs.find((tx) => tx.queueId === webhook.queueId);
-      return {
-        ...webhook,
-        tx,
-      };
-    })
-    .filter((webhook) => !!webhook.tx);
-
-  for (const webhook of webhooksWithTxs) {
-    const webhookStatus =
-      webhook.status === TransactionStatus.Queued
+  for (const transaction of transactions) {
+    const transactionResponse = toTransactionSchema(transaction);
+    const type =
+      transactionResponse.status === TransactionStatus.Queued
         ? WebhooksEventTypes.QUEUED_TX
-        : webhook.status === TransactionStatus.Sent
+        : transactionResponse.status === TransactionStatus.Sent
         ? WebhooksEventTypes.SENT_TX
-        : webhook.status === TransactionStatus.Mined
+        : transactionResponse.status === TransactionStatus.Mined
         ? WebhooksEventTypes.MINED_TX
-        : webhook.status === TransactionStatus.Errored
+        : transactionResponse.status === TransactionStatus.Errored
         ? WebhooksEventTypes.ERRORED_TX
-        : webhook.status === TransactionStatus.Cancelled
+        : transactionResponse.status === TransactionStatus.Cancelled
         ? WebhooksEventTypes.CANCELLED_TX
         : undefined;
 
-    const webhookConfigs = await Promise.all([
-      ...((await getWebhook(WebhooksEventTypes.ALL_TX)) || []),
-      ...(webhookStatus ? await getWebhook(webhookStatus) : []),
-    ]);
-
-    await Promise.all(
-      webhookConfigs.map(async (webhookConfig) => {
-        if (!webhookConfig.active) {
-          logger({
-            service: "server",
-            level: "debug",
-            message: "No webhook set or active, skipping webhook send",
-          });
-
-          return;
-        }
-
-        await sendWebhookRequest(
-          webhookConfig,
-          webhook.tx as Record<string, any>,
-        );
-      }),
-    );
+    if (type) {
+      await enqueueWebhook({ type, transaction });
+    }
   }
 };
 
@@ -159,7 +129,7 @@ export const sendBalanceWebhook = async (
       return;
     }
 
-    const webhooks = await getWebhook(
+    const webhooks = await getWebhooksByEventType(
       WebhooksEventTypes.BACKEND_WALLET_BALANCE,
     );
 
@@ -174,7 +144,7 @@ export const sendBalanceWebhook = async (
     }
 
     webhooks.map(async (config) => {
-      if (!config || !config.active) {
+      if (!config || config.revokedAt) {
         logger({
           service: "server",
           level: "debug",

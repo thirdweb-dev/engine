@@ -59,6 +59,8 @@ import { getCacheConfiguration } from "./configuration/cache/get";
 import { updateCacheConfiguration } from "./configuration/cache/update";
 import { getChainsConfiguration } from "./configuration/chains/get";
 import { updateChainsConfiguration } from "./configuration/chains/update";
+import { getContractSubscriptionsConfiguration } from "./configuration/contract-subscriptions/get";
+import { updateContractSubscriptionsConfiguration } from "./configuration/contract-subscriptions/update";
 import { addUrlToCorsConfiguration } from "./configuration/cors/add";
 import { getCorsConfiguration } from "./configuration/cors/get";
 import { removeUrlToCorsConfiguration } from "./configuration/cors/remove";
@@ -122,6 +124,8 @@ import { checkGroupStatus } from "./transaction/group";
 
 // Indexer
 import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
+import { getIpAllowlist } from "./configuration/ip/get";
+import { setIpAllowlist } from "./configuration/ip/set";
 import { getContractEventLogs } from "./contract/events/getContractEventLogs";
 import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
 import { pageEventLogs } from "./contract/events/paginateEventLogs";
@@ -171,6 +175,10 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(setUrlsToCorsConfiguration);
   await fastify.register(getCacheConfiguration);
   await fastify.register(updateCacheConfiguration);
+  await fastify.register(getContractSubscriptionsConfiguration);
+  await fastify.register(updateContractSubscriptionsConfiguration);
+  await fastify.register(getIpAllowlist);
+  await fastify.register(setIpAllowlist);
 
   // Webhooks
   await fastify.register(getAllWebhooksData);
@@ -262,18 +270,20 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(queueStatus);
 
   // Contract Subscriptions
-  await fastify.register(addContractSubscription);
   await fastify.register(getContractSubscriptions);
-  await fastify.register(getContractIndexedBlockRange);
+  await fastify.register(addContractSubscription);
   await fastify.register(removeContractSubscription);
+  await fastify.register(getContractIndexedBlockRange);
   await fastify.register(getLatestBlock);
 
   // Contract Transactions
+  // @deprecated
   await fastify.register(getContractTransactionReceipts);
   await fastify.register(getContractTransactionReceiptsByTimestamp);
   await fastify.register(pageTransactionReceipts);
 
   // Contract Event Logs
+  // @deprecated
   await fastify.register(getContractEventLogs);
   await fastify.register(getEventLogs);
   await fastify.register(pageEventLogs);

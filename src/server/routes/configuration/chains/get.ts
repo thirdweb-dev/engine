@@ -4,13 +4,13 @@ import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-export const ReplySchema = Type.Object({
+export const responseBodySchema = Type.Object({
   result: Type.Union([Type.String(), Type.Null()]),
 });
 
 export async function getChainsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/configuration/chains",
@@ -21,7 +21,7 @@ export async function getChainsConfiguration(fastify: FastifyInstance) {
       operationId: "getChainsConfiguration",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

@@ -1,12 +1,20 @@
+###################################
+# USED FOR LOCAL DEVELOPMENT ONLY #
+###################################
+
 services:
-  db:
-    image: postgres:latest
+  postgres:
+    container_name: postgres
+    image: postgres:16.3
+    restart: always
     env_file:
       - .env
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - 5432:5432
     deploy:
       resources:
         limits:
@@ -16,25 +24,53 @@ services:
           cpus: "2"
           memory: 2G
 
+  redis:
+    container_name: redis
+    image: redis:7.2
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - redis_data:/data
+
+  bullboard:
+    container_name: bullboard
+    image: deadly0/bull-board:3.2.6
+    restart: always
+    ports:
+      - 3333:3000
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_USE_TLS: "false"
+      BULL_PREFIX: bull
+    depends_on:
+      - redis
+
   engine:
+    profiles:
+      - engine
     build:
       dockerfile: Dockerfile
       context: .
-      target: local
+      target: prod
     env_file:
       - .env
     ports:
       - 3005:3005
     depends_on:
-      - db
+      - postgres
+      - redis
     deploy:
       resources:
         limits:
           cpus: "1"
           memory: 1024M
+    # entrypoint: "yarn start:dev"
     # volumes:
     # - ./:/app
     # - node_modules:/app/node_modules
 
 volumes:
-  db_data:
+  postgres_data:
+  redis_data:

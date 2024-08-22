@@ -2,16 +2,16 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updatePermissions } from "../../../../db/permissions/updatePermissions";
-import { PermissionsSchema } from "../../../schemas/auth";
+import { permissionsSchema } from "../../../schemas/auth";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   walletAddress: Type.String(),
-  permissions: PermissionsSchema,
+  permissions: permissionsSchema,
   label: Type.Optional(Type.String()),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     success: Type.Boolean(),
   }),
@@ -19,8 +19,8 @@ const ReplySchema = Type.Object({
 
 export async function grantPermissions(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/auth/permissions/grant",
@@ -29,10 +29,10 @@ export async function grantPermissions(fastify: FastifyInstance) {
       description: "Grant permissions to a user",
       tags: ["Permissions"],
       operationId: "grant",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

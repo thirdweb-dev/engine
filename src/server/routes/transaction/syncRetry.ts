@@ -5,9 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
 import { updateTx } from "../../../db/transactions/updateTx";
 import { getSdk } from "../../../utils/cache/getSdk";
-import { msSince } from "../../../utils/date";
 import { parseTxError } from "../../../utils/errors";
-import { UsageEventTxActionEnum, reportUsage } from "../../../utils/usage";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { TransactionStatus } from "../../schemas/transaction";
@@ -148,21 +146,6 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           sentAtBlockNumber: blockNumber,
         },
       });
-      reportUsage([
-        {
-          action: UsageEventTxActionEnum.SendTx,
-          input: {
-            fromAddress: tx.fromAddress,
-            toAddress: tx.toAddress,
-            value: tx.value,
-            chainId: tx.chainId,
-            transactionHash,
-            functionName: tx.functionName || undefined,
-            extension: tx.extension || undefined,
-            msSinceQueue: msSince(new Date(tx.queuedAt)),
-          },
-        },
-      ]);
 
       reply.status(StatusCodes.OK).send({
         result: {

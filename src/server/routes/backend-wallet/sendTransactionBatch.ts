@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { v4 } from "uuid";
 import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
 import { walletHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -11,7 +12,7 @@ const ParamsSchema = Type.Object({
   chain: Type.String(),
 });
 
-const BodySchema = Type.Array(
+const requestBodySchema = Type.Array(
   Type.Object({
     toAddress: Type.Optional(
       Type.String({
@@ -24,10 +25,11 @@ const BodySchema = Type.Array(
     value: Type.String({
       examples: ["10000000"],
     }),
+    ...txOverridesWithValueSchema.properties,
   }),
 );
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     groupId: Type.String(),
     queueIds: Type.Array(Type.String()),
@@ -37,8 +39,8 @@ const ReplySchema = Type.Object({
 export async function sendTransactionBatch(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/backend-wallet/:chain/send-transaction-batch",
@@ -49,11 +51,11 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
       tags: ["Backend Wallet"],
       operationId: "sendTransactionBatch",
       params: ParamsSchema,
-      body: BodySchema,
+      body: requestBodySchema,
       headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (request, reply) => {
@@ -72,7 +74,10 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
         fromAddress: fromAddress.toLowerCase(),
         toAddress: tx.toAddress?.toLowerCase(),
         data: tx.data,
-        value: tx.value,
+        value: tx.value || tx.txOverrides?.value,
+        gasLimit: tx.txOverrides?.gas,
+        maxFeePerGas: tx.txOverrides?.maxFeePerGas,
+        maxPriorityFeePerGas: tx.txOverrides?.maxPriorityFeePerGas,
       }));
 
       await prisma.transactions.createMany({

@@ -1,28 +1,17 @@
 import { Static, Type } from "@sinclair/typebox";
-import { TypeSystem } from "@sinclair/typebox/system";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
-import { isLocalhost } from "../../../utils/url";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
+import { isValidHttpUrl } from "../../utils/validator";
 
-const uriFormat = TypeSystem.Format("uri", (input: string) => {
-  // Assert valid URL.
-  try {
-    new URL(input);
-  } catch (err) {
-    return false;
-  }
-
-  return !isLocalhost(input);
-});
-
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   url: Type.String({
     description: "Webhook URL",
-    format: uriFormat,
-    examples: ["https://example.com/webhooks"],
+    examples: ["https://example.com/webhook"],
   }),
   name: Type.Optional(
     Type.String({
@@ -32,7 +21,7 @@ const BodySchema = Type.Object({
   eventType: Type.Enum(WebhooksEventTypes),
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     url: "https://example.com/allTxUpdate",
     name: "All Transaction Events",
@@ -75,20 +64,14 @@ BodySchema.examples = [
   },
 ];
 
-const ReplySchema = Type.Object({
-  result: Type.Object({
-    url: Type.String(),
-    name: Type.String(),
-    createdAt: Type.String(),
-    eventType: Type.String(),
-    secret: Type.Optional(Type.String()),
-    id: Type.Number(),
-  }),
+const responseBodySchema = Type.Object({
+  result: WebhookSchema,
 });
 
 export async function createWebhook(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/webhooks/create",
@@ -98,18 +81,31 @@ export async function createWebhook(fastify: FastifyInstance) {
         "Create a webhook to call when certain blockchain events occur.",
       tags: ["Webhooks"],
       operationId: "create",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {
-      const config = await insertWebhook({ ...req.body });
+      const { url, name, eventType } = req.body;
+
+      if (!isValidHttpUrl(url)) {
+        throw createCustomError(
+          "Invalid webhook URL. Make sure it starts with 'https://'.",
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
+      }
+
+      const webhook = await insertWebhook({
+        url,
+        name,
+        eventType,
+      });
+
       res.status(200).send({
-        result: {
-          ...config,
-        },
+        result: toWebhookSchema(webhook),
       });
     },
   });

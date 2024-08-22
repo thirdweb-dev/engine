@@ -1,3 +1,4 @@
+import { Webhooks } from "@prisma/client";
 import { createHash, randomBytes } from "crypto";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { prisma } from "../client";
@@ -12,7 +13,7 @@ export const insertWebhook = async ({
   url,
   name,
   eventType,
-}: CreateWebhooksParams) => {
+}: CreateWebhooksParams): Promise<Webhooks> => {
   // generate random bytes
   const bytes = randomBytes(4096);
   // hash the bytes to create the secret (this will not be stored by itself)

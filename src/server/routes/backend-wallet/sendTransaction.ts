@@ -7,7 +7,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../schemas/wallet";
+import { txOverridesSchema } from "../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const ParamsSchema = Type.Object({
@@ -26,6 +27,7 @@ const requestBodySchema = Type.Object({
   value: Type.String({
     examples: ["10000000"],
   }),
+  ...txOverridesSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -33,6 +35,9 @@ requestBodySchema.examples = [
     toAddress: "0x7a0ce8524bea337f0bee853b68fabde145dac0a0",
     data: "0x449a52f800000000000000000000000043cae0d7fe86c713530e679ce02574743b2ee9fc0000000000000000000000000000000000000000000000000de0b6b3a7640000",
     value: "0x00",
+    txOverrides: {
+      gas: "50000",
+    },
   },
 ];
 
@@ -52,7 +57,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
       operationId: "sendTransaction",
       params: ParamsSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -61,23 +66,42 @@ export async function sendTransaction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { toAddress, data, value } = request.body;
+      const { toAddress, data, value, txOverrides } = request.body;
       const { simulateTx } = request.query;
       const {
         "x-backend-wallet-address": fromAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+        "x-account-address": accountAddress,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
-      const { id: queueId } = await queueTxRaw({
-        chainId: chainId.toString(),
-        fromAddress,
-        toAddress,
-        data,
-        value,
-        simulateTx,
-        idempotencyKey,
-      });
+      let queueId: string;
+      if (accountAddress) {
+        const { id } = await queueTxRaw({
+          chainId: chainId.toString(),
+          signerAddress: fromAddress,
+          accountAddress,
+          target: toAddress,
+          data,
+          value,
+          simulateTx,
+          idempotencyKey,
+          ...txOverrides,
+        });
+        queueId = id;
+      } else {
+        const { id } = await queueTxRaw({
+          chainId: chainId.toString(),
+          fromAddress,
+          toAddress,
+          data,
+          value,
+          simulateTx,
+          idempotencyKey,
+          ...txOverrides,
+        });
+        queueId = id;
+      }
 
       reply.status(StatusCodes.OK).send({
         result: {

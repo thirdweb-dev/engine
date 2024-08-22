@@ -39,7 +39,7 @@ export const env = createEnv({
       .default("development"),
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace"])
-      .default("debug"),
+      .default("info"),
     LOG_SERVICES: z
       .string()
       .default("server,worker,cache,websocket")
@@ -60,13 +60,30 @@ export const env = createEnv({
     HOST: z.string().default("0.0.0.0"),
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
-    PRUNE_TRANSACTIONS: boolSchema("true"),
+    TRUST_PROXY: z.boolean().default(false),
+    PRUNE_TRANSACTIONS: z
+      .union([
+        z.literal("true").transform(() => 7),
+        z.literal("false").transform(() => 0),
+        z.coerce.number().int(),
+      ])
+      .default(7),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
     ENABLE_KEYPAIR_AUTH: boolSchema("false"),
+    CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS: z.coerce
+      .number()
+      .nonnegative()
+      .default(0),
+    REDIS_URL: z.string(),
+    ENGINE_MODE: z
+      .enum(["default", "sandbox", "server_only", "worker_only"])
+      .default("default"),
+    GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
+    DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -83,11 +100,18 @@ export const env = createEnv({
     HOST: process.env.HOST,
     ENABLE_HTTPS: process.env.ENABLE_HTTPS,
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
+    TRUST_PROXY: process.env.TRUST_PROXY,
     PRUNE_TRANSACTIONS: process.env.PRUNE_TRANSACTIONS,
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
     ENABLE_KEYPAIR_AUTH: process.env.ENABLE_KEYPAIR_AUTH,
+    CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
+      process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
+    REDIS_URL: process.env.REDIS_URL,
+    ENGINE_MODE: process.env.ENGINE_MODE,
+    GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
+    DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
   },
   onValidationError: (error: ZodError) => {
     console.error(

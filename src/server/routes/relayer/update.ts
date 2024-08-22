@@ -5,7 +5,7 @@ import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   id: Type.String(),
   name: Type.Optional(Type.String()),
   chain: Type.Optional(Type.String()),
@@ -14,7 +14,7 @@ const BodySchema = Type.Object({
   allowedForwarders: Type.Optional(Type.Array(Type.String())),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     success: Type.Boolean(),
   }),
@@ -22,8 +22,8 @@ const ReplySchema = Type.Object({
 
 export async function updateRelayer(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/relayer/update",
@@ -32,10 +32,10 @@ export async function updateRelayer(fastify: FastifyInstance) {
       description: "Update a relayer",
       tags: ["Relayer"],
       operationId: "update",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

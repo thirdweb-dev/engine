@@ -1,30 +1,86 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { Address, Hex, defineChain, getContract } from "thirdweb";
+import { NFTInput } from "thirdweb/dist/types/utils/nft/parseNft";
+import { generateMintSignature } from "thirdweb/extensions/erc1155";
+import { getAccount } from "../../../../../../utils/account";
+import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
+import { thirdwebClient } from "../../../../../../utils/sdk";
+import { createCustomError } from "../../../../../middleware/error";
+import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {
   ercNFTResponseType,
+  nftInputSchema,
   signature1155InputSchema,
   signature1155OutputSchema,
 } from "../../../../../schemas/nft";
 import {
-  erc721ContractParamSchema,
+  erc1155ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../../schemas/wallet";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
-// INPUTS
-const requestSchema = erc721ContractParamSchema;
-const requestBodySchema = signature1155InputSchema;
+// v4 sdk
+const requestBodySchemaV4 = signature1155InputSchema;
+const responseSchemaV4 = Type.Object({
+  payload: signature1155OutputSchema,
+  signature: Type.String(),
+});
 
-// OUTPUT
-const responseSchema = Type.Object({
-  result: Type.Object({
-    payload: signature1155OutputSchema,
-    signature: Type.String(),
+// v5 sdk
+const requestBodySchemaV5 = Type.Intersect([
+  Type.Object({
+    contractType: Type.Optional(
+      Type.Union([
+        Type.Literal("TokenERC1155"),
+        Type.Literal("SignatureMintERC1155"),
+      ]),
+    ),
+    to: Type.String(),
+    quantity: Type.String(),
+    royaltyRecipient: Type.Optional(Type.String()),
+    royaltyBps: Type.Optional(Type.Number()),
+    primarySaleRecipient: Type.Optional(Type.String()),
+    pricePerToken: Type.Optional(Type.String()),
+    pricePerTokenWei: Type.Optional(Type.String()),
+    currency: Type.Optional(Type.String()),
+    validityStartTimestamp: Type.Integer(),
+    validityEndTimestamp: Type.Optional(Type.Integer()),
+    uid: Type.Optional(Type.String()),
   }),
+  Type.Union([
+    Type.Object({ metadata: Type.Union([nftInputSchema, Type.String()]) }),
+    Type.Object({ tokenId: Type.String() }),
+  ]),
+]);
+const responseSchemaV5 = Type.Object({
+  payload: Type.Object({
+    to: Type.String(),
+    royaltyRecipient: Type.String(),
+    royaltyBps: Type.String(),
+    primarySaleRecipient: Type.String(),
+    tokenId: Type.String(),
+    uri: Type.String(),
+    quantity: Type.String(),
+    pricePerToken: Type.String(),
+    currency: Type.String(),
+    validityStartTimestamp: Type.Integer(),
+    validityEndTimestamp: Type.Integer(),
+    uid: Type.String(),
+  }),
+  signature: Type.String(),
+});
+
+const requestSchema = erc1155ContractParamSchema;
+const requestBodySchema = Type.Union([
+  requestBodySchemaV4,
+  requestBodySchemaV5,
+]);
+const responseSchema = Type.Object({
+  result: Type.Union([responseSchemaV4, responseSchemaV5]),
 });
 
 responseSchema.example = {
@@ -43,12 +99,15 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
     schema: {
       summary: "Generate signature",
       description:
-        "Generate a signature granting access for another wallet to mint tokens from this ERC-721 contract. This method is typically called by the token contract owner.",
+        "Generate a signature granting access for another wallet to mint tokens from this ERC-1155 contract. This method is typically called by the token contract owner.",
       tags: ["ERC1155"],
       operationId: "signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: {
+        ...walletWithAAHeaderSchema.properties,
+        ...thirdwebSdkVersionSchema.properties,
+      },
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -57,24 +116,112 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+      const { "x-thirdweb-sdk-version": sdkVersion } =
+        request.headers as Static<typeof thirdwebSdkVersionSchema>;
+
+      const chainId = await getChainIdFromChain(chain);
+
+      // Use v5 SDK if "x-thirdweb-sdk-version" header is set.
+      if (sdkVersion === "5") {
+        const args = request.body as Static<typeof requestBodySchemaV5>;
+        const {
+          contractType,
+          to,
+          quantity,
+          royaltyRecipient,
+          royaltyBps,
+          primarySaleRecipient,
+          pricePerToken,
+          pricePerTokenWei,
+          currency,
+          validityStartTimestamp,
+          validityEndTimestamp,
+          uid,
+        } = args;
+
+        let nftInput: { metadata: NFTInput | string } | { tokenId: bigint };
+        if ("metadata" in args) {
+          nftInput = { metadata: args.metadata };
+        } else if ("tokenId" in args) {
+          nftInput = { tokenId: BigInt(args.tokenId) };
+        } else {
+          throw createCustomError(
+            `Missing "metadata" or "tokenId".`,
+            StatusCodes.BAD_REQUEST,
+            "MISSING_PARAMETERS",
+          );
+        }
+
+        const contract = getContract({
+          client: thirdwebClient,
+          chain: defineChain(chainId),
+          address: contractAddress,
+        });
+        const account = await getAccount({
+          chainId,
+          from: walletAddress as Address,
+          accountAddress: accountAddress as Address,
+        });
+
+        const { payload, signature } = await generateMintSignature({
+          contract,
+          account,
+          contractType,
+          mintRequest: {
+            to,
+            quantity: BigInt(quantity),
+            royaltyRecipient,
+            royaltyBps,
+            primarySaleRecipient,
+            pricePerToken,
+            pricePerTokenWei: pricePerTokenWei
+              ? BigInt(pricePerTokenWei)
+              : undefined,
+            currency,
+            validityStartTimestamp: new Date(validityStartTimestamp * 1000),
+            validityEndTimestamp: validityEndTimestamp
+              ? new Date(validityEndTimestamp * 1000)
+              : undefined,
+            uid: uid as Hex | undefined,
+            ...nftInput,
+          },
+        });
+
+        return reply.status(StatusCodes.OK).send({
+          result: {
+            payload: {
+              ...payload,
+              royaltyBps: payload.royaltyBps.toString(),
+              tokenId: payload.tokenId.toString(),
+              quantity: payload.quantity.toString(),
+              pricePerToken: payload.pricePerToken.toString(),
+              validityStartTimestamp: Number(payload.validityStartTimestamp),
+              validityEndTimestamp: Number(payload.validityEndTimestamp),
+            },
+            signature,
+          },
+        });
+      }
+
+      // Use v4 SDK.
+      const {
         to,
         currencyAddress,
         metadata,
         mintEndTime,
         mintStartTime,
-        price,
+        price = "0",
         primarySaleRecipient,
         quantity,
         royaltyBps,
         royaltyRecipient,
         uid,
-      } = request.body;
-      const {
-        "x-backend-wallet-address": walletAddress,
-        "x-account-address": accountAddress,
-      } = request.headers as Static<typeof walletHeaderSchema>;
-      const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      } = request.body as Static<typeof requestBodySchemaV4>;
+
+      const contract = await getContractV4({
         chainId,
         contractAddress,
         walletAddress,

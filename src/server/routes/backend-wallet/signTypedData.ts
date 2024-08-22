@@ -6,20 +6,20 @@ import { getWallet } from "../../../utils/cache/getWallet";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   domain: Type.Object({}, { additionalProperties: true }),
   types: Type.Object({}, { additionalProperties: true }),
   value: Type.Object({}, { additionalProperties: true }),
 });
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.String(),
 });
 
 export async function signTypedData(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/backend-wallet/sign-typed-data",
@@ -28,11 +28,11 @@ export async function signTypedData(fastify: FastifyInstance) {
       description: 'Send an EIP-712 message ("typed data")',
       tags: ["Backend Wallet"],
       operationId: "signTypedData",
-      body: BodySchema,
+      body: requestBodySchema,
       headers: walletHeaderSchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (request, reply) => {

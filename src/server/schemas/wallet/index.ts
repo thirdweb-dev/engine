@@ -3,12 +3,10 @@ import { Type } from "@sinclair/typebox";
 export const walletHeaderSchema = Type.Object({
   "x-backend-wallet-address": Type.String({
     description: "Backend wallet address",
+    maxLength: 42,
+    minLength: 42,
+    pattern: "^0x[0-9a-zA-Z]+",
   }),
-  "x-account-address": Type.Optional(
-    Type.String({
-      description: "Smart account address",
-    }),
-  ),
   "x-idempotency-key": Type.Optional(
     Type.String({
       description:
@@ -17,14 +15,29 @@ export const walletHeaderSchema = Type.Object({
   ),
 });
 
+export const walletWithAAHeaderSchema = Type.Object({
+  ...walletHeaderSchema.properties,
+  "x-account-address": Type.Optional(
+    Type.String({
+      description: "Smart account address",
+      maxLength: 42,
+      minLength: 42,
+      pattern: "^0x[0-9a-zA-Z]+",
+    }),
+  ),
+});
+
 export const walletParamSchema = Type.Object({
   chain: Type.String({
-    examples: ["mumbai"],
+    examples: ["80002"],
     description: "Chain name",
   }),
   walletAddress: Type.String({
     examples: ["0x..."],
     description: "Backend wallet address",
+    maxLength: 42,
+    minLength: 42,
+    pattern: "^0x[0-9a-zA-Z]+",
   }),
 });
 

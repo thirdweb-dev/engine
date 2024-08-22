@@ -7,8 +7,8 @@ import { createCustomError } from "../../../middleware/error";
 import {
   contractParamSchema,
   standardResponseSchema,
-  transactionReceiptsSchema,
 } from "../../../schemas/sharedApiSchemas";
+import { transactionReceiptSchema } from "../../../schemas/transactionReceipt";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestQuerySchema = Type.Object({
@@ -18,7 +18,7 @@ const requestQuerySchema = Type.Object({
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    receipts: transactionReceiptsSchema,
+    receipts: Type.Array(transactionReceiptSchema),
     status: Type.String(),
   }),
 });
@@ -69,6 +69,7 @@ export async function getContractTransactionReceipts(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;

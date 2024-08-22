@@ -5,7 +5,7 @@ import { updateConfiguration } from "../../../../db/configuration/updateConfigur
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const BodySchema = Type.Partial(
+const requestBodySchema = Type.Partial(
   Type.Object({
     minTxsToProcess: Type.Number(),
     maxTxsToProcess: Type.Number(),
@@ -19,7 +19,7 @@ const BodySchema = Type.Partial(
   }),
 );
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     minTxsToProcess: Type.Number(),
     maxTxsToProcess: Type.Number(),
@@ -35,7 +35,7 @@ const ReplySchema = Type.Object({
 
 export async function updateTransactionConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/configuration/transactions",
@@ -44,10 +44,10 @@ export async function updateTransactionConfiguration(fastify: FastifyInstance) {
       description: "Update transaction processing configuration",
       tags: ["Configuration"],
       operationId: "updateTransactionConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

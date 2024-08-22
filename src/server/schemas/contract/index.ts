@@ -55,8 +55,9 @@ export const abiEventSchema = Type.Object({
 
 export const abiSchema = Type.Object({
   type: Type.String(),
-  name: Type.String(),
+  name: Type.Optional(Type.String()),
   inputs: Type.Array(abiTypeSchema),
+  stateMutability: Type.Optional(Type.String()),
 });
 
 export const contractEventSchema = Type.Record(Type.String(), Type.Any());
@@ -95,7 +96,7 @@ export const eventsQuerystringSchema = Type.Object(
   },
 );
 
-export const RoyaltySchema = Type.Object({
+export const royaltySchema = Type.Object({
   seller_fee_basis_points: Type.Number({
     description: "The royalty fee in BPS (basis points). 100 = 1%.",
   }),
@@ -174,3 +175,19 @@ export const AbiSchemaV5 = Type.Union([
   AbiErrorSchemaV5,
   AbiConstructorSchemaV5,
 ]);
+export const contractDeployBasicSchema = Type.Object({
+  version: Type.Optional(
+    Type.String({
+      description: "Version of the contract to deploy. Defaults to latest.",
+    }),
+  ),
+  forceDirectDeploy: Type.Optional(Type.Boolean()),
+  saltForProxyDeploy: Type.Optional(Type.String()),
+  compilerOptions: Type.Optional(
+    Type.Object({
+      compilerType: Type.Enum(Type.Literal("solc"), Type.Literal("zksolc")),
+      compilerVersion: Type.Optional(Type.String()),
+      evmVersion: Type.Optional(Type.String()),
+    }),
+  ),
+});

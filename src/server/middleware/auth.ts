@@ -5,9 +5,10 @@ import {
   getToken as getJWT,
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
+import { createHash } from "crypto";
 import { FastifyInstance } from "fastify";
 import { FastifyRequest } from "fastify/types/request";
-import jsonwebtoken from "jsonwebtoken";
+import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
 import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
@@ -17,7 +18,7 @@ import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../../utils/auth";
 import { getAccessToken } from "../../utils/cache/accessToken";
 import { getAuthWallet } from "../../utils/cache/authWallet";
 import { getConfig } from "../../utils/cache/getConfig";
-import { getWebhook } from "../../utils/cache/getWebhook";
+import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
 import { getKeypair } from "../../utils/cache/keypair";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -102,7 +103,13 @@ export const withAuth = async (server: FastifyInstance) => {
   server.decorateRequest("user", null);
 
   // Add auth validation middleware to check for authenticated requests
-  server.addHook("onRequest", async (req, res) => {
+  // Note: in the onRequest hook, request.body will always be undefined, because the body parsing happens before the preValidation hook.
+  // https://fastify.dev/docs/latest/Reference/Hooks/#onrequest
+  server.addHook("preValidation", async (req, res) => {
+    // Skip auth check in sandbox mode
+    if (env.ENGINE_MODE === "sandbox") {
+      return;
+    }
     let message =
       "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/access-tokens";
 
@@ -152,17 +159,22 @@ export const onRequest = async ({
 
   const jwt = getJWT(req);
   if (jwt) {
-    const payload = jsonwebtoken.decode(jwt, { json: true });
+    const decoded = jsonwebtoken.decode(jwt, { complete: true });
+    if (decoded) {
+      const payload = decoded.payload as JwtPayload;
+      const header = decoded.header;
 
-    // The `iss` field determines the auth type.
-    if (payload?.iss) {
-      const authWallet = await getAuthWallet();
-      if (payload.iss === (await authWallet.getAddress())) {
-        return await handleAccessToken(jwt, req, getUser);
-      } else if (payload.iss === THIRDWEB_DASHBOARD_ISSUER) {
-        return await handleDashboardAuth(jwt);
-      } else {
-        return await handleKeypairAuth(jwt, payload.iss);
+      // Get the public key from the `iss` payload field or `kid` header field.
+      const publicKey = payload.iss ?? header.kid;
+      if (publicKey) {
+        const authWallet = await getAuthWallet();
+        if (publicKey === (await authWallet.getAddress())) {
+          return await handleAccessToken(jwt, req, getUser);
+        } else if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
+          return await handleDashboardAuth(jwt);
+        } else {
+          return await handleKeypairAuth(jwt, req, publicKey);
+        }
       }
     }
   }
@@ -240,6 +252,16 @@ const handleWebsocketAuth = async (
     // Set as a header for `getUsers` to parse the token.
     req.headers.authorization = `Bearer ${jwt}`;
     const user = await getUser(req);
+
+    const isIpInAllowlist = await checkIpInAllowlist(req);
+    if (!isIpInAllowlist) {
+      return {
+        isAuthed: false,
+        error:
+          "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+      };
+    }
+
     if (
       user?.session?.permissions === Permission.Owner ||
       user?.session?.permissions === Permission.Admin
@@ -258,12 +280,15 @@ const handleWebsocketAuth = async (
  * Auth via keypair.
  * Allow a request that provides a JWT signed by an ES256 private key
  * matching the configured public key.
+ * @param jwt string
  * @param req FastifyRequest
+ * @param publicKey string
  * @returns AuthResponse
  */
 const handleKeypairAuth = async (
   jwt: string,
-  iss: string,
+  req: FastifyRequest,
+  publicKey: string,
 ): Promise<AuthResponse> => {
   // The keypair auth feature must be explicitly enabled.
   if (!env.ENABLE_KEYPAIR_AUTH) {
@@ -272,17 +297,34 @@ const handleKeypairAuth = async (
 
   let error: string | undefined;
   try {
-    const keypair = await getKeypair({ publicKey: iss });
-    if (!keypair || keypair.publicKey !== iss) {
+    const keypair = await getKeypair({ publicKey });
+    if (!keypair) {
       error = "The provided public key is incorrect or not added to Engine.";
       throw error;
     }
 
     // The JWT is valid if `verify` did not throw.
-    jsonwebtoken.verify(jwt, keypair.publicKey, {
+    const payload = jsonwebtoken.verify(jwt, keypair.publicKey, {
       algorithms: [keypair.algorithm as jsonwebtoken.Algorithm],
     }) as jsonwebtoken.JwtPayload;
 
+    // If `bodyHash` is provided, it must match a hash of the POST request body.
+    if (
+      req.method === "POST" &&
+      payload?.bodyHash &&
+      payload.bodyHash !== hashRequestBody(req)
+    ) {
+      error =
+        "The request body does not match the hash in the access token. See: https://portal.thirdweb.com/engine/features/keypair-authentication";
+      throw error;
+    }
+
+    const isIpInAllowlist = await checkIpInAllowlist(req);
+    if (!isIpInAllowlist) {
+      error =
+        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security";
+      throw error;
+    }
     return { isAuthed: true };
   } catch (e) {
     if (e instanceof jsonwebtoken.TokenExpiredError) {
@@ -311,22 +353,39 @@ const handleAccessToken = async (
   req: FastifyRequest,
   getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"],
 ): Promise<AuthResponse> => {
+  let token: Awaited<ReturnType<typeof getAccessToken>> = null;
+
   try {
-    const token = await getAccessToken({ jwt });
-    if (token && token.revokedAt === null) {
-      const user = await getUser(req);
-      if (
-        user?.session?.permissions === Permission.Owner ||
-        user?.session?.permissions === Permission.Admin
-      ) {
-        return { isAuthed: true, user };
-      }
-    }
+    token = await getAccessToken({ jwt });
   } catch (e) {
     // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
+    return { isAuthed: false };
   }
 
-  return { isAuthed: false };
+  if (!token || token.revokedAt) {
+    return { isAuthed: false };
+  }
+
+  const user = await getUser(req);
+
+  if (
+    user?.session?.permissions !== Permission.Owner &&
+    user?.session?.permissions !== Permission.Admin
+  ) {
+    return { isAuthed: false };
+  }
+
+  const isIpInAllowlist = await checkIpInAllowlist(req);
+
+  if (!isIpInAllowlist) {
+    return {
+      isAuthed: false,
+      error:
+        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+    };
+  }
+
+  return { isAuthed: true, user };
 };
 
 /**
@@ -397,11 +456,11 @@ const handleSecretKey = async (req: FastifyRequest): Promise<AuthResponse> => {
 const handleAuthWebhooks = async (
   req: FastifyRequest,
 ): Promise<AuthResponse> => {
-  const authWebhooks = await getWebhook(WebhooksEventTypes.AUTH);
+  const authWebhooks = await getWebhooksByEventType(WebhooksEventTypes.AUTH);
   if (authWebhooks.length > 0) {
     const authResponses = await Promise.all(
-      authWebhooks.map((webhook) =>
-        sendWebhookRequest(webhook, {
+      authWebhooks.map(async (webhook) => {
+        const { ok } = await sendWebhookRequest(webhook, {
           url: req.url,
           method: req.method,
           headers: req.headers,
@@ -409,8 +468,9 @@ const handleAuthWebhooks = async (
           query: req.query,
           cookies: req.cookies,
           body: req.body,
-        }),
-      ),
+        });
+        return ok;
+      }),
     );
 
     if (authResponses.every((ok) => !!ok)) {
@@ -419,4 +479,28 @@ const handleAuthWebhooks = async (
   }
 
   return { isAuthed: false };
+};
+
+const hashRequestBody = (req: FastifyRequest): string => {
+  return createHash("sha256")
+    .update(JSON.stringify(req.body), "utf8")
+    .digest("hex");
+};
+
+/**
+ * Check if the request IP is in the allowlist.
+ * Fetches cached config if available.
+ * env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
+ * @param req FastifyRequest
+ * @returns boolean
+ * @async
+ */
+const checkIpInAllowlist = async (req: FastifyRequest) => {
+  const config = await getConfig();
+
+  if (config.ipAllowlist.length === 0) {
+    return true;
+  }
+
+  return config.ipAllowlist.includes(req.ip);
 };

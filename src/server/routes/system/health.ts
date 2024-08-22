@@ -3,24 +3,32 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isDatabaseHealthy } from "../../../db/client";
 import { env } from "../../../utils/env";
+import { redis } from "../../../utils/redis/redis";
 
-type EngineFeature = "KEYPAIR_AUTH";
+type EngineFeature = "KEYPAIR_AUTH" | "CONTRACT_SUBSCRIPTIONS" | "IP_ALLOWLIST";
 
 const ReplySchemaOk = Type.Object({
   status: Type.String(),
   engineVersion: Type.Optional(Type.String()),
-  features: Type.Array(Type.Union([Type.Literal("KEYPAIR_AUTH")])),
+  engineTier: Type.Optional(Type.String()),
+  features: Type.Array(
+    Type.Union([
+      Type.Literal("KEYPAIR_AUTH"),
+      Type.Literal("CONTRACT_SUBSCRIPTIONS"),
+      Type.Literal("IP_ALLOWLIST"),
+    ]),
+  ),
 });
 
 const ReplySchemaError = Type.Object({
   error: Type.String(),
 });
 
-const ReplySchema = Type.Union([ReplySchemaOk, ReplySchemaError]);
+const responseBodySchema = Type.Union([ReplySchemaOk, ReplySchemaError]);
 
 export async function healthCheck(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/system/health",
@@ -46,6 +54,7 @@ export async function healthCheck(fastify: FastifyInstance) {
       res.status(StatusCodes.OK).send({
         status: "OK",
         engineVersion: process.env.ENGINE_VERSION,
+        engineTier: process.env.ENGINE_TIER ?? "SELF_HOSTED",
         features: getFeatures(),
       });
     },
@@ -53,7 +62,12 @@ export async function healthCheck(fastify: FastifyInstance) {
 }
 
 const getFeatures = (): EngineFeature[] => {
-  const features: EngineFeature[] = [];
+  // IP Allowlist is always available as a feature, but added as a feature for backwards compatibility.
+  const features: EngineFeature[] = ["IP_ALLOWLIST"];
+
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
+  // Contract Subscriptions requires Redis.
+  if (redis) features.push("CONTRACT_SUBSCRIPTIONS");
+
   return features;
 };

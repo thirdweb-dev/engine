@@ -6,7 +6,8 @@ export const withRequestLogs = async (server: FastifyInstance) => {
     if (
       !request.routerPath?.includes("static") &&
       !request.routerPath?.includes("json") &&
-      request.method !== "OPTIONS"
+      request.method !== "OPTIONS" &&
+      request.routerPath !== "/"
     ) {
       logger({
         service: "server",
@@ -66,7 +67,8 @@ export const withRequestLogs = async (server: FastifyInstance) => {
     if (
       !request.routerPath?.includes("static") &&
       !request.routerPath?.includes("json") &&
-      request.method !== "OPTIONS"
+      request.method !== "OPTIONS" &&
+      request.routerPath !== "/"
     ) {
       logger({
         service: "server",

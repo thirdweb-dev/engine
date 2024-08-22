@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { ReplySchema } from "./get";
+import { responseBodySchema } from "./get";
 
-const BodySchema = Type.Partial(
+const requestBodySchema = Type.Partial(
   Type.Object({
     minWalletBalance: Type.String({
       description: "Minimum wallet balance in wei",
@@ -18,7 +18,7 @@ export async function updateBackendWalletBalanceConfiguration(
   fastify: FastifyInstance,
 ) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
+    Body: Static<typeof requestBodySchema>;
   }>({
     method: "POST",
     url: "/configuration/backend-wallet-balance",
@@ -27,10 +27,10 @@ export async function updateBackendWalletBalanceConfiguration(
       description: "Update backend wallet balance configuration",
       tags: ["Configuration"],
       operationId: "updateBackendWalletBalanceConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

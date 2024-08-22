@@ -1,20 +1,24 @@
 import { Static } from "@sinclair/typebox";
-import {
-  getChainByChainIdAsync,
-  getChainBySlugAsync,
-} from "@thirdweb-dev/chains";
+import { getChainBySlugAsync } from "@thirdweb-dev/chains";
+import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../utils/cache/getConfig";
 import { networkResponseSchema } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
+import { createCustomError } from "../middleware/error";
 
 /**
  * Given a valid chain name ('Polygon') or ID ('137'), return the numeric chain ID.
+ * @throws if the chain is invalid or deprecated.
  */
 export const getChainIdFromChain = async (input: string): Promise<number> => {
-  const inputSlug = input.toLowerCase();
-  // inputId may be NaN if a slug is provided ('Polygon').
   const inputId = parseInt(input);
+  if (!isNaN(inputId)) {
+    // input is a valid number.
+    return inputId;
+  }
 
+  // input is non-numeric. Try to resolve the name to the chain ID.
+  const slug = input.toLowerCase();
   const config = await getConfig();
 
   // Check if the chain ID exists in chainOverrides first.
@@ -24,10 +28,7 @@ export const getChainIdFromChain = async (input: string): Promise<number> => {
         JSON.parse(config.chainOverrides);
 
       for (const chainData of parsedChainOverrides) {
-        if (
-          inputSlug === chainData.slug.toLowerCase() ||
-          inputId === chainData.chainId
-        ) {
+        if (slug === chainData.slug.toLowerCase()) {
           return chainData.chainId;
         }
       }
@@ -40,21 +41,24 @@ export const getChainIdFromChain = async (input: string): Promise<number> => {
     }
   }
 
-  if (!isNaN(inputId)) {
-    // Fetch by chain ID.
-    const chainData = await getChainByChainIdAsync(inputId);
-    if (chainData && chainData.status !== "deprecated") {
-      return chainData.chainId;
+  // Fetch by slug.
+  // Throw if the chain is invalid or deprecated.
+  try {
+    const chain = await getChainBySlugAsync(slug);
+    if (chain.status === "deprecated") {
+      throw createCustomError(
+        `Chain ${input} is deprecated`,
+        StatusCodes.BAD_REQUEST,
+        "INVALID_CHAIN",
+      );
     }
-  } else {
-    // Fetch by chain name.
-    const chainData = await getChainBySlugAsync(inputSlug);
-    if (chainData && chainData.status !== "deprecated") {
-      return chainData.chainId;
-    }
-  }
 
-  throw new Error(
-    `Invalid or deprecated chain. Please confirm this is a valid chain: https://thirdweb.com/${input}`,
-  );
+    return chain.chainId;
+  } catch (e) {
+    throw createCustomError(
+      `Chain ${input} is not found`,
+      StatusCodes.BAD_REQUEST,
+      "INVALID_CHAIN",
+    );
+  }
 };

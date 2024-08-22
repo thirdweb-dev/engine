@@ -46,7 +46,6 @@ export const signature20InputSchema = Type.Object({
     Type.String({
       description:
         "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
-      default: "0",
     }),
   ),
   mintStartTime: Type.Optional(
@@ -94,7 +93,6 @@ export const signature20OutputSchema = Type.Object({
   price: Type.String({
     description:
       "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
-    default: "0",
   }),
   mintStartTime: Type.Number({
     description:

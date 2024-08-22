@@ -1,28 +1,26 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { isAddress } from "thirdweb";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { contractDeployBasicSchema } from "../../schemas/contract";
 import {
   publishedDeployParamSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { txOverrides } from "../../schemas/txOverrides";
-import { walletHeaderSchema } from "../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // INPUTS
 const requestSchema = publishedDeployParamSchema;
 const requestBodySchema = Type.Object({
+  ...contractDeployBasicSchema.properties,
   constructorParams: Type.Array(Type.Any(), {
     description: "Constructor arguments for the deployment.",
   }),
-  version: Type.Optional(
-    Type.String({
-      description: "Version of the contract to deploy. Defaults to latest.",
-    }),
-  ),
-  ...txOverrides.properties,
+  ...txOverridesWithValueSchema.properties,
 });
 
 // Example for the Request Body
@@ -35,7 +33,12 @@ requestBodySchema.examples = [
 // OUTPUT
 const responseSchema = Type.Object({
   queueId: Type.Optional(Type.String()),
-  deployedAddress: Type.Optional(Type.String()),
+  deployedAddress: Type.Optional(
+    Type.String({
+      description: "Not all contracts return a deployed address.",
+    }),
+  ),
+  message: Type.Optional(Type.String()),
 });
 
 export async function deployPublished(fastify: FastifyInstance) {
@@ -53,7 +56,7 @@ export async function deployPublished(fastify: FastifyInstance) {
       operationId: "deployPublished",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -61,13 +64,20 @@ export async function deployPublished(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, publisher, contractName } = request.params;
-      const { constructorParams, version } = request.body;
+      const {
+        constructorParams,
+        version,
+        txOverrides,
+        saltForProxyDeploy,
+        forceDirectDeploy,
+        compilerOptions,
+      } = request.body;
       const chainId = await getChainIdFromChain(chain);
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });
       const tx = await sdk.deployer.deployPublishedContract.prepare(
@@ -75,8 +85,16 @@ export async function deployPublished(fastify: FastifyInstance) {
         contractName,
         constructorParams,
         version,
+        {
+          saltForProxyDeploy,
+          forceDirectDeploy,
+          compilerOptions,
+        },
       );
-      const deployedAddress = await tx.simulate();
+      const _deployedAddress = await tx.simulate();
+      const deployedAddress = isAddress(_deployedAddress)
+        ? _deployedAddress
+        : undefined;
 
       const queueId = await queueTx({
         tx,
@@ -85,11 +103,15 @@ export async function deployPublished(fastify: FastifyInstance) {
         deployedContractAddress: deployedAddress,
         deployedContractType: contractName,
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({
         deployedAddress,
         queueId,
+        message: !deployedAddress
+          ? `To retrieve the deployed contract address, use the endpoint '/transaction/status/${queueId}' and check the value of the 'deployedContractAddress' field`
+          : undefined,
       });
     },
   });

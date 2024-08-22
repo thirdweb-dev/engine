@@ -4,10 +4,11 @@ import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { WalletType } from "../../../../schema/wallet";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { ReplySchema } from "./get";
+import { responseBodySchema } from "./get";
 
-const BodySchema = Type.Union([
+const requestBodySchema = Type.Union([
   Type.Object({
     type: Type.Literal(WalletType.local),
   }),
@@ -27,7 +28,7 @@ const BodySchema = Type.Union([
   }),
 ]);
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     type: WalletType.local,
   },
@@ -50,8 +51,8 @@ BodySchema.examples = [
 
 export async function updateWalletsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
     url: "/configuration/wallets",
@@ -60,10 +61,10 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
       description: "Update wallets configuration",
       tags: ["Configuration"],
       operationId: "updateWalletsConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {
@@ -86,7 +87,11 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
             !req.body.awsSecretAccessKey ||
             !req.body.awsRegion
           ) {
-            throw new Error("Please specify all AWS KMS configuration.");
+            throw createCustomError(
+              "Please specify all AWS KMS configuration.",
+              StatusCodes.BAD_REQUEST,
+              "BAD_REQUEST",
+            );
           }
 
           await updateConfiguration({
@@ -108,7 +113,11 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
             !req.body.gcpApplicationCredentialEmail ||
             !req.body.gcpApplicationCredentialPrivateKey
           ) {
-            throw new Error("Please specify all GCP KMS configuration.");
+            throw createCustomError(
+              "Please specify all GCP KMS configuration.",
+              StatusCodes.BAD_REQUEST,
+              "BAD_REQUEST",
+            );
           }
 
           await updateConfiguration({

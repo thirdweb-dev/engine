@@ -3,11 +3,12 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
-import { ReplySchema } from "./get";
+import { responseBodySchema } from "./get";
 
-const BodySchema = Type.Object({
+const requestBodySchema = Type.Object({
   urlsToRemove: Type.Array(
     Type.String({
       description: "Comma separated list of origins to remove",
@@ -15,7 +16,7 @@ const BodySchema = Type.Object({
   ),
 });
 
-BodySchema.examples = [
+requestBodySchema.examples = [
   {
     urlsToRemove: ["https://example.com", "https://subdomain.example.com"],
   },
@@ -23,20 +24,20 @@ BodySchema.examples = [
 
 export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof BodySchema>;
-    Reply: Static<typeof ReplySchema>;
+    Body: Static<typeof requestBodySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "DELETE",
     url: "/configuration/cors",
     schema: {
-      summary: "Remove Url from CORS configuration",
-      description: "Remove Url from CORS configuration",
+      summary: "Remove CORS URLs",
+      description: "Remove URLs from CORS configuration",
       tags: ["Configuration"],
       operationId: "removeUrlToCorsConfiguration",
-      body: BodySchema,
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {
@@ -49,8 +50,10 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
         mandatoryAllowedCorsUrls.includes(url),
       );
       if (containsMandatoryUrl) {
-        throw new Error(
+        throw createCustomError(
           `Cannot remove URLs: ${mandatoryAllowedCorsUrls.join(",")}`,
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
         );
       }
 

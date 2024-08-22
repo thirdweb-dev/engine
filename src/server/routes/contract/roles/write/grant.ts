@@ -9,7 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../schemas/sharedApiSchemas";
-import { walletHeaderSchema } from "../../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../utils/chain";
 
 // INPUTS
@@ -21,6 +22,7 @@ const requestBodySchema = Type.Object({
   address: Type.String({
     description: "The address to grant the role to",
   }),
+  ...txOverridesWithValueSchema.properties,
 });
 
 // OUTPUT
@@ -40,7 +42,7 @@ export async function grantRole(fastify: FastifyInstance) {
       description: "Grant a role to a specific wallet.",
       tags: ["Contract-Roles"],
       operationId: "grant",
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -52,12 +54,12 @@ export async function grantRole(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { role, address } = request.body;
+      const { role, address, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -74,6 +76,7 @@ export async function grantRole(fastify: FastifyInstance) {
         simulateTx,
         extension: "roles",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

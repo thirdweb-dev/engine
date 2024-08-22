@@ -1,27 +1,39 @@
-import { execSync, spawn } from "child_process";
+import { execSync } from "child_process";
 import fs from "fs";
+import { kill } from "process";
+
+const ENGINE_OPENAPI_URL = "https://demo.web3api.thirdweb.com/json";
 
 async function main() {
-  const child = spawn("yarn", ["dev"], { detached: true });
-  if (!child.pid) return;
+  try {
+    const response = await fetch(ENGINE_OPENAPI_URL);
+    const jsonData = await response.json();
 
-  await new Promise((resolve) => setTimeout(resolve, 10000));
-  process.kill(-child.pid);
+    // Save the JSON response to a file
+    fs.writeFileSync(
+      "openapi.json",
+      JSON.stringify(jsonData, null, 2),
+      "utf-8",
+    );
 
-  execSync(
-    "yarn openapi --input ./dist/openapi.json --output ./sdk/src --name Engine",
-  );
+    execSync(
+      "yarn openapi --input ./openapi.json --output ./sdk/src --name Engine",
+    );
 
-  const code = fs
-    .readFileSync("./sdk/src/Engine.ts", "utf-8")
-    .replace(`export class Engine`, `class EngineLogic`).concat(`
+    const code = fs
+      .readFileSync("./sdk/src/Engine.ts", "utf-8")
+      .replace(`export class Engine`, `class EngineLogic`).concat(`
 export class Engine extends EngineLogic {
   constructor(config: { url: string; accessToken: string; }) {
     super({ BASE: config.url, TOKEN: config.accessToken });
   }
 }
 `);
-  fs.writeFileSync("./sdk/src/Engine.ts", code);
+    fs.writeFileSync("./sdk/src/Engine.ts", code);
+  } catch (error) {
+    console.error("Error:", error);
+    kill(process.pid, "SIGINT");
+  }
 }
 
 main();

@@ -106,6 +106,8 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       contractAddress: requestParams.contractAddress || undefined,
       httpStatusCode: reply.statusCode,
       msTotalDuration: Math.ceil(reply.getResponseTime()),
+      httpMethod:
+        request.method.toUpperCase() as UsageEventSchema["httpMethod"],
     };
 
     fetch(env.CLIENT_ANALYTICS_URL, {

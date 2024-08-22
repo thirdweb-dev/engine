@@ -3,14 +3,15 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getContract } from "../../../../utils/cache/getContract";
+import { abiSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
-import { txOverrides } from "../../../schemas/txOverrides";
-import { walletHeaderSchema } from "../../../schemas/wallet";
+import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
@@ -29,20 +30,9 @@ const writeRequestBodySchema = Type.Object({
       Type.Any(),
     ]),
   ),
-  ...txOverrides.properties,
+  ...txOverridesWithValueSchema.properties,
+  abi: Type.Optional(Type.Array(abiSchema)),
 });
-
-// Adding example for Swagger File
-writeRequestBodySchema.examples = [
-  {
-    functionName: "transferFrom",
-    args: [
-      "0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473",
-      "0x3EcDBF3B911d0e9052b64850693888b008e18373",
-      "0",
-    ],
-  },
-];
 
 // LOGIC
 export async function writeToContract(fastify: FastifyInstance) {
@@ -60,7 +50,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -71,12 +61,12 @@ export async function writeToContract(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { functionName, args, txOverrides } = request.body;
+      const { functionName, args, txOverrides, abi } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
@@ -84,8 +74,14 @@ export async function writeToContract(fastify: FastifyInstance) {
         contractAddress,
         walletAddress,
         accountAddress,
+        abi,
       });
-      const tx = await contract.prepare(functionName, args, txOverrides);
+      const tx = contract.prepare(functionName, args, {
+        value: txOverrides?.value,
+        gasLimit: txOverrides?.gas,
+        maxFeePerGas: txOverrides?.maxFeePerGas,
+        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas,
+      });
 
       const queueId = await queueTx({
         tx,
@@ -93,6 +89,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         simulateTx,
         extension: "none",
         idempotencyKey,
+        txOverrides,
       });
 
       reply.status(StatusCodes.OK).send({

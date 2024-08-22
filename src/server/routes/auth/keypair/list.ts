@@ -5,13 +5,13 @@ import { listKeypairs } from "../../../../db/keypair/list";
 import { KeypairSchema, toKeypairSchema } from "../../../schemas/keypairs";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-const ReplySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Array(KeypairSchema),
 });
 
 export async function listPublicKeys(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/auth/keypair/get-all",
@@ -22,7 +22,7 @@ export async function listPublicKeys(fastify: FastifyInstance) {
       operationId: "list",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

@@ -3,10 +3,8 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../../db/configuration/getConfiguration";
 import { getEventLogsByCursor } from "../../../../db/contractEventLogs/getContractEventLogs";
-import {
-  eventLogsSchema,
-  standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+import { eventLogSchema, toEventLogSchema } from "../../../schemas/eventLog";
+import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const requestQuerySchema = Type.Object({
   cursor: Type.Optional(Type.String()),
@@ -18,7 +16,7 @@ const requestQuerySchema = Type.Object({
 const responseSchema = Type.Object({
   result: Type.Object({
     cursor: Type.Optional(Type.String()),
-    logs: eventLogsSchema,
+    logs: Type.Array(eventLogSchema),
     status: Type.String(),
   }),
 });
@@ -75,6 +73,7 @@ export async function pageEventLogs(fastify: FastifyInstance) {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
       },
+      hide: true,
     },
     handler: async (request, reply) => {
       const { cursor, pageSize, topics, contractAddresses } = request.query;
@@ -89,42 +88,18 @@ export async function pageEventLogs(fastify: FastifyInstance) {
         Date.now() - config.cursorDelaySeconds * 1000,
       );
 
-      const { cursor: newCursor, logs: resultLogs } =
-        await getEventLogsByCursor({
-          cursor,
-          limit: pageSize,
-          topics,
-          contractAddresses: standardizedContractAddresses,
-          maxCreatedAt,
-        });
-
-      const logs = resultLogs.map((log) => {
-        const topics: string[] = [];
-        [log.topic0, log.topic1, log.topic2, log.topic3].forEach((val) => {
-          if (val) {
-            topics.push(val);
-          }
-        });
-
-        return {
-          chainId: log.chainId,
-          contractAddress: log.contractAddress,
-          blockNumber: log.blockNumber,
-          transactionHash: log.transactionHash,
-          topics,
-          data: log.data,
-          eventName: log.eventName ?? undefined,
-          decodedLog: log.decodedLog,
-          timestamp: log.timestamp.getTime(),
-          transactionIndex: log.transactionIndex,
-          logIndex: log.logIndex,
-        };
+      const { cursor: newCursor, logs } = await getEventLogsByCursor({
+        cursor,
+        limit: pageSize,
+        topics,
+        contractAddresses: standardizedContractAddresses,
+        maxCreatedAt,
       });
 
       reply.status(StatusCodes.OK).send({
         result: {
           cursor: newCursor,
-          logs,
+          logs: logs.map(toEventLogSchema),
           status: "success",
         },
       });

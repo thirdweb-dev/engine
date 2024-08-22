@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
-export const ReplySchema = Type.Object({
+export const responseBodySchema = Type.Object({
   result: Type.Object({
     minWalletBalance: Type.String({
       description: "Minimum wallet balance in wei",
@@ -16,7 +16,7 @@ export async function getBackendWalletBalanceConfiguration(
   fastify: FastifyInstance,
 ) {
   fastify.route<{
-    Reply: Static<typeof ReplySchema>;
+    Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/configuration/backend-wallet-balance",
@@ -27,7 +27,7 @@ export async function getBackendWalletBalanceConfiguration(
       operationId: "getBackendWalletBalanceConfiguration",
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {

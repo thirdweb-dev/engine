@@ -1,5 +1,7 @@
-import { Type } from "@sinclair/typebox";
+import { Transactions } from "@prisma/client";
+import { Static, Type } from "@sinclair/typebox";
 
+// @TODO: rename to TransactionSchema
 export const transactionResponseSchema = Type.Object({
   queueId: Type.Union([
     Type.String({
@@ -198,3 +200,23 @@ export enum TransactionStatus {
   // Tx was cancelled and will not be re-attempted.
   Cancelled = "cancelled",
 }
+
+export const toTransactionSchema = (
+  transaction: Transactions,
+): Static<typeof transactionResponseSchema> => ({
+  ...transaction,
+  queueId: transaction.id,
+  queuedAt: transaction.queuedAt.toISOString(),
+  sentAt: transaction.sentAt?.toISOString() || null,
+  minedAt: transaction.minedAt?.toISOString() || null,
+  cancelledAt: transaction.cancelledAt?.toISOString() || null,
+  status: transaction.errorMessage
+    ? TransactionStatus.Errored
+    : transaction.minedAt
+    ? TransactionStatus.Mined
+    : transaction.cancelledAt
+    ? TransactionStatus.Cancelled
+    : transaction.sentAt
+    ? TransactionStatus.Sent
+    : TransactionStatus.Queued,
+});
