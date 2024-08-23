@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address } from "thirdweb";
+import { Address, Hex } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc20";
 import { resolvePromisedValue } from "thirdweb/utils";
 import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
