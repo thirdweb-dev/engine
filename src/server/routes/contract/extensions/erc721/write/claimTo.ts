@@ -1,8 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { Address, Hex } from "thirdweb";
+import { claimTo } from "thirdweb/extensions/erc721";
+import { resolvePromisedValue } from "thirdweb/utils";
+import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
+import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
+import { insertTransaction } from "../../../../../../utils/transaction/insertTransaction";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -60,28 +64,56 @@ export async function erc721claimTo(fastify: FastifyInstance) {
       const { simulateTx } = request.query;
       const { receiver, quantity, txOverrides } = request.body;
       const {
-        "x-backend-wallet-address": walletAddress,
+        "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
-        walletAddress,
-        accountAddress,
       });
-      const tx = await contract.erc721.claimTo.prepare(receiver, quantity);
+      const transaction = claimTo({
+        contract,
+        to: receiver,
+        quantity: BigInt(quantity),
+      });
 
-      const queueId = await queueTx({
-        tx,
+      let queueId: string;
+      let insertedTransaction = {
         chainId,
-        simulateTx,
-        extension: "erc721",
-        idempotencyKey,
-        txOverrides,
-      });
+        from: fromAddress as Address,
+        to: contractAddress as Address | undefined,
+        data: (await resolvePromisedValue(transaction.data)) as Hex,
+        value: maybeBigInt(txOverrides?.value),
+        gas: maybeBigInt(txOverrides?.gas),
+        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
+      };
+
+      if (accountAddress) {
+        queueId = await insertTransaction({
+          insertedTransaction: {
+            ...insertedTransaction,
+            isUserOp: true,
+            accountAddress: accountAddress as Address,
+            signerAddress: fromAddress as Address,
+            target: contractAddress as Address | undefined,
+          },
+          shouldSimulate: simulateTx,
+          idempotencyKey,
+        });
+      } else {
+        queueId = await insertTransaction({
+          insertedTransaction: {
+            ...insertedTransaction,
+            isUserOp: false,
+          },
+          shouldSimulate: simulateTx,
+          idempotencyKey,
+        });
+      }
 
       reply.status(StatusCodes.OK).send({
         result: {
