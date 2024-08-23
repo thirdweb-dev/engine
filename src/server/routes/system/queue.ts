@@ -1,17 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-<<<<<<< HEAD
-import { TransactionDB } from "../../../db/transactions/db";
 import { getPercentile } from "../../../utils/math";
-import { MinedTransaction } from "../../../utils/transaction/types";
-import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
-=======
-import { prisma } from "../../../db/client";
-import { getQueueStatus } from "../../../db/transactions/getQueueStatus";
-import { getPercentile } from "../../../utils/math";
->>>>>>> origin/main
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const responseBodySchema = Type.Object({
