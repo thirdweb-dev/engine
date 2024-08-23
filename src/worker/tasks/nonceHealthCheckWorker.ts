@@ -1,8 +1,7 @@
 import { Job, Processor, Worker } from "bullmq";
+import { Address } from "thirdweb";
 import {
   lastUsedNonceKey,
-  recycledNoncesKey,
-  sentNoncesKey,
   splitLastUsedNonceKey,
 } from "../../db/wallets/walletNonce";
 import {
@@ -15,53 +14,33 @@ import { NonceHealthCheckQueue } from "../queues/nonceHealthCheckQueue";
 import { logWorkerExceptions } from "../queues/queues";
 
 // Configuration
-const config = {
-  runFrequencySeconds: 10,
-  historyLengthMinutes: 60,
-  recentHistoryLengthMinutes: 10,
-  stuckThresholdMinutes: 10,
-};
 
-// Derived constants
-const HISTORY_LENGTH = Math.floor(
-  (config.historyLengthMinutes * 60) / config.runFrequencySeconds,
-);
-const RECENT_HISTORY_LENGTH = Math.floor(
-  (config.recentHistoryLengthMinutes * 60) / config.runFrequencySeconds,
-);
-const STUCK_THRESHOLD = config.stuckThresholdMinutes * 60 * 1000; // milliseconds
+// Number of consecutive periods to check
+// Checking over multiple periods helps to avoid false positives due to timing issues
+const CHECK_PERIODS = 3;
+
+// Frequency of the worker
+const RUN_FREQUENCY_SECONDS = 60; // Run every minute
 
 // Interfaces
-interface WalletNonceDetails {
-  walletAddress: string;
-  onchainNonce: string;
-  lastUsedNonce: string;
-  sentNoncesLength: number;
-  recycledNoncesLength: number;
-  chainId: number;
-}
-
-interface TimestampedWalletNonceDetails extends WalletNonceDetails {
+interface NonceState {
   timestamp: number;
-}
-interface WalletHealthStatus extends TimestampedWalletNonceDetails {
-  healthScore: number;
-  alert: boolean;
-  isStuck: boolean;
-  metrics: {
-    nonceDifference: number;
-    nonceDifferenceTrend: number;
-    sentNoncesTrend: number;
-    recycledNoncesTrend: number;
-    clearanceRate: number;
-    transactionRate: number;
-  };
+  onchainNonce: number;
+  internalNonce: number;
 }
 
-// Initialize the log worker
+interface WalletHealth {
+  walletAddress: Address;
+  chainId: number;
+  isStuck: boolean;
+  onchainNonce: number;
+  internalNonce: number;
+}
+
+// Initialize the worker
 export const initNonceHealthCheckWorker = () => {
   NonceHealthCheckQueue.q.add("cron", "", {
-    repeat: { pattern: `*/${config.runFrequencySeconds} * * * * *` },
+    repeat: { pattern: `*/${RUN_FREQUENCY_SECONDS} * * * * *` },
     jobId: "nonce-health-check-cron",
   });
 
@@ -74,290 +53,120 @@ export const initNonceHealthCheckWorker = () => {
 
 // Main handler function
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  await checkWalletHealth(job);
+  await checkAllWallets(job);
 };
 
-// Check wallet health
-async function checkWalletHealth(job: Job<string>): Promise<void> {
-  const currentDetails = await getNonceDetails();
-  const timestamp = Date.now();
-  const timestampedDetails = currentDetails.map((d) => ({ ...d, timestamp }));
-
-  await updateHistory(timestampedDetails);
-  const history = await getHistory();
-
-  const healthStatuses = timestampedDetails.map((details) => {
-    const walletHistory = history.filter(
-      (h) =>
-        h.walletAddress === details.walletAddress &&
-        h.chainId === details.chainId,
-    );
-    return calculateWalletHealth(details, walletHistory);
-  });
-
-  healthStatuses.forEach((status) => logHealthStatus(status, job));
-}
-
-// Update historical data
-async function updateHistory(
-  currentDetails: TimestampedWalletNonceDetails[],
-): Promise<void> {
-  const historyEntry = JSON.stringify({
-    timestamp: Date.now(),
-    details: currentDetails,
-  });
-  await redis.lpush("walletHealthHistory", historyEntry);
-  await redis.ltrim("walletHealthHistory", 0, HISTORY_LENGTH - 1);
-}
-
-// Retrieve historical data
-async function getHistory(): Promise<TimestampedWalletNonceDetails[]> {
-  const historyData = await redis.lrange("walletHealthHistory", 0, -1);
-  return historyData.flatMap((entry) => {
-    const { details } = JSON.parse(entry) as {
-      details: TimestampedWalletNonceDetails[];
-    };
-    return details;
-  });
-}
-
-// Calculate wallet health
-function calculateWalletHealth(
-  currentDetails: TimestampedWalletNonceDetails,
-  walletHistory: TimestampedWalletNonceDetails[],
-): WalletHealthStatus {
-  const recentHistory = walletHistory.slice(0, RECENT_HISTORY_LENGTH);
-  const metrics = calculateMetrics(currentDetails, recentHistory);
-  const isStuck = checkIfStuck(currentDetails, recentHistory);
-  const healthScore = calculateHealthScore(metrics, isStuck);
-  const alert = shouldAlert(healthScore, metrics, isStuck);
-
-  return {
-    ...currentDetails,
-    healthScore,
-    alert,
-    isStuck,
-    metrics,
-  };
-}
-// Calculate health metrics
-function calculateMetrics(
-  currentDetails: TimestampedWalletNonceDetails,
-  history: TimestampedWalletNonceDetails[],
-) {
-  const nonceDifference =
-    parseInt(currentDetails.lastUsedNonce) -
-    parseInt(currentDetails.onchainNonce);
-  const nonceDifferenceTrend = calculateTrend(
-    history,
-    (d) => parseInt(d.lastUsedNonce) - parseInt(d.onchainNonce),
-  );
-  const sentNoncesTrend = calculateTrend(history, (d) => d.sentNoncesLength);
-  const recycledNoncesTrend = calculateTrend(
-    history,
-    (d) => d.recycledNoncesLength,
-  );
-  const { clearanceRate, transactionRate } = calculateRates(
-    currentDetails,
-    history,
-  );
-
-  return {
-    nonceDifference,
-    nonceDifferenceTrend,
-    sentNoncesTrend,
-    recycledNoncesTrend,
-    clearanceRate,
-    transactionRate,
-  };
-}
-
-// Calculate trend
-function calculateTrend(
-  history: TimestampedWalletNonceDetails[],
-  getValue: (d: TimestampedWalletNonceDetails) => number,
-): number {
-  if (history.length < 2) return 0;
-  const values = history.map(getValue);
-  const oldestValue = values[values.length - 1];
-  const newestValue = values[0];
-  const timeDiffMinutes =
-    (history[0].timestamp - history[history.length - 1].timestamp) /
-    (60 * 1000);
-
-  if (oldestValue === 0) return 0; // Avoid division by zero
-  return Math.round(
-    ((newestValue - oldestValue) / oldestValue) * (100 / timeDiffMinutes),
-  );
-}
-
-// Calculate clearance and transaction rates
-function calculateRates(
-  currentDetails: TimestampedWalletNonceDetails,
-  history: TimestampedWalletNonceDetails[],
-): { clearanceRate: number; transactionRate: number } {
-  if (history.length < 2) return { clearanceRate: 100, transactionRate: 0 };
-
-  const oldestState = history[history.length - 1];
-  const timeElapsedMinutes =
-    (currentDetails.timestamp - oldestState.timestamp) / (60 * 1000);
-
-  const newTransactions =
-    parseInt(currentDetails.lastUsedNonce) -
-    parseInt(oldestState.lastUsedNonce) +
-    (oldestState.recycledNoncesLength - currentDetails.recycledNoncesLength);
-  const clearedTransactions =
-    parseInt(currentDetails.onchainNonce) - parseInt(oldestState.onchainNonce);
-
-  const clearanceRate =
-    newTransactions === 0
-      ? 100
-      : Math.round((clearedTransactions / newTransactions) * 100);
-  const transactionRate = Math.round(newTransactions / timeElapsedMinutes);
-
-  return { clearanceRate, transactionRate };
-}
-
-// Check if the wallet is stuck
-function checkIfStuck(
-  currentDetails: TimestampedWalletNonceDetails,
-  history: TimestampedWalletNonceDetails[],
-): boolean {
-  if (history.length < 2) return false;
-
-  const oldestState = history[history.length - 1];
-  const timeElapsed = currentDetails.timestamp - oldestState.timestamp;
-
-  return (
-    timeElapsed >= STUCK_THRESHOLD &&
-    currentDetails.onchainNonce === oldestState.onchainNonce &&
-    parseInt(currentDetails.lastUsedNonce) >
-      parseInt(currentDetails.onchainNonce)
-  );
-}
-
-// Calculate health score
-function calculateHealthScore(
-  metrics: WalletHealthStatus["metrics"],
-  isStuck: boolean,
-): number {
-  let score = 100;
-
-  // Penalize based on nonce difference trend
-  if (metrics.nonceDifferenceTrend > 0) {
-    score -= Math.min(30, metrics.nonceDifferenceTrend);
-  }
-
-  // Penalize based on recycled nonces trend
-  if (metrics.recycledNoncesTrend > 0) {
-    score -= Math.min(20, metrics.recycledNoncesTrend * 2);
-  }
-
-  // Penalize based on clearance rate
-  if (metrics.clearanceRate < 100) {
-    score -= Math.min(30, (100 - metrics.clearanceRate) / 2);
-  }
-
-  // Penalize heavily if nonce difference is very high
-  if (metrics.nonceDifference > 100) {
-    score -= Math.min(50, metrics.nonceDifference / 2);
-  }
-
-  // Major penalty if stuck
-  if (isStuck) {
-    score -= 50;
-  }
-
-  return Math.max(0, Math.round(score));
-}
-
-// Determine if an alert should be triggered
-function shouldAlert(
-  healthScore: number,
-  metrics: WalletHealthStatus["metrics"],
-  isStuck: boolean,
-): boolean {
-  if (healthScore < 50) return true;
-  if (metrics.nonceDifferenceTrend > 20) return true;
-  if (metrics.recycledNoncesTrend > 10) return true;
-  if (metrics.clearanceRate < 30) return true;
-  if (metrics.nonceDifference > 200) return true;
-  if (isStuck) return true;
-  return false;
-}
-
-// Log health status
-function logHealthStatus(
-  healthStatus: WalletHealthStatus,
-  job: Job<string>,
-): void {
-  const { walletAddress, chainId, healthScore, isStuck, metrics } =
-    healthStatus;
-  const message =
-    `[WALLET_HEALTH] ${walletAddress}:${chainId} ` +
-    `healthScore:${healthScore} ` +
-    `nonceDiff:${metrics.nonceDifference} ` +
-    `nonceDiffTrend:${metrics.nonceDifferenceTrend}%/min ` +
-    `clearanceRate:${metrics.clearanceRate}% ` +
-    `transactionRate:${metrics.transactionRate}/min ` +
-    `recycledTrend:${metrics.recycledNoncesTrend}%/min ` +
-    `isStuck:${isStuck}`;
-
-  if (healthStatus.alert) {
-    logger({ service: "worker", level: "warn", message: `ALERT: ${message}` });
-  } else {
-    logger({ service: "worker", level: "info", message });
-  }
-
-  job.log(JSON.stringify(healthStatus));
-}
-
-// Get nonce details
-export const getNonceDetails = async ({
-  walletAddress,
-  chainId,
-}: {
-  walletAddress?: string;
-  chainId?: string;
-} = {}) => {
-  const lastUsedNonceKeys = await getLastUsedNonceKeys(walletAddress, chainId);
-
-  const pipeline = redis.pipeline();
-  const onchainNoncePromises: Promise<number>[] = [];
-
-  const keyMap = lastUsedNonceKeys.map((key) => {
+// Check all wallets
+async function checkAllWallets(job: Job<string>) {
+  const lastUsedNonceKeys = await getLastUsedNonceKeys();
+  const walletHealthPromises = lastUsedNonceKeys.map(async (key) => {
     const { chainId, walletAddress } = splitLastUsedNonceKey(key);
-
-    pipeline.get(lastUsedNonceKey(chainId, walletAddress));
-    pipeline.scard(sentNoncesKey(chainId, walletAddress));
-    pipeline.scard(recycledNoncesKey(chainId, walletAddress));
-
-    onchainNoncePromises.push(getOnchainNonce(chainId, walletAddress));
-
-    return { chainId, walletAddress };
+    await updateNonceHistory(walletAddress, chainId);
+    const isStuck = await isQueueStuck(walletAddress, chainId);
+    const currentState = await getCurrentNonceState(walletAddress, chainId);
+    return {
+      walletAddress,
+      chainId,
+      isStuck,
+      onchainNonce: currentState.onchainNonce,
+      internalNonce: currentState.internalNonce,
+    };
   });
 
-  const [pipelineResults, onchainNonces] = await Promise.all([
-    pipeline.exec(),
-    Promise.all(onchainNoncePromises),
+  const walletHealthResults = await Promise.all(walletHealthPromises);
+  logWalletHealth(walletHealthResults, job);
+}
+
+// Check if a queue is stuck
+async function isQueueStuck(
+  walletAddress: Address,
+  chainId: number,
+): Promise<boolean> {
+  const historicalStates = await getHistoricalNonceStates(
+    walletAddress,
+    chainId,
+    CHECK_PERIODS,
+  );
+
+  // ensure we have enough data to check
+  if (historicalStates.length < CHECK_PERIODS) return false;
+
+  // if for every period, the nonce is stuck, then the queue is stuck
+  const isStuckForAllPeriods = historicalStates.every((state, index) => {
+    if (index === historicalStates.length - 1) return true; // Last (oldest) state
+    const nextState = historicalStates[index + 1];
+    return (
+      state.onchainNonce === nextState.onchainNonce &&
+      state.internalNonce > nextState.internalNonce
+    );
+  });
+
+  return isStuckForAllPeriods;
+}
+
+// Get current nonce state
+async function getCurrentNonceState(
+  walletAddress: Address,
+  chainId: number,
+): Promise<NonceState> {
+  const [onchainNonce, internalNonce] = await Promise.all([
+    getOnchainNonce(chainId, walletAddress),
+    redis.get(lastUsedNonceKey(chainId, walletAddress)),
   ]);
 
-  if (!pipelineResults) {
-    throw new Error("Failed to execute Redis pipeline");
-  }
+  return {
+    timestamp: Date.now(),
+    onchainNonce: parseInt(onchainNonce.toString()),
+    internalNonce: parseInt(internalNonce || "0"),
+  };
+}
 
-  return keyMap.map((key, index) => {
-    const pipelineOffset = index * 3;
-    const [lastUsedNonceResult, sentNoncesResult, recycledNoncesResult] =
-      pipelineResults.slice(pipelineOffset, pipelineOffset + 3);
+function nonceHistoryKey(walletAddress: Address, chainId: number) {
+  return `nonceHistory:${chainId}:${walletAddress}`;
+}
 
-    return {
-      walletAddress: key.walletAddress,
-      chainId: key.chainId,
-      onchainNonce: onchainNonces[index].toString(),
-      lastUsedNonce: (lastUsedNonceResult[1] as string | null) ?? "0",
-      sentNoncesLength: sentNoncesResult[1] as number,
-      recycledNoncesLength: recycledNoncesResult[1] as number,
-    };
+// Get historical nonce states
+async function getHistoricalNonceStates(
+  walletAddress: Address,
+  chainId: number,
+  periods: number,
+): Promise<NonceState[]> {
+  const key = nonceHistoryKey(walletAddress, chainId);
+  const historicalStates = await redis.lrange(key, 0, periods - 1);
+  return historicalStates.map((state) => JSON.parse(state));
+}
+
+// Update nonce history
+async function updateNonceHistory(walletAddress: Address, chainId: number) {
+  const currentState = await getCurrentNonceState(walletAddress, chainId);
+  const key = nonceHistoryKey(walletAddress, chainId);
+
+  await redis
+    .multi()
+    .lpush(key, JSON.stringify(currentState))
+    .ltrim(key, 0, CHECK_PERIODS - 1)
+    .exec();
+}
+
+// Log wallet health
+function logWalletHealth(healthResults: WalletHealth[], job: Job<string>) {
+  healthResults.forEach((result) => {
+    const message =
+      `[WALLET_HEALTH] ${result.walletAddress}:${result.chainId} ` +
+      `isStuck:${result.isStuck} ` +
+      `onchainNonce:${result.onchainNonce} ` +
+      `internalNonce:${result.internalNonce}`;
+
+    if (result.isStuck) {
+      logger({
+        service: "worker",
+        level: "warn",
+        message: `ALERT: ${message}`,
+      });
+    } else {
+      logger({ service: "worker", level: "info", message });
+    }
   });
-};
+
+  job.log(JSON.stringify(healthResults));
+}
