@@ -1,5 +1,8 @@
 import { FastifyInstance } from "fastify";
+<<<<<<< HEAD
 import { getTransactionDetails } from "./admin/transaction";
+=======
+>>>>>>> origin/main
 import { createAccessToken } from "./auth/access-tokens/create";
 import { getAllAccessTokens } from "./auth/access-tokens/getAll";
 import { revokeAccessToken } from "./auth/access-tokens/revoke";
