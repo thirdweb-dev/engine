@@ -144,6 +144,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
         const signedPayload: SignedPayload721WithQuantitySignature = {
           payload: {
             ...payloadV4,
+            price: payloadV4.price ?? "0",
             royaltyBps: BigNumber.from(payloadV4.royaltyBps),
             quantity: BigNumber.from(payloadV4.quantity),
             mintStartTime: BigNumber.from(payloadV4.mintStartTime),

@@ -1,52 +1,12 @@
 import { Type } from "@sinclair/typebox";
+import { nftInputSchema } from ".";
 import { AddressSchema } from "../address";
-
-const NFTInputSchema = Type.Object({
-  name: Type.Optional(
-    Type.String({
-      description: "Name of the item.",
-    }),
-  ),
-  description: Type.Optional(
-    Type.String({ description: "A human-readable description of the item." }),
-  ),
-  image: Type.Optional(
-    Type.String({
-      description: "This is the URL to the image of the item.",
-    }),
-  ),
-  animation_url: Type.Optional(
-    Type.String({
-      description: "A URL to a multi-media attachment for the item.",
-    }),
-  ),
-  external_url: Type.Optional(
-    Type.String({
-      description: "A URL that links to your app or platform.",
-    }),
-  ),
-  background_color: Type.Optional(
-    Type.String({
-      description:
-        "Background color of the item. Must be a six-character hexadecimal without a pre-pended #.",
-    }),
-  ),
-  attributes: Type.Optional(
-    Type.Array(
-      Type.Object({
-        trait_type: Type.String(),
-        value: Type.String(),
-      }),
-      { description: "Arbitrary metadata for this item." },
-    ),
-  ),
-});
 
 /**
  * ERC721
  */
 export const signature721InputSchemaV5 = Type.Object({
-  metadata: Type.Union([Type.String(), NFTInputSchema]),
+  metadata: Type.Union([Type.String(), nftInputSchema]),
   to: {
     ...AddressSchema,
     description:
