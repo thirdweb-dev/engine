@@ -2,6 +2,7 @@ import { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
 import { env } from "../../utils/env";
+import { parseEthersError } from "../../utils/ethers";
 import { logger } from "../../utils/logger";
 
 export type CustomError = {
@@ -21,41 +22,6 @@ export const createCustomError = (
   code,
 });
 
-// https://github.com/ethers-io/ethers.js/blob/main/src.ts/utils/errors.ts
-const ETHERS_ERROR_CODES = new Set([
-  // Generic Errors
-  "UNKNOWN_ERROR",
-  "NOT_IMPLEMENTED",
-  "UNSUPPORTED_OPERATION",
-  "NETWORK_ERROR",
-  "SERVER_ERROR",
-  "TIMEOUT",
-  "BAD_DATA",
-  "CANCELLED",
-
-  // Operational Errors
-  "BUFFER_OVERRUN",
-  "NUMERIC_FAULT",
-
-  // Argument Errors
-  "INVALID_ARGUMENT",
-  "MISSING_ARGUMENT",
-  "UNEXPECTED_ARGUMENT",
-  "VALUE_MISMATCH",
-
-  // Blockchain Errors
-  "CALL_EXCEPTION",
-  "INSUFFICIENT_FUNDS",
-  "NONCE_EXPIRED",
-  "REPLACEMENT_UNDERPRICED",
-  "TRANSACTION_REPLACED",
-  "UNCONFIGURED_NAME",
-  "OFFCHAIN_FAULT",
-
-  // User Interaction
-  "ACTION_REJECTED",
-]);
-
 export const createCustomDateTimestampError = (key: string): CustomError => {
   return createCustomError(
     `Invalid ${key} Value. Needs to new Date() / new Date().toISOstring() / new Date().getTime() / Unix Epoch`,
@@ -73,15 +39,6 @@ const isZodError = (err: unknown): boolean => {
   );
 };
 
-const isEthersError = (error: any): boolean => {
-  return (
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    ETHERS_ERROR_CODES.has(error.code)
-  );
-};
-
 export const withErrorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler(
     (error: Error | CustomError | ZodError, request, reply) => {
@@ -93,7 +50,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
       });
 
       // Ethers Error Codes
-      if (isEthersError(error)) {
+      if (parseEthersError(error)) {
         return reply.status(StatusCodes.BAD_REQUEST).send({
           error: {
             code: "BAD_REQUEST",

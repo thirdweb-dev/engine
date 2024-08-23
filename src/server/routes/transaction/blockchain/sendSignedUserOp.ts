@@ -5,6 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "../../../../utils/env";
 import { thirdwebClientId } from "../../../../utils/sdk";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { walletChainParamSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 const UserOp = Type.Object({
@@ -24,10 +25,6 @@ const UserOp = Type.Object({
 const UserOpString = Type.Transform(Type.String())
   .Decode((signedUserOp) => JSON.parse(signedUserOp) as Static<typeof UserOp>)
   .Encode((userOp) => JSON.stringify(userOp));
-
-const ParamsSchema = Type.Object({
-  chain: Type.String(),
-});
 
 const requestBodySchema = Type.Object({
   // signedUserOp: Type.Union([UserOpString, UserOp]),
@@ -61,7 +58,7 @@ type RpcResponse =
 
 export async function sendSignedUserOp(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof ParamsSchema>;
+    Params: Static<typeof walletChainParamSchema>;
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
@@ -72,7 +69,7 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
       description: "Send a signed user operation",
       tags: ["Transaction"],
       operationId: "sendSignedUserOp",
-      params: ParamsSchema,
+      params: walletChainParamSchema,
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,

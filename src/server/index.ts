@@ -8,9 +8,10 @@ import { env } from "../utils/env";
 import { logger } from "../utils/logger";
 import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listeners/updateTxListener";
+import { withAdminRoutes } from "./middleware/adminRoutes";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
-import { withEnforceEngineMode } from "./middleware/engine-mode";
+import { withEnforceEngineMode } from "./middleware/engineMode";
 import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
@@ -70,6 +71,7 @@ export const initServer = async () => {
   await withOpenApi(server);
   await withRoutes(server);
   await withServerUsageReporting(server);
+  await withAdminRoutes(server);
 
   await server.ready();
 
