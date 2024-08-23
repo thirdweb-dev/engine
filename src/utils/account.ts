@@ -1,11 +1,13 @@
 import { EVMWallet } from "@thirdweb-dev/wallets";
 import { Signer, providers } from "ethers";
 
+import { StatusCodes } from "http-status-codes";
 import { Address } from "thirdweb";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { Account } from "thirdweb/wallets";
 import { getWalletDetails } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
+import { createCustomError } from "../server/middleware/error";
 import { getAwsKmsWallet } from "../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsWallet } from "../server/utils/wallets/getGcpKmsWallet";
 import {
@@ -35,7 +37,11 @@ export const getAccount = async (args: {
     address: from,
   });
   if (!walletDetails) {
-    throw new Error(`Backend wallet not found: ${from}`);
+    throw createCustomError(
+      `No configured wallet found with address ${from}`,
+      StatusCodes.BAD_REQUEST,
+      "BAD_REQUEST",
+    );
   }
 
   let wallet: EVMWallet;
