@@ -5,14 +5,18 @@ import { Address, Hex, defineChain, getContract } from "thirdweb";
 import { generateMintSignature } from "thirdweb/extensions/erc721";
 import { getAccount } from "../../../../../../utils/account";
 import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
+import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {
   ercNFTResponseType,
-  nftInputSchema,
   signature721InputSchema,
   signature721OutputSchema,
 } from "../../../../../schemas/nft";
+import {
+  signature721InputSchemaV5,
+  signature721OutputSchemaV5,
+} from "../../../../../schemas/nft/v5";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
@@ -29,34 +33,9 @@ const responseSchemaV4 = Type.Object({
 });
 
 // v5 sdk
-const requestBodySchemaV5 = Type.Intersect([
-  Type.Object({
-    to: Type.String(),
-    metadata: Type.Union([nftInputSchema, Type.String()]),
-    royaltyRecipient: Type.Optional(Type.String()),
-    royaltyBps: Type.Optional(Type.Number()),
-    primarySaleRecipient: Type.Optional(Type.String()),
-    price: Type.Optional(Type.String()),
-    priceInWei: Type.Optional(Type.String()),
-    currency: Type.Optional(Type.String()),
-    validityStartTimestamp: Type.Integer(),
-    validityEndTimestamp: Type.Optional(Type.Integer()),
-    uid: Type.Optional(Type.String()),
-  }),
-]);
+const requestBodySchemaV5 = signature721InputSchemaV5;
 const responseSchemaV5 = Type.Object({
-  payload: Type.Object({
-    to: Type.String(),
-    royaltyRecipient: Type.String(),
-    royaltyBps: Type.String(),
-    primarySaleRecipient: Type.String(),
-    uri: Type.String(),
-    price: Type.String(),
-    currency: Type.String(),
-    validityStartTimestamp: Type.Integer(),
-    validityEndTimestamp: Type.Integer(),
-    uid: Type.String(),
-  }),
+  payload: signature721OutputSchemaV5,
   signature: Type.String(),
 });
 
@@ -168,9 +147,11 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
             royaltyBps,
             primarySaleRecipient,
             price,
-            priceInWei: priceInWei ? BigInt(priceInWei) : undefined,
+            priceInWei: maybeBigInt(priceInWei),
             currency: currency as Address | undefined,
-            validityStartTimestamp: new Date(validityStartTimestamp * 1000),
+            validityStartTimestamp: validityStartTimestamp
+              ? new Date(validityStartTimestamp * 1000)
+              : undefined,
             validityEndTimestamp: validityEndTimestamp
               ? new Date(validityEndTimestamp * 1000)
               : undefined,
@@ -184,8 +165,8 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
               ...payload,
               royaltyBps: payload.royaltyBps.toString(),
               price: payload.price.toString(),
-              validityStartTimestamp: Number(payload.validityStartTimestamp),
-              validityEndTimestamp: Number(payload.validityEndTimestamp),
+              validityStartTimestamp: payload.validityStartTimestamp.toString(),
+              validityEndTimestamp: payload.validityEndTimestamp.toString(),
             },
             signature,
           },

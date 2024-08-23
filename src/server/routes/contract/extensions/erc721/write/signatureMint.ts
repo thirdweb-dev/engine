@@ -3,9 +3,16 @@ import { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { Hex, defineChain, getContract as getContractV5 } from "thirdweb";
+import { mintWithSignature } from "thirdweb/extensions/erc721";
+import { resolvePromisedValue } from "thirdweb/utils";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
+import { queueTxRaw } from "../../../../../../db/transactions/queueTxRaw";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { thirdwebClient } from "../../../../../../utils/sdk";
+import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import { signature721OutputSchema } from "../../../../../schemas/nft";
+import { signature721OutputSchemaV5 } from "../../../../../schemas/nft/v5";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -19,7 +26,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  payload: signature721OutputSchema,
+  payload: Type.Union([signature721OutputSchema, signature721OutputSchemaV5]),
   signature: Type.String(),
   ...txOverridesWithValueSchema.properties,
 });
@@ -76,43 +83,88 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
       const { simulateTx } = request.query;
       const { payload, signature, txOverrides } = request.body;
       const {
-        "x-backend-wallet-address": walletAddress,
+        "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+      const { "x-thirdweb-sdk-version": sdkVersion } =
+        request.headers as Static<typeof thirdwebSdkVersionSchema>;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
-        contractAddress,
-        walletAddress,
-        accountAddress,
-      });
-      const signedPayload: SignedPayload721WithQuantitySignature = {
-        payload: {
-          ...payload,
-          royaltyBps: BigNumber.from(payload.royaltyBps),
-          quantity: BigNumber.from(payload.quantity),
-          mintStartTime: BigNumber.from(payload.mintStartTime),
-          mintEndTime: BigNumber.from(payload.mintEndTime),
-        },
-        signature,
-      };
-      const tx = await contract.erc721.signature.mint.prepare(signedPayload);
 
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
-        extension: "erc721",
-        idempotencyKey,
-        txOverrides,
-      });
+      let queueId: string;
+      if (sdkVersion === "5") {
+        const payloadV5 = payload as Static<typeof signature721OutputSchemaV5>;
+        const contract = getContractV5({
+          client: thirdwebClient,
+          chain: defineChain(chainId),
+          address: contractAddress,
+        });
+        const transaction = mintWithSignature({
+          contract,
+          payload: {
+            uri: payload.uri,
+            to: payload.to,
+            price: payload.price ? BigInt(payload.price) : 0n,
+            currency: payloadV5.currency,
+            primarySaleRecipient: payload.primarySaleRecipient,
+            royaltyRecipient: payload.royaltyRecipient,
+            royaltyBps: BigInt(payloadV5.royaltyBps),
+            validityStartTimestamp: BigInt(payloadV5.validityStartTimestamp),
+            validityEndTimestamp: BigInt(payloadV5.validityEndTimestamp),
+            uid: payload.uid as Hex,
+          },
+          signature: signature as Hex,
+        });
+
+        const from = accountAddress
+          ? { signerAddress: fromAddress, accountAddress }
+          : { fromAddress };
+        const { id } = await queueTxRaw({
+          ...from,
+          toAddress: contractAddress,
+          chainId: chainId.toString(),
+          data: (await resolvePromisedValue(transaction.data)) as Hex,
+          value: txOverrides?.value,
+          gas: txOverrides?.gas,
+          maxFeePerGas: txOverrides?.maxFeePerGas,
+          maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas,
+          simulateTx,
+          idempotencyKey,
+        });
+        queueId = id;
+      } else {
+        const payloadV4 = payload as Static<typeof signature721OutputSchema>;
+        const contract = await getContract({
+          chainId,
+          contractAddress,
+          walletAddress: fromAddress,
+          accountAddress,
+        });
+        const signedPayload: SignedPayload721WithQuantitySignature = {
+          payload: {
+            ...payloadV4,
+            royaltyBps: BigNumber.from(payloadV4.royaltyBps),
+            quantity: BigNumber.from(payloadV4.quantity),
+            mintStartTime: BigNumber.from(payloadV4.mintStartTime),
+            mintEndTime: BigNumber.from(payloadV4.mintEndTime),
+          },
+          signature,
+        };
+        const tx = await contract.erc721.signature.mint.prepare(signedPayload);
+
+        queueId = await queueTx({
+          tx,
+          chainId,
+          simulateTx,
+          extension: "erc721",
+          idempotencyKey,
+          txOverrides,
+        });
+      }
 
       reply.status(StatusCodes.OK).send({
-        result: {
-          queueId,
-        },
+        result: { queueId },
       });
     },
   });
