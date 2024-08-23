@@ -16,10 +16,10 @@ export const walletHeaderSchema = Type.Object({
 
 export const walletWithAAHeaderSchema = Type.Object({
   ...walletHeaderSchema.properties,
-  "x-account-address": {
+  "x-account-address": Type.Optional({
     ...AddressSchema,
     description: "Smart account address",
-  },
+  }),
 });
 
 export const walletChainParamSchema = Type.Object({
