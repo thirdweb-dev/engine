@@ -81,7 +81,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
       });
 
       let queueId: string;
-      let insertedTransaction = {
+      const insertedTransaction = {
         chainId,
         from: fromAddress as Address,
         to: contractAddress as Address | undefined,
