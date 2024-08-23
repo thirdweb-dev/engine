@@ -6,8 +6,8 @@ import { prisma } from "../../db/client";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { getSdk } from "../../utils/cache/getSdk";
 import { logger } from "../../utils/logger";
-import { enqueueProcessEventLogs } from "../queues/processEventLogsQueue";
-import { enqueueProcessTransactionReceipts } from "../queues/processTransactionReceiptsQueue";
+import { ProcessEventsLogQueue } from "../queues/processEventLogsQueue";
+import { ProcessTransactionReceiptsQueue } from "../queues/processTransactionReceiptsQueue";
 
 export const createChainIndexerTask = async (args: {
   chainId: number;
@@ -74,7 +74,7 @@ export const createChainIndexerTask = async (args: {
               events: c.filterEvents,
             }));
           if (eventLogFilters.length > 0) {
-            await enqueueProcessEventLogs({
+            await ProcessEventsLogQueue.add({
               chainId,
               fromBlock,
               toBlock,
@@ -93,7 +93,7 @@ export const createChainIndexerTask = async (args: {
               functions: c.filterFunctions,
             }));
           if (transactionReceiptFilters.length > 0) {
-            await enqueueProcessTransactionReceipts({
+            await ProcessTransactionReceiptsQueue.add({
               chainId,
               fromBlock,
               toBlock,

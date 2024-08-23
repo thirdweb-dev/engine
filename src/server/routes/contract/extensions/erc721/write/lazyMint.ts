@@ -23,7 +23,7 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    metadata: [
+    metadatas: [
       {
         name: "My NFT #1",
         description: "My NFT #1 description",

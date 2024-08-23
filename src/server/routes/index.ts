@@ -1,4 +1,8 @@
 import { FastifyInstance } from "fastify";
+<<<<<<< HEAD
+import { getTransactionDetails } from "./admin/transaction";
+=======
+>>>>>>> origin/main
 import { createAccessToken } from "./auth/access-tokens/create";
 import { getAllAccessTokens } from "./auth/access-tokens/getAll";
 import { revokeAccessToken } from "./auth/access-tokens/revoke";
@@ -97,7 +101,6 @@ import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { cancelTransaction } from "./transaction/cancel";
 import { getAllTx } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
-import { checkGroupStatus } from "./transaction/group";
 import { retryTransaction } from "./transaction/retry";
 import { checkTxStatus } from "./transaction/status";
 import { syncRetryTransaction } from "./transaction/syncRetry";
@@ -214,7 +217,6 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkTxStatus);
   await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
-  await fastify.register(checkGroupStatus);
   await fastify.register(retryTransaction);
   await fastify.register(syncRetryTransaction);
   await fastify.register(cancelTransaction);
@@ -255,4 +257,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getContractEventLogs);
   await fastify.register(getEventLogs);
   await fastify.register(pageEventLogs);
+
+  // Admin
+  await fastify.register(getTransactionDetails);
 };

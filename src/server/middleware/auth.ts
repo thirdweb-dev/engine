@@ -24,6 +24,7 @@ import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { sendWebhookRequest } from "../../utils/webhook";
 import { Permission } from "../schemas/auth";
+import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
 
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };
@@ -227,6 +228,11 @@ const handlePublicEndpoints = (req: FastifyRequest): AuthResponse => {
         return { isAuthed: true };
       }
     }
+  }
+
+  // Admin routes enforce their own auth.
+  if (req.url.startsWith(ADMIN_QUEUES_BASEPATH)) {
+    return { isAuthed: true };
   }
 
   return { isAuthed: false };

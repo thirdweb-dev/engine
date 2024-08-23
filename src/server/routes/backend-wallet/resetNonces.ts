@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteAllWalletNonces } from "../../../db/wallets/deleteAllWalletNonces";
+import { deleteAllNonces } from "../../../db/wallets/walletNonce";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const responseSchema = Type.Object({
@@ -23,7 +23,7 @@ export const resetBackendWalletNonces = async (fastify: FastifyInstance) => {
     method: "POST",
     url: "/backend-wallet/reset-nonces",
     schema: {
-      summary: "Reset all nonces",
+      summary: "Reset nonces",
       description:
         "Reset nonces for all backend wallets. This is for debugging purposes and does not impact held tokens.",
       tags: ["Backend Wallet"],
@@ -34,7 +34,7 @@ export const resetBackendWalletNonces = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, reply) => {
-      await deleteAllWalletNonces({});
+      await deleteAllNonces();
 
       reply.status(StatusCodes.OK).send({
         result: {

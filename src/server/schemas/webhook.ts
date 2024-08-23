@@ -17,7 +17,7 @@ export const toWebhookSchema = (
   url: webhook.url,
   name: webhook.name,
   eventType: webhook.eventType,
-  secret: webhook.secret ? webhook.secret : undefined,
+  secret: webhook.secret,
   createdAt: webhook.createdAt.toISOString(),
   active: webhook.revokedAt ? false : true,
   id: webhook.id,

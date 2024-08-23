@@ -1,15 +1,9 @@
 import { Webhooks } from "@prisma/client";
 import crypto from "crypto";
-import { getTransactionsByQueueIds } from "../db/transactions/getTxByIds";
 import {
   WalletBalanceWebhookSchema,
   WebhooksEventTypes,
 } from "../schema/webhooks";
-import {
-  TransactionStatus,
-  toTransactionSchema,
-} from "../server/schemas/transaction";
-import { enqueueWebhook } from "../worker/queues/sendWebhookQueue";
 import { getWebhooksByEventType } from "./cache/getWebhook";
 import { logger } from "./logger";
 
@@ -81,36 +75,6 @@ export const sendWebhookRequest = async (
       status: 500,
       body: e.toString(),
     };
-  }
-};
-
-export interface WebhookData {
-  queueId: string;
-  status: TransactionStatus;
-}
-
-export const sendWebhooks = async (data: WebhookData[]) => {
-  const queueIds = data.map((d) => d.queueId);
-  const transactions = await getTransactionsByQueueIds(queueIds);
-
-  for (const transaction of transactions) {
-    const transactionResponse = toTransactionSchema(transaction);
-    const type =
-      transactionResponse.status === TransactionStatus.Queued
-        ? WebhooksEventTypes.QUEUED_TX
-        : transactionResponse.status === TransactionStatus.Sent
-        ? WebhooksEventTypes.SENT_TX
-        : transactionResponse.status === TransactionStatus.Mined
-        ? WebhooksEventTypes.MINED_TX
-        : transactionResponse.status === TransactionStatus.Errored
-        ? WebhooksEventTypes.ERRORED_TX
-        : transactionResponse.status === TransactionStatus.Cancelled
-        ? WebhooksEventTypes.CANCELLED_TX
-        : undefined;
-
-    if (type) {
-      await enqueueWebhook({ type, transaction });
-    }
   }
 };
 
