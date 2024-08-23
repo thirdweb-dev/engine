@@ -165,7 +165,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         address: contractAddress,
       });
 
-      // @TODO: Update to use primitiveTypes helpers.
       const mintPayload = await generateMintSignaturePayload({
         metadata,
         to,

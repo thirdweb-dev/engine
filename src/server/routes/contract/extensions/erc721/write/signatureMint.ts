@@ -3,13 +3,19 @@ import { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Hex, defineChain, getContract as getContractV5 } from "thirdweb";
+import {
+  Address,
+  Hex,
+  defineChain,
+  getContract as getContractV5,
+} from "thirdweb";
 import { mintWithSignature } from "thirdweb/extensions/erc721";
 import { resolvePromisedValue } from "thirdweb/utils";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { queueTxRaw } from "../../../../../../db/transactions/queueTxRaw";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
+import { insertTransaction } from "../../../../../../utils/transaction/insertTransaction";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import { signature721OutputSchema } from "../../../../../schemas/nft";
 import { signature721OutputSchemaV5 } from "../../../../../schemas/nft/v5";
@@ -103,36 +109,52 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
         const transaction = mintWithSignature({
           contract,
           payload: {
-            uri: payload.uri,
-            to: payload.to,
-            price: payload.price ? BigInt(payload.price) : 0n,
+            uri: payloadV5.uri,
+            to: payloadV5.to,
+            price: BigInt(payloadV5.price),
             currency: payloadV5.currency,
-            primarySaleRecipient: payload.primarySaleRecipient,
-            royaltyRecipient: payload.royaltyRecipient,
+            primarySaleRecipient: payloadV5.primarySaleRecipient,
+            royaltyRecipient: payloadV5.royaltyRecipient,
             royaltyBps: BigInt(payloadV5.royaltyBps),
             validityStartTimestamp: BigInt(payloadV5.validityStartTimestamp),
             validityEndTimestamp: BigInt(payloadV5.validityEndTimestamp),
-            uid: payload.uid as Hex,
+            uid: payloadV5.uid as Hex,
           },
           signature: signature as Hex,
         });
 
-        const from = accountAddress
-          ? { signerAddress: fromAddress, accountAddress }
-          : { fromAddress };
-        const { id } = await queueTxRaw({
-          ...from,
-          toAddress: contractAddress,
-          chainId: chainId.toString(),
+        const insertedTransaction = {
+          chainId,
+          from: fromAddress as Address,
+          to: contractAddress as Address | undefined,
           data: (await resolvePromisedValue(transaction.data)) as Hex,
-          value: txOverrides?.value,
-          gas: txOverrides?.gas,
-          maxFeePerGas: txOverrides?.maxFeePerGas,
-          maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas,
-          simulateTx,
-          idempotencyKey,
-        });
-        queueId = id;
+          value: maybeBigInt(txOverrides?.value),
+          gas: maybeBigInt(txOverrides?.gas),
+          maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+          maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
+        };
+        if (accountAddress) {
+          queueId = await insertTransaction({
+            insertedTransaction: {
+              ...insertedTransaction,
+              isUserOp: true,
+              accountAddress: accountAddress as Address,
+              signerAddress: fromAddress as Address,
+              target: contractAddress as Address | undefined,
+            },
+            shouldSimulate: simulateTx,
+            idempotencyKey,
+          });
+        } else {
+          queueId = await insertTransaction({
+            insertedTransaction: {
+              ...insertedTransaction,
+              isUserOp: false,
+            },
+            shouldSimulate: simulateTx,
+            idempotencyKey,
+          });
+        }
       } else {
         const payloadV4 = payload as Static<typeof signature721OutputSchema>;
         const contract = await getContract({
