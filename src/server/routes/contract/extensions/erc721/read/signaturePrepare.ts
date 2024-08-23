@@ -3,9 +3,10 @@ import { MintRequest721 } from "@thirdweb-dev/sdk";
 import { randomBytes } from "crypto";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Hex, ZERO_ADDRESS, defineChain, getContract } from "thirdweb";
+import { Hex, ZERO_ADDRESS, getContract } from "thirdweb";
 import { GenerateMintSignatureOptions } from "thirdweb/extensions/erc721";
 import { upload } from "thirdweb/storage";
+import { getChain } from "../../../../../../utils/chain";
 import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import {
@@ -24,24 +25,54 @@ const requestBodySchema = signature721InputSchemaV5;
 const responseSchema = Type.Object({
   result: Type.Object({
     mintPayload: signature721OutputSchemaV5,
-    typedDataPayload: Type.Object({
-      domain: Type.Object({
-        name: Type.String(),
-        version: Type.String(),
-        chainId: Type.Number(),
-        verifyingContract: Type.String(),
-      }),
-      types: Type.Object({
-        MintRequest: Type.Array(
-          Type.Object({
+    typedDataPayload: Type.Object(
+      {
+        domain: Type.Object(
+          {
             name: Type.String(),
-            type: Type.String(),
-          }),
+            version: Type.String(),
+            chainId: Type.Number(),
+            verifyingContract: Type.String(),
+          },
+          {
+            description:
+              "Specifies the contextual information used to prevent signature reuse across different contexts.",
+          },
         ),
-      }),
-      message: signature721OutputSchemaV5,
-      primaryType: Type.Literal("MintRequest"),
-    }),
+        types: Type.Object(
+          {
+            EIP712Domain: Type.Array(
+              Type.Object({
+                name: Type.String(),
+                type: Type.String(),
+              }),
+            ),
+            MintRequest: Type.Array(
+              Type.Object({
+                name: Type.String(),
+                type: Type.String(),
+              }),
+            ),
+          },
+          {
+            description:
+              "Defines the structure of the data types used in the message.",
+          },
+        ),
+        message: {
+          ...signature721OutputSchemaV5,
+          description: "The structured data to be signed.",
+        },
+        primaryType: Type.Literal("MintRequest", {
+          description:
+            "The main type of the data in the message corresponding to a defined type in the `types` field.",
+        }),
+      },
+      {
+        description:
+          "The payload to sign with a wallet's `signTypedData` method.",
+      },
+    ),
   }),
 });
 
@@ -158,10 +189,9 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
-      // @TODO: update to v2 getChain
       const contract = await getContract({
         client: thirdwebClient,
-        chain: defineChain(chainId),
+        chain: await getChain(chainId),
         address: contractAddress,
       });
 
@@ -180,7 +210,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         validityEndTimestamp: validityEndTimestamp
           ? new Date(validityEndTimestamp * 1000)
           : undefined,
-        // @TODO: Verify if uid must be hex.
         uid: uid as Hex,
       });
       const sanitizedMintPayload: Static<typeof signature721OutputSchemaV5> = {
@@ -201,7 +230,16 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
               chainId: contract.chain.id,
               verifyingContract: contract.address,
             },
-            types: { MintRequest: MintRequest721 },
+            types: {
+              // signTypedData on some wallets fail without this type.
+              EIP712Domain: [
+                { name: "name", type: "string" },
+                { name: "version", type: "string" },
+                { name: "chainId", type: "uint256" },
+                { name: "verifyingContract", type: "address" },
+              ],
+              MintRequest: MintRequest721,
+            },
             message: sanitizedMintPayload,
             primaryType: "MintRequest",
           },
