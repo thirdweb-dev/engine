@@ -1,7 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { getActiveClaimCondition } from "thirdweb/extensions/erc20";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import { claimConditionOutputSchema } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
@@ -11,14 +12,6 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
 const requestSchema = contractParamSchema;
-const requestQueryString = Type.Object({
-  withAllowList: Type.Optional(
-    Type.Boolean({
-      description:
-        "Provide a boolean value to include the allowlist in the response.",
-    }),
-  ),
-});
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -30,7 +23,6 @@ export async function erc20GetActiveClaimConditions(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
-    Querystring: Static<typeof requestQueryString>;
   }>({
     method: "GET",
     url: "/contract/:chain/:contractAddress/erc20/claim-conditions/get-active",
@@ -40,7 +32,6 @@ export async function erc20GetActiveClaimConditions(fastify: FastifyInstance) {
       tags: ["ERC20"],
       operationId: "getActiveClaimConditions",
       params: requestSchema,
-      querystring: requestQueryString,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
@@ -48,26 +39,23 @@ export async function erc20GetActiveClaimConditions(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { withAllowList } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc20.claimConditions.getActive({
-        withAllowList,
-      });
+      const returnData = await getActiveClaimCondition({ contract });
       reply.status(StatusCodes.OK).send({
         result: {
-          ...returnData,
-          price: returnData.price.toString(),
-          waitInSeconds: returnData.waitInSeconds.toString(),
-          currencyMetadata: {
-            ...returnData.currencyMetadata,
-            value: returnData.currencyMetadata.value.toString(),
-          },
-          startTime: returnData.startTime.toISOString(),
+          pricePerToken: returnData.pricePerToken.toString(),
+          metadata: returnData.metadata,
+          maxClaimableSupply: returnData.maxClaimableSupply.toString(),
+          quantityLimitPerWallet: returnData.quantityLimitPerWallet.toString(),
+          merkleRoot: returnData.merkleRoot,
+          currency: returnData.currency,
+          startTimestamp: returnData.startTimestamp.toString(),
+          supplyClaimed: returnData.supplyClaimed.toString(),
         },
       });
     },

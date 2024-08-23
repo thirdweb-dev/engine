@@ -1,7 +1,8 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { getCurrencyMetadata } from "thirdweb/extensions/erc20";
+import { getContractV5 } from "../../../../../../utils/cache/getContractV5";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
@@ -50,16 +51,16 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const returnData: any = await contract.erc20.get();
+      const currencyMetadata = await getCurrencyMetadata({ contract });
       reply.status(StatusCodes.OK).send({
         result: {
-          symbol: returnData.symbol,
-          name: returnData.name,
-          decimals: returnData.decimals,
+          symbol: currencyMetadata.symbol,
+          name: currencyMetadata.name,
+          decimals: currencyMetadata.decimals.toString(),
         },
       });
     },
