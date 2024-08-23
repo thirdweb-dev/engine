@@ -446,7 +446,7 @@ export const processTx = async () => {
                 },
               );
 
-            // Temporary fix untill SDK allows us to do this
+            // Temporary fix until SDK allows us to do this
             if (tx.gasLimit) {
               unsignedOp.callGasLimit = BigNumber.from(tx.gasLimit);
               unsignedOp.paymasterAndData = "0x";
