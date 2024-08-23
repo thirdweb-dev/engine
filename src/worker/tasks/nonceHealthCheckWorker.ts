@@ -91,12 +91,16 @@ async function isQueueStuck(
   // ensure we have enough data to check
   if (historicalStates.length < CHECK_PERIODS) return false;
 
-  // if for every period, the nonce is stuck, then the queue is stuck
+  const oldestOnchainNonce = historicalStates[CHECK_PERIODS - 1].onchainNonce;
+
+  // if for every period, the onchain nonce has not changes, and the internal nonce has strictly increased
+  // then the queue is stuck
   const isStuckForAllPeriods = historicalStates.every((state, index) => {
     if (index === historicalStates.length - 1) return true; // Last (oldest) state
+
     const nextState = historicalStates[index + 1];
     return (
-      state.onchainNonce === nextState.onchainNonce &&
+      state.onchainNonce === oldestOnchainNonce &&
       state.internalNonce > nextState.internalNonce
     );
   });
