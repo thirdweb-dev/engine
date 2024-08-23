@@ -1,20 +1,57 @@
-import Pino, { LoggerOptions } from "pino";
+import { createLogger, format, transports } from "winston";
 import { env } from "./env";
 
-const defaultOptions: LoggerOptions = {
-  redact: ["headers.authorization"],
-  transport: {
-    target: "pino-pretty",
-    options: {
-      translateTime: "HH:MM:ss Z",
-      ignore: "pid,hostname,reqId",
-      singleLine: true,
-    },
-  },
-  level: env.LOG_LEVEL,
+// Custom filter for stdout transport
+const filterOnlyInfoAndWarn = format((info) => {
+  if (info.level === "error") {
+    return false; // Exclude 'error' level logs
+  }
+  return info;
+});
+
+// Custom filter for stderr transport
+const filterOnlyErrors = format((info) => {
+  if (info.level !== "error") {
+    return false; // Exclude non-error level logs
+  }
+  return info;
+});
+
+const colorizeFormat = () => {
+  if (env.NODE_ENV === "development") {
+    return format.colorize();
+  } else {
+    return format.uncolorize();
+  }
 };
 
-const pino = Pino(defaultOptions);
+const winstonLogger = createLogger({
+  level: env.LOG_LEVEL,
+  format: format.combine(
+    format.timestamp(),
+    format.errors({ stack: true }),
+    format.splat(),
+    colorizeFormat(),
+    format.printf(({ level, message, timestamp, error }) => {
+      if (error) {
+        return `[${timestamp}] ${level}: ${message} - ${error.stack}`;
+      }
+      return `[${timestamp}] ${level}: ${message}`;
+    }),
+  ),
+  transports: [
+    // Transport for stdout
+    new transports.Console({
+      format: format.combine(filterOnlyInfoAndWarn()),
+      stderrLevels: [], // Don't log "error" to stdout
+    }),
+    // Transport for stderr
+    new transports.Console({
+      format: format.combine(filterOnlyErrors()),
+      stderrLevels: ["error"], // Ensure errors go to stderr
+    }),
+  ],
+});
 
 interface LoggerParams {
   service: (typeof env)["LOG_SERVICES"][0];
@@ -46,9 +83,10 @@ export const logger = ({
   if (data) {
     suffix += ` - ${JSON.stringify(data)}`;
   }
-  if (error) {
-    suffix += ` - ${error?.message || error}`;
-  }
 
-  return pino[level](`${prefix}${message}${suffix}`);
+  if (error) {
+    winstonLogger.error(`${prefix}${message}${suffix}`, { error });
+  } else {
+    winstonLogger.log(level, `${prefix}${message}${suffix}`);
+  }
 };

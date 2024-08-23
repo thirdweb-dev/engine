@@ -1,39 +1,31 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllTxs } from "../../../db/transactions/getAllTxs";
-import { createCustomError } from "../../middleware/error";
+import { TransactionDB } from "../../../db/transactions/db";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { transactionResponseSchema } from "../../schemas/transaction";
+import {
+  TransactionSchema,
+  toTransactionSchema,
+} from "../../schemas/transaction";
 
-// INPUT
 const requestQuerySchema = Type.Object({
-  page: Type.String({
-    description:
-      "This parameter allows the user to specify the page number for pagination purposes",
-    examples: ["1"],
-    default: "1",
+  page: Type.Integer({
+    description: "Specify the page number for pagination.",
+    examples: [1],
+    default: 1,
+    minimum: 1,
   }),
-  limit: Type.String({
-    description:
-      "This parameter defines the maximum number of transaction request data to return per page.",
-    examples: ["10"],
-    default: "10",
+  limit: Type.Integer({
+    description: "Specify the number of transactions to return per page.",
+    examples: [10],
+    default: 10,
+    minimum: 1,
   }),
-  // filter: Type.Optional(
-  //   Type.Union([Type.Enum(TransactionStatus), Type.Literal("all")], {
-  //     description:
-  //       "This parameter allows to define specific criteria to filter the data by. For example, filtering by processed, submitted or error",
-  //     examples: ["all", "submitted", "processed", "errored", "mined", "queued"],
-  //     default: "all",
-  //   }),
-  // ),
 });
 
-// OUTPUT
 export const responseBodySchema = Type.Object({
   result: Type.Object({
-    transactions: Type.Array(transactionResponseSchema),
+    transactions: Type.Array(TransactionSchema),
     totalCount: Type.Number(),
   }),
 });
@@ -90,32 +82,20 @@ export async function getAllDeployedContracts(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { page, limit } = request.query;
 
-      if (isNaN(parseInt(page, 10))) {
-        const customError = createCustomError(
-          "Page must be a number",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-        throw customError;
-      } else if (isNaN(parseInt(limit, 10))) {
-        const customError = createCustomError(
-          "Limit must be a number",
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-        throw customError;
-      }
-      const txsData = await getAllTxs({
-        page: parseInt(page, 10),
-        limit: parseInt(limit, 10),
-        // filter: filter && filter !== "all" ? filter : undefined,
-        extensions: ["deploy-prebuilt", "deploy-published"],
+      const { transactions } = await TransactionDB.getTransactionListByStatus({
+        status: "queued",
+        page,
+        limit,
       });
+      const deploymentTransactions = transactions.filter(
+        (t) => !!t.deployedContractAddress,
+      );
 
       reply.status(StatusCodes.OK).send({
         result: {
-          transactions: txsData.transactions,
-          totalCount: txsData.totalCount,
+          transactions: deploymentTransactions.map(toTransactionSchema),
+          // @TODO: this is inaccurate.
+          totalCount: 0,
         },
       });
     },

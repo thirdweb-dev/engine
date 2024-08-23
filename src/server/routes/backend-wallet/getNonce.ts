@@ -1,28 +1,23 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getWalletNonce } from "../../../db/wallets/getWalletNonce";
-import { createCustomError } from "../../middleware/error";
+import { Address } from "thirdweb";
+import { inspectNonce } from "../../../db/wallets/walletNonce";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { walletParamSchema } from "../../schemas/wallet";
+import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const requestSchema = walletParamSchema;
+const requestSchema = walletWithAddressParamSchema;
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    status: Type.String(),
-    nonce: Type.String(),
-    walletAddress: Type.String(),
-    chain: Type.String(),
+    nonce: Type.Number(),
   }),
 });
 
 responseSchema.example = {
   result: {
-    nonce: "100",
-    walletAddress: "0x...",
-    chain: "1",
+    nonce: 100,
   },
 };
 
@@ -34,9 +29,9 @@ export const getBackendWalletNonce = async (fastify: FastifyInstance) => {
     method: "GET",
     url: "/backend-wallet/:chain/:walletAddress/get-nonce",
     schema: {
-      summary: "Get backend-wallet nonces from DB",
+      summary: "Get nonce",
       description:
-        "Get nonce for a backend wallets from DB. This is for debugging purposes and does not impact held tokens.",
+        "Get the last used nonce for this backend wallet. This value managed by Engine may differ from the onchain value. Use `/backend-wallet/reset-nonces` if this value looks incorrect while idle.",
       tags: ["Backend Wallet"],
       operationId: "getNonce",
       params: requestSchema,
@@ -48,25 +43,11 @@ export const getBackendWalletNonce = async (fastify: FastifyInstance) => {
     handler: async (req, reply) => {
       const { chain, walletAddress } = req.params;
       const chainId = await getChainIdFromChain(chain);
-      const walletNonce = await getWalletNonce({
-        address: walletAddress,
-        chainId,
-      });
-
-      if (!walletNonce) {
-        throw createCustomError(
-          `No wallet nonce found for ${walletAddress} in DB`,
-          StatusCodes.NOT_FOUND,
-          "NOT_FOUND",
-        );
-      }
+      const nonce = await inspectNonce(chainId, walletAddress as Address);
 
       reply.status(StatusCodes.OK).send({
         result: {
-          status: "success",
-          nonce: walletNonce?.nonce.toString() ?? "0",
-          walletAddress,
-          chain,
+          nonce,
         },
       });
     },

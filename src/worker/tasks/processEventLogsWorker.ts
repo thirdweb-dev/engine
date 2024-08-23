@@ -7,7 +7,6 @@ import {
   Chain,
   PreparedEvent,
   ThirdwebContract,
-  defineChain,
   eth_getBlockByHash,
   getContract,
   getContractEvents,
@@ -19,15 +18,17 @@ import { Hash } from "viem";
 import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { WebhooksEventTypes } from "../../schema/webhooks";
+import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
+import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
   EnqueueProcessEventLogsData,
-  PROCESS_EVENT_LOGS_QUEUE_NAME,
+  ProcessEventsLogQueue,
 } from "../queues/processEventLogsQueue";
-import { logWorkerEvents } from "../queues/queues";
-import { enqueueWebhook } from "../queues/sendWebhookQueue";
+import { logWorkerExceptions } from "../queues/queues";
+import { SendWebhookQueue } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const {
@@ -60,7 +61,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   for (const eventLog of insertedLogs) {
     const webhooks = webhooksByContractAddress[eventLog.contractAddress] ?? [];
     for (const webhook of webhooks) {
-      await enqueueWebhook({
+      await SendWebhookQueue.enqueueWebhook({
         type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
         webhook,
         eventLog,
@@ -119,7 +120,7 @@ const getLogs = async ({
     return [];
   }
 
-  const chain = defineChain(chainId);
+  const chain = await getChain(chainId);
   // Store a reference to `contract` so ABI fetches are cached.
   const addressConfig: Record<
     Address,
@@ -174,7 +175,7 @@ const getLogs = async ({
       async (log): Promise<Prisma.ContractEventLogsCreateInput> => ({
         chainId,
         blockNumber: Number(log.blockNumber),
-        contractAddress: log.address.toLowerCase(),
+        contractAddress: normalizeAddress(log.address),
         transactionHash: log.transactionHash,
         topic0: log.topics[0],
         topic1: log.topics[1],
@@ -183,8 +184,7 @@ const getLogs = async ({
         data: log.data,
         eventName: log.eventName,
         decodedLog: await formatDecodedLog({
-          contract:
-            addressConfig[log.address.toLowerCase() as Address].contract,
+          contract: addressConfig[normalizeAddress(log.address)].contract,
           eventName: log.eventName,
           logArgs: log.args as Record<string, unknown>,
         }),
@@ -252,13 +252,9 @@ const getBlockTimestamps = async (
   chain: Chain,
   blockHashes: Hash[],
 ): Promise<Record<Hash, Date>> => {
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain,
-  });
-
   const now = new Date();
   const dedupe = Array.from(new Set(blockHashes));
+  const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
 
   const blocks = await Promise.all(
     dedupe.map(async (blockHash) => {
@@ -291,12 +287,11 @@ const logArgToString = (arg: any): string => {
   return arg.toString();
 };
 
-// Worker
-let _worker: Worker | null = null;
-if (redis) {
-  _worker = new Worker(PROCESS_EVENT_LOGS_QUEUE_NAME, handler, {
+// Must be explicitly called for the worker to run on this host.
+export const initProcessEventLogsWorker = () => {
+  const _worker = new Worker(ProcessEventsLogQueue.q.name, handler, {
     concurrency: 5,
     connection: redis,
   });
-  logWorkerEvents(_worker);
-}
+  logWorkerExceptions(_worker);
+};

@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -12,22 +13,8 @@ const requestBodySchema = Type.Object({
     description:
       "The address of the backend wallet to use for relaying transactions.",
   }),
-  allowedContracts: Type.Optional(
-    Type.Array(
-      Type.String({
-        minLength: 42,
-        maxLength: 42,
-      }),
-    ),
-  ),
-  allowedForwarders: Type.Optional(
-    Type.Array(
-      Type.String({
-        minLength: 42,
-        maxLength: 42,
-      }),
-    ),
-  ),
+  allowedContracts: Type.Optional(Type.Array(AddressSchema)),
+  allowedForwarders: Type.Optional(Type.Array(AddressSchema)),
 });
 
 requestBodySchema.examples = [
