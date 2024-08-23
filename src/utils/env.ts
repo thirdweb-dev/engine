@@ -61,13 +61,10 @@ export const env = createEnv({
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
     TRUST_PROXY: z.boolean().default(false),
-    PRUNE_TRANSACTIONS: z
-      .union([
-        z.literal("true").transform(() => 7),
-        z.literal("false").transform(() => 0),
-        z.coerce.number().int(),
-      ])
-      .default(7),
+    REDIS_MAXMEMORY: z.string().default("0"),
+    // TRANSACTION_HISTORY_COUNT defines the max transaction details to keep.
+    // In testing, storing about 300k consumes 900mb memory.
+    TRANSACTION_HISTORY_COUNT: z.coerce.number().default(300_000),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
@@ -79,6 +76,8 @@ export const env = createEnv({
       .nonnegative()
       .default(0),
     REDIS_URL: z.string(),
+    SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
+    CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
     ENGINE_MODE: z
       .enum(["default", "sandbox", "server_only", "worker_only"])
       .default("default"),
@@ -101,7 +100,8 @@ export const env = createEnv({
     ENABLE_HTTPS: process.env.ENABLE_HTTPS,
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
     TRUST_PROXY: process.env.TRUST_PROXY,
-    PRUNE_TRANSACTIONS: process.env.PRUNE_TRANSACTIONS,
+    REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
+    TRANSACTION_HISTORY_COUNT: process.env.TRANSACTION_HISTORY_COUNT,
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
@@ -109,6 +109,10 @@ export const env = createEnv({
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
+    SEND_TRANSACTION_QUEUE_CONCURRENCY:
+      process.env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
+    CONFIRM_TRANSACTION_QUEUE_CONCURRENCY:
+      process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     ENGINE_MODE: process.env.ENGINE_MODE,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
     DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,

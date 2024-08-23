@@ -2,10 +2,7 @@ import { SocketStream } from "@fastify/websocket";
 import { Static } from "@sinclair/typebox";
 import { FastifyRequest } from "fastify";
 import { logger } from "../../utils/logger";
-import {
-  TransactionStatus,
-  transactionResponseSchema,
-} from "../schemas/transaction";
+import { TransactionSchema } from "../schemas/transaction";
 import { UserSubscription, subscriptionsData } from "../schemas/websocket";
 
 // websocket timeout, i.e., ws connection closed after 10 seconds
@@ -136,7 +133,7 @@ type CustomStatusAndConnectionType = {
 };
 
 export const getStatusMessageAndConnectionStatus = async (
-  data: Static<typeof transactionResponseSchema> | null,
+  data: Static<typeof TransactionSchema> | null,
 ): Promise<CustomStatusAndConnectionType> => {
   let message =
     "Request is queued. Waiting for transaction to be picked up by worker.";
@@ -145,13 +142,13 @@ export const getStatusMessageAndConnectionStatus = async (
   if (!data) {
     message = `Transaction not found. Make sure the provided ID is correct.`;
     closeConnection = true;
-  } else if (data.status === TransactionStatus.Mined) {
+  } else if (data.status === "mined") {
     message = "Transaction mined. Closing connection.";
     closeConnection = true;
-  } else if (data.status === TransactionStatus.Errored) {
+  } else if (data.status === "errored") {
     message = data.errorMessage || "Transaction errored. Closing connection.";
     closeConnection = true;
-  } else if (data.status === TransactionStatus.Sent) {
+  } else if (data.status === "sent") {
     message =
       "Transaction submitted to blockchain. Waiting for transaction to be mined...";
   }
@@ -160,7 +157,7 @@ export const getStatusMessageAndConnectionStatus = async (
 };
 
 export const formatSocketMessage = async (
-  data: Static<typeof transactionResponseSchema> | null,
+  data: Static<typeof TransactionSchema> | null,
   message: string,
 ): Promise<string> => {
   const returnData = JSON.stringify({
