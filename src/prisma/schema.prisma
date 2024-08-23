@@ -30,25 +30,26 @@ model Configuration {
   contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
   // AWS
-  awsAccessKeyId                     String? @map("awsAccessKeyId")
-  awsSecretAccessKey                 String? @map("awsSecretAccessKey")
-  awsRegion                          String? @map("awsRegion")
+  awsAccessKeyId                     String?  @map("awsAccessKeyId")
+  awsSecretAccessKey                 String?  @map("awsSecretAccessKey")
+  awsRegion                          String?  @map("awsRegion")
   // GCP
-  gcpApplicationProjectId            String? @map("gcpApplicationProjectId")
-  gcpKmsLocationId                   String? @map("gcpKmsLocationId")
-  gcpKmsKeyRingId                    String? @map("gcpKmsKeyRingId")
-  gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail")
-  gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey")
+  gcpApplicationProjectId            String?  @map("gcpApplicationProjectId")
+  gcpKmsLocationId                   String?  @map("gcpKmsLocationId")
+  gcpKmsKeyRingId                    String?  @map("gcpKmsKeyRingId")
+  gcpApplicationCredentialEmail      String?  @map("gcpApplicationCredentialEmail")
+  gcpApplicationCredentialPrivateKey String?  @map("gcpApplicationCredentialPrivateKey")
   // Auth
-  authDomain                         String  @default("") @map("authDomain") // TODO: Remove defaults on major
-  authWalletEncryptedJson            String  @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
+  authDomain                         String   @default("") @map("authDomain") // TODO: Remove defaults on major
+  authWalletEncryptedJson            String   @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
   // Webhook
-  webhookUrl                         String? @map("webhookUrl")
-  webhookAuthBearerToken             String? @map("webhookAuthBearerToken")
+  webhookUrl                         String?  @map("webhookUrl")
+  webhookAuthBearerToken             String?  @map("webhookAuthBearerToken")
   // Wallet balance
-  minWalletBalance                   String  @default("20000000000000000") @map("minWalletBalance")
-  accessControlAllowOrigin           String  @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
-  clearCacheCronSchedule             String  @default("*/30 * * * * *") @map("clearCacheCronSchedule")
+  minWalletBalance                   String   @default("20000000000000000") @map("minWalletBalance")
+  accessControlAllowOrigin           String   @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
+  ipAllowlist                        String[] @default([]) @map("ipAllowlist")
+  clearCacheCronSchedule             String   @default("*/30 * * * * *") @map("clearCacheCronSchedule")
 
   @@map("configuration")
 }
@@ -159,6 +160,10 @@ model Transactions {
   sentAtBlockNumber         Int?      @map("sentAtBlockNumber")
   blockNumber               Int?      @map("blockNumber")
 
+  @@index([sentAt, minedAt, cancelledAt, errorMessage, queuedAt])
+  @@index([sentAt, accountAddress, userOpHash, minedAt, errorMessage, retryCount])
+  @@index([sentAt, transactionHash, accountAddress, minedAt, errorMessage, nonce])
+  @@index([queuedAt])
   @@map("transactions")
 }
 

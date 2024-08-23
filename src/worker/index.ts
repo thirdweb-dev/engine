@@ -3,7 +3,7 @@ import {
   newConfigurationListener,
   updatedConfigurationListener,
 } from "./listeners/configListener";
-import { deleteProcessedTx } from "./listeners/deleteProcessedTx";
+import { pruneCompletedTransactions } from "./listeners/deleteProcessedTx";
 import { minedTxListener } from "./listeners/minedTxListener";
 import { queuedTxListener } from "./listeners/queuedTxListener";
 import { retryTxListener } from "./listeners/retryTxListener";
@@ -25,8 +25,8 @@ export const initWorker = async () => {
   // Poll for mined transactions to update database
   await minedTxListener();
 
-  // Delete Successfully Processed Transactions which are older than 24 hours
-  await deleteProcessedTx();
+  // Delete completed transactions after some age.
+  await pruneCompletedTransactions();
 
   // Listen for new & updated configuration data
   await newConfigurationListener();

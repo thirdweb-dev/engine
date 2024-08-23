@@ -1,31 +1,22 @@
 import { prisma } from "../../db/client";
 import { logger } from "../../utils/logger";
 
-export const deleteTx = async () => {
+export const deleteTx = async (maxAgeDays: number) => {
   try {
-    const twentyFourHoursAgo = new Date();
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+    const deleteBefore = new Date();
+    deleteBefore.setDate(deleteBefore.getDate() - maxAgeDays);
 
     const deletedItems = await prisma.transactions.deleteMany({
       where: {
-        // All txs queued 24+ hours ago that are mined, cancelled, or errored.
         AND: [
           {
-            queuedAt: {
-              lt: twentyFourHoursAgo,
-            },
+            queuedAt: { lt: deleteBefore },
           },
           {
             OR: [
-              {
-                minedAt: { not: null },
-              },
-              {
-                cancelledAt: { not: null },
-              },
-              {
-                errorMessage: { not: null },
-              },
+              { minedAt: { not: null } },
+              { cancelledAt: { not: null } },
+              { errorMessage: { not: null } },
             ],
           },
         ],

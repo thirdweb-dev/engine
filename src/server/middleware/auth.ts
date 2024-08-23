@@ -106,6 +106,10 @@ export const withAuth = async (server: FastifyInstance) => {
   // Note: in the onRequest hook, request.body will always be undefined, because the body parsing happens before the preValidation hook.
   // https://fastify.dev/docs/latest/Reference/Hooks/#onrequest
   server.addHook("preValidation", async (req, res) => {
+    // Skip auth check in sandbox mode
+    if (env.ENGINE_MODE === "sandbox") {
+      return;
+    }
     let message =
       "Please provide a valid access token or other authentication. See: https://portal.thirdweb.com/engine/features/access-tokens";
 
@@ -248,6 +252,16 @@ const handleWebsocketAuth = async (
     // Set as a header for `getUsers` to parse the token.
     req.headers.authorization = `Bearer ${jwt}`;
     const user = await getUser(req);
+
+    const isIpInAllowlist = await checkIpInAllowlist(req);
+    if (!isIpInAllowlist) {
+      return {
+        isAuthed: false,
+        error:
+          "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+      };
+    }
+
     if (
       user?.session?.permissions === Permission.Owner ||
       user?.session?.permissions === Permission.Admin
@@ -305,6 +319,12 @@ const handleKeypairAuth = async (
       throw error;
     }
 
+    const isIpInAllowlist = await checkIpInAllowlist(req);
+    if (!isIpInAllowlist) {
+      error =
+        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security";
+      throw error;
+    }
     return { isAuthed: true };
   } catch (e) {
     if (e instanceof jsonwebtoken.TokenExpiredError) {
@@ -333,22 +353,39 @@ const handleAccessToken = async (
   req: FastifyRequest,
   getUser: ReturnType<typeof ThirdwebAuth<TAuthData, TAuthSession>>["getUser"],
 ): Promise<AuthResponse> => {
+  let token: Awaited<ReturnType<typeof getAccessToken>> = null;
+
   try {
-    const token = await getAccessToken({ jwt });
-    if (token && token.revokedAt === null) {
-      const user = await getUser(req);
-      if (
-        user?.session?.permissions === Permission.Owner ||
-        user?.session?.permissions === Permission.Admin
-      ) {
-        return { isAuthed: true, user };
-      }
-    }
+    token = await getAccessToken({ jwt });
   } catch (e) {
     // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
+    return { isAuthed: false };
   }
 
-  return { isAuthed: false };
+  if (!token || token.revokedAt) {
+    return { isAuthed: false };
+  }
+
+  const user = await getUser(req);
+
+  if (
+    user?.session?.permissions !== Permission.Owner &&
+    user?.session?.permissions !== Permission.Admin
+  ) {
+    return { isAuthed: false };
+  }
+
+  const isIpInAllowlist = await checkIpInAllowlist(req);
+
+  if (!isIpInAllowlist) {
+    return {
+      isAuthed: false,
+      error:
+        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+    };
+  }
+
+  return { isAuthed: true, user };
 };
 
 /**
@@ -448,4 +485,22 @@ const hashRequestBody = (req: FastifyRequest): string => {
   return createHash("sha256")
     .update(JSON.stringify(req.body), "utf8")
     .digest("hex");
+};
+
+/**
+ * Check if the request IP is in the allowlist.
+ * Fetches cached config if available.
+ * env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
+ * @param req FastifyRequest
+ * @returns boolean
+ * @async
+ */
+const checkIpInAllowlist = async (req: FastifyRequest) => {
+  const config = await getConfig();
+
+  if (config.ipAllowlist.length === 0) {
+    return true;
+  }
+
+  return config.ipAllowlist.includes(req.ip);
 };

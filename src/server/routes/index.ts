@@ -1,58 +1,35 @@
 import { FastifyInstance } from "fastify";
-import { getContractExtensions } from "./contract/metadata/extensions";
-import { readContract } from "./contract/read/read";
-import { writeToContract } from "./contract/write/write";
-
-// Transactions
-import { cancelTransaction } from "./transaction/cancel";
-import { getAllTx } from "./transaction/getAll";
-import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
-import { retryTransaction } from "./transaction/retry";
-import { checkTxStatus } from "./transaction/status";
-
-// Extensions
-import { erc1155Routes } from "./contract/extensions/erc1155";
-import { erc20Routes } from "./contract/extensions/erc20/index";
-import { erc721Routes } from "./contract/extensions/erc721";
-import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
-import { prebuiltsRoutes } from "./deploy";
-
-// Chains
-import { getChainData } from "./chain/get";
-import { getAllChainData } from "./chain/getAll";
-
-// Contract events
-import { getAllEvents } from "./contract/events/getAllEvents";
-import { getEvents } from "./contract/events/getEvents";
-
-// Contract roles
-import { getRoles } from "./contract/roles/read/get";
-import { getAllRoles } from "./contract/roles/read/getAll";
-import { grantRole } from "./contract/roles/write/grant";
-import { revokeRole } from "./contract/roles/write/revoke";
-
-// Contract royalties
-import { getDefaultRoyaltyInfo } from "./contract/royalties/read/getDefaultRoyaltyInfo";
-import { getTokenRoyaltyInfo } from "./contract/royalties/read/getTokenRoyaltyInfo";
-import { setDefaultRoyaltyInfo } from "./contract/royalties/write/setDefaultRoyaltyInfo";
-import { setTokenRoyaltyInfo } from "./contract/royalties/write/setTokenRoyaltyInfo";
-
-// Contract metadata
-import { getABI } from "./contract/metadata/abi";
-import { extractEvents } from "./contract/metadata/events";
-import { extractFunctions } from "./contract/metadata/functions";
-
-// Wallet
+import { createAccessToken } from "./auth/access-tokens/create";
+import { getAllAccessTokens } from "./auth/access-tokens/getAll";
+import { revokeAccessToken } from "./auth/access-tokens/revoke";
+import { updateAccessToken } from "./auth/access-tokens/update";
+import { addKeypair } from "./auth/keypair/add";
+import { listPublicKeys } from "./auth/keypair/list";
+import { removePublicKey } from "./auth/keypair/remove";
+import { getAllPermissions } from "./auth/permissions/getAll";
+import { grantPermissions } from "./auth/permissions/grant";
+import { revokePermissions } from "./auth/permissions/revoke";
 import { createBackendWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
 import { getBackendWalletNonce } from "./backend-wallet/getNonce";
+import { getAllTransactions } from "./backend-wallet/getTransactions";
 import { importBackendWallet } from "./backend-wallet/import";
+import { removeBackendWallet } from "./backend-wallet/remove";
+import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
 import { sendTransaction } from "./backend-wallet/sendTransaction";
+import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
+import { signMessage } from "./backend-wallet/signMessage";
+import { signTransaction } from "./backend-wallet/signTransaction";
+import { signTypedData } from "./backend-wallet/signTypedData";
+import { simulateTransaction } from "./backend-wallet/simulateTransaction";
 import { transfer } from "./backend-wallet/transfer";
 import { updateBackendWallet } from "./backend-wallet/update";
-
-// Configuration
+import { withdraw } from "./backend-wallet/withdraw";
+import { getChainData } from "./chain/get";
+import { getAllChainData } from "./chain/getAll";
+import { getAuthConfiguration } from "./configuration/auth/get";
+import { updateAuthConfiguration } from "./configuration/auth/update";
 import { getBackendWalletBalanceConfiguration } from "./configuration/backend-wallet-balance/get";
 import { updateBackendWalletBalanceConfiguration } from "./configuration/backend-wallet-balance/update";
 import { getCacheConfiguration } from "./configuration/cache/get";
@@ -64,69 +41,37 @@ import { updateContractSubscriptionsConfiguration } from "./configuration/contra
 import { addUrlToCorsConfiguration } from "./configuration/cors/add";
 import { getCorsConfiguration } from "./configuration/cors/get";
 import { removeUrlToCorsConfiguration } from "./configuration/cors/remove";
+import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
+import { getIpAllowlist } from "./configuration/ip/get";
+import { setIpAllowlist } from "./configuration/ip/set";
 import { getTransactionConfiguration } from "./configuration/transactions/get";
 import { updateTransactionConfiguration } from "./configuration/transactions/update";
 import { getWalletsConfiguration } from "./configuration/wallets/get";
 import { updateWalletsConfiguration } from "./configuration/wallets/update";
-
-// Webhooks
-import { createWebhook } from "./webhooks/create";
-import { getWebhooksEventTypes } from "./webhooks/events";
-import { getAllWebhooksData } from "./webhooks/getAll";
-import { revokeWebhook } from "./webhooks/revoke";
-
-// Access tokens
-import { createAccessToken } from "./auth/access-tokens/create";
-import { getAllAccessTokens } from "./auth/access-tokens/getAll";
-import { revokeAccessToken } from "./auth/access-tokens/revoke";
-import { updateAccessToken } from "./auth/access-tokens/update";
-
-// Keypairs
-import { addKeypair } from "./auth/keypair/add";
-import { listPublicKeys } from "./auth/keypair/list";
-import { removePublicKey } from "./auth/keypair/remove";
-
-// Admins
-import { getAllPermissions } from "./auth/permissions/getAll";
-import { grantPermissions } from "./auth/permissions/grant";
-import { revokePermissions } from "./auth/permissions/revoke";
-import { signMessage } from "./backend-wallet/signMessage";
-import { signTransaction } from "./backend-wallet/signTransaction";
-import { signTypedData } from "./backend-wallet/signTypedData";
-import { getAuthConfiguration } from "./configuration/auth/get";
-import { updateAuthConfiguration } from "./configuration/auth/update";
-
-// Smart accounts
-import { accountRoutes } from "./contract/extensions/account";
-import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
-
-// Relayers
-import { relayTransaction } from "./relayer";
-import { createRelayer } from "./relayer/create";
-import { getAllRelayers } from "./relayer/getAll";
-import { revokeRelayer } from "./relayer/revoke";
-
-// System
-import { getAllTransactions } from "./backend-wallet/getTransactions";
-import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
-import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
-import { simulateTransaction } from "./backend-wallet/simulateTransaction";
-import { withdraw } from "./backend-wallet/withdraw";
-import { home } from "./home";
-import { updateRelayer } from "./relayer/update";
-import { healthCheck } from "./system/health";
-import { queueStatus } from "./system/queue";
-import { getTxHashReceipt } from "./transaction/blockchain/getTxReceipt";
-import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
-import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
-import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
-import { checkGroupStatus } from "./transaction/group";
-
-// Indexer
-import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
+import { getAllEvents } from "./contract/events/getAllEvents";
 import { getContractEventLogs } from "./contract/events/getContractEventLogs";
 import { getEventLogs } from "./contract/events/getEventLogsByTimestamp";
+import { getEvents } from "./contract/events/getEvents";
 import { pageEventLogs } from "./contract/events/paginateEventLogs";
+import { accountRoutes } from "./contract/extensions/account";
+import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
+import { erc1155Routes } from "./contract/extensions/erc1155";
+import { erc20Routes } from "./contract/extensions/erc20/index";
+import { erc721Routes } from "./contract/extensions/erc721";
+import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
+import { getABI } from "./contract/metadata/abi";
+import { extractEvents } from "./contract/metadata/events";
+import { getContractExtensions } from "./contract/metadata/extensions";
+import { extractFunctions } from "./contract/metadata/functions";
+import { readContract } from "./contract/read/read";
+import { getRoles } from "./contract/roles/read/get";
+import { getAllRoles } from "./contract/roles/read/getAll";
+import { grantRole } from "./contract/roles/write/grant";
+import { revokeRole } from "./contract/roles/write/revoke";
+import { getDefaultRoyaltyInfo } from "./contract/royalties/read/getDefaultRoyaltyInfo";
+import { getTokenRoyaltyInfo } from "./contract/royalties/read/getTokenRoyaltyInfo";
+import { setDefaultRoyaltyInfo } from "./contract/royalties/write/setDefaultRoyaltyInfo";
+import { setTokenRoyaltyInfo } from "./contract/royalties/write/setTokenRoyaltyInfo";
 import { addContractSubscription } from "./contract/subscriptions/addContractSubscription";
 import { getContractIndexedBlockRange } from "./contract/subscriptions/getContractIndexedBlockRange";
 import { getContractSubscriptions } from "./contract/subscriptions/getContractSubscriptions";
@@ -135,11 +80,36 @@ import { removeContractSubscription } from "./contract/subscriptions/removeContr
 import { getContractTransactionReceipts } from "./contract/transactions/getTransactionReceipts";
 import { getContractTransactionReceiptsByTimestamp } from "./contract/transactions/getTransactionReceiptsByTimestamp";
 import { pageTransactionReceipts } from "./contract/transactions/paginateTransactionReceipts";
+import { writeToContract } from "./contract/write/write";
+import { prebuiltsRoutes } from "./deploy";
+import { home } from "./home";
+import { relayTransaction } from "./relayer";
+import { createRelayer } from "./relayer/create";
+import { getAllRelayers } from "./relayer/getAll";
+import { revokeRelayer } from "./relayer/revoke";
+import { updateRelayer } from "./relayer/update";
+import { healthCheck } from "./system/health";
+import { queueStatus } from "./system/queue";
+import { getTxHashReceipt } from "./transaction/blockchain/getTxReceipt";
+import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
+import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
+import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
+import { cancelTransaction } from "./transaction/cancel";
+import { getAllTx } from "./transaction/getAll";
+import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
+import { checkGroupStatus } from "./transaction/group";
+import { retryTransaction } from "./transaction/retry";
+import { checkTxStatus } from "./transaction/status";
 import { syncRetryTransaction } from "./transaction/syncRetry";
+import { createWebhook } from "./webhooks/create";
+import { getWebhooksEventTypes } from "./webhooks/events";
+import { getAllWebhooksData } from "./webhooks/getAll";
+import { revokeWebhook } from "./webhooks/revoke";
 
 export const withRoutes = async (fastify: FastifyInstance) => {
   // Backend Wallets
   await fastify.register(createBackendWallet);
+  await fastify.register(removeBackendWallet);
   await fastify.register(importBackendWallet);
   await fastify.register(updateBackendWallet);
   await fastify.register(getBalance);
@@ -175,6 +145,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(updateCacheConfiguration);
   await fastify.register(getContractSubscriptionsConfiguration);
   await fastify.register(updateContractSubscriptionsConfiguration);
+  await fastify.register(getIpAllowlist);
+  await fastify.register(setIpAllowlist);
 
   // Webhooks
   await fastify.register(getAllWebhooksData);
