@@ -26,7 +26,7 @@ const requestBodySchema = Type.Object({
   quantity: Type.String({
     description: "Quantity of NFTs to mint",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

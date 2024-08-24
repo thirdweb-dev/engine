@@ -21,7 +21,7 @@ const requestBodySchema = Type.Object({
     description: "Address of the wallet to mint the NFT to",
   }),
   metadataWithSupply: Type.Array(nftAndSupplySchema),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

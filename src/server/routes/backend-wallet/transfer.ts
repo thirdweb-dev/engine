@@ -1,5 +1,4 @@
 import { Static, Type } from "@sinclair/typebox";
-import { constants } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
@@ -12,7 +11,8 @@ import {
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
 import { getChain } from "../../../utils/chain";
-import { maybeBigInt, normalizeAddress } from "../../../utils/primitiveTypes";
+import { normalizeAddress } from "../../../utils/primitiveTypes";
+import { parseTxOverrides } from "../../../utils/request";
 import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import { InsertedTransaction } from "../../../utils/transaction/types";
@@ -23,7 +23,7 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
+import { txOverridesSchema } from "../../schemas/txOverrides";
 import {
   walletHeaderSchema,
   walletWithAddressParamSchema,
@@ -38,17 +38,17 @@ const requestBodySchema = Type.Object({
     ...AddressSchema,
     description: "The recipient wallet address.",
   },
-  currencyAddress: {
+  currencyAddress: Type.Optional({
     ...AddressSchema,
     description:
       "The token address to transfer. Omit to transfer the chain's native currency (e.g. ETH on Ethereum).",
-    default: constants.AddressZero,
-  },
+  }),
   amount: Type.String({
+    examples: ["0.1"],
     description:
       'The amount in ether to transfer. Example: "0.1" to send 0.1 ETH.',
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesSchema,
 });
 
 export async function transfer(fastify: FastifyInstance) {
@@ -92,11 +92,6 @@ export async function transfer(fastify: FastifyInstance) {
       // Resolve inputs.
       const currencyAddress = normalizeAddress(_currencyAddress);
       const chainId = await getChainIdFromChain(chain);
-      const gasOverrides = {
-        gas: maybeBigInt(txOverrides?.gas),
-        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
-      };
 
       let insertedTransaction: InsertedTransaction;
       if (
@@ -112,7 +107,7 @@ export async function transfer(fastify: FastifyInstance) {
           value: toWei(amount),
           extension: "none",
           functionName: "transfer",
-          ...gasOverrides,
+          ...parseTxOverrides(txOverrides),
         };
       } else {
         const contract = getContract({
@@ -142,11 +137,10 @@ export async function transfer(fastify: FastifyInstance) {
             | Address
             | undefined,
           data: await resolvePromisedValue(transaction.data),
-          value: 0n,
           extension: "erc20",
           functionName: "transfer",
           functionArgs: [to, amount, currencyAddress],
-          ...gasOverrides,
+          ...parseTxOverrides(txOverrides),
         };
       }
 

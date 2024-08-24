@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   tokenId: Type.String({
     description: "the tokenId to give approval for",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

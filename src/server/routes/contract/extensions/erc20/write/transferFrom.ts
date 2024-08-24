@@ -25,7 +25,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The amount of tokens you want to send",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // Example for the Request Body

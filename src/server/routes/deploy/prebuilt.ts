@@ -21,7 +21,7 @@ const requestBodySchema = Type.Object({
     description: "Arguments for the deployment.",
   }),
   ...contractDeployBasicSchema.properties,
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // Example for the Request Body

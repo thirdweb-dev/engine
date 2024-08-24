@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The number of tokens to give as allowance",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

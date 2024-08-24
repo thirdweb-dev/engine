@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   address: Type.String({
     description: "The address to grant the role to",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // OUTPUT

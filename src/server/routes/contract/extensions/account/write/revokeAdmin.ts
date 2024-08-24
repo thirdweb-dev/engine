@@ -17,7 +17,7 @@ const requestBodySchema = Type.Object({
   walletAddress: Type.String({
     description: "Address to revoke admin permissions from",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

@@ -19,7 +19,7 @@ const requestBodySchema = Type.Object({
   listingId: Type.String({
     description: "The ID of the listing you want to cancel.",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

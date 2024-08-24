@@ -15,7 +15,7 @@ import {
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
-import { msSince } from "../../utils/date";
+import { msSince, timeFromNow } from "../../utils/date";
 import { env } from "../../utils/env";
 import {
   isNonceAlreadyUsedError,
@@ -50,6 +50,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     job.data,
   );
 
+  // DEBUG: DONT MERGE THIS TEST
+  const sleep = async (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms, null));
+  await sleep(1_000);
+
   let transaction = await TransactionDB.get(queueId);
   if (!transaction) {
     job.log(`Invalid transaction state: ${stringify(transaction)}`);
@@ -72,7 +77,16 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // A thrown exception indicates a retry-able error occurred (e.g. RPC outage).
   let resultTransaction: SentTransaction | ErroredTransaction | null;
   if (transaction.status === "queued") {
-    if (transaction.isUserOp) {
+    // Handle if exceeded deadline.
+    if (transaction.deadline && new Date() > transaction.deadline) {
+      const errorMessage = `Failed to send before the deadline: ${transaction.deadline.toISOString()}`;
+      job.log(errorMessage);
+      resultTransaction = {
+        ...transaction,
+        status: "errored",
+        errorMessage,
+      };
+    } else if (transaction.isUserOp) {
       resultTransaction = await _sendUserOp(job, transaction);
     } else {
       resultTransaction = await _sendTransaction(job, transaction);
@@ -128,6 +142,7 @@ const _sendUserOp = async (
     userOpHash,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(queuedTransaction.chainId),
+    // @TODO: Should we use txOverrides gas fees here?
     maxFeePerGas: signedUserOp.maxFeePerGas,
     maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
   };
@@ -136,15 +151,13 @@ const _sendUserOp = async (
 const _sendTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
-): Promise<SentTransaction | ErroredTransaction> => {
+): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(!queuedTransaction.isUserOp);
 
-  const { chainId, from } = queuedTransaction;
+  const { chainId, from, isFixedGasFees } = queuedTransaction;
   const chain = await getChain(chainId);
 
-  // Populate the transaction to resolve gas values.
-  // This call throws if the execution would be reverted.
-  // The nonce is _not_ set yet.
+  // Populate the transaction. This call throws if the execution would be reverted.
   let populatedTransaction: Awaited<
     ReturnType<typeof toSerializableTransaction>
   >;
@@ -155,7 +168,9 @@ const _sendTransaction = async (
         client: thirdwebClient,
         chain,
         ...queuedTransaction,
-        // Stub the nonce because it will be overridden later.
+        // Unset gas overrides to estimate onchain values.
+        maxFeePerGas: undefined,
+        // Stub the nonce. It will be overridden later.
         nonce: 1,
       },
     });
@@ -167,6 +182,21 @@ const _sendTransaction = async (
       status: "errored",
       errorMessage,
     };
+  }
+
+  // If gas fee overrides are higher than estimated fees, override it.
+  // Else delay the transaction to try again later. Avoid sending transactions with
+  // low gas fees because they will be stuck in mempool.
+  if (queuedTransaction.maxFeePerGas && populatedTransaction.maxFeePerGas) {
+    if (queuedTransaction.maxFeePerGas > populatedTransaction.maxFeePerGas) {
+      populatedTransaction.maxFeePerGas = queuedTransaction.maxFeePerGas;
+    } else {
+      job.log(
+        `Fixed gas fees (${queuedTransaction.maxFeePerGas}) are below current chain gas fees (${populatedTransaction.maxFeePerGas}).`,
+      );
+      await job.moveToDelayed(timeFromNow({ minutes: 5 }).getTime());
+      return null;
+    }
   }
 
   // Acquire an unused nonce for this transaction.
@@ -228,28 +258,40 @@ const _resendTransaction = async (
 ): Promise<SentTransaction | null> => {
   assert(!sentTransaction.isUserOp);
 
-  // Populate the transaction with double gas.
-  const { chainId, from } = sentTransaction;
+  const { chainId, from, isFixedGasFees } = sentTransaction;
+
+  // Recompute gas prices, unless gas fees are fixed.
+  const resetGas = isFixedGasFees
+    ? {
+        gasPrice: undefined,
+      }
+    : {
+        gasPrice: undefined,
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: undefined,
+      };
+
   const populatedTransaction = await toSerializableTransaction({
     from: getChecksumAddress(from),
     transaction: {
       client: thirdwebClient,
       chain: await getChain(chainId),
       ...sentTransaction,
-      // Unset gas values so it can be re-populated.
-      gasPrice: undefined,
-      maxFeePerGas: undefined,
-      maxPriorityFeePerGas: undefined,
+      ...resetGas,
     },
   });
-  if (populatedTransaction.gasPrice) {
-    populatedTransaction.gasPrice *= 2n;
-  }
-  if (populatedTransaction.maxFeePerGas) {
-    populatedTransaction.maxFeePerGas *= 2n;
-  }
-  if (populatedTransaction.maxPriorityFeePerGas) {
-    populatedTransaction.maxPriorityFeePerGas *= 2n;
+
+  // Double gas fees, unless gas fees are fixed.
+  if (!isFixedGasFees) {
+    if (populatedTransaction.gasPrice) {
+      populatedTransaction.gasPrice *= 2n;
+    }
+    if (populatedTransaction.maxFeePerGas) {
+      populatedTransaction.maxFeePerGas *= 2n;
+    }
+    if (populatedTransaction.maxPriorityFeePerGas) {
+      populatedTransaction.maxPriorityFeePerGas *= 2n;
+    }
   }
 
   // Important: Don't acquire a different nonce.

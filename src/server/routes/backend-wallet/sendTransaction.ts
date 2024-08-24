@@ -2,8 +2,9 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address, Hex } from "thirdweb";
-import { maybeBigInt } from "../../../utils/primitiveTypes";
+import { parseTxOverrides } from "../../../utils/request";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
+import { AddressSchema } from "../../schemas/address";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -17,18 +18,14 @@ import {
 import { getChainIdFromChain } from "../../utils/chain";
 
 const requestBodySchema = Type.Object({
-  toAddress: Type.Optional(
-    Type.String({
-      examples: ["0x..."],
-    }),
-  ),
+  toAddress: Type.Optional(AddressSchema),
   data: Type.String({
     examples: ["0x..."],
   }),
   value: Type.String({
     examples: ["10000000"],
   }),
-  ...txOverridesSchema.properties,
+  txOverrides: txOverridesSchema,
 });
 
 requestBodySchema.examples = [
@@ -91,11 +88,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
             signerAddress: fromAddress as Address,
             target: toAddress as Address | undefined,
 
-            gas: maybeBigInt(txOverrides?.gas),
-            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-            maxPriorityFeePerGas: maybeBigInt(
-              txOverrides?.maxPriorityFeePerGas,
-            ),
+            ...parseTxOverrides(txOverrides),
           },
           shouldSimulate: simulateTx,
           idempotencyKey,
@@ -110,11 +103,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
             data: data as Hex,
             value: BigInt(value),
 
-            gas: maybeBigInt(txOverrides?.gas),
-            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-            maxPriorityFeePerGas: maybeBigInt(
-              txOverrides?.maxPriorityFeePerGas,
-            ),
+            ...parseTxOverrides(txOverrides),
           },
           shouldSimulate: simulateTx,
           idempotencyKey,

@@ -19,7 +19,7 @@ const requestBodySchema = Type.Object({
   tokenId: Type.String({
     description: "The token ID to burn",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

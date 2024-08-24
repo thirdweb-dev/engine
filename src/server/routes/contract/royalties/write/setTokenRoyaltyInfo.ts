@@ -21,7 +21,7 @@ const requestBodySchema = Type.Object({
   token_id: Type.String({
     description: "The token ID to set the royalty info for.",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

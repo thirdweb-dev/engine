@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   address: Type.String({
     description: "The address to revoke the role from",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // OUTPUT

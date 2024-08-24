@@ -14,7 +14,6 @@ import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
 import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
-// INPUT
 const writeRequestBodySchema = Type.Object({
   functionName: Type.String({
     description: "The function to call on the contract",
@@ -30,11 +29,10 @@ const writeRequestBodySchema = Type.Object({
       Type.Any(),
     ]),
   ),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
   abi: Type.Optional(Type.Array(abiSchema)),
 });
 
-// LOGIC
 export async function writeToContract(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof writeRequestBodySchema>;

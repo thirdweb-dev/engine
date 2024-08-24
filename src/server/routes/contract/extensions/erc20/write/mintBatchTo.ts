@@ -26,7 +26,7 @@ const requestBodySchema = Type.Object({
       }),
     }),
   ),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

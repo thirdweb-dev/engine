@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   currencyContractAddress: Type.String({
     description: "The wallet address of the buyer to approve.",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

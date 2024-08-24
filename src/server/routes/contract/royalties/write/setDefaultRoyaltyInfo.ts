@@ -18,7 +18,7 @@ import { getChainIdFromChain } from "../../../../utils/chain";
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   ...royaltySchema.properties,
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

@@ -20,7 +20,7 @@ const requestBodySchema = Type.Object({
   constructorParams: Type.Array(Type.Any(), {
     description: "Constructor arguments for the deployment.",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // Example for the Request Body

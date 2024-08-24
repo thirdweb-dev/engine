@@ -32,7 +32,7 @@ const requestBodySchema = Type.Object({
     ...commonTrustedForwarderSchema.properties,
   }),
   ...contractDeployBasicSchema.properties,
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // Example for the Request Body

@@ -17,7 +17,7 @@ const requestBodySchema = Type.Object({
   signerAddress: Type.String({
     description: "Address to grant admin permissions to",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

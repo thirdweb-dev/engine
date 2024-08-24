@@ -30,7 +30,7 @@ const requestBodySchema = Type.Object({
     }),
   ),
   resetClaimEligibilityForAll: Type.Optional(Type.Boolean()),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // LOGIC

@@ -23,7 +23,7 @@ const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   claimConditionInputs: Type.Array(claimConditionInputSchema),
   resetClaimEligibilityForAll: Type.Optional(Type.Boolean()),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // LOGIC

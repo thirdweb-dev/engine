@@ -18,7 +18,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   metadatas: Type.Array(nftOrInputSchema),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

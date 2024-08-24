@@ -21,7 +21,7 @@ const requestBodySchema = Type.Object({
     description: "Token ID to update metadata",
   }),
   metadata: nftMetadataInputSchema,
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // LOGIC

@@ -18,7 +18,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   metadatas: Type.Array(nftOrInputSchema),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

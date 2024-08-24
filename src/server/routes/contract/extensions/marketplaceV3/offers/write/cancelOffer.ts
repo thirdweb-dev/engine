@@ -20,7 +20,7 @@ const requestBodySchema = Type.Object({
     description:
       "The ID of the offer to cancel. You can view all offers with getAll or getAllValid.",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

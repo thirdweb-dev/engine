@@ -24,6 +24,10 @@ export type InsertedTransaction = {
   gasPrice?: bigint;
   maxFeePerGas?: bigint;
   maxPriorityFeePerGas?: bigint;
+  // Whether the gas fees are fixed and should not be increased on retry.
+  isFixedGasFees: boolean;
+  // If set, this transaction will error and not send if the deadline is passed.
+  deadline?: Date;
 
   // Offchain metadata
   deployedContractAddress?: Address;

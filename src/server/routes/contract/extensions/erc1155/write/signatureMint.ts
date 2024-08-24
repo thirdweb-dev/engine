@@ -21,7 +21,7 @@ const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   payload: signature1155OutputSchema,
   signature: Type.String(),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

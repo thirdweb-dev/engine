@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   tokenId: Type.String({
     description: "The tokenId to transfer",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

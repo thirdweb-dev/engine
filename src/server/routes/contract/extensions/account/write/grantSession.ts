@@ -16,7 +16,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
   ...sessionSchema.properties,
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

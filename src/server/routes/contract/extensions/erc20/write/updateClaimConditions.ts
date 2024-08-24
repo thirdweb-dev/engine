@@ -25,7 +25,7 @@ const requestBodySchema = Type.Object({
   index: Type.Number({
     description: "Index of the claim condition to update",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 // LOGIC

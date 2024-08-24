@@ -19,7 +19,7 @@ const requestBodySchema = Type.Object({
   startDate: Type.Optional(Type.String()),
   expirationDate: Type.Optional(Type.String()),
   nativeTokenLimitPerTransaction: Type.Optional(Type.String()),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

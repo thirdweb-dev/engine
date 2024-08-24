@@ -18,7 +18,7 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
   ...directListingV3InputSchema.properties,
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

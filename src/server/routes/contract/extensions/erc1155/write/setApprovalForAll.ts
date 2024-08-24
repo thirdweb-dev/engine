@@ -22,7 +22,7 @@ const requestBodySchema = Type.Object({
   approved: Type.Boolean({
     description: "whether to approve or revoke approval",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

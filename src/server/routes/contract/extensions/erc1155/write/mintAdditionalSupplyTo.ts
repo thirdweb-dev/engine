@@ -25,7 +25,7 @@ const requestBodySchema = Type.Object({
   additionalSupply: Type.String({
     description: "The amount of supply to mint",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

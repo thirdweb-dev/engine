@@ -30,7 +30,7 @@ const requestBodySchema = Type.Object({
       description: "Addresses and quantities to airdrop to",
     },
   ),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

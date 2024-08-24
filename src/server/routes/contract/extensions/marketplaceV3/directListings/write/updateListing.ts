@@ -21,7 +21,7 @@ const requestBodySchema = Type.Object({
     description: "The ID of the listing you want to update.",
   }),
   ...directListingV3InputSchema.properties,
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

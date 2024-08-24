@@ -7,6 +7,7 @@ import { updateConfiguration } from "../../../../db/configuration/updateConfigur
 import { createToken } from "../../../../db/tokens/createToken";
 import { accessTokenCache } from "../../../../utils/cache/accessToken";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { timeFromNow } from "../../../../utils/date";
 import { env } from "../../../../utils/env";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { AccessTokenSchema } from "./getAll";
@@ -81,7 +82,7 @@ export async function createAccessToken(fastify: FastifyInstance) {
           aud: config.authDomain,
           nbf: new Date(),
           // Set to expire in 100 years
-          exp: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100),
+          exp: timeFromNow({ days: 10 * 365 }),
           iat: new Date(),
           ctx: req.user.session,
         },

@@ -25,7 +25,7 @@ const requestBodySchema = Type.Object({
   buyer: Type.String({
     description: "The wallet address of the buyer.",
   }),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [

@@ -5,7 +5,7 @@ import { Address, Hex } from "thirdweb";
 import { maybeBigInt } from "../../../utils/primitiveTypes";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
+import { txOverridesSchema } from "../../schemas/txOverrides";
 import {
   walletChainParamSchema,
   walletHeaderSchema,
@@ -25,7 +25,7 @@ const requestBodySchema = Type.Array(
     value: Type.String({
       examples: ["10000000"],
     }),
-    ...txOverridesWithValueSchema.properties,
+    txOverrides: txOverridesSchema,
   }),
 );
 

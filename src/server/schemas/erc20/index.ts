@@ -1,4 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
+import { timeFromNow } from "../../../utils/date";
 
 export const erc20MetadataSchema = Type.Object({
   name: Type.String(),
@@ -100,7 +101,7 @@ export const signature20OutputSchema = Type.Object({
   mintEndTime: Type.Number({
     description:
       "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
-    default: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).getTime(),
+    default: timeFromNow({ days: 10 * 265 }),
   }),
 });
 

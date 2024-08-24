@@ -26,7 +26,7 @@ const requestBodySchema = Type.Object({
       description: "The amounts of tokens to burn",
     }),
   ),
-  ...txOverridesWithValueSchema.properties,
+  txOverrides: txOverridesWithValueSchema,
 });
 
 requestBodySchema.examples = [
