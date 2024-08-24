@@ -50,11 +50,6 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     job.data,
   );
 
-  // DEBUG: DONT MERGE THIS TEST
-  const sleep = async (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms, null));
-  await sleep(1_000);
-
   let transaction = await TransactionDB.get(queueId);
   if (!transaction) {
     job.log(`Invalid transaction state: ${stringify(transaction)}`);
