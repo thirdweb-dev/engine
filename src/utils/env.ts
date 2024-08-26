@@ -61,10 +61,12 @@ export const env = createEnv({
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
     TRUST_PROXY: z.boolean().default(false),
+    // Sets the max amount of memory Redis can use.
+    // "0" means use all available memory.
     REDIS_MAXMEMORY: z.string().default("0"),
-    // TRANSACTION_HISTORY_COUNT defines the max transaction details to keep.
-    // In testing, storing about 300k consumes 900mb memory.
-    TRANSACTION_HISTORY_COUNT: z.coerce.number().default(300_000),
+    // Sets the number of recent transactions to store. Older transactions are pruned periodically.
+    // In testing, 100k transactions consumes ~300mb memory.
+    TRANSACTION_HISTORY_COUNT: z.coerce.number().default(100_000),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
