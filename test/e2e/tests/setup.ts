@@ -1,6 +1,11 @@
 import { sleep } from "bun";
 import { beforeAll } from "bun:test";
-import { createChain, setWalletBalance, setupEngine } from "../utils/engine";
+import {
+  createChain,
+  getEngineBackendWallet,
+  setWalletBalance,
+  setupEngine,
+} from "../utils/engine";
 
 import type { Address } from "viem";
 import { CONFIG } from "../config";
@@ -23,8 +28,7 @@ export const setup = async (): Promise<SetupResult> => {
 
   const publicClient = setupPublicClient();
   const engine = setupEngine();
-  // const backendWallet = await getEngineBackendWallet(engine);
-  const backendWallet = "0x50495dacda9553e50dad15cd3a3016743f71b4c9";
+  const backendWallet = await getEngineBackendWallet(engine);
   let testClient;
 
   if (CONFIG.USE_LOCAL_CHAIN) {
