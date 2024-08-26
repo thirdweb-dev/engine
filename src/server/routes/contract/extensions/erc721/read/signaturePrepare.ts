@@ -216,8 +216,8 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         ...mintPayload,
         price: mintPayload.price.toString(),
         royaltyBps: mintPayload.royaltyBps.toString(),
-        validityStartTimestamp: mintPayload.validityStartTimestamp.toString(),
-        validityEndTimestamp: mintPayload.validityEndTimestamp.toString(),
+        validityStartTimestamp: Number(mintPayload.validityStartTimestamp),
+        validityEndTimestamp: Number(mintPayload.validityEndTimestamp),
       };
 
       reply.status(StatusCodes.OK).send({

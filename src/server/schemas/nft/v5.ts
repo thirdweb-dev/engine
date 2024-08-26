@@ -73,7 +73,7 @@ export const signature721OutputSchemaV5 = Type.Object({
   primarySaleRecipient: Type.String(),
   royaltyRecipient: Type.String(),
   royaltyBps: Type.String(),
-  validityStartTimestamp: Type.String(),
-  validityEndTimestamp: Type.String(),
+  validityStartTimestamp: Type.Integer(),
+  validityEndTimestamp: Type.Integer(),
   uid: Type.String(),
 });
