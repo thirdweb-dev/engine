@@ -8,14 +8,16 @@ import { Account } from "thirdweb/wallets";
 import { getWalletDetails } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
 import { createCustomError } from "../server/middleware/error";
-import { getAwsKmsWallet } from "../server/utils/wallets/getAwsKmsWallet";
+import { getAwsKmsAccount } from "../server/utils/wallets/getAwsKmsAccount";
 import { getGcpKmsWallet } from "../server/utils/wallets/getGcpKmsWallet";
 import {
   getLocalWallet,
   getLocalWalletAccount,
 } from "../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../server/utils/wallets/getSmartWallet";
+import { getConfig } from "./cache/getConfig";
 import { getChain } from "./chain";
+import { thirdwebClient } from "./sdk";
 
 export const _accountsCache = new Map<string, Account>();
 
@@ -47,10 +49,25 @@ export const getAccount = async (args: {
   let wallet: EVMWallet;
   switch (walletDetails.type) {
     case WalletType.awsKms:
-      wallet = await getAwsKmsWallet({
-        awsKmsKeyId: walletDetails.awsKmsKeyId!,
+      const config = await getConfig();
+      if (
+        config.walletConfiguration.type !== WalletType.awsKms ||
+        !walletDetails.awsKmsKeyId
+      ) {
+        throw new Error(`Server was not configured for AWS KMS wallets.`);
+      }
+
+      return await getAwsKmsAccount({
+        client: thirdwebClient,
+        keyId: walletDetails.awsKmsKeyId,
+        config: {
+          region: config.walletConfiguration.awsRegion,
+          credentials: {
+            accessKeyId: config.walletConfiguration.awsAccessKeyId,
+            secretAccessKey: config.walletConfiguration.awsSecretAccessKey,
+          },
+        },
       });
-      break;
     case WalletType.gcpKms:
       wallet = await getGcpKmsWallet({
         gcpKmsKeyId: walletDetails.gcpKmsKeyId!,
