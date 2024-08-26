@@ -15,13 +15,13 @@ export const signature721InputSchemaV5 = Type.Object({
   price: Type.Optional(
     Type.String({
       description:
-        'The amount of the "currency" token this token costs. Example: "0.1".',
+        'The amount of the "currency" token this token costs. Example: "0.1"',
     }),
   ),
   priceInWei: Type.Optional(
     Type.String({
       description:
-        'The amount of the "currency" token this token costs in wei. Example: "100000000000000000".',
+        'The amount of the "currency" token this token costs in wei. Remember to use the correct decimals amount for the currency. Example: "100000000000000000" = 0.1 ETH (18 decimals)',
     }),
   ),
   currency: Type.Optional({
