@@ -5,7 +5,7 @@ import {
   eth_sendRawTransaction,
   getRpcClient,
   keccak256,
-  type Address as TwAddress,
+  type Address,
 } from "thirdweb";
 import { serializeTransaction } from "thirdweb/transaction";
 import { toBytes } from "thirdweb/utils";
@@ -41,7 +41,7 @@ export async function getAwsKmsAccount(
 
   // Populate address immediately
   const addressUnprefixed = await signer.getAddress();
-  const address = `0x${addressUnprefixed}` as TwAddress;
+  const address = `0x${addressUnprefixed}` as Address;
 
   async function signTransaction(tx: TransactionSerializable): Promise<Hex> {
     const serializedTx = serializeTransaction({ transaction: tx });
