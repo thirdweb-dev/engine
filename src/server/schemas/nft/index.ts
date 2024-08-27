@@ -22,9 +22,18 @@ export const nftInputSchema = Type.Partial(
     background_color: Type.String({
       description: "The background color of the NFT",
     }),
+    // @deprecated
     properties: Type.Any({
-      description: "The properties of the NFT",
+      description:
+        '(not recommended - use "attributes") The properties of the NFT.',
     }),
+    attributes: Type.Array(
+      Type.Object({
+        trait_type: Type.String(),
+        value: Type.String(),
+      }),
+      { description: "Arbitrary metadata for this item." },
+    ),
   }),
 );
 
@@ -205,11 +214,12 @@ export const signature721OutputSchema = Type.Object({
     description:
       "The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS",
   }),
-  price: Type.String({
-    description:
-      "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
-    default: "0",
-  }),
+  price: Type.Optional(
+    Type.String({
+      description:
+        "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
+    }),
+  ),
   mintStartTime: Type.Number({
     description:
       "The time from which the signature can be used to mint tokens. Defaults to now.",

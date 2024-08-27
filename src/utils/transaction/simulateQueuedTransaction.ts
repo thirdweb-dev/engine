@@ -14,7 +14,7 @@ import { AnyTransaction } from "./types";
 /**
  * Simulate the queued transaction.
  * @param transaction
- * @throws if there is a simulation error
+ * @returns string - The simulation error, or null if no error.
  */
 export const doSimulateTransaction = async (
   transaction: AnyTransaction,
