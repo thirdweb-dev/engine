@@ -28,10 +28,17 @@ export async function readContract(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = await contract.call(
-        functionName,
-        args ? args.split(",") : [],
-      );
+      const parsedArgs = args?.split(",").map((arg) => {
+        if (arg === "true") {
+          return true;
+        } else if (arg === "false") {
+          return false;
+        } else {
+          return arg;
+        }
+      });
+
+      let returnData = await contract.call(functionName, parsedArgs);
       returnData = bigNumberReplacer(returnData);
 
       reply.status(StatusCodes.OK).send({
