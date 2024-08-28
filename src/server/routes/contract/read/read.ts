@@ -38,7 +38,7 @@ export async function readContract(fastify: FastifyInstance) {
         }
       });
 
-      let returnData = await contract.call(functionName, parsedArgs);
+      let returnData = await contract.call(functionName, parsedArgs ?? []);
       returnData = bigNumberReplacer(returnData);
 
       reply.status(StatusCodes.OK).send({
