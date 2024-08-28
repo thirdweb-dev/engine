@@ -1,14 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../db/client";
-import { getQueueStatus } from "../../../db/transactions/getQueueStatus";
+import { TransactionDB } from "../../../db/transactions/db";
 import { getPercentile } from "../../../utils/math";
+import { MinedTransaction } from "../../../utils/transaction/types";
+import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
+import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-
-const QuerySchema = Type.Object({
-  walletAddress: Type.Optional(Type.String()),
-});
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
@@ -29,7 +27,6 @@ const responseBodySchema = Type.Object({
 
 export async function queueStatus(fastify: FastifyInstance) {
   fastify.route<{
-    Querystring: Static<typeof QuerySchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
@@ -40,39 +37,35 @@ export async function queueStatus(fastify: FastifyInstance) {
       description: "Check the status of the queue",
       tags: ["System"],
       operationId: "queueStatus",
-      querystring: QuerySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {
-      const { walletAddress } = req.query;
-
       // Get # queued and sent transactions.
-      const { queued, pending } = await getQueueStatus({ walletAddress });
+      const queued = await SendTransactionQueue.length();
+      const pending = await MineTransactionQueue.length();
 
-      // Get last 1k sent transactions.
-      const recentTransactions = await prisma.transactions.findMany({
-        orderBy: { queuedAt: "desc" },
-        where: { sentAt: { not: null } },
-        take: 1_000,
-      });
+      // Get last 1k mined transactions.
+      const minedTransactionsList =
+        await TransactionDB.getTransactionListByStatus({
+          status: "mined",
+          page: 1,
+          limit: 1_000,
+        });
+      const minedTransactions =
+        minedTransactionsList.transactions as MinedTransaction[];
 
       // Get "queue -> send" and "queue -> mine" times.
       const msToSendArr: number[] = [];
       const msToMineArr: number[] = [];
-      for (const transaction of recentTransactions) {
+      for (const transaction of minedTransactions) {
         const queuedAt = transaction.queuedAt.getTime();
-        const sentAt = transaction.sentAt?.getTime();
-        const minedAt = transaction.minedAt?.getTime();
-
-        if (sentAt) {
-          msToSendArr.push(sentAt - queuedAt);
-        }
-        if (minedAt) {
-          msToMineArr.push(minedAt - queuedAt);
-        }
+        const sentAt = transaction.sentAt.getTime();
+        const minedAt = transaction.minedAt.getTime();
+        msToSendArr.push(sentAt - queuedAt);
+        msToMineArr.push(minedAt - queuedAt);
       }
 
       res.status(StatusCodes.OK).send({

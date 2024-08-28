@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { Address } from "thirdweb";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getSdk } from "../../../../utils/cache/getSdk";
 import { contractDeployBasicSchema } from "../../../schemas/contract";
@@ -95,7 +96,7 @@ export async function deployPrebuiltSignatureDrop(fastify: FastifyInstance) {
         version,
         { saltForProxyDeploy, forceDirectDeploy, compilerOptions },
       );
-      const deployedAddress = await tx.simulate();
+      const deployedAddress = (await tx.simulate()) as Address;
 
       const queueId = await queueTx({
         tx,

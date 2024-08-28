@@ -4,6 +4,15 @@ import { env } from "./utils/env";
 import { logger } from "./utils/logger";
 import "./utils/tracer";
 import { initWorker } from "./worker";
+import { CancelRecycledNoncesQueue } from "./worker/queues/cancelRecycledNoncesQueue";
+import { MigratePostgresTransactionsQueue } from "./worker/queues/migratePostgresTransactionsQueue";
+import { MineTransactionQueue } from "./worker/queues/mineTransactionQueue";
+import { NonceResyncQueue } from "./worker/queues/nonceResyncQueue";
+import { ProcessEventsLogQueue } from "./worker/queues/processEventLogsQueue";
+import { ProcessTransactionReceiptsQueue } from "./worker/queues/processTransactionReceiptsQueue";
+import { PruneTransactionsQueue } from "./worker/queues/pruneTransactionsQueue";
+import { SendTransactionQueue } from "./worker/queues/sendTransactionQueue";
+import { SendWebhookQueue } from "./worker/queues/sendWebhookQueue";
 
 const main = async () => {
   if (env.ENGINE_MODE === "server_only") {
@@ -40,3 +49,28 @@ process.on("unhandledRejection", (err) => {
     error: err,
   });
 });
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+
+const gracefulShutdown = async (signal: NodeJS.Signals) => {
+  logger({
+    level: "info",
+    service: "server",
+    message: `Received ${signal}, closing server...`,
+  });
+
+  // Gracefully close workers to minimize stalled jobs.
+  // Source: https://docs.bullmq.io/guide/going-to-production#gracefully-shut-down-workers
+  await SendWebhookQueue.q.close();
+  await ProcessEventsLogQueue.q.close();
+  await ProcessTransactionReceiptsQueue.q.close();
+  await SendTransactionQueue.q.close();
+  await MineTransactionQueue.q.close();
+  await CancelRecycledNoncesQueue.q.close();
+  await PruneTransactionsQueue.q.close();
+  await MigratePostgresTransactionsQueue.q.close();
+  await NonceResyncQueue.q.close();
+
+  process.exit(0);
+};

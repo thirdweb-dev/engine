@@ -1,14 +1,21 @@
 import { EVMWallet } from "@thirdweb-dev/wallets";
-import { Signer } from "ethers";
+import { Signer, providers } from "ethers";
+
+import { StatusCodes } from "http-status-codes";
 import { Address } from "thirdweb";
 import { ethers5Adapter } from "thirdweb/adapters/ethers5";
 import { Account } from "thirdweb/wallets";
 import { getWalletDetails } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
+import { createCustomError } from "../server/middleware/error";
 import { getAwsKmsWallet } from "../server/utils/wallets/getAwsKmsWallet";
 import { getGcpKmsWallet } from "../server/utils/wallets/getGcpKmsWallet";
-import { getLocalWallet } from "../server/utils/wallets/getLocalWallet";
+import {
+  getLocalWallet,
+  getLocalWalletAccount,
+} from "../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../server/utils/wallets/getSmartWallet";
+import { getChain } from "./chain";
 
 export const _accountsCache = new Map<string, Account>();
 
@@ -30,7 +37,11 @@ export const getAccount = async (args: {
     address: from,
   });
   if (!walletDetails) {
-    throw new Error(`Backend wallet not found: ${from}`);
+    throw createCustomError(
+      `No configured wallet found with address ${from}`,
+      StatusCodes.BAD_REQUEST,
+      "BAD_REQUEST",
+    );
   }
 
   let wallet: EVMWallet;
@@ -47,6 +58,13 @@ export const getAccount = async (args: {
       });
       break;
     case WalletType.local:
+      // For non-AA
+      // @TODO: Update all wallets to use v5 sdk and avoid ethers.
+      if (!accountAddress) {
+        const account = await getLocalWalletAccount(from);
+        _accountsCache.set(cacheKey, account);
+        return account;
+      }
       wallet = await getLocalWallet({ chainId, walletAddress: from });
       break;
     default:
@@ -55,6 +73,7 @@ export const getAccount = async (args: {
 
   // Get smart wallet if `accountAddress` is provided.
   let signer: Signer;
+
   if (accountAddress) {
     const smartWallet = await getSmartWallet({
       chainId,
@@ -66,7 +85,18 @@ export const getAccount = async (args: {
     signer = await wallet.getSigner();
   }
 
-  const account = await ethers5Adapter.signer.fromEthers({ signer });
+  if (walletDetails.type !== WalletType.local) {
+    // Get chain rpc provider.
+    const chain = await getChain(chainId);
+    const provider = new providers.JsonRpcProvider(chain.rpc);
+
+    signer = signer.connect(provider);
+  }
+
+  // @TODO: Move all wallets to use v5 SDK and avoid ethers adapter.
+  const account = await ethers5Adapter.signer.fromEthers({
+    signer,
+  });
 
   // Set cache.
   _accountsCache.set(cacheKey, account);

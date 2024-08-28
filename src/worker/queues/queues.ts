@@ -3,23 +3,33 @@ import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 
 export const defaultJobOptions: JobsOptions = {
-  attempts: 3,
-  // Retries after 5s, 10s, 20s.
-  backoff: { type: "exponential", delay: 5_000 },
-  // Purges completed jobs past 500 or 5 days.
+  // Does not retry by default. Queues must explicitly define their own retry count and backoff behavior.
+  attempts: 0,
+  // Purges successful jobs.
   removeOnComplete: {
-    age: 60 * 60 * 24 * 5,
-    count: 500,
+    age: 7 * 24 * 60 * 60,
+    count: 10_000,
+  },
+  // Purge failed jobs.
+  // These limits are higher to debug or retry failed jobs.
+  removeOnFail: {
+    age: 7 * 24 * 60 * 60,
+    count: 25_000,
   },
 };
 
-export const logWorkerEvents = (worker: Worker) => {
+export const logWorkerExceptions = (worker: Worker) => {
   worker.on("failed", (job: Job | undefined, err: Error) => {
+    if (!job) {
+      return;
+    }
+
+    job.log(`Job failed: ${err.message}`);
     logger({
       level: "error",
-      message: `[${worker.name}] Failed: ${
-        job?.id ?? "<no job ID>"
-      } , Job Data: ${job?.data}, with error: ${err.message} ${
+      message: `[${worker.name}] Job failed. jobId="${job.id}" data="${
+        job.data
+      }", error="${err.message}" ${
         env.NODE_ENV === "development" ? err.stack : ""
       }`,
       service: "worker",
