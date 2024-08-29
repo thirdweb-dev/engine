@@ -112,7 +112,7 @@ export const getNonceDetails = async ({
     pipeline.smembers(sentNoncesKey(chainId, walletAddress));
     pipeline.smembers(recycledNoncesKey(chainId, walletAddress));
 
-    onchainNoncePromises.push(getOnchainNonce(chainId, walletAddress));
+    onchainNoncePromises.push(getLastUsedOnchainNonce(chainId, walletAddress));
 
     return { chainId, walletAddress };
   });
@@ -172,7 +172,7 @@ export const getLastUsedNonceKeys = async (
  * @param walletAddress Wallet address
  * @returns Next unused nonce
  */
-export const getOnchainNonce = async (
+export const getLastUsedOnchainNonce = async (
   chainId: number,
   walletAddress: string,
 ) => {

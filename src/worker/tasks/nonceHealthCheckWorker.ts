@@ -6,7 +6,7 @@ import {
 } from "../../db/wallets/walletNonce";
 import {
   getLastUsedNonceKeys,
-  getOnchainNonce,
+  getLastUsedOnchainNonce,
 } from "../../server/routes/admin/nonces";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
@@ -114,7 +114,7 @@ async function getCurrentNonceState(
   chainId: number,
 ): Promise<NonceState> {
   const [onchainNonce, internalNonce] = await Promise.all([
-    getOnchainNonce(chainId, walletAddress),
+    getLastUsedOnchainNonce(chainId, walletAddress),
     redis.get(lastUsedNonceKey(chainId, walletAddress)),
   ]);
 
