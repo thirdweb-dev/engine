@@ -1,10 +1,39 @@
-import { Address, eth_getTransactionCount, getRpcClient } from "thirdweb";
+import {
+  Address,
+  eth_getTransactionCount,
+  getAddress,
+  getRpcClient,
+} from "thirdweb";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { updateNonceMap } from "./nonceMap";
+
+/**
+ * Get all used backend wallets.
+ * Reads all the keys in the format `nonce:${chainId}:${walletAddress}` in the Redis DB.
+ *
+ * @example
+ * getUsedBackendWallets()
+ * // [ { chainId: 80001, walletAddress: "0x1234...5678" } ]
+ */
+export const getUsedBackendWallets = async (): Promise<
+  {
+    chainId: number;
+    walletAddress: Address;
+  }[]
+> => {
+  const keys = await redis.keys("nonce:*:*");
+  return keys.map((key) => {
+    const tokens = key.split(":");
+    return {
+      chainId: parseInt(tokens[1]),
+      walletAddress: getAddress(tokens[2]),
+    };
+  });
+};
 
 /**
  * The "last used nonce" stores the last nonce submitted onchain.

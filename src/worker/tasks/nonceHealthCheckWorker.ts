@@ -1,13 +1,10 @@
 import { Job, Processor, Worker } from "bullmq";
 import { Address } from "thirdweb";
 import {
-  lastUsedNonceKey,
-  splitLastUsedNonceKey,
+  getUsedBackendWallets,
+  inspectNonce,
 } from "../../db/wallets/walletNonce";
-import {
-  getLastUsedNonceKeys,
-  getLastUsedOnchainNonce,
-} from "../../server/routes/admin/nonces";
+import { getLastUsedOnchainNonce } from "../../server/routes/admin/nonces";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { NonceHealthCheckQueue } from "../queues/nonceHealthCheckQueue";
@@ -24,9 +21,8 @@ const RUN_FREQUENCY_SECONDS = 60; // Run every minute
 
 // Interfaces
 interface NonceState {
-  timestamp: number;
   onchainNonce: number;
-  internalNonce: number;
+  largestSentNonce: number;
 }
 
 interface WalletHealth {
@@ -34,7 +30,7 @@ interface WalletHealth {
   chainId: number;
   isStuck: boolean;
   onchainNonce: number;
-  internalNonce: number;
+  largestSentNonce: number;
 }
 
 // Initialize the worker
@@ -53,29 +49,29 @@ export const initNonceHealthCheckWorker = () => {
 
 // Main handler function
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  await checkAllWallets(job);
-};
+  const allWallets = await getUsedBackendWallets();
 
-// Check all wallets
-async function checkAllWallets(job: Job<string>) {
-  const lastUsedNonceKeys = await getLastUsedNonceKeys();
-  const walletHealthPromises = lastUsedNonceKeys.map(async (key) => {
-    const { chainId, walletAddress } = splitLastUsedNonceKey(key);
-    await updateNonceHistory(walletAddress, chainId);
-    const isStuck = await isQueueStuck(walletAddress, chainId);
-    const currentState = await getCurrentNonceState(walletAddress, chainId);
-    return {
-      walletAddress,
-      chainId,
-      isStuck,
-      onchainNonce: currentState.onchainNonce,
-      internalNonce: currentState.internalNonce,
-    };
-  });
+  const walletHealthPromises = allWallets.map(
+    async ({ chainId, walletAddress }) => {
+      const [_, isStuck, currentState] = await Promise.all([
+        updateNonceHistory(walletAddress, chainId),
+        isQueueStuck(walletAddress, chainId),
+        getCurrentNonceState(walletAddress, chainId),
+      ]);
+
+      return {
+        walletAddress,
+        chainId,
+        isStuck,
+        onchainNonce: currentState.onchainNonce,
+        largestSentNonce: currentState.largestSentNonce,
+      };
+    },
+  );
 
   const walletHealthResults = await Promise.all(walletHealthPromises);
   logWalletHealth(walletHealthResults, job);
-}
+};
 
 // Check if a queue is stuck
 async function isQueueStuck(
@@ -91,17 +87,15 @@ async function isQueueStuck(
   // ensure we have enough data to check
   if (historicalStates.length < CHECK_PERIODS) return false;
 
-  const oldestOnchainNonce = historicalStates[CHECK_PERIODS - 1].onchainNonce;
-
-  // if for every period, the onchain nonce has not changes, and the internal nonce has strictly increased
+  // if for every period, the onchain nonce has not changed, and the internal nonce has strictly increased
   // then the queue is stuck
   const isStuckForAllPeriods = historicalStates.every((state, index) => {
     if (index === historicalStates.length - 1) return true; // Last (oldest) state
 
-    const nextState = historicalStates[index + 1];
+    const prevState = historicalStates[index + 1];
     return (
-      state.onchainNonce === oldestOnchainNonce &&
-      state.internalNonce > nextState.internalNonce
+      state.onchainNonce === prevState.onchainNonce &&
+      state.largestSentNonce > prevState.largestSentNonce
     );
   });
 
@@ -113,20 +107,19 @@ async function getCurrentNonceState(
   walletAddress: Address,
   chainId: number,
 ): Promise<NonceState> {
-  const [onchainNonce, internalNonce] = await Promise.all([
+  const [onchainNonce, largestSentNonce] = await Promise.all([
     getLastUsedOnchainNonce(chainId, walletAddress),
-    redis.get(lastUsedNonceKey(chainId, walletAddress)),
+    inspectNonce(chainId, walletAddress),
   ]);
 
   return {
-    timestamp: Date.now(),
     onchainNonce: parseInt(onchainNonce.toString()),
-    internalNonce: parseInt(internalNonce || "0"),
+    largestSentNonce: largestSentNonce,
   };
 }
 
 function nonceHistoryKey(walletAddress: Address, chainId: number) {
-  return `nonceHistory:${chainId}:${walletAddress}`;
+  return `nonce-history:${chainId}:${walletAddress}`;
 }
 
 // Get historical nonce states
@@ -159,17 +152,13 @@ function logWalletHealth(healthResults: WalletHealth[], job: Job<string>) {
       `[WALLET_HEALTH] ${result.walletAddress}:${result.chainId} ` +
       `isStuck:${result.isStuck} ` +
       `onchainNonce:${result.onchainNonce} ` +
-      `internalNonce:${result.internalNonce}`;
+      `largestSentNonce:${result.largestSentNonce}`;
 
-    if (result.isStuck) {
-      logger({
-        service: "worker",
-        level: "warn",
-        message: `ALERT: ${message}`,
-      });
-    } else {
-      logger({ service: "worker", level: "info", message });
-    }
+    logger({
+      service: "worker",
+      level: result.isStuck ? "fatal" : "info",
+      message,
+    });
   });
 
   job.log(JSON.stringify(healthResults));
