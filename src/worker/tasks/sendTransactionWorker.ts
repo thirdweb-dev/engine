@@ -162,6 +162,7 @@ const _sendTransaction = async (
   } catch (e: unknown) {
     // If the transaction will revert, error.message contains the human-readable error.
     const errorMessage = (e as Error)?.message ?? `${e}`;
+    job.log(`Failed to estimate gas: ${errorMessage}`);
     return {
       ...queuedTransaction,
       status: "errored",

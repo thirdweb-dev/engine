@@ -76,6 +76,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
       });
       const transaction = claimTo({
         contract,
+        from: fromAddress as Address,
         to: receiver,
         quantity: BigInt(quantity),
       });

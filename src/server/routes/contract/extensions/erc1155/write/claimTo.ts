@@ -80,6 +80,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
       });
       const transaction = claimTo({
         contract,
+        from: fromAddress as Address,
         to: receiver,
         quantity: BigInt(quantity),
         tokenId: BigInt(tokenId),
