@@ -61,8 +61,17 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // An errored queued transaction (resendCount = 0) is safe to retry: the transaction wasn't sent to RPC.
   if (transaction.status === "errored" && resendCount === 0) {
     transaction = {
-      ...transaction,
+      ...{
+        ...transaction,
+        nonce: undefined,
+        errorMessage: undefined,
+        gas: undefined,
+        gasPrice: undefined,
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: undefined,
+      },
       status: "queued",
+      manuallyResentAt: new Date(),
     } satisfies QueuedTransaction;
   }
 

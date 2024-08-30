@@ -5,7 +5,6 @@ import { eth_getTransactionReceipt, getRpcClient } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getChain } from "../../../utils/chain";
 import { thirdwebClient } from "../../../utils/sdk";
-import { QueuedTransaction } from "../../../utils/transaction/types";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -63,7 +62,7 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
           "TRANSACTION_NOT_FOUND",
         );
       }
-      if (transaction.status !== "sent") {
+      if (transaction.status !== "errored") {
         throw createCustomError(
           `Transaction cannot be retried because status: ${transaction.status}`,
           StatusCodes.BAD_REQUEST,
@@ -84,6 +83,13 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
         client: thirdwebClient,
         chain: await getChain(transaction.chainId),
       });
+
+      if (!("sentTransactionHashes" in transaction))
+        throw createCustomError(
+          `Transaction cannot be retried because it was never sent`,
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_CANNOT_BE_RETRIED",
+        );
 
       const receiptPromises = transaction.sentTransactionHashes.map((hash) => {
         // if receipt is not found, it will throw an error
@@ -110,17 +116,10 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
         );
       }
 
-      const toQueueTransaction: QueuedTransaction = {
-        ...transaction,
-        status: "queued",
-      };
-
       // how do we keep a record of the fact that this is manually retried?
-      await TransactionDB.set(toQueueTransaction);
-
       await SendTransactionQueue.add({
-        queueId: toQueueTransaction.queueId,
-        resendCount: toQueueTransaction.resendCount + 1,
+        queueId: transaction.queueId,
+        resendCount: 0,
       });
 
       reply.status(StatusCodes.OK).send({
