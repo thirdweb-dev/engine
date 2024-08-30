@@ -82,32 +82,30 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
         chain: await getChain(transaction.chainId),
       });
 
-      if (!("sentTransactionHashes" in transaction))
-        throw createCustomError(
-          `Transaction cannot be retried because it was never sent`,
-          StatusCodes.BAD_REQUEST,
-          "TRANSACTION_CANNOT_BE_RETRIED",
+      // if transaction has sentTransactionHashes, we need to check if any of them are mined
+      if ("sentTransactionHashes" in transaction) {
+        const receiptPromises = transaction.sentTransactionHashes.map(
+          (hash) => {
+            // if receipt is not found, it will throw an error
+            // so we catch it and return null
+            return eth_getTransactionReceipt(rpcRequest, {
+              hash,
+            }).catch(() => null);
+          },
         );
 
-      const receiptPromises = transaction.sentTransactionHashes.map((hash) => {
-        // if receipt is not found, it will throw an error
-        // so we catch it and return null
-        return eth_getTransactionReceipt(rpcRequest, {
-          hash,
-        }).catch(() => null);
-      });
+        const receipts = await Promise.all(receiptPromises);
 
-      const receipts = await Promise.all(receiptPromises);
+        // If any of the transactions are mined, we should not retry.
+        const minedReceipt = receipts.find((receipt) => !!receipt);
 
-      // If any of the transactions are mined, we should not retry.
-      const minedReceipt = receipts.find((receipt) => !!receipt);
-
-      if (minedReceipt) {
-        throw createCustomError(
-          `Transaction cannot be retried because it has already been mined with hash: ${minedReceipt.transactionHash}`,
-          StatusCodes.BAD_REQUEST,
-          "TRANSACTION_CANNOT_BE_RETRIED",
-        );
+        if (minedReceipt) {
+          throw createCustomError(
+            `Transaction cannot be retried because it has already been mined with hash: ${minedReceipt.transactionHash}`,
+            StatusCodes.BAD_REQUEST,
+            "TRANSACTION_CANNOT_BE_RETRIED",
+          );
+        }
       }
 
       const job = await SendTransactionQueue.q.getJob(
