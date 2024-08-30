@@ -46,6 +46,8 @@ export type QueuedTransaction = InsertedTransaction & {
   queuedAt: Date;
   value: bigint;
   data?: Hex;
+
+  manuallyResentAt?: Date;
 };
 
 // SentTransaction has been submitted to RPC successfully.
@@ -83,7 +85,11 @@ export type MinedTransaction = (
 
 // ErroredTransaction received an error before or while sending to RPC.
 // A transaction that reverted onchain is not considered "errored".
-export type ErroredTransaction = Omit<QueuedTransaction, "status"> & {
+export type ErroredTransaction = (
+  | Omit<QueuedTransaction, "status">
+  | Omit<_SentTransactionEOA, "status">
+  | Omit<_SentTransactionUserOp, "status">
+) & {
   status: "errored";
 
   errorMessage: string;

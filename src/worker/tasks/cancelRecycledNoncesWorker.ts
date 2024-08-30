@@ -88,5 +88,5 @@ const getAndDeleteUnusedNonces = async (key: string) => {
   if (error) {
     throw new Error(`Error getting members of ${key}: ${error}`);
   }
-  return (nonces as string[]).map((v) => parseInt(v));
+  return (nonces as string[]).map((v) => parseInt(v)).sort();
 };
