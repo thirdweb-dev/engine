@@ -184,6 +184,7 @@ export const deleteAllNonces = async () => {
   const keys = [
     ...(await redis.keys("nonce:*")),
     ...(await redis.keys("nonce-recycled:*")),
+    ...(await redis.keys("sent-nonce:*")),
   ];
   if (keys.length > 0) {
     await redis.del(keys);
