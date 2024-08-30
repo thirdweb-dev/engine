@@ -22,6 +22,7 @@ import {
   isReplacementGasFeeTooLow,
   prettifyError,
 } from "../../utils/error";
+import { logger } from "../../utils/logger";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
@@ -181,7 +182,15 @@ const _sendTransaction = async (
 
   // Acquire an unused nonce for this transaction.
   const { nonce, isRecycledNonce } = await acquireNonce(chainId, from);
-  job.log(`Acquired nonce ${nonce}. isRecycledNonce=${isRecycledNonce}`);
+  job.log(
+    `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
+  );
+  logger({
+    level: "info",
+    message: `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
+    service: "worker",
+  });
+
   populatedTransaction.nonce = nonce;
   job.log(`Sending transaction: ${stringify(populatedTransaction)}`);
 
