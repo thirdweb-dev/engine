@@ -42,14 +42,12 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
       summary: "Retry failed transaction",
       description: "Retry a failed transaction",
       tags: ["Transaction"],
-      operationId: "retry",
+      operationId: "retryFailed",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
-      deprecated: true,
-      hide: true,
     },
     handler: async (request, reply) => {
       const { queueId } = request.body;
@@ -94,13 +92,9 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
       const receiptPromises = transaction.sentTransactionHashes.map((hash) => {
         // if receipt is not found, it will throw an error
         // so we catch it and return null
-        try {
-          return eth_getTransactionReceipt(rpcRequest, {
-            hash,
-          });
-        } catch {
-          return null;
-        }
+        return eth_getTransactionReceipt(rpcRequest, {
+          hash,
+        }).catch(() => null);
       });
 
       const receipts = await Promise.all(receiptPromises);
@@ -116,7 +110,17 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
         );
       }
 
-      // how do we keep a record of the fact that this is manually retried?
+      const job = await SendTransactionQueue.q.getJob(
+        SendTransactionQueue.jobId({
+          queueId: transaction.queueId,
+          resendCount: 0,
+        }),
+      );
+
+      if (job) {
+        await job.remove();
+      }
+
       await SendTransactionQueue.add({
         queueId: transaction.queueId,
         resendCount: 0,
