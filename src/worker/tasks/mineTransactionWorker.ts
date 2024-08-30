@@ -159,19 +159,17 @@ const _mineTransaction = async (
 
   // Resend the transaction (after some initial delay).
   const config = await getConfig();
-  if (resendCount < config.maxRetriesPerTx) {
-    const blockNumber = await getBlockNumberish(chainId);
-    const ellapsedBlocks = blockNumber - sentAtBlock;
-    if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
-      const message = `Resending transaction after ${ellapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentAtBlock}`;
-      job.log(message);
-      logger({ service: "worker", level: "info", queueId, message });
+  const blockNumber = await getBlockNumberish(chainId);
+  const ellapsedBlocks = blockNumber - sentAtBlock;
+  if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
+    const message = `Resending transaction after ${ellapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentAtBlock}`;
+    job.log(message);
+    logger({ service: "worker", level: "info", queueId, message });
 
-      await SendTransactionQueue.add({
-        queueId,
-        resendCount: resendCount + 1,
-      });
-    }
+    await SendTransactionQueue.add({
+      queueId,
+      resendCount: resendCount + 1,
+    });
   }
 
   return null;
@@ -229,6 +227,12 @@ export const initMineTransactionWorker = () => {
   const _worker = new Worker(MineTransactionQueue.q.name, handler, {
     concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     connection: redis,
+    settings: {
+      backoffStrategy: (attemptsMade: number) => {
+        // Retries after: 2s, 4s, 6s, 8s, 10s, 10s, 10s, 10s, ...
+        return Math.min(attemptsMade * 2_000, 10_000);
+      },
+    },
   });
 
   // If a transaction fails to mine after all retries, set it as errored and release the nonce.
