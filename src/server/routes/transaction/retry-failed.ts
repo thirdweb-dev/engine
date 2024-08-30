@@ -5,6 +5,7 @@ import { eth_getTransactionReceipt, getRpcClient } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getChain } from "../../../utils/chain";
 import { thirdwebClient } from "../../../utils/sdk";
+import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -108,15 +109,23 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
         }
       }
 
-      const job = await SendTransactionQueue.q.getJob(
+      const sendJob = await SendTransactionQueue.q.getJob(
         SendTransactionQueue.jobId({
           queueId: transaction.queueId,
           resendCount: 0,
         }),
       );
+      if (sendJob) {
+        await sendJob.remove();
+      }
 
-      if (job) {
-        await job.remove();
+      const mineJob = await MineTransactionQueue.q.getJob(
+        MineTransactionQueue.jobId({
+          queueId: transaction.queueId,
+        }),
+      );
+      if (mineJob) {
+        await mineJob.remove();
       }
 
       await SendTransactionQueue.add({
