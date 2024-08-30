@@ -99,6 +99,7 @@ import { cancelTransaction } from "./transaction/cancel";
 import { getAllTx } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
 import { retryTransaction } from "./transaction/retry";
+import { retryFailedTransaction } from "./transaction/retry-failed";
 import { checkTxStatus } from "./transaction/status";
 import { syncRetryTransaction } from "./transaction/syncRetry";
 import { createWebhook } from "./webhooks/create";
@@ -216,6 +217,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(getAllDeployedContracts);
   await fastify.register(retryTransaction);
   await fastify.register(syncRetryTransaction);
+  await fastify.register(retryFailedTransaction);
   await fastify.register(cancelTransaction);
   await fastify.register(sendSignedTransaction);
   await fastify.register(sendSignedUserOp);
