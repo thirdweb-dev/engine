@@ -38,7 +38,7 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "POST",
-    url: "/transaction/retry",
+    url: "/transaction/retry-failed",
     schema: {
       summary: "Retry failed transaction",
       description: "Retry a failed transaction",
