@@ -3,7 +3,6 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
   Address,
-  defineChain,
   estimateGasCost,
   prepareTransaction,
   sendTransaction,
@@ -68,7 +67,7 @@ export async function withdraw(fastify: FastifyInstance) {
       } = request.headers as Static<typeof walletHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chainQuery);
-      const chain = defineChain(chainId);
+      const chain = await getChain(chainId);
       const from = walletAddress as Address;
 
       const account = await getAccount({ chainId, from });
