@@ -3,16 +3,12 @@ import { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import {
-  Address,
-  Hex,
-  defineChain,
-  getContract as getContractV5,
-} from "thirdweb";
+import { Address, Hex, getContract as getContractV5 } from "thirdweb";
 import { mintWithSignature } from "thirdweb/extensions/erc721";
 import { resolvePromisedValue } from "thirdweb/utils";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { getChain } from "../../../../../../utils/chain";
 import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { insertTransaction } from "../../../../../../utils/transaction/insertTransaction";
@@ -103,7 +99,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
         const payloadV5 = payload as Static<typeof signature721OutputSchemaV5>;
         const contract = getContractV5({
           client: thirdwebClient,
-          chain: defineChain(chainId),
+          chain: await getChain(chainId),
           address: contractAddress,
         });
         const transaction = mintWithSignature({
