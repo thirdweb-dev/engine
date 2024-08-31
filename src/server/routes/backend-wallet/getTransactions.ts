@@ -1,9 +1,9 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getAddress } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
-import { env } from "../../../utils/env";
-import { normalizeAddress } from "../../../utils/primitiveTypes";
+import { PaginationSchema } from "../../schemas/pagination";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   TransactionSchema,
@@ -12,7 +12,25 @@ import {
 import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const ParamsSchema = walletWithAddressParamSchema;
+const requestParamsSchema = walletWithAddressParamSchema;
+
+const requestQuerySchema = Type.Object({
+  ...PaginationSchema.properties,
+  status: Type.Union(
+    [
+      // Note: 'queued' returns all transcations, not just transactions currently queued.
+      Type.Literal("queued"),
+      Type.Literal("mined"),
+      Type.Literal("cancelled"),
+      Type.Literal("errored"),
+    ],
+    {
+      description:
+        "The status to query: 'queued', 'mined', 'errored', or 'cancelled'. Default: 'queued'",
+      default: "queued",
+    },
+  ),
+});
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
@@ -20,19 +38,23 @@ const responseBodySchema = Type.Object({
   }),
 });
 
-export async function getAllTransactions(fastify: FastifyInstance) {
+export async function getTransactionsForBackendWallet(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
-    Params: Static<typeof ParamsSchema>;
+    Querystring: Static<typeof requestQuerySchema>;
+    Params: Static<typeof requestParamsSchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
     url: "/backend-wallet/:chain/:walletAddress/get-all-transactions",
     schema: {
-      summary: "Get all transactions",
-      description: "Get all transactions for a backend wallet.",
+      summary: "Get recent transactions",
+      description: "Get recent transactions for this backend wallet.",
       tags: ["Backend Wallet"],
-      operationId: "getAllTransactions",
-      params: ParamsSchema,
+      operationId: "getTransactionsForBackendWallet",
+      querystring: requestQuerySchema,
+      params: requestParamsSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
@@ -40,13 +62,14 @@ export async function getAllTransactions(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const { chain, walletAddress: _walletAddress } = req.params;
+      const { page, limit, status } = req.query;
       const chainId = await getChainIdFromChain(chain);
-      const walletAddress = normalizeAddress(_walletAddress);
+      const walletAddress = getAddress(_walletAddress);
 
       const { transactions } = await TransactionDB.getTransactionListByStatus({
-        status: "queued",
-        page: 1,
-        limit: env.TRANSACTION_HISTORY_COUNT,
+        status,
+        page,
+        limit,
       });
       const filtered = transactions.filter(
         (t) => t.chainId === chainId && t.from === walletAddress,
