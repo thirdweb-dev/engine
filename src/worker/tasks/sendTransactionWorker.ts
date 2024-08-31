@@ -10,7 +10,7 @@ import {
   acquireNonce,
   addSentNonce,
   recycleNonce,
-  resyncNonce,
+  syncLatestNonceFromOnchainIfHigher,
 } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
@@ -212,7 +212,7 @@ const _sendTransaction = async (
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
     // correct the DB nonce.
     if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
-      const result = await resyncNonce(chainId, from);
+      const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
       job.log(`Resynced nonce to ${result}.`);
     } else {
       // Otherwise this nonce is not used yet. Recycle it to be used by a future transaction.
