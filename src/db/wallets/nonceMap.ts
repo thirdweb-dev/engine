@@ -35,7 +35,7 @@ export const getNonceMap = async (args: {
   chainId: number;
   walletAddress: Address;
   fromNonce: number;
-  toNonce: number;
+  toNonce?: number;
 }): Promise<{ nonce: number; queueId: string }[]> => {
   const { chainId, walletAddress, fromNonce, toNonce } = args;
   const key = nonceMapKey(chainId, walletAddress);
@@ -44,15 +44,16 @@ export const getNonceMap = async (args: {
   const elementsWithScores = await redis.zrangebyscore(
     key,
     fromNonce,
-    toNonce,
+    // If toNonce is not provided, do not set an upper bound on the score.
+    toNonce ?? "+inf",
     "WITHSCORES",
   );
 
   const result: { nonce: number; queueId: string }[] = [];
   for (let i = 0; i < elementsWithScores.length; i += 2) {
     result.push({
-      queueId: elementsWithScores[1],
-      nonce: parseInt(elementsWithScores[2]),
+      queueId: elementsWithScores[i],
+      nonce: parseInt(elementsWithScores[i + 1]),
     });
   }
   return result;
@@ -64,5 +65,16 @@ export const pruneNonceMaps = async () => {
   for (const key of keys) {
     pipeline.zremrangebyrank(key, 0, -env.NONCE_MAP_COUNT);
   }
-  await pipeline.exec();
+  const results = await pipeline.exec();
+  if (!results) {
+    return 0;
+  }
+
+  let numDeleted = 0;
+  for (const [error, result] of results) {
+    if (!error) {
+      numDeleted += parseInt(result as string);
+    }
+  }
+  return numDeleted;
 };

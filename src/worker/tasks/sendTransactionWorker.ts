@@ -149,7 +149,7 @@ const _sendTransaction = async (
 ): Promise<SentTransaction | ErroredTransaction> => {
   assert(!queuedTransaction.isUserOp);
 
-  const { chainId, from } = queuedTransaction;
+  const { queueId, chainId, from } = queuedTransaction;
   const chain = await getChain(chainId);
 
   // Populate the transaction to resolve gas values.
@@ -184,14 +184,14 @@ const _sendTransaction = async (
   const { nonce, isRecycledNonce } = await acquireNonce({
     queueId,
     chainId,
-    from,
+    walletAddress: from,
   });
   job.log(
-    `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
+    `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
   );
   logger({
     level: "info",
-    message: `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
+    message: `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
     service: "worker",
   });
 

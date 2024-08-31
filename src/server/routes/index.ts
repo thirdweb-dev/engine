@@ -14,7 +14,8 @@ import { createBackendWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
 import { getBackendWalletNonce } from "./backend-wallet/getNonce";
-import { getTransactionsByBackendWallet } from "./backend-wallet/getTransactions";
+import { getTransactionsForBackendWallet } from "./backend-wallet/getTransactions";
+import { getTransactionsForBackendWalletByNonce } from "./backend-wallet/getTransactionsByNonce";
 import { importBackendWallet } from "./backend-wallet/import";
 import { removeBackendWallet } from "./backend-wallet/remove";
 import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
@@ -96,6 +97,7 @@ import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
 import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { cancelTransaction } from "./transaction/cancel";
+import { getAllTransactions } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
 import { retryTransaction } from "./transaction/retry";
 import { retryFailedTransaction } from "./transaction/retry-failed";
@@ -121,7 +123,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(signTransaction);
   await fastify.register(signMessage);
   await fastify.register(signTypedData);
-  await fastify.register(getTransactionsByBackendWallet);
+  await fastify.register(getTransactionsForBackendWallet);
+  await fastify.register(getTransactionsForBackendWalletByNonce);
   await fastify.register(resetBackendWalletNonces);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
@@ -211,8 +214,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(prebuiltsRoutes);
 
   // Transactions
+  await fastify.register(getAllTransactions);
   await fastify.register(checkTxStatus);
-  await fastify.register(getTransactionsByBackendWallet);
   await fastify.register(getAllDeployedContracts);
   await fastify.register(retryTransaction);
   await fastify.register(syncRetryTransaction);

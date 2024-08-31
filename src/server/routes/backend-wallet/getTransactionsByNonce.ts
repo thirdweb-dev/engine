@@ -13,18 +13,22 @@ import {
 import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
+const requestParamsSchema = walletWithAddressParamSchema;
+
 const requestQuerySchema = Type.Object({
-  ...walletWithAddressParamSchema.properties,
   fromNonce: Type.Integer({
     description: "The earliest nonce, inclusive.",
     examples: [100],
     minimum: 0,
   }),
-  toNonce: Type.Integer({
-    description: "The latest nonce, inclusive.",
-    examples: [100],
-    minimum: 0,
-  }),
+  toNonce: Type.Optional(
+    Type.Integer({
+      description:
+        "The latest nonce, inclusive. If omitted, queries up to the latest sent nonce.",
+      examples: [100],
+      minimum: 0,
+    }),
+  ),
 });
 
 const responseBodySchema = Type.Object({
@@ -38,9 +42,12 @@ const responseBodySchema = Type.Object({
   ),
 });
 
-export async function getTransactionsByNonce(fastify: FastifyInstance) {
+export async function getTransactionsForBackendWalletByNonce(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
-    Params: Static<typeof requestQuerySchema>;
+    Querystring: Static<typeof requestQuerySchema>;
+    Params: Static<typeof requestParamsSchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
@@ -50,20 +57,17 @@ export async function getTransactionsByNonce(fastify: FastifyInstance) {
       description:
         "Get recent transactions for this backend wallet, sorted by descending nonce.",
       tags: ["Backend Wallet"],
-      operationId: "getTransactionsByNonceForBackendWallet",
-      params: requestQuerySchema,
+      operationId: "getTransactionsForBackendWalletByNonce",
+      querystring: requestQuerySchema,
+      params: requestParamsSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (req, res) => {
-      const {
-        chain,
-        walletAddress: _walletAddress,
-        fromNonce,
-        toNonce,
-      } = req.params;
+      const { chain, walletAddress: _walletAddress } = req.params;
+      const { fromNonce, toNonce } = req.query;
       const chainId = await getChainIdFromChain(chain);
       const walletAddress = normalizeAddress(_walletAddress);
 
