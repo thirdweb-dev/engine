@@ -102,7 +102,7 @@ export const acquireNonce = async (args: {
     if (nonce === 1) {
       // If INCR returned 1, the nonce was not set.
       // This may be a newly imported wallet.
-      nonce = await _syncNonce(chainId, walletAddress);
+      nonce = await syncLatestNonceFromOnchain(chainId, walletAddress);
     }
   }
 
@@ -158,7 +158,8 @@ const _acquireRecycledNonce = async (
   return parseInt(result[0]);
 };
 
-const _syncNonce = async (
+// @TODO: Redis lock this to make this method safe to call concurrently.
+export const syncLatestNonceFromOnchain = async (
   chainId: number,
   walletAddress: Address,
 ): Promise<number> => {
