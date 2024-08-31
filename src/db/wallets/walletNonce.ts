@@ -4,6 +4,7 @@ import { logger } from "../../utils/logger";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
+import { updateNonceMap } from "./nonceMap";
 
 /**
  * The "last used nonce" stores the last nonce submitted onchain.
@@ -76,31 +77,45 @@ export const isSentNonce = async (
 };
 
 /**
- * Acquire an unused nonce.
- * This should be used to send an EOA transaction with this nonce.
+ * Acquire an unused nonce to send an EOA transaction for the given backend wallet.
  * @param chainId
  * @param walletAddress
  * @returns number
  */
-export const acquireNonce = async (
-  chainId: number,
-  walletAddress: Address,
-): Promise<{ nonce: number; isRecycledNonce: boolean }> => {
-  // Acquire an recylced nonce, if any.
+export const acquireNonce = async (args: {
+  queueId: string;
+  chainId: number;
+  walletAddress: Address;
+}): Promise<{ nonce: number; isRecycledNonce: boolean }> => {
+  const { queueId, chainId, walletAddress } = args;
+
+  let isRecycledNonce = false;
+
+  // Acquire a recycled nonce, if any.
   let nonce = await _acquireRecycledNonce(chainId, walletAddress);
   if (nonce !== null) {
-    return { nonce, isRecycledNonce: true };
+    isRecycledNonce = true;
+  } else {
+    // Else increment the last used nonce.
+    const key = lastUsedNonceKey(chainId, walletAddress);
+    nonce = await redis.incr(key);
+
+    if (nonce === 1) {
+      // If INCR returned 1, the nonce was previously not set.
+      // This may be a newly imported wallet.
+      nonce = await _syncNonce(chainId, walletAddress);
+    }
   }
 
-  // Else increment the last used nonce.
-  const key = lastUsedNonceKey(chainId, walletAddress);
-  nonce = await redis.incr(key);
-  if (nonce === 1) {
-    // If INCR returned 1, the nonce was not set.
-    // This may be a newly imported wallet.
-    nonce = await _syncNonce(chainId, walletAddress);
-  }
-  return { nonce, isRecycledNonce: false };
+  // Update the nonce => queueId map.
+  await updateNonceMap({
+    chainId,
+    walletAddress,
+    nonce,
+    queueId,
+  });
+
+  return { nonce, isRecycledNonce };
 };
 
 /**

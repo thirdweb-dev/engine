@@ -181,7 +181,11 @@ const _sendTransaction = async (
   }
 
   // Acquire an unused nonce for this transaction.
-  const { nonce, isRecycledNonce } = await acquireNonce(chainId, from);
+  const { nonce, isRecycledNonce } = await acquireNonce({
+    queueId,
+    chainId,
+    from,
+  });
   job.log(
     `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
   );

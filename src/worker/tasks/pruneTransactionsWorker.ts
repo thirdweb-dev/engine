@@ -1,5 +1,6 @@
 import { Job, Processor, Worker } from "bullmq";
 import { TransactionDB } from "../../db/transactions/db";
+import { pruneNonceMaps } from "../../db/wallets/nonceMap";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { PruneTransactionsQueue } from "../queues/pruneTransactionsQueue";
@@ -10,6 +11,8 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     env.TRANSACTION_HISTORY_COUNT,
   );
   job.log(`Pruned ${numPruned} transaction details.`);
+
+  await pruneNonceMaps();
 };
 
 // Must be explicitly called for the worker to run on this host.
