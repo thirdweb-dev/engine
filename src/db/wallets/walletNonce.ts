@@ -13,19 +13,27 @@ import { updateNonceMap } from "./nonceMap";
 
 /**
  * Get all used backend wallets.
+ * Filters by chainId and walletAddress if provided.
  * Reads all the keys in the format `nonce:${chainId}:${walletAddress}` in the Redis DB.
  *
  * @example
  * getUsedBackendWallets()
  * // [ { chainId: 80001, walletAddress: "0x1234...5678" } ]
  */
-export const getUsedBackendWallets = async (): Promise<
+export const getUsedBackendWallets = async (
+  chainId?: number,
+  walletAddress?: Address,
+): Promise<
   {
     chainId: number;
     walletAddress: Address;
   }[]
 > => {
-  const keys = await redis.keys("nonce:*:*");
+  const keys = await redis.keys(
+    `nonce:${chainId ?? "*"}:${
+      walletAddress ? normalizeAddress(walletAddress) : "*"
+    }`,
+  );
   return keys.map((key) => {
     const tokens = key.split(":");
     return {

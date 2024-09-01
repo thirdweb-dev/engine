@@ -1,15 +1,19 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { eth_getTransactionCount, getRpcClient } from "thirdweb";
 import {
+  Address,
+  eth_getTransactionCount,
+  getAddress,
+  getRpcClient,
+} from "thirdweb";
+import {
+  getUsedBackendWallets,
   lastUsedNonceKey,
   recycledNoncesKey,
   sentNoncesKey,
-  splitLastUsedNonceKey,
 } from "../../../db/wallets/walletNonce";
 import { getChain } from "../../../utils/chain";
-import { normalizeAddress } from "../../../utils/primitiveTypes";
 import { redis } from "../../../utils/redis/redis";
 import { thirdwebClient } from "../../../utils/sdk";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -84,7 +88,10 @@ export async function getNonceDetailsRoute(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { walletAddress, chain } = request.query;
-      const result = await getNonceDetails({ walletAddress, chainId: chain });
+      const result = await getNonceDetails({
+        walletAddress: walletAddress ? getAddress(walletAddress) : undefined,
+        chainId: chain ? parseInt(chain) : undefined,
+      });
 
       reply.status(StatusCodes.OK).send({
         result,
@@ -97,17 +104,18 @@ export const getNonceDetails = async ({
   walletAddress,
   chainId,
 }: {
-  walletAddress?: string;
-  chainId?: string;
+  walletAddress?: Address;
+  chainId?: number;
 } = {}) => {
-  const lastUsedNonceKeys = await getLastUsedNonceKeys(walletAddress, chainId);
+  const usedBackendWallets = await getUsedBackendWallets(
+    chainId,
+    walletAddress,
+  );
 
   const pipeline = redis.pipeline();
   const onchainNoncePromises: Promise<number>[] = [];
 
-  const keyMap = lastUsedNonceKeys.map((key) => {
-    const { chainId, walletAddress } = splitLastUsedNonceKey(key);
-
+  const keyMap = usedBackendWallets.map(({ chainId, walletAddress }) => {
     pipeline.get(lastUsedNonceKey(chainId, walletAddress));
     pipeline.smembers(sentNoncesKey(chainId, walletAddress));
     pipeline.smembers(recycledNoncesKey(chainId, walletAddress));
@@ -144,26 +152,6 @@ export const getNonceDetails = async ({
         .sort((a, b) => b - a),
     };
   });
-};
-
-/**
- * Get all lastUsedNonce keys from Redis, based on the provided wallet address and chain.
- * @param walletAddress Wallet address to filter by (optional)
- * @param chainId chainId to filter by (optional)
- *
- * @returns Array of lastUsedNonce keys for wallet address and chain combinations
- */
-export const getLastUsedNonceKeys = async (
-  walletAddress?: string,
-  chainId?: string,
-): Promise<string[]> => {
-  const keys = await redis.keys(
-    `nonce:${chainId ?? "*"}:${
-      walletAddress ? normalizeAddress(walletAddress) : "*"
-    }`,
-  );
-
-  return keys;
 };
 
 /*
