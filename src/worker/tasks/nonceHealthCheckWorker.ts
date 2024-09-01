@@ -1,5 +1,5 @@
 import { Job, Processor, Worker } from "bullmq";
-import { Address } from "thirdweb";
+import { Address, getAddress } from "thirdweb";
 import {
   getUsedBackendWallets,
   inspectNonce,
@@ -17,7 +17,7 @@ import { logWorkerExceptions } from "../queues/queues";
 const CHECK_PERIODS = 3;
 
 // Frequency of the worker
-const RUN_FREQUENCY_SECONDS = 60; // Run every minute
+const RUN_FREQUENCY_SECONDS = 20; // Run every 20 seconds
 
 // Interfaces
 interface NonceState {
@@ -119,7 +119,7 @@ async function getCurrentNonceState(
 }
 
 function nonceHistoryKey(walletAddress: Address, chainId: number) {
-  return `nonce-history:${chainId}:${walletAddress}`;
+  return `nonce-history:${chainId}:${getAddress(walletAddress)}`;
 }
 
 // Get historical nonce states
