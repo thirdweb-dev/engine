@@ -3,7 +3,7 @@ import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
 export class NonceHealthCheckQueue {
-  static q = new Queue<string>("log", {
+  static q = new Queue<string>("nonceHealthCheck", {
     connection: redis,
     defaultJobOptions,
   });
