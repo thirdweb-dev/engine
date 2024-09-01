@@ -1,31 +1,57 @@
 import { createLogger, format, transports } from "winston";
 import { env } from "./env";
 
+type LogLevels = typeof env.LOG_LEVEL;
+
+// Define custom log levels that strictly match the log levels in the env file
+const customLevels: {
+  levels: { [K in LogLevels]: number };
+  colors: { [K in LogLevels]: string };
+} = {
+  levels: {
+    fatal: 0,
+    error: 1,
+    warn: 2,
+    info: 3,
+    debug: 4,
+    trace: 5,
+  },
+  colors: {
+    fatal: "red",
+    error: "red",
+    warn: "yellow",
+    info: "green",
+    debug: "blue",
+    trace: "gray",
+  },
+};
+
 // Custom filter for stdout transport
-const filterOnlyInfoAndWarn = format((info) => {
-  if (info.level === "error") {
-    return false; // Exclude 'error' level logs
+const filterNonErrors = format((info) => {
+  if (info.level !== "error" && info.level !== "fatal") {
+    return info; // only include non-error logs
   }
-  return info;
+  return false;
 });
 
 // Custom filter for stderr transport
-const filterOnlyErrors = format((info) => {
-  if (info.level !== "error") {
-    return false; // Exclude non-error level logs
+const filterErrorsAndFatal = format((info) => {
+  if (info.level === "error" || info.level === "fatal") {
+    return info; // only include error and fatal logs
   }
-  return info;
+  return false;
 });
 
 const colorizeFormat = () => {
   if (env.NODE_ENV === "development") {
-    return format.colorize();
+    return format.colorize({ colors: customLevels.colors });
   } else {
     return format.uncolorize();
   }
 };
 
 const winstonLogger = createLogger({
+  levels: customLevels.levels,
   level: env.LOG_LEVEL,
   format: format.combine(
     format.timestamp(),
@@ -40,15 +66,14 @@ const winstonLogger = createLogger({
     }),
   ),
   transports: [
-    // Transport for stdout
+    // Transport for stdout (non-error logs)
     new transports.Console({
-      format: format.combine(filterOnlyInfoAndWarn()),
-      stderrLevels: [], // Don't log "error" to stdout
+      format: format.combine(filterNonErrors()),
     }),
-    // Transport for stderr
+    // Transport for stderr (error and fatal logs)
     new transports.Console({
-      format: format.combine(filterOnlyErrors()),
-      stderrLevels: ["error"], // Ensure errors go to stderr
+      format: format.combine(filterErrorsAndFatal()),
+      stderrLevels: ["error", "fatal"],
     }),
   ],
 });
@@ -85,7 +110,7 @@ export const logger = ({
   }
 
   if (error) {
-    winstonLogger.error(`${prefix}${message}${suffix}`, { error });
+    winstonLogger.error(level, `${prefix}${message}${suffix}`, { error });
   } else {
     winstonLogger.log(level, `${prefix}${message}${suffix}`);
   }
