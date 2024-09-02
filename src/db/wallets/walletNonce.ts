@@ -1,10 +1,47 @@
-import { Address, eth_getTransactionCount, getRpcClient } from "thirdweb";
+import {
+  Address,
+  eth_getTransactionCount,
+  getAddress,
+  getRpcClient,
+} from "thirdweb";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { updateNonceMap } from "./nonceMap";
+
+/**
+ * Get all used backend wallets.
+ * Filters by chainId and walletAddress if provided.
+ * Reads all the keys in the format `nonce:${chainId}:${walletAddress}` in the Redis DB.
+ *
+ * @example
+ * getUsedBackendWallets()
+ * // [ { chainId: 80001, walletAddress: "0x1234...5678" } ]
+ */
+export const getUsedBackendWallets = async (
+  chainId?: number,
+  walletAddress?: Address,
+): Promise<
+  {
+    chainId: number;
+    walletAddress: Address;
+  }[]
+> => {
+  const keys = await redis.keys(
+    `nonce:${chainId ?? "*"}:${
+      walletAddress ? normalizeAddress(walletAddress) : "*"
+    }`,
+  );
+  return keys.map((key) => {
+    const tokens = key.split(":");
+    return {
+      chainId: parseInt(tokens[1]),
+      walletAddress: getAddress(tokens[2]),
+    };
+  });
+};
 
 /**
  * The "last used nonce" stores the last nonce submitted onchain.
@@ -14,8 +51,23 @@ export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
 
 /**
- * The "recycled nonces" sorted set stores nonces to be reused or cancelled, sorted by nonce value.
- * Example: [ "23", "24", "25" ]
+ * Split the last used nonce key into chainId and walletAddress.
+ * @param key
+ * @returns { chainId: number, walletAddress: Address }
+ * @example
+ * splitLastUsedNonceKey("nonce:80001:0x1234...5678")
+ * // { chainId: 80001, walletAddress: "0x1234...5678" }
+ */
+export const splitLastUsedNonceKey = (key: string) => {
+  const _splittedKeys = key.split(":");
+  const walletAddress = normalizeAddress(_splittedKeys[2]);
+  const chainId = parseInt(_splittedKeys[1]);
+  return { walletAddress, chainId };
+};
+
+/**
+ * The "recycled nonces" set stores unsorted nonces to be reused or cancelled.
+ * Example: [ "25", "23", "24" ]
  */
 export const recycledNoncesKey = (chainId: number, walletAddress: Address) =>
   `nonce-recycled:${chainId}:${normalizeAddress(walletAddress)}`;
