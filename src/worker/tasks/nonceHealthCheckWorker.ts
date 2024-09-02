@@ -17,7 +17,7 @@ import { logWorkerExceptions } from "../queues/queues";
 const CHECK_PERIODS = 3;
 
 // Frequency of the worker
-const RUN_FREQUENCY_SECONDS = 20; // Run every 20 seconds
+const RUN_FREQUENCY_SECONDS = 60; // Run every minute
 
 // Interfaces
 interface NonceState {
