@@ -113,7 +113,7 @@ async function getCurrentNonceState(
   ]);
 
   return {
-    onchainNonce: parseInt(onchainNonce.toString()),
+    onchainNonce: onchainNonce,
     largestSentNonce: largestSentNonce,
   };
 }

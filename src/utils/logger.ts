@@ -28,10 +28,10 @@ const customLevels: {
 
 // Custom filter for stdout transport
 const filterNonErrors = format((info) => {
-  if (info.level !== "error" && info.level !== "fatal") {
-    return info; // only include non-error logs
+  if (info.level === "error" || info.level === "fatal") {
+    return false; // only include non-error logs
   }
-  return false;
+  return info;
 });
 
 // Custom filter for stderr transport
