@@ -1,6 +1,7 @@
 import {
   Address,
   Hex,
+  getAddress,
   getContract,
   prepareContractCall,
   readContract,
@@ -13,6 +14,7 @@ import {
 } from "thirdweb/wallets/smart";
 import { getAccount } from "../account";
 import { getChain } from "../chain";
+import { redis } from "../redis/redis";
 import { thirdwebClient } from "../sdk";
 import { QueuedTransaction } from "./types";
 
@@ -43,12 +45,31 @@ export const generateSignedUserOperation = async (
     address: accountAddress as Address,
   });
 
+  let accountFactoryAddress: Address | undefined;
+
+  try {
+    const cachedFactoryAddress = await redis.get(
+      `account-factory:${accountAddress.toLowerCase()}`,
+    );
+    accountFactoryAddress = getAddress(cachedFactoryAddress ?? "");
+  } catch {}
+
   // Resolve Factory Contract Address from Smart-Account Contract
-  const accountFactoryAddress = await readContract({
-    contract: smartAccountContract,
-    method: "function factory() view returns (address)",
-    params: [],
-  });
+
+  if (!accountFactoryAddress) {
+    const onchainFactoryResult = (await readContract({
+      contract: smartAccountContract,
+      method: "function factory() view returns (address)",
+      params: [],
+    })) as Address;
+    accountFactoryAddress = onchainFactoryResult;
+  }
+
+  if (!accountFactoryAddress) {
+    throw new Error(
+      `Account Factory for ${accountAddress} on chain:${chainId} not found`,
+    );
+  }
 
   // Resolve Factory Contract
   const accountFactoryContract = getContract({
