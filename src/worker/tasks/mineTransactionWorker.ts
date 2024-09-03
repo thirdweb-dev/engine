@@ -8,7 +8,7 @@ import {
   getRpcClient,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
-import { getUserOpReceiptRaw } from "thirdweb/wallets/smart";
+import { getUserOpReceipt, getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
 import { recycleNonce, removeSentNonce } from "../../db/wallets/walletNonce";
 import { getBlockNumberish } from "../../utils/block";
@@ -190,6 +190,7 @@ const _mineUserOp = async (
     chain,
     userOpHash,
   });
+
   if (!userOpReceiptRaw) {
     return null;
   }
@@ -205,6 +206,28 @@ const _mineUserOp = async (
     hash: transaction.hash,
   });
 
+  let errorMessage: string | undefined;
+
+  // if the userOpReceipt is not successful, try to get the parsed userOpReceipt
+  // we expect this to fail, but we want the error message if it does
+  if (!userOpReceiptRaw.success) {
+    try {
+      const userOpReceipt = await getUserOpReceipt({
+        client: thirdwebClient,
+        chain,
+        userOpHash,
+      });
+      await job.log(`Found userOpReceipt: ${userOpReceipt}`);
+    } catch (e) {
+      if (e instanceof Error) {
+        errorMessage = e.message;
+        await job.log("Failed to get userOpReceipt: " + e.message);
+      } else {
+        throw e;
+      }
+    }
+  }
+
   return {
     ...sentTransaction,
     status: "mined",
@@ -219,6 +242,7 @@ const _mineUserOp = async (
     cumulativeGasUsed: receipt.cumulativeGasUsed,
     sender: userOpReceiptRaw.sender as Address,
     nonce: userOpReceiptRaw.nonce.toString(),
+    errorMessage,
   };
 };
 
