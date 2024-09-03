@@ -288,7 +288,7 @@ export const toTransactionSchema = (
         ? transaction.cancelledAt.toISOString()
         : null,
     errorMessage:
-      "errorMessage" in transaction ? transaction.errorMessage : null,
+      "errorMessage" in transaction ? transaction.errorMessage ?? null : null,
     sentAtBlockNumber:
       "sentAtBlock" in transaction ? Number(transaction.sentAtBlock) : null,
     blockNumber:
