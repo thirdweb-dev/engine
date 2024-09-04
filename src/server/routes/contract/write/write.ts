@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getContract } from "../../../../utils/cache/getContract";
+import { redis } from "../../../../utils/redis/redis";
 import { abiSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
@@ -66,7 +67,19 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": factoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+
+      if (accountAddress && factoryAddress) {
+        // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
+        // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
+        await redis.set(
+          `account-factory:${accountAddress.toLowerCase()}`,
+          factoryAddress,
+          "EX",
+          7 * 24 * 60 * 60,
+        );
+      }
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({

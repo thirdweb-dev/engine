@@ -19,6 +19,11 @@ export const walletWithAAHeaderSchema = Type.Object({
       description: "Smart account address",
     }),
   ),
+  "x-account-factory-address": Type.Optional(
+    Type.String({
+      description: "Smart account factory address",
+    }),
+  ),
 });
 
 export const walletParamSchema = Type.Object({

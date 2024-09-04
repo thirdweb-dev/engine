@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
+import { redis } from "../../../utils/redis/redis";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -72,8 +73,20 @@ export async function sendTransaction(fastify: FastifyInstance) {
         "x-backend-wallet-address": fromAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
+        "x-account-factory-address": factoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
+
+      if (accountAddress && factoryAddress) {
+        // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
+        // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
+        await redis.set(
+          `account-factory:${accountAddress.toLowerCase()}`,
+          factoryAddress,
+          "EX",
+          7 * 24 * 60 * 60,
+        );
+      }
 
       let queueId: string;
       if (accountAddress) {
