@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { getAddress } from "thirdweb";
 import { env } from "../../../utils/env";
 import { AddressSchema } from "../address";
 
@@ -20,7 +21,24 @@ export const walletWithAAHeaderSchema = Type.Object({
     ...AddressSchema,
     description: "Smart account address",
   }),
+  "x-account-factory-address": Type.Optional({
+    ...AddressSchema,
+    description: "Smart account factory address",
+  }),
 });
+
+/*
+ * Helper function to parse an address string.
+ * Returns undefined if the address is invalid.
+ */
+export function maybeAddress(address: string | undefined) {
+  if (!address) return undefined;
+  try {
+    return getAddress(address);
+  } catch {
+    return undefined;
+  }
+}
 
 export const walletChainParamSchema = Type.Object({
   chain: Type.String({

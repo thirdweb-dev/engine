@@ -11,6 +11,7 @@ import {
 } from "../../schemas/sharedApiSchemas";
 import { txOverridesSchema } from "../../schemas/txOverrides";
 import {
+  maybeAddress,
   walletChainParamSchema,
   walletWithAAHeaderSchema,
 } from "../../schemas/wallet";
@@ -73,6 +74,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
         "x-backend-wallet-address": fromAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
+        "x-account-factory-address": accountFactoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -90,7 +92,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
             accountAddress: accountAddress as Address,
             signerAddress: fromAddress as Address,
             target: toAddress as Address | undefined,
-
+            accountFactoryAddress: maybeAddress(accountFactoryAddress),
             gas: maybeBigInt(txOverrides?.gas),
             maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
             maxPriorityFeePerGas: maybeBigInt(
