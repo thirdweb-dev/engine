@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getAddress } from "thirdweb";
 import { queueTxRaw } from "../../../db/transactions/queueTxRaw";
 import { redis } from "../../../utils/redis/redis";
 import {
@@ -78,14 +79,19 @@ export async function sendTransaction(fastify: FastifyInstance) {
       const chainId = await getChainIdFromChain(chain);
 
       if (accountAddress && factoryAddress) {
-        // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
-        // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
-        await redis.set(
-          `account-factory:${accountAddress.toLowerCase()}`,
-          factoryAddress,
-          "EX",
-          7 * 24 * 60 * 60,
-        );
+        try {
+          const validatedFactoryAddress = getAddress(factoryAddress);
+          // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
+          // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
+          await redis.set(
+            `account-factory:${chainId}:${validatedFactoryAddress.toLowerCase()}`,
+            factoryAddress,
+            "EX",
+            7 * 24 * 60 * 60,
+          );
+        } catch {
+          // incorrect factory address provided, ignore for backwards compatibility
+        }
       }
 
       let queueId: string;

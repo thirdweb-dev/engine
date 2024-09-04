@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { getAddress } from "thirdweb";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getContract } from "../../../../utils/cache/getContract";
 import { redis } from "../../../../utils/redis/redis";
@@ -70,18 +71,24 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-account-factory-address": factoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
+      const chainId = await getChainIdFromChain(chain);
+
       if (accountAddress && factoryAddress) {
-        // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
-        // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
-        await redis.set(
-          `account-factory:${accountAddress.toLowerCase()}`,
-          factoryAddress,
-          "EX",
-          7 * 24 * 60 * 60,
-        );
+        try {
+          const validatedFactoryAddress = getAddress(factoryAddress);
+          // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
+          // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
+          await redis.set(
+            `account-factory:${chainId}:${validatedFactoryAddress.toLowerCase()}`,
+            factoryAddress,
+            "EX",
+            7 * 24 * 60 * 60,
+          );
+        } catch {
+          // incorrect factory address provided, ignore for backwards compatibility
+        }
       }
 
-      const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
         contractAddress,
