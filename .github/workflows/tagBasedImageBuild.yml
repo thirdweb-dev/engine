@@ -40,6 +40,8 @@ jobs:
           target: prod
           platforms: linux/amd64,linux/arm64
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
             thirdweb/engine:${{ github.event.release.tag_name }}
             ${{ env.LATEST_TAG }}
