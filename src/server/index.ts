@@ -16,6 +16,7 @@ import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
+import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rateLimit";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
@@ -62,6 +63,7 @@ export const initServer = async () => {
 
   await withCors(server);
   await withRequestLogs(server);
+  await withPrometheus(server);
   await withErrorHandler(server);
   await withEnforceEngineMode(server);
   await withRateLimit(server);

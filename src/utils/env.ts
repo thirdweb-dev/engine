@@ -79,6 +79,7 @@ export const env = createEnv({
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
     DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
+    PROMETHEUS_PUSHGATEWAY_URL: z.string().url().optional(),
 
     /**
      * Limits
@@ -132,6 +133,7 @@ export const env = createEnv({
     QUEUE_COMPLETE_HISTORY_COUNT: process.env.QUEUE_COMPLETE_HISTORY_COUNT,
     QUEUE_FAIL_HISTORY_COUNT: process.env.QUEUE_FAIL_HISTORY_COUNT,
     NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
+    PROMETHEUS_PUSHGATEWAY_URL: process.env.PROMETHEUS_PUSHGATEWAY_URL,
   },
   onValidationError: (error: ZodError) => {
     console.error(

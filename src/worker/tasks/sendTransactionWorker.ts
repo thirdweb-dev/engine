@@ -24,6 +24,7 @@ import {
 } from "../../utils/error";
 import { logger } from "../../utils/logger";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
+import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -80,6 +81,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // ErroredTransaction = the transaction failed and should not be re-attempted.
   // null = the transaction attemped to resend but was not needed. Ignore.
   // A thrown exception indicates a retry-able error occurred (e.g. RPC outage).
+
   let resultTransaction: SentTransaction | ErroredTransaction | null;
   if (transaction.status === "queued") {
     if (transaction.isUserOp) {
@@ -106,9 +108,25 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       // Report usage only on the first transaction send.
       if (transaction.status === "queued") {
         await _reportUsageSuccess(resultTransaction);
+        recordMetrics({
+          event: "transaction_sent",
+          params: {
+            chainId: transaction.chainId,
+            extension: transaction.extension ?? "none",
+            success: true,
+          },
+        });
       }
     } else if (resultTransaction.status === "errored") {
       _reportUsageError(resultTransaction);
+      recordMetrics({
+        event: "transaction_sent",
+        params: {
+          chainId: transaction.chainId,
+          extension: transaction.extension ?? "none",
+          success: false,
+        },
+      });
     }
   }
 };
@@ -223,7 +241,6 @@ const _sendTransaction = async (
   }
 
   await addSentNonce(chainId, from, nonce);
-
   return {
     ...queuedTransaction,
     status: "sent",

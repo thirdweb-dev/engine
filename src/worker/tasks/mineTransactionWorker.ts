@@ -17,6 +17,7 @@ import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
+import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -65,6 +66,14 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     await TransactionDB.set(resultTransaction);
     await enqueueTransactionWebhook(resultTransaction);
     await _reportUsageSuccess(resultTransaction);
+    recordMetrics({
+      event: "transaction_mined",
+      params: {
+        chainId: resultTransaction.chainId,
+        extension: resultTransaction.extension ?? "",
+        mineTime: msSince(resultTransaction.queuedAt),
+      },
+    });
     logger({
       level: "info",
       queueId: resultTransaction.queueId,
