@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { getAddress } from "thirdweb";
 import { TransactionDB } from "../../db/transactions/db";
 import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
@@ -74,8 +75,8 @@ export const insertTransaction = async (
   recordMetrics({
     event: "transaction_queued",
     params: {
-      chainId: insertedTransaction.chainId,
-      extension: insertedTransaction.extension ?? "none",
+      chainId: insertedTransaction.chainId.toString(),
+      walletAddress: getAddress(insertedTransaction.from),
     },
   });
 

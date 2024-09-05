@@ -5,6 +5,7 @@ import {
   Address,
   eth_getTransactionByHash,
   eth_getTransactionReceipt,
+  getAddress,
   getRpcClient,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
@@ -69,9 +70,10 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     recordMetrics({
       event: "transaction_mined",
       params: {
-        chainId: resultTransaction.chainId,
-        extension: resultTransaction.extension ?? "",
-        mineTime: msSince(resultTransaction.queuedAt),
+        chainId: resultTransaction.chainId.toString(),
+        endToEndDuration: msSince(resultTransaction.queuedAt) / 1000,
+        duration: msSince(resultTransaction.sentAt) / 1000,
+        walletAddress: getAddress(resultTransaction.from),
       },
     });
     logger({

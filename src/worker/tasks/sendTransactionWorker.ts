@@ -1,7 +1,7 @@
 import assert from "assert";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
-import { Hex, toSerializableTransaction } from "thirdweb";
+import { Hex, getAddress, toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
@@ -111,9 +111,10 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         recordMetrics({
           event: "transaction_sent",
           params: {
-            chainId: transaction.chainId,
-            extension: transaction.extension ?? "none",
+            chainId: transaction.chainId.toString(),
             success: true,
+            walletAddress: getAddress(transaction.from),
+            duration: msSince(transaction.queuedAt) / 1000,
           },
         });
       }
@@ -122,9 +123,10 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       recordMetrics({
         event: "transaction_sent",
         params: {
-          chainId: transaction.chainId,
-          extension: transaction.extension ?? "none",
-          success: false,
+          chainId: transaction.chainId.toString(),
+          success: true,
+          walletAddress: getAddress(transaction.from),
+          duration: msSince(transaction.queuedAt) / 1000,
         },
       });
     }
