@@ -1,6 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { register } from "prom-client";
-import { recordMetrics } from "../../utils/prometheus";
+import { enginePromRegister, recordMetrics } from "../../utils/prometheus";
 
 export const withPrometheus = async (server: FastifyInstance) => {
   server.addHook(
@@ -25,7 +24,7 @@ export const withPrometheus = async (server: FastifyInstance) => {
 
   // Expose metrics endpoint
   server.get("/metrics", async (request, reply) => {
-    reply.header("Content-Type", register.contentType);
-    return register.metrics();
+    reply.header("Content-Type", enginePromRegister.contentType);
+    return enginePromRegister.metrics();
   });
 };

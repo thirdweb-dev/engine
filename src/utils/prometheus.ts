@@ -35,9 +35,9 @@ const nonceMetrics = new Gauge({
   },
 });
 
-export const register = new Registry();
+export const enginePromRegister = new Registry();
 
-register.registerMetric(nonceMetrics);
+enginePromRegister.registerMetric(nonceMetrics);
 
 // Define strict types for each event
 type ResponseSentParams = {
@@ -74,7 +74,7 @@ const requestsTotal = new Counter({
   name: "engine_requests_total",
   help: "Total number of completed requests",
   labelNames: ["endpoint", "status_code", "method"],
-  registers: [register],
+  registers: [enginePromRegister],
 });
 
 const requestDuration = new Histogram({
@@ -82,7 +82,7 @@ const requestDuration = new Histogram({
   help: "Response time in milliseconds",
   labelNames: ["endpoint", "status_code"],
   buckets: [100, 300, 500, 700, 1000, 3000, 5000, 7000, 10_000],
-  registers: [register],
+  registers: [enginePromRegister],
 });
 
 // Transaction metrics
@@ -90,28 +90,28 @@ const transactionsQueued = new Gauge({
   name: "engine_transactions_queued",
   help: "Number of transactions currently in queue",
   labelNames: ["chain_id", "wallet_address"],
-  registers: [register],
+  registers: [enginePromRegister],
 });
 
 const transactionsQueuedTotal = new Counter({
   name: "engine_transactions_queued_total",
   help: "Total number of transactions queued",
   labelNames: ["chain_id", "wallet_address"],
-  registers: [register],
+  registers: [enginePromRegister],
 });
 
 const transactionsSentTotal = new Counter({
   name: "engine_transactions_sent_total",
   help: "Total number of transactions sent",
   labelNames: ["chain_id", "wallet_address", "is_success"],
-  registers: [register],
+  registers: [enginePromRegister],
 });
 
 const transactionsMinedTotal = new Counter({
   name: "engine_transactions_mined_total",
   help: "Total number of transactions mined",
   labelNames: ["chain_id", "wallet_address"],
-  registers: [register],
+  registers: [enginePromRegister],
 });
 
 // Transaction duration histograms
