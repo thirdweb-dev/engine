@@ -5,7 +5,7 @@ import { getLastUsedOnchainNonce } from "../server/routes/admin/nonces";
 const nonceMetrics = new Gauge({
   name: "engine_nonces",
   help: "Current nonce values and health for backend wallets",
-  labelNames: ["wallet", "chain", "type"],
+  labelNames: ["wallet_address", "chain_id", "nonce_type"],
   async collect() {
     const allWallets = await getUsedBackendWallets();
 
@@ -17,17 +17,17 @@ const nonceMetrics = new Gauge({
 
       this.set(
         {
-          wallet: walletAddress,
-          chain: chainId.toString(),
-          type: "onchain",
+          wallet_address: walletAddress,
+          chain_id: chainId.toString(),
+          nonce_type: "onchain",
         },
         onchainNonce,
       );
       this.set(
         {
-          wallet: walletAddress,
-          chain: chainId.toString(),
-          type: "engine",
+          wallet_address: walletAddress,
+          chain_id: chainId.toString(),
+          nonce_type: "engine",
         },
         engineNonce,
       );

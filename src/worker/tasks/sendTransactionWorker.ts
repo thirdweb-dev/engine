@@ -124,7 +124,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         event: "transaction_sent",
         params: {
           chainId: transaction.chainId.toString(),
-          success: true,
+          success: false,
           walletAddress: getAddress(transaction.from),
           duration: msSince(transaction.queuedAt) / 1000,
         },
