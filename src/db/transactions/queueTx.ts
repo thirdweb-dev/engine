@@ -3,7 +3,6 @@ import { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src
 import { Address, ZERO_ADDRESS } from "thirdweb";
 import type { ContractExtension } from "../../schema/extension";
 import { maybeBigInt, normalizeAddress } from "../../utils/primitiveTypes";
-import { recordMetrics } from "../../utils/prometheus";
 import { insertTransaction } from "../../utils/transaction/insertTransaction";
 
 interface QueueTxParams {
@@ -92,14 +91,6 @@ export const queueTx = async ({
       },
       idempotencyKey,
       shouldSimulate: simulateTx,
-    });
-
-    recordMetrics({
-      event: "transaction_queued",
-      params: {
-        chainId,
-        extension,
-      },
     });
 
     return queueId;
