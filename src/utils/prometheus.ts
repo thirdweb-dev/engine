@@ -3,7 +3,7 @@ import { getUsedBackendWallets, inspectNonce } from "../db/wallets/walletNonce";
 import { getLastUsedOnchainNonce } from "../server/routes/admin/nonces";
 
 const nonceMetrics = new Gauge({
-  name: "engine_largest_sent_nonce",
+  name: "engine_nonces",
   help: "Current nonce values and health for backend wallets",
   labelNames: ["wallet", "chain", "type"],
   async collect() {
