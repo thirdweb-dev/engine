@@ -158,6 +158,7 @@ export class TransactionDB {
 
   /**
    * Lists all transaction details by status.
+   * Returns results paginated in descending order.
    * @param status "queued" | "mined" | "cancelled" | "errored"
    * @param page
    * @param limit

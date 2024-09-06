@@ -1,15 +1,20 @@
 import { Job, Processor, Worker } from "bullmq";
 import { TransactionDB } from "../../db/transactions/db";
+import { pruneNonceMaps } from "../../db/wallets/nonceMap";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { PruneTransactionsQueue } from "../queues/pruneTransactionsQueue";
 import { logWorkerExceptions } from "../queues/queues";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-  const numPruned = await TransactionDB.pruneTransactionDetailsAndLists(
-    env.TRANSACTION_HISTORY_COUNT,
-  );
-  job.log(`Pruned ${numPruned} transaction details.`);
+  const numTransactionsDeleted =
+    await TransactionDB.pruneTransactionDetailsAndLists(
+      env.TRANSACTION_HISTORY_COUNT,
+    );
+  job.log(`Pruned ${numTransactionsDeleted} transaction details.`);
+
+  const numNonceMapsDeleted = await pruneNonceMaps();
+  job.log(`Pruned ${numNonceMapsDeleted} nonce maps.`);
 };
 
 // Must be explicitly called for the worker to run on this host.

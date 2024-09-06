@@ -10,7 +10,7 @@ import {
   acquireNonce,
   addSentNonce,
   recycleNonce,
-  resyncNonce,
+  syncLatestNonceFromOnchainIfHigher,
 } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
@@ -149,7 +149,7 @@ const _sendTransaction = async (
 ): Promise<SentTransaction | ErroredTransaction> => {
   assert(!queuedTransaction.isUserOp);
 
-  const { chainId, from } = queuedTransaction;
+  const { queueId, chainId, from } = queuedTransaction;
   const chain = await getChain(chainId);
 
   // Populate the transaction to resolve gas values.
@@ -181,13 +181,17 @@ const _sendTransaction = async (
   }
 
   // Acquire an unused nonce for this transaction.
-  const { nonce, isRecycledNonce } = await acquireNonce(chainId, from);
+  const { nonce, isRecycledNonce } = await acquireNonce({
+    queueId,
+    chainId,
+    walletAddress: from,
+  });
   job.log(
-    `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
+    `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
   );
   logger({
     level: "info",
-    message: `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
+    message: `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
     service: "worker",
   });
 
@@ -208,7 +212,7 @@ const _sendTransaction = async (
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
     // correct the DB nonce.
     if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
-      const result = await resyncNonce(chainId, from);
+      const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
       job.log(`Resynced nonce to ${result}.`);
     } else {
       // Otherwise this nonce is not used yet. Recycle it to be used by a future transaction.

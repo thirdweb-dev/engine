@@ -1,9 +1,47 @@
-import { Address, eth_getTransactionCount, getRpcClient } from "thirdweb";
+import {
+  Address,
+  eth_getTransactionCount,
+  getAddress,
+  getRpcClient,
+} from "thirdweb";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
+import { updateNonceMap } from "./nonceMap";
+
+/**
+ * Get all used backend wallets.
+ * Filters by chainId and walletAddress if provided.
+ * Reads all the keys in the format `nonce:${chainId}:${walletAddress}` in the Redis DB.
+ *
+ * @example
+ * getUsedBackendWallets()
+ * // [ { chainId: 80001, walletAddress: "0x1234...5678" } ]
+ */
+export const getUsedBackendWallets = async (
+  chainId?: number,
+  walletAddress?: Address,
+): Promise<
+  {
+    chainId: number;
+    walletAddress: Address;
+  }[]
+> => {
+  const keys = await redis.keys(
+    `nonce:${chainId ?? "*"}:${
+      walletAddress ? normalizeAddress(walletAddress) : "*"
+    }`,
+  );
+  return keys.map((key) => {
+    const tokens = key.split(":");
+    return {
+      chainId: parseInt(tokens[1]),
+      walletAddress: getAddress(tokens[2]),
+    };
+  });
+};
 
 /**
  * The "last used nonce" stores the last nonce submitted onchain.
@@ -11,6 +49,21 @@ import { thirdwebClient } from "../../utils/sdk";
  */
 export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
+
+/**
+ * Split the last used nonce key into chainId and walletAddress.
+ * @param key
+ * @returns { chainId: number, walletAddress: Address }
+ * @example
+ * splitLastUsedNonceKey("nonce:80001:0x1234...5678")
+ * // { chainId: 80001, walletAddress: "0x1234...5678" }
+ */
+export const splitLastUsedNonceKey = (key: string) => {
+  const _splittedKeys = key.split(":");
+  const walletAddress = normalizeAddress(_splittedKeys[2]);
+  const chainId = parseInt(_splittedKeys[1]);
+  return { walletAddress, chainId };
+};
 
 /**
  * The "recycled nonces" set stores unsorted nonces to be reused or cancelled.
@@ -76,30 +129,43 @@ export const isSentNonce = async (
 };
 
 /**
- * Acquire an unused nonce.
- * This should be used to send an EOA transaction with this nonce.
+ * Acquire an unused nonce to send an EOA transaction for the given backend wallet.
  * @param chainId
  * @param walletAddress
  * @returns number
  */
-export const acquireNonce = async (
-  chainId: number,
-  walletAddress: Address,
-): Promise<{ nonce: number; isRecycledNonce: boolean }> => {
-  // Acquire an recylced nonce, if any.
+export const acquireNonce = async (args: {
+  queueId: string;
+  chainId: number;
+  walletAddress: Address;
+}): Promise<{ nonce: number; isRecycledNonce: boolean }> => {
+  const { queueId, chainId, walletAddress } = args;
+
+  let isRecycledNonce = false;
+
+  // Try to acquire the lowest recycled nonce first
   let nonce = await _acquireRecycledNonce(chainId, walletAddress);
   if (nonce !== null) {
-    return { nonce, isRecycledNonce: true };
+    isRecycledNonce = true;
+  } else {
+    // Else increment the last used nonce.
+    const key = lastUsedNonceKey(chainId, walletAddress);
+    nonce = await redis.incr(key);
+    if (nonce === 1) {
+      // If INCR returned 1, the nonce was not set.
+      // This may be a newly imported wallet.
+      // Sync the onchain value and increment again.
+      await syncLatestNonceFromOnchain(chainId, walletAddress);
+      nonce = await redis.incr(key);
+    }
   }
 
-  // Else increment the last used nonce.
-  const key = lastUsedNonceKey(chainId, walletAddress);
-  nonce = await redis.incr(key);
-  if (nonce === 1) {
-    // If INCR returned 1, the nonce was not set.
-    // This may be a newly imported wallet.
-    nonce = await _syncNonce(chainId, walletAddress);
-  }
+  await updateNonceMap({
+    chainId,
+    walletAddress,
+    nonce,
+    queueId,
+  });
   return { nonce, isRecycledNonce: false };
 };
 
@@ -125,11 +191,11 @@ export const recycleNonce = async (
   }
 
   const key = recycledNoncesKey(chainId, walletAddress);
-  await redis.sadd(key, nonce.toString());
+  await redis.zadd(key, nonce, nonce.toString());
 };
 
 /**
- * Acquires a recycled nonce that is unused.
+ * Acquires the lowest recycled nonce that is unused.
  * @param chainId
  * @param walletAddress
  * @returns
@@ -137,16 +203,23 @@ export const recycleNonce = async (
 const _acquireRecycledNonce = async (
   chainId: number,
   walletAddress: Address,
-) => {
+): Promise<number | null> => {
   const key = recycledNoncesKey(chainId, walletAddress);
-  const res = await redis.spop(key);
-  return res ? parseInt(res) : null;
+  const result = await redis.zpopmin(key);
+  if (result.length === 0) {
+    return null;
+  }
+  return parseInt(result[0]);
 };
 
-const _syncNonce = async (
+/**
+ * Resync the nonce to the onchain nonce.
+ * @TODO: Redis lock this to make this method safe to call concurrently.
+ */
+export const syncLatestNonceFromOnchain = async (
   chainId: number,
   walletAddress: Address,
-): Promise<number> => {
+) => {
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain: await getChain(chainId),
@@ -159,14 +232,13 @@ const _syncNonce = async (
   });
 
   const key = lastUsedNonceKey(chainId, walletAddress);
-  await redis.set(key, transactionCount);
-  return transactionCount;
+  await redis.set(key, transactionCount - 1);
 };
 
 /**
  * Returns the last used nonce.
  * This function should be used to inspect nonce values only.
- * Use `incrWalletNonce` if using this nonce to send a transaction.
+ * Use `acquireNonce` to fetch a nonce for sending a transaction.
  * @param chainId
  * @param walletAddress
  * @returns number
@@ -178,7 +250,7 @@ export const inspectNonce = async (chainId: number, walletAddress: Address) => {
 };
 
 /**
- * Delete all wallet nonces. Useful when the get out of sync.
+ * Delete all wallet nonces. Useful when they get out of sync.
  */
 export const deleteAllNonces = async () => {
   const keys = [
@@ -192,11 +264,12 @@ export const deleteAllNonces = async () => {
 };
 
 /**
- * Resync the nonce i.e., max of transactionCount +1 and lastUsedNonce.
- * @param chainId
- * @param walletAddress
+ * Resync the nonce to the higher of (db nonce, onchain nonce).
  */
-export const resyncNonce = async (chainId: number, walletAddress: Address) => {
+export const syncLatestNonceFromOnchainIfHigher = async (
+  chainId: number,
+  walletAddress: Address,
+) => {
   const rpcRequest = getRpcClient({
     client: thirdwebClient,
     chain: await getChain(chainId),

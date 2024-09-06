@@ -5,16 +5,13 @@ import { logger } from "../../utils/logger";
 export const defaultJobOptions: JobsOptions = {
   // Does not retry by default. Queues must explicitly define their own retry count and backoff behavior.
   attempts: 0,
-  // Purges successful jobs.
   removeOnComplete: {
     age: 7 * 24 * 60 * 60,
-    count: 10_000,
+    count: env.QUEUE_COMPLETE_HISTORY_COUNT,
   },
-  // Purge failed jobs.
-  // These limits are higher to debug or retry failed jobs.
   removeOnFail: {
     age: 7 * 24 * 60 * 60,
-    count: 25_000,
+    count: env.QUEUE_FAIL_HISTORY_COUNT,
   },
 };
 
