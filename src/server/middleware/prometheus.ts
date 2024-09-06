@@ -8,13 +8,16 @@ import { enginePromRegister, recordMetrics } from "../../utils/prometheus";
 
 export const withPrometheus = async (server: FastifyInstance) => {
   if (!env.METRICS_ENABLED) {
+    console.log("Metrics are disabled");
     return;
   }
 
+  console.log("Metrics are enabled");
   server.addHook(
     "onResponse",
-    async (req: FastifyRequest, res: FastifyReply) => {
-      const { method, url } = req;
+    (req: FastifyRequest, res: FastifyReply, done) => {
+      const { method } = req;
+      const url = req.routeOptions.url;
       const { statusCode } = res;
       const duration = res.elapsedTime; // Use Fastify's built-in timing
 
@@ -22,12 +25,14 @@ export const withPrometheus = async (server: FastifyInstance) => {
       recordMetrics({
         event: "response_sent",
         params: {
-          endpoint: new URL(url).pathname,
+          endpoint: url ?? "",
           statusCode: statusCode.toString(),
           duration: duration,
           method: method,
         },
       });
+
+      done();
     },
   );
   // Expose metrics endpoint

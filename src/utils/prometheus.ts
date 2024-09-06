@@ -80,7 +80,7 @@ const requestsTotal = new Counter({
 const requestDuration = new Histogram({
   name: "engine_response_time_ms",
   help: "Response time in milliseconds",
-  labelNames: ["endpoint", "status_code"],
+  labelNames: ["endpoint", "status_code", "method"],
   buckets: [100, 300, 500, 700, 1000, 3000, 5000, 7000, 10_000],
   registers: [enginePromRegister],
 });
@@ -120,6 +120,7 @@ const queueToSentDuration = new Histogram({
   help: "Duration from queue to sent in seconds",
   labelNames: ["chain_id", "wallet_address"],
   buckets: [1, 5, 15, 30, 60, 120, 300, 600],
+  registers: [enginePromRegister],
 });
 
 const sentToMinedDuration = new Histogram({
@@ -127,6 +128,7 @@ const sentToMinedDuration = new Histogram({
   help: "Duration from sent to mined in seconds",
   labelNames: ["chain_id", "wallet_address"],
   buckets: [10, 30, 60, 120, 300, 600, 1200, 1800],
+  registers: [enginePromRegister],
 });
 
 const endToEndDuration = new Histogram({
@@ -134,6 +136,7 @@ const endToEndDuration = new Histogram({
   help: "Duration from request to mined in seconds",
   labelNames: ["chain_id", "wallet_address"],
   buckets: [10, 30, 60, 120, 300, 600, 1200, 1800, 3600],
+  registers: [enginePromRegister],
 });
 
 // Function to record metrics
@@ -145,7 +148,6 @@ export function recordMetrics(eventData: MetricParams): void {
       labels = {
         endpoint: params.endpoint,
         status_code: params.statusCode,
-        method: params.method,
       };
       requestsTotal.inc(labels);
       requestDuration.observe(labels, params.duration);
