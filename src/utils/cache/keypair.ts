@@ -7,29 +7,32 @@ export const keypairCache = new Map<string, Keypairs | null>();
 /**
  * Get a keypair by public key or hash.
  */
-export const getKeypair = async (
-  args:
-    | {
-        publicKey: string;
-      }
-    | {
-        publicKeyHash: string;
-      },
-): Promise<Keypairs | null> => {
-  const hasPublicKey = "publicKey" in args;
+export const getKeypair = async (args: {
+  publicKey?: string;
+  publicKeyHash?: string;
+}): Promise<Keypairs | null> => {
+  const { publicKey, publicKeyHash } = args;
 
-  const key = hasPublicKey
+  const key = publicKey
     ? `public-key:${args.publicKey}`
-    : `public-key-hash:${args.publicKeyHash}`;
+    : publicKeyHash
+    ? `public-key-hash:${args.publicKeyHash}`
+    : null;
+
+  if (!key) {
+    throw new Error('Must provide "publicKey" or "publicKeyHash".');
+  }
 
   const cached = keypairCache.get(key);
   if (cached) {
     return cached;
   }
 
-  const keypair = hasPublicKey
-    ? await getKeypairByPublicKey(args.publicKey)
-    : await getKeypairByHash(args.publicKeyHash);
+  const keypair = publicKey
+    ? await getKeypairByPublicKey(publicKey)
+    : publicKeyHash
+    ? await getKeypairByHash(publicKeyHash)
+    : null;
 
   keypairCache.set(key, keypair);
   return keypair;
