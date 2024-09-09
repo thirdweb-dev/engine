@@ -30,6 +30,14 @@ export const createCustomDateTimestampError = (key: string): CustomError => {
   );
 };
 
+export const createBadAddressError = (key: string): CustomError => {
+  return createCustomError(
+    `Invalid ${key} Value. Needs to be a valid EVM address`,
+    422,
+    "INVALID_ADDRESS",
+  );
+};
+
 const flipObject = (data: any) =>
   Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
 

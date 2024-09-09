@@ -1,6 +1,7 @@
 import {
   Address,
   Hex,
+  getAddress,
   getContract,
   prepareContractCall,
   readContract,
@@ -25,6 +26,7 @@ export const generateSignedUserOperation = async (
     gas,
     signerAddress,
     accountAddress,
+    accountFactoryAddress: userProvidedAccountFactoryAddress,
     target,
     from,
     data,
@@ -43,12 +45,26 @@ export const generateSignedUserOperation = async (
     address: accountAddress as Address,
   });
 
-  // Resolve Factory Contract Address from Smart-Account Contract
-  const accountFactoryAddress = await readContract({
-    contract: smartAccountContract,
-    method: "function factory() view returns (address)",
-    params: [],
-  });
+  // use the user provided factory address if available
+  let accountFactoryAddress = userProvidedAccountFactoryAddress;
+
+  if (!accountFactoryAddress) {
+    // Resolve Factory Contract Address from Smart-Account Contract
+    try {
+      const onchainAccountFactoryAddress = await readContract({
+        contract: smartAccountContract,
+        method: "function factory() view returns (address)",
+        params: [],
+      });
+
+      accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
+    } catch (e) {
+      // if no factory address is found, throw an error
+      throw new Error(
+        `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
+      );
+    }
+  }
 
   // Resolve Factory Contract
   const accountFactoryContract = getContract({

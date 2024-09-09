@@ -11,7 +11,10 @@ import {
   transactionWritesResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
-import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
+import {
+  maybeAddress,
+  walletWithAAHeaderSchema,
+} from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
@@ -66,6 +69,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": accountFactoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -76,6 +80,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         accountAddress,
         abi,
       });
+
       const tx = contract.prepare(functionName, args, {
         value: txOverrides?.value,
         gasLimit: txOverrides?.gas,
@@ -90,6 +95,10 @@ export async function writeToContract(fastify: FastifyInstance) {
         extension: "none",
         idempotencyKey,
         txOverrides,
+        accountFactoryAddress: maybeAddress(
+          accountFactoryAddress,
+          "x-account-factory-address",
+        ),
       });
 
       reply.status(StatusCodes.OK).send({

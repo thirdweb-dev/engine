@@ -1,5 +1,7 @@
 import { Type } from "@sinclair/typebox";
+import { Address, getAddress } from "thirdweb";
 import { env } from "../../../utils/env";
+import { createBadAddressError } from "../../middleware/error";
 import { AddressSchema } from "../address";
 
 export const walletHeaderSchema = Type.Object({
@@ -20,7 +22,30 @@ export const walletWithAAHeaderSchema = Type.Object({
     ...AddressSchema,
     description: "Smart account address",
   }),
+  "x-account-factory-address": Type.Optional({
+    ...AddressSchema,
+    description:
+      "Smart account factory address. If omitted, engine will try to resolve it from the chain.",
+  }),
 });
+
+/**
+ * Helper function to parse an address string.
+ * Returns undefined if the address is undefined.
+ *
+ * Throws a custom 422 INVALID_ADDRESS error with variableName if the address is invalid (other than undefined).
+ */
+export function maybeAddress(
+  address: string | undefined,
+  variableName: string,
+): Address | undefined {
+  if (!address) return undefined;
+  try {
+    return getAddress(address);
+  } catch {
+    throw createBadAddressError(variableName);
+  }
+}
 
 export const walletChainParamSchema = Type.Object({
   chain: Type.String({
