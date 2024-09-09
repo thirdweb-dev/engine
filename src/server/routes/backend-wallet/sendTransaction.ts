@@ -92,7 +92,10 @@ export async function sendTransaction(fastify: FastifyInstance) {
             accountAddress: accountAddress as Address,
             signerAddress: fromAddress as Address,
             target: toAddress as Address | undefined,
-            accountFactoryAddress: maybeAddress(accountFactoryAddress),
+            accountFactoryAddress: maybeAddress(
+              accountFactoryAddress,
+              "x-account-factory-address",
+            ),
             gas: maybeBigInt(txOverrides?.gas),
             maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
             maxPriorityFeePerGas: maybeBigInt(

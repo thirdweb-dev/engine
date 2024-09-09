@@ -1,6 +1,7 @@
 import { Type } from "@sinclair/typebox";
-import { getAddress } from "thirdweb";
+import { Address, getAddress } from "thirdweb";
 import { env } from "../../../utils/env";
+import { createBadAddressError } from "../../middleware/error";
 import { AddressSchema } from "../address";
 
 export const walletHeaderSchema = Type.Object({
@@ -27,16 +28,21 @@ export const walletWithAAHeaderSchema = Type.Object({
   }),
 });
 
-/*
+/**
  * Helper function to parse an address string.
- * Returns undefined if the address is invalid.
+ * Returns undefined if the address is undefined.
+ *
+ * Throws a custom 422 INVALID_ADDRESS error with variableName if the address is invalid (other than undefined).
  */
-export function maybeAddress(address: string | undefined) {
+export function maybeAddress(
+  address: string | undefined,
+  variableName: string,
+): Address | undefined {
   if (!address) return undefined;
   try {
     return getAddress(address);
   } catch {
-    return undefined;
+    throw createBadAddressError(variableName);
   }
 }
 

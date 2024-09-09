@@ -95,9 +95,10 @@ export async function writeToContract(fastify: FastifyInstance) {
         extension: "none",
         idempotencyKey,
         txOverrides,
-        accountFactoryAddress: accountFactoryAddress
-          ? maybeAddress(accountFactoryAddress)
-          : undefined,
+        accountFactoryAddress: maybeAddress(
+          accountFactoryAddress,
+          "x-account-factory-address",
+        ),
       });
 
       reply.status(StatusCodes.OK).send({
