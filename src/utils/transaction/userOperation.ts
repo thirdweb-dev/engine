@@ -5,8 +5,8 @@ import {
   getContract,
   prepareContractCall,
   readContract,
+  toSerializableTransaction,
 } from "thirdweb";
-
 import {
   UserOperation,
   createUnsignedUserOp,
@@ -92,6 +92,12 @@ export const generateSignedUserOperation = async (
     contract: smartAccountContract,
     method: "function execute(address, uint256, bytes)",
     params: [toAddress || "", txValue || 0n, txData || "0x"],
+  });
+
+  // Estimate Gas for the actual transcaction that will be executed
+  // don't need the actual gas value, just need to make sure the transaction is valid
+  await toSerializableTransaction({
+    transaction: userOpCall,
   });
 
   // Create Unsigned UserOperation
