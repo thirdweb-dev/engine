@@ -121,13 +121,10 @@ const _sendUserOp = async (
 
   const chain = await getChain(queuedTransaction.chainId);
 
-  const populatedTransaction = await toSerializableTransaction({
-    transaction: {
-      client: thirdwebClient,
-      chain,
-      ...queuedTransaction,
-    },
-  });
+  const [populatedTransaction, erroredTransaction] =
+    await getPopulatedOrErroredTransaction(queuedTransaction);
+
+  if (erroredTransaction) return erroredTransaction;
 
   const signedUserOp = await generateSignedUserOperation(
     queuedTransaction,
@@ -163,35 +160,13 @@ const _sendTransaction = async (
   assert(!queuedTransaction.isUserOp);
 
   const { queueId, chainId, from } = queuedTransaction;
-  const chain = await getChain(chainId);
-
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
   // The nonce is _not_ set yet.
-  let populatedTransaction: Awaited<
-    ReturnType<typeof toSerializableTransaction>
-  >;
-  try {
-    populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(from),
-      transaction: {
-        client: thirdwebClient,
-        chain,
-        ...queuedTransaction,
-        // Stub the nonce because it will be overridden later.
-        nonce: 1,
-      },
-    });
-  } catch (e: unknown) {
-    // If the transaction will revert, error.message contains the human-readable error.
-    const errorMessage = (e as Error)?.message ?? `${e}`;
-    job.log(`Transaction validation failed: ${errorMessage}`);
-    return {
-      ...queuedTransaction,
-      status: "errored",
-      errorMessage,
-    };
-  }
+  const [populatedTransaction, erroredTransaction] =
+    await getPopulatedOrErroredTransaction(queuedTransaction);
+
+  if (erroredTransaction) return erroredTransaction;
 
   // Acquire an unused nonce for this transaction.
   const { nonce, isRecycledNonce } = await acquireNonce({
@@ -405,4 +380,44 @@ export const initSendTransactionWorker = () => {
       }
     }
   });
+};
+
+export const getPopulatedOrErroredTransaction = async (
+  queuedTransaction: QueuedTransaction,
+): Promise<
+  | [Awaited<ReturnType<typeof toSerializableTransaction>>, undefined]
+  | [undefined, ErroredTransaction]
+> => {
+  try {
+    const from = queuedTransaction.isUserOp
+      ? queuedTransaction.accountAddress
+      : queuedTransaction.from;
+
+    if (!from) throw new Error("Invalid transaction parameters: from");
+
+    const populatedTransaction = await toSerializableTransaction({
+      from: getChecksumAddress(
+        queuedTransaction.isUserOp
+          ? queuedTransaction.accountAddress
+          : queuedTransaction.from,
+      ),
+      transaction: {
+        client: thirdwebClient,
+        chain: await getChain(queuedTransaction.chainId),
+        ...queuedTransaction,
+        // if transaction is EOA, we stub the nonce to reduce RPC calls
+        nonce: queuedTransaction.isUserOp ? undefined : 1,
+      },
+    });
+
+    return [populatedTransaction, undefined];
+  } catch (e: unknown) {
+    const erroredTransaction: ErroredTransaction = {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: (e as Error)?.message ?? `${e}`,
+    };
+
+    return [undefined, erroredTransaction];
+  }
 };
