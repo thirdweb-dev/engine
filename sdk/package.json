@@ -1,6 +1,6 @@
 {
   "name": "@thirdweb-dev/engine",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "main": "dist/thirdweb-dev-engine.cjs.js",
   "module": "dist/thirdweb-dev-engine.esm.js",
   "files": [
