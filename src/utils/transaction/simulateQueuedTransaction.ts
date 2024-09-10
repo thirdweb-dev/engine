@@ -29,6 +29,7 @@ export const doSimulateTransaction = async (
     maxFeePerGas,
     maxPriorityFeePerGas,
     accountAddress,
+    accountFactoryAddress,
     target,
     from,
   } = transaction;
@@ -61,6 +62,7 @@ export const doSimulateTransaction = async (
       from,
       chain,
       accountAddress,
+      accountFactoryAddress,
     });
   } else {
     account = await getAccount({
