@@ -124,7 +124,12 @@ const _sendUserOp = async (
   const [populatedTransaction, erroredTransaction] =
     await getPopulatedOrErroredTransaction(queuedTransaction);
 
-  if (erroredTransaction) return erroredTransaction;
+  if (erroredTransaction) {
+    job.log(
+      `Failed to validate transaction: ${erroredTransaction.errorMessage}`,
+    );
+    return erroredTransaction;
+  }
 
   const signedUserOp = await generateSignedUserOperation(
     queuedTransaction,
@@ -166,7 +171,12 @@ const _sendTransaction = async (
   const [populatedTransaction, erroredTransaction] =
     await getPopulatedOrErroredTransaction(queuedTransaction);
 
-  if (erroredTransaction) return erroredTransaction;
+  if (erroredTransaction) {
+    job.log(
+      `Failed to validate transaction: ${erroredTransaction.errorMessage}`,
+    );
+    return erroredTransaction;
+  }
 
   // Acquire an unused nonce for this transaction.
   const { nonce, isRecycledNonce } = await acquireNonce({
@@ -396,11 +406,7 @@ export const getPopulatedOrErroredTransaction = async (
     if (!from) throw new Error("Invalid transaction parameters: from");
 
     const populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(
-        queuedTransaction.isUserOp
-          ? queuedTransaction.accountAddress
-          : queuedTransaction.from,
-      ),
+      from: getChecksumAddress(from),
       transaction: {
         client: thirdwebClient,
         chain: await getChain(queuedTransaction.chainId),
