@@ -81,11 +81,48 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // null = the transaction attemped to resend but was not needed. Ignore.
   // A thrown exception indicates a retry-able error occurred (e.g. RPC outage).
   let resultTransaction: SentTransaction | ErroredTransaction | null;
-  if (transaction.status === "queued") {
+
+  let populatedTransaction:
+    | Awaited<ReturnType<typeof toSerializableTransaction>>
+    | undefined;
+
+  const chain = await getChain(transaction.chainId);
+  // Populate the transaction to resolve gas values.
+  // This call throws if the execution would be reverted.
+  // The nonce is _not_ set yet.
+  try {
+    populatedTransaction = await toSerializableTransaction({
+      from: getChecksumAddress(transaction.from),
+      transaction: {
+        client: thirdwebClient,
+        chain,
+        ...transaction,
+        // Stub the nonce because it will be overridden later.
+        nonce: 1,
+      },
+    });
+  } catch (e: unknown) {
+    // If the transaction will revert, error.message contains the human-readable error.
+    const errorMessage = (e as Error)?.message ?? `${e}`;
+    job.log(`Failed to estimate gas: ${errorMessage}`);
+    resultTransaction = {
+      ...transaction,
+      status: "errored",
+      errorMessage,
+    };
+  }
+
+  // we know that if status is queued, populatedTransaction is defined
+  // typescript has a hard time understanding, but we can safely check that populatedTransaction is defined
+  if (transaction.status === "queued" && populatedTransaction) {
     if (transaction.isUserOp) {
       resultTransaction = await _sendUserOp(job, transaction);
     } else {
-      resultTransaction = await _sendTransaction(job, transaction);
+      resultTransaction = await _sendTransaction(
+        job,
+        transaction,
+        populatedTransaction,
+      );
     }
   } else if (transaction.status === "sent") {
     resultTransaction = await _resendTransaction(job, transaction, resendCount);
@@ -146,40 +183,11 @@ const _sendUserOp = async (
 const _sendTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
+  populatedTransaction: Awaited<ReturnType<typeof toSerializableTransaction>>,
 ): Promise<SentTransaction | ErroredTransaction> => {
   assert(!queuedTransaction.isUserOp);
 
   const { queueId, chainId, from } = queuedTransaction;
-  const chain = await getChain(chainId);
-
-  // Populate the transaction to resolve gas values.
-  // This call throws if the execution would be reverted.
-  // The nonce is _not_ set yet.
-  let populatedTransaction: Awaited<
-    ReturnType<typeof toSerializableTransaction>
-  >;
-  try {
-    populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(from),
-      transaction: {
-        client: thirdwebClient,
-        chain,
-        ...queuedTransaction,
-        // Stub the nonce because it will be overridden later.
-        nonce: 1,
-      },
-    });
-  } catch (e: unknown) {
-    // If the transaction will revert, error.message contains the human-readable error.
-    const errorMessage = (e as Error)?.message ?? `${e}`;
-    job.log(`Failed to estimate gas: ${errorMessage}`);
-    return {
-      ...queuedTransaction,
-      status: "errored",
-      errorMessage,
-    };
-  }
-
   // Acquire an unused nonce for this transaction.
   const { nonce, isRecycledNonce } = await acquireNonce({
     queueId,
