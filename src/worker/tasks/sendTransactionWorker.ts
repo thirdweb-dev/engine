@@ -120,7 +120,20 @@ const _sendUserOp = async (
   assert(queuedTransaction.isUserOp);
 
   const chain = await getChain(queuedTransaction.chainId);
-  const signedUserOp = await generateSignedUserOperation(queuedTransaction);
+
+  const populatedTransaction = await toSerializableTransaction({
+    transaction: {
+      client: thirdwebClient,
+      chain,
+      ...queuedTransaction,
+    },
+  });
+
+  const signedUserOp = await generateSignedUserOperation(
+    queuedTransaction,
+    populatedTransaction,
+  );
+
   const userOpHash = await bundleUserOp({
     userOp: signedUserOp,
     options: {
@@ -172,7 +185,7 @@ const _sendTransaction = async (
   } catch (e: unknown) {
     // If the transaction will revert, error.message contains the human-readable error.
     const errorMessage = (e as Error)?.message ?? `${e}`;
-    job.log(`Failed to estimate gas: ${errorMessage}`);
+    job.log(`Transaction validation failed: ${errorMessage}`);
     return {
       ...queuedTransaction,
       status: "errored",

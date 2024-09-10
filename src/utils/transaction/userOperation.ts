@@ -20,6 +20,7 @@ import { QueuedTransaction } from "./types";
 
 export const generateSignedUserOperation = async (
   queuedTransaction: QueuedTransaction,
+  populatedTransaction: Awaited<ReturnType<typeof toSerializableTransaction>>,
 ): Promise<UserOperation> => {
   const {
     chainId,
@@ -74,30 +75,15 @@ export const generateSignedUserOperation = async (
     address: accountFactoryAddress as Address,
   });
 
-  let toAddress: string | undefined;
-  let txValue: bigint | undefined;
-  let txData: Hex | undefined;
-
-  // Handle UserOp Requests
-  if (data && target) {
-    toAddress = target;
-    txValue = value || 0n;
-    txData = data;
-  } else {
-    throw new Error("Invalid UserOperation parameters");
-  }
-
   // Prepare UserOperation Call
   const userOpCall = prepareContractCall({
     contract: smartAccountContract,
     method: "function execute(address, uint256, bytes)",
-    params: [toAddress || "", txValue || 0n, txData || "0x"],
-  });
-
-  // Estimate Gas for the actual transcaction that will be executed
-  // don't need the actual gas value, just need to make sure the transaction is valid
-  await toSerializableTransaction({
-    transaction: userOpCall,
+    params: [
+      populatedTransaction.to || "",
+      populatedTransaction.value || 0n,
+      populatedTransaction.data,
+    ],
   });
 
   // Create Unsigned UserOperation
