@@ -71,8 +71,9 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       event: "transaction_mined",
       params: {
         chainId: resultTransaction.chainId.toString(),
-        endToEndDuration: msSince(resultTransaction.queuedAt) / 1000,
-        duration: msSince(resultTransaction.sentAt) / 1000,
+        queuedToMinedDurationSeconds:
+          msSince(resultTransaction.queuedAt) / 1000,
+        durationSeconds: msSince(resultTransaction.sentAt) / 1000,
         walletAddress: getAddress(resultTransaction.from),
       },
     });

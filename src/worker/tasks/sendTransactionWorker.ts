@@ -114,7 +114,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
             chainId: transaction.chainId.toString(),
             success: true,
             walletAddress: getAddress(transaction.from),
-            duration: msSince(transaction.queuedAt) / 1000,
+            durationSeconds: msSince(transaction.queuedAt) / 1000,
           },
         });
       }
@@ -126,7 +126,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
           chainId: transaction.chainId.toString(),
           success: false,
           walletAddress: getAddress(transaction.from),
-          duration: msSince(transaction.queuedAt) / 1000,
+          durationSeconds: msSince(transaction.queuedAt) / 1000,
         },
       });
     }
