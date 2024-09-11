@@ -403,7 +403,10 @@ export const getPopulatedOrErroredTransaction = async (
       ? queuedTransaction.accountAddress
       : queuedTransaction.from;
 
+    const to = queuedTransaction.to ?? queuedTransaction.target;
+
     if (!from) throw new Error("Invalid transaction parameters: from");
+    if (!to) throw new Error("Invalid transaction parameters: to");
 
     const populatedTransaction = await toSerializableTransaction({
       from: getChecksumAddress(from),
@@ -411,6 +414,7 @@ export const getPopulatedOrErroredTransaction = async (
         client: thirdwebClient,
         chain: await getChain(queuedTransaction.chainId),
         ...queuedTransaction,
+        to: getChecksumAddress(to),
         // if transaction is EOA, we stub the nonce to reduce RPC calls
         nonce: queuedTransaction.isUserOp ? undefined : 1,
       },
