@@ -6,6 +6,7 @@ import { maybeBigInt, normalizeAddress } from "../../utils/primitiveTypes";
 import { insertTransaction } from "../../utils/transaction/insertTransaction";
 
 interface QueueTxParams {
+  // we should move away from Transaction type (v4 SDK)
   tx: Transaction<any> | DeployTransaction;
   chainId: number;
   extension: ContractExtension;
@@ -14,6 +15,7 @@ interface QueueTxParams {
   deployedContractType?: string;
   simulateTx?: boolean;
   idempotencyKey?: string;
+  accountFactoryAddress?: Address;
   txOverrides?: {
     gas?: string;
     maxFeePerGas?: string;
@@ -31,6 +33,7 @@ export const queueTx = async ({
   simulateTx,
   idempotencyKey,
   txOverrides,
+  accountFactoryAddress,
 }: QueueTxParams) => {
   // Transaction Details
   const functionName = tx.getMethod();
@@ -68,6 +71,7 @@ export const queueTx = async ({
         signerAddress,
         accountAddress: normalizeAddress(await tx.getSignerAddress()),
         target: normalizeAddress(tx.getTarget()),
+        accountFactoryAddress,
       },
       idempotencyKey,
       shouldSimulate: simulateTx,

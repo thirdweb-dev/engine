@@ -33,6 +33,7 @@ export type InsertedTransaction = {
   // User Operation
   signerAddress?: Address;
   accountAddress?: Address;
+  accountFactoryAddress?: Address;
   target?: Address;
   sender?: Address;
 };
