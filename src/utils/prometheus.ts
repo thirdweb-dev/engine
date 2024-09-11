@@ -1,3 +1,4 @@
+import fastify from "fastify";
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
 import { getUsedBackendWallets, inspectNonce } from "../db/wallets/walletNonce";
 import { getLastUsedOnchainNonce } from "../server/routes/admin/nonces";
@@ -183,3 +184,13 @@ export function recordMetrics(eventData: MetricParams): void {
       break;
   }
 }
+// Expose metrics endpoint
+
+export const metricsServer = fastify({
+  disableRequestLogging: true,
+});
+
+metricsServer.get("/metrics", async (_request, reply) => {
+  reply.header("Content-Type", enginePromRegister.contentType);
+  return enginePromRegister.metrics();
+});

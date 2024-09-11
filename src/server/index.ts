@@ -6,6 +6,7 @@ import { URL } from "url";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
+import { metricsServer } from "../utils/prometheus";
 import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listeners/updateTxListener";
 import { withAdminRoutes } from "./middleware/adminRoutes";
@@ -76,6 +77,15 @@ export const initServer = async () => {
   await withAdminRoutes(server);
 
   await server.ready();
+
+  // if metrics are enabled, expose the metrics endpoint
+  if (env.METRICS_ENABLED) {
+    await metricsServer.ready();
+    metricsServer.listen({
+      host: env.HOST,
+      port: env.METRICS_PORT,
+    });
+  }
 
   server.listen(
     {
