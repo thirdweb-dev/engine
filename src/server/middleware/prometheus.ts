@@ -4,11 +4,9 @@ import { recordMetrics } from "../../utils/prometheus";
 
 export const withPrometheus = async (server: FastifyInstance) => {
   if (!env.METRICS_ENABLED) {
-    console.log("Metrics are disabled");
     return;
   }
 
-  console.log("Metrics are enabled");
   server.addHook(
     "onResponse",
     (req: FastifyRequest, res: FastifyReply, done) => {
