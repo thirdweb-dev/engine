@@ -61,12 +61,6 @@ export const env = createEnv({
     ENABLE_HTTPS: boolSchema("false"),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
     TRUST_PROXY: z.boolean().default(false),
-    // Sets the max amount of memory Redis can use.
-    // "0" means use all available memory.
-    REDIS_MAXMEMORY: z.string().default("0"),
-    // Sets the number of recent transactions to store. Older transactions are pruned periodically.
-    // In testing, 100k transactions consumes ~300mb memory.
-    TRANSACTION_HISTORY_COUNT: z.coerce.number().default(100_000),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
@@ -85,6 +79,23 @@ export const env = createEnv({
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
     DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
+
+    /**
+     * Limits
+     */
+    // Sets the max amount of memory Redis can use.
+    // "0" means use all available memory.
+    REDIS_MAXMEMORY: z.string().default("0"),
+    // Sets the number of recent transactions to store. Older transactions are pruned periodically.
+    // In testing, 100k transactions consumes ~300mb memory.
+    TRANSACTION_HISTORY_COUNT: z.coerce.number().default(100_000),
+    // Sets the number of recent completed jobs in each queue.
+    QUEUE_COMPLETE_HISTORY_COUNT: z.coerce.number().default(10_000),
+    // Sets the number of recent failed jobs in each queue.
+    // These limits are higher to debug failed jobs.
+    QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(25_000),
+    // Sets the number of recent nonces to map to queue IDs.
+    NONCE_MAP_COUNT: z.coerce.number().default(10_000),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -102,8 +113,6 @@ export const env = createEnv({
     ENABLE_HTTPS: process.env.ENABLE_HTTPS,
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
     TRUST_PROXY: process.env.TRUST_PROXY,
-    REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
-    TRANSACTION_HISTORY_COUNT: process.env.TRANSACTION_HISTORY_COUNT,
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
@@ -116,8 +125,13 @@ export const env = createEnv({
     CONFIRM_TRANSACTION_QUEUE_CONCURRENCY:
       process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     ENGINE_MODE: process.env.ENGINE_MODE,
+    REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
+    TRANSACTION_HISTORY_COUNT: process.env.TRANSACTION_HISTORY_COUNT,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
     DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
+    QUEUE_COMPLETE_HISTORY_COUNT: process.env.QUEUE_COMPLETE_HISTORY_COUNT,
+    QUEUE_FAIL_HISTORY_COUNT: process.env.QUEUE_FAIL_HISTORY_COUNT,
+    NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
   },
   onValidationError: (error: ZodError) => {
     console.error(

@@ -10,7 +10,7 @@ import {
   acquireNonce,
   addSentNonce,
   recycleNonce,
-  resyncNonce,
+  syncLatestNonceFromOnchainIfHigher,
 } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
@@ -120,7 +120,22 @@ const _sendUserOp = async (
   assert(queuedTransaction.isUserOp);
 
   const chain = await getChain(queuedTransaction.chainId);
-  const signedUserOp = await generateSignedUserOperation(queuedTransaction);
+
+  const [populatedTransaction, erroredTransaction] =
+    await getPopulatedOrErroredTransaction(queuedTransaction);
+
+  if (erroredTransaction) {
+    job.log(
+      `Failed to validate transaction: ${erroredTransaction.errorMessage}`,
+    );
+    return erroredTransaction;
+  }
+
+  const signedUserOp = await generateSignedUserOperation(
+    queuedTransaction,
+    populatedTransaction,
+  );
+
   const userOpHash = await bundleUserOp({
     userOp: signedUserOp,
     options: {
@@ -149,45 +164,32 @@ const _sendTransaction = async (
 ): Promise<SentTransaction | ErroredTransaction> => {
   assert(!queuedTransaction.isUserOp);
 
-  const { chainId, from } = queuedTransaction;
-  const chain = await getChain(chainId);
-
+  const { queueId, chainId, from } = queuedTransaction;
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
   // The nonce is _not_ set yet.
-  let populatedTransaction: Awaited<
-    ReturnType<typeof toSerializableTransaction>
-  >;
-  try {
-    populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(from),
-      transaction: {
-        client: thirdwebClient,
-        chain,
-        ...queuedTransaction,
-        // Stub the nonce because it will be overridden later.
-        nonce: 1,
-      },
-    });
-  } catch (e: unknown) {
-    // If the transaction will revert, error.message contains the human-readable error.
-    const errorMessage = (e as Error)?.message ?? `${e}`;
-    job.log(`Failed to estimate gas: ${errorMessage}`);
-    return {
-      ...queuedTransaction,
-      status: "errored",
-      errorMessage,
-    };
+  const [populatedTransaction, erroredTransaction] =
+    await getPopulatedOrErroredTransaction(queuedTransaction);
+
+  if (erroredTransaction) {
+    job.log(
+      `Failed to validate transaction: ${erroredTransaction.errorMessage}`,
+    );
+    return erroredTransaction;
   }
 
   // Acquire an unused nonce for this transaction.
-  const { nonce, isRecycledNonce } = await acquireNonce(chainId, from);
+  const { nonce, isRecycledNonce } = await acquireNonce({
+    queueId,
+    chainId,
+    walletAddress: from,
+  });
   job.log(
-    `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
+    `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
   );
   logger({
     level: "info",
-    message: `Acquired nonce ${nonce} for transaction ${queuedTransaction.queueId}. isRecycledNonce=${isRecycledNonce}`,
+    message: `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
     service: "worker",
   });
 
@@ -208,7 +210,7 @@ const _sendTransaction = async (
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
     // correct the DB nonce.
     if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
-      const result = await resyncNonce(chainId, from);
+      const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
       job.log(`Resynced nonce to ${result}.`);
     } else {
       // Otherwise this nonce is not used yet. Recycle it to be used by a future transaction.
@@ -388,4 +390,44 @@ export const initSendTransactionWorker = () => {
       }
     }
   });
+};
+
+export const getPopulatedOrErroredTransaction = async (
+  queuedTransaction: QueuedTransaction,
+): Promise<
+  | [Awaited<ReturnType<typeof toSerializableTransaction>>, undefined]
+  | [undefined, ErroredTransaction]
+> => {
+  try {
+    const from = queuedTransaction.isUserOp
+      ? queuedTransaction.accountAddress
+      : queuedTransaction.from;
+
+    const to = queuedTransaction.to ?? queuedTransaction.target;
+
+    if (!from) throw new Error("Invalid transaction parameters: from");
+    if (!to) throw new Error("Invalid transaction parameters: to");
+
+    const populatedTransaction = await toSerializableTransaction({
+      from: getChecksumAddress(from),
+      transaction: {
+        client: thirdwebClient,
+        chain: await getChain(queuedTransaction.chainId),
+        ...queuedTransaction,
+        to: getChecksumAddress(to),
+        // if transaction is EOA, we stub the nonce to reduce RPC calls
+        nonce: queuedTransaction.isUserOp ? undefined : 1,
+      },
+    });
+
+    return [populatedTransaction, undefined];
+  } catch (e: unknown) {
+    const erroredTransaction: ErroredTransaction = {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: (e as Error)?.message ?? `${e}`,
+    };
+
+    return [undefined, erroredTransaction];
+  }
 };

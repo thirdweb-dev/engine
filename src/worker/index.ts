@@ -10,6 +10,7 @@ import {
 import { initCancelRecycledNoncesWorker } from "./tasks/cancelRecycledNoncesWorker";
 import { initMigratePostgresTransactionsWorker } from "./tasks/migratePostgresTransactionsWorker";
 import { initMineTransactionWorker } from "./tasks/mineTransactionWorker";
+import { initNonceHealthCheckWorker } from "./tasks/nonceHealthCheckWorker";
 import { initNonceResyncWorker } from "./tasks/nonceResyncWorker";
 import { initProcessEventLogsWorker } from "./tasks/processEventLogsWorker";
 import { initProcessTransactionReceiptsWorker } from "./tasks/processTransactionReceiptsWorker";
@@ -25,6 +26,9 @@ export const initWorker = async () => {
   initSendTransactionWorker();
   initMineTransactionWorker();
   initSendWebhookWorker();
+
+  initNonceHealthCheckWorker();
+
   await initMigratePostgresTransactionsWorker();
 
   await initNonceResyncWorker();

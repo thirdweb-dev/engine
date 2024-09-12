@@ -1,7 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteAllNonces } from "../../../db/wallets/walletNonce";
+import { Address, getAddress } from "thirdweb";
+import {
+  deleteAllNonces,
+  syncLatestNonceFromOnchain,
+} from "../../../db/wallets/walletNonce";
+import { redis } from "../../../utils/redis/redis";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const responseSchema = Type.Object({
@@ -34,7 +39,17 @@ export const resetBackendWalletNonces = async (fastify: FastifyInstance) => {
       },
     },
     handler: async (req, reply) => {
+      const backendWallets = await getUsedBackendWallets();
+
+      // Delete all nonce state for used backend wallets.
       await deleteAllNonces();
+
+      // Attempt to re-sync nonces for used backend wallets.
+      await Promise.allSettled(
+        backendWallets.map(({ chainId, walletAddress }) =>
+          syncLatestNonceFromOnchain(chainId, walletAddress),
+        ),
+      );
 
       reply.status(StatusCodes.OK).send({
         result: {
@@ -42,5 +57,22 @@ export const resetBackendWalletNonces = async (fastify: FastifyInstance) => {
         },
       });
     },
+  });
+};
+
+// TODO: replace with getUsedBackendWallets() helper.
+const getUsedBackendWallets = async (): Promise<
+  {
+    chainId: number;
+    walletAddress: Address;
+  }[]
+> => {
+  const keys = await redis.keys("nonce:*:*");
+  return keys.map((key) => {
+    const tokens = key.split(":");
+    return {
+      chainId: parseInt(tokens[1]),
+      walletAddress: getAddress(tokens[2]),
+    };
   });
 };

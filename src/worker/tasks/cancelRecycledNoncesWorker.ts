@@ -29,16 +29,16 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const keys = await redis.keys("nonce-recycled:*");
 
   for (const key of keys) {
-    const { chainId, walletAddress } = fromUnusedNoncesKey(key);
+    const { chainId, walletAddress } = fromRecycledNoncesKey(key);
 
-    const unusedNonces = await getAndDeleteUnusedNonces(key);
-    job.log(`Found unused nonces: key=${key} nonces=${unusedNonces}`);
+    const recycledNonces = await getAndDeleteRecycledNonces(key);
+    job.log(`Found recycled nonces: key=${key} nonces=${recycledNonces}`);
 
-    if (unusedNonces.length > 0) {
+    if (recycledNonces.length > 0) {
       const success: number[] = [];
       const fail: number[] = [];
       const ignore: number[] = [];
-      for (const nonce of unusedNonces) {
+      for (const nonce of recycledNonces) {
         try {
           await sendCancellationTransaction({
             chainId,
@@ -65,7 +65,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 };
 
-const fromUnusedNoncesKey = (key: string) => {
+const fromRecycledNoncesKey = (key: string) => {
   const [_, chainId, walletAddress] = key.split(":");
   return {
     chainId: parseInt(chainId),
@@ -73,14 +73,14 @@ const fromUnusedNoncesKey = (key: string) => {
   };
 };
 
-const getAndDeleteUnusedNonces = async (key: string) => {
-  // Returns all unused nonces for this key and deletes the key.
+const getAndDeleteRecycledNonces = async (key: string) => {
+  // Returns all recycled nonces for this key and deletes the key.
   // Example response:
   // [
   //   [ null, [ '1', '2', '3', '4' ] ],
   //   [ null, 1 ]
   // ]
-  const multiResult = await redis.multi().smembers(key).del(key).exec();
+  const multiResult = await redis.multi().zrange(key, 0, -1).del(key).exec();
   if (!multiResult) {
     throw new Error(`Error getting members of ${key}.`);
   }
@@ -88,5 +88,6 @@ const getAndDeleteUnusedNonces = async (key: string) => {
   if (error) {
     throw new Error(`Error getting members of ${key}: ${error}`);
   }
-  return (nonces as string[]).map((v) => parseInt(v)).sort();
+  // No need to sort here as ZRANGE returns elements in ascending order
+  return (nonces as string[]).map((v) => parseInt(v));
 };

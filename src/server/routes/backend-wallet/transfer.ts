@@ -39,6 +39,7 @@ const requestBodySchema = Type.Object({
   },
   currencyAddress: Type.Optional({
     ...AddressSchema,
+    examples: [constants.AddressZero],
     description:
       "The token address to transfer. Omit to transfer the chain's native currency (e.g. ETH on Ethereum).",
   }),

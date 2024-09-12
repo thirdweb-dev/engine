@@ -1,9 +1,11 @@
 import {
   Address,
   Hex,
+  getAddress,
   getContract,
   prepareContractCall,
   readContract,
+  toSerializableTransaction,
 } from "thirdweb";
 import {
   UserOperation,
@@ -18,6 +20,7 @@ import { QueuedTransaction } from "./types";
 
 export const generateSignedUserOperation = async (
   queuedTransaction: QueuedTransaction,
+  populatedTransaction: Awaited<ReturnType<typeof toSerializableTransaction>>,
 ): Promise<UserOperation> => {
   const {
     chainId,
@@ -25,6 +28,7 @@ export const generateSignedUserOperation = async (
     gas,
     signerAddress,
     accountAddress,
+    accountFactoryAddress: userProvidedAccountFactoryAddress,
     target,
     from,
     data,
@@ -43,12 +47,26 @@ export const generateSignedUserOperation = async (
     address: accountAddress as Address,
   });
 
-  // Resolve Factory Contract Address from Smart-Account Contract
-  const accountFactoryAddress = await readContract({
-    contract: smartAccountContract,
-    method: "function factory() view returns (address)",
-    params: [],
-  });
+  // use the user provided factory address if available
+  let accountFactoryAddress = userProvidedAccountFactoryAddress;
+
+  if (!accountFactoryAddress) {
+    // Resolve Factory Contract Address from Smart-Account Contract
+    try {
+      const onchainAccountFactoryAddress = await readContract({
+        contract: smartAccountContract,
+        method: "function factory() view returns (address)",
+        params: [],
+      });
+
+      accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
+    } catch (e) {
+      // if no factory address is found, throw an error
+      throw new Error(
+        `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
+      );
+    }
+  }
 
   // Resolve Factory Contract
   const accountFactoryContract = getContract({
@@ -57,24 +75,15 @@ export const generateSignedUserOperation = async (
     address: accountFactoryAddress as Address,
   });
 
-  let toAddress: string | undefined;
-  let txValue: bigint | undefined;
-  let txData: Hex | undefined;
-
-  // Handle UserOp Requests
-  if (data && target) {
-    toAddress = target;
-    txValue = value || 0n;
-    txData = data;
-  } else {
-    throw new Error("Invalid UserOperation parameters");
-  }
-
   // Prepare UserOperation Call
   const userOpCall = prepareContractCall({
     contract: smartAccountContract,
     method: "function execute(address, uint256, bytes)",
-    params: [toAddress || "", txValue || 0n, txData || "0x"],
+    params: [
+      populatedTransaction.to || "",
+      populatedTransaction.value || 0n,
+      populatedTransaction.data,
+    ],
   });
 
   // Create Unsigned UserOperation

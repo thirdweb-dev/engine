@@ -104,9 +104,9 @@ export class SendWebhookQueue {
     const { webhook, eventLog, transactionReceipt } = args;
 
     if (eventLog) {
-      return `${webhook.url}:${eventLog.transactionHash}:${eventLog.logIndex}`;
+      return `${webhook.url}.${eventLog.transactionHash}.${eventLog.logIndex}`;
     } else if (transactionReceipt) {
-      return `${webhook.url}:${transactionReceipt.transactionHash}`;
+      return `${webhook.url}.${transactionReceipt.transactionHash}`;
     }
     throw 'Must provide "eventLog" or "transactionReceipt".';
   };
@@ -139,5 +139,5 @@ export class SendWebhookQueue {
     webhook: Webhooks;
     eventType: WebhooksEventTypes;
     queueId: string;
-  }) => `${args.webhook.url}:${args.eventType}:${args.queueId}`;
+  }) => `${args.webhook.url}.${args.eventType}.${args.queueId}`;
 }

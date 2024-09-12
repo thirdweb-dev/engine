@@ -33,6 +33,7 @@ export type InsertedTransaction = {
   // User Operation
   signerAddress?: Address;
   accountAddress?: Address;
+  accountFactoryAddress?: Address;
   target?: Address;
   sender?: Address;
 };
@@ -81,6 +82,9 @@ export type MinedTransaction = (
   gasUsed: bigint;
   effectiveGasPrice?: bigint;
   cumulativeGasUsed?: bigint;
+
+  // mined transactions can have an error message if they revert
+  errorMessage?: string;
 };
 
 // ErroredTransaction received an error before or while sending to RPC.
