@@ -6,6 +6,7 @@ import { URL } from "url";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
+import { metricsServer } from "../utils/prometheus";
 import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listeners/updateTxListener";
 import { withAdminRoutes } from "./middleware/adminRoutes";
@@ -16,6 +17,7 @@ import { withErrorHandler } from "./middleware/error";
 import { withExpress } from "./middleware/express";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
+import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rateLimit";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
@@ -62,6 +64,7 @@ export const initServer = async () => {
 
   await withCors(server);
   await withRequestLogs(server);
+  await withPrometheus(server);
   await withErrorHandler(server);
   await withEnforceEngineMode(server);
   await withRateLimit(server);
@@ -74,6 +77,15 @@ export const initServer = async () => {
   await withAdminRoutes(server);
 
   await server.ready();
+
+  // if metrics are enabled, expose the metrics endpoint
+  if (env.METRICS_ENABLED) {
+    await metricsServer.ready();
+    metricsServer.listen({
+      host: env.HOST,
+      port: env.METRICS_PORT,
+    });
+  }
 
   server.listen(
     {

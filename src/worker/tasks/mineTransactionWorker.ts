@@ -5,6 +5,7 @@ import {
   Address,
   eth_getTransactionByHash,
   eth_getTransactionReceipt,
+  getAddress,
   getRpcClient,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
@@ -17,6 +18,7 @@ import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
+import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -65,6 +67,16 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     await TransactionDB.set(resultTransaction);
     await enqueueTransactionWebhook(resultTransaction);
     await _reportUsageSuccess(resultTransaction);
+    recordMetrics({
+      event: "transaction_mined",
+      params: {
+        chainId: resultTransaction.chainId.toString(),
+        queuedToMinedDurationSeconds:
+          msSince(resultTransaction.queuedAt) / 1000,
+        durationSeconds: msSince(resultTransaction.sentAt) / 1000,
+        walletAddress: getAddress(resultTransaction.from),
+      },
+    });
     logger({
       level: "info",
       queueId: resultTransaction.queueId,
