@@ -82,7 +82,7 @@ const requestDuration = new Histogram({
   name: "engine_response_time_ms",
   help: "Response time in milliseconds",
   labelNames: ["endpoint", "status_code", "method"],
-  buckets: [100, 300, 500, 700, 1000, 3000, 5000, 7000, 10_000],
+  buckets: [1, 10, 50, 100, 300, 500, 700, 1000, 3000, 5000, 7000, 10_000],
   registers: [enginePromRegister],
 });
 
