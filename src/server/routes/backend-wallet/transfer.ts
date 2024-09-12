@@ -38,12 +38,16 @@ const requestBodySchema = Type.Object({
     ...AddressSchema,
     description: "The recipient wallet address.",
   },
-  currencyAddress: {
+  currencyAddress: Type.Optional({
     ...AddressSchema,
     description:
       "The token address to transfer. Omit to transfer the chain's native currency (e.g. ETH on Ethereum).",
+<<<<<<< Updated upstream
     default: constants.AddressZero,
   },
+=======
+  }),
+>>>>>>> Stashed changes
   amount: Type.String({
     description:
       'The amount in ether to transfer. Example: "0.1" to send 0.1 ETH.',
@@ -80,7 +84,7 @@ export async function transfer(fastify: FastifyInstance) {
       const {
         to,
         amount,
-        currencyAddress: _currencyAddress,
+        currencyAddress: _currencyAddress = ZERO_ADDRESS,
         txOverrides,
       } = request.body;
       const {
