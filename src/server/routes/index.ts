@@ -93,6 +93,7 @@ import { revokeRelayer } from "./relayer/revoke";
 import { updateRelayer } from "./relayer/update";
 import { healthCheck } from "./system/health";
 import { queueStatus } from "./system/queue";
+import { getTxLogs } from "./transaction/blockchain/getLogs";
 import { getTxHashReceipt } from "./transaction/blockchain/getTxReceipt";
 import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
 import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
@@ -226,6 +227,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(sendSignedUserOp);
   await fastify.register(getTxHashReceipt);
   await fastify.register(getUserOpReceipt);
+  await fastify.register(getTxLogs);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);
