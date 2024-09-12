@@ -1,5 +1,4 @@
 import { Static, Type } from "@sinclair/typebox";
-import { constants } from "ethers";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
@@ -42,12 +41,7 @@ const requestBodySchema = Type.Object({
     ...AddressSchema,
     description:
       "The token address to transfer. Omit to transfer the chain's native currency (e.g. ETH on Ethereum).",
-<<<<<<< Updated upstream
-    default: constants.AddressZero,
-  },
-=======
   }),
->>>>>>> Stashed changes
   amount: Type.String({
     description:
       'The amount in ether to transfer. Example: "0.1" to send 0.1 ETH.',
