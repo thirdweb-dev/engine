@@ -165,8 +165,8 @@ export const onRequest = async ({
       const payload = decoded.payload as JwtPayload;
       const header = decoded.header;
 
-      // Get the public key from the `iss` payload field or `kid` header field.
-      const publicKey = payload.iss ?? header.kid;
+      // Get the public key from the `iss` payload field.
+      const publicKey = payload.iss;
       if (publicKey) {
         const authWallet = await getAuthWallet();
         if (publicKey === (await authWallet.getAddress())) {
@@ -174,8 +174,14 @@ export const onRequest = async ({
         } else if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
           return await handleDashboardAuth(jwt);
         } else {
-          return await handleKeypairAuth(jwt, req, publicKey);
+          return await handleKeypairAuth({ jwt, req, publicKey });
         }
+      }
+
+      // Get the public key hash from the `kid` header.
+      const publicKeyHash = header.kid;
+      if (publicKeyHash) {
+        return await handleKeypairAuth({ jwt, req, publicKeyHash });
       }
     }
   }
@@ -291,19 +297,22 @@ const handleWebsocketAuth = async (
  * @param publicKey string
  * @returns AuthResponse
  */
-const handleKeypairAuth = async (
-  jwt: string,
-  req: FastifyRequest,
-  publicKey: string,
-): Promise<AuthResponse> => {
+const handleKeypairAuth = async (args: {
+  jwt: string;
+  req: FastifyRequest;
+  publicKey?: string;
+  publicKeyHash?: string;
+}): Promise<AuthResponse> => {
   // The keypair auth feature must be explicitly enabled.
   if (!env.ENABLE_KEYPAIR_AUTH) {
     return { isAuthed: false };
   }
 
+  const { jwt, req, publicKey, publicKeyHash } = args;
+
   let error: string | undefined;
   try {
-    const keypair = await getKeypair({ publicKey });
+    const keypair = await getKeypair({ publicKey, publicKeyHash });
     if (!keypair) {
       error = "The provided public key is incorrect or not added to Engine.";
       throw error;

@@ -1,20 +1,39 @@
 import type { Keypairs } from "@prisma/client";
-import { getKeypairByPublicKey } from "../../db/keypair/get";
+import { getKeypairByHash, getKeypairByPublicKey } from "../../db/keypair/get";
 
 // Cache a public key to the Keypair object, or null if not found.
 export const keypairCache = new Map<string, Keypairs | null>();
 
-export const getKeypair = async ({
-  publicKey,
-}: {
-  publicKey: string;
+/**
+ * Get a keypair by public key or hash.
+ */
+export const getKeypair = async (args: {
+  publicKey?: string;
+  publicKeyHash?: string;
 }): Promise<Keypairs | null> => {
-  const cached = keypairCache.get(publicKey);
+  const { publicKey, publicKeyHash } = args;
+
+  const key = publicKey
+    ? `public-key:${args.publicKey}`
+    : publicKeyHash
+    ? `public-key-hash:${args.publicKeyHash}`
+    : null;
+
+  if (!key) {
+    throw new Error('Must provide "publicKey" or "publicKeyHash".');
+  }
+
+  const cached = keypairCache.get(key);
   if (cached) {
     return cached;
   }
 
-  const keypair = await getKeypairByPublicKey({ publicKey });
-  keypairCache.set(publicKey, keypair);
+  const keypair = publicKey
+    ? await getKeypairByPublicKey(publicKey)
+    : publicKeyHash
+    ? await getKeypairByHash(publicKeyHash)
+    : null;
+
+  keypairCache.set(key, keypair);
   return keypair;
 };
