@@ -1,10 +1,11 @@
 import { ContractTransactionReceipts } from "@prisma/client";
 import { Static, Type } from "@sinclair/typebox";
+import { AddressSchema } from "./address";
 
 export const transactionReceiptSchema = Type.Object({
   chainId: Type.Number(),
   blockNumber: Type.Number(),
-  contractAddress: Type.String(),
+  contractAddress: AddressSchema,
   transactionHash: Type.String(),
   blockHash: Type.String(),
   timestamp: Type.Number(),

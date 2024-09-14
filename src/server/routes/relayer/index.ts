@@ -12,6 +12,7 @@ import {
 import { getRelayerById } from "../../../db/relayer/getRelayerById";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { AddressSchema } from "../../schemas/address";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
@@ -34,7 +35,7 @@ const requestBodySchema = Type.Union([
       chainid: Type.Optional(Type.String()),
     }),
     signature: Type.String(),
-    forwarderAddress: Type.String(),
+    forwarderAddress: AddressSchema,
   }),
   Type.Object({
     type: Type.Literal("permit"),

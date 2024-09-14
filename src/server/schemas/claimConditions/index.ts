@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { AddressSchema } from "../address";
 import { currencyValueSchema } from "../sharedApiSchemas";
 
 export const claimConditionInputSchema = Type.Object({
@@ -12,7 +13,7 @@ export const claimConditionInputSchema = Type.Object({
     ]),
   ),
   price: Type.Optional(Type.Union([Type.Number(), Type.String()])),
-  currencyAddress: Type.Optional(Type.String()),
+  currencyAddress: Type.Optional(AddressSchema),
   maxClaimablePerWallet: Type.Optional(
     Type.Union([Type.Number(), Type.String()]),
   ),
@@ -31,7 +32,7 @@ export const claimConditionInputSchema = Type.Object({
       Type.Array(
         Type.Object({
           price: Type.Optional(Type.Union([Type.String(), Type.Number()])),
-          currencyAddress: Type.Optional(Type.String()),
+          currencyAddress: Type.Optional(AddressSchema),
           address: Type.String(),
           maxClaimable: Type.Optional(
             Type.Union([Type.String(), Type.Number()]),
@@ -54,7 +55,7 @@ export const claimConditionOutputSchema = Type.Object({
     format: "date-time",
   }),
   price: Type.Optional(Type.Union([Type.Number(), Type.String()])),
-  currencyAddress: Type.Optional(Type.String()),
+  currencyAddress: Type.Optional(AddressSchema),
   maxClaimablePerWallet: Type.Optional(
     Type.Union([Type.Number(), Type.String()]),
   ),
@@ -75,7 +76,7 @@ export const claimConditionOutputSchema = Type.Object({
       Type.Array(
         Type.Object({
           price: Type.Optional(Type.Union([Type.String(), Type.Number()])),
-          currencyAddress: Type.Optional(Type.String()),
+          currencyAddress: Type.Optional(AddressSchema),
           address: Type.String(),
           maxClaimable: Type.Optional(
             Type.Union([Type.String(), Type.Number()]),
@@ -90,7 +91,7 @@ export const claimerProofSchema = Type.Union([
   Type.Null(),
   Type.Object({
     price: Type.Optional(Type.String()),
-    currencyAddress: Type.Optional(Type.String()),
+    currencyAddress: Type.Optional(AddressSchema),
     address: Type.String(),
     maxClaimable: Type.String(),
     proof: Type.Array(Type.String()),

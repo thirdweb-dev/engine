@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
@@ -16,9 +17,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-  holderAddress: Type.String({
+  holderAddress: {
+    ...AddressSchema,
     description: "Address of the wallet sending the tokens",
-  }),
+  },
   amount: Type.String({
     description: "The amount of this token you want to burn",
   }),

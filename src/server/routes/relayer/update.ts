@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -9,7 +10,7 @@ const requestBodySchema = Type.Object({
   id: Type.String(),
   name: Type.Optional(Type.String()),
   chain: Type.Optional(Type.String()),
-  backendWalletAddress: Type.Optional(Type.String()),
+  backendWalletAddress: Type.Optional(AddressSchema),
   allowedContracts: Type.Optional(Type.Array(Type.String())),
   allowedForwarders: Type.Optional(Type.Array(Type.String())),
 });

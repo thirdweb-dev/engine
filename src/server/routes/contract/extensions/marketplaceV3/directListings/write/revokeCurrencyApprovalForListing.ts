@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../../schemas/address";
 import {
   marketplaceV3ContractParamSchema,
   requestQuerystringSchema,
@@ -19,9 +20,10 @@ const requestBodySchema = Type.Object({
   listingId: Type.String({
     description: "The ID of the listing you want to approve a buyer for.",
   }),
-  currencyContractAddress: Type.String({
+  currencyContractAddress: {
+    ...AddressSchema,
     description: "The wallet address of the buyer to approve.",
-  }),
+  },
   ...txOverridesWithValueSchema.properties,
 });
 

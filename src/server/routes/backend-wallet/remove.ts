@@ -3,10 +3,11 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Address } from "thirdweb";
 import { deleteWalletDetails } from "../../../db/wallets/deleteWalletDetails";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const requestParamSchema = Type.Object({
-  walletAddress: Type.String(),
+  walletAddress: AddressSchema,
 });
 
 const responseSchema = Type.Object({

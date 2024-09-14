@@ -11,6 +11,7 @@ import { getWalletBalance } from "thirdweb/wallets";
 import { getAccount } from "../../../utils/account";
 import { getChain } from "../../../utils/chain";
 import { thirdwebClient } from "../../../utils/sdk";
+import { AddressSchema } from "../../schemas/address";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -24,9 +25,10 @@ import { getChainIdFromChain } from "../../utils/chain";
 const ParamsSchema = Type.Omit(walletWithAddressParamSchema, ["walletAddress"]);
 
 const requestBodySchema = Type.Object({
-  toAddress: Type.String({
+  toAddress: {
+    ...AddressSchema,
     description: "Address to withdraw all funds to",
-  }),
+  },
 });
 
 const responseBodySchema = Type.Object({

@@ -1,5 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import { constants } from "ethers";
+import { AddressSchema } from "../address";
 
 const MAX_BPS = 10000;
 
@@ -95,6 +96,6 @@ export const prebuiltDeployContractParamSchema = Type.Object({
 export const prebuiltDeployResponseSchema = Type.Object({
   result: Type.Object({
     queueId: Type.Optional(Type.String()),
-    deployedAddress: Type.Optional(Type.String()),
+    deployedAddress: Type.Optional(AddressSchema),
   }),
 });
