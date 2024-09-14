@@ -10,7 +10,7 @@ import {
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
-import { ConfigurationDB } from "../../db/configuration/extraGas";
+import { ConfigurationDB } from "../../db/configuration/db";
 import { TransactionDB } from "../../db/transactions/db";
 import {
   acquireNonce,
