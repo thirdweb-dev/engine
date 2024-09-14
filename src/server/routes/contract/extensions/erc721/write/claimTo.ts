@@ -1,12 +1,12 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex } from "thirdweb";
+import { Address, Hex, encode } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc721";
-import { resolvePromisedValue } from "thirdweb/utils";
 import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
 import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { insertTransaction } from "../../../../../../utils/transaction/insertTransaction";
+import { createCustomError } from "../../../../../middleware/error";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -81,12 +81,19 @@ export async function erc721claimTo(fastify: FastifyInstance) {
         quantity: BigInt(quantity),
       });
 
+      let data: Hex;
+      try {
+        data = await encode(transaction);
+      } catch (e) {
+        throw createCustomError(`${e}`, StatusCodes.BAD_REQUEST, "BAD_REQUEST");
+      }
+
       let queueId: string;
       const insertedTransaction = {
         chainId,
         from: fromAddress as Address,
         to: contractAddress as Address | undefined,
-        data: (await resolvePromisedValue(transaction.data)) as Hex,
+        data,
         value: maybeBigInt(txOverrides?.value),
         gas: maybeBigInt(txOverrides?.gas),
         maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
