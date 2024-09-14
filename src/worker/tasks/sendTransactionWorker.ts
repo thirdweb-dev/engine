@@ -443,7 +443,7 @@ export const getPopulatedOrErroredTransaction = async (
       chain: await getChain(queuedTransaction.chainId),
       ...queuedTransaction,
       to: getChecksumAddress(to),
-      // if transaction is EOA, we stub the nonce to reduce RPC calls
+      // if transaction is EOA, stub the nonce to reduce RPC calls
       nonce: queuedTransaction.isUserOp ? undefined : 1,
       extraGas: extraGas ?? undefined,
     });
