@@ -1,10 +1,16 @@
-import assert from "assert";
 import { Job, Processor, Worker } from "bullmq";
+import assert from "node:assert";
 import superjson from "superjson";
-import { Hex, getAddress, toSerializableTransaction } from "thirdweb";
+import {
+  Hex,
+  getAddress,
+  prepareTransaction,
+  toSerializableTransaction,
+} from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
+import { ConfigurationDB } from "../../db/configuration/extraGas";
 import { TransactionDB } from "../../db/transactions/db";
 import {
   acquireNonce,
@@ -427,20 +433,25 @@ export const getPopulatedOrErroredTransaction = async (
     if (!from) throw new Error("Invalid transaction parameters: from");
     if (!to) throw new Error("Invalid transaction parameters: to");
 
-    const populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(from),
-      transaction: {
-        client: thirdwebClient,
-        chain: await getChain(queuedTransaction.chainId),
-        ...queuedTransaction,
-        to: getChecksumAddress(to),
-        // if transaction is EOA, we stub the nonce to reduce RPC calls
-        nonce: queuedTransaction.isUserOp ? undefined : 1,
-      },
+    // Adds a fixed extraGas to the gas limit unless it is explicitly set.
+    const extraGas = queuedTransaction.gas
+      ? null
+      : await ConfigurationDB.get<bigint>("config:extra_gas");
+
+    const preparedTransaction = prepareTransaction({
+      client: thirdwebClient,
+      chain: await getChain(queuedTransaction.chainId),
+      ...queuedTransaction,
+      to: getChecksumAddress(to),
+      // if transaction is EOA, we stub the nonce to reduce RPC calls
+      nonce: queuedTransaction.isUserOp ? undefined : 1,
+      extraGas: extraGas ?? undefined,
     });
 
-    // Add a 20% buffer on the `gas` since some RPCs underestimate.)
-    populatedTransaction.gas = (populatedTransaction.gas * 12n) / 10n;
+    const populatedTransaction = await toSerializableTransaction({
+      from: getChecksumAddress(from),
+      transaction: preparedTransaction,
+    });
 
     return [populatedTransaction, undefined];
   } catch (e: unknown) {
