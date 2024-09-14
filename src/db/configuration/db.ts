@@ -1,31 +1,50 @@
-import superjson from "superjson";
 import { redis } from "../../utils/redis/redis";
 
-// Add more configurations to this type union.
-export type ConfigurationKey = "config:extra_gas";
+// No optional values. All configuration has default values.
+export interface ConfigurationDBResult {
+  extraGas: bigint;
+}
 
+// Add more configurations to this type union.
+export type ConfigurationName = "extra_gas";
+
+// biome-ignore lint/complexity/noStaticOnlyClass: Encapsulates DB logic.
 export class ConfigurationDB {
   private static redis = redis;
+  private static redisKey = "configuration";
 
   /**
-   * Sets a configuration value.
-   * @param key The configuration name to set.
-   * @param value Any serializable value. BigInt and Date types are permitted.
+   * Sets one or more configuration.
+   * @param updateValues
    */
-  static set = async (key: ConfigurationKey, value: any) => {
-    await this.redis.set(key, superjson.stringify(value));
+  static set = async (updateValues: Partial<ConfigurationDBResult>) => {
+    const tuples: [ConfigurationName, string][] = [];
+
+    // Values must be stringified and parsed in `getAll()` identically.
+    if (updateValues.extraGas) {
+      tuples.push(["extra_gas", updateValues.extraGas.toString()]);
+    }
+
+    await this.redis.hset(this.redisKey, ...tuples.flat());
   };
 
   /**
-   * Gets a configuration value, if found.
-   * @param key The configuration name to get.
-   * @returns The parsed value.
+   * Returns all stored configuration with default values if not set.
+   * @returns ConfigurationDBResult
    */
-  static get = async <T>(key: ConfigurationKey): Promise<T | null> => {
-    const value = await this.redis.get(key);
-    if (!value) {
-      return null;
+  static getAll = async (): Promise<ConfigurationDBResult> => {
+    const raw: Record<ConfigurationName, string> = await this.redis.hgetall(
+      this.redisKey,
+    );
+
+    const result: ConfigurationDBResult = {
+      // Define default values if not set.
+      extraGas: 0n,
+    };
+    if ("extra_gas" in raw) {
+      result.extraGas = BigInt(raw.extra_gas);
     }
-    return superjson.parse(value) as T;
+
+    return result;
   };
 }
