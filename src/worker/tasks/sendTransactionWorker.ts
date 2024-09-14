@@ -433,10 +433,11 @@ export const getPopulatedOrErroredTransaction = async (
     if (!from) throw new Error("Invalid transaction parameters: from");
     if (!to) throw new Error("Invalid transaction parameters: to");
 
-    // Adds a fixed extraGas to the gas limit unless it is explicitly set.
-    const extraGas = queuedTransaction.gas
-      ? null
-      : await ConfigurationDB.get<bigint>("config:extra_gas");
+    // Add extraGas to the gas limit if not explicitly set.
+    let extraGas = 0n;
+    if (!queuedTransaction.gas) {
+      extraGas = (await ConfigurationDB.getAll()).extraGas;
+    }
 
     const preparedTransaction = prepareTransaction({
       client: thirdwebClient,
@@ -445,7 +446,7 @@ export const getPopulatedOrErroredTransaction = async (
       to: getChecksumAddress(to),
       // if transaction is EOA, stub the nonce to reduce RPC calls
       nonce: queuedTransaction.isUserOp ? undefined : 1,
-      extraGas: extraGas ?? undefined,
+      extraGas,
     });
 
     const populatedTransaction = await toSerializableTransaction({

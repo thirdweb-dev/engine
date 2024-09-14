@@ -6,7 +6,7 @@ export interface ConfigurationDBResult {
 }
 
 // Add more configurations to this type union.
-export type ConfigurationName = "extra_gas";
+type RedisFieldName = "extra_gas";
 
 // biome-ignore lint/complexity/noStaticOnlyClass: Encapsulates DB logic.
 export class ConfigurationDB {
@@ -18,14 +18,16 @@ export class ConfigurationDB {
    * @param updateValues
    */
   static set = async (updateValues: Partial<ConfigurationDBResult>) => {
-    const tuples: [ConfigurationName, string][] = [];
+    const tuples: [RedisFieldName, string][] = [];
 
     // Values must be stringified and parsed in `getAll()` identically.
     if (updateValues.extraGas) {
       tuples.push(["extra_gas", updateValues.extraGas.toString()]);
     }
 
-    await this.redis.hset(this.redisKey, ...tuples.flat());
+    if (tuples.length > 0) {
+      await this.redis.hset(this.redisKey, ...tuples.flat());
+    }
   };
 
   /**
@@ -33,7 +35,7 @@ export class ConfigurationDB {
    * @returns ConfigurationDBResult
    */
   static getAll = async (): Promise<ConfigurationDBResult> => {
-    const raw: Record<ConfigurationName, string> = await this.redis.hgetall(
+    const raw: Record<RedisFieldName, string> = await this.redis.hgetall(
       this.redisKey,
     );
 

@@ -45,6 +45,8 @@ import { addUrlToCorsConfiguration } from "./configuration/cors/add";
 import { getCorsConfiguration } from "./configuration/cors/get";
 import { removeUrlToCorsConfiguration } from "./configuration/cors/remove";
 import { setUrlsToCorsConfiguration } from "./configuration/cors/set";
+import { listConfiguration } from "./configuration/db/list";
+import { setConfiguration } from "./configuration/db/set";
 import { getIpAllowlist } from "./configuration/ip/get";
 import { setIpAllowlist } from "./configuration/ip/set";
 import { getTransactionConfiguration } from "./configuration/transactions/get";
@@ -151,6 +153,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(updateContractSubscriptionsConfiguration);
   await fastify.register(getIpAllowlist);
   await fastify.register(setIpAllowlist);
+  await fastify.register(listConfiguration);
+  await fastify.register(setConfiguration);
 
   // Webhooks
   await fastify.register(getAllWebhooksData);
