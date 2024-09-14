@@ -28,16 +28,16 @@ export const sendCancellationTransaction = async (
     },
   });
 
-  // Set 2x current gas to prioritize this transaction over any pending one.
+  // Set 10x current gas to prioritize this transaction over any pending one.
   // NOTE: This will not cancel a pending transaction set with higher gas.
   if (populatedTransaction.gasPrice) {
-    populatedTransaction.gasPrice *= 2n;
+    populatedTransaction.gasPrice *= 10n;
   }
   if (populatedTransaction.maxFeePerGas) {
-    populatedTransaction.maxFeePerGas *= 2n;
+    populatedTransaction.maxFeePerGas *= 10n;
   }
   if (populatedTransaction.maxFeePerGas) {
-    populatedTransaction.maxFeePerGas *= 2n;
+    populatedTransaction.maxFeePerGas *= 10n;
   }
 
   const account = await getAccount({ chainId, from });

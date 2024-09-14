@@ -439,7 +439,7 @@ export const getPopulatedOrErroredTransaction = async (
       },
     });
 
-    // Add a 20% buffer on the `gas` since some RPCs underestimate.
+    // Add a 20% buffer on the `gas` since some RPCs underestimate.)
     populatedTransaction.gas = (populatedTransaction.gas * 12n) / 10n;
 
     return [populatedTransaction, undefined];
