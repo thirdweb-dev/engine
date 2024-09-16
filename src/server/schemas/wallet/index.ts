@@ -47,6 +47,21 @@ export function maybeAddress(
   }
 }
 
+/**
+ * Same as maybeAddress, but throws if the address is undefined.
+ */
+export function requiredAddress(
+  address: string | undefined,
+  variableName: string,
+): Address {
+  if (!address) throw createBadAddressError(variableName);
+  try {
+    return getAddress(address);
+  } catch {
+    throw createBadAddressError(variableName);
+  }
+}
+
 export const walletChainParamSchema = Type.Object({
   chain: Type.String({
     examples: ["80002"],
