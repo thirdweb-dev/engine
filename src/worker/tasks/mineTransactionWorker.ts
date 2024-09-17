@@ -1,12 +1,12 @@
-import assert from "assert";
-import { Job, Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
+import assert from "node:assert";
 import superjson from "superjson";
 import {
-  Address,
   eth_getTransactionByHash,
   eth_getTransactionReceipt,
   getAddress,
   getRpcClient,
+  type Address,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceipt, getUserOpReceiptRaw } from "thirdweb/wallets/smart";
@@ -21,7 +21,7 @@ import { logger } from "../../utils/logger";
 import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
-import {
+import type {
   ErroredTransaction,
   MinedTransaction,
   SentTransaction,
@@ -29,8 +29,8 @@ import {
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import {
-  MineTransactionData,
   MineTransactionQueue,
+  type MineTransactionData,
 } from "../queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../queues/sendTransactionQueue";
 
@@ -59,7 +59,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   if (!resultTransaction) {
-    job.log(`Transaction is not mined yet. Check again later...`);
+    job.log("Transaction is not mined yet. Check again later...");
     throw new Error("NOT_CONFIRMED_YET");
   }
 
@@ -153,6 +153,11 @@ const _mineTransaction = async (
         service: "worker",
       });
 
+      const errorMessage =
+        receipt.status === "reverted"
+          ? "The transaction failed onchain. See: https://portal.thirdweb.com/engine/troubleshooting"
+          : undefined;
+
       return {
         ...sentTransaction,
         status: "mined",
@@ -164,6 +169,7 @@ const _mineTransaction = async (
         gasUsed: receipt.gasUsed,
         effectiveGasPrice: receipt.effectiveGasPrice,
         cumulativeGasUsed: receipt.cumulativeGasUsed,
+        errorMessage,
       };
     }
   }
@@ -233,7 +239,7 @@ const _mineUserOp = async (
     } catch (e) {
       if (e instanceof Error) {
         errorMessage = e.message;
-        await job.log("Failed to get userOpReceipt: " + e.message);
+        await job.log(`Failed to get userOpReceipt: ${e.message}`);
       } else {
         throw e;
       }
