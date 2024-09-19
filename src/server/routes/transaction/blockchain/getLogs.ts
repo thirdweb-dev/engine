@@ -141,6 +141,14 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
         chain,
       });
 
+      if (!queueId && !transactionHash) {
+        throw createCustomError(
+          "Either a queue ID or transaction hash must be provided.",
+          StatusCodes.BAD_REQUEST,
+          "MISSING_TRANSACTION_ID",
+        );
+      }
+
       // Get the transaction hash from the provided input.
       let hash: Hex | undefined;
       if (queueId) {
@@ -210,8 +218,6 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
         events: preparedEvents,
         logs: transactionReceipt.logs,
       });
-
-      console.log(">>>", superjson.serialize(parsedLogs).json);
 
       reply.status(StatusCodes.OK).send({
         result: superjson.serialize(parsedLogs).json as Static<
