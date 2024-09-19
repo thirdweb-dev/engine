@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { getNonceDetailsRoute } from "./admin/nonces";
 import { getTransactionDetails } from "./admin/transaction";
 import { createAccessToken } from "./auth/access-tokens/create";
@@ -93,7 +93,7 @@ import { revokeRelayer } from "./relayer/revoke";
 import { updateRelayer } from "./relayer/update";
 import { healthCheck } from "./system/health";
 import { queueStatus } from "./system/queue";
-import { getTxLogs } from "./transaction/blockchain/getLogs";
+import { getTransactionLogs } from "./transaction/blockchain/getLogs";
 import { getTxHashReceipt } from "./transaction/blockchain/getTxReceipt";
 import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
 import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
@@ -227,7 +227,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(sendSignedUserOp);
   await fastify.register(getTxHashReceipt);
   await fastify.register(getUserOpReceipt);
-  await fastify.register(getTxLogs);
+  await fastify.register(getTransactionLogs);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);

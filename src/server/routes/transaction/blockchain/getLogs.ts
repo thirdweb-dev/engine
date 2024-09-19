@@ -1,76 +1,82 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { AbiEvent } from "abitype";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import superjson from "superjson";
 import {
   eth_getTransactionReceipt,
   getContract,
   getRpcClient,
   parseEventLogs,
   prepareEvent,
+  type Hex,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
+import { TransactionDB } from "../../../../db/transactions/db";
 import { getChain } from "../../../../utils/chain";
 import { thirdwebClient } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
+import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
-declare global {
-  interface BigInt {
-    toJSON: () => string;
-  }
-}
-BigInt.prototype.toJSON = function () {
-  return `${this}n`;
-};
-
 // INPUT
-const requestSchema = Type.Object({
-  txHash: Type.String({
-    description: "Transaction hash",
-    examples: [
-      "0xd9bcba8f5bc4ce5bf4d631b2a0144329c1df3b56ddb9fc64637ed3a4219dd087",
-    ],
-    pattern: "^0x([A-Fa-f0-9]{64})$",
-  }),
+const requestQuerystringSchema = Type.Object({
   chain: Type.String({
     examples: ["80002"],
     description: "Chain ID or name",
   }),
+  queueId: Type.Optional(
+    Type.String({
+      description: "The queue ID for a mined transaction.",
+    }),
+  ),
+  transactionHash: Type.Optional({
+    ...TransactionHashSchema,
+    description: "The transaction hash for a mined transaction.",
+  }),
+  parseLogs: Type.Optional(
+    Type.Boolean({
+      description:
+        "If true, parse the raw logs as events defined in the contract ABI. (Default: true)",
+    }),
+  ),
 });
 
 // OUTPUT
+const LogSchema = Type.Object({
+  address: AddressSchema,
+  topics: Type.Array(Type.String()),
+  data: Type.String(),
+  blockNumber: Type.String(),
+  transactionHash: TransactionHashSchema,
+  transactionIndex: Type.Number(),
+  blockHash: Type.String(),
+  logIndex: Type.Number(),
+  removed: Type.Boolean(),
+});
+
+const ParsedLogSchema = Type.Object({
+  ...LogSchema.properties,
+  eventName: Type.String(),
+  args: Type.Unknown({
+    description: "Event arguments.",
+    examples: [
+      {
+        from: "0xdeadbeeefdeadbeeefdeadbeeefdeadbeeefdead",
+        to: "0xdeadbeeefdeadbeeefdeadbeeefdeadbeeefdead",
+        value: "1000000000000000000n",
+      },
+    ],
+  }),
+});
+
 export const responseBodySchema = Type.Object({
-  result: Type.Array(
-    Type.Object({
-      eventName: Type.String(),
-      args: Type.Unknown({
-        description:
-          "Event arguments. These are mostly key-value pairs, with values being numbers or strings. BigInts are represented as strings suffixed with 'n', eg: '1000000000000000000n'",
-        examples: [
-          {
-            from: "0xdeadbeeefdeadbeeefdeadbeeefdeadbeeefdead",
-            to: "0xdeadbeeefdeadbeeefdeadbeeefdeadbeeefdead",
-            value: "1000000000000000000n",
-          },
-        ],
-      }),
-      address: Type.String(),
-      topics: Type.Array(Type.String()),
-      data: Type.String(),
-      // this is a lie, we say bigint but we actually return a string
-      blockNumber: Type.BigInt({
-        description:
-          "Block number where the event was emitted, this is a BigInt encoded as a string suffixed with 'n'",
-        examples: ["79326434n"],
-      }),
-      transactionHash: Type.String(),
-      transactionIndex: Type.Number(),
-      blockHash: Type.String(),
-      logIndex: Type.Number(),
-      removed: Type.Boolean(),
-    }),
-  ),
+  result: Type.Union([
+    // ParsedLogSchema is listed before LogSchema because it is more specific.
+    Type.Array(ParsedLogSchema),
+    Type.Array(LogSchema),
+  ]),
 });
 
 responseBodySchema.example = {
@@ -89,7 +95,7 @@ responseBodySchema.example = {
         "0x00000000000000000000000071b6267b5b2b0b64ee058c3d27d58e4e14e7327f",
       ],
       data: "0x0000000000000000000000000000000000000000000000000de0b6b3a7640000",
-      blockNumber: "79326434n",
+      blockNumber: "79326434",
       transactionHash:
         "0x568eb49d738f7c02ebb24aa329efcf10883d951b1e13aa000b0e073d54a0246e",
       transactionIndex: 1,
@@ -101,47 +107,83 @@ responseBodySchema.example = {
   ],
 };
 
-export async function getTxLogs(fastify: FastifyInstance) {
+export async function getTransactionLogs(fastify: FastifyInstance) {
   fastify.route<{
-    Params: Static<typeof requestSchema>;
+    Querystring: Static<typeof requestQuerystringSchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
-    url: "/transaction/:chain/logs/:txHash",
+    url: "/transaction/logs",
     schema: {
-      summary: "Get transaction logs from transaction hash",
-      description: "Get parsed transaction logs from a transaction hash.",
+      summary: "Get transaction logs",
+      description:
+        "Get transaction logs for a mined transaction. A tranasction queue ID or hash must be provided. Set `parseLogs` to parse the event logs.",
       tags: ["Transaction"],
-      operationId: "txParseLogs",
-      params: requestSchema,
+      operationId: "getTransactionLogs",
+      querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
       },
     },
     handler: async (request, reply) => {
-      const { chain: requestChain, txHash } = request.params;
-      const chainId = await getChainIdFromChain(requestChain);
-      const chain = await getChain(chainId);
-      const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
+      const {
+        chain: inputChain,
+        queueId,
+        transactionHash,
+        parseLogs = true,
+      } = request.query;
 
-      const transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
-        hash: txHash as `0x${string}`,
+      const chainId = await getChainIdFromChain(inputChain);
+      const chain = await getChain(chainId);
+      const rpcRequest = getRpcClient({
+        client: thirdwebClient,
+        chain,
       });
 
+      // Get the transaction hash from the provided input.
+      let hash: Hex | undefined;
+      if (queueId) {
+        const transaction = await TransactionDB.get(queueId);
+        if (transaction?.status === "mined") {
+          hash = transaction.transactionHash;
+        }
+      } else if (transactionHash) {
+        hash = transactionHash as Hex;
+      }
+      if (!hash) {
+        throw createCustomError(
+          "Could not find transaction, or transaction is not mined.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_MINED",
+        );
+      }
+
+      // Try to get the receipt.
+      const transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
+        hash,
+      });
       if (!transactionReceipt) {
         throw createCustomError(
-          "Transaction not found",
-          StatusCodes.NOT_FOUND,
-          "TRANSACTION_NOT_FOUND",
+          "Cannot get logs for a transaction that is not mined.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_MINED",
         );
+      }
+
+      if (!parseLogs) {
+        return reply.status(StatusCodes.OK).send({
+          result: superjson.serialize(transactionReceipt.logs).json as Static<
+            typeof LogSchema
+          >[],
+        });
       }
 
       if (!transactionReceipt.to) {
         throw createCustomError(
-          "Not a contract transaction",
-          StatusCodes.NOT_FOUND,
-          "CONTRACT_NOT_FOUND",
+          "Transaction logs are only supported for contract calls.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_LOGS_UNAVAILABLE",
         );
       }
 
@@ -151,39 +193,31 @@ export async function getTxLogs(fastify: FastifyInstance) {
         client: thirdwebClient,
       });
 
-      const abi: AbiEventSignature[] = await resolveContractAbi(contract);
+      const abi: AbiEvent[] = await resolveContractAbi(contract);
       const eventSignatures = abi.filter((item) => item.type === "event");
-
       if (eventSignatures.length === 0) {
         throw createCustomError(
-          "No events found in contract, or could not resolve contract ABI",
-          StatusCodes.NOT_FOUND,
+          "No events found in contract or could not resolve contract ABI",
+          StatusCodes.BAD_REQUEST,
           "NO_EVENTS_FOUND",
         );
       }
 
-      const preparedEvents = eventSignatures.map((event) =>
-        prepareEvent({
-          signature: event,
-        }),
+      const preparedEvents = eventSignatures.map((signature) =>
+        prepareEvent({ signature }),
       );
-
       const parsedLogs = parseEventLogs({
         events: preparedEvents,
         logs: transactionReceipt.logs,
       });
 
-      reply.status(StatusCodes.OK).send({ result: parsedLogs });
+      console.log(">>>", superjson.serialize(parsedLogs).json);
+
+      reply.status(StatusCodes.OK).send({
+        result: superjson.serialize(parsedLogs).json as Static<
+          typeof ParsedLogSchema
+        >[],
+      });
     },
   });
 }
-
-type AbiEventSignature = {
-  type: "event";
-  name: string;
-  inputs: {
-    name: string;
-    type: string;
-    indexed: boolean;
-  }[];
-};
