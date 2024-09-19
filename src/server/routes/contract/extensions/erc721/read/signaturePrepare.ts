@@ -4,6 +4,10 @@ import { randomBytes } from "crypto";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Hex, ZERO_ADDRESS, getContract } from "thirdweb";
+import {
+  primarySaleRecipient as getDefaultPrimarySaleRecipient,
+  getDefaultRoyaltyInfo,
+} from "thirdweb/extensions/common";
 import { GenerateMintSignatureOptions } from "thirdweb/extensions/erc721";
 import { upload } from "thirdweb/storage";
 import { getChain } from "../../../../../../utils/chain";
@@ -180,9 +184,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         price,
         priceInWei,
         currency,
-        primarySaleRecipient,
-        royaltyRecipient,
-        royaltyBps,
         validityStartTimestamp,
         validityEndTimestamp,
         uid,
@@ -194,6 +195,26 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         chain: await getChain(chainId),
         address: contractAddress,
       });
+
+      let primarySaleRecipient = request.body.primarySaleRecipient;
+      let royaltyRecipient = request.body.royaltyRecipient;
+      let royaltyBps = request.body.royaltyBps;
+
+      if (!royaltyRecipient || !royaltyBps) {
+        const [defaultRoyaltyRecipient, defaultRoyaltyBps] =
+          await getDefaultRoyaltyInfo({
+            contract,
+          });
+
+        royaltyRecipient = royaltyRecipient ?? defaultRoyaltyRecipient;
+        royaltyBps = royaltyBps ?? defaultRoyaltyBps;
+      }
+
+      if (!primarySaleRecipient) {
+        primarySaleRecipient = await getDefaultPrimarySaleRecipient({
+          contract,
+        });
+      }
 
       const mintPayload = await generateMintSignaturePayload({
         metadata,
