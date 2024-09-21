@@ -38,3 +38,10 @@ export const txOverridesWithValueSchema = Type.Object({
     }),
   ),
 });
+
+export type TxOverrides = {
+  gas?: string;
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  value?: string;
+};
