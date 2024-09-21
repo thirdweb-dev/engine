@@ -94,10 +94,10 @@ export const env = createEnv({
     // In testing, 100k transactions consumes ~300mb memory.
     TRANSACTION_HISTORY_COUNT: z.coerce.number().default(100_000),
     // Sets the number of recent completed jobs in each queue.
-    QUEUE_COMPLETE_HISTORY_COUNT: z.coerce.number().default(10_000),
+    QUEUE_COMPLETE_HISTORY_COUNT: z.coerce.number().default(2_000),
     // Sets the number of recent failed jobs in each queue.
     // These limits are higher to debug failed jobs.
-    QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(25_000),
+    QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(20_000),
     // Sets the number of recent nonces to map to queue IDs.
     NONCE_MAP_COUNT: z.coerce.number().default(10_000),
   },

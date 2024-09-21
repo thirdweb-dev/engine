@@ -1,18 +1,18 @@
-import { Static } from "@sinclair/typebox";
-import { Job, Processor, Worker } from "bullmq";
+import type { Static } from "@sinclair/typebox";
+import { Worker, type Job, type Processor } from "bullmq";
 import superjson from "superjson";
 import { TransactionDB } from "../../db/transactions/db";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { toEventLogSchema } from "../../server/schemas/eventLog";
 import {
-  TransactionSchema,
   toTransactionSchema,
+  type TransactionSchema,
 } from "../../server/schemas/transaction";
 import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
 import { redis } from "../../utils/redis/redis";
-import { WebhookResponse, sendWebhookRequest } from "../../utils/webhook";
+import { sendWebhookRequest, type WebhookResponse } from "../../utils/webhook";
 import { logWorkerExceptions } from "../queues/queues";
-import { SendWebhookQueue, WebhookJob } from "../queues/sendWebhookQueue";
+import { SendWebhookQueue, type WebhookJob } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);
@@ -59,8 +59,9 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     }
   }
 
-  if (resp && !resp.ok) {
-    // Throw on non-2xx so it remains in the queue to retry later.
+  const shouldRetry = resp && resp.status >= 500 && resp.status <= 599;
+  if (shouldRetry) {
+    // Throw on 5xx so it remains in the queue to retry later.
     throw new Error(
       `Received status ${resp.status} from webhook ${webhook.url}.`,
     );

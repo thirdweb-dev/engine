@@ -1,12 +1,10 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex, encode } from "thirdweb";
+import { Address } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc20";
 import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
-import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
-import { insertTransaction } from "../../../../../../utils/transaction/insertTransaction";
-import { createCustomError } from "../../../../../middleware/error";
+import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
@@ -14,7 +12,11 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import {
+  maybeAddress,
+  requiredAddress,
+  walletWithAAHeaderSchema,
+} from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -68,10 +70,11 @@ export async function erc20claimTo(fastify: FastifyInstance) {
         "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": accountFactoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContractV5({
+      const contract = getContractV5({
         chainId,
         contractAddress,
       });
@@ -82,47 +85,19 @@ export async function erc20claimTo(fastify: FastifyInstance) {
         quantity: amount,
       });
 
-      let data: Hex;
-      try {
-        data = await encode(transaction);
-      } catch (e) {
-        throw createCustomError(`${e}`, StatusCodes.BAD_REQUEST, "BAD_REQUEST");
-      }
-
-      let queueId: string;
-      const insertedTransaction = {
-        chainId,
-        from: fromAddress as Address,
-        to: contractAddress as Address | undefined,
-        data,
-        value: maybeBigInt(txOverrides?.value),
-        gas: maybeBigInt(txOverrides?.gas),
-        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
-      };
-
-      if (accountAddress) {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            ...insertedTransaction,
-            isUserOp: true,
-            accountAddress: accountAddress as Address,
-            signerAddress: fromAddress as Address,
-            target: contractAddress as Address | undefined,
-          },
-          shouldSimulate: simulateTx,
-          idempotencyKey,
-        });
-      } else {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            ...insertedTransaction,
-            isUserOp: false,
-          },
-          shouldSimulate: simulateTx,
-          idempotencyKey,
-        });
-      }
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
+        toAddress: maybeAddress(contractAddress, "to"),
+        accountAddress: maybeAddress(accountAddress, "x-account-address"),
+        accountFactoryAddress: maybeAddress(
+          accountFactoryAddress,
+          "x-account-factory-address",
+        ),
+        txOverrides,
+        idempotencyKey,
+        shouldSimulate: simulateTx,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
