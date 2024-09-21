@@ -17,6 +17,14 @@ import {
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
+const FunctionArgumentSchema = Type.Union([
+  Type.String({ description: "String argument" }),
+  Type.Number({ description: "Numeric argument" }),
+  Type.Boolean({ description: "Boolean argument" }),
+  Type.Array(Type.Any(), { description: "Array argument" }),
+  Type.Object({}, { description: "Object argument" }),
+]);
+
 const simulateRequestBodySchema = Type.Object({
   toAddress: {
     ...AddressSchema,
@@ -35,17 +43,9 @@ const simulateRequestBodySchema = Type.Object({
     }),
   ),
   args: Type.Optional(
-    Type.Array(
-      Type.Union([
-        Type.String({
-          description: "The arguments to call for this function",
-        }),
-        Type.Tuple([Type.String(), Type.String()]),
-        Type.Object({}),
-        Type.Array(Type.Any()),
-        Type.Any(),
-      ]),
-    ),
+    Type.Array(FunctionArgumentSchema,{
+    description: "The arguments to call for this function"
+    })
   ),
   // Raw transaction args
   data: Type.Optional(

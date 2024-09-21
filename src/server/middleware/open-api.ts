@@ -33,7 +33,7 @@ export const withOpenApi = async (server: FastifyInstance) => {
   });
 
   // Exports the /json endpoint without the Swagger UI.
-  await server.get("/json", {}, async (req, res) => {
+   server.get("/json", {}, async (_, res) => {
     res.send(server.swagger());
   });
 };
