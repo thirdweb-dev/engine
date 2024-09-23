@@ -134,7 +134,6 @@ export const env = createEnv({
       process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     ENGINE_MODE: process.env.ENGINE_MODE,
     REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
-    // @deprecated
     __EXPERIMENTAL_REDIS_BATCH_SIZE:
       process.env.__EXPERIMENTAL_REDIS_BATCH_SIZE,
     TRANSACTION_HISTORY_COUNT: process.env.TRANSACTION_HISTORY_COUNT,
