@@ -74,7 +74,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = getContractV5({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });

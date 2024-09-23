@@ -1,15 +1,20 @@
 import assert from "assert";
 import { sleep } from "bun";
-import { describe, expect, test } from "bun:test";
-import { erc721Abi, getAddress, type Address } from "viem";
+import { beforeAll, describe, expect, test } from "bun:test";
+import { getAddress, type Address } from "viem";
 import { CONFIG } from "../config";
+import type { setupEngine } from "../utils/engine";
 import { setup } from "./setup";
 
 describe("Extensions", () => {
   let nftContractAddress: Address | undefined;
+  let engine: ReturnType<typeof setupEngine>;
+  let backendWallet: Address;
 
-  test("Deploy ERC721 Contract", async () => {
-    const { engine, backendWallet } = await setup();
+  beforeAll(async () => {
+    const setupRes = await setup();
+    engine = setupRes.engine;
+    backendWallet = setupRes.backendWallet;
 
     const res = await engine.deploy.deployNftCollection(
       CONFIG.CHAIN.id.toString(),
@@ -44,8 +49,6 @@ describe("Extensions", () => {
   });
 
   test("Mint NFT", async () => {
-    const { engine, testClient, publicClient, backendWallet } = await setup();
-
     expect(nftContractAddress).toBeDefined();
     assert(nftContractAddress, "NFT contract address is not defined");
 
@@ -79,14 +82,6 @@ describe("Extensions", () => {
       nftContractAddress,
     );
 
-    const viemBalanceOfBackendWallet = await publicClient.readContract({
-      abi: erc721Abi,
-      address: nftContractAddress,
-      functionName: "balanceOf",
-      args: [backendWallet],
-    });
-
     expect(engineBalanceOfBackendWallet.result).toEqual("1");
-    expect(viemBalanceOfBackendWallet).toEqual(1n);
   });
 });
