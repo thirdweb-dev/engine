@@ -82,7 +82,7 @@ export const env = createEnv({
 
     // Prometheus
     METRICS_PORT: z.coerce.number().default(4001),
-    METRICS_ENABLED: boolSchema("false"),
+    METRICS_ENABLED: boolSchema("true"),
 
     /**
      * Limits
