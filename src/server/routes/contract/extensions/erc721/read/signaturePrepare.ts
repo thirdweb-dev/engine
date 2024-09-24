@@ -4,11 +4,17 @@ import { randomBytes } from "crypto";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { Hex, ZERO_ADDRESS, getContract } from "thirdweb";
+import {
+  primarySaleRecipient as getDefaultPrimarySaleRecipient,
+  getDefaultRoyaltyInfo,
+} from "thirdweb/extensions/common";
 import { GenerateMintSignatureOptions } from "thirdweb/extensions/erc721";
 import { upload } from "thirdweb/storage";
 import { getChain } from "../../../../../../utils/chain";
+import { logger } from "../../../../../../utils/logger";
 import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
+import { createCustomError } from "../../../../../middleware/error";
 import {
   signature721InputSchemaV5,
   signature721OutputSchemaV5,
@@ -180,9 +186,6 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         price,
         priceInWei,
         currency,
-        primarySaleRecipient,
-        royaltyRecipient,
-        royaltyBps,
         validityStartTimestamp,
         validityEndTimestamp,
         uid,
@@ -194,6 +197,54 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         chain: await getChain(chainId),
         address: contractAddress,
       });
+
+      let primarySaleRecipient = request.body.primarySaleRecipient;
+      let royaltyRecipient = request.body.royaltyRecipient;
+      let royaltyBps = request.body.royaltyBps;
+
+      if (!royaltyRecipient || !royaltyBps) {
+        try {
+          const [defaultRoyaltyRecipient, defaultRoyaltyBps] =
+            await getDefaultRoyaltyInfo({
+              contract,
+            });
+
+          royaltyRecipient = royaltyRecipient ?? defaultRoyaltyRecipient;
+          royaltyBps = royaltyBps ?? defaultRoyaltyBps;
+        } catch (e) {
+          logger({
+            level: "error",
+            message: "Could not get default royalty info.",
+            service: "server",
+            error: e,
+          });
+          throw createCustomError(
+            "Could not get default royalty info.",
+            StatusCodes.BAD_REQUEST,
+            "DEFAULT_ROYALTY_INFO",
+          );
+        }
+      }
+
+      if (!primarySaleRecipient) {
+        try {
+          primarySaleRecipient = await getDefaultPrimarySaleRecipient({
+            contract,
+          });
+        } catch (e) {
+          logger({
+            level: "error",
+            message: "Could not get default primary sale recipient.",
+            service: "server",
+            error: e,
+          });
+          throw createCustomError(
+            "Could not get default primary sale recipient.",
+            StatusCodes.BAD_REQUEST,
+            "DEFAULT_PRIMARY_SALE_RECIPIENT",
+          );
+        }
+      }
 
       const mintPayload = await generateMintSignaturePayload({
         metadata,
@@ -249,12 +300,21 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
   });
 }
 
+type GenerateMintSignaturePayloadOptions = Omit<
+  GenerateMintSignatureOptions["mintRequest"],
+  "royaltyRecipient" | "primarySaleRecipient" | "royaltyBps"
+> & {
+  royaltyRecipient: string;
+  primarySaleRecipient: string;
+  royaltyBps: number;
+};
+
 /**
  * Helper functions copied from v5 SDK.
  * The logic to generate a mint signature is not exported.
  */
 export async function generateMintSignaturePayload(
-  mintRequest: GenerateMintSignatureOptions["mintRequest"],
+  mintRequest: GenerateMintSignaturePayloadOptions,
 ) {
   const currency = mintRequest.currency || ZERO_ADDRESS;
   const [price, uri, uid] = await Promise.all([
@@ -288,25 +348,15 @@ export async function generateMintSignaturePayload(
   const startTime = mintRequest.validityStartTimestamp || new Date(0);
   const endTime = mintRequest.validityEndTimestamp || tenYearsFromNow();
 
-  const saleRecipient = mintRequest.primarySaleRecipient;
-  if (!saleRecipient) {
-    throw new Error("@UNIMPLEMENTED");
-  }
-
-  const royaltyRecipient = mintRequest.royaltyRecipient;
-  if (!royaltyRecipient) {
-    throw new Error("@UNIMPLEMENTED");
-  }
-
   return {
     uri,
     currency,
     uid,
     price,
     to: mintRequest.to,
-    royaltyRecipient: royaltyRecipient,
-    royaltyBps: BigInt(mintRequest.royaltyBps || 0),
-    primarySaleRecipient: saleRecipient,
+    royaltyRecipient: mintRequest.royaltyRecipient,
+    royaltyBps: mintRequest.royaltyBps,
+    primarySaleRecipient: mintRequest.primarySaleRecipient,
     validityStartTimestamp: dateToSeconds(startTime),
     validityEndTimestamp: dateToSeconds(endTime),
   };
