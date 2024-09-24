@@ -104,10 +104,6 @@ export async function transfer(fastify: FastifyInstance) {
 				currencyAddress === ZERO_ADDRESS ||
 				currencyAddress === NATIVE_TOKEN_ADDRESS
 			) {
-				try {
-					const value = toWei(amount);
-				} catch (e) {}
-
 				insertedTransaction = {
 					isUserOp: false,
 					chainId,
