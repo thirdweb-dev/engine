@@ -2,11 +2,12 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updatePermissions } from "../../../../db/permissions/updatePermissions";
+import { AddressSchema } from "../../../schemas/address";
 import { permissionsSchema } from "../../../schemas/auth";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const requestBodySchema = Type.Object({
-  walletAddress: Type.String(),
+  walletAddress: AddressSchema,
   permissions: permissionsSchema,
   label: Type.Optional(Type.String()),
 });

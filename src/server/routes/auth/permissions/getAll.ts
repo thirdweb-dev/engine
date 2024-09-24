@@ -2,12 +2,13 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../../db/client";
+import { AddressSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const responseBodySchema = Type.Object({
   result: Type.Array(
     Type.Object({
-      walletAddress: Type.String(),
+      walletAddress: AddressSchema,
       permissions: Type.String(),
       label: Type.Union([Type.String(), Type.Null()]),
     }),

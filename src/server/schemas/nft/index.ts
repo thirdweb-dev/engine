@@ -1,5 +1,6 @@
 import { Static, Type } from "@sinclair/typebox";
 import { BigNumber } from "ethers";
+import { AddressSchema } from "../address";
 
 // NFTInput format compatible with v5 SDK
 export const nftInputSchema = Type.Partial(
@@ -210,10 +211,11 @@ export const signature721OutputSchema = Type.Object({
       which means you can deterministically generate the uid to prevent specific exploits.`,
   }),
   metadata: Type.Union([nftMetadataInputSchema, Type.String()]),
-  currencyAddress: Type.String({
+  currencyAddress: {
+    ...AddressSchema,
     description:
       "The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS",
-  }),
+  },
   price: Type.Optional(
     Type.String({
       description:
@@ -326,10 +328,11 @@ export const signature1155OutputSchema = Type.Object({
       which means you can deterministically generate the uid to prevent specific exploits.`,
   }),
   metadata: Type.Union([nftMetadataInputSchema, Type.String()]),
-  currencyAddress: Type.String({
+  currencyAddress: {
+    ...AddressSchema,
     description:
       "The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS",
-  }),
+  },
   price: Type.String({
     description:
       "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",

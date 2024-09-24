@@ -3,6 +3,7 @@ import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
 import { RouteGenericInterface } from "fastify";
 import { FastifySchema } from "fastify/types/schema";
 import { StatusCodes } from "http-status-codes";
+import { AddressSchema } from "./address";
 
 export const baseReplyErrorSchema = Type.Object({
   message: Type.Optional(Type.String()),
@@ -20,10 +21,10 @@ export const contractParamSchema = Type.Object({
     examples: ["80002"],
     description: "Chain ID or name",
   }),
-  contractAddress: Type.String({
-    examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
-    description: "Contract address on the chain",
-  }),
+  contractAddress: {
+    ...AddressSchema,
+    description: "Contract address",
+  },
 });
 
 export const requestQuerystringSchema = Type.Object({
@@ -179,10 +180,11 @@ export const erc20ContractParamSchema = Type.Object({
     examples: ["80002"],
     description: "Chain ID or name",
   }),
-  contractAddress: Type.String({
+  contractAddress: {
+    ...AddressSchema,
     examples: ["0x365b83D67D5539C6583b9c0266A548926Bf216F4"],
-    description: "ERC20 Contract Address on the Chain",
-  }),
+    description: "ERC20 contract address",
+  },
 });
 
 /**
@@ -193,10 +195,10 @@ export const erc1155ContractParamSchema = Type.Object({
     examples: ["80002"],
     description: "Chain ID or name",
   }),
-  contractAddress: Type.String({
-    examples: ["0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"],
-    description: "ERC1155 Contract Address on the Chain",
-  }),
+  contractAddress: {
+    ...AddressSchema,
+    description: "ERC1155 contract address",
+  },
 });
 
 /**
@@ -207,10 +209,10 @@ export const erc721ContractParamSchema = Type.Object({
     examples: ["80002"],
     description: "Chain ID or name",
   }),
-  contractAddress: Type.String({
-    examples: ["0xc8be6265C06aC376876b4F62670adB3c4d72EABA"],
-    description: "ERC721 Contract Address on the Chain",
-  }),
+  contractAddress: {
+    ...AddressSchema,
+    description: "ERC721 contract address",
+  },
 });
 export const currencyValueSchema = Type.Object({
   name: Type.String(),
@@ -237,10 +239,10 @@ export const marketplaceV3ContractParamSchema = Type.Object({
     examples: ["80002"],
     description: "Chain ID or name",
   }),
-  contractAddress: Type.String({
-    examples: ["0xE8Bf1a01106F3acD7F84acaf5D668D7C9eA11535"],
-    description: "Contract Address on the Chain",
-  }),
+  contractAddress: {
+    ...AddressSchema,
+    description: "Contract address",
+  },
 });
 
 export const marketplaceFilterSchema = Type.Object({
@@ -277,9 +279,10 @@ export const marketplaceFilterSchema = Type.Object({
 });
 
 export const walletDetailsSchema = Type.Object({
-  address: Type.String({
+  address: {
+    ...AddressSchema,
     description: "Wallet Address",
-  }),
+  },
   type: Type.String({
     description: "Wallet Type",
   }),

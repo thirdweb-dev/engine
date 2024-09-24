@@ -1,5 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import { constants } from "ethers";
+import { AddressSchema } from "../address";
 
 const MAX_BPS = 10000;
 
@@ -13,7 +14,7 @@ export const commonContractSchema = Type.Object({
 });
 
 export const splitRecipientInputSchema = Type.Object({
-  address: Type.String(),
+  address: AddressSchema,
   sharesBps: Type.Number({
     exclusiveMinimum: 0,
     maximum: MAX_BPS,
@@ -59,7 +60,7 @@ export const voteSettingsInputSchema = Type.Object({
     minimum: 1,
     default: 1,
   }),
-  voting_token_address: Type.String(),
+  voting_token_address: AddressSchema,
   voting_quorum_fraction: percentSchema,
   proposal_token_threshold: Type.String({
     default: "0",
@@ -95,6 +96,6 @@ export const prebuiltDeployContractParamSchema = Type.Object({
 export const prebuiltDeployResponseSchema = Type.Object({
   result: Type.Object({
     queueId: Type.Optional(Type.String()),
-    deployedAddress: Type.Optional(Type.String()),
+    deployedAddress: Type.Optional(AddressSchema),
   }),
 });

@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { AnyTransaction } from "../../../utils/transaction/types";
+import { AddressSchema } from "../address";
 
 export const TransactionSchema = Type.Object({
   queueId: Type.Union([
@@ -180,10 +181,10 @@ export const TransactionSchema = Type.Object({
     }),
     Type.Null(),
   ]),
-  signerAddress: Type.Union([Type.String(), Type.Null()]),
-  accountAddress: Type.Union([Type.String(), Type.Null()]),
-  target: Type.Union([Type.String(), Type.Null()]),
-  sender: Type.Union([Type.String(), Type.Null()]),
+  signerAddress: Type.Union([AddressSchema, Type.Null()]),
+  accountAddress: Type.Union([AddressSchema, Type.Null()]),
+  target: Type.Union([AddressSchema, Type.Null()]),
+  sender: Type.Union([AddressSchema, Type.Null()]),
   initCode: Type.Union([Type.String(), Type.Null()]),
   callData: Type.Union([Type.String(), Type.Null()]),
   callGasLimit: Type.Union([Type.String(), Type.Null()]),

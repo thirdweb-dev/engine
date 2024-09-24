@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../schema/wallet";
 import { getConfig } from "../../../utils/cache/getConfig";
 import { createCustomError } from "../../middleware/error";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
@@ -80,7 +81,7 @@ RequestBodySchema.examples = [
 
 const ResponseSchema = Type.Object({
   result: Type.Object({
-    walletAddress: Type.String(),
+    walletAddress: AddressSchema,
     status: Type.String(),
   }),
 });

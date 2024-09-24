@@ -1,7 +1,8 @@
 import { Type } from "@sinclair/typebox";
+import { AddressSchema } from "../address";
 
 export const sessionSchema = Type.Object({
-  signerAddress: Type.String(),
+  signerAddress: AddressSchema,
   startDate: Type.String(),
   expirationDate: Type.String(),
   nativeTokenLimitPerTransaction: Type.String(),

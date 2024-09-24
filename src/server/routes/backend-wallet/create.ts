@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../schema/wallet";
 import { getConfig } from "../../../utils/cache/getConfig";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { createAwsKmsWallet } from "../../utils/wallets/createAwsKmsWallet";
 import { createGcpKmsWallet } from "../../utils/wallets/createGcpKmsWallet";
@@ -14,7 +15,7 @@ const requestBodySchema = Type.Object({
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    walletAddress: Type.String(),
+    walletAddress: AddressSchema,
     status: Type.String(),
   }),
 });
