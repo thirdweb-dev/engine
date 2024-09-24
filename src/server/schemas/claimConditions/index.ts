@@ -33,7 +33,7 @@ export const claimConditionInputSchema = Type.Object({
         Type.Object({
           price: Type.Optional(Type.Union([Type.String(), Type.Number()])),
           currencyAddress: Type.Optional(AddressSchema),
-          address: Type.String(),
+          address: AddressSchema,
           maxClaimable: Type.Optional(
             Type.Union([Type.String(), Type.Number()]),
           ),
@@ -77,7 +77,7 @@ export const claimConditionOutputSchema = Type.Object({
         Type.Object({
           price: Type.Optional(Type.Union([Type.String(), Type.Number()])),
           currencyAddress: Type.Optional(AddressSchema),
-          address: Type.String(),
+          address: AddressSchema,
           maxClaimable: Type.Optional(
             Type.Union([Type.String(), Type.Number()]),
           ),
@@ -92,7 +92,7 @@ export const claimerProofSchema = Type.Union([
   Type.Object({
     price: Type.Optional(Type.String()),
     currencyAddress: Type.Optional(AddressSchema),
-    address: Type.String(),
+    address: AddressSchema,
     maxClaimable: Type.String(),
     proof: Type.Array(Type.String()),
   }),
