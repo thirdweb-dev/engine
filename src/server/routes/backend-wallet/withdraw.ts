@@ -2,19 +2,20 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  Hex,
-  estimateGasCost,
-  prepareTransaction,
-  sendTransaction,
+  toSerializableTransaction,
+  toTokens,
   type Address,
+  type Hex,
 } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { getWalletBalance } from "thirdweb/wallets";
 import { getAccount } from "../../../utils/account";
 import { getChain } from "../../../utils/chain";
+import { getChecksumAddress } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../schemas/address";
+import { TokenAmountStringSchema } from "../../schemas/number";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -37,6 +38,7 @@ const requestBodySchema = Type.Object({
 const responseBodySchema = Type.Object({
   result: Type.Object({
     transactionHash: TransactionHashSchema,
+    amount: TokenAmountStringSchema,
   }),
 });
 
@@ -71,29 +73,35 @@ export async function withdraw(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chainQuery);
       const chain = await getChain(chainId);
-      const from = walletAddress as Address;
+      const from = getChecksumAddress(walletAddress);
 
-      const account = await getAccount({ chainId, from });
-      const value = await getWithdrawValue({ chainId, from });
-
-      const transaction = prepareTransaction({
-        to: toAddress,
-        chain,
-        client: thirdwebClient,
-        value,
+      const populatedTransaction = await toSerializableTransaction({
+        from,
+        transaction: {
+          to: toAddress,
+          chain,
+          client: thirdwebClient,
+          data: "0x",
+          // Dummy value, replaced below.
+          value: 1n,
+        },
       });
 
+      // Compute the maximum amount to withdraw taking into account gas fees.
+      const value = await getWithdrawValue(from, populatedTransaction);
+      populatedTransaction.value = value;
+
+      const account = await getAccount({ chainId, from });
       let transactionHash: Hex | undefined;
       try {
-        const res = await sendTransaction({
-          account,
-          transaction,
-        });
+        const res = await account.sendTransaction(populatedTransaction);
         transactionHash = res.transactionHash;
       } catch (e) {
+        console.error("[DEBUG] e", e);
+
         const metadata = await getChainMetadata(chain);
         throw createCustomError(
-          `Insufficient ${metadata.nativeCurrency?.symbol} on ${metadata.name} in ${from}. Try again when gas is lower. See: https://portal.thirdweb.com/engine/troubleshooting`,
+          `Insufficient ${metadata.nativeCurrency?.symbol} on ${metadata.name} in ${from}. Try again when network gas fees are lower. See: https://portal.thirdweb.com/engine/troubleshooting`,
           StatusCodes.BAD_REQUEST,
           "INSUFFICIENT_FUNDS",
         );
@@ -102,18 +110,18 @@ export async function withdraw(fastify: FastifyInstance) {
       reply.status(StatusCodes.OK).send({
         result: {
           transactionHash,
+          amount: toTokens(value, 18),
         },
       });
     },
   });
 }
 
-const getWithdrawValue = async (args: {
-  chainId: number;
-  from: Address;
-}): Promise<bigint> => {
-  const { chainId, from } = args;
-  const chain = await getChain(chainId);
+const getWithdrawValue = async (
+  from: Address,
+  populatedTransaction: Awaited<ReturnType<typeof toSerializableTransaction>>,
+): Promise<bigint> => {
+  const chain = await getChain(populatedTransaction.chainId);
 
   // Get wallet balance.
   const { value: balanceWei } = await getWalletBalance({
@@ -122,17 +130,13 @@ const getWithdrawValue = async (args: {
     chain,
   });
 
-  // Estimate gas for a transfer.
-  const transaction = prepareTransaction({
-    chain,
-    client: thirdwebClient,
-    value: 1n, // dummy value
-    to: from, // dummy value
-  });
-  const { wei: transferCostWei } = await estimateGasCost({ transaction });
+  // Set the withdraw value to be the amount of gas that isn't reserved to send the transaction.
+  const gasPrice =
+    populatedTransaction.maxFeePerGas ?? populatedTransaction.gasPrice;
+  if (!gasPrice) {
+    throw new Error("Unable to estimate gas price for withdraw request.");
+  }
 
-  // Add a +50% buffer for gas variance.
-  const buffer = transferCostWei / 2n;
-
-  return balanceWei - transferCostWei - buffer;
+  const transferCostWei = populatedTransaction.gas * gasPrice;
+  return balanceWei - transferCostWei;
 };
