@@ -18,8 +18,7 @@ export const readRequestQuerySchema = Type.Object({
 });
 
 //make the type interface support a generic dictionary
-export interface readResponseSchema  {
-}
+export interface readResponseSchema {}
 
 export interface readSchema extends contractSchemaTypes {
   Querystring: Static<typeof readRequestQuerySchema>;
@@ -28,6 +27,7 @@ export interface readSchema extends contractSchemaTypes {
 const abiTypeSchema = Type.Object({
   type: Type.Optional(Type.String()),
   name: Type.Optional(Type.String()),
+  internalType: Type.Optional(Type.String()),
   stateMutability: Type.Optional(Type.String()),
   components: Type.Optional(
     Type.Array(
