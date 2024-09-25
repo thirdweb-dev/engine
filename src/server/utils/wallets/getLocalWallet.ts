@@ -12,80 +12,80 @@ import { badChainError } from "../../middleware/error";
 import { LocalFileStorage } from "../storage/localStorage";
 
 interface GetLocalWalletParams {
-	chainId: number;
-	walletAddress: string;
+  chainId: number;
+  walletAddress: string;
 }
 
 export const getLocalWallet = async ({
-	chainId,
-	walletAddress,
+  chainId,
+  walletAddress,
 }: GetLocalWalletParams) => {
-	const chainV5 = await getChain(chainId);
-	const chain = await getChainMetadata(chainV5);
-	if (!chain) {
-		throw badChainError(chainId);
-	}
+  const chainV5 = await getChain(chainId);
+  const chain = await getChainMetadata(chainV5);
+  if (!chain) {
+    throw badChainError(chainId);
+  }
 
-	const wallet = new LocalWallet({ chain });
+  const wallet = new LocalWallet({ chain });
 
-	// TODO: Remove this with next breaking change
-	try {
-		// First, try to load the wallet using the encryption password
-		await wallet.load({
-			strategy: "encryptedJson",
-			password: env.ENCRYPTION_PASSWORD,
-			storage: new LocalFileStorage(walletAddress),
-		});
-	} catch {
-		// If that fails, try the thirdweb api secret key for backwards compatibility
-		await wallet.load({
-			strategy: "encryptedJson",
-			password: env.THIRDWEB_API_SECRET_KEY,
-			storage: new LocalFileStorage(walletAddress),
-		});
+  // TODO: Remove this with next breaking change
+  try {
+    // First, try to load the wallet using the encryption password
+    await wallet.load({
+      strategy: "encryptedJson",
+      password: env.ENCRYPTION_PASSWORD,
+      storage: new LocalFileStorage(walletAddress),
+    });
+  } catch {
+    // If that fails, try the thirdweb api secret key for backwards compatibility
+    await wallet.load({
+      strategy: "encryptedJson",
+      password: env.THIRDWEB_API_SECRET_KEY,
+      storage: new LocalFileStorage(walletAddress),
+    });
 
-		// If that works, save the wallet using the encryption password for the future
-		const walletDetails = await getWalletDetails({ address: walletAddress });
-		if (!walletDetails) {
-			throw new Error(
-				`Wallet details not found for wallet address ${walletAddress}`,
-			);
-		}
+    // If that works, save the wallet using the encryption password for the future
+    const walletDetails = await getWalletDetails({ address: walletAddress });
+    if (!walletDetails) {
+      throw new Error(
+        `Wallet details not found for wallet address ${walletAddress}`,
+      );
+    }
 
-		logger({
-			service: "worker",
-			level: "info",
-			message: `[Encryption] Updating local wallet ${walletAddress} to use ENCRYPTION_PASSWORD`,
-		});
+    logger({
+      service: "worker",
+      level: "info",
+      message: `[Encryption] Updating local wallet ${walletAddress} to use ENCRYPTION_PASSWORD`,
+    });
 
-		await wallet.save({
-			strategy: "encryptedJson",
-			password: env.ENCRYPTION_PASSWORD,
-			storage: new LocalFileStorage(
-				walletAddress,
-				walletDetails.label ?? undefined,
-			),
-		});
-	}
+    await wallet.save({
+      strategy: "encryptedJson",
+      password: env.ENCRYPTION_PASSWORD,
+      storage: new LocalFileStorage(
+        walletAddress,
+        walletDetails.label ?? undefined,
+      ),
+    });
+  }
 
-	return wallet;
+  return wallet;
 };
 
 export const getLocalWalletAccount = async (
-	walletAddress: Address,
+  walletAddress: Address,
 ): Promise<Account> => {
-	const json = await new LocalFileStorage(walletAddress).getItem("");
-	if (!json) {
-		throw new Error(`Wallet not found for address ${walletAddress}`);
-	}
+  const json = await new LocalFileStorage(walletAddress).getItem("");
+  if (!json) {
+    throw new Error(`Wallet not found for address ${walletAddress}`);
+  }
 
-	const wallet = await Wallet.fromEncryptedJson(
-		JSON.parse(json).data,
-		env.ENCRYPTION_PASSWORD,
-	);
+  const wallet = await Wallet.fromEncryptedJson(
+    JSON.parse(json).data,
+    env.ENCRYPTION_PASSWORD,
+  );
 
-	return privateKeyToAccount({
-		client: thirdwebClient,
-		privateKey: wallet.privateKey,
-	});
+  return privateKeyToAccount({
+    client: thirdwebClient,
+    privateKey: wallet.privateKey,
+  });
 };
