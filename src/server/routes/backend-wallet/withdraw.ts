@@ -12,7 +12,7 @@ import { getWalletBalance } from "thirdweb/wallets";
 import { getAccount } from "../../../utils/account";
 import { getChain } from "../../../utils/chain";
 import { logger } from "../../../utils/logger";
-import { getChecksumAddress } from "../../../utils/primitiveTypes";
+import { getChecksumAddress, maybeBigInt } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../schemas/address";
@@ -21,6 +21,7 @@ import {
   requestQuerystringSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
+import { txOverridesSchema } from "../../schemas/txOverrides";
 import {
   walletHeaderSchema,
   walletWithAddressParamSchema,
@@ -34,6 +35,7 @@ const requestBodySchema = Type.Object({
     ...AddressSchema,
     description: "Address to withdraw all funds to",
   },
+  ...txOverridesSchema.properties,
 });
 
 const responseBodySchema = Type.Object({
@@ -68,7 +70,7 @@ export async function withdraw(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain: chainQuery } = request.params;
-      const { toAddress } = request.body;
+      const { toAddress, txOverrides } = request.body;
       const { "x-backend-wallet-address": walletAddress } =
         request.headers as Static<typeof walletHeaderSchema>;
 
@@ -86,17 +88,11 @@ export async function withdraw(fastify: FastifyInstance) {
           data: "0x",
           // Dummy value, replaced below.
           value: 1n,
+          gas: maybeBigInt(txOverrides?.gas),
+          maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+          maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
         },
       });
-      if (populatedTransaction.gasPrice) {
-        populatedTransaction.gasPrice *= 100n;
-      }
-      if (populatedTransaction.maxFeePerGas) {
-        populatedTransaction.maxFeePerGas *= 100n;
-      }
-      if (populatedTransaction.maxPriorityFeePerGas) {
-        populatedTransaction.maxPriorityFeePerGas *= 100n;
-      }
 
       // Compute the maximum amount to withdraw taking into account gas fees.
       const value = await getWithdrawValue(from, populatedTransaction);
