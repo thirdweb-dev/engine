@@ -5,6 +5,7 @@ import { prepareContractCall, resolveMethod } from "thirdweb";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
 import { maybeBigInt } from "../../../../utils/primitiveTypes";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
+import { createCustomError } from "../../../middleware/error";
 import { abiSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
@@ -76,7 +77,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = getContractV5({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
         abi,
@@ -87,9 +88,15 @@ export async function writeToContract(fastify: FastifyInstance) {
       // 2. functionName passed as function name + passed in ABI
       // 3. functionName passed as function name + inferred ABI (fetched at encode time)
       // this is all handled inside the `resolveMethod` function
+      let method;
+      try {
+        method = await resolveMethod(functionName)(contract);
+      } catch (e: any) {
+        throw createCustomError(`${e}`, StatusCodes.BAD_REQUEST, "BAD_REQUEST");
+      }
       const transaction = prepareContractCall({
         contract,
-        method: resolveMethod(functionName),
+        method,
         params: args,
         gas: maybeBigInt(txOverrides?.gas),
         value: maybeBigInt(txOverrides?.value),

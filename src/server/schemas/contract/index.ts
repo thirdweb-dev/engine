@@ -24,6 +24,7 @@ export interface readSchema extends contractSchemaTypes {
 const abiTypeSchema = Type.Object({
   type: Type.Optional(Type.String()),
   name: Type.Optional(Type.String()),
+  internalType: Type.Optional(Type.String()),
   stateMutability: Type.Optional(Type.String()),
   components: Type.Optional(
     Type.Array(
@@ -56,6 +57,7 @@ export const abiSchema = Type.Object({
   type: Type.String(),
   name: Type.Optional(Type.String()),
   inputs: Type.Array(abiTypeSchema),
+  outputs: Type.Array(abiTypeSchema),
   stateMutability: Type.Optional(Type.String()),
 });
 
