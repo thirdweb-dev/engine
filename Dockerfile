@@ -34,16 +34,32 @@ FROM base AS build
 # Install Python3-Pip
 RUN apt-get -y install python3-pip
 
-# Copy the entire project directory
+# Copy package.json and yarn.lock first to leverage Docker cache
+COPY package.json yarn.lock ./
+
+# Install all dependencies (including devDependencies)
+RUN yarn install --frozen-lockfile --production=false --network-timeout 1000000
+
+# Copy the rest of your code
 COPY . .
 
-# Install dependencies for both development and production (May need devDependencies to build)
 # Build the project
-# Prune dev dependencies from the packages
-RUN yarn install --frozen-lockfile --production=false --network-timeout 1000000 && \
-    yarn build && \
-    yarn copy-files && \
-    yarn install --frozen-lockfile --production=true --network-timeout 1000000
+RUN yarn build && \
+    yarn copy-files
+
+##############################
+##############################
+##############################
+##############################
+
+FROM base AS prod-deps
+
+WORKDIR /app
+
+COPY package.json yarn.lock ./
+
+# Install only production dependencies
+RUN yarn install --frozen-lockfile --production=true --network-timeout 1000000
 
 ##############################
 ##############################
@@ -61,7 +77,7 @@ ENV NODE_ENV="production" \
 
 COPY --from=certs /app/src/https ./dist/https
 COPY --from=build /app/package.json .
-COPY --from=build /app/node_modules ./node_modules
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/src/prisma/* ./src/prisma/
 COPY --from=build /app/dist ./dist
 
