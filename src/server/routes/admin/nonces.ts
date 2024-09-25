@@ -16,16 +16,17 @@ import {
 import { getChain } from "../../../utils/chain";
 import { redis } from "../../../utils/redis/redis";
 import { thirdwebClient } from "../../../utils/sdk";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletWithAddressParamSchema } from "../../schemas/wallet";
 
 export const responseBodySchema = Type.Object({
   result: Type.Array(
     Type.Object({
-      walletAddress: Type.String({
-        description: "Backend Wallet Address",
-        examples: ["0xcedf3b4d8f7f1f7e0f7f0f7f0f7f0f7f0f7f0f7f"],
-      }),
+      walletAddress: {
+        ...AddressSchema,
+        description: "Backend wallet address",
+      },
       chainId: Type.Number({
         description: "Chain ID",
         examples: [80002],

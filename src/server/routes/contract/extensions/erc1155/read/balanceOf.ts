@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 
 import { Static, Type } from "@sinclair/typebox";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
@@ -12,10 +13,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "Address of the wallet to check NFT balance",
-    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
-  }),
+  },
   tokenId: Type.String({
     description: "The tokenId of the NFT to check balance of",
     examples: ["0"],

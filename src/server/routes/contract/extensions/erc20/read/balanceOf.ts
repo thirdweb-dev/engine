@@ -1,8 +1,8 @@
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-
-import { Static, Type } from "@sinclair/typebox";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
   erc20ContractParamSchema,
@@ -13,10 +13,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const querystringSchema = Type.Object({
-  wallet_address: Type.String({
+  wallet_address: {
+    ...AddressSchema,
     description: "Address of the wallet to check token balance",
-    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
-  }),
+  },
 });
 
 // OUTPUT

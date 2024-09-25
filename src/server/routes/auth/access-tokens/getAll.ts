@@ -2,12 +2,13 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAccessTokens } from "../../../../db/tokens/getAccessTokens";
+import { AddressSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const AccessTokenSchema = Type.Object({
   id: Type.String(),
   tokenMask: Type.String(),
-  walletAddress: Type.String(),
+  walletAddress: AddressSchema,
   createdAt: Type.String(),
   expiresAt: Type.String(),
   label: Type.Union([Type.String(), Type.Null()]),

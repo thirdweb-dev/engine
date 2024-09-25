@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { Address } from "thirdweb";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { AddressSchema } from "../../schemas/address";
 import { contractDeployBasicSchema } from "../../schemas/contract";
 import {
   prebuiltDeployParamSchema,
@@ -42,7 +43,7 @@ requestBodySchema.examples = [
 // OUTPUT
 const responseSchema = Type.Object({
   queueId: Type.Optional(Type.String()),
-  deployedAddress: Type.Optional(Type.String()),
+  deployedAddress: Type.Optional(AddressSchema),
 });
 
 export async function deployPrebuilt(fastify: FastifyInstance) {

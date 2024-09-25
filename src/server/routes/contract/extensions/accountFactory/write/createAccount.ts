@@ -5,6 +5,7 @@ import { Address } from "thirdweb";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { redis } from "../../../../../../utils/redis/redis";
+import { AddressSchema } from "../../../../../schemas/address";
 import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
 import {
   contractParamSchema,
@@ -16,9 +17,10 @@ import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
-  adminAddress: Type.String({
+  adminAddress: {
+    ...AddressSchema,
     description: "The admin address to create an account for",
-  }),
+  },
   extraData: Type.Optional(
     Type.String({
       description: "Extra data to add to use in creating the account address",
@@ -96,7 +98,12 @@ export const createAccount = async (fastify: FastifyInstance) => {
 
       // Note: This is a temporary solution to cache the deployed address's factory for 7 days.
       // This is needed due to a potential race condition of submitting a transaction immediately after creating an account that is not yet mined onchain
-      await redis.set(`account-factory:${deployedAddress.toLowerCase()}`, contractAddress, 'EX', 7 * 24 * 60 * 60);
+      await redis.set(
+        `account-factory:${deployedAddress.toLowerCase()}`,
+        contractAddress,
+        "EX",
+        7 * 24 * 60 * 60,
+      );
 
       reply.status(StatusCodes.OK).send({
         result: {

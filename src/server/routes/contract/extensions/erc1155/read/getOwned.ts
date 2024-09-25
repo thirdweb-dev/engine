@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import { nftSchema } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
@@ -12,10 +13,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = erc1155ContractParamSchema;
 const querystringSchema = Type.Object({
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "Address of the wallet to get NFTs for",
-    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
-  }),
+  },
 });
 
 // OUTPUT
