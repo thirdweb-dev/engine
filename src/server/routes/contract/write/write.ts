@@ -1,8 +1,11 @@
 import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../db/transactions/queueTx";
-import { getContract } from "../../../../utils/cache/getContract";
+import { prepareContractCall, resolveMethod } from "thirdweb";
+import { getContractV5 } from "../../../../utils/cache/getContractv5";
+import { maybeBigInt } from "../../../../utils/primitiveTypes";
+import { queueTransaction } from "../../../../utils/transaction/queueTransation";
+import { createCustomError } from "../../../middleware/error";
 import { abiSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
@@ -13,6 +16,7 @@ import {
 import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
 import {
   maybeAddress,
+  requiredAddress,
   walletWithAAHeaderSchema,
 } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
@@ -66,39 +70,52 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { simulateTx } = request.query;
       const { functionName, args, txOverrides, abi } = request.body;
       const {
-        "x-backend-wallet-address": walletAddress,
+        "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-factory-address": accountFactoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
-        walletAddress,
-        accountAddress,
         abi,
       });
 
-      const tx = contract.prepare(functionName, args, {
-        value: txOverrides?.value,
-        gasLimit: txOverrides?.gas,
-        maxFeePerGas: txOverrides?.maxFeePerGas,
-        maxPriorityFeePerGas: txOverrides?.maxPriorityFeePerGas,
+      // 3 possible ways to get function from abi:
+      // 1. functionName passed as solidity signature
+      // 2. functionName passed as function name + passed in ABI
+      // 3. functionName passed as function name + inferred ABI (fetched at encode time)
+      // this is all handled inside the `resolveMethod` function
+      let method;
+      try {
+        method = await resolveMethod(functionName)(contract);
+      } catch (e: any) {
+        throw createCustomError(`${e}`, StatusCodes.BAD_REQUEST, "BAD_REQUEST");
+      }
+      const transaction = prepareContractCall({
+        contract,
+        method,
+        params: args,
+        gas: maybeBigInt(txOverrides?.gas),
+        value: maybeBigInt(txOverrides?.value),
+        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
+        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
       });
 
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
-        extension: "none",
-        idempotencyKey,
-        txOverrides,
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
+        toAddress: maybeAddress(contractAddress, "to"),
+        accountAddress: maybeAddress(accountAddress, "x-account-address"),
         accountFactoryAddress: maybeAddress(
           accountFactoryAddress,
           "x-account-factory-address",
         ),
+        txOverrides,
+        idempotencyKey,
+        shouldSimulate: simulateTx,
       });
 
       reply.status(StatusCodes.OK).send({

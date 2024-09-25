@@ -1,11 +1,13 @@
 import { Type } from "@sinclair/typebox";
+import { AddressSchema } from "../../address";
 import { nftMetadataSchema } from "../../nft";
-import { currencyValueSchema, Status } from "../../sharedApiSchemas";
+import { Status, currencyValueSchema } from "../../sharedApiSchemas";
 
 export const OfferV3InputSchema = Type.Object({
-  assetContractAddress: Type.String({
+  assetContractAddress: {
+    ...AddressSchema,
     description: "The address of the asset being listed.",
-  }),
+  },
   tokenId: Type.String({
     description: "The ID of the token to list.",
   }),
@@ -31,9 +33,10 @@ export const OfferV3InputSchema = Type.Object({
 });
 
 export const OfferV3OutputSchema = Type.Object({
-  assetContractAddress: Type.String({
+  assetContractAddress: {
+    ...AddressSchema,
     description: "The address of the asset being listed.",
-  }),
+  },
   tokenId: Type.String({
     description: "The ID of the token to list.",
   }),
@@ -51,9 +54,10 @@ export const OfferV3OutputSchema = Type.Object({
   id: Type.String({
     description: "The id of the offer.",
   }),
-  offerorAddress: Type.String({
+  offerorAddress: {
+    ...AddressSchema,
     description: "The address of the creator of offer.",
-  }),
+  },
   currencyValue: Type.Optional(currencyValueSchema),
   totalPrice: Type.String({
     description: "The total offer amount for the NFTs.",

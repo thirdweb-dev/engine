@@ -88,13 +88,13 @@ export const generateSignedUserOperation = async (
 
   // Create Unsigned UserOperation
   // Todo: Future expose a way to skip paymaster
-  let unsignedOp = await createUnsignedUserOp({
+  let unsignedOp = (await createUnsignedUserOp({
     transaction: userOpCall,
     accountContract: smartAccountContract,
     sponsorGas: true,
     factoryContract: accountFactoryContract,
     adminAddress: signerAddress,
-  });
+  })) as UserOperation; // TODO support entrypoint v0.7 accounts
 
   // Pass custom gas limit for UserOperation
   if (gas) {
@@ -109,7 +109,10 @@ export const generateSignedUserOperation = async (
       client: thirdwebClient,
     });
 
-    const paymasterAndData = paymasterResult.paymasterAndData;
+    const paymasterAndData =
+      "paymasterAndData" in paymasterResult
+        ? paymasterResult.paymasterAndData
+        : "0x";
     if (paymasterAndData && paymasterAndData !== "0x") {
       unsignedOp.paymasterAndData = paymasterAndData as Hex;
     }
@@ -122,11 +125,12 @@ export const generateSignedUserOperation = async (
   });
 
   // Sign UserOperation
-  const signedUserOp = await signUserOp({
+  const signedUserOp = (await signUserOp({
+    client: thirdwebClient,
     userOp: unsignedOp,
     adminAccount,
     chain,
-  });
+  })) as UserOperation; // TODO support entrypoint v0.7 accounts
 
   // Return Signed UserOperation
   return signedUserOp;

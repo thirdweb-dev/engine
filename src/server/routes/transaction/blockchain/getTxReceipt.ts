@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSdk } from "../../../../utils/cache/getSdk";
+import { AddressSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
@@ -27,7 +28,7 @@ export const responseBodySchema = Type.Object({
       Type.Object({
         to: Type.String(),
         from: Type.String(),
-        contractAddress: Type.Union([Type.String(), Type.Null()]),
+        contractAddress: Type.Union([AddressSchema, Type.Null()]),
         transactionIndex: Type.Number(),
         root: Type.String(),
         gasUsed: Type.String(),

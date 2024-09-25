@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { AddressSchema } from "../../address";
 import { nftMetadataSchema } from "../../nft";
 import { Status } from "../../sharedApiSchemas";
 
@@ -14,9 +15,10 @@ currencyValueSchema.description =
   "The `CurrencyValue` of the listing. Useful for displaying the price information.";
 
 export const englishAuctionInputSchema = Type.Object({
-  assetContractAddress: Type.String({
+  assetContractAddress: {
+    ...AddressSchema,
     description: "The address of the asset being listed.",
-  }),
+  },
   tokenId: Type.String({
     description: "The ID of the token to list.",
   }),
@@ -64,9 +66,10 @@ export const englishAuctionInputSchema = Type.Object({
 });
 
 export const englishAuctionOutputSchema = Type.Object({
-  assetContractAddress: Type.String({
+  assetContractAddress: {
+    ...AddressSchema,
     description: "The address of the asset being listed.",
-  }),
+  },
   tokenId: Type.String({
     description: "The ID of the token to list.",
   }),

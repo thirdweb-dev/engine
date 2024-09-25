@@ -97,8 +97,6 @@ export async function withdraw(fastify: FastifyInstance) {
         const res = await account.sendTransaction(populatedTransaction);
         transactionHash = res.transactionHash;
       } catch (e) {
-        console.error("[DEBUG] e", e);
-
         const metadata = await getChainMetadata(chain);
         throw createCustomError(
           `Insufficient ${metadata.nativeCurrency?.symbol} on ${metadata.name} in ${from}. Try again when network gas fees are lower. See: https://portal.thirdweb.com/engine/troubleshooting`,

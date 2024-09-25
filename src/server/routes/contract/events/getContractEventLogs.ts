@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getContractEventLogsByBlockAndTopics } from "../../../../db/contractEventLogs/getContractEventLogs";
 import { isContractSubscribed } from "../../../../db/contractSubscriptions/getContractSubscriptions";
 import { createCustomError } from "../../../middleware/error";
+import { AddressSchema } from "../../../schemas/address";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -21,7 +22,7 @@ const responseSchema = Type.Object({
     logs: Type.Array(
       Type.Object({
         chainId: Type.Number(),
-        contractAddress: Type.String(),
+        contractAddress: AddressSchema,
         blockNumber: Type.Number(),
         transactionHash: Type.String(),
         topics: Type.Array(Type.String()),

@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractEventLogsIndexedBlockRange } from "../../../../db/contractEventLogs/getContractEventLogs";
 import { createCustomError } from "../../../middleware/error";
+import { AddressSchema } from "../../../schemas/address";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -12,7 +13,7 @@ import { getChainIdFromChain } from "../../../utils/chain";
 const responseSchema = Type.Object({
   result: Type.Object({
     chain: Type.String(),
-    contractAddress: Type.String(),
+    contractAddress: AddressSchema,
     fromBlock: Type.Number(),
     toBlock: Type.Number(),
     status: Type.String(),

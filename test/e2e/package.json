@@ -10,9 +10,7 @@
   },
   "type": "module",
   "dependencies": {
-    "@thirdweb-dev/sdk": "^4.0.99",
-    "ethers": "5",
-    "thirdweb": "^5.43.2",
-    "viem": "^2.18.1"
+    "prool": "^0.0.16",
+    "thirdweb": "^5.43.2"
   }
 }

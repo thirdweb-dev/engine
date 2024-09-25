@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../../db/configuration/getConfiguration";
 import { getEventLogsByCursor } from "../../../../db/contractEventLogs/getContractEventLogs";
+import { AddressSchema } from "../../../schemas/address";
 import { eventLogSchema, toEventLogSchema } from "../../../schemas/eventLog";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
@@ -10,7 +11,7 @@ const requestQuerySchema = Type.Object({
   cursor: Type.Optional(Type.String()),
   pageSize: Type.Optional(Type.Number()),
   topics: Type.Optional(Type.Array(Type.String())),
-  contractAddresses: Type.Optional(Type.Array(Type.String())),
+  contractAddresses: Type.Optional(Type.Array(AddressSchema)),
 });
 
 const responseSchema = Type.Object({

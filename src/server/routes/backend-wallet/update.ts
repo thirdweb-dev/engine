@@ -2,16 +2,17 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateWalletDetails } from "../../../db/wallets/updateWalletDetails";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const requestBodySchema = Type.Object({
-  walletAddress: Type.String(),
+  walletAddress: AddressSchema,
   label: Type.Optional(Type.String()),
 });
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    walletAddress: Type.String(),
+    walletAddress: AddressSchema,
     status: Type.String(),
   }),
 });

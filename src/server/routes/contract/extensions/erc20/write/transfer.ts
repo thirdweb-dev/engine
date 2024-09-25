@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
@@ -17,9 +18,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-  toAddress: Type.String({
+  toAddress: {
+    ...AddressSchema,
     description: "Address of the wallet you want to send the tokens to",
-  }),
+  },
   amount: Type.String({
     description: "The amount of tokens you want to send",
   }),
