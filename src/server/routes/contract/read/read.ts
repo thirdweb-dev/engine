@@ -17,6 +17,18 @@ export async function readContract(fastify: FastifyInstance) {
       operationId: "read",
       ...partialRouteSchema,
       querystring: readRequestQuerySchema,
+      response: {
+        200: {
+          description: "Successful response",
+          type: "object",
+          properties: {
+            result: {
+              type: "object",
+              description: "The result of the contract function call",
+            },
+          },
+        },
+      }
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;

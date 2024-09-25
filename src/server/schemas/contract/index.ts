@@ -17,6 +17,10 @@ export const readRequestQuerySchema = Type.Object({
   ),
 });
 
+//make the type interface support a generic dictionary
+export interface readResponseSchema  {
+}
+
 export interface readSchema extends contractSchemaTypes {
   Querystring: Static<typeof readRequestQuerySchema>;
 }
