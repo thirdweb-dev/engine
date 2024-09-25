@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { Address, Hex } from "thirdweb";
 import { maybeBigInt } from "../../../utils/primitiveTypes";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
 import {
@@ -14,11 +15,7 @@ import { getChainIdFromChain } from "../../utils/chain";
 
 const requestBodySchema = Type.Array(
   Type.Object({
-    toAddress: Type.Optional(
-      Type.String({
-        examples: ["0x..."],
-      }),
-    ),
+    toAddress: Type.Optional(AddressSchema),
     data: Type.String({
       examples: ["0x..."],
     }),

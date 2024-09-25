@@ -1,4 +1,5 @@
 import superjson from "superjson";
+import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { AnyTransaction } from "../../utils/transaction/types";
 
@@ -37,9 +38,6 @@ export class TransactionDB {
   private static minedTransactionsKey = `transaction:mined`;
   private static cancelledTransactionsKey = `transaction:cancelled`;
   private static erroredTransactionsKey = `transaction:errored`;
-
-  // ioredis has limits over 100k+ (source: https://github.com/redis/ioredis/issues/801).
-  private static REDIS_BATCH_SIZE = 100_000;
 
   /**
    * Inserts or replaces a transaction details.
@@ -113,9 +111,13 @@ export class TransactionDB {
     }
 
     const result: AnyTransaction[] = [];
-    for (let i = 0; i < queueIds.length; i += this.REDIS_BATCH_SIZE) {
+    for (
+      let i = 0;
+      i < queueIds.length;
+      i += env.__EXPERIMENTAL_REDIS_BATCH_SIZE
+    ) {
       const keys = queueIds
-        .slice(i, i + this.REDIS_BATCH_SIZE)
+        .slice(i, i + env.__EXPERIMENTAL_REDIS_BATCH_SIZE)
         .map(this.transactionDetailsKey);
       const vals = await redis.mget(...keys);
 
@@ -139,9 +141,13 @@ export class TransactionDB {
     }
 
     let numDeleted = 0;
-    for (let i = 0; i < queueIds.length; i += this.REDIS_BATCH_SIZE) {
+    for (
+      let i = 0;
+      i < queueIds.length;
+      i += env.__EXPERIMENTAL_REDIS_BATCH_SIZE
+    ) {
       const keys = queueIds
-        .slice(i, i + this.REDIS_BATCH_SIZE)
+        .slice(i, i + env.__EXPERIMENTAL_REDIS_BATCH_SIZE)
         .map(this.transactionDetailsKey);
       numDeleted += await redis.unlink(...keys);
     }
@@ -177,10 +183,10 @@ export class TransactionDB {
       status === "mined"
         ? this.minedTransactionsKey
         : status === "cancelled"
-        ? this.cancelledTransactionsKey
-        : status === "errored"
-        ? this.erroredTransactionsKey
-        : this.queuedTransactionsKey;
+          ? this.cancelledTransactionsKey
+          : status === "errored"
+            ? this.erroredTransactionsKey
+            : this.queuedTransactionsKey;
 
     const queueIds = await redis.zrevrange(key, start, end);
     const transactions = await this.bulkGet(queueIds);

@@ -1,4 +1,5 @@
 import { Static, Type } from "@sinclair/typebox";
+import { AddressSchema } from "../address";
 
 export const erc20MetadataSchema = Type.Object({
   name: Type.String(),
@@ -84,10 +85,11 @@ export const signature20OutputSchema = Type.Object({
       The smart contract enforces on-chain that no uid gets used more than once, 
       which means you can deterministically generate the uid to prevent specific exploits.`,
   }),
-  currencyAddress: Type.String({
+  currencyAddress: {
+    ...AddressSchema,
     description:
       "The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS",
-  }),
+  },
   price: Type.String({
     description:
       "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",

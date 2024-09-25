@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -16,9 +17,10 @@ const responseBodySchema = Type.Object({
 });
 
 const QuerySchema = Type.Object({
-  signerAddress: Type.String({
+  signerAddress: {
+    ...AddressSchema,
     description: "The address of the signer to get associated accounts from",
-  }),
+  },
 });
 
 export const getAssociatedAccounts = async (fastify: FastifyInstance) => {

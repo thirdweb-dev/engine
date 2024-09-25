@@ -1,4 +1,4 @@
-import { Job, Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
 import { TransactionDB } from "../../db/transactions/db";
 import { pruneNonceMaps } from "../../db/wallets/nonceMap";
 import { env } from "../../utils/env";

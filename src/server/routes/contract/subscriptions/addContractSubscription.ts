@@ -12,6 +12,7 @@ import { getSdk } from "../../../../utils/cache/getSdk";
 import { getChain } from "../../../../utils/chain";
 import { thirdwebClient } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
+import { AddressSchema } from "../../../schemas/address";
 import {
   contractSubscriptionSchema,
   toContractSubscriptionSchema,
@@ -24,9 +25,10 @@ const bodySchema = Type.Object({
   chain: Type.String({
     description: "The chain for the contract.",
   }),
-  contractAddress: Type.String({
+  contractAddress: {
+    ...AddressSchema,
     description: "The address for the contract.",
-  }),
+  },
   webhookUrl: Type.Optional(
     Type.String({
       description: "Webhook URL",

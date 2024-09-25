@@ -10,5 +10,8 @@
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "[prisma]": {
     "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
   }
 }
