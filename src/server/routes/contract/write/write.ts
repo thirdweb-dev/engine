@@ -22,19 +22,35 @@ const writeRequestBodySchema = Type.Object({
   functionName: Type.String({
     description: "The function to call on the contract",
   }),
-  args: Type.Array(
-    Type.Union([
-      Type.String({
-        description: "The arguments to call on the function",
-      }),
-      Type.Tuple([Type.String(), Type.String()]),
-      Type.Object({}),
-      Type.Array(Type.Any()),
-      Type.Any(),
-    ]),
-  ),
+  args: Type.Array(Type.Any(), {
+    description: "The arguments to call on the function",
+  }),
   ...txOverridesWithValueSchema.properties,
-  abi: Type.Optional(Type.Array(abiSchema)),
+  abi: Type.Optional(Type.Array(Type.Object({
+    type: Type.String(),
+    name: Type.Optional(Type.String()),
+    inputs: Type.Optional(Type.Array(Type.Object({
+      type: Type.Optional(Type.String()),
+      name: Type.Optional(Type.String()),
+      stateMutability: Type.Optional(Type.String()),
+      components: Type.Optional(Type.Array(Type.Object({
+        type: Type.Optional(Type.String()),
+        name: Type.Optional(Type.String()),
+        internalType: Type.Optional(Type.String()),
+      }))),
+    }))),
+    outputs: Type.Optional(Type.Array(Type.Object({
+      type: Type.Optional(Type.String()),
+      name: Type.Optional(Type.String()),
+      stateMutability: Type.Optional(Type.String()),
+      components: Type.Optional(Type.Array(Type.Object({
+        type: Type.Optional(Type.String()),
+        name: Type.Optional(Type.String()),
+        internalType: Type.Optional(Type.String()),
+      }))),
+    }))),
+    stateMutability: Type.Optional(Type.String()),
+  }))),
 });
 
 // LOGIC
@@ -55,11 +71,10 @@ export async function writeToContract(fastify: FastifyInstance) {
       params: contractParamSchema,
       headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
+      body: writeRequestBodySchema,
       response: {
-        ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
-      body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;

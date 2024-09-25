@@ -3,7 +3,6 @@ import { FastifyInstance } from "fastify";
 
 export const withOpenApi = async (server: FastifyInstance) => {
   await server.register(swagger, {
-    // mode: ,
     openapi: {
       info: {
         title: "thirdweb Engine",
@@ -30,10 +29,15 @@ export const withOpenApi = async (server: FastifyInstance) => {
         },
       ],
     },
+    refResolver: {
+      buildLocalReference(json, baseUri, fragment, i) {
+        return json.$id || `def-${i}`;
+      },
+    },
   });
 
   // Exports the /json endpoint without the Swagger UI.
-   server.get("/json", {}, async (_, res) => {
+  server.get("/json", {}, async (_, res) => {
     res.send(server.swagger());
   });
 };
