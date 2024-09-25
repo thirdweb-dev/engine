@@ -37,11 +37,11 @@ RUN apt-get -y install python3-pip
 # Copy package.json and yarn.lock first to leverage Docker cache
 COPY package.json yarn.lock ./
 
-# Install all dependencies (including devDependencies)
-RUN yarn install --frozen-lockfile --production=false --network-timeout 1000000
-
 # Copy the rest of your code
 COPY . .
+
+# Install all dependencies (including devDependencies)
+RUN yarn install --frozen-lockfile --production=false --network-timeout 1000000
 
 # Build the project
 RUN yarn build && \
