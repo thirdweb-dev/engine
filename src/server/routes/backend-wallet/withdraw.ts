@@ -11,6 +11,7 @@ import { getChainMetadata } from "thirdweb/chains";
 import { getWalletBalance } from "thirdweb/wallets";
 import { getAccount } from "../../../utils/account";
 import { getChain } from "../../../utils/chain";
+import { logger } from "../../../utils/logger";
 import { getChecksumAddress } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { createCustomError } from "../../middleware/error";
@@ -75,6 +76,7 @@ export async function withdraw(fastify: FastifyInstance) {
       const chain = await getChain(chainId);
       const from = getChecksumAddress(walletAddress);
 
+      // Populate a transfer transaction with 2x gas.
       const populatedTransaction = await toSerializableTransaction({
         from,
         transaction: {
@@ -86,6 +88,15 @@ export async function withdraw(fastify: FastifyInstance) {
           value: 1n,
         },
       });
+      if (populatedTransaction.gasPrice) {
+        populatedTransaction.gasPrice *= 100n;
+      }
+      if (populatedTransaction.maxFeePerGas) {
+        populatedTransaction.maxFeePerGas *= 100n;
+      }
+      if (populatedTransaction.maxPriorityFeePerGas) {
+        populatedTransaction.maxPriorityFeePerGas *= 100n;
+      }
 
       // Compute the maximum amount to withdraw taking into account gas fees.
       const value = await getWithdrawValue(from, populatedTransaction);
@@ -97,6 +108,12 @@ export async function withdraw(fastify: FastifyInstance) {
         const res = await account.sendTransaction(populatedTransaction);
         transactionHash = res.transactionHash;
       } catch (e) {
+        logger({
+          level: "warn",
+          message: `Error withdrawing funds: ${e}`,
+          service: "server",
+        });
+
         const metadata = await getChainMetadata(chain);
         throw createCustomError(
           `Insufficient ${metadata.nativeCurrency?.symbol} on ${metadata.name} in ${from}. Try again when network gas fees are lower. See: https://portal.thirdweb.com/engine/troubleshooting`,

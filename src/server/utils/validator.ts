@@ -1,10 +1,7 @@
-import type { Static } from "@sinclair/typebox";
+import { Static } from "@sinclair/typebox";
 import { createCustomDateTimestampError } from "../middleware/error";
-import type {
-  erc20ResponseType,
-  signature20InputSchema,
-} from "../schemas/erc20";
-import type {
+import { erc20ResponseType, signature20InputSchema } from "../schemas/erc20";
+import {
   ercNFTResponseType,
   signature1155InputSchema,
   signature721InputSchema,
