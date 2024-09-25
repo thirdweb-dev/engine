@@ -6,8 +6,10 @@ on:
 
 jobs:
   buildImageForNewTag:
-    runs-on: ubuntu-latest-32
-    # Set environment variables
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
     env:
       LATEST_TAG: ${{ (github.event.release.target_commitish == 'main') && 'thirdweb/engine:latest' || '' }}
 
@@ -15,7 +17,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          # Fetches the branch at which the release was made
           ref: ${{ github.event.release.target_commitish }}
 
       - name: Set up Docker Buildx
@@ -32,12 +33,37 @@ jobs:
         with:
           context: .
           target: prod
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: |
-            thirdweb/engine:${{ github.event.release.tag_name }}
-            ${{ env.LATEST_TAG }}
+          tags: thirdweb/engine:${{ github.event.release.tag_name }}-${{ matrix.platform }}
           build-args: |
             ENGINE_VERSION=${{ github.event.release.tag_name }}
+
+  merge-manifests:
+    needs: buildImageForNewTag
+    runs-on: ubuntu-latest
+    env:
+      LATEST_TAG: ${{ (github.event.release.target_commitish == 'main') && 'thirdweb/engine:latest' || '' }}
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Create and Push Multi-arch Manifest
+        run: |
+          docker manifest create thirdweb/engine:${{ github.event.release.tag_name }} \
+            thirdweb/engine:${{ github.event.release.tag_name }}-linux/amd64 \
+            thirdweb/engine:${{ github.event.release.tag_name }}-linux/arm64
+          docker manifest push thirdweb/engine:${{ github.event.release.tag_name }}
+
+      - name: Create and Push Latest Tag (if applicable)
+        if: ${{ env.LATEST_TAG != '' }}
+        run: |
+          docker manifest create thirdweb/engine:latest \
+            thirdweb/engine:${{ github.event.release.tag_name }}-linux/amd64 \
+            thirdweb/engine:${{ github.event.release.tag_name }}-linux/arm64
+          docker manifest push thirdweb/engine:latest
