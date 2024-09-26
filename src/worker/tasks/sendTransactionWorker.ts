@@ -279,10 +279,9 @@ const _resendTransaction = async (
       gasPrice: undefined,
       maxFeePerGas: undefined,
       maxPriorityFeePerGas: undefined,
+      extraGas: env.__EXPERIMENTAL_EXTRA_GAS,
     },
   });
-  // Add +50% to gas estimate.
-  populatedTransaction.gas = (populatedTransaction.gas * 15n) / 10n;
   if (populatedTransaction.gasPrice) {
     populatedTransaction.gasPrice *= 2n;
   }
@@ -436,10 +435,9 @@ export const getPopulatedOrErroredTransaction = async (
         to: getChecksumAddress(to),
         // if transaction is EOA, we stub the nonce to reduce RPC calls
         nonce: queuedTransaction.isUserOp ? undefined : 1,
+        extraGas: env.__EXPERIMENTAL_EXTRA_GAS,
       },
     });
-    // Add +20% to gas estimate.
-    populatedTransaction.gas = (populatedTransaction.gas * 12n) / 10n;
 
     return [populatedTransaction, undefined];
   } catch (e: unknown) {

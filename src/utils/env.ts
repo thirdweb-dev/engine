@@ -79,6 +79,9 @@ export const env = createEnv({
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
     DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
+    // Sets the default extra gas that is added to a transaction's gas estimate.
+    // @experimental: This will be removed in a future minor version change.
+    __EXPERIMENTAL_EXTRA_GAS: z.coerce.bigint().default(10_000n),
 
     // Prometheus
     METRICS_PORT: z.coerce.number().default(4001),
@@ -93,6 +96,7 @@ export const env = createEnv({
     // Sets the max batch Redis will handle in batch operations like MGET and UNLINK.
     // This will be removed if a consistent batch size works for all use cases.
     // ioredis has issues with batches over 100k+ (source: https://github.com/redis/ioredis/issues/801).
+    // @experimental: This will be removed in a future minor version change.
     __EXPERIMENTAL_REDIS_BATCH_SIZE: z.coerce.number().default(50_000),
     // Sets the number of recent transactions to store. Older transactions are pruned periodically.
     // In testing, 100k transactions consumes ~300mb memory.
@@ -132,6 +136,7 @@ export const env = createEnv({
       process.env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
     CONFIRM_TRANSACTION_QUEUE_CONCURRENCY:
       process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
+    __EXPERIMENTAL_EXTRA_GAS: process.env.__EXPERIMENTAL_EXTRA_GAS,
     ENGINE_MODE: process.env.ENGINE_MODE,
     REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
     __EXPERIMENTAL_REDIS_BATCH_SIZE:
