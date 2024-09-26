@@ -1,20 +1,16 @@
 import { sleep } from "bun";
-import { beforeAll } from "bun:test";
+import { afterAll, beforeAll } from "bun:test";
 import {
   createChain,
   getEngineBackendWallet,
-  setWalletBalance,
   setupEngine,
 } from "../utils/engine";
 
 import type { Address } from "viem";
 import { CONFIG } from "../config";
-import { setupAnvil } from "../utils/anvil";
-import { setupPublicClient, setupTestClient } from "../utils/viem";
+import { startAnvil, stopAnvil } from "../utils/anvil";
 
 type SetupResult = {
-  testClient?: ReturnType<typeof setupTestClient>;
-  publicClient: ReturnType<typeof setupPublicClient>;
   engine: ReturnType<typeof setupEngine>;
   backendWallet: Address;
 };
@@ -26,25 +22,26 @@ export const setup = async (): Promise<SetupResult> => {
     return cachedSetup;
   }
 
-  const publicClient = setupPublicClient();
   const engine = setupEngine();
   const backendWallet = await getEngineBackendWallet(engine);
-  let testClient;
+  await engine.backendWallet.resetNonces();
 
   if (CONFIG.USE_LOCAL_CHAIN) {
-    setupAnvil();
+    startAnvil();
 
-    testClient = setupTestClient();
     await createChain(engine);
-    await setWalletBalance(backendWallet, CONFIG.INITIAL_BALANCE);
     await sleep(1000); // wait for chain to start producing blocks
   }
 
-  cachedSetup = { testClient, publicClient, engine, backendWallet };
+  cachedSetup = { engine, backendWallet };
   return cachedSetup;
 };
 
 // Run setup once before all tests
 beforeAll(async () => {
   await setup();
+});
+
+afterAll(async () => {
+  await stopAnvil();
 });

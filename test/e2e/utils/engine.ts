@@ -1,8 +1,7 @@
-import { getAddress, parseEther, type Address } from "viem";
+import { getAddress } from "viem";
 import { Engine } from "../../../sdk";
 import { CONFIG } from "../config";
-import { getSlugFromChainName } from "./chain";
-import { setupTestClient } from "./viem";
+import { ANVIL_PKEY_A, TEST_ACCOUNT_A } from "./wallets";
 
 export const setupEngine = () => {
   return new Engine({
@@ -27,7 +26,7 @@ export const createChain = async (engine: Engine) => {
   await engine.configuration.updateChainsConfiguration({
     chainOverrides: [
       {
-        chain: getSlugFromChainName(CONFIG.CHAIN.name),
+        chain: CONFIG.CHAIN.name || "Anvil",
         chainId: CONFIG.CHAIN.id,
         name: "Anvil",
         nativeCurrency: {
@@ -35,7 +34,7 @@ export const createChain = async (engine: Engine) => {
           name: "Anvil Ether",
           symbol: "ETH",
         },
-        rpc: [...CONFIG.CHAIN.rpcUrls.default.http],
+        rpc: [CONFIG.CHAIN.rpc],
         slug: "anvil",
       },
     ],
@@ -46,10 +45,12 @@ export const createChain = async (engine: Engine) => {
 
 export const getEngineBackendWallet = async (engine: Engine) => {
   const res = await engine.backendWallet.getAll();
-  if (res.result.length === 0) {
+  if (
+    !res.result.find((r) => r.address.toLowerCase() === TEST_ACCOUNT_A.address)
+  ) {
     console.log("Creating backend wallet");
-    const newWallet = await engine.backendWallet.create({
-      label: "Backend Wallet",
+    const newWallet = await engine.backendWallet.import({
+      privateKey: ANVIL_PKEY_A,
     });
     console.log("Created new wallet", newWallet.result.walletAddress);
 
@@ -58,16 +59,4 @@ export const getEngineBackendWallet = async (engine: Engine) => {
 
   console.log("Using existing wallet", res.result[0].address);
   return getAddress(res.result[0].address);
-};
-
-export const setWalletBalance = async (
-  walletAddress: Address,
-  amount: string,
-) => {
-  const client = setupTestClient();
-  await client.setBalance({
-    address: walletAddress,
-    value: parseEther(amount),
-  });
-  console.log(`Set balance of ${walletAddress} to ${amount} ETH`);
 };
