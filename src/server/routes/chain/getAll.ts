@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import { fetchChains } from "@thirdweb-dev/chains";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
