@@ -1,10 +1,21 @@
-import { FastifyInstance } from "fastify";
+import { Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../utils/cache/getContract";
-import { readRequestQuerySchema, readSchema } from "../../../schemas/contract";
-import { partialRouteSchema } from "../../../schemas/sharedApiSchemas";
+import {
+  readRequestQuerySchema,
+  type readSchema,
+} from "../../../schemas/contract";
+import {
+  partialRouteSchema,
+  standardResponseSchema,
+} from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { bigNumberReplacer } from "../../../utils/convertor";
+
+const responseSchema = Type.Object({
+  result: Type.Any(),
+});
 
 export async function readContract(fastify: FastifyInstance) {
   fastify.route<readSchema>({
@@ -17,6 +28,10 @@ export async function readContract(fastify: FastifyInstance) {
       operationId: "read",
       ...partialRouteSchema,
       querystring: readRequestQuerySchema,
+      response: {
+        ...standardResponseSchema,
+        [StatusCodes.OK]: responseSchema,
+      },
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
@@ -31,11 +46,11 @@ export async function readContract(fastify: FastifyInstance) {
       const parsedArgs = args?.split(",").map((arg) => {
         if (arg === "true") {
           return true;
-        } else if (arg === "false") {
-          return false;
-        } else {
-          return arg;
         }
+        if (arg === "false") {
+          return false;
+        }
+        return arg;
       });
 
       let returnData = await contract.call(functionName, parsedArgs ?? []);
