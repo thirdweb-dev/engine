@@ -1,4 +1,4 @@
-name: Build on Main Merge
+name: Build Nightly on Main Merge
 
 on:
   push:
@@ -15,8 +15,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          ref: main
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -34,9 +32,13 @@ jobs:
           target: prod
           platforms: ${{ matrix.platform }}
           push: true
+          cache-from: |
+            type=gha,scope=${{ matrix.platform }}
+            type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }}
+          cache-to: |
+            type=gha,scope=${{ matrix.platform }},mode=max
+            type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }},mode=max
           tags: thirdweb/engine:nightly-${{ matrix.platform }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           build-args: |
             ENGINE_VERSION=nightly
 
@@ -50,7 +52,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Create and Push Multi-arch Manifest
+      - name: Create and Push Multi-arch Manifest (nightly)
         run: |
           docker manifest create thirdweb/engine:nightly \
             thirdweb/engine:nightly-linux/amd64 \

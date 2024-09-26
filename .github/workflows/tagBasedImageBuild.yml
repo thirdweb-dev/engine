@@ -35,8 +35,12 @@ jobs:
           target: prod
           platforms: ${{ matrix.platform }}
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: |
+            type=gha,scope=${{ matrix.platform }}
+            type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }}
+          cache-to: |
+            type=gha,scope=${{ matrix.platform }},mode=max
+            type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }},mode=max
           tags: thirdweb/engine:${{ github.event.release.tag_name }}-${{ matrix.platform }}
           build-args: |
             ENGINE_VERSION=${{ github.event.release.tag_name }}
