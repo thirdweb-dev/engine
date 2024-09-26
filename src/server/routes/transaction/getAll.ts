@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
 import { PaginationSchema } from "../../schemas/pagination";
@@ -97,7 +97,7 @@ export async function getAllTransactions(fastify: FastifyInstance) {
       summary: "Get all transactions",
       description: "Get all transaction requests.",
       tags: ["Transaction"],
-      operationId: "getAll",
+      operationId: "listTransactions",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,

@@ -1,4 +1,4 @@
-import { Chain, defineChain } from "thirdweb";
+import { defineChain, type Chain } from "thirdweb";
 import { getConfig } from "./cache/getConfig";
 
 /**

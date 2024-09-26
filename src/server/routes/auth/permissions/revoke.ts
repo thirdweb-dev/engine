@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { deletePermissions } from "../../../../db/permissions/deletePermissions";
 import { AddressSchema } from "../../../schemas/address";
@@ -26,7 +26,7 @@ export async function revokePermissions(fastify: FastifyInstance) {
       summary: "Revoke permissions from user",
       description: "Revoke a user's permissions",
       tags: ["Permissions"],
-      operationId: "revoke",
+      operationId: "revokeAdmin",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -38,7 +38,7 @@ export async function revokePermissions(fastify: FastifyInstance) {
       await deletePermissions({
         walletAddress,
       });
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

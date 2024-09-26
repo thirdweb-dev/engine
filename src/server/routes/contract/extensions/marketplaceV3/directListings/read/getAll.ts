@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import { directListingV3OutputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
@@ -72,7 +72,7 @@ export async function directListingsGetAll(fastify: FastifyInstance) {
       summary: "Get all listings",
       description: "Get all direct listings for this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "getAll",
+      operationId: "getAllDirectListings",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

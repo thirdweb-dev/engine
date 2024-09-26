@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
@@ -72,7 +72,7 @@ export async function offersGetAllValid(fastify: FastifyInstance) {
       description:
         "Get all valid offers on this marketplace contract. Valid offers are offers that have not expired, been canceled, or been accepted.",
       tags: ["Marketplace-Offers"],
-      operationId: "getAllValid",
+      operationId: "getAllValidMarketplaceOffers",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

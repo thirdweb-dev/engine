@@ -43,7 +43,7 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
       description:
         "Update a single claim phase, by providing the index of the claim phase and the new phase configuration. The index is the position of the phase in the list of phases you have made, starting from zero. e.g. if you have two phases, the first phase has an index of 0 and the second phase has an index of 1. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.",
       tags: ["ERC721"],
-      operationId: "updateClaimConditions",
+      operationId: "erc721-updateClaimConditions",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

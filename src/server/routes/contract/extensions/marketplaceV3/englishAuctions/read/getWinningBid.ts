@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import { bidSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
@@ -41,7 +41,7 @@ export async function englishAuctionsGetWinningBid(fastify: FastifyInstance) {
       summary: "Get winning bid",
       description: "Get the current highest bid of an active auction.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "getWinningBid",
+      operationId: "getEnglishAuctionsWinningBid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

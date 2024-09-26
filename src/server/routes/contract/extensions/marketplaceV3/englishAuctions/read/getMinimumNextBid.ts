@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import {
@@ -45,7 +45,7 @@ export async function englishAuctionsGetMinimumNextBid(
 If there is no current bid, the bid must be at least the minimum bid amount.
 If there is a current bid, the bid must be at least the current bid amount + the bid buffer.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "getMinimumNextBid",
+      operationId: "getEnglishAuctionsMinimumNextBid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {
@@ -61,9 +61,8 @@ If there is a current bid, the bid must be at least the current bid amount + the
         chainId,
         contractAddress,
       });
-      const result = await contract.englishAuctions.getMinimumNextBid(
-        listingId,
-      );
+      const result =
+        await contract.englishAuctions.getMinimumNextBid(listingId);
 
       reply.status(StatusCodes.OK).send({
         result: {

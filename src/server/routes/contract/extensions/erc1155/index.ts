@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { erc1155BalanceOf } from "./read/balanceOf";
 import { erc1155CanClaim } from "./read/canClaim";
 import { erc1155Get } from "./read/get";

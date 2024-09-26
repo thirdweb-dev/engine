@@ -1,5 +1,5 @@
 import swagger from "@fastify/swagger";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 
 export const withOpenApi = async (server: FastifyInstance) => {
   await server.register(swagger, {

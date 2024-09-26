@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import { buildJWT } from "@thirdweb-dev/auth";
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { createToken } from "../../../../db/tokens/createToken";
@@ -16,12 +16,10 @@ const requestBodySchema = Type.Object({
 });
 
 const responseBodySchema = Type.Object({
-  result: Type.Composite([
-    AccessTokenSchema,
-    Type.Object({
-      accessToken: Type.String(),
-    }),
-  ]),
+  result: Type.Object({
+    ...AccessTokenSchema.properties,
+    accessToken: Type.String(),
+  }),
 });
 
 export async function createAccessToken(fastify: FastifyInstance) {
@@ -35,7 +33,7 @@ export async function createAccessToken(fastify: FastifyInstance) {
       summary: "Create a new access token",
       description: "Create a new access token",
       tags: ["Access Tokens"],
-      operationId: "create",
+      operationId: "createAccessToken",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -91,7 +89,7 @@ export async function createAccessToken(fastify: FastifyInstance) {
 
       accessTokenCache.clear();
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           ...token,
           createdAt: token.createdAt.toISOString(),

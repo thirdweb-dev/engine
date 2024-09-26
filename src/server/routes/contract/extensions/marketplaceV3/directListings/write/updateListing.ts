@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -44,7 +44,7 @@ export async function directListingsUpdateListing(fastify: FastifyInstance) {
       summary: "Update direct listing",
       description: "Update a direct listing on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "updateListing",
+      operationId: "updateDirectListing",
       headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,

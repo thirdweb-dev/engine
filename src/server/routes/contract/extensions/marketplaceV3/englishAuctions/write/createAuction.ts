@@ -1,5 +1,5 @@
-import { Static } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import type { Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -46,7 +46,7 @@ export async function englishAuctionsCreateAuction(fastify: FastifyInstance) {
       description:
         "Create an English auction listing on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "createAuction",
+      operationId: "createEnglishAuction",
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,

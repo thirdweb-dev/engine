@@ -1,19 +1,14 @@
-import { Static, Type } from "@sinclair/typebox";
-import {
-  Chain,
-  getChainByChainIdAsync,
-  getChainBySlugAsync,
-  minimizeChain,
-} from "@thirdweb-dev/chains";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfig } from "../../../utils/cache/getConfig";
-import { createCustomError } from "../../middleware/error";
+import { getChainMetadata } from "thirdweb/chains";
+import { getChain } from "../../../utils/chain";
 import {
   chainRequestQuerystringSchema,
   chainResponseSchema,
 } from "../../schemas/chain";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { getChainIdFromChain } from "../../utils/chain";
 
 // OUTPUT
 const responseSchema = Type.Object({
@@ -31,7 +26,7 @@ responseSchema.examples = [
         symbol: "MATIC",
         decimals: 18,
       },
-      shortName: "polygonamoy",
+      shortName: "amoy",
       chainId: 80002,
       testnet: true,
       slug: "polygon-amoy-testnet",
@@ -51,7 +46,7 @@ export async function getChainData(fastify: FastifyInstance) {
       summary: "Get chain details",
       description: "Get details about a chain.",
       tags: ["Chain"],
-      operationId: "get",
+      operationId: "getChain",
       querystring: chainRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -60,37 +55,15 @@ export async function getChainData(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.query;
-      const config = await getConfig();
 
-      let chainData: Chain | null = null;
-      if (config.chainOverrides) {
-        chainData = JSON.parse(config.chainOverrides).find(
-          (dt: Chain) => dt.slug === chain || dt.chainId === parseInt(chain),
-        );
-      }
-
-      if (!chainData) {
-        chainData = await getChainBySlugAsync(chain);
-        if (!chainData) {
-          chainData = await getChainByChainIdAsync(parseInt(chain));
-        }
-      }
-
-      if (!chainData) {
-        const error = createCustomError(
-          "Chain not found",
-          StatusCodes.NOT_FOUND,
-          "ChainNotFound",
-        );
-        throw error;
-      }
-
-      const minimizeChainData = minimizeChain(chainData);
+      const chainId = await getChainIdFromChain(chain);
+      const chainV5 = await getChain(chainId);
+      const chainMetadata = await getChainMetadata(chainV5);
 
       reply.status(StatusCodes.OK).send({
         result: {
-          ...minimizeChainData,
-          rpc: [chainData.rpc.length === 0 ? "" : minimizeChainData.rpc[0]],
+          ...chainMetadata,
+          rpc: [...chainMetadata.rpc],
         },
       });
     },

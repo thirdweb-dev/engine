@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import {
@@ -35,7 +35,7 @@ export async function directListingsGetTotalCount(fastify: FastifyInstance) {
       description:
         "Get the total number of direct listings on this marketplace contract.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "getTotalCount",
+      operationId: "getDirectListingsTotalCount",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

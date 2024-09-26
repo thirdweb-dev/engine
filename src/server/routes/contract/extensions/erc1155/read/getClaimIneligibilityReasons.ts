@@ -1,6 +1,6 @@
-import { Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import { ClaimEligibility } from "@thirdweb-dev/sdk";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
@@ -48,7 +48,7 @@ export async function erc1155GetClaimIneligibilityReasons(
       description:
         "Get an array of reasons why a specific wallet address is not eligible to claim tokens, if any.",
       tags: ["ERC1155"],
-      operationId: "getClaimIneligibilityReasons",
+      operationId: "erc1155-getClaimIneligibilityReasons",
       params: requestSchema,
       querystring: requestQueryString,
       response: {

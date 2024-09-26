@@ -41,7 +41,7 @@ export async function erc721SetClaimConditions(fastify: FastifyInstance) {
       description:
         "Overwrite the claim conditions for the drop. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.",
       tags: ["ERC721"],
-      operationId: "setClaimConditions",
+      operationId: "erc721-setClaimConditions",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

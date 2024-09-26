@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -43,7 +43,7 @@ export async function offersAcceptOffer(fastify: FastifyInstance) {
       summary: "Accept offer",
       description: "Accept a valid offer.",
       tags: ["Marketplace-Offers"],
-      operationId: "acceptOffer",
+      operationId: "acceptMarketplaceOffer",
       headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,

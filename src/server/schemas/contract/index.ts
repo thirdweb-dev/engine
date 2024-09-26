@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { contractSchemaTypes } from "../sharedApiSchemas";
+import { Type, type Static } from "@sinclair/typebox";
+import type { contractSchemaTypes } from "../sharedApiSchemas";
 
 /**
  * Basic schema for all Request Query String

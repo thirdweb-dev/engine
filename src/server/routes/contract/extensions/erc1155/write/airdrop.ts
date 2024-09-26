@@ -63,7 +63,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
       summary: "Airdrop tokens",
       description: "Airdrop ERC-1155 tokens to specific wallets.",
       tags: ["ERC1155"],
-      operationId: "airdrop",
+      operationId: "erc1155-airdrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

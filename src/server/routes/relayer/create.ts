@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
 import { AddressSchema } from "../../schemas/address";
@@ -45,7 +45,7 @@ export async function createRelayer(fastify: FastifyInstance) {
       summary: "Create a new meta-transaction relayer",
       description: "Create a new meta-transaction relayer",
       tags: ["Relayer"],
-      operationId: "create",
+      operationId: "createRelayer",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -80,7 +80,7 @@ export async function createRelayer(fastify: FastifyInstance) {
         },
       });
 
-      return res.status(200).send({
+      return res.status(StatusCodes.OK).send({
         result: {
           relayerId: relayer.id,
         },
