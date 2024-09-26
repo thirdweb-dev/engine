@@ -1,11 +1,12 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { chainResponseSchema } from "../../../schemas/chain";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const responseBodySchema = Type.Object({
-  result: Type.Union([Type.String(), Type.Null()]),
+  result: Type.Array(chainResponseSchema),
 });
 
 export async function getChainsConfiguration(fastify: FastifyInstance) {
@@ -26,9 +27,11 @@ export async function getChainsConfiguration(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const config = await getConfig();
-      res.status(200).send({
-        result: config.chainOverrides,
-      });
+      const result: Static<typeof chainResponseSchema>[] = config.chainOverrides
+        ? JSON.parse(config.chainOverrides)
+        : [];
+
+      res.status(200).send({ result });
     },
   });
 }

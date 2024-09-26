@@ -1,27 +1,15 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { sdkCache } from "../../../../utils/cache/getSdk";
+import { chainResponseSchema } from "../../../schemas/chain";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Object({
-  chainOverrides: Type.Array(
-    Type.Object({
-      name: Type.String(),
-      chain: Type.String(),
-      rpc: Type.Array(Type.String()),
-      nativeCurrency: Type.Object({
-        name: Type.String(),
-        symbol: Type.String(),
-        decimals: Type.Number(),
-      }),
-      chainId: Type.Number(),
-      slug: Type.String(),
-    }),
-  ),
+  chainOverrides: Type.Array(chainResponseSchema),
 });
 
 requestBodySchema.examples = [
@@ -67,10 +55,12 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
       });
 
       const config = await getConfig(false);
+      const result: Static<typeof chainResponseSchema>[] = config.chainOverrides
+        ? JSON.parse(config.chainOverrides)
+        : [];
+
       sdkCache.clear();
-      res.status(200).send({
-        result: config.chainOverrides,
-      });
+      res.status(200).send({ result });
     },
   });
 }
