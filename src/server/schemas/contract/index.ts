@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { contractSchemaTypes } from "../sharedApiSchemas";
+import { Type, type Static } from "@sinclair/typebox";
+import type { contractSchemaTypes } from "../sharedApiSchemas";
 
 /**
  * Basic schema for all Request Query String
@@ -16,10 +16,6 @@ export const readRequestQuerySchema = Type.Object({
     }),
   ),
 });
-
-//make the type interface support a generic dictionary
-export interface readResponseSchema  {
-}
 
 export interface readSchema extends contractSchemaTypes {
   Querystring: Static<typeof readRequestQuerySchema>;

@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../db/transactions/queueTx";
 import { getContract } from "../../../../utils/cache/getContract";
@@ -7,7 +7,6 @@ import { abiSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
   requestQuerystringSchema,
-  standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
@@ -26,31 +25,7 @@ const writeRequestBodySchema = Type.Object({
     description: "The arguments to call on the function",
   }),
   ...txOverridesWithValueSchema.properties,
-  abi: Type.Optional(Type.Array(Type.Object({
-    type: Type.String(),
-    name: Type.Optional(Type.String()),
-    inputs: Type.Optional(Type.Array(Type.Object({
-      type: Type.Optional(Type.String()),
-      name: Type.Optional(Type.String()),
-      stateMutability: Type.Optional(Type.String()),
-      components: Type.Optional(Type.Array(Type.Object({
-        type: Type.Optional(Type.String()),
-        name: Type.Optional(Type.String()),
-        internalType: Type.Optional(Type.String()),
-      }))),
-    }))),
-    outputs: Type.Optional(Type.Array(Type.Object({
-      type: Type.Optional(Type.String()),
-      name: Type.Optional(Type.String()),
-      stateMutability: Type.Optional(Type.String()),
-      components: Type.Optional(Type.Array(Type.Object({
-        type: Type.Optional(Type.String()),
-        name: Type.Optional(Type.String()),
-        internalType: Type.Optional(Type.String()),
-      }))),
-    }))),
-    stateMutability: Type.Optional(Type.String()),
-  }))),
+  abi: Type.Optional(Type.Array(abiSchema)),
 });
 
 // LOGIC

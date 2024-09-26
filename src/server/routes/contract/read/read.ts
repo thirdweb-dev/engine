@@ -28,7 +28,7 @@ export async function readContract(fastify: FastifyInstance) {
             },
           },
         },
-      }
+      },
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
