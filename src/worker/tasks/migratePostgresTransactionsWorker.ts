@@ -35,9 +35,6 @@ export const initMigratePostgresTransactionsWorker = async () => {
   logWorkerExceptions(_worker);
 };
 
-export const sleep = async (ms: number) =>
-  new Promise((resolve) => setTimeout(resolve, ms, null));
-
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // Migrate sent transactions from PostgresDB -> Redis queue.
   await prisma.$transaction(async (pgtx) => {
