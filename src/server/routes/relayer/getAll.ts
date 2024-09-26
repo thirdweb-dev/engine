@@ -35,7 +35,7 @@ export async function getAllRelayers(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const relayers = await prisma.relayers.findMany();
 
-      return res.status(200).send({
+      return res.status(StatusCodes.OK).send({
         result: relayers.map((relayer) => ({
           ...relayer,
           allowedContracts: relayer.allowedContracts

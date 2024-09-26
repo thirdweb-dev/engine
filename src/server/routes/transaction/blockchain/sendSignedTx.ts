@@ -61,7 +61,7 @@ export async function sendSignedTransaction(fastify: FastifyInstance) {
         signedTransaction,
       );
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           transactionHash,
         },

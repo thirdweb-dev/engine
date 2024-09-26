@@ -73,7 +73,7 @@ export async function updateRelayer(fastify: FastifyInstance) {
         },
       });
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

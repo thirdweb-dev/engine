@@ -77,7 +77,7 @@ export async function addKeypair(fastify: FastifyInstance) {
         throw e;
       }
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           keypair: toKeypairSchema(keypair),
         },

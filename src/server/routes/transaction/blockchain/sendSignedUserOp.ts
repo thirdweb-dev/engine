@@ -123,7 +123,7 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
         });
       }
 
-      return res.status(200).send({
+      return res.status(StatusCodes.OK).send({
         result: {
           userOpHash,
         },

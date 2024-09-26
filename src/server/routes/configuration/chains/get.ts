@@ -31,7 +31,7 @@ export async function getChainsConfiguration(fastify: FastifyInstance) {
         ? JSON.parse(config.chainOverrides)
         : [];
 
-      res.status(200).send({ result });
+      res.status(StatusCodes.OK).send({ result });
     },
   });
 }

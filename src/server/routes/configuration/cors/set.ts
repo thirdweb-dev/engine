@@ -55,7 +55,7 @@ export async function setUrlsToCorsConfiguration(fastify: FastifyInstance) {
 
       // Fetch and return the updated configuration
       const config = await getConfig(false);
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: config.accessControlAllowOrigin.split(","),
       });
     },

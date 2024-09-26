@@ -60,7 +60,7 @@ export async function updateChainsConfiguration(fastify: FastifyInstance) {
         : [];
 
       sdkCache.clear();
-      res.status(200).send({ result });
+      res.status(StatusCodes.OK).send({ result });
     },
   });
 }
