@@ -19,5 +19,5 @@ export const getChainIdFromChain = async (input: string): Promise<number> => {
     }
   } catch {}
 
-  throw badChainError(chainId);
+  throw badChainError(input);
 };

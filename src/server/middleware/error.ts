@@ -37,9 +37,9 @@ export const badAddressError = (address: string): CustomError =>
     "INVALID_ADDRESS",
   );
 
-export const badChainError = (chainId: number): CustomError =>
+export const badChainError = (chain: string | number): CustomError =>
   createCustomError(
-    `Invalid chain: ${chainId}. If this is a custom chain, add it to chain overrides.`,
+    `Invalid chain: ${chain}. If this is a custom chain, add it to chain overrides.`,
     StatusCodes.BAD_REQUEST,
     "INVALID_CHAIN",
   );
