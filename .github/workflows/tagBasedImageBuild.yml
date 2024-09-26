@@ -26,11 +26,6 @@ jobs:
         with:
           ref: ${{ github.event.release.target_commitish }}
 
-      - name: Prepare
-        run: |
-          platform=${{ matrix.platform }}
-          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -46,27 +41,13 @@ jobs:
           context: .
           target: prod
           platforms: ${{ matrix.platform }}
+          push: true
           tags: |
               ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
               ${{ env.LATEST_TAG != '' && format('thirdweb/engine:latest-{0}', matrix.platform == 'linux/amd64' && 'amd64' || 'arm64') || '' }}
-          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,scope=${{ matrix.platform }},mode=max
           build-args: ENGINE_VERSION=${{ github.event.release.tag_name }}
-
-      - name: Export digest
-        run: |
-          mkdir -p /tmp/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digests/${digest#sha256:}"
-
-      - name: Upload digest
-        uses: actions/upload-artifact@v4
-        with:
-          name: digests-${{ env.PLATFORM_PAIR }}
-          path: /tmp/digests/*
-          if-no-files-found: error
-          retention-days: 1
 
   merge-manifests:
     needs: build
@@ -74,34 +55,24 @@ jobs:
     env:
       LATEST_TAG: ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' || '' }}
     steps:
-      - name: Download digests
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/digests
-          pattern: digests-*
-          merge-multiple: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Create and Push Multi-arch Manifest (release tag)
-        working-directory: /tmp/digests
+      - name:  Create and Push Multi-arch Manifest (release tag)
         run: |
-          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }} \
-            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+          docker manifest create ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }} \
+            ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-amd64 \
+            ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-arm64
+          docker manifest push ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}
 
-      - name: Create and Push Multi-arch Manifest (latest tag) (if applicable)
+
+      - name:  Create and Push Multi-arch Manifest (latest tag) (if applicable)
         if: ${{ env.LATEST_TAG != '' }}
         run: |
-          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:latest \
-            ${{ env.REGISTRY_IMAGE }}@sha256:${{ steps.build.outputs.digest }}
-
-      - name: Inspect image
-        run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}
+          docker manifest create ${{ env.REGISTRY_IMAGE }}:latest \
+            ${{ env.REGISTRY_IMAGE }}:latest-arm64 \
+            ${{ env.REGISTRY_IMAGE }}:latest-amd64
+          docker manifest push ${{ env.REGISTRY_IMAGE }}:latest
