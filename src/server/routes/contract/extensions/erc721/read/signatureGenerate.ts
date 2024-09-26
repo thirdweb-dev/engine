@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex, getContract } from "thirdweb";
+import { getContract, type Address, type Hex } from "thirdweb";
 import { generateMintSignature } from "thirdweb/extensions/erc721";
 import { getAccount } from "../../../../../../utils/account";
 import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
@@ -10,9 +10,9 @@ import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {
-  ercNFTResponseType,
   signature721InputSchema,
   signature721OutputSchema,
+  type ercNFTResponseType,
 } from "../../../../../schemas/nft";
 import {
   signature721InputSchemaV5,
@@ -87,7 +87,7 @@ export async function erc721SignatureGenerate(fastify: FastifyInstance) {
       description:
         "Generate a signature granting access for another wallet to mint tokens from this ERC-721 contract. This method is typically called by the token contract owner.",
       tags: ["ERC721"],
-      operationId: "signatureGenerate",
+      operationId: "erc721-signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
       headers: {

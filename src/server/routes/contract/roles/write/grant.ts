@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../db/transactions/queueTx";
@@ -43,7 +43,7 @@ export async function grantRole(fastify: FastifyInstance) {
       summary: "Grant role",
       description: "Grant a role to a specific wallet.",
       tags: ["Contract-Roles"],
-      operationId: "grant",
+      operationId: "grantContractRole",
       headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,

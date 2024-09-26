@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -41,7 +41,7 @@ export async function englishAuctionsExecuteSale(fastify: FastifyInstance) {
 This means the NFT(s) will be transferred to the buyer and the seller will receive the funds.
 This function can only be called after the auction has ended.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "executeSale",
+      operationId: "executeEnglishAuctionSale",
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,

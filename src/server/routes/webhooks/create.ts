@@ -80,7 +80,7 @@ export async function createWebhook(fastify: FastifyInstance) {
       description:
         "Create a webhook to call when certain blockchain events occur.",
       tags: ["Webhooks"],
-      operationId: "create",
+      operationId: "createWebhook",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,

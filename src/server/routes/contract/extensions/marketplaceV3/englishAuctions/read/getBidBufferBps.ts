@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import {
@@ -46,7 +46,7 @@ This is the percentage higher that a new bid must be than the current highest bi
 If there is no current bid, the bid must be at least the minimum bid amount.
 Returns the value in percentage format, e.g. 100 = 1%.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "getBidBufferBps",
+      operationId: "getEnglishAuctionsBidBufferBps",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

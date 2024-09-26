@@ -29,11 +29,6 @@ export const withOpenApi = async (server: FastifyInstance) => {
         },
       ],
     },
-    refResolver: {
-      buildLocalReference(json, baseUri, fragment, i) {
-        return json.$id || `def-${i}`;
-      },
-    },
   });
 
   // Exports the /json endpoint without the Swagger UI.

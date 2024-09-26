@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllWebhooks } from "../../../db/webhooks/getAllWebhooks";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -19,7 +19,7 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
       summary: "Get all webhooks configured",
       description: "Get all webhooks configuration data set up on Engine",
       tags: ["Webhooks"],
-      operationId: "getAll",
+      operationId: "listWebhooks",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,

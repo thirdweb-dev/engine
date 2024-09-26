@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import { AddressSchema } from "../../../../../../schemas/address";
@@ -48,7 +48,7 @@ export async function directListingsIsCurrencyApprovedForListing(
       description:
         "Check if a currency is approved for a specific direct listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "isCurrencyApprovedForListing",
+      operationId: "isCurrencyApprovedForDirectListings",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

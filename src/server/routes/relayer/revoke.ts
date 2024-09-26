@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
@@ -25,7 +25,7 @@ export async function revokeRelayer(fastify: FastifyInstance) {
       summary: "Revoke a relayer",
       description: "Revoke a relayer",
       tags: ["Relayer"],
-      operationId: "revoke",
+      operationId: "revokeRelayer",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,

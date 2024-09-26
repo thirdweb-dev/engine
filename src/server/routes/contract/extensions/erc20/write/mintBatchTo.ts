@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -59,7 +59,7 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
       summary: "Mint tokens (batch)",
       description: "Mint ERC-20 tokens to multiple wallets in one transaction.",
       tags: ["ERC20"],
-      operationId: "mintBatchTo",
+      operationId: "erc20-mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

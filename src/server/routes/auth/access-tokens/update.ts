@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateToken } from "../../../../db/tokens/updateToken";
 import { accessTokenCache } from "../../../../utils/cache/accessToken";
@@ -27,7 +27,7 @@ export async function updateAccessToken(fastify: FastifyInstance) {
       summary: "Update an access token",
       description: "Update an access token",
       tags: ["Access Tokens"],
-      operationId: "update",
+      operationId: "updateAccessTokens",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,

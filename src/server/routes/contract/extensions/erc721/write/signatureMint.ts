@@ -69,7 +69,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
       summary: "Signature mint",
       description: "Mint ERC-721 tokens from a generated signature.",
       tags: ["ERC721"],
-      operationId: "signatureMint",
+      operationId: "erc721-signatureMint",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,
