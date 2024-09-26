@@ -38,7 +38,7 @@ jobs:
           cache-to: |
             type=gha,scope=${{ matrix.platform }},mode=max
             type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }},mode=max
-          tags: thirdweb/engine:nightly-${{ matrix.platform }}
+          tags: thirdweb/engine:nightly-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
           build-args: |
             ENGINE_VERSION=nightly
 
@@ -55,6 +55,6 @@ jobs:
       - name: Create and Push Multi-arch Manifest (nightly)
         run: |
           docker manifest create thirdweb/engine:nightly \
-            thirdweb/engine:nightly-linux/amd64 \
-            thirdweb/engine:nightly-linux/arm64
+            thirdweb/engine:nightly-amd64 \
+            thirdweb/engine:nightly-arm64
           docker manifest push thirdweb/engine:nightly
