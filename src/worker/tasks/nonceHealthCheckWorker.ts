@@ -1,5 +1,5 @@
-import { Job, Processor, Worker } from "bullmq";
-import { Address, getAddress } from "thirdweb";
+import { Worker, type Job, type Processor } from "bullmq";
+import { getAddress, type Address } from "thirdweb";
 import {
   getUsedBackendWallets,
   inspectNonce,
@@ -18,6 +18,9 @@ const CHECK_PERIODS = 3;
 
 // Frequency of the worker
 const RUN_FREQUENCY_SECONDS = 60; // Run every minute
+
+// The number of wallets to check in parallel.
+const BATCH_SIZE = 500;
 
 // Interfaces
 interface NonceState {
@@ -51,26 +54,27 @@ export const initNonceHealthCheckWorker = () => {
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const allWallets = await getUsedBackendWallets();
 
-  const walletHealthPromises = allWallets.map(
-    async ({ chainId, walletAddress }) => {
-      const [_, isStuck, currentState] = await Promise.all([
-        updateNonceHistory(walletAddress, chainId),
-        isQueueStuck(walletAddress, chainId),
-        getCurrentNonceState(walletAddress, chainId),
-      ]);
+  for (let i = 0; i < allWallets.length; i += BATCH_SIZE) {
+    const batch = allWallets.slice(i, i + BATCH_SIZE);
 
-      return {
-        walletAddress,
-        chainId,
-        isStuck,
-        onchainNonce: currentState.onchainNonce,
-        largestSentNonce: currentState.largestSentNonce,
-      };
-    },
-  );
+    await Promise.all(
+      batch.map(async ({ chainId, walletAddress }) => {
+        const [_, isStuck, currentState] = await Promise.all([
+          updateNonceHistory(walletAddress, chainId),
+          isQueueStuck(walletAddress, chainId),
+          getCurrentNonceState(walletAddress, chainId),
+        ]);
 
-  const walletHealthResults = await Promise.all(walletHealthPromises);
-  logWalletHealth(walletHealthResults, job);
+        logger({
+          service: "worker",
+          level: isStuck ? "fatal" : "info",
+          message: `[WALLET_HEALTH] ${walletAddress}:${chainId} isStuck:${isStuck} onchainNonce:${currentState.onchainNonce} largestSentNonce:${currentState.largestSentNonce}`,
+        });
+      }),
+    );
+
+    await sleep(500);
+  }
 };
 
 // Check if a queue is stuck
@@ -145,21 +149,5 @@ async function updateNonceHistory(walletAddress: Address, chainId: number) {
     .exec();
 }
 
-// Log wallet health
-function logWalletHealth(healthResults: WalletHealth[], job: Job<string>) {
-  healthResults.forEach((result) => {
-    const message =
-      `[WALLET_HEALTH] ${result.walletAddress}:${result.chainId} ` +
-      `isStuck:${result.isStuck} ` +
-      `onchainNonce:${result.onchainNonce} ` +
-      `largestSentNonce:${result.largestSentNonce}`;
-
-    logger({
-      service: "worker",
-      level: result.isStuck ? "fatal" : "info",
-      message,
-    });
-  });
-
-  job.log(JSON.stringify(healthResults));
-}
+const sleep = async (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms, null));
