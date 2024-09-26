@@ -35,12 +35,8 @@ jobs:
           target: prod
           platforms: ${{ matrix.platform }}
           push: true
-          cache-from: |
-            type=gha,scope=${{ matrix.platform }}
-            type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }}
-          cache-to: |
-            type=gha,scope=${{ matrix.platform }},mode=max
-            type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }},mode=max
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,scope=${{ matrix.platform }},mode=max
           tags: |
             thirdweb/engine:${{ github.event.release.tag_name }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
             ${{ env.LATEST_TAG != '' && format('thirdweb/engine:latest-{0}', matrix.platform == 'linux/amd64' && 'amd64' || 'arm64') || '' }}
