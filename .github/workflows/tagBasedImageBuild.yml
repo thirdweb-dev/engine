@@ -4,68 +4,104 @@ on:
   release:
     types: [created] # This listens to release creation events
 
+env:
+  REGISTRY_IMAGE: thirdweb/engine
+
 jobs:
-  buildImageForNewTag:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
-        platform: [linux/amd64, linux/arm64]
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm64
     env:
-      LATEST_TAG: ${{ (github.event.release.target_commitish == 'main') && 'thirdweb/engine:latest' || '' }}
+      LATEST_TAG: ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' || '' }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.release.target_commitish }}
+
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           context: .
           target: prod
           platforms: ${{ matrix.platform }}
-          push: true
+          tags: |
+              ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
+              ${{ env.LATEST_TAG != '' && format('thirdweb/engine:latest-{0}', matrix.platform == 'linux/amd64' && 'amd64' || 'arm64') || '' }}
+          outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,scope=${{ matrix.platform }},mode=max
-          tags: |
-            thirdweb/engine:${{ github.event.release.tag_name }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
-            ${{ env.LATEST_TAG != '' && format('thirdweb/engine:latest-{0}', matrix.platform == 'linux/amd64' && 'amd64' || 'arm64') || '' }}
-          build-args: |
-            ENGINE_VERSION=${{ github.event.release.tag_name }}
+          build-args: ENGINE_VERSION=${{ github.event.release.tag_name }}
+
+      - name: Export digest
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
 
   merge-manifests:
-    needs: buildImageForNewTag
+    needs: build
     runs-on: ubuntu-latest
     env:
-      LATEST_TAG: ${{ (github.event.release.target_commitish == 'main') && 'thirdweb/engine:latest' || '' }}
+      LATEST_TAG: ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' || '' }}
     steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Create and Push Multi-arch Manifest (release tag)
+        working-directory: /tmp/digests
         run: |
-          docker manifest create thirdweb/engine:${{ github.event.release.tag_name }} \
-            thirdweb/engine:${{ github.event.release.tag_name }}-amd64 \
-            thirdweb/engine:${{ github.event.release.tag_name }}-arm64
-          docker manifest push thirdweb/engine:${{ github.event.release.tag_name }}
+          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }} \
+            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
 
-      - name: Create and Push Latest Tag (if applicable)
+      - name: Create and Push Multi-arch Manifest (latest tag) (if applicable)
         if: ${{ env.LATEST_TAG != '' }}
         run: |
-          docker manifest create thirdweb/engine:latest \
-            thirdweb/engine:latest-amd64 \
-            thirdweb/engine:latest-arm64
-          docker manifest push thirdweb/engine:latest
+          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:latest \
+            ${{ env.REGISTRY_IMAGE }}@sha256:${{ steps.build.outputs.digest }}
+
+      - name: Inspect image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}
