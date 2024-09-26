@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
 import { env } from "../../utils/env";
@@ -22,21 +22,27 @@ export const createCustomError = (
   code,
 });
 
-export const createCustomDateTimestampError = (key: string): CustomError => {
+export const customDateTimestampError = (date: string): CustomError => {
   return createCustomError(
-    `Invalid ${key} Value. Needs to new Date() / new Date().toISOstring() / new Date().getTime() / Unix Epoch`,
-    404,
+    `Invalid date: ${date}. Needs to new Date() / new Date().toISOstring() / new Date().getTime() / Unix Epoch`,
+    StatusCodes.BAD_REQUEST,
     "INVALID_DATE_TIME",
   );
 };
 
-export const createBadAddressError = (key: string): CustomError => {
-  return createCustomError(
-    `Invalid ${key} Value. Needs to be a valid EVM address`,
-    422,
+export const badAddressError = (address: string): CustomError =>
+  createCustomError(
+    `Invalid address: ${address}. Needs to be a valid EVM address`,
+    StatusCodes.BAD_REQUEST,
     "INVALID_ADDRESS",
   );
-};
+
+export const badChainError = (chain: string | number): CustomError =>
+  createCustomError(
+    `Invalid chain: ${chain}. If this is a custom chain, add it to chain overrides.`,
+    StatusCodes.BAD_REQUEST,
+    "INVALID_CHAIN",
+  );
 
 const flipObject = (data: any) =>
   Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));

@@ -80,7 +80,7 @@ export async function createRelayer(fastify: FastifyInstance) {
         },
       });
 
-      return res.status(200).send({
+      return res.status(StatusCodes.OK).send({
         result: {
           relayerId: relayer.id,
         },

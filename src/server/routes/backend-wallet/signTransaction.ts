@@ -60,7 +60,7 @@ export async function signTransaction(fastify: FastifyInstance) {
       const signer = await wallet.getSigner();
       const signedMessage = await signer.signTransaction(transaction);
 
-      reply.status(200).send({
+      reply.status(StatusCodes.OK).send({
         result: signedMessage,
       });
     },

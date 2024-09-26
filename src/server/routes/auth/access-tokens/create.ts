@@ -91,7 +91,7 @@ export async function createAccessToken(fastify: FastifyInstance) {
 
       accessTokenCache.clear();
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           ...token,
           createdAt: token.createdAt.toISOString(),

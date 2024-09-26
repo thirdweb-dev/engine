@@ -1,4 +1,4 @@
-import { env } from "../env";
+import type { env } from "../env";
 import { accessTokenCache } from "./accessToken";
 import { invalidateConfig } from "./getConfig";
 import { sdkCache } from "./getSdk";

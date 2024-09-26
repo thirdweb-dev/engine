@@ -72,7 +72,7 @@ export async function updateContractSubscriptionsConfiguration(
       });
       const config = await getConfig(false);
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           maxBlocksToIndex: config.maxBlocksToIndex,
           contractSubscriptionsRequeryDelaySeconds:

@@ -38,7 +38,7 @@ export async function revokePermissions(fastify: FastifyInstance) {
       await deletePermissions({
         walletAddress,
       });
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

@@ -151,7 +151,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
           extension: "relayer",
         });
 
-        res.status(200).send({
+        res.status(StatusCodes.OK).send({
           result: {
             queueId,
           },
@@ -195,7 +195,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
           extension: "relayer",
         });
 
-        res.status(200).send({
+        res.status(StatusCodes.OK).send({
           result: {
             queueId,
           },
@@ -286,7 +286,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
         extension: "relayer",
       });
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           queueId,
         },

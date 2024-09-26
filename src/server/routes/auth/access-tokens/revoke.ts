@@ -38,7 +38,7 @@ export async function revokeAccessToken(fastify: FastifyInstance) {
 
       accessTokenCache.clear();
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

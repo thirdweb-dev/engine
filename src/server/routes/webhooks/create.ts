@@ -104,7 +104,7 @@ export async function createWebhook(fastify: FastifyInstance) {
         eventType,
       });
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: toWebhookSchema(webhook),
       });
     },

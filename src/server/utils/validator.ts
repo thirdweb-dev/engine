@@ -1,18 +1,21 @@
-import { Static } from "@sinclair/typebox";
-import { createCustomDateTimestampError } from "../middleware/error";
-import { erc20ResponseType, signature20InputSchema } from "../schemas/erc20";
-import {
+import type { Static } from "@sinclair/typebox";
+import { customDateTimestampError } from "../middleware/error";
+import type {
+  erc20ResponseType,
+  signature20InputSchema,
+} from "../schemas/erc20";
+import type {
   ercNFTResponseType,
   signature1155InputSchema,
   signature721InputSchema,
 } from "../schemas/nft";
 
-const timestampValidator = (value: number | string | undefined): Boolean => {
+const timestampValidator = (value: number | string | undefined): boolean => {
   if (value === undefined) {
     return true;
   }
 
-  if (!isNaN(Number(value))) {
+  if (!Number.isNaN(Number(value))) {
     value = Number(value);
   }
 
@@ -26,18 +29,18 @@ export const checkAndReturnERC20SignaturePayload = <
   payload: T,
 ): U => {
   if (!timestampValidator(payload.mintStartTime)) {
-    throw createCustomDateTimestampError("mintStartTime");
+    throw customDateTimestampError("mintStartTime");
   }
 
   if (!timestampValidator(payload.mintEndTime)) {
-    throw createCustomDateTimestampError("mintEndTime");
+    throw customDateTimestampError("mintEndTime");
   }
 
-  if (!isNaN(Number(payload.mintEndTime))) {
+  if (!Number.isNaN(Number(payload.mintEndTime))) {
     payload.mintEndTime = Number(payload.mintEndTime);
   }
 
-  if (!isNaN(Number(payload.mintStartTime))) {
+  if (!Number.isNaN(Number(payload.mintStartTime))) {
     payload.mintStartTime = Number(payload.mintStartTime);
   }
 
@@ -61,18 +64,18 @@ export const checkAndReturnNFTSignaturePayload = <
   payload: T,
 ): U => {
   if (!timestampValidator(payload.mintStartTime)) {
-    throw createCustomDateTimestampError("mintStartTime");
+    throw customDateTimestampError("mintStartTime");
   }
 
   if (!timestampValidator(payload.mintEndTime)) {
-    throw createCustomDateTimestampError("mintEndTime");
+    throw customDateTimestampError("mintEndTime");
   }
 
-  if (!isNaN(Number(payload.mintEndTime))) {
+  if (!Number.isNaN(Number(payload.mintEndTime))) {
     payload.mintEndTime = Number(payload.mintEndTime);
   }
 
-  if (!isNaN(Number(payload.mintStartTime))) {
+  if (!Number.isNaN(Number(payload.mintStartTime))) {
     payload.mintStartTime = Number(payload.mintStartTime);
   }
 

@@ -28,7 +28,7 @@ export async function listPublicKeys(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const keypairs = await listKeypairs();
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: keypairs.map(toKeypairSchema),
       });
     },

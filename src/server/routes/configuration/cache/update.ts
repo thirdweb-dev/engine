@@ -49,7 +49,7 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
       const config = await getConfig(false);
       // restarting cache cron with updated cron schedule
       await clearCacheCron("server");
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           clearCacheCronSchedule: config.clearCacheCronSchedule,
         },
