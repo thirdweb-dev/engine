@@ -15,8 +15,10 @@ jobs:
         include:
           - platform: linux/amd64
             runner: ubuntu-latest
+            arch: amd64
           - platform: linux/arm64
             runner: ubuntu-24.04-arm64
+            arch: arm64
     env:
       LATEST_TAG: ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' || '' }}
 
@@ -43,8 +45,8 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-              ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
-              ${{ env.LATEST_TAG != '' && format('thirdweb/engine:latest-{0}', matrix.platform == 'linux/amd64' && 'amd64' || 'arm64') || '' }}
+              ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-${{ matrix.arch }}
+              ${{ env.LATEST_TAG != '' && format('thirdweb/engine:latest-{0}', matrix.arch) || '' }}
           cache-from: type=gha,scope=${{ matrix.platform }}
           cache-to: type=gha,scope=${{ matrix.platform }},mode=max
           build-args: ENGINE_VERSION=${{ github.event.release.tag_name }}
@@ -55,24 +57,33 @@ jobs:
     env:
       LATEST_TAG: ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' || '' }}
     steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to DockerHub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name:  Create and Push Multi-arch Manifest (release tag)
+      - name: Create and Push Multi-arch Manifest (release tag)
         run: |
-          docker manifest create ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }} \
+          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }} \
             ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-amd64 \
             ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-arm64
-          docker manifest push ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}
+  
+      - name: Inspect release image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}
 
-
-      - name:  Create and Push Multi-arch Manifest (latest tag) (if applicable)
+      - name: Create and Push Multi-arch Manifest (latest tag) (if applicable)
         if: ${{ env.LATEST_TAG != '' }}
         run: |
-          docker manifest create ${{ env.REGISTRY_IMAGE }}:latest \
-            ${{ env.REGISTRY_IMAGE }}:latest-arm64 \
-            ${{ env.REGISTRY_IMAGE }}:latest-amd64
-          docker manifest push ${{ env.REGISTRY_IMAGE }}:latest
+          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:latest \
+            ${{ env.REGISTRY_IMAGE }}:latest-amd64 \
+            ${{ env.REGISTRY_IMAGE }}:latest-arm64
+      
+      - name: Inspect latest image (if applicable)
+        if: ${{ env.LATEST_TAG != '' }}
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:latest
