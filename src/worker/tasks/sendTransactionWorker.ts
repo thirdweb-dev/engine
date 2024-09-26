@@ -1,7 +1,7 @@
-import assert from "assert";
-import { Job, Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
+import assert from "node:assert";
 import superjson from "superjson";
-import { Hex, getAddress, toSerializableTransaction } from "thirdweb";
+import { getAddress, toSerializableTransaction, type Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
@@ -221,9 +221,8 @@ const _sendTransaction = async (
   let transactionHash: Hex;
   try {
     const account = await getAccount({ chainId, from });
-    const sendTransactionResult = await account.sendTransaction(
-      populatedTransaction,
-    );
+    const sendTransactionResult =
+      await account.sendTransaction(populatedTransaction);
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
@@ -282,6 +281,8 @@ const _resendTransaction = async (
       maxPriorityFeePerGas: undefined,
     },
   });
+  // Add +50% to gas estimate.
+  populatedTransaction.gas = (populatedTransaction.gas * 15n) / 10n;
   if (populatedTransaction.gasPrice) {
     populatedTransaction.gasPrice *= 2n;
   }
@@ -301,9 +302,8 @@ const _resendTransaction = async (
   let transactionHash: Hex;
   try {
     const account = await getAccount({ chainId, from });
-    const sendTransactionResult = await account.sendTransaction(
-      populatedTransaction,
-    );
+    const sendTransactionResult =
+      await account.sendTransaction(populatedTransaction);
     transactionHash = sendTransactionResult.transactionHash;
     job.log(`Sent transaction: ${transactionHash}`);
   } catch (error) {
@@ -438,6 +438,8 @@ export const getPopulatedOrErroredTransaction = async (
         nonce: queuedTransaction.isUserOp ? undefined : 1,
       },
     });
+    // Add +20% to gas estimate.
+    populatedTransaction.gas = (populatedTransaction.gas * 12n) / 10n;
 
     return [populatedTransaction, undefined];
   } catch (e: unknown) {
