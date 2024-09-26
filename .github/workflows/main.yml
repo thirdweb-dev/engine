@@ -32,12 +32,8 @@ jobs:
           target: prod
           platforms: ${{ matrix.platform }}
           push: true
-          cache-from: |
-            type=gha,scope=${{ matrix.platform }}
-            type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }}
-          cache-to: |
-            type=gha,scope=${{ matrix.platform }},mode=max
-            type=registry,ref=thirdweb/engine:buildcache-${{ matrix.platform }},mode=max
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,scope=${{ matrix.platform }},mode=max
           tags: thirdweb/engine:nightly-${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
           build-args: |
             ENGINE_VERSION=nightly
