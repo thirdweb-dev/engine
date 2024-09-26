@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAccessTokens } from "../../../../db/tokens/getAccessTokens";
 import { AddressSchema } from "../../../schemas/address";
@@ -28,7 +28,7 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
       summary: "Get all access tokens",
       description: "Get all access tokens",
       tags: ["Access Tokens"],
-      operationId: "getAll",
+      operationId: "listAccessTokens",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,

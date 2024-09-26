@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
@@ -42,7 +42,7 @@ export async function erc721CanClaim(fastify: FastifyInstance) {
       description:
         "Check if tokens are currently available for claiming, optionally specifying if a specific wallet address can claim.",
       tags: ["ERC721"],
-      operationId: "canClaim",
+      operationId: "erc721-canClaim",
       params: requestSchema,
       querystring: requestQueryString,
       response: {

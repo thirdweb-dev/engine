@@ -1,11 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   claimConditionInputSchema,
-  sanitizedClaimConditionInputSchema,
+  type sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
@@ -46,7 +46,7 @@ export async function erc1155UpdateClaimConditions(fastify: FastifyInstance) {
       description:
         "Update a single claim phase on a specific token ID, by providing the index of the claim phase and the new phase configuration.",
       tags: ["ERC1155"],
-      operationId: "updateClaimConditions",
+      operationId: "erc1155-updateClaimConditions",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,
@@ -82,10 +82,11 @@ export async function erc1155UpdateClaimConditions(fastify: FastifyInstance) {
         ...claimConditionInput,
         startTime: claimConditionInput.startTime
           ? isUnixEpochTimestamp(
-              parseInt(claimConditionInput.startTime.toString()),
+              Number.parseInt(claimConditionInput.startTime.toString()),
             )
             ? new Date(
-                parseInt(claimConditionInput.startTime.toString()) * 1000,
+                Number.parseInt(claimConditionInput.startTime.toString()) *
+                  1000,
               )
             : new Date(claimConditionInput.startTime)
           : undefined,

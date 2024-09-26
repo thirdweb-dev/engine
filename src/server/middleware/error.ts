@@ -22,13 +22,12 @@ export const createCustomError = (
   code,
 });
 
-export const customDateTimestampError = (date: string): CustomError => {
-  return createCustomError(
+export const customDateTimestampError = (date: string): CustomError =>
+  createCustomError(
     `Invalid date: ${date}. Needs to new Date() / new Date().toISOstring() / new Date().getTime() / Unix Epoch`,
     StatusCodes.BAD_REQUEST,
     "INVALID_DATE_TIME",
   );
-};
 
 export const badAddressError = (address: string): CustomError =>
   createCustomError(

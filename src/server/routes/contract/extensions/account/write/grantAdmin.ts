@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -41,7 +41,7 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
       summary: "Grant admin",
       description: "Grant a smart account's admin permission.",
       tags: ["Account"],
-      operationId: "grantAdmin",
+      operationId: "grantAccountAdmin",
       headers: walletWithAAHeaderSchema,
       params: contractParamSchema,
       body: requestBodySchema,
@@ -69,9 +69,8 @@ export const grantAdmin = async (fastify: FastifyInstance) => {
         accountAddress,
       });
 
-      const tx = await contract.account.grantAdminPermissions.prepare(
-        signerAddress,
-      );
+      const tx =
+        await contract.account.grantAdminPermissions.prepare(signerAddress);
       const queueId = await queueTx({
         tx,
         chainId,

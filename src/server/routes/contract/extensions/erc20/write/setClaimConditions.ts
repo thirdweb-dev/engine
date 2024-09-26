@@ -1,11 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   claimConditionInputSchema,
-  sanitizedClaimConditionInputSchema,
+  type sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
@@ -41,7 +41,7 @@ export async function erc20SetClaimConditions(fastify: FastifyInstance) {
       description:
         "Overwrite the claim conditions for the drop. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.",
       tags: ["ERC20"],
-      operationId: "setClaimConditions",
+      operationId: "erc20-setClaimConditions",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,
@@ -78,8 +78,8 @@ export async function erc20SetClaimConditions(fastify: FastifyInstance) {
         return {
           ...item,
           startTime: item.startTime
-            ? isUnixEpochTimestamp(parseInt(item.startTime.toString()))
-              ? new Date(parseInt(item.startTime.toString()) * 1000)
+            ? isUnixEpochTimestamp(Number.parseInt(item.startTime.toString()))
+              ? new Date(Number.parseInt(item.startTime.toString()) * 1000)
               : new Date(item.startTime)
             : undefined,
         };

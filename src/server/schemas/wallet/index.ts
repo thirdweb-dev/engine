@@ -55,7 +55,7 @@ export function requiredAddress(
   variableName: string,
 ): Address {
   const parsedAddress = maybeAddress(address, variableName);
-  if (!parsedAddress) throw createBadAddressError(variableName);
+  if (!parsedAddress) throw badAddressError(variableName);
   return parsedAddress;
 }
 

@@ -38,7 +38,7 @@ export async function erc721UpdateTokenMetadata(fastify: FastifyInstance) {
       summary: "Update token metadata",
       description: "Update the metadata for an ERC721 token.",
       tags: ["ERC721"],
-      operationId: "updateTokenMetadata",
+      operationId: "erc721-updateTokenMetadata",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

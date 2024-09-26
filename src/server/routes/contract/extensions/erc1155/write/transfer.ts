@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -49,7 +49,7 @@ export async function erc1155transfer(fastify: FastifyInstance) {
       summary: "Transfer token",
       description: "Transfer an ERC-1155 token from the caller wallet.",
       tags: ["ERC1155"],
-      operationId: "transfer",
+      operationId: "erc1155-transfer",
       params: requestSchema,
       headers: walletWithAAHeaderSchema,
       body: requestBodySchema,

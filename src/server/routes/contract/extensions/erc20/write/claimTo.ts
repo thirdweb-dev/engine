@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address } from "thirdweb";
+import type { Address } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc20";
 import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
 import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
@@ -52,7 +52,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
       summary: "Claim tokens to wallet",
       description: "Claim ERC-20 tokens to a specific wallet.",
       tags: ["ERC20"],
-      operationId: "claimTo",
+      operationId: "erc20-claimTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

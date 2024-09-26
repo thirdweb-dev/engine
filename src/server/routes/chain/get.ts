@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getChainMetadata } from "thirdweb/chains";
@@ -46,7 +46,7 @@ export async function getChainData(fastify: FastifyInstance) {
       summary: "Get chain details",
       description: "Get details about a chain.",
       tags: ["Chain"],
-      operationId: "get",
+      operationId: "getChain",
       querystring: chainRequestQuerystringSchema,
       response: {
         ...standardResponseSchema,

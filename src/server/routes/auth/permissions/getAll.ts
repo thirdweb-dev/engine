@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../../db/client";
 import { AddressSchema } from "../../../schemas/address";
@@ -25,7 +25,7 @@ export async function getAllPermissions(fastify: FastifyInstance) {
       summary: "Get all permissions",
       description: "Get all users with their corresponding permissions",
       tags: ["Permissions"],
-      operationId: "getAll",
+      operationId: "listAdmins",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,

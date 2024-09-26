@@ -1,7 +1,6 @@
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-
-import { Static, Type } from "@sinclair/typebox";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {
@@ -52,7 +51,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
       description:
         "Get the allowance of a specific wallet for an ERC-20 contract.",
       tags: ["ERC20"],
-      operationId: "allowanceOf",
+      operationId: "erc20-allowanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

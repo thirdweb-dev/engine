@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -41,7 +41,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
       summary: "Revoke session key",
       description: "Revoke a session key for a smart account.",
       tags: ["Account"],
-      operationId: "revokeSession",
+      operationId: "revokeAccountSession",
       params: contractParamSchema,
       headers: walletWithAAHeaderSchema,
       body: requestBodySchema,

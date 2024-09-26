@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import { englishAuctionOutputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
@@ -75,7 +75,7 @@ export async function englishAuctionsGetAll(fastify: FastifyInstance) {
       description:
         "Get all English auction listings on this marketplace contract.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "getAll",
+      operationId: "getAllEnglishAuctions",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -39,7 +39,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
       summary: "Buyout English auction",
       description: "Buyout the listing for this auction.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "buyoutAuction",
+      operationId: "buyoutEnglishAuction",
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -64,9 +64,8 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
         accountAddress,
       });
 
-      const tx = await contract.englishAuctions.buyoutAuction.prepare(
-        listingId,
-      );
+      const tx =
+        await contract.englishAuctions.buyoutAuction.prepare(listingId);
 
       const queueId = await queueTx({
         tx,

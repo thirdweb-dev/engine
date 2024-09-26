@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -43,7 +43,7 @@ export async function offersCancelOffer(fastify: FastifyInstance) {
       summary: "Cancel offer",
       description: "Cancel a valid offer made by the caller wallet.",
       tags: ["Marketplace-Offers"],
-      operationId: "cancelOffer",
+      operationId: "cancelMarketplaceOffer",
       headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,

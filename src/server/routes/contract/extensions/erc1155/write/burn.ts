@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -45,7 +45,7 @@ export async function erc1155burn(fastify: FastifyInstance) {
       summary: "Burn token",
       description: "Burn ERC-1155 tokens in the caller wallet.",
       tags: ["ERC1155"],
-      operationId: "burn",
+      operationId: "erc1155-burn",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

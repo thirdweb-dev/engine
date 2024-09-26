@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { Type } from "@sinclair/typebox";
 import { fetchChains } from "@thirdweb-dev/chains";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
@@ -57,7 +57,7 @@ export async function getAllChainData(fastify: FastifyInstance) {
       summary: "Get all chain details",
       description: "Get details about all supported chains.",
       tags: ["Chain"],
-      operationId: "getAll",
+      operationId: "listChains",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,

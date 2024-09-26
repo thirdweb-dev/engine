@@ -1,7 +1,6 @@
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-
-import { Static, Type } from "@sinclair/typebox";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { AddressSchema } from "../../../../../schemas/address";
 import {
@@ -48,7 +47,7 @@ export async function erc1155BalanceOf(fastify: FastifyInstance) {
       description:
         "Get the balance of a specific wallet address for this ERC-1155 contract.",
       tags: ["ERC1155"],
-      operationId: "balanceOf",
+      operationId: "erc1155-balanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

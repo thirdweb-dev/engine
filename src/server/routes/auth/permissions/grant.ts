@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updatePermissions } from "../../../../db/permissions/updatePermissions";
 import { AddressSchema } from "../../../schemas/address";
@@ -29,7 +29,7 @@ export async function grantPermissions(fastify: FastifyInstance) {
       summary: "Grant permissions to user",
       description: "Grant permissions to a user",
       tags: ["Permissions"],
-      operationId: "grant",
+      operationId: "grantAdmin",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,

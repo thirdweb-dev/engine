@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { claimConditionOutputSchema } from "../../../../../schemas/claimConditions";
@@ -43,7 +43,7 @@ export async function erc1155GetAllClaimConditions(fastify: FastifyInstance) {
       description:
         "Get all the claim phases configured for a specific token ID.",
       tags: ["ERC1155"],
-      operationId: "getAllClaimConditions",
+      operationId: "erc1155-getAllClaimConditions",
       params: requestSchema,
       querystring: requestQueryString,
       response: {
