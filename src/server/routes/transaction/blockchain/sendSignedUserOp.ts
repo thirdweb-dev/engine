@@ -1,9 +1,10 @@
-import { Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../../../utils/env";
 import { thirdwebClientId } from "../../../../utils/sdk";
+import { TransactionHashSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { walletChainParamSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
@@ -34,7 +35,7 @@ const requestBodySchema = Type.Object({
 const responseBodySchema = Type.Union([
   Type.Object({
     result: Type.Object({
-      userOpHash: Type.String(),
+      userOpHash: TransactionHashSchema,
     }),
   }),
   Type.Object({

@@ -11,7 +11,7 @@ import { getWalletBalance } from "thirdweb/wallets";
 import { getAccount } from "../../../utils/account";
 import { getChain } from "../../../utils/chain";
 import { thirdwebClient } from "../../../utils/sdk";
-import { AddressSchema } from "../../schemas/address";
+import { AddressSchema, TransactionHashSchema } from "../../schemas/address";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -33,7 +33,7 @@ const requestBodySchema = Type.Object({
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
-    transactionHash: Type.String(),
+    transactionHash: TransactionHashSchema,
   }),
 });
 

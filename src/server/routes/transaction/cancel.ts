@@ -12,6 +12,7 @@ import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
 import { reportUsage } from "../../../utils/usage";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
+import { TransactionHashSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 // INPUT
@@ -37,14 +38,7 @@ export const responseBodySchema = Type.Object({
       description: "Response message",
       examples: ["Transaction cancelled on-chain successfully"],
     }),
-    transactionHash: Type.Optional(
-      Type.String({
-        description: "Transaction hash of the on-chain cancel transaction",
-        examples: [
-          "0x0514076b5b7e3062c8dc17e10f7c0befe88e6efb7e97f16e3c14afb36c296467",
-        ],
-      }),
-    ),
+    transactionHash: Type.Optional(TransactionHashSchema),
   }),
 });
 
