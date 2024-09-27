@@ -1,12 +1,12 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  Address,
   NATIVE_TOKEN_ADDRESS,
   ZERO_ADDRESS,
   getContract,
   toWei,
+  type Address,
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
@@ -14,9 +14,10 @@ import { getChain } from "../../../utils/chain";
 import { maybeBigInt, normalizeAddress } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
-import { InsertedTransaction } from "../../../utils/transaction/types";
+import type { InsertedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
+import { TokenAmountStringSchema } from "../../schemas/number";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -43,10 +44,11 @@ const requestBodySchema = Type.Object({
     description:
       "The token address to transfer. Omit to transfer the chain's native currency (e.g. ETH on Ethereum).",
   }),
-  amount: Type.String({
+  amount: {
+    ...TokenAmountStringSchema,
     description:
       'The amount in ether to transfer. Example: "0.1" to send 0.1 ETH.',
-  }),
+  },
   ...txOverridesWithValueSchema.properties,
 });
 
