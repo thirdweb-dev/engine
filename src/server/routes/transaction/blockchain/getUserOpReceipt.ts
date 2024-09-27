@@ -1,20 +1,18 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../../../utils/env";
 import { createCustomError } from "../../../middleware/error";
+import { TransactionHashSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const requestSchema = Type.Object({
-  userOpHash: Type.String({
+  userOpHash: {
+    ...TransactionHashSchema,
     description: "User operation hash",
-    examples: [
-      "0xa5a579c6fd86c2d8a4d27f5bb22796614d3a31bbccaba8f3019ec001e001b95f",
-    ],
-    pattern: "^0x([A-Fa-f0-9]{64})$",
-  }),
+  },
   chain: Type.String({
     examples: ["80002"],
     description: "Chain ID or name",

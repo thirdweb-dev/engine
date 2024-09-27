@@ -5,6 +5,7 @@ import type { Address } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc1155";
 import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
 import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc1155ContractParamSchema,
   requestQuerystringSchema,
@@ -22,9 +23,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
-  receiver: Type.String({
+  receiver: {
+    ...AddressSchema,
     description: "Address of the wallet to claim the NFT to",
-  }),
+  },
   tokenId: Type.String({
     description: "Token ID of the NFT to claim",
   }),

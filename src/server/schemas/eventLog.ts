@@ -1,12 +1,12 @@
-import { ContractEventLogs } from "@prisma/client";
-import { Static, Type } from "@sinclair/typebox";
-import { AddressSchema } from "./address";
+import type { ContractEventLogs } from "@prisma/client";
+import { Type, type Static } from "@sinclair/typebox";
+import { AddressSchema, TransactionHashSchema } from "./address";
 
 export const eventLogSchema = Type.Object({
   chainId: Type.Number(),
   contractAddress: AddressSchema,
   blockNumber: Type.Number(),
-  transactionHash: Type.String(),
+  transactionHash: TransactionHashSchema,
   topics: Type.Array(Type.String()),
   data: Type.String(),
   eventName: Type.Optional(Type.String()),
