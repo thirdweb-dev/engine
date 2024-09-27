@@ -7,6 +7,7 @@ import {
   toHex,
   type Hex,
 } from "thirdweb";
+import { stringify } from "thirdweb/utils";
 import type { TransactionReceipt } from "viem";
 import { getChain } from "../../../../utils/chain";
 import {
@@ -160,8 +161,7 @@ export async function getTransactionReceipt(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: {
-          ...receipt,
-          to: receipt.to ?? undefined,
+          ...JSON.parse(stringify(receipt)),
           gasUsed: toHex(receipt.gasUsed),
           cumulativeGasUsed: toHex(receipt.cumulativeGasUsed),
           effectiveGasPrice: toHex(receipt.effectiveGasPrice),
