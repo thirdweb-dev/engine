@@ -43,7 +43,7 @@ export async function grantRole(fastify: FastifyInstance) {
       summary: "Grant role",
       description: "Grant a role to a specific wallet.",
       tags: ["Contract-Roles"],
-      operationId: "grant",
+      operationId: "grantContractRole",
       headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,

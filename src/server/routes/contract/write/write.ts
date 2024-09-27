@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
@@ -10,7 +10,6 @@ import { abiSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
   requestQuerystringSchema,
-  standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
@@ -26,17 +25,9 @@ const writeRequestBodySchema = Type.Object({
   functionName: Type.String({
     description: "The function to call on the contract",
   }),
-  args: Type.Array(
-    Type.Union([
-      Type.String({
-        description: "The arguments to call on the function",
-      }),
-      Type.Tuple([Type.String(), Type.String()]),
-      Type.Object({}),
-      Type.Array(Type.Any()),
-      Type.Any(),
-    ]),
-  ),
+  args: Type.Array(Type.Any(), {
+    description: "The arguments to call on the function",
+  }),
   ...txOverridesWithValueSchema.properties,
   abi: Type.Optional(Type.Array(abiSchema)),
 });
@@ -59,11 +50,10 @@ export async function writeToContract(fastify: FastifyInstance) {
       params: contractParamSchema,
       headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
+      body: writeRequestBodySchema,
       response: {
-        ...standardResponseSchema,
         [StatusCodes.OK]: transactionWritesResponseSchema,
       },
-      body: writeRequestBodySchema,
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;

@@ -1,7 +1,6 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { AddressSchema } from "../../../../../schemas/address";
@@ -50,7 +49,7 @@ export async function erc20Transfer(fastify: FastifyInstance) {
       description:
         "Transfer ERC-20 tokens from the caller wallet to a specific wallet.",
       tags: ["ERC20"],
-      operationId: "transfer",
+      operationId: "erc20-erc20-transfer",
       body: requestBodySchema,
       params: requestSchema,
       headers: walletWithAAHeaderSchema,

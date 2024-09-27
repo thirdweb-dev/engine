@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox";
-import { Address, getAddress } from "thirdweb";
+import { getAddress, type Address } from "thirdweb";
 import { env } from "../../../utils/env";
-import { createBadAddressError } from "../../middleware/error";
+import { badAddressError } from "../../middleware/error";
 import { AddressSchema } from "../address";
 
 export const walletHeaderSchema = Type.Object({
@@ -43,7 +43,7 @@ export function maybeAddress(
   try {
     return getAddress(address);
   } catch {
-    throw createBadAddressError(variableName);
+    throw badAddressError(variableName);
   }
 }
 
@@ -55,7 +55,7 @@ export function requiredAddress(
   variableName: string,
 ): Address {
   const parsedAddress = maybeAddress(address, variableName);
-  if (!parsedAddress) throw createBadAddressError(variableName);
+  if (!parsedAddress) throw badAddressError(variableName);
   return parsedAddress;
 }
 

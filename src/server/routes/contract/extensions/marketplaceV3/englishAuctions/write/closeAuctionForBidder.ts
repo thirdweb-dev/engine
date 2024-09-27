@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -44,7 +44,7 @@ execute the sale for the buyer, meaning the buyer receives the NFT(s).
 You must also call closeAuctionForSeller to execute the sale for the seller,
 meaning the seller receives the payment from the highest bid.`,
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "closeAuctionForBidder",
+      operationId: "closeEnglishAuctionForBidder",
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -69,9 +69,8 @@ meaning the seller receives the payment from the highest bid.`,
         accountAddress,
       });
 
-      const tx = await contract.englishAuctions.closeAuctionForBidder.prepare(
-        listingId,
-      );
+      const tx =
+        await contract.englishAuctions.closeAuctionForBidder.prepare(listingId);
 
       const queueId = await queueTx({
         tx,

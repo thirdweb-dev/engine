@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -43,7 +43,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
       summary: "Update session key",
       description: "Update a session key for a smart account.",
       tags: ["Account"],
-      operationId: "updateSession",
+      operationId: "updateAccountSession",
       params: contractParamSchema,
       headers: walletWithAAHeaderSchema,
       body: requestBodySchema,

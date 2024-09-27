@@ -33,7 +33,7 @@ export async function getCorsConfiguration(fastify: FastifyInstance) {
         .split(",")
         .filter((url) => !mandatoryAllowedCorsUrls.includes(url));
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: omitted,
       });
     },

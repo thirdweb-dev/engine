@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import {
@@ -44,7 +44,7 @@ export async function englishAuctionsIsWinningBid(fastify: FastifyInstance) {
       description:
         "Check if a bid is or will be the winning bid for an auction.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "isWinningBid",
+      operationId: "isEnglishAuctionsWinningBid",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

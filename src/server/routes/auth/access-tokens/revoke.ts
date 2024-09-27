@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { revokeToken } from "../../../../db/tokens/revokeToken";
 import { accessTokenCache } from "../../../../utils/cache/accessToken";
@@ -26,7 +26,7 @@ export async function revokeAccessToken(fastify: FastifyInstance) {
       summary: "Revoke an access token",
       description: "Revoke an access token",
       tags: ["Access Tokens"],
-      operationId: "revoke",
+      operationId: "revokeAccessTokens",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -38,7 +38,7 @@ export async function revokeAccessToken(fastify: FastifyInstance) {
 
       accessTokenCache.clear();
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

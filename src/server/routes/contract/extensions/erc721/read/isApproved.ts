@@ -1,7 +1,6 @@
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-
-import { Static, Type } from "@sinclair/typebox";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   contractParamSchema,
@@ -45,7 +44,7 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
       description:
         "Check if the specific wallet has approved transfers from a specific operator wallet.",
       tags: ["ERC721"],
-      operationId: "isApproved",
+      operationId: "erc721-isApproved",
       params: requestSchema,
       querystring: querystringSchema,
       response: {
@@ -61,7 +60,7 @@ export async function erc721IsApproved(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData: any = await contract.erc721.isApproved(
+      const returnData = await contract.erc721.isApproved(
         ownerWallet,
         operator,
       );

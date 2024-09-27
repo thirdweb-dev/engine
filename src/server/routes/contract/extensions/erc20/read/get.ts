@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
@@ -40,7 +40,7 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
       summary: "Get token details",
       description: "Get details for this ERC-20 contract.",
       tags: ["ERC20"],
-      operationId: "get",
+      operationId: "erc20-get",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

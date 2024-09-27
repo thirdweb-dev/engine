@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
 import { AddressSchema } from "../../schemas/address";
@@ -32,7 +32,7 @@ export async function updateRelayer(fastify: FastifyInstance) {
       summary: "Update a relayer",
       description: "Update a relayer",
       tags: ["Relayer"],
-      operationId: "update",
+      operationId: "updateRelayer",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -73,7 +73,7 @@ export async function updateRelayer(fastify: FastifyInstance) {
         },
       });
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

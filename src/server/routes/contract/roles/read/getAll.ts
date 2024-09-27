@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../utils/cache/getContract";
 import { rolesResponseSchema } from "../../../../schemas/contract";
@@ -46,7 +46,7 @@ export async function getAllRoles(fastify: FastifyInstance) {
       summary: "Get wallets for all roles",
       description: "Get all wallets in each role for a contract.",
       tags: ["Contract-Roles"],
-      operationId: "getAll",
+      operationId: "listContractRoles",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

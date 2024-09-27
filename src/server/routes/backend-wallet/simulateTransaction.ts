@@ -1,10 +1,10 @@
-import { Static, Type } from "@sinclair/typebox";
-import { randomUUID } from "crypto";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex } from "thirdweb";
+import { randomUUID } from "node:crypto";
+import type { Address, Hex } from "thirdweb";
 import { doSimulateTransaction } from "../../../utils/transaction/simulateQueuedTransaction";
-import { QueuedTransaction } from "../../../utils/transaction/types";
+import type { QueuedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
 import {
@@ -16,6 +16,14 @@ import {
   walletWithAAHeaderSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
+
+const FunctionArgumentSchema = Type.Union([
+  Type.String({ description: "String argument" }),
+  Type.Number({ description: "Numeric argument" }),
+  Type.Boolean({ description: "Boolean argument" }),
+  Type.Array(Type.Any(), { description: "Array argument" }),
+  Type.Object({}, { description: "Object argument" }),
+]);
 
 const simulateRequestBodySchema = Type.Object({
   toAddress: {
@@ -35,17 +43,9 @@ const simulateRequestBodySchema = Type.Object({
     }),
   ),
   args: Type.Optional(
-    Type.Array(
-      Type.Union([
-        Type.String({
-          description: "The arguments to call for this function",
-        }),
-        Type.Tuple([Type.String(), Type.String()]),
-        Type.Object({}),
-        Type.Array(Type.Any()),
-        Type.Any(),
-      ]),
-    ),
+    Type.Array(FunctionArgumentSchema, {
+      description: "The arguments to call for this function",
+    }),
   ),
   // Raw transaction args
   data: Type.Optional(

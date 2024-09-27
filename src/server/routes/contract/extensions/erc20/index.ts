@@ -1,16 +1,14 @@
-import { FastifyInstance } from "fastify";
-
+import type { FastifyInstance } from "fastify";
 import { erc20AllowanceOf } from "./read/allowanceOf";
 import { erc20BalanceOf } from "./read/balanceOf";
-import { erc20GetMetadata } from "./read/get";
-import { erc20TotalSupply } from "./read/totalSupply";
-
 import { erc20CanClaim } from "./read/canClaim";
+import { erc20GetMetadata } from "./read/get";
 import { erc20GetActiveClaimConditions } from "./read/getActiveClaimConditions";
 import { erc20GetAllClaimConditions } from "./read/getAllClaimConditions";
 import { erc20GetClaimIneligibilityReasons } from "./read/getClaimIneligibilityReasons";
 import { erc20GetClaimerProofs } from "./read/getClaimerProofs";
 import { erc20SignatureGenerate } from "./read/signatureGenerate";
+import { erc20TotalSupply } from "./read/totalSupply";
 import { erc20burn } from "./write/burn";
 import { erc20burnFrom } from "./write/burnFrom";
 import { erc20claimTo } from "./write/claimTo";

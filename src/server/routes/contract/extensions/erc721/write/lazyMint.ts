@@ -51,7 +51,7 @@ export async function erc721lazyMint(fastify: FastifyInstance) {
       summary: "Lazy mint",
       description: "Lazy mint ERC-721 tokens to be claimed in the future.",
       tags: ["ERC721"],
-      operationId: "lazyMint",
+      operationId: "erc721-lazyMint",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

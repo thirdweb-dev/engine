@@ -53,7 +53,7 @@ export async function updateTransactionConfiguration(fastify: FastifyInstance) {
     handler: async (req, res) => {
       await updateConfiguration({ ...req.body });
       const config = await getConfig(false);
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           minTxsToProcess: config.minTxsToProcess,
           maxTxsToProcess: config.maxTxsToProcess,

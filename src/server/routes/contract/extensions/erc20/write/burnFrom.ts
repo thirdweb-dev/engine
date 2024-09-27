@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -49,7 +49,7 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
       description:
         "Burn ERC-20 tokens in a specific wallet. Requires allowance.",
       tags: ["ERC20"],
-      operationId: "burnFrom",
+      operationId: "erc20-burnFrom",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

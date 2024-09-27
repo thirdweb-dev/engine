@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -48,7 +48,7 @@ export async function erc1155SetApprovalForAll(fastify: FastifyInstance) {
       description:
         "Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token owned by the caller.",
       tags: ["ERC1155"],
-      operationId: "setApprovalForAll",
+      operationId: "erc1155-setApprovalForAll",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

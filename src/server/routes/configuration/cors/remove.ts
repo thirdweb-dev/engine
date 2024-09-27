@@ -72,7 +72,7 @@ export async function removeUrlToCorsConfiguration(fastify: FastifyInstance) {
       // Fetch and return the updated configuration
       const newConfig = await getConfig(false);
       res
-        .status(200)
+        .status(StatusCodes.OK)
         .send({ result: newConfig.accessControlAllowOrigin.split(",") });
     },
   });

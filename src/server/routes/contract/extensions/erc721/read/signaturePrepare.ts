@@ -1,14 +1,14 @@
-import { Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import { MintRequest721 } from "@thirdweb-dev/sdk";
 import { randomBytes } from "crypto";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Hex, ZERO_ADDRESS, getContract } from "thirdweb";
+import { ZERO_ADDRESS, getContract, type Hex } from "thirdweb";
 import {
   primarySaleRecipient as getDefaultPrimarySaleRecipient,
   getDefaultRoyaltyInfo,
 } from "thirdweb/extensions/common";
-import { GenerateMintSignatureOptions } from "thirdweb/extensions/erc721";
+import type { GenerateMintSignatureOptions } from "thirdweb/extensions/erc721";
 import { upload } from "thirdweb/storage";
 import { getChain } from "../../../../../../utils/chain";
 import { logger } from "../../../../../../utils/logger";
@@ -170,7 +170,7 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
       summary: "Prepare signature",
       description: "Prepares a payload for a wallet to generate a signature.",
       tags: ["ERC721"],
-      operationId: "signaturePrepare",
+      operationId: "erc721-signaturePrepare",
       params: requestSchema,
       body: requestBodySchema,
       response: {
