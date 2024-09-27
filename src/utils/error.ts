@@ -3,14 +3,14 @@ import { getChainMetadata } from "thirdweb/chains";
 import { getChain } from "./chain";
 import { isEthersErrorCode } from "./ethers";
 import { doSimulateTransaction } from "./transaction/simulateQueuedTransaction";
-import { AnyTransaction } from "./transaction/types";
+import type { AnyTransaction } from "./transaction/types";
 
 export const prettifyError = async (
   transaction: AnyTransaction,
   error: Error,
 ): Promise<string> => {
   if (!transaction.isUserOp) {
-    if (isEthersErrorCode(error, ethers.errors.INSUFFICIENT_FUNDS)) {
+    if (isInsufficientFundsError(error)) {
       const chain = await getChain(transaction.chainId);
       const metadata = await getChainMetadata(chain);
       return `Insufficient ${metadata.nativeCurrency?.symbol} on ${metadata.name} in ${transaction.from}.`;
@@ -50,4 +50,15 @@ export const isReplacementGasFeeTooLow = (error: unknown) => {
     );
   }
   return isEthersErrorCode(error, ethers.errors.REPLACEMENT_UNDERPRICED);
+};
+
+export const isInsufficientFundsError = (error: unknown) => {
+  const message = _parseMessage(error);
+  if (message) {
+    return (
+      message.includes("insufficient funds for gas * price + value") ||
+      message.includes("insufficient funds for intrinsic transaction cost")
+    );
+  }
+  return isEthersErrorCode(error, ethers.errors.INSUFFICIENT_FUNDS);
 };
