@@ -1,12 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex } from "thirdweb";
+import type { Address } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc1155";
-import { resolvePromisedValue } from "thirdweb/utils";
 import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
-import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
-import { insertTransaction } from "../../../../../../utils/transaction/insertTransaction";
+import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc1155ContractParamSchema,
   requestQuerystringSchema,
@@ -14,15 +13,20 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import {
+  maybeAddress,
+  requiredAddress,
+  walletWithAAHeaderSchema,
+} from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
-  receiver: Type.String({
+  receiver: {
+    ...AddressSchema,
     description: "Address of the wallet to claim the NFT to",
-  }),
+  },
   tokenId: Type.String({
     description: "Token ID of the NFT to claim",
   }),
@@ -53,7 +57,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
       summary: "Claim tokens to wallet",
       description: "Claim ERC-1155 tokens to a specific wallet.",
       tags: ["ERC1155"],
-      operationId: "claimTo",
+      operationId: "erc1155-claimTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,
@@ -71,6 +75,7 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
         "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": accountFactoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -78,47 +83,28 @@ export async function erc1155claimTo(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
+
       const transaction = claimTo({
         contract,
+        from: fromAddress as Address,
         to: receiver,
         quantity: BigInt(quantity),
         tokenId: BigInt(tokenId),
       });
 
-      let queueId: string;
-      const insertedTransaction = {
-        chainId,
-        from: fromAddress as Address,
-        to: contractAddress as Address | undefined,
-        data: (await resolvePromisedValue(transaction.data)) as Hex,
-        value: maybeBigInt(txOverrides?.value),
-        gas: maybeBigInt(txOverrides?.gas),
-        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
-      };
-
-      if (accountAddress) {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            ...insertedTransaction,
-            isUserOp: true,
-            accountAddress: accountAddress as Address,
-            signerAddress: fromAddress as Address,
-            target: contractAddress as Address | undefined,
-          },
-          shouldSimulate: simulateTx,
-          idempotencyKey,
-        });
-      } else {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            ...insertedTransaction,
-            isUserOp: false,
-          },
-          shouldSimulate: simulateTx,
-          idempotencyKey,
-        });
-      }
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
+        toAddress: maybeAddress(contractAddress, "to"),
+        accountAddress: maybeAddress(accountAddress, "x-account-address"),
+        accountFactoryAddress: maybeAddress(
+          accountFactoryAddress,
+          "x-account-factory-address",
+        ),
+        txOverrides,
+        idempotencyKey,
+        shouldSimulate: simulateTx,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {

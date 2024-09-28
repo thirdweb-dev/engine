@@ -21,7 +21,7 @@ export class SendTransactionQueue {
 
   // Allow enqueing the same queueId for multiple retries.
   static jobId = (data: SendTransactionData) =>
-    `${data.queueId}:${data.resendCount}`;
+    `${data.queueId}.${data.resendCount}`;
 
   static add = async (data: SendTransactionData) => {
     const serialized = superjson.stringify(data);

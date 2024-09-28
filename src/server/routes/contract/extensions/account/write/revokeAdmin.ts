@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -14,9 +15,10 @@ import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "Address to revoke admin permissions from",
-  }),
+  },
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -39,7 +41,7 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
       summary: "Revoke admin",
       description: "Revoke a smart account's admin permission.",
       tags: ["Account"],
-      operationId: "revokeAdmin",
+      operationId: "revokeAccountAdmin",
       headers: walletWithAAHeaderSchema,
       params: contractParamSchema,
       body: requestBodySchema,
@@ -67,9 +69,8 @@ export const revokeAdmin = async (fastify: FastifyInstance) => {
         accountAddress,
       });
 
-      const tx = await contract.account.revokeAdminPermissions.prepare(
-        walletAddress,
-      );
+      const tx =
+        await contract.account.revokeAdminPermissions.prepare(walletAddress);
       const queueId = await queueTx({
         tx,
         chainId,

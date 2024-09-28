@@ -1,5 +1,6 @@
 import { sha256HexSync } from "@thirdweb-dev/crypto";
 import { createThirdwebClient } from "thirdweb";
+import { TransactionReceipt } from "thirdweb/dist/types/transaction/types";
 import { env } from "./env";
 
 export const thirdwebClientId = sha256HexSync(
@@ -20,9 +21,7 @@ export const thirdwebClient = createThirdwebClient({
 export const toTransactionStatus = (status: "success" | "reverted"): number =>
   status === "success" ? 1 : 0;
 
-export const toTransactionType = (
-  type: "legacy" | "eip1559" | "eip2930" | "eip4844" | "eip7702",
-): number => {
+export const toTransactionType = (type: TransactionReceipt["type"]): number => {
   if (type === "legacy") return 0;
   if (type === "eip1559") return 1;
   if (type === "eip2930") return 2;

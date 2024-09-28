@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { claimConditionOutputSchema } from "../../../../../schemas/claimConditions";
@@ -38,7 +38,7 @@ export async function erc20GetActiveClaimConditions(fastify: FastifyInstance) {
       summary: "Retrieve the currently active claim phase, if any.",
       description: "Retrieve the currently active claim phase, if any.",
       tags: ["ERC20"],
-      operationId: "getActiveClaimConditions",
+      operationId: "erc20-getActiveClaimConditions",
       params: requestSchema,
       querystring: requestQueryString,
       response: {

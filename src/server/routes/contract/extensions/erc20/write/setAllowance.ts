@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
@@ -16,9 +17,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-  spenderAddress: Type.String({
+  spenderAddress: {
+    ...AddressSchema,
     description: "Address of the wallet to allow transfers from",
-  }),
+  },
   amount: Type.String({
     description: "The number of tokens to give as allowance",
   }),
@@ -46,7 +48,7 @@ export async function erc20SetAlowance(fastify: FastifyInstance) {
       description:
         "Grant a specific wallet address to transfer ERC-20 tokens from the caller wallet.",
       tags: ["ERC20"],
-      operationId: "setAllowance",
+      operationId: "erc20-setAllowance",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

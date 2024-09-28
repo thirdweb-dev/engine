@@ -1,5 +1,5 @@
 import { getConfiguration } from "../../db/configuration/getConfiguration";
-import { ParsedConfig } from "../../schema/config";
+import type { ParsedConfig } from "../../schema/config";
 
 let _config: ParsedConfig | null = null;
 

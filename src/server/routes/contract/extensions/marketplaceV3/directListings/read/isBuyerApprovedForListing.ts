@@ -1,7 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../../schemas/address";
 import {
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
@@ -14,9 +15,10 @@ const requestQuerySchema = Type.Object({
   listingId: Type.String({
     description: "The id of the listing to retrieve.",
   }),
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "The wallet address of the buyer to check.",
-  }),
+  },
 });
 
 // OUTPUT
@@ -46,7 +48,7 @@ export async function directListingsIsBuyerApprovedForListing(
       description:
         "Check if a buyer is approved to purchase a specific direct listing.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "isBuyerApprovedForListing",
+      operationId: "isBuyerApprovedForDirectListings",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

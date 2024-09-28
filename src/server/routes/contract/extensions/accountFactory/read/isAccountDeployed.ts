@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -15,10 +16,11 @@ const responseBodySchema = Type.Object({
 });
 
 const QuerySchema = Type.Object({
-  adminAddress: Type.String({
+  adminAddress: {
+    ...AddressSchema,
     description:
       "The address of the admin to check if the account address is deployed",
-  }),
+  },
   extraData: Type.Optional(
     Type.String({
       description: "Extra data to use in predicting the account address",

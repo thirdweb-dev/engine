@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../../schemas/address";
 import {
   marketplaceV3ContractParamSchema,
   requestQuerystringSchema,
@@ -19,9 +20,10 @@ const requestBodySchema = Type.Object({
   listingId: Type.String({
     description: "The ID of the listing you want to approve a buyer for.",
   }),
-  buyerAddress: Type.String({
+  buyerAddress: {
+    ...AddressSchema,
     description: "The wallet address of the buyer to approve.",
-  }),
+  },
   ...txOverridesWithValueSchema.properties,
 });
 

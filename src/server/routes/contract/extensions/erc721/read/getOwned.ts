@@ -1,7 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import { nftSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
@@ -12,10 +13,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "Address of the wallet to get NFTs for",
-    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
-  }),
+  },
 });
 
 // OUTPUT
@@ -57,7 +58,7 @@ export async function erc721GetOwned(fastify: FastifyInstance) {
       description:
         "Get all tokens in an ERC-721 contract owned by a specific wallet.",
       tags: ["ERC721"],
-      operationId: "getOwned",
+      operationId: "erc721-getOwned",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

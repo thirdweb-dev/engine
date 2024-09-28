@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { nftSchema } from "../../../../../schemas/nft";
@@ -61,7 +61,7 @@ export async function erc721GetAll(fastify: FastifyInstance) {
       summary: "Get all details",
       description: "Get details for all tokens in an ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "getAll",
+      operationId: "erc721-getAll",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

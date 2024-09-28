@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -14,8 +15,8 @@ import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
-  signerAddress: Type.String(),
-  approvedCallTargets: Type.Array(Type.String()),
+  signerAddress: AddressSchema,
+  approvedCallTargets: Type.Array(AddressSchema),
   startDate: Type.Optional(Type.String()),
   expirationDate: Type.Optional(Type.String()),
   nativeTokenLimitPerTransaction: Type.Optional(Type.String()),
@@ -42,7 +43,7 @@ export const updateSession = async (fastify: FastifyInstance) => {
       summary: "Update session key",
       description: "Update a session key for a smart account.",
       tags: ["Account"],
-      operationId: "updateSession",
+      operationId: "updateAccountSession",
       params: contractParamSchema,
       headers: walletWithAAHeaderSchema,
       body: requestBodySchema,

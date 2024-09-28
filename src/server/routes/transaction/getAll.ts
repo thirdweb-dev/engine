@@ -1,7 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
+import { PaginationSchema } from "../../schemas/pagination";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   TransactionSchema,
@@ -9,18 +10,21 @@ import {
 } from "../../schemas/transaction";
 
 const requestQuerySchema = Type.Object({
-  page: Type.Integer({
-    description: "Specify the page number for pagination.",
-    examples: [1],
-    default: 1,
-    minimum: 1,
-  }),
-  limit: Type.Integer({
-    description: "Specify the number of transactions to return per page.",
-    examples: [10],
-    default: 10,
-    minimum: 1,
-  }),
+  ...PaginationSchema.properties,
+  status: Type.Union(
+    [
+      // Note: 'queued' returns all transcations, not just transactions currently queued.
+      Type.Literal("queued"),
+      Type.Literal("mined"),
+      Type.Literal("cancelled"),
+      Type.Literal("errored"),
+    ],
+    {
+      description:
+        "The status to query: 'queued', 'mined', 'errored', or 'cancelled'. Default: 'queued'",
+      default: "queued",
+    },
+  ),
 });
 
 export const responseBodySchema = Type.Object({
@@ -82,7 +86,7 @@ responseBodySchema.example = {
   },
 };
 
-export async function getAllTx(fastify: FastifyInstance) {
+export async function getAllTransactions(fastify: FastifyInstance) {
   fastify.route<{
     Querystring: Static<typeof requestQuerySchema>;
     Reply: Static<typeof responseBodySchema>;
@@ -93,7 +97,7 @@ export async function getAllTx(fastify: FastifyInstance) {
       summary: "Get all transactions",
       description: "Get all transaction requests.",
       tags: ["Transaction"],
-      operationId: "getAll",
+      operationId: "listTransactions",
       querystring: requestQuerySchema,
       response: {
         ...standardResponseSchema,
@@ -101,11 +105,11 @@ export async function getAllTx(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { page, limit } = request.query;
+      const { status, page, limit } = request.query;
 
       const { transactions, totalCount } =
         await TransactionDB.getTransactionListByStatus({
-          status: "queued",
+          status,
           page,
           limit,
         });

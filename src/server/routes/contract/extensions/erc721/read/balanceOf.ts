@@ -1,8 +1,8 @@
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-
-import { Static, Type } from "@sinclair/typebox";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
@@ -12,10 +12,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc721ContractParamSchema;
 const querystringSchema = Type.Object({
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "Address of the wallet to check NFT balance",
-    examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
-  }),
+  },
 });
 
 // OUTPUT
@@ -41,7 +41,7 @@ export async function erc721BalanceOf(fastify: FastifyInstance) {
       description:
         "Get the balance of a specific wallet address for this ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "balanceOf",
+      operationId: "erc721-balanceOf",
       params: requestSchema,
       querystring: querystringSchema,
       response: {

@@ -2,6 +2,7 @@ import { Static, Type } from "@sinclair/typebox";
 import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { AddressSchema } from "../../schemas/address";
 import {
   currencyValueSchema,
   standardResponseSchema,
@@ -11,7 +12,7 @@ import { getChainIdFromChain } from "../../utils/chain";
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    walletAddress: Type.String(),
+    walletAddress: AddressSchema,
     ...currencyValueSchema.properties,
   }),
 });

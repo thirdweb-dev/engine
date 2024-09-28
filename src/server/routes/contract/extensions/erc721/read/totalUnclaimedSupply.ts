@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
@@ -28,7 +28,7 @@ export async function erc721TotalUnclaimedSupply(fastify: FastifyInstance) {
       summary: "Get unclaimed supply",
       description: "Get the unclaimed supply for this ERC-721 contract.",
       tags: ["ERC721"],
-      operationId: "totalUnclaimedSupply",
+      operationId: "erc721-totalUnclaimedSupply",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

@@ -1,13 +1,14 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAccessTokens } from "../../../../db/tokens/getAccessTokens";
+import { AddressSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const AccessTokenSchema = Type.Object({
   id: Type.String(),
   tokenMask: Type.String(),
-  walletAddress: Type.String(),
+  walletAddress: AddressSchema,
   createdAt: Type.String(),
   expiresAt: Type.String(),
   label: Type.Union([Type.String(), Type.Null()]),
@@ -27,7 +28,7 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
       summary: "Get all access tokens",
       description: "Get all access tokens",
       tags: ["Access Tokens"],
-      operationId: "getAll",
+      operationId: "listAccessTokens",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
@@ -35,7 +36,7 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
     },
     handler: async (req, res) => {
       const accessTokens = await getAccessTokens();
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: accessTokens.map((token) => ({
           ...token,
           createdAt: token.createdAt.toISOString(),

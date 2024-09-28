@@ -1,12 +1,13 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updatePermissions } from "../../../../db/permissions/updatePermissions";
+import { AddressSchema } from "../../../schemas/address";
 import { permissionsSchema } from "../../../schemas/auth";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const requestBodySchema = Type.Object({
-  walletAddress: Type.String(),
+  walletAddress: AddressSchema,
   permissions: permissionsSchema,
   label: Type.Optional(Type.String()),
 });
@@ -28,7 +29,7 @@ export async function grantPermissions(fastify: FastifyInstance) {
       summary: "Grant permissions to user",
       description: "Grant permissions to a user",
       tags: ["Permissions"],
-      operationId: "grant",
+      operationId: "grantAdmin",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -42,7 +43,7 @@ export async function grantPermissions(fastify: FastifyInstance) {
         permissions,
         label,
       });
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

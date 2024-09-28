@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { Address, Hex } from "thirdweb";
 import { maybeBigInt } from "../../../utils/primitiveTypes";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
+import { AddressSchema } from "../../schemas/address";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -11,17 +12,14 @@ import {
 } from "../../schemas/sharedApiSchemas";
 import { txOverridesSchema } from "../../schemas/txOverrides";
 import {
+  maybeAddress,
   walletChainParamSchema,
   walletWithAAHeaderSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const requestBodySchema = Type.Object({
-  toAddress: Type.Optional(
-    Type.String({
-      examples: ["0x..."],
-    }),
-  ),
+  toAddress: Type.Optional(AddressSchema),
   data: Type.String({
     examples: ["0x..."],
   }),
@@ -73,6 +71,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
         "x-backend-wallet-address": fromAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
+        "x-account-factory-address": accountFactoryAddress,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -90,7 +89,10 @@ export async function sendTransaction(fastify: FastifyInstance) {
             accountAddress: accountAddress as Address,
             signerAddress: fromAddress as Address,
             target: toAddress as Address | undefined,
-
+            accountFactoryAddress: maybeAddress(
+              accountFactoryAddress,
+              "x-account-factory-address",
+            ),
             gas: maybeBigInt(txOverrides?.gas),
             maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
             maxPriorityFeePerGas: maybeBigInt(

@@ -1,8 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex, getContract } from "thirdweb";
-import { NFTInput } from "thirdweb/dist/types/utils/nft/parseNft";
+import { getContract, type Address, type Hex } from "thirdweb";
+import type { NFTInput } from "thirdweb/dist/types/utils/nft/parseNft";
 import { generateMintSignature } from "thirdweb/extensions/erc1155";
 import { getAccount } from "../../../../../../utils/account";
 import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
@@ -12,10 +12,10 @@ import { thirdwebClient } from "../../../../../../utils/sdk";
 import { createCustomError } from "../../../../../middleware/error";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {
-  ercNFTResponseType,
   nftInputSchema,
   signature1155InputSchema,
   signature1155OutputSchema,
+  type ercNFTResponseType,
 } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
@@ -103,7 +103,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
       description:
         "Generate a signature granting access for another wallet to mint tokens from this ERC-1155 contract. This method is typically called by the token contract owner.",
       tags: ["ERC1155"],
-      operationId: "signatureGenerate",
+      operationId: "erc1155-signatureGenerate",
       params: requestSchema,
       body: requestBodySchema,
       headers: {

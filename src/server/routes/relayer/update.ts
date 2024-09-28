@@ -1,7 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
@@ -9,7 +10,7 @@ const requestBodySchema = Type.Object({
   id: Type.String(),
   name: Type.Optional(Type.String()),
   chain: Type.Optional(Type.String()),
-  backendWalletAddress: Type.Optional(Type.String()),
+  backendWalletAddress: Type.Optional(AddressSchema),
   allowedContracts: Type.Optional(Type.Array(Type.String())),
   allowedForwarders: Type.Optional(Type.Array(Type.String())),
 });
@@ -31,7 +32,7 @@ export async function updateRelayer(fastify: FastifyInstance) {
       summary: "Update a relayer",
       description: "Update a relayer",
       tags: ["Relayer"],
-      operationId: "update",
+      operationId: "updateRelayer",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -72,7 +73,7 @@ export async function updateRelayer(fastify: FastifyInstance) {
         },
       });
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../utils/cache/getContract";
 import { abiEventSchema } from "../../../schemas/contract";
@@ -68,7 +68,7 @@ export async function extractEvents(fastify: FastifyInstance) {
       summary: "Get events",
       description: "Get details of all events implemented by a contract.",
       tags: ["Contract-Metadata"],
-      operationId: "getEvents",
+      operationId: "getContractEvents",
       params: requestSchema,
       response: {
         ...standardResponseSchema,

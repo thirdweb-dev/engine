@@ -1,4 +1,4 @@
-import { Chain, defineChain } from "thirdweb";
+import { defineChain, type Chain } from "thirdweb";
 import { getConfig } from "./cache/getConfig";
 
 /**
@@ -11,7 +11,9 @@ export const getChain = async (chainId: number): Promise<Chain> => {
 
   for (const override of config.chainOverridesParsed) {
     if (chainId === override.id) {
-      return override;
+      // we need to call defineChain to ensure that the chain is registered in CUSTOM_CHAIN_MAP
+      // even if we have a Chain type, we need to call defineChain to ensure that the chain is registered
+      return defineChain(override);
     }
   }
 

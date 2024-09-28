@@ -39,7 +39,7 @@ export async function removePublicKey(fastify: FastifyInstance) {
       await deleteKeypair({ hash });
       keypairCache.clear();
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: { success: true },
       });
     },

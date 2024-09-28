@@ -1,4 +1,5 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
+import { getNonceDetailsRoute } from "./admin/nonces";
 import { getTransactionDetails } from "./admin/transaction";
 import { createAccessToken } from "./auth/access-tokens/create";
 import { getAllAccessTokens } from "./auth/access-tokens/getAll";
@@ -14,7 +15,8 @@ import { createBackendWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
 import { getBackendWalletNonce } from "./backend-wallet/getNonce";
-import { getAllTransactions } from "./backend-wallet/getTransactions";
+import { getTransactionsForBackendWallet } from "./backend-wallet/getTransactions";
+import { getTransactionsForBackendWalletByNonce } from "./backend-wallet/getTransactionsByNonce";
 import { importBackendWallet } from "./backend-wallet/import";
 import { removeBackendWallet } from "./backend-wallet/remove";
 import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
@@ -91,14 +93,16 @@ import { revokeRelayer } from "./relayer/revoke";
 import { updateRelayer } from "./relayer/update";
 import { healthCheck } from "./system/health";
 import { queueStatus } from "./system/queue";
-import { getTxHashReceipt } from "./transaction/blockchain/getTxReceipt";
+import { getTransactionLogs } from "./transaction/blockchain/getLogs";
+import { getTransactionReceipt } from "./transaction/blockchain/getReceipt";
 import { getUserOpReceipt } from "./transaction/blockchain/getUserOpReceipt";
 import { sendSignedTransaction } from "./transaction/blockchain/sendSignedTx";
 import { sendSignedUserOp } from "./transaction/blockchain/sendSignedUserOp";
 import { cancelTransaction } from "./transaction/cancel";
-import { getAllTx } from "./transaction/getAll";
+import { getAllTransactions } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
 import { retryTransaction } from "./transaction/retry";
+import { retryFailedTransaction } from "./transaction/retry-failed";
 import { checkTxStatus } from "./transaction/status";
 import { syncRetryTransaction } from "./transaction/syncRetry";
 import { createWebhook } from "./webhooks/create";
@@ -121,7 +125,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(signTransaction);
   await fastify.register(signMessage);
   await fastify.register(signTypedData);
-  await fastify.register(getAllTransactions);
+  await fastify.register(getTransactionsForBackendWallet);
+  await fastify.register(getTransactionsForBackendWalletByNonce);
   await fastify.register(resetBackendWalletNonces);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
@@ -211,16 +216,18 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(prebuiltsRoutes);
 
   // Transactions
+  await fastify.register(getAllTransactions);
   await fastify.register(checkTxStatus);
-  await fastify.register(getAllTx);
   await fastify.register(getAllDeployedContracts);
   await fastify.register(retryTransaction);
   await fastify.register(syncRetryTransaction);
+  await fastify.register(retryFailedTransaction);
   await fastify.register(cancelTransaction);
   await fastify.register(sendSignedTransaction);
   await fastify.register(sendSignedUserOp);
-  await fastify.register(getTxHashReceipt);
+  await fastify.register(getTransactionReceipt);
   await fastify.register(getUserOpReceipt);
+  await fastify.register(getTransactionLogs);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);
@@ -257,4 +264,5 @@ export const withRoutes = async (fastify: FastifyInstance) => {
 
   // Admin
   await fastify.register(getTransactionDetails);
+  await fastify.register(getNonceDetailsRoute);
 };

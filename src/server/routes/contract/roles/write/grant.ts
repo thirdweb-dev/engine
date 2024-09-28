@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../schemas/address";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -19,9 +20,10 @@ const requestBodySchema = Type.Object({
   role: Type.String({
     description: "The role to grant",
   }),
-  address: Type.String({
+  address: {
+    ...AddressSchema,
     description: "The address to grant the role to",
-  }),
+  },
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -41,7 +43,7 @@ export async function grantRole(fastify: FastifyInstance) {
       summary: "Grant role",
       description: "Grant a role to a specific wallet.",
       tags: ["Contract-Roles"],
-      operationId: "grant",
+      operationId: "grantContractRole",
       headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,

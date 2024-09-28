@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import { nftAndSupplySchema } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
@@ -17,9 +18,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
-  receiver: Type.String({
+  receiver: {
+    ...AddressSchema,
     description: "Address of the wallet to mint the NFT to",
-  }),
+  },
   metadataWithSupply: Type.Array(nftAndSupplySchema),
   ...txOverridesWithValueSchema.properties,
 });
@@ -66,7 +68,7 @@ export async function erc1155mintBatchTo(fastify: FastifyInstance) {
       description:
         "Mint ERC-1155 tokens to multiple wallets in one transaction.",
       tags: ["ERC1155"],
-      operationId: "mintBatchTo",
+      operationId: "erc1155-mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

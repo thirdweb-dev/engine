@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import { OfferV3OutputSchema } from "../../../../../../schemas/marketplaceV3/offer";
@@ -57,7 +57,7 @@ export async function offersGetOffer(fastify: FastifyInstance) {
       summary: "Get offer",
       description: "Get details about an offer.",
       tags: ["Marketplace-Offers"],
-      operationId: "getOffer",
+      operationId: "getMarketplaceOffer",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

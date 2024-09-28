@@ -1,11 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   claimConditionInputSchema,
-  sanitizedClaimConditionInputSchema,
+  type sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
@@ -43,7 +43,7 @@ export async function erc20UpdateClaimConditions(fastify: FastifyInstance) {
       description:
         "Update a single claim phase, by providing the index of the claim phase and the new phase configuration. The index is the position of the phase in the list of phases you have made, starting from zero. e.g. if you have two phases, the first phase has an index of 0 and the second phase has an index of 1. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.",
       tags: ["ERC20"],
-      operationId: "updateClaimConditions",
+      operationId: "erc20-updateClaimConditions",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,
@@ -79,10 +79,11 @@ export async function erc20UpdateClaimConditions(fastify: FastifyInstance) {
         ...claimConditionInput,
         startTime: claimConditionInput.startTime
           ? isUnixEpochTimestamp(
-              parseInt(claimConditionInput.startTime.toString()),
+              Number.parseInt(claimConditionInput.startTime.toString()),
             )
             ? new Date(
-                parseInt(claimConditionInput.startTime.toString()) * 1000,
+                Number.parseInt(claimConditionInput.startTime.toString()) *
+                  1000,
               )
             : new Date(claimConditionInput.startTime)
           : undefined,

@@ -33,6 +33,7 @@ export type InsertedTransaction = {
   // User Operation
   signerAddress?: Address;
   accountAddress?: Address;
+  accountFactoryAddress?: Address;
   target?: Address;
   sender?: Address;
 };
@@ -46,6 +47,8 @@ export type QueuedTransaction = InsertedTransaction & {
   queuedAt: Date;
   value: bigint;
   data?: Hex;
+
+  manuallyResentAt?: Date;
 };
 
 // SentTransaction has been submitted to RPC successfully.
@@ -79,11 +82,18 @@ export type MinedTransaction = (
   gasUsed: bigint;
   effectiveGasPrice?: bigint;
   cumulativeGasUsed?: bigint;
+
+  // mined transactions can have an error message if they revert
+  errorMessage?: string;
 };
 
 // ErroredTransaction received an error before or while sending to RPC.
 // A transaction that reverted onchain is not considered "errored".
-export type ErroredTransaction = Omit<QueuedTransaction, "status"> & {
+export type ErroredTransaction = (
+  | Omit<QueuedTransaction, "status">
+  | Omit<_SentTransactionEOA, "status">
+  | Omit<_SentTransactionUserOp, "status">
+) & {
   status: "errored";
 
   errorMessage: string;

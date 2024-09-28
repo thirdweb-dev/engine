@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc1155ContractParamSchema,
   requestQuerystringSchema,
@@ -21,7 +22,7 @@ const requestBodySchema = Type.Object({
   }),
   addresses: Type.Array(
     Type.Object({
-      address: Type.String(),
+      address: AddressSchema,
       quantity: Type.String({
         default: "1",
       }),
@@ -62,7 +63,7 @@ export async function erc1155airdrop(fastify: FastifyInstance) {
       summary: "Airdrop tokens",
       description: "Airdrop ERC-1155 tokens to specific wallets.",
       tags: ["ERC1155"],
-      operationId: "airdrop",
+      operationId: "erc1155-airdrop",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

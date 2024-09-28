@@ -1,15 +1,14 @@
-import { Static } from "@sinclair/typebox";
-import { getChainByChainIdAsync } from "@thirdweb-dev/chains";
-import { Chain, LocalWallet } from "@thirdweb-dev/wallets";
+import { LocalWallet } from "@thirdweb-dev/wallets";
 import { Wallet } from "ethers";
-import { Address } from "thirdweb";
-import { Account, privateKeyToAccount } from "thirdweb/wallets";
+import type { Address } from "thirdweb";
+import { getChainMetadata } from "thirdweb/chains";
+import { privateKeyToAccount, type Account } from "thirdweb/wallets";
 import { getWalletDetails } from "../../../db/wallets/getWalletDetails";
-import { getConfig } from "../../../utils/cache/getConfig";
-import { networkResponseSchema } from "../../../utils/cache/getSdk";
+import { getChain } from "../../../utils/chain";
 import { env } from "../../../utils/env";
 import { logger } from "../../../utils/logger";
 import { thirdwebClient } from "../../../utils/sdk";
+import { badChainError } from "../../middleware/error";
 import { LocalFileStorage } from "../storage/localStorage";
 
 interface GetLocalWalletParams {
@@ -21,29 +20,10 @@ export const getLocalWallet = async ({
   chainId,
   walletAddress,
 }: GetLocalWalletParams) => {
-  let chain: Chain | undefined = undefined;
-  const config = await getConfig();
-  const CHAIN_OVERRIDES = config.chainOverrides;
-  try {
-    chain = await getChainByChainIdAsync(chainId);
-  } catch (error) {}
-
-  if (CHAIN_OVERRIDES) {
-    const parsedChainOverrides = JSON.parse(CHAIN_OVERRIDES);
-    const overrideChain = parsedChainOverrides.find(
-      (chainData: Static<typeof networkResponseSchema>) =>
-        chainData.chainId === chainId,
-    );
-
-    if (overrideChain) {
-      chain = overrideChain;
-    }
-  }
-
+  const chainV5 = await getChain(chainId);
+  const chain = await getChainMetadata(chainV5);
   if (!chain) {
-    throw new Error(
-      `Invalid chain ${chainId}, please use a different value or provide Chain Override Data.`,
-    );
+    throw badChainError(chainId);
   }
 
   const wallet = new LocalWallet({ chain });

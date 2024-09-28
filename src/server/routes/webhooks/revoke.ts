@@ -48,7 +48,7 @@ export async function revokeWebhook(fastify: FastifyInstance) {
 
       await deleteWebhook(id);
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           success: true,
         },

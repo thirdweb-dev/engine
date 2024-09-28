@@ -14,6 +14,7 @@ import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
 import { reportUsage } from "../../../utils/usage";
 import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { createCustomError } from "../../middleware/error";
+import { TransactionHashSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 // INPUT
@@ -29,7 +30,7 @@ const requestBodySchema = Type.Object({
 // OUTPUT
 export const responseBodySchema = Type.Object({
   result: Type.Object({
-    transactionHash: Type.String(),
+    transactionHash: TransactionHashSchema,
   }),
 });
 
@@ -95,9 +96,8 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
 
       // Send transaction.
       const account = await getAccount({ chainId, from });
-      const { transactionHash } = await account.sendTransaction(
-        populatedTransaction,
-      );
+      const { transactionHash } =
+        await account.sendTransaction(populatedTransaction);
 
       // Update state if the send was successful.
       const sentTransaction: SentTransaction = {

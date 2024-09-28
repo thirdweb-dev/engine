@@ -1,7 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import { claimerProofSchema } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
@@ -12,9 +13,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 const requestQueryString = Type.Object({
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "The wallet address to get the merkle proofs for.",
-  }),
+  },
 });
 
 // OUTPUT
@@ -36,7 +38,7 @@ export async function erc20GetClaimerProofs(fastify: FastifyInstance) {
       description:
         "Returns allowlist information and merkle proofs for a given wallet address. Returns null if no proof is found for the given wallet address.",
       tags: ["ERC20"],
-      operationId: "claimConditionsGetClaimerProofs",
+      operationId: "erc20-claimConditionsGetClaimerProofs",
       params: requestSchema,
       querystring: requestQueryString,
       response: {
@@ -53,9 +55,8 @@ export async function erc20GetClaimerProofs(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData = await contract.erc20.claimConditions.getClaimerProofs(
-        walletAddress,
-      );
+      const returnData =
+        await contract.erc20.claimConditions.getClaimerProofs(walletAddress);
       reply.status(StatusCodes.OK).send({
         result: returnData,
       });

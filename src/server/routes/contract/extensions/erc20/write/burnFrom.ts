@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
@@ -16,9 +17,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
-  holderAddress: Type.String({
+  holderAddress: {
+    ...AddressSchema,
     description: "Address of the wallet sending the tokens",
-  }),
+  },
   amount: Type.String({
     description: "The amount of this token you want to burn",
   }),
@@ -47,7 +49,7 @@ export async function erc20burnFrom(fastify: FastifyInstance) {
       description:
         "Burn ERC-20 tokens in a specific wallet. Requires allowance.",
       tags: ["ERC20"],
-      operationId: "burnFrom",
+      operationId: "erc20-burnFrom",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

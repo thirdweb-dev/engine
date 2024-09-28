@@ -1,9 +1,11 @@
 import {
   Address,
   Hex,
+  getAddress,
   getContract,
   prepareContractCall,
   readContract,
+  toSerializableTransaction,
 } from "thirdweb";
 import {
   UserOperation,
@@ -18,6 +20,7 @@ import { QueuedTransaction } from "./types";
 
 export const generateSignedUserOperation = async (
   queuedTransaction: QueuedTransaction,
+  populatedTransaction: Awaited<ReturnType<typeof toSerializableTransaction>>,
 ): Promise<UserOperation> => {
   const {
     chainId,
@@ -25,6 +28,7 @@ export const generateSignedUserOperation = async (
     gas,
     signerAddress,
     accountAddress,
+    accountFactoryAddress: userProvidedAccountFactoryAddress,
     target,
     from,
     data,
@@ -43,12 +47,26 @@ export const generateSignedUserOperation = async (
     address: accountAddress as Address,
   });
 
-  // Resolve Factory Contract Address from Smart-Account Contract
-  const accountFactoryAddress = await readContract({
-    contract: smartAccountContract,
-    method: "function factory() view returns (address)",
-    params: [],
-  });
+  // use the user provided factory address if available
+  let accountFactoryAddress = userProvidedAccountFactoryAddress;
+
+  if (!accountFactoryAddress) {
+    // Resolve Factory Contract Address from Smart-Account Contract
+    try {
+      const onchainAccountFactoryAddress = await readContract({
+        contract: smartAccountContract,
+        method: "function factory() view returns (address)",
+        params: [],
+      });
+
+      accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
+    } catch (e) {
+      // if no factory address is found, throw an error
+      throw new Error(
+        `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
+      );
+    }
+  }
 
   // Resolve Factory Contract
   const accountFactoryContract = getContract({
@@ -57,35 +75,26 @@ export const generateSignedUserOperation = async (
     address: accountFactoryAddress as Address,
   });
 
-  let toAddress: string | undefined;
-  let txValue: bigint | undefined;
-  let txData: Hex | undefined;
-
-  // Handle UserOp Requests
-  if (data && target) {
-    toAddress = target;
-    txValue = value || 0n;
-    txData = data;
-  } else {
-    throw new Error("Invalid UserOperation parameters");
-  }
-
   // Prepare UserOperation Call
   const userOpCall = prepareContractCall({
     contract: smartAccountContract,
     method: "function execute(address, uint256, bytes)",
-    params: [toAddress || "", txValue || 0n, txData || "0x"],
+    params: [
+      populatedTransaction.to || "",
+      populatedTransaction.value || 0n,
+      populatedTransaction.data,
+    ],
   });
 
   // Create Unsigned UserOperation
   // Todo: Future expose a way to skip paymaster
-  let unsignedOp = await createUnsignedUserOp({
+  let unsignedOp = (await createUnsignedUserOp({
     transaction: userOpCall,
     accountContract: smartAccountContract,
     sponsorGas: true,
     factoryContract: accountFactoryContract,
     adminAddress: signerAddress,
-  });
+  })) as UserOperation; // TODO support entrypoint v0.7 accounts
 
   // Pass custom gas limit for UserOperation
   if (gas) {
@@ -100,7 +109,10 @@ export const generateSignedUserOperation = async (
       client: thirdwebClient,
     });
 
-    const paymasterAndData = paymasterResult.paymasterAndData;
+    const paymasterAndData =
+      "paymasterAndData" in paymasterResult
+        ? paymasterResult.paymasterAndData
+        : "0x";
     if (paymasterAndData && paymasterAndData !== "0x") {
       unsignedOp.paymasterAndData = paymasterAndData as Hex;
     }
@@ -113,11 +125,12 @@ export const generateSignedUserOperation = async (
   });
 
   // Sign UserOperation
-  const signedUserOp = await signUserOp({
+  const signedUserOp = (await signUserOp({
+    client: thirdwebClient,
     userOp: unsignedOp,
     adminAccount,
     chain,
-  });
+  })) as UserOperation; // TODO support entrypoint v0.7 accounts
 
   // Return Signed UserOperation
   return signedUserOp;

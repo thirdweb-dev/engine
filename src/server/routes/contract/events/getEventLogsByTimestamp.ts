@@ -1,12 +1,13 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getEventLogsByBlockTimestamp } from "../../../../db/contractEventLogs/getContractEventLogs";
+import { AddressSchema } from "../../../schemas/address";
 import { eventLogSchema } from "../../../schemas/eventLog";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const requestQuerySchema = Type.Object({
-  contractAddresses: Type.Optional(Type.Array(Type.String())),
+  contractAddresses: Type.Optional(Type.Array(AddressSchema)),
   topics: Type.Optional(Type.Array(Type.String())),
   fromBlockTimestamp: Type.Number(),
   toBlockTimestamp: Type.Optional(Type.Number()),

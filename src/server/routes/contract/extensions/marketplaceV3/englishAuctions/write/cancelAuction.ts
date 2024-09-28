@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -40,7 +40,7 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
       description:
         "Cancel an existing auction listing. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.",
       tags: ["Marketplace-EnglishAuctions"],
-      operationId: "cancelAuction",
+      operationId: "cancelEnglishAuction",
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -65,9 +65,8 @@ export async function englishAuctionsCancelAuction(fastify: FastifyInstance) {
         accountAddress,
       });
 
-      const tx = await contract.englishAuctions.cancelAuction.prepare(
-        listingId,
-      );
+      const tx =
+        await contract.englishAuctions.cancelAuction.prepare(listingId);
 
       const queueId = await queueTx({
         tx,

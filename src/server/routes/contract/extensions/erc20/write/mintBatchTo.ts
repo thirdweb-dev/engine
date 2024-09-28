@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
@@ -18,9 +19,10 @@ const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({
   data: Type.Array(
     Type.Object({
-      toAddress: Type.String({
+      toAddress: {
+        ...AddressSchema,
         description: "The address to mint tokens to",
-      }),
+      },
       amount: Type.String({
         description: "The number of tokens to mint to the specific address.",
       }),
@@ -57,7 +59,7 @@ export async function erc20mintBatchTo(fastify: FastifyInstance) {
       summary: "Mint tokens (batch)",
       description: "Mint ERC-20 tokens to multiple wallets in one transaction.",
       tags: ["ERC20"],
-      operationId: "mintBatchTo",
+      operationId: "erc20-mintBatchTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

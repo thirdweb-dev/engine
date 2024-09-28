@@ -1,7 +1,7 @@
 import assert from "assert";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
-import { Hex, toSerializableTransaction } from "thirdweb";
+import { Hex, getAddress, toSerializableTransaction } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
@@ -10,7 +10,7 @@ import {
   acquireNonce,
   addSentNonce,
   recycleNonce,
-  resyncNonce,
+  syncLatestNonceFromOnchainIfHigher,
 } from "../../db/wallets/walletNonce";
 import { getAccount } from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
@@ -22,7 +22,9 @@ import {
   isReplacementGasFeeTooLow,
   prettifyError,
 } from "../../utils/error";
+import { logger } from "../../utils/logger";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
+import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
@@ -61,8 +63,17 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // An errored queued transaction (resendCount = 0) is safe to retry: the transaction wasn't sent to RPC.
   if (transaction.status === "errored" && resendCount === 0) {
     transaction = {
-      ...transaction,
+      ...{
+        ...transaction,
+        nonce: undefined,
+        errorMessage: undefined,
+        gas: undefined,
+        gasPrice: undefined,
+        maxFeePerGas: undefined,
+        maxPriorityFeePerGas: undefined,
+      },
       status: "queued",
+      manuallyResentAt: new Date(),
     } satisfies QueuedTransaction;
   }
 
@@ -70,6 +81,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // ErroredTransaction = the transaction failed and should not be re-attempted.
   // null = the transaction attemped to resend but was not needed. Ignore.
   // A thrown exception indicates a retry-able error occurred (e.g. RPC outage).
+
   let resultTransaction: SentTransaction | ErroredTransaction | null;
   if (transaction.status === "queued") {
     if (transaction.isUserOp) {
@@ -96,9 +108,27 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       // Report usage only on the first transaction send.
       if (transaction.status === "queued") {
         await _reportUsageSuccess(resultTransaction);
+        recordMetrics({
+          event: "transaction_sent",
+          params: {
+            chainId: transaction.chainId.toString(),
+            success: true,
+            walletAddress: getAddress(transaction.from),
+            durationSeconds: msSince(transaction.queuedAt) / 1000,
+          },
+        });
       }
     } else if (resultTransaction.status === "errored") {
       _reportUsageError(resultTransaction);
+      recordMetrics({
+        event: "transaction_sent",
+        params: {
+          chainId: transaction.chainId.toString(),
+          success: false,
+          walletAddress: getAddress(transaction.from),
+          durationSeconds: msSince(transaction.queuedAt) / 1000,
+        },
+      });
     }
   }
 };
@@ -110,7 +140,22 @@ const _sendUserOp = async (
   assert(queuedTransaction.isUserOp);
 
   const chain = await getChain(queuedTransaction.chainId);
-  const signedUserOp = await generateSignedUserOperation(queuedTransaction);
+
+  const [populatedTransaction, erroredTransaction] =
+    await getPopulatedOrErroredTransaction(queuedTransaction);
+
+  if (erroredTransaction) {
+    job.log(
+      `Failed to validate transaction: ${erroredTransaction.errorMessage}`,
+    );
+    return erroredTransaction;
+  }
+
+  const signedUserOp = await generateSignedUserOperation(
+    queuedTransaction,
+    populatedTransaction,
+  );
+
   const userOpHash = await bundleUserOp({
     userOp: signedUserOp,
     options: {
@@ -139,39 +184,35 @@ const _sendTransaction = async (
 ): Promise<SentTransaction | ErroredTransaction> => {
   assert(!queuedTransaction.isUserOp);
 
-  const { chainId, from } = queuedTransaction;
-  const chain = await getChain(chainId);
-
+  const { queueId, chainId, from } = queuedTransaction;
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
   // The nonce is _not_ set yet.
-  let populatedTransaction: Awaited<
-    ReturnType<typeof toSerializableTransaction>
-  >;
-  try {
-    populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(from),
-      transaction: {
-        client: thirdwebClient,
-        chain,
-        ...queuedTransaction,
-        // Stub the nonce because it will be overridden later.
-        nonce: 1,
-      },
-    });
-  } catch (e: unknown) {
-    // If the transaction will revert, error.message contains the human-readable error.
-    const errorMessage = (e as Error)?.message ?? `${e}`;
-    return {
-      ...queuedTransaction,
-      status: "errored",
-      errorMessage,
-    };
+  const [populatedTransaction, erroredTransaction] =
+    await getPopulatedOrErroredTransaction(queuedTransaction);
+
+  if (erroredTransaction) {
+    job.log(
+      `Failed to validate transaction: ${erroredTransaction.errorMessage}`,
+    );
+    return erroredTransaction;
   }
 
   // Acquire an unused nonce for this transaction.
-  const { nonce, isRecycledNonce } = await acquireNonce(chainId, from);
-  job.log(`Acquired nonce ${nonce}. isRecycledNonce=${isRecycledNonce}`);
+  const { nonce, isRecycledNonce } = await acquireNonce({
+    queueId,
+    chainId,
+    walletAddress: from,
+  });
+  job.log(
+    `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
+  );
+  logger({
+    level: "info",
+    message: `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
+    service: "worker",
+  });
+
   populatedTransaction.nonce = nonce;
   job.log(`Sending transaction: ${stringify(populatedTransaction)}`);
 
@@ -189,7 +230,7 @@ const _sendTransaction = async (
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
     // correct the DB nonce.
     if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
-      const result = await resyncNonce(chainId, from);
+      const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
       job.log(`Resynced nonce to ${result}.`);
     } else {
       // Otherwise this nonce is not used yet. Recycle it to be used by a future transaction.
@@ -200,7 +241,6 @@ const _sendTransaction = async (
   }
 
   await addSentNonce(chainId, from, nonce);
-
   return {
     ...queuedTransaction,
     status: "sent",
@@ -369,4 +409,44 @@ export const initSendTransactionWorker = () => {
       }
     }
   });
+};
+
+export const getPopulatedOrErroredTransaction = async (
+  queuedTransaction: QueuedTransaction,
+): Promise<
+  | [Awaited<ReturnType<typeof toSerializableTransaction>>, undefined]
+  | [undefined, ErroredTransaction]
+> => {
+  try {
+    const from = queuedTransaction.isUserOp
+      ? queuedTransaction.accountAddress
+      : queuedTransaction.from;
+
+    const to = queuedTransaction.to ?? queuedTransaction.target;
+
+    if (!from) throw new Error("Invalid transaction parameters: from");
+    if (!to) throw new Error("Invalid transaction parameters: to");
+
+    const populatedTransaction = await toSerializableTransaction({
+      from: getChecksumAddress(from),
+      transaction: {
+        client: thirdwebClient,
+        chain: await getChain(queuedTransaction.chainId),
+        ...queuedTransaction,
+        to: getChecksumAddress(to),
+        // if transaction is EOA, we stub the nonce to reduce RPC calls
+        nonce: queuedTransaction.isUserOp ? undefined : 1,
+      },
+    });
+
+    return [populatedTransaction, undefined];
+  } catch (e: unknown) {
+    const erroredTransaction: ErroredTransaction = {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: (e as Error)?.message ?? `${e}`,
+    };
+
+    return [undefined, erroredTransaction];
+  }
 };

@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { contractSchemaTypes } from "../sharedApiSchemas";
+import { Type, type Static } from "@sinclair/typebox";
+import type { contractSchemaTypes } from "../sharedApiSchemas";
 
 /**
  * Basic schema for all Request Query String
@@ -24,6 +24,7 @@ export interface readSchema extends contractSchemaTypes {
 const abiTypeSchema = Type.Object({
   type: Type.Optional(Type.String()),
   name: Type.Optional(Type.String()),
+  internalType: Type.Optional(Type.String()),
   stateMutability: Type.Optional(Type.String()),
   components: Type.Optional(
     Type.Array(
@@ -55,7 +56,8 @@ export const abiEventSchema = Type.Object({
 export const abiSchema = Type.Object({
   type: Type.String(),
   name: Type.Optional(Type.String()),
-  inputs: Type.Array(abiTypeSchema),
+  inputs: Type.Optional(Type.Array(abiTypeSchema)),
+  outputs: Type.Optional(Type.Array(abiTypeSchema)),
   stateMutability: Type.Optional(Type.String()),
 });
 

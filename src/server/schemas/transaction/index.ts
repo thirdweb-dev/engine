@@ -1,7 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { Hex } from "thirdweb";
+import { Type, type Static } from "@sinclair/typebox";
+import type { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
-import { AnyTransaction } from "../../../utils/transaction/types";
+import type { AnyTransaction } from "../../../utils/transaction/types";
+import { AddressSchema, TransactionHashSchema } from "../address";
 
 export const TransactionSchema = Type.Object({
   queueId: Type.Union([
@@ -98,12 +99,7 @@ export const TransactionSchema = Type.Object({
     }),
     Type.Null(),
   ]),
-  transactionHash: Type.Union([
-    Type.String({
-      description: "The transaction hash (may not be mined)",
-    }),
-    Type.Null(),
-  ]),
+  transactionHash: Type.Union([TransactionHashSchema, Type.Null()]),
   queuedAt: Type.Union([
     Type.String({
       description: "When the transaction is enqueued",
@@ -180,17 +176,17 @@ export const TransactionSchema = Type.Object({
     }),
     Type.Null(),
   ]),
-  signerAddress: Type.Union([Type.String(), Type.Null()]),
-  accountAddress: Type.Union([Type.String(), Type.Null()]),
-  target: Type.Union([Type.String(), Type.Null()]),
-  sender: Type.Union([Type.String(), Type.Null()]),
+  signerAddress: Type.Union([AddressSchema, Type.Null()]),
+  accountAddress: Type.Union([AddressSchema, Type.Null()]),
+  target: Type.Union([AddressSchema, Type.Null()]),
+  sender: Type.Union([AddressSchema, Type.Null()]),
   initCode: Type.Union([Type.String(), Type.Null()]),
   callData: Type.Union([Type.String(), Type.Null()]),
   callGasLimit: Type.Union([Type.String(), Type.Null()]),
   verificationGasLimit: Type.Union([Type.String(), Type.Null()]),
   preVerificationGas: Type.Union([Type.String(), Type.Null()]),
   paymasterAndData: Type.Union([Type.String(), Type.Null()]),
-  userOpHash: Type.Union([Type.String(), Type.Null()]),
+  userOpHash: Type.Union([TransactionHashSchema, Type.Null()]),
   functionName: Type.Union([Type.String(), Type.Null()]),
   functionArgs: Type.Union([Type.String(), Type.Null()]),
   // @deprecated
@@ -288,7 +284,7 @@ export const toTransactionSchema = (
         ? transaction.cancelledAt.toISOString()
         : null,
     errorMessage:
-      "errorMessage" in transaction ? transaction.errorMessage : null,
+      "errorMessage" in transaction ? (transaction.errorMessage ?? null) : null,
     sentAtBlockNumber:
       "sentAtBlock" in transaction ? Number(transaction.sentAtBlock) : null,
     blockNumber:

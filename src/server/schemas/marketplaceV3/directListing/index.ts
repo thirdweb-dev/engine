@@ -1,11 +1,13 @@
 import { Type } from "@sinclair/typebox";
+import { AddressSchema } from "../../address";
 import { nftMetadataSchema } from "../../nft";
-import { currencyValueSchema, Status } from "../../sharedApiSchemas";
+import { Status, currencyValueSchema } from "../../sharedApiSchemas";
 
 export const directListingV3InputSchema = Type.Object({
-  assetContractAddress: Type.String({
+  assetContractAddress: {
+    ...AddressSchema,
     description: "The address of the asset being listed.",
-  }),
+  },
   tokenId: Type.String({
     description: "The ID of the token to list.",
   }),
@@ -44,9 +46,10 @@ export const directListingV3InputSchema = Type.Object({
 });
 
 export const directListingV3OutputSchema = Type.Object({
-  assetContractAddress: Type.String({
+  assetContractAddress: {
+    ...AddressSchema,
     description: "The address of the asset being listed.",
-  }),
+  },
   tokenId: Type.String({
     description: "The ID of the token to list.",
   }),

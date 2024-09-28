@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -51,7 +51,7 @@ export async function erc1155lazyMint(fastify: FastifyInstance) {
       summary: "Lazy mint",
       description: "Lazy mint ERC-1155 tokens to be claimed in the future.",
       tags: ["ERC1155"],
-      operationId: "lazyMint",
+      operationId: "erc1155-lazyMint",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

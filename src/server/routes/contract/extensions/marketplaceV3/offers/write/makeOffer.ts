@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -46,7 +46,7 @@ export async function offersMakeOffer(fastify: FastifyInstance) {
       summary: "Make offer",
       description: "Make an offer on a token. A valid listing is not required.",
       tags: ["Marketplace-Offers"],
-      operationId: "makeOffer",
+      operationId: "makeMarketplaceOffer",
       headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,

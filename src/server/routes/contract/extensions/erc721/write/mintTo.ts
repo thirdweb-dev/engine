@@ -3,6 +3,7 @@ import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,
@@ -17,9 +18,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  receiver: Type.String({
+  receiver: {
+    ...AddressSchema,
     description: "Address of the wallet to mint the NFT to",
-  }),
+  },
   metadata: nftOrInputSchema,
   ...txOverridesWithValueSchema.properties,
 });
@@ -48,7 +50,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
       summary: "Mint tokens",
       description: "Mint ERC-721 tokens to a specific wallet.",
       tags: ["ERC721"],
-      operationId: "mintTo",
+      operationId: "erc721-mintTo",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

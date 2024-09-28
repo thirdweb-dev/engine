@@ -1,6 +1,6 @@
-import { Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import { ethers, utils } from "ethers";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
   ERC20PermitAbi,
@@ -12,6 +12,7 @@ import {
 import { getRelayerById } from "../../../db/relayer/getRelayerById";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getSdk } from "../../../utils/cache/getSdk";
+import { AddressSchema } from "../../schemas/address";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
@@ -34,7 +35,7 @@ const requestBodySchema = Type.Union([
       chainid: Type.Optional(Type.String()),
     }),
     signature: Type.String(),
-    forwarderAddress: Type.String(),
+    forwarderAddress: AddressSchema,
   }),
   Type.Object({
     type: Type.Literal("permit"),
@@ -150,7 +151,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
           extension: "relayer",
         });
 
-        res.status(200).send({
+        res.status(StatusCodes.OK).send({
           result: {
             queueId,
           },
@@ -194,7 +195,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
           extension: "relayer",
         });
 
-        res.status(200).send({
+        res.status(StatusCodes.OK).send({
           result: {
             queueId,
           },
@@ -285,7 +286,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
         extension: "relayer",
       });
 
-      res.status(200).send({
+      res.status(StatusCodes.OK).send({
         result: {
           queueId,
         },

@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../utils/cache/getContract";
 import { royaltySchema } from "../../../../schemas/contract";
@@ -33,7 +33,7 @@ export async function getTokenRoyaltyInfo(fastify: FastifyInstance) {
     Reply: Static<typeof responseSchema>;
   }>({
     method: "GET",
-    url: "/contract/:chain/:contractAddress/royalties/get-token-royalty-info/:token_id",
+    url: "/contract/:chain/:contractAddress/royalties/get-token-royalty-info/:tokenId",
     schema: {
       summary: "Get token royalty details",
       description:

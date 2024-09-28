@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -14,9 +15,10 @@ import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 const requestBodySchema = Type.Object({
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "Address to revoke session from",
-  }),
+  },
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -39,7 +41,7 @@ export const revokeSession = async (fastify: FastifyInstance) => {
       summary: "Revoke session key",
       description: "Revoke a session key for a smart account.",
       tags: ["Account"],
-      operationId: "revokeSession",
+      operationId: "revokeAccountSession",
       params: contractParamSchema,
       headers: walletWithAAHeaderSchema,
       body: requestBodySchema,

@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { SignedPayload1155 } from "@thirdweb-dev/sdk";
+import { Type, type Static } from "@sinclair/typebox";
+import type { SignedPayload1155 } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
@@ -44,7 +44,7 @@ export async function erc1155SignatureMint(fastify: FastifyInstance) {
       summary: "Signature mint",
       description: "Mint ERC-1155 tokens from a generated signature.",
       tags: ["ERC1155"],
-      operationId: "signatureMint",
+      operationId: "erc1155-signatureMint",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,

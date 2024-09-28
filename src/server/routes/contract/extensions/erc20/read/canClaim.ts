@@ -42,7 +42,7 @@ export async function erc20CanClaim(fastify: FastifyInstance) {
       description:
         "Check if tokens are currently available for claiming, optionally specifying if a specific wallet address can claim.",
       tags: ["ERC20"],
-      operationId: "canClaim",
+      operationId: "erc20-canClaim",
       params: requestSchema,
       querystring: requestQueryString,
       response: {

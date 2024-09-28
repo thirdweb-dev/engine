@@ -1,19 +1,31 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSdk } from "../../../../utils/cache/getSdk";
+import {
+  eth_getTransactionReceipt,
+  getRpcClient,
+  toHex,
+  type Hex,
+} from "thirdweb";
+import { stringify } from "thirdweb/utils";
+import type { TransactionReceipt } from "viem";
+import { getChain } from "../../../../utils/chain";
+import {
+  thirdwebClient,
+  toTransactionStatus,
+  toTransactionType,
+} from "../../../../utils/sdk";
+import { createCustomError } from "../../../middleware/error";
+import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const requestSchema = Type.Object({
-  txHash: Type.String({
+  transactionHash: {
+    ...TransactionHashSchema,
     description: "Transaction hash",
-    examples: [
-      "0xd9bcba8f5bc4ce5bf4d631b2a0144329c1df3b56ddb9fc64637ed3a4219dd087",
-    ],
-    pattern: "^0x([A-Fa-f0-9]{64})$",
-  }),
+  },
   chain: Type.String({
     examples: ["80002"],
     description: "Chain ID or name",
@@ -27,13 +39,13 @@ export const responseBodySchema = Type.Object({
       Type.Object({
         to: Type.String(),
         from: Type.String(),
-        contractAddress: Type.Union([Type.String(), Type.Null()]),
+        contractAddress: Type.Union([AddressSchema, Type.Null()]),
         transactionIndex: Type.Number(),
         root: Type.String(),
         gasUsed: Type.String(),
         logsBloom: Type.String(),
         blockHash: Type.String(),
-        transactionHash: Type.String(),
+        transactionHash: TransactionHashSchema,
         logs: Type.Array(Type.Any()),
         blockNumber: Type.Number(),
         confirmations: Type.Number(),
@@ -107,18 +119,18 @@ responseBodySchema.example = {
   },
 };
 
-export async function getTxHashReceipt(fastify: FastifyInstance) {
+export async function getTransactionReceipt(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseBodySchema>;
   }>({
     method: "GET",
-    url: "/transaction/:chain/tx-hash/:txHash",
+    url: "/transaction/:chain/tx-hash/:transactionHash",
     schema: {
-      summary: "Get transaction receipt from transaction hash",
+      summary: "Get transaction receipt",
       description: "Get the transaction receipt from a transaction hash.",
       tags: ["Transaction"],
-      operationId: "txHashReceipt",
+      operationId: "getTransactionReceipt",
       params: requestSchema,
       response: {
         ...standardResponseSchema,
@@ -126,21 +138,37 @@ export async function getTxHashReceipt(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, txHash } = request.params;
+      const { chain, transactionHash } = request.params;
 
       const chainId = await getChainIdFromChain(chain);
-      const sdk = await getSdk({ chainId });
-      const receipt = await sdk.getProvider().getTransactionReceipt(txHash);
+      const rpcRequest = getRpcClient({
+        client: thirdwebClient,
+        chain: await getChain(chainId),
+      });
+
+      let receipt: TransactionReceipt;
+      try {
+        receipt = await eth_getTransactionReceipt(rpcRequest, {
+          hash: transactionHash as Hex,
+        });
+      } catch {
+        throw createCustomError(
+          "Transaction is not mined.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_MINED",
+        );
+      }
 
       reply.status(StatusCodes.OK).send({
-        result: receipt
-          ? {
-              ...receipt,
-              gasUsed: receipt.gasUsed.toHexString(),
-              cumulativeGasUsed: receipt.cumulativeGasUsed.toHexString(),
-              effectiveGasPrice: receipt.effectiveGasPrice?.toHexString(),
-            }
-          : null,
+        result: {
+          ...JSON.parse(stringify(receipt)),
+          gasUsed: toHex(receipt.gasUsed),
+          cumulativeGasUsed: toHex(receipt.cumulativeGasUsed),
+          effectiveGasPrice: toHex(receipt.effectiveGasPrice),
+          blockNumber: Number(receipt.blockNumber),
+          type: toTransactionType(receipt.type),
+          status: toTransactionStatus(receipt.status),
+        },
       });
     },
   });

@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
 import { directListingV3OutputSchema } from "../../../../../../schemas/marketplaceV3/directListing";
@@ -73,7 +73,7 @@ export async function directListingsGetAllValid(fastify: FastifyInstance) {
       description:
         "Get all the valid direct listings for this marketplace contract. A valid listing is where the listing is active, and the creator still owns & has approved Marketplace to transfer the listed NFTs.",
       tags: ["Marketplace-DirectListings"],
-      operationId: "getAllValid",
+      operationId: "getAllValidDirectListings",
       params: requestSchema,
       querystring: requestQuerySchema,
       response: {

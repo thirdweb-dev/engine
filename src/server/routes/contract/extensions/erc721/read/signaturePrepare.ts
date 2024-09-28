@@ -1,185 +1,163 @@
-import { Static, Type } from "@sinclair/typebox";
-import type {
-  ISignatureMintERC721,
-  ITokenERC721,
-} from "@thirdweb-dev/contracts-js";
-import {
-  MintRequest721,
-  MintRequest721withQuantity,
-  NFTMetadataOrUri,
-  PayloadWithUri721withQuantity,
-  Signature721WithQuantityInput,
-  SmartContract,
-  detectFeatures,
-  isExtensionEnabled,
-} from "@thirdweb-dev/sdk";
-import { ThirdwebStorage } from "@thirdweb-dev/storage";
-import BN from "bn.js";
-import ethers, { BigNumber, TypedDataField, utils } from "ethers";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import { MintRequest721 } from "@thirdweb-dev/sdk";
+import { randomBytes } from "crypto";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { v4 as uuid } from "uuid";
-import { z } from "zod";
-import { getContract } from "../../../../../../utils/cache/getContract";
-import { env } from "../../../../../../utils/env";
+import { ZERO_ADDRESS, getContract, type Hex } from "thirdweb";
 import {
-  ercNFTResponseType,
-  signature721InputSchema,
-} from "../../../../../schemas/nft";
+  primarySaleRecipient as getDefaultPrimarySaleRecipient,
+  getDefaultRoyaltyInfo,
+} from "thirdweb/extensions/common";
+import type { GenerateMintSignatureOptions } from "thirdweb/extensions/erc721";
+import { upload } from "thirdweb/storage";
+import { getChain } from "../../../../../../utils/chain";
+import { logger } from "../../../../../../utils/logger";
+import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
+import { thirdwebClient } from "../../../../../../utils/sdk";
+import { createCustomError } from "../../../../../middleware/error";
+import {
+  signature721InputSchemaV5,
+  signature721OutputSchemaV5,
+} from "../../../../../schemas/nft/v5";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
-import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
 
-// INPUTS
 const requestSchema = erc721ContractParamSchema;
-const requestBodySchema = signature721InputSchema;
+const requestBodySchema = signature721InputSchemaV5;
 
-// OUTPUT
 const responseSchema = Type.Object({
   result: Type.Object({
-    mintPayload: Type.Any(),
-    typedDataPayload: Type.Object({
-      domain: Type.Object({
-        name: Type.String(),
-        version: Type.String(),
-        chainId: Type.Number(),
-        verifyingContract: Type.String(),
-      }),
-      types: Type.Any(),
-      message: Type.Any(),
-      primaryType: Type.String(),
-    }),
+    mintPayload: signature721OutputSchemaV5,
+    typedDataPayload: Type.Object(
+      {
+        domain: Type.Object(
+          {
+            name: Type.String(),
+            version: Type.String(),
+            chainId: Type.Number(),
+            verifyingContract: Type.String(),
+          },
+          {
+            description:
+              "Specifies the contextual information used to prevent signature reuse across different contexts.",
+          },
+        ),
+        types: Type.Object(
+          {
+            EIP712Domain: Type.Array(
+              Type.Object({
+                name: Type.String(),
+                type: Type.String(),
+              }),
+            ),
+            MintRequest: Type.Array(
+              Type.Object({
+                name: Type.String(),
+                type: Type.String(),
+              }),
+            ),
+          },
+          {
+            description:
+              "Defines the structure of the data types used in the message.",
+          },
+        ),
+        message: {
+          ...signature721OutputSchemaV5,
+          description: "The structured data to be signed.",
+        },
+        primaryType: Type.Literal("MintRequest", {
+          description:
+            "The main type of the data in the message corresponding to a defined type in the `types` field.",
+        }),
+      },
+      {
+        description:
+          "The payload to sign with a wallet's `signTypedData` method.",
+      },
+    ),
   }),
 });
 
-const EIP721DomainTypes = [
-  {
-    name: "name",
-    type: "string",
-  },
-  {
-    name: "version",
-    type: "string",
-  },
-  {
-    name: "chainId",
-    type: "uint256",
-  },
-  {
-    name: "verifyingContract",
-    type: "address",
-  },
-];
-
 responseSchema.example = {
   result: {
-    mintPayload: {
-      to: "0x...",
-      price: "0",
-      currencyAddress: "0x...",
-      mintStartTime: "1704664293",
-      mintEndTime: "1751925093",
-      uid: "0x...",
-      primarySaleRecipient: "0x...",
-      metadata: {
-        name: "test token",
-        description: "test token",
-      },
-      royaltyRecipient: "0x...",
-      royaltyBps: "0",
-      quantity: "1",
-      uri: "ipfs://...",
-    },
-    typedDataPayload: {
-      domain: {
-        name: "TokenERC721",
-        version: "1",
-        chainId: 84532,
-        verifyingContract: "0x...",
-      },
-      types: {
-        EIP712Domain: [
-          {
-            name: "name",
-            type: "string",
-          },
-          {
-            name: "version",
-            type: "string",
-          },
-          {
-            name: "chainId",
-            type: "uint256",
-          },
-          {
-            name: "verifyingContract",
-            type: "address",
-          },
-        ],
-        MintRequest: [
-          {
-            name: "to",
-            type: "address",
-          },
-          {
-            name: "royaltyRecipient",
-            type: "address",
-          },
-          {
-            name: "royaltyBps",
-            type: "uint256",
-          },
-          {
-            name: "primarySaleRecipient",
-            type: "address",
-          },
-          {
-            name: "uri",
-            type: "string",
-          },
-          {
-            name: "price",
-            type: "uint256",
-          },
-          {
-            name: "currency",
-            type: "address",
-          },
-          {
-            name: "validityStartTimestamp",
-            type: "uint128",
-          },
-          {
-            name: "validityEndTimestamp",
-            type: "uint128",
-          },
-          {
-            name: "uid",
-            type: "bytes32",
-          },
-        ],
-      },
-      message: {
+    result: {
+      mintPayload: {
+        uri: "ipfs://...",
+        currency: "0x0000000000000000000000000000000000000000",
+        uid: "0x3862386334363135326230303461303939626136653361643131343836373563",
         to: "0x...",
         royaltyRecipient: "0x...",
-        royaltyBps: "0",
         primarySaleRecipient: "0x...",
-        price: "0",
-        uri: "ipfs://...",
-        currency: "0x...",
-        validityEndTimestamp: "1751925093",
-        validityStartTimestamp: "1704664293",
-        uid: "0x...",
       },
-      primaryType: "MintRequest",
+      typedDataPayload: {
+        domain: {
+          name: "TokenERC721",
+          version: "1",
+          chainId: 84532,
+          verifyingContract: "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
+        },
+        types: {
+          MintRequest: [
+            {
+              name: "to",
+              type: "address",
+            },
+            {
+              name: "royaltyRecipient",
+              type: "address",
+            },
+            {
+              name: "royaltyBps",
+              type: "uint256",
+            },
+            {
+              name: "primarySaleRecipient",
+              type: "address",
+            },
+            {
+              name: "uri",
+              type: "string",
+            },
+            {
+              name: "price",
+              type: "uint256",
+            },
+            {
+              name: "currency",
+              type: "address",
+            },
+            {
+              name: "validityStartTimestamp",
+              type: "uint128",
+            },
+            {
+              name: "validityEndTimestamp",
+              type: "uint128",
+            },
+            {
+              name: "uid",
+              type: "bytes32",
+            },
+          ],
+        },
+        message: {
+          uri: "ipfs://test",
+          currency: "0x0000000000000000000000000000000000000000",
+          uid: "0xmyuid",
+          to: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
+          royaltyRecipient: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
+          primarySaleRecipient: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
+        },
+        primaryType: "MintRequest",
+      },
     },
   },
 };
 
-// LOGIC
 export async function erc721SignaturePrepare(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
@@ -192,7 +170,7 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
       summary: "Prepare signature",
       description: "Prepares a payload for a wallet to generate a signature.",
       tags: ["ERC721"],
-      operationId: "signaturePrepare",
+      operationId: "erc721-signaturePrepare",
       params: requestSchema,
       body: requestBodySchema,
       response: {
@@ -203,120 +181,117 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const {
-        to,
-        currencyAddress,
         metadata,
-        mintEndTime,
-        mintStartTime,
+        to,
         price,
-        primarySaleRecipient,
-        quantity,
-        royaltyBps,
-        royaltyRecipient,
+        priceInWei,
+        currency,
+        validityStartTimestamp,
+        validityEndTimestamp,
         uid,
       } = request.body;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
-        chainId,
-        contractAddress,
-      });
-      const storage = new ThirdwebStorage({
-        secretKey: env.THIRDWEB_API_SECRET_KEY,
+        client: thirdwebClient,
+        chain: await getChain(chainId),
+        address: contractAddress,
       });
 
-      const payload = checkAndReturnNFTSignaturePayload<
-        Static<typeof signature721InputSchema>,
-        ercNFTResponseType
-      >({
-        to,
-        currencyAddress,
-        metadata,
-        mintEndTime,
-        mintStartTime,
-        price,
-        primarySaleRecipient,
-        quantity,
-        royaltyBps,
-        royaltyRecipient,
-      });
+      let primarySaleRecipient = request.body.primarySaleRecipient;
+      let royaltyRecipient = request.body.royaltyRecipient;
+      let royaltyBps = request.body.royaltyBps;
 
-      const uri = await uploadOrExtractURI(metadata, storage);
-      // Build the payload to be provided to the signature mint endpoint.
-      const parsed = await Signature721WithQuantityInput.parseAsync(payload);
-      const mintPayload = {
-        ...parsed,
-        uid: uid ?? generateUid(),
-        uri,
-        royaltyBps: BigNumber.from(parsed.royaltyBps),
-      };
+      if (!royaltyRecipient || !royaltyBps) {
+        try {
+          const [defaultRoyaltyRecipient, defaultRoyaltyBps] =
+            await getDefaultRoyaltyInfo({
+              contract,
+            });
 
-      let sanitizedMessage: any;
-
-      // Build the data fields needed to be signed by a minter wallet.
-      let domain;
-
-      let types: Record<string, Array<TypedDataField>> = {
-        EIP712Domain: EIP721DomainTypes,
-      };
-      let message:
-        | ISignatureMintERC721.MintRequestStructOutput
-        | ITokenERC721.MintRequestStructOutput;
-
-      if (isLegacyNFTContract(contract)) {
-        domain = {
-          name: "TokenERC721",
-          version: "1",
-          chainId,
-          verifyingContract: contractAddress,
-        };
-        types = {
-          ...types,
-          MintRequest: MintRequest721,
-        };
-        message = mapLegacyPayloadToContractStruct(mintPayload);
-        sanitizedMessage = {
-          ...message,
-          price: message.price.toString(),
-          royaltyBps: message.royaltyBps.toString(),
-          validityStartTimestamp: message.validityStartTimestamp.toString(),
-          validityEndTimestamp: message.validityEndTimestamp.toString(),
-        };
-      } else {
-        domain = {
-          name: "SignatureMintERC721",
-          version: "1",
-          chainId,
-          verifyingContract: contractAddress,
-        };
-        types = {
-          ...types,
-          MintRequest: MintRequest721withQuantity,
-        };
-        message = mapPayloadToContractStruct(mintPayload);
-        sanitizedMessage = {
-          ...message,
-          pricePerToken: message.pricePerToken.toString(),
-          royaltyBps: message.royaltyBps.toString(),
-          validityStartTimestamp: message.validityStartTimestamp.toString(),
-          validityEndTimestamp: message.validityEndTimestamp.toString(),
-          quantity: message.quantity.toString(),
-        };
+          royaltyRecipient = royaltyRecipient ?? defaultRoyaltyRecipient;
+          royaltyBps = royaltyBps ?? defaultRoyaltyBps;
+        } catch (e) {
+          logger({
+            level: "error",
+            message: "Could not get default royalty info.",
+            service: "server",
+            error: e,
+          });
+          throw createCustomError(
+            "Could not get default royalty info.",
+            StatusCodes.BAD_REQUEST,
+            "DEFAULT_ROYALTY_INFO",
+          );
+        }
       }
+
+      if (!primarySaleRecipient) {
+        try {
+          primarySaleRecipient = await getDefaultPrimarySaleRecipient({
+            contract,
+          });
+        } catch (e) {
+          logger({
+            level: "error",
+            message: "Could not get default primary sale recipient.",
+            service: "server",
+            error: e,
+          });
+          throw createCustomError(
+            "Could not get default primary sale recipient.",
+            StatusCodes.BAD_REQUEST,
+            "DEFAULT_PRIMARY_SALE_RECIPIENT",
+          );
+        }
+      }
+
+      const mintPayload = await generateMintSignaturePayload({
+        metadata,
+        to,
+        price,
+        priceInWei: maybeBigInt(priceInWei),
+        currency,
+        primarySaleRecipient,
+        royaltyRecipient,
+        royaltyBps,
+        validityStartTimestamp: validityStartTimestamp
+          ? new Date(validityStartTimestamp * 1000)
+          : undefined,
+        validityEndTimestamp: validityEndTimestamp
+          ? new Date(validityEndTimestamp * 1000)
+          : undefined,
+        uid: uid as Hex,
+      });
+      const sanitizedMintPayload: Static<typeof signature721OutputSchemaV5> = {
+        ...mintPayload,
+        price: mintPayload.price.toString(),
+        royaltyBps: mintPayload.royaltyBps.toString(),
+        validityStartTimestamp: Number(mintPayload.validityStartTimestamp),
+        validityEndTimestamp: Number(mintPayload.validityEndTimestamp),
+      };
 
       reply.status(StatusCodes.OK).send({
         result: {
-          mintPayload: {
-            ...mintPayload,
-            royaltyBps: mintPayload.royaltyBps.toString(),
-            mintEndTime: mintPayload.mintEndTime.toString(),
-            mintStartTime: mintPayload.mintStartTime.toString(),
-            quantity: mintPayload.quantity.toString(),
-          },
+          mintPayload: sanitizedMintPayload,
           typedDataPayload: {
-            domain,
-            types,
-            message: sanitizedMessage,
+            domain: {
+              name: "TokenERC721",
+              version: "1",
+              chainId: contract.chain.id,
+              verifyingContract: contract.address,
+            },
+            types: {
+              // signTypedData on some wallets fail without this type.
+              EIP712Domain: [
+                { name: "name", type: "string" },
+                { name: "version", type: "string" },
+                { name: "chainId", type: "uint256" },
+                { name: "verifyingContract", type: "address" },
+              ],
+              MintRequest: MintRequest721,
+            },
+            message: sanitizedMintPayload,
             primaryType: "MintRequest",
           },
         },
@@ -325,134 +300,73 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
   });
 }
 
+type GenerateMintSignaturePayloadOptions = Omit<
+  GenerateMintSignatureOptions["mintRequest"],
+  "royaltyRecipient" | "primarySaleRecipient" | "royaltyBps"
+> & {
+  royaltyRecipient: string;
+  primarySaleRecipient: string;
+  royaltyBps: number;
+};
+
 /**
- * Helper functions
+ * Helper functions copied from v5 SDK.
+ * The logic to generate a mint signature is not exported.
  */
-const isLegacyNFTContract = (
-  contract: SmartContract<ethers.ethers.BaseContract>,
-) =>
-  isExtensionEnabled(
-    contract.abi,
-    "ERC721SignatureMintV1",
-    detectFeatures(contract.abi),
-  );
-
-const generateUid = () => {
-  const buffer = Buffer.alloc(16);
-  uuid({}, buffer);
-  return utils.hexlify(utils.toUtf8Bytes(buffer.toString("hex")));
-};
-
-const mapPayloadToContractStruct = (
-  mintRequest: PayloadWithUri721withQuantity,
-): ISignatureMintERC721.MintRequestStructOutput => {
-  return {
-    to: mintRequest.to,
-    royaltyRecipient: mintRequest.royaltyRecipient,
-    royaltyBps: mintRequest.royaltyBps,
-    primarySaleRecipient: mintRequest.primarySaleRecipient,
-    uri: mintRequest.uri,
-    quantity: mintRequest.quantity,
-    pricePerToken: ethers.BigNumber.from(mintRequest.price),
-    currency: mintRequest.currencyAddress,
-    validityStartTimestamp: mintRequest.mintStartTime,
-    validityEndTimestamp: mintRequest.mintEndTime,
-    uid: mintRequest.uid,
-  } as ISignatureMintERC721.MintRequestStructOutput;
-};
-
-const mapLegacyPayloadToContractStruct = (
-  mintRequest: PayloadWithUri721withQuantity,
-): ITokenERC721.MintRequestStructOutput => {
-  return {
-    to: mintRequest.to,
-    royaltyRecipient: mintRequest.royaltyRecipient,
-    royaltyBps: mintRequest.royaltyBps,
-    primarySaleRecipient: mintRequest.primarySaleRecipient,
-    price: ethers.BigNumber.from(mintRequest.price),
-    uri: mintRequest.uri,
-    currency: mintRequest.currencyAddress,
-    validityEndTimestamp: mintRequest.mintEndTime,
-    validityStartTimestamp: mintRequest.mintStartTime,
-    uid: mintRequest.uid,
-  } as ITokenERC721.MintRequestStructOutput;
-};
-
-const uploadOrExtractURI = async (
-  metadata: NFTMetadataOrUri,
-  storage: ThirdwebStorage,
-): Promise<string> => {
-  if (typeof metadata === "string") {
-    return metadata;
-  } else {
-    return await storage.upload(CommonNFTInput.parse(metadata));
-  }
-};
-
-const FileOrBufferUnionSchema = (() => z.instanceof(Buffer) as z.ZodTypeAny)();
-
-const FileOrBufferSchema = (() =>
-  z.union([
-    FileOrBufferUnionSchema,
-    z.object({
-      data: z.union([FileOrBufferUnionSchema, z.string()]),
-      name: z.string(),
-    }),
-  ]))();
-
-const FileOrBufferOrStringSchema = (() =>
-  z.union([FileOrBufferSchema, z.string()]))();
-
-const HexColor = (() =>
-  z.union([
-    z.string().regex(/^([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color"),
-    z
-      .string()
-      .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, "Invalid hex color")
-      .transform((val) => val.replace("#", "")),
-    z.string().length(0),
-  ]))();
-
-const BigNumberTransformSchema = (() =>
-  z
-    .union([
-      z.bigint(),
-      z.custom<BigNumber>((data) => {
-        return BigNumber.isBigNumber(data);
-      }),
-      z.custom<BN>((data) => {
-        return BN.isBN(data);
-      }),
-    ])
-    .transform((arg) => {
-      if (BN.isBN(arg)) {
-        return new BN(arg).toString();
+export async function generateMintSignaturePayload(
+  mintRequest: GenerateMintSignaturePayloadOptions,
+) {
+  const currency = mintRequest.currency || ZERO_ADDRESS;
+  const [price, uri, uid] = await Promise.all([
+    // price
+    (async () => {
+      if (mintRequest.priceInWei) {
+        return mintRequest.priceInWei;
       }
-      return BigNumber.from(arg).toString();
-    }))();
+      if (mintRequest.price) {
+        return mintRequest.price;
+      }
+      return 0n;
+    })(),
+    // uri
+    (async () => {
+      if (mintRequest.metadata) {
+        if (typeof mintRequest.metadata === "object") {
+          return await upload({
+            client: thirdwebClient,
+            files: [mintRequest.metadata],
+          });
+        }
+        return mintRequest.metadata;
+      }
+      return "";
+    })(),
+    // uid
+    mintRequest.uid || (await randomBytesHex()),
+  ]);
 
-const PropertiesInput = (() =>
-  z.object({}).catchall(z.union([BigNumberTransformSchema, z.unknown()])))();
+  const startTime = mintRequest.validityStartTimestamp || new Date(0);
+  const endTime = mintRequest.validityEndTimestamp || tenYearsFromNow();
 
-const OptionalPropertiesInput = (() =>
-  z
-    .union([z.array(PropertiesInput), PropertiesInput])
-    .optional()
-    .nullable())();
+  return {
+    uri,
+    currency,
+    uid,
+    price,
+    to: mintRequest.to,
+    royaltyRecipient: mintRequest.royaltyRecipient,
+    royaltyBps: mintRequest.royaltyBps,
+    primarySaleRecipient: mintRequest.primarySaleRecipient,
+    validityStartTimestamp: dateToSeconds(startTime),
+    validityEndTimestamp: dateToSeconds(endTime),
+  };
+}
 
-const BasicNFTInput = (() =>
-  z.object({
-    name: z.union([z.string(), z.number()]).optional().nullable(),
-    description: z.string().nullable().optional().nullable(),
-    image: FileOrBufferOrStringSchema.nullable().optional(),
+const randomBytesHex = (length = 32) => randomBytes(length).toString("hex");
 
-    animation_url: FileOrBufferOrStringSchema.optional().nullable(),
-  }))();
+const tenYearsFromNow = () =>
+  new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10);
 
-const CommonNFTInput = (() =>
-  BasicNFTInput.extend({
-    external_url: FileOrBufferOrStringSchema.nullable().optional(),
-    background_color: HexColor.optional().nullable(),
-    properties: OptionalPropertiesInput,
-    attributes: OptionalPropertiesInput,
-  }).catchall(z.union([BigNumberTransformSchema, z.unknown()])))();
+const dateToSeconds = (date: Date) => {
+  return BigInt(Math.floor(date.getTime() / 1000));
+};

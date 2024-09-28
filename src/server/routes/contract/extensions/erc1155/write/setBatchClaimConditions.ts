@@ -1,11 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   claimConditionInputSchema,
-  setBatchSantiziedClaimConditionsRequestSchema,
+  type setBatchSantiziedClaimConditionsRequestSchema,
 } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
@@ -48,7 +48,7 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
       description:
         "Allows you to set claim conditions for multiple token IDs in a single transaction.",
       tags: ["ERC1155"],
-      operationId: "claimConditionsUpdate",
+      operationId: "erc1155-claimConditionsUpdate",
       params: requestSchema,
       body: requestBodySchema,
       headers: walletWithAAHeaderSchema,
@@ -93,9 +93,11 @@ export async function erc1155SetBatchClaimConditions(fastify: FastifyInstance) {
                 ...condition,
                 startTime: condition.startTime
                   ? isUnixEpochTimestamp(
-                      parseInt(condition.startTime.toString()),
+                      Number.parseInt(condition.startTime.toString()),
                     )
-                    ? new Date(parseInt(condition.startTime.toString()) * 1000)
+                    ? new Date(
+                        Number.parseInt(condition.startTime.toString()) * 1000,
+                      )
                     : new Date(condition.startTime)
                   : undefined,
               };

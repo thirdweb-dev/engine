@@ -1,7 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
 import { claimerProofSchema } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
@@ -16,9 +17,10 @@ const requestQueryString = Type.Object({
     description:
       "The token ID of the NFT you want to get the claimer proofs for.",
   }),
-  walletAddress: Type.String({
+  walletAddress: {
+    ...AddressSchema,
     description: "The wallet address to get the merkle proofs for.",
-  }),
+  },
 });
 
 // OUTPUT
@@ -40,7 +42,7 @@ export async function erc1155GetClaimerProofs(fastify: FastifyInstance) {
       description:
         "Returns allowlist information and merkle proofs for a given wallet address. Returns null if no proof is found for the given wallet address.",
       tags: ["ERC1155"],
-      operationId: "getClaimerProofs",
+      operationId: "erc1155-getClaimerProofs",
       params: requestSchema,
       querystring: requestQueryString,
       response: {

@@ -1,7 +1,8 @@
 import { Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
+import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const responseBodySchema = Type.Object({
@@ -10,7 +11,7 @@ const responseBodySchema = Type.Object({
       id: Type.String(),
       name: Type.Union([Type.String(), Type.Null()]),
       chainId: Type.String(),
-      backendWalletAddress: Type.String(),
+      backendWalletAddress: AddressSchema,
       allowedContracts: Type.Union([Type.Array(Type.String()), Type.Null()]),
       allowedForwarders: Type.Union([Type.Array(Type.String()), Type.Null()]),
     }),
@@ -25,7 +26,7 @@ export async function getAllRelayers(fastify: FastifyInstance) {
       summary: "Get all meta-transaction relayers",
       description: "Get all meta-transaction relayers",
       tags: ["Relayer"],
-      operationId: "getAll",
+      operationId: "listRelayers",
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseBodySchema,
@@ -34,7 +35,7 @@ export async function getAllRelayers(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const relayers = await prisma.relayers.findMany();
 
-      return res.status(200).send({
+      return res.status(StatusCodes.OK).send({
         result: relayers.map((relayer) => ({
           ...relayer,
           allowedContracts: relayer.allowedContracts
