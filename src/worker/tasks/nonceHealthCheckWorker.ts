@@ -27,15 +27,6 @@ interface NonceState {
   onchainNonce: number;
   largestSentNonce: number;
 }
-
-interface WalletHealth {
-  walletAddress: Address;
-  chainId: number;
-  isStuck: boolean;
-  onchainNonce: number;
-  largestSentNonce: number;
-}
-
 // Initialize the worker
 export const initNonceHealthCheckWorker = () => {
   NonceHealthCheckQueue.q.add("cron", "", {
@@ -51,7 +42,7 @@ export const initNonceHealthCheckWorker = () => {
 };
 
 // Main handler function
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<null, void, string> = async (_job: Job<null>) => {
   const allWallets = await getUsedBackendWallets();
 
   for (let i = 0; i < allWallets.length; i += BATCH_SIZE) {
@@ -91,16 +82,19 @@ async function isQueueStuck(
   // ensure we have enough data to check
   if (historicalStates.length < CHECK_PERIODS) return false;
 
+  const oldestOnchainNonce = historicalStates.at(-1)?.onchainNonce;
+
   // if for every period, the onchain nonce has not changed, and the internal nonce has strictly increased
   // then the queue is stuck
   const isStuckForAllPeriods = historicalStates.every((state, index) => {
-    if (index === historicalStates.length - 1) return true; // Last (oldest) state
+    // check if the onchain nonce has changed, if yes, fail the check early
+    if (state.onchainNonce !== oldestOnchainNonce) return false;
 
-    const prevState = historicalStates[index + 1];
-    return (
-      state.onchainNonce === prevState.onchainNonce &&
-      state.largestSentNonce > prevState.largestSentNonce
-    );
+    // if the current state is the oldest state, we don't need to check if engine nonce has increased
+    if (index === historicalStates.length - 1) return true;
+
+    const previousState = historicalStates[index + 1];
+    return state.largestSentNonce > previousState.largestSentNonce;
   });
 
   return isStuckForAllPeriods;
@@ -126,7 +120,9 @@ function nonceHistoryKey(walletAddress: Address, chainId: number) {
   return `nonce-history:${chainId}:${getAddress(walletAddress)}`;
 }
 
-// Get historical nonce states
+/**
+ * Get historical nonce states, ordered from newest to oldest
+ */
 async function getHistoricalNonceStates(
   walletAddress: Address,
   chainId: number,
