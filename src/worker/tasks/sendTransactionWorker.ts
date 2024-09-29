@@ -425,7 +425,7 @@ export const getPopulatedOrErroredTransaction = async (
     const to = queuedTransaction.to ?? queuedTransaction.target;
 
     if (!from) throw new Error("Invalid transaction parameters: from");
-    if (!to) throw new Error("Invalid transaction parameters: to");
+    if (queuedTransaction.isUserOp && !to) throw new Error("Invalid transaction parameters: to");
 
     const populatedTransaction = await toSerializableTransaction({
       from: getChecksumAddress(from),
