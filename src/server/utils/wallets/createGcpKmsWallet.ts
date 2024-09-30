@@ -1,38 +1,48 @@
 import { KeyManagementServiceClient } from "@google-cloud/kms";
+import assert from "node:assert";
 import { createWalletDetails } from "../../../db/wallets/createWalletDetails";
 import { WalletType } from "../../../schema/wallet";
-import { getConfig } from "../../../utils/cache/getConfig";
-import { getGcpKmsWallet } from "./getGcpKmsWallet";
+import { thirdwebClient } from "../../../utils/sdk";
+import {
+  fetchGcpKmsWalletParams,
+  type GcpKmsWalletParams,
+} from "./fetchGcpKmsWalletParams";
+import { getGcpKmsResourcePath } from "./gcpKmsResourcePath";
+import { getGcpKmsAccount } from "./getGcpKmsAccount";
 
-interface CreateGcpKmsWallet {
+type CreateGcpKmsWallet = {
   label?: string;
-}
+} & Partial<GcpKmsWalletParams>;
 
+/**
+ * Create an GCP KMS wallet, and store it into the database
+ * All optional parameters are overrides for the configuration in the database
+ * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
+ * If credentials (gcpApplicationCredentialEmail and gcpApplicationCredentialPrivateKey) are explicitly provided, they will be stored separately from the global configuration
+ */
 export const createGcpKmsWallet = async ({
   label,
+  ...overrides
 }: CreateGcpKmsWallet): Promise<string> => {
-  const config = await getConfig();
-  if (config.walletConfiguration.type !== WalletType.gcpKms) {
-    throw new Error(`Server was not configured for GCP KMS wallet creation`);
-  }
+  const params = await fetchGcpKmsWalletParams(overrides);
 
   const client = new KeyManagementServiceClient({
     credentials: {
-      client_email: config.walletConfiguration.gcpApplicationCredentialEmail,
-      private_key: config.walletConfiguration.gcpApplicationCredentialPrivateKey
+      client_email: params.gcpApplicationCredentialEmail,
+      private_key: params.gcpApplicationCredentialPrivateKey
         .split(String.raw`\n`)
         .join("\n"),
     },
-    projectId: config.walletConfiguration.gcpApplicationProjectId,
+    projectId: params.gcpApplicationProjectId,
   });
 
   // TODO: What should we set this to?
   const cryptoKeyId = `ec-web3api-${new Date().getTime()}`;
   const [key] = await client.createCryptoKey({
     parent: client.keyRingPath(
-      config.walletConfiguration.gcpApplicationProjectId,
-      config.walletConfiguration.gcpKmsLocationId,
-      config.walletConfiguration.gcpKmsKeyRingId,
+      params.gcpApplicationProjectId,
+      params.gcpKmsLocationId,
+      params.gcpKmsKeyRingId,
     ),
     cryptoKeyId,
     cryptoKey: {
@@ -46,21 +56,51 @@ export const createGcpKmsWallet = async ({
 
   await client.close();
 
-  const wallet = await getGcpKmsWallet({
-    gcpKmsKeyId: cryptoKeyId,
-    gcpKmsKeyVersionId: "1",
+  const resourcePath = getGcpKmsResourcePath({
+    projectId: params.gcpApplicationProjectId,
+    locationId: params.gcpKmsLocationId,
+    keyRingId: params.gcpKmsKeyRingId,
+    cryptoKeyId: cryptoKeyId,
+    versionId: "1",
   });
 
-  const walletAddress = await wallet.getAddress();
+  assert(
+    `${key.name}/cryptoKeyVersions/1` === resourcePath,
+    `Expected created key resource path to be ${resourcePath}, but got ${key.name}`,
+  );
+
+  const account = await getGcpKmsAccount({
+    client: thirdwebClient,
+    name: resourcePath,
+    clientOptions: {
+      credentials: {
+        client_email: params.gcpApplicationCredentialEmail,
+        private_key: params.gcpApplicationCredentialPrivateKey,
+      },
+    },
+  });
+
+  const walletAddress = account.address;
+
+  // if email and privateKey are provided explicitly in the request, then they should be stored in walletDetails
+  const areCredentialsOverridden = !!(
+    overrides.gcpApplicationCredentialEmail &&
+    overrides.gcpApplicationCredentialPrivateKey
+  );
+
   await createWalletDetails({
     type: WalletType.gcpKms,
     address: walletAddress,
     label,
-    gcpKmsKeyId: cryptoKeyId,
-    gcpKmsKeyRingId: config.walletConfiguration.gcpKmsKeyRingId,
-    gcpKmsLocationId: config.walletConfiguration.gcpKmsLocationId,
-    gcpKmsKeyVersionId: "1",
-    gcpKmsResourcePath: `${key.name!}/cryptoKeysVersion/1`,
+    gcpKmsResourcePath: resourcePath,
+
+    ...(areCredentialsOverridden
+      ? {
+          gcpApplicationCredentialEmail: params.gcpApplicationCredentialEmail,
+          gcpApplicationCredentialPrivateKey:
+            params.gcpApplicationCredentialPrivateKey,
+        }
+      : {}),
   });
 
   return walletAddress;

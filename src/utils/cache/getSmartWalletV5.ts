@@ -1,13 +1,13 @@
-import { Account, smartWallet } from "thirdweb/wallets";
+import { smartWallet, type Account } from "thirdweb/wallets";
 import { getAccount } from "../account";
 import { thirdwebClient } from "../sdk";
 
-import { Address, getContract, readContract } from "thirdweb";
+import { getContract, readContract, type Address, type Chain } from "thirdweb";
 
 export const smartWalletsCache = new Map<string, Account>();
 
 interface SmartWalletParams {
-  chain: any;
+  chain: Chain;
   accountAddress: Address;
   from: Address;
   accountFactoryAddress?: Address;
@@ -20,8 +20,10 @@ export const getSmartWalletV5 = async ({
   accountFactoryAddress,
 }: SmartWalletParams) => {
   const cacheKey = `${chain.id}-${accountAddress}-${from}`;
-  if (smartWalletsCache.has(cacheKey)) {
-    return smartWalletsCache.get(cacheKey)!;
+  const cachedWallet = smartWalletsCache.get(cacheKey);
+
+  if (cachedWallet) {
+    return cachedWallet;
   }
 
   //  Resolve Smart-Account Contract

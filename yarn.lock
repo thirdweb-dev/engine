@@ -1122,6 +1122,32 @@
   dependencies:
     "@bull-board/api" "5.21.1"
 
+"@cloud-cryptographic-wallet/asn1-parser@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@cloud-cryptographic-wallet/asn1-parser/-/asn1-parser-0.0.4.tgz#4494a8f46d2b3974731d6cc2f3f34cb8afeb0c78"
+  integrity sha512-2Mwc2TSJsBmZluvw4mPqtt5UdymDvGRA3DqNAMU6xifh8Ytms0UtAm0YHNpuD2O2LnQr19q2d7eDg0eaS5qIPg==
+  dependencies:
+    asn1js "^3.0.5"
+
+"@cloud-cryptographic-wallet/cloud-kms-signer@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@cloud-cryptographic-wallet/cloud-kms-signer/-/cloud-kms-signer-0.1.2.tgz#9419d45a4a3f9693c8690bb5b6a49cf4e923559b"
+  integrity sha512-A+d2nb9RfL2Tfkwoodga+arX5Yg2SX8UNE1dFK6QkQKDgr/fMHGuc994y2QHG+u6VAJsF+977T44FAR96Tx4CQ==
+  dependencies:
+    "@cloud-cryptographic-wallet/asn1-parser" "^0.0.4"
+    "@cloud-cryptographic-wallet/signer" "^0.0.5"
+    "@google-cloud/kms" "^3.0.1"
+    "@node-lightning/checksum" "^0.27.0"
+
+"@cloud-cryptographic-wallet/signer@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@cloud-cryptographic-wallet/signer/-/signer-0.0.5.tgz#28dc9dd6d222c6e1f06a3e8c52342c2141085cbc"
+  integrity sha512-CfD3o1PWN3JF1F7bsfgcIET+RpNHeb953TrlMhQ+4yqFzIKGbqTLk3TQT+IoTKdxCWGqo/bzXpLO7aqqzIpPbg==
+  dependencies:
+    bn.js "^5.2.0"
+    keccak "^3.0.2"
+    secp256k1 "^4.0.3"
+
 "@coinbase/wallet-sdk@4.0.3":
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/@coinbase/wallet-sdk/-/wallet-sdk-4.0.3.tgz#fd52dd4c168c35979c7b3294018a6f78d163a593"
@@ -2479,6 +2505,13 @@
   dependencies:
     google-gax "^3.0.1"
 
+"@google-cloud/kms@^3.0.1":
+  version "3.8.0"
+  resolved "https://registry.yarnpkg.com/@google-cloud/kms/-/kms-3.8.0.tgz#165774725152fd73a2940667dfc7179843fab014"
+  integrity sha512-hE9np8VuMLe7npw16wCchcnkW0TDraP3zjD4+vzrxwDUKSTId8sWjlU/Pb69viUBQLyoLFE3mkH6nPhd8TWU3A==
+  dependencies:
+    google-gax "^3.5.8"
+
 "@google-cloud/kms@^4.4.0":
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/@google-cloud/kms/-/kms-4.4.0.tgz#8f3586e0d24bfa44378b9b1f26a14283c7e2c468"
@@ -2935,6 +2968,11 @@
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.5.0.tgz#abadc5ca20332db2b1b2aa3e496e9af1213570b0"
   integrity sha512-1j6kQFb7QRru7eKN3ZDvRcP13rugwdxZqCjbiAVZfIJwgj2A65UmT4TgARXGlXgnRkORLTDTrO19ZErt7+QXgA==
+
+"@node-lightning/checksum@^0.27.0":
+  version "0.27.4"
+  resolved "https://registry.yarnpkg.com/@node-lightning/checksum/-/checksum-0.27.4.tgz#493004e76aa76cdbab46f01bf445e4010c30a179"
+  integrity sha512-33DuXWqVVvHPnO7O38L2wtz9cSjCXeqi3+xUHZpPhZHpez4atw0JUcc1Fa1SJ4aEjDX81t6rLloMW083z9ZHYQ==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -8358,7 +8396,7 @@ google-auth-library@^9.3.0:
     gtoken "^7.0.0"
     jws "^4.0.0"
 
-google-gax@^3.0.1:
+google-gax@^3.0.1, google-gax@^3.5.8:
   version "3.6.1"
   resolved "https://registry.yarnpkg.com/google-gax/-/google-gax-3.6.1.tgz#02c78fc496f5adf86f2ca9145545f4b6575f6118"
   integrity sha512-g/lcUjGcB6DSw2HxgEmCDOrI/CByOwqRvsuUvNalHUK2iPPPlmAIpbMbl62u0YufGMr8zgE3JL7th6dCb1Ry+w==
@@ -10609,7 +10647,25 @@ protobufjs-cli@1.1.1:
     tmp "^0.2.1"
     uglify-js "^3.7.7"
 
-protobufjs@7.2.4, protobufjs@7.3.0, protobufjs@>=7.2.5, protobufjs@^7.0.0, protobufjs@^7.2.5:
+protobufjs@7.2.4:
+  version "7.2.4"
+  resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-7.2.4.tgz#3fc1ec0cdc89dd91aef9ba6037ba07408485c3ae"
+  integrity sha512-AT+RJgD2sH8phPmCf7OUZR8xGdcJRga4+1cOaXJ64hvcSkVhNcRHOwIxUatPH15+nj59WAGTDv3LSGZPEQbJaQ==
+  dependencies:
+    "@protobufjs/aspromise" "^1.1.2"
+    "@protobufjs/base64" "^1.1.2"
+    "@protobufjs/codegen" "^2.0.4"
+    "@protobufjs/eventemitter" "^1.1.0"
+    "@protobufjs/fetch" "^1.1.0"
+    "@protobufjs/float" "^1.0.2"
+    "@protobufjs/inquire" "^1.1.0"
+    "@protobufjs/path" "^1.1.2"
+    "@protobufjs/pool" "^1.1.0"
+    "@protobufjs/utf8" "^1.1.0"
+    "@types/node" ">=13.7.0"
+    long "^5.0.0"
+
+protobufjs@7.3.0, protobufjs@>=7.2.5, protobufjs@^7.0.0, protobufjs@^7.2.5:
   version "7.3.0"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-7.3.0.tgz#a32ec0422c039798c41a0700306a6e305b9cb32c"
   integrity sha512-YWD03n3shzV9ImZRX3ccbjqLxj7NokGN0V/ESiBV5xWqrommYHYiihuIyavq03pWSGqlyvYUFmfoMKd+1rPA/g==
@@ -11094,7 +11150,7 @@ scrypt-js@3.0.1, scrypt-js@^3.0.0:
   resolved "https://registry.yarnpkg.com/scrypt-js/-/scrypt-js-3.0.1.tgz#d314a57c2aef69d1ad98a138a21fe9eafa9ee312"
   integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
 
-secp256k1@4.0, secp256k1@^4.0.1:
+secp256k1@4.0, secp256k1@^4.0.1, secp256k1@^4.0.3:
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/secp256k1/-/secp256k1-4.0.3.tgz#c4559ecd1b8d3c1827ed2d1b94190d69ce267303"
   integrity sha512-NLZVf+ROMxwtEj3Xa562qgv2BK5e2WNmXPiOdVIPLgs6lyTzMvBq0aWTYMI5XCP9jZMVKOcqZLw/Wc4vDkuxhA==

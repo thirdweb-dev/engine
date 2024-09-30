@@ -1,37 +1,54 @@
 import { createWalletDetails } from "../../../db/wallets/createWalletDetails";
 import { WalletType } from "../../../schema/wallet";
-import { getConfig } from "../../../utils/cache/getConfig";
-import { getGcpKmsWallet } from "./getGcpKmsWallet";
+import { thirdwebClient } from "../../../utils/sdk";
+import { getGcpKmsAccount } from "./getGcpKmsAccount";
 
 interface ImportGcpKmsWalletParams {
-  gcpKmsKeyId: string;
-  gcpKmsKeyVersionId: string;
+  gcpKmsResourcePath: string;
   label?: string;
+  credentials: {
+    email: string;
+    privateKey: string;
+    shouldStore?: boolean;
+  };
 }
 
+/**
+ * Import a GCP KMS wallet, and store it into the database
+ *
+ * If credentials.shouldStore is true, the GCP application credential email and private key will be stored
+ * along with the wallet details, separately from the global configuration
+ */
 export const importGcpKmsWallet = async ({
-  gcpKmsKeyId,
-  gcpKmsKeyVersionId,
   label,
+  gcpKmsResourcePath,
+  credentials,
 }: ImportGcpKmsWalletParams) => {
-  const config = await getConfig();
-  if (config.walletConfiguration.type !== WalletType.gcpKms) {
-    throw new Error(`Server was not configured for GCP KMS wallet creation`);
-  }
+  const account = await getGcpKmsAccount({
+    client: thirdwebClient,
+    name: gcpKmsResourcePath,
+    clientOptions: {
+      credentials: {
+        client_email: credentials.email,
+        private_key: credentials.privateKey,
+      },
+    },
+  });
 
-  const gcpKmsResourcePath = `projects/${config.walletConfiguration.gcpApplicationProjectId}/locations/${config.walletConfiguration.gcpKmsLocationId}/keyRings/${config.walletConfiguration.gcpKmsKeyRingId}/cryptoKeys/${gcpKmsKeyId}/cryptoKeysVersion/${gcpKmsKeyVersionId}`;
-  const wallet = await getGcpKmsWallet({ gcpKmsKeyId, gcpKmsKeyVersionId });
+  const walletAddress = account.address;
 
-  const walletAddress = await wallet.getAddress();
   await createWalletDetails({
     type: WalletType.gcpKms,
     address: walletAddress,
     label,
-    gcpKmsKeyId: gcpKmsKeyId,
-    gcpKmsKeyRingId: config.walletConfiguration.gcpKmsKeyRingId,
-    gcpKmsLocationId: config.walletConfiguration.gcpKmsLocationId,
-    gcpKmsKeyVersionId: gcpKmsKeyVersionId,
     gcpKmsResourcePath,
+
+    ...(credentials.shouldStore
+      ? {
+          gcpApplicationCredentialEmail: credentials.email,
+          gcpApplicationCredentialPrivateKey: credentials.privateKey,
+        }
+      : {}),
   });
 
   return walletAddress;

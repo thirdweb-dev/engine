@@ -30,15 +30,15 @@ model Configuration {
   contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
   // AWS
-  awsAccessKeyId                     String?  @map("awsAccessKeyId")
-  awsSecretAccessKey                 String?  @map("awsSecretAccessKey")
-  awsRegion                          String?  @map("awsRegion")
+  awsAccessKeyId                     String?  @map("awsAccessKeyId") // global config, precendence goes to WalletDetails
+  awsSecretAccessKey                 String?  @map("awsSecretAccessKey") // global config, precendence goes to WalletDetails
+  awsRegion                          String?  @map("awsRegion") // // global config, treat as "default", store in WalletDetails.awsKmsArn
   // GCP
-  gcpApplicationProjectId            String?  @map("gcpApplicationProjectId")
-  gcpKmsLocationId                   String?  @map("gcpKmsLocationId")
-  gcpKmsKeyRingId                    String?  @map("gcpKmsKeyRingId")
-  gcpApplicationCredentialEmail      String?  @map("gcpApplicationCredentialEmail")
-  gcpApplicationCredentialPrivateKey String?  @map("gcpApplicationCredentialPrivateKey")
+  gcpApplicationProjectId            String?  @map("gcpApplicationProjectId") // global config, treat as "defult", store in WalletDetails.gcpKmsResourcePath
+  gcpKmsLocationId                   String?  @map("gcpKmsLocationId") // global config, treat as "defult", store in WalletDetails.gcpKmsResourcePath
+  gcpKmsKeyRingId                    String?  @map("gcpKmsKeyRingId") // global config, treat as "defult", store in WalletDetails.gcpKmsResourcePath
+  gcpApplicationCredentialEmail      String?  @map("gcpApplicationCredentialEmail") // global config, precendence goes to WalletDetails
+  gcpApplicationCredentialPrivateKey String?  @map("gcpApplicationCredentialPrivateKey") // global config, precendence goes to WalletDetails
   // Auth
   authDomain                         String   @default("") @map("authDomain") // TODO: Remove defaults on major
   authWalletEncryptedJson            String   @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
@@ -76,20 +76,24 @@ model Tokens {
 }
 
 model WalletDetails {
-  address            String  @id @map("address")
-  type               String  @map("type")
-  label              String? @map("label")
+  address                            String  @id @map("address")
+  type                               String  @map("type")
+  label                              String? @map("label")
   // Local
-  encryptedJson      String? @map("encryptedJson")
+  encryptedJson                      String? @map("encryptedJson")
   // KMS
-  awsKmsKeyId        String? @map("awsKmsKeyId")
-  awsKmsArn          String? @map("awsKmsArn")
+  awsKmsKeyId                        String? @map("awsKmsKeyId") // deprecated and unused, todo: remove with next breaking change. Use awsKmsArn
+  awsKmsArn                          String? @map("awsKmsArn")
+  awsKmsSecretAccessKey              String? @map("awsKmsSecretAccessKey") // if not available, default to: Configuration.awsSecretAccessKey
+  awsKmsAccessKeyId                  String? @map("awsKmsAccessKeyId") // if not available, default to: Configuration.awsAccessKeyId
   // GCP
-  gcpKmsKeyRingId    String? @map("gcpKmsKeyRingId") @db.VarChar(50)
-  gcpKmsKeyId        String? @map("gcpKmsKeyId") @db.VarChar(50)
-  gcpKmsKeyVersionId String? @map("gcpKmsKeyVersionId") @db.VarChar(20)
-  gcpKmsLocationId   String? @map("gcpKmsLocationId") @db.VarChar(20)
-  gcpKmsResourcePath String? @map("gcpKmsResourcePath") @db.Text
+  gcpKmsKeyRingId                    String? @map("gcpKmsKeyRingId") @db.VarChar(50) // deprecated and unused. Use gcpKmsResourcePath instead, todo: remove with next breaking change
+  gcpKmsKeyId                        String? @map("gcpKmsKeyId") @db.VarChar(50) // deprecated and unused. Use gcpKmsResourcePath instead, todo: remove with next breaking change
+  gcpKmsKeyVersionId                 String? @map("gcpKmsKeyVersionId") @db.VarChar(20) // deprecated and unused. Use gcpKmsResourcePath instead, todo: remove with next breaking change
+  gcpKmsLocationId                   String? @map("gcpKmsLocationId") @db.VarChar(20) // deprecated and unused. Use gcpKmsResourcePath instead, todo: remove with next breaking change
+  gcpKmsResourcePath                 String? @map("gcpKmsResourcePath") @db.Text
+  gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail") // if not available, default to: Configuration.gcpApplicationCredentialEmail
+  gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey") // if not available, default to: Configuration.gcpApplicationCredentialPrivateKey
 
   @@map("wallet_details")
 }

@@ -11,6 +11,12 @@ import { createLocalWallet } from "../../utils/wallets/createLocalWallet";
 
 const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),
+  type: Type.Optional(
+    Type.Enum(WalletType, {
+      description:
+        "Optional wallet type. If not provided, the default wallet type will be used.",
+    }),
+  ),
 });
 
 const responseSchema = Type.Object({
@@ -28,7 +34,7 @@ responseSchema.example = {
 };
 
 export const createBackendWallet = async (fastify: FastifyInstance) => {
-  fastify.route<{
+  fastify.withTypeProvider().route<{
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseSchema>;
   }>({
@@ -50,7 +56,12 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
 
       let walletAddress: string;
       const config = await getConfig();
-      switch (config.walletConfiguration.type) {
+
+      const walletType =
+        req.body.type ??
+        config.walletConfiguration.legacyWalletType_removeInNextBreakingChange;
+
+      switch (walletType) {
         case WalletType.local:
           walletAddress = await createLocalWallet({ label });
           break;

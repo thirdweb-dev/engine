@@ -1,30 +1,24 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../../schema/wallet";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const responseBodySchema = Type.Object({
-  result: Type.Union([
-    Type.Object({
-      type: Type.Literal(WalletType.local),
-    }),
-    Type.Object({
-      type: Type.Literal(WalletType.awsKms),
-      awsAccessKeyId: Type.String(),
-      awsRegion: Type.String(),
-      // Omit awsSecretAccessKey
-    }),
-    Type.Object({
-      type: Type.Literal(WalletType.gcpKms),
-      gcpApplicationProjectId: Type.String(),
-      gcpKmsLocationId: Type.String(),
-      gcpKmsKeyRingId: Type.String(),
-      gcpApplicationCredentialEmail: Type.String(),
-      // Omit gcpApplicationCredentialPrivateKey
-    }),
-  ]),
+  result: Type.Object({
+    type: Type.Enum(WalletType),
+
+    awsAccessKeyId: Type.String().Optional(),
+    awsRegion: Type.String().Optional(),
+
+    // Omit awsSecretAccessKey
+    gcpApplicationProjectId: Type.String().Optional(),
+    gcpKmsLocationId: Type.String().Optional(),
+    gcpKmsKeyRingId: Type.String().Optional(),
+    gcpApplicationCredentialEmail: Type.String().Optional(),
+    // Omit gcpApplicationCredentialPrivateKey
+  }),
 });
 
 export async function getWalletsConfiguration(fastify: FastifyInstance) {
@@ -43,10 +37,23 @@ export async function getWalletsConfiguration(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const config = await getConfig();
+
+      const { legacyWalletType_removeInNextBreakingChange, aws, gcp } =
+        config.walletConfiguration;
+
       res.status(StatusCodes.OK).send({
-        result: config.walletConfiguration,
+        result: {
+          type: legacyWalletType_removeInNextBreakingChange,
+          awsAccessKeyId: aws?.awsAccessKeyId ?? null,
+          awsRegion: aws?.defaultAwsRegion ?? null,
+          gcpApplicationProjectId: gcp?.defaultGcpApplicationProjectId ?? null,
+          gcpKmsLocationId: gcp?.defaultGcpKmsLocationId ?? null,
+          gcpKmsKeyRingId: gcp?.defaultGcpKmsKeyRingId ?? null,
+          gcpApplicationCredentialEmail:
+            gcp?.gcpApplicationCredentialEmail ?? null,
+        },
       });
     },
   });

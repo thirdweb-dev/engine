@@ -1,6 +1,25 @@
-import { Configuration } from "@prisma/client";
-import { Chain } from "thirdweb";
-import { WalletType } from "./wallet";
+import type { Configuration } from "@prisma/client";
+import type { Chain } from "thirdweb";
+import type { WalletType } from "./wallet";
+
+export type AwsWalletConfiguration = {
+  awsAccessKeyId: string;
+  awsSecretAccessKey: string;
+
+  defaultAwsRegion: string;
+};
+
+export type GcpWalletConfiguration = {
+  gcpApplicationCredentialEmail: string;
+  gcpApplicationCredentialPrivateKey: string;
+
+  // these values are used as default so users don't need to specify them every time to the create wallet endpoint
+  // for fetching a wallet, always trust the resource path in the wallet details
+  // only use these values for creating a new wallet, when the resource path is not known
+  defaultGcpKmsLocationId: string;
+  defaultGcpKmsKeyRingId: string;
+  defaultGcpApplicationProjectId: string;
+};
 
 export interface ParsedConfig
   extends Omit<
@@ -15,24 +34,11 @@ export interface ParsedConfig
     | "gcpApplicationCredentialPrivateKey"
     | "contractSubscriptionsRetryDelaySeconds"
   > {
-  walletConfiguration:
-    | {
-        type: WalletType.local;
-      }
-    | {
-        type: WalletType.awsKms;
-        awsAccessKeyId: string;
-        awsSecretAccessKey: string;
-        awsRegion: string;
-      }
-    | {
-        type: WalletType.gcpKms;
-        gcpApplicationProjectId: string;
-        gcpKmsLocationId: string;
-        gcpKmsKeyRingId: string;
-        gcpApplicationCredentialEmail: string;
-        gcpApplicationCredentialPrivateKey: string;
-      };
+  walletConfiguration: {
+    aws: AwsWalletConfiguration | null;
+    gcp: GcpWalletConfiguration | null;
+    legacyWalletType_removeInNextBreakingChange: WalletType;
+  };
   contractSubscriptionsRequeryDelaySeconds: string;
   chainOverridesParsed: Chain[];
 }

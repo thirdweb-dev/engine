@@ -1,11 +1,11 @@
-import type { KMSClientConfig } from "@aws-sdk/client-kms";
-import { KmsSigner } from "aws-kms-signer";
+import { CloudKmsSigner } from "@cloud-cryptographic-wallet/cloud-kms-signer";
+import { Bytes } from "@cloud-cryptographic-wallet/signer";
 import type { Hex, ThirdwebClient } from "thirdweb";
 import {
   eth_sendRawTransaction,
+  getAddress,
   getRpcClient,
   keccak256,
-  type Address,
 } from "thirdweb";
 import { serializeTransaction } from "thirdweb/transaction";
 import { toBytes } from "thirdweb/utils";
@@ -17,7 +17,7 @@ import type {
   TypedDataDefinition,
 } from "viem";
 import { hashTypedData } from "viem";
-import { getChain } from "../../../utils/chain";
+import { getChain } from "../../../utils/chain"; // Adjust import path as needed
 
 type SendTransactionResult = {
   transactionHash: Hex;
@@ -27,31 +27,39 @@ type SendTransactionOption = TransactionSerializable & {
   chainId: number;
 };
 
-type AwsKmsAccountOptions = {
-  keyId: string;
-  config?: KMSClientConfig;
+type GcpKmsAccountOptions = {
+  name: string; // GCP KMS key name
+  clientOptions?: ConstructorParameters<typeof CloudKmsSigner>[1];
   client: ThirdwebClient;
 };
 
-type AwsKmsAccount = Account;
+type GcpKmsAccount = Account;
 
-export async function getAwsKmsAccount(
-  options: AwsKmsAccountOptions,
-): Promise<AwsKmsAccount> {
-  const { keyId, config, client } = options;
-  const signer = new KmsSigner(keyId, config);
+export async function getGcpKmsAccount(
+  options: GcpKmsAccountOptions,
+): Promise<GcpKmsAccount> {
+  const { name: unprocessedName, clientOptions, client } = options;
+
+  // we had a bug previously where we previously called it "cryptoKeyVersion" instead of "cryptoKeyVersions"
+  // if we detect that, we'll fix it here
+  // TODO: remove this as a breaking change
+  const name = unprocessedName.includes("cryptoKeyVersions")
+    ? unprocessedName
+    : unprocessedName.replace("cryptoKeyVersion", "cryptoKeyVersions");
+
+  const signer = new CloudKmsSigner(name, clientOptions);
 
   // Populate address immediately
-  const addressUnprefixed = await signer.getAddress();
-  const address = `0x${addressUnprefixed}` as Address;
+  const publicKey = await signer.getPublicKey();
+  const address = getAddress(publicKey.toAddress().toString());
 
   async function signTransaction(tx: TransactionSerializable): Promise<Hex> {
     const serializedTx = serializeTransaction({ transaction: tx });
     const txHash = keccak256(serializedTx);
-    const signature = await signer.sign(Buffer.from(txHash.slice(2), "hex"));
+    const signature = await signer.sign(Bytes.fromString(txHash.slice(2)));
 
-    const r = `0x${signature.r.toString("hex")}` as Hex;
-    const s = `0x${signature.s.toString("hex")}` as Hex;
+    const r = signature.r.toString() as Hex;
+    const s = signature.s.toString() as Hex;
     const v = signature.v;
 
     const yParity = v % 2 === 0 ? 1 : (0 as 0 | 1);
@@ -88,10 +96,8 @@ export async function getAwsKmsAccount(
       throw new Error("Invalid message format");
     }
 
-    const signature = await signer.sign(
-      Buffer.from(messageHash.slice(2), "hex"),
-    );
-    return `0x${signature.toString()}`;
+    const signature = await signer.sign(Bytes.fromString(messageHash));
+    return signature.bytes.toString() as Hex;
   }
 
   async function signTypedData<
@@ -99,10 +105,8 @@ export async function getAwsKmsAccount(
     primaryType extends keyof typedData | "EIP712Domain" = keyof typedData,
   >(_typedData: TypedDataDefinition<typedData, primaryType>): Promise<Hex> {
     const typedDataHash = hashTypedData(_typedData);
-    const signature = await signer.sign(
-      Buffer.from(typedDataHash.slice(2), "hex"),
-    );
-    return `0x${signature.toString()}`;
+    const signature = await signer.sign(Bytes.fromString(typedDataHash));
+    return signature.bytes.toString() as Hex;
   }
 
   async function sendTransaction(

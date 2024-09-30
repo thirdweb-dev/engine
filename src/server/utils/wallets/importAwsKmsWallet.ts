@@ -1,33 +1,61 @@
 import { createWalletDetails } from "../../../db/wallets/createWalletDetails";
 import { WalletType } from "../../../schema/wallet";
-import { getConfig } from "../../../utils/cache/getConfig";
-import { getAwsKmsWallet } from "./getAwsKmsWallet";
+import { thirdwebClient } from "../../../utils/sdk";
+import { splitAwsKmsArn } from "./awsKmsArn";
+import { getAwsKmsAccount } from "./getAwsKmsAccount";
 
 interface ImportAwsKmsWalletParams {
-  awsKmsKeyId: string;
   awsKmsArn: string;
+  crendentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    /**
+     * If true, the AWS access key and secret access key will be stored
+     * along with the wallet details, separately from the global configuration
+     */
+    shouldStore?: boolean;
+  };
   label?: string;
 }
 
+/**
+ * Import an AWS KMS wallet, and store it into the database
+ *
+ * If credentials.shouldStore is true, the AWS access key and secret access key will be stored
+ * along with the wallet details, separately from the global configuration
+ */
 export const importAwsKmsWallet = async ({
-  awsKmsKeyId,
+  crendentials,
   awsKmsArn,
   label,
 }: ImportAwsKmsWalletParams) => {
-  const config = await getConfig();
-  if (config.walletConfiguration.type !== WalletType.awsKms) {
-    throw new Error(`Server was not configured for AWS KMS wallet creation`);
-  }
+  const { keyId, region } = splitAwsKmsArn(awsKmsArn);
+  const account = await getAwsKmsAccount({
+    client: thirdwebClient,
+    keyId,
+    config: {
+      region,
+      credentials: {
+        accessKeyId: crendentials.accessKeyId,
+        secretAccessKey: crendentials.secretAccessKey,
+      },
+    },
+  });
 
-  const wallet = await getAwsKmsWallet({ awsKmsKeyId });
+  const walletAddress = account.address;
 
-  const walletAddress = await wallet.getAddress();
   await createWalletDetails({
     type: WalletType.awsKms,
     address: walletAddress,
     awsKmsArn,
-    awsKmsKeyId,
     label,
+
+    ...(crendentials.shouldStore
+      ? {
+          awsAccessKeyId: crendentials.accessKeyId,
+          awsSecretAccessKey: crendentials.secretAccessKey,
+        }
+      : {}),
   });
 
   return walletAddress;

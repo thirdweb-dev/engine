@@ -1,12 +1,16 @@
-import { Configuration } from "@prisma/client";
-import { Static } from "@sinclair/typebox";
+import type { Configuration } from "@prisma/client";
+import type { Static } from "@sinclair/typebox";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { ethers } from "ethers";
-import { Chain } from "thirdweb";
-import { ParsedConfig } from "../../schema/config";
+import type { Chain } from "thirdweb";
+import type {
+  AwsWalletConfiguration,
+  GcpWalletConfiguration,
+  ParsedConfig,
+} from "../../schema/config";
 import { WalletType } from "../../schema/wallet";
 import { mandatoryAllowedCorsUrls } from "../../server/utils/cors-urls";
-import { networkResponseSchema } from "../../utils/cache/getSdk";
+import type { networkResponseSchema } from "../../utils/cache/getSdk";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
@@ -53,6 +57,18 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
     }
   }
 
+  // LEGACY COMPATIBILITY
+  // legacy behaviour was to check for these in order:
+  // 1. AWS KMS Configuration - if found, wallet type is AWS KMS
+  // 2. GCP KMS Configuration - if found, wallet type is GCP KMS
+  // 3. If neither are found, wallet type is Local
+  // to maintain compatibility where users expect to call create new backend wallet endpoint without an explicit wallet type
+  // we need to preserve the wallet type in the configuration but only as the "default" wallet type
+  let legacyWalletType_removeInNextBreakingChange: WalletType =
+    WalletType.local;
+
+  let awsWalletConfiguration: AwsWalletConfiguration | null = null;
+
   // TODO: Remove backwards compatibility with next breaking change
   if (awsAccessKeyId && awsSecretAccessKey && awsRegion) {
     // First try to load the aws secret using the encryption password
@@ -73,7 +89,8 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
         logger({
           service: "worker",
           level: "info",
-          message: `[Encryption] Updating awsSecretAccessKey to use ENCRYPTION_PASSWORD`,
+          message:
+            "[Encryption] Updating awsSecretAccessKey to use ENCRYPTION_PASSWORD",
         });
 
         await updateConfiguration({
@@ -85,28 +102,18 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
     // Renaming contractSubscriptionsRetryDelaySeconds
     // to contractSubscriptionsRequeryDelaySeconds to reflect its purpose
     // as we are requerying (& not retrying) with different delays
-    return {
-      ...restConfig,
-      contractSubscriptionsRequeryDelaySeconds:
-        contractSubscriptionsRetryDelaySeconds,
-      chainOverridesParsed,
-      walletConfiguration: {
-        type: WalletType.awsKms,
-        awsRegion,
-        awsAccessKeyId,
-        awsSecretAccessKey: decryptedSecretAccessKey,
-      },
+    awsWalletConfiguration = {
+      awsAccessKeyId,
+      awsSecretAccessKey: decryptedSecretAccessKey,
+      defaultAwsRegion: awsRegion,
     };
+
+    legacyWalletType_removeInNextBreakingChange = WalletType.awsKms;
   }
 
+  let gcpWalletConfiguration: GcpWalletConfiguration | null = null;
   // TODO: Remove backwards compatibility with next breaking change
-  if (
-    gcpApplicationProjectId &&
-    gcpKmsLocationId &&
-    gcpKmsKeyRingId &&
-    gcpApplicationCredentialEmail &&
-    gcpApplicationCredentialPrivateKey
-  ) {
+  if (gcpApplicationCredentialEmail && gcpApplicationCredentialPrivateKey) {
     // First try to load the gcp secret using the encryption password
     let decryptedGcpKey = decrypt(
       gcpApplicationCredentialPrivateKey,
@@ -125,7 +132,8 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
         logger({
           service: "worker",
           level: "info",
-          message: `[Encryption] Updating gcpApplicationCredentialPrivateKey to use ENCRYPTION_PASSWORD`,
+          message:
+            "[Encryption] Updating gcpApplicationCredentialPrivateKey to use ENCRYPTION_PASSWORD",
         });
 
         await updateConfiguration({
@@ -134,20 +142,24 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
       }
     }
 
-    return {
-      ...restConfig,
-      contractSubscriptionsRequeryDelaySeconds:
-        contractSubscriptionsRetryDelaySeconds,
-      chainOverridesParsed,
-      walletConfiguration: {
-        type: WalletType.gcpKms,
-        gcpApplicationProjectId,
-        gcpKmsLocationId,
-        gcpKmsKeyRingId,
-        gcpApplicationCredentialEmail,
-        gcpApplicationCredentialPrivateKey: decryptedGcpKey,
-      },
+    if (!gcpKmsLocationId || !gcpKmsKeyRingId || !gcpApplicationProjectId) {
+      throw new Error(
+        "GCP KMS location ID, project ID, and key ring ID are required configuration for this wallet type",
+      );
+    }
+
+    gcpWalletConfiguration = {
+      gcpApplicationCredentialEmail,
+      gcpApplicationCredentialPrivateKey: decryptedGcpKey,
+
+      // TODO: Remove these with the next breaking change
+      // These are used because import endpoint does not yet support GCP KMS resource path
+      defaultGcpKmsLocationId: gcpKmsLocationId,
+      defaultGcpKmsKeyRingId: gcpKmsKeyRingId,
+      defaultGcpApplicationProjectId: gcpApplicationProjectId,
     };
+
+    legacyWalletType_removeInNextBreakingChange = WalletType.gcpKms;
   }
 
   return {
@@ -156,7 +168,9 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
       contractSubscriptionsRetryDelaySeconds,
     chainOverridesParsed,
     walletConfiguration: {
-      type: WalletType.local,
+      aws: awsWalletConfiguration,
+      gcp: gcpWalletConfiguration,
+      legacyWalletType_removeInNextBreakingChange,
     },
   };
 };

@@ -1,25 +1,31 @@
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
-import { WalletType } from "../../../schema/wallet";
-import { getConfig } from "../../../utils/cache/getConfig";
+import {
+  fetchAwsKmsWalletParams,
+  type AwsKmsWalletParams,
+} from "./fetchAwsKmsWalletParams";
 import { importAwsKmsWallet } from "./importAwsKmsWallet";
 
-interface CreateAwsKmsWalletParams {
+type CreateAwsKmsWalletParams = {
   label?: string;
-}
+} & Partial<AwsKmsWalletParams>;
 
+/**
+ * Create an AWS KMS wallet, and store it into the database
+ * All optional parameters are overrides for the configuration in the database
+ * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
+ * If credentials (awsAccessKeyId and awsSecretAccessKey) are explicitly provided, they will be stored separately from the global configuration
+ */
 export const createAwsKmsWallet = async ({
   label,
+  ...overrides
 }: CreateAwsKmsWalletParams): Promise<string> => {
-  const config = await getConfig();
-  if (config.walletConfiguration.type !== WalletType.awsKms) {
-    throw new Error(`Server was not configured for AWS KMS wallet creation`);
-  }
+  const kmsWalletParams = await fetchAwsKmsWalletParams(overrides);
 
   const client = new KMSClient({
-    region: config.walletConfiguration.awsRegion,
+    region: kmsWalletParams.awsRegion,
     credentials: {
-      accessKeyId: config.walletConfiguration.awsAccessKeyId,
-      secretAccessKey: config.walletConfiguration.awsSecretAccessKey,
+      accessKeyId: kmsWalletParams.awsAccessKeyId,
+      secretAccessKey: kmsWalletParams.awsSecretAccessKey,
     },
   });
 
@@ -32,8 +38,22 @@ export const createAwsKmsWallet = async ({
     }),
   );
 
-  const awsKmsArn = res.KeyMetadata!.Arn!;
-  const awsKmsKeyId = res.KeyMetadata!.KeyId!;
+  if (!res.KeyMetadata?.Arn) {
+    throw new Error("Failed to create AWS KMS key");
+  }
 
-  return importAwsKmsWallet({ awsKmsArn, awsKmsKeyId, label });
+  const wereCredentialsOverridden = !!(
+    overrides.awsSecretAccessKey && overrides.awsAccessKeyId
+  );
+
+  const awsKmsArn = res.KeyMetadata.Arn;
+  return importAwsKmsWallet({
+    awsKmsArn,
+    label,
+    crendentials: {
+      accessKeyId: kmsWalletParams.awsAccessKeyId,
+      secretAccessKey: kmsWalletParams.awsSecretAccessKey,
+      shouldStore: wereCredentialsOverridden,
+    },
+  });
 };
