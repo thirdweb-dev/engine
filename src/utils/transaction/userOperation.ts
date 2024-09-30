@@ -1,37 +1,34 @@
 import {
-  Address,
-  Hex,
   getAddress,
   getContract,
   prepareContractCall,
   readContract,
-  toSerializableTransaction,
+  type Address,
+  type Hex,
 } from "thirdweb";
 import {
-  UserOperation,
   createUnsignedUserOp,
   getPaymasterAndData,
   signUserOp,
+  type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getAccount } from "../account";
 import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
-import { QueuedTransaction } from "./types";
+import type { PopulatedTransaction, QueuedTransaction } from "./types";
 
 export const generateSignedUserOperation = async (
   queuedTransaction: QueuedTransaction,
-  populatedTransaction: Awaited<ReturnType<typeof toSerializableTransaction>>,
+  populatedTransaction: PopulatedTransaction,
 ): Promise<UserOperation> => {
   const {
     chainId,
-    value,
     gas,
     signerAddress,
     accountAddress,
     accountFactoryAddress: userProvidedAccountFactoryAddress,
     target,
     from,
-    data,
   } = queuedTransaction;
 
   if (!from || !accountAddress || !signerAddress || !target) {
@@ -60,7 +57,7 @@ export const generateSignedUserOperation = async (
       });
 
       accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
-    } catch (e) {
+    } catch {
       // if no factory address is found, throw an error
       throw new Error(
         `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
@@ -88,7 +85,7 @@ export const generateSignedUserOperation = async (
 
   // Create Unsigned UserOperation
   // Todo: Future expose a way to skip paymaster
-  let unsignedOp = (await createUnsignedUserOp({
+  const unsignedOp = (await createUnsignedUserOp({
     transaction: userOpCall,
     accountContract: smartAccountContract,
     sponsorGas: true,

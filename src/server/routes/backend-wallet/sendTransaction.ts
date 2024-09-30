@@ -17,6 +17,7 @@ import {
   walletWithAAHeaderSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
+import { parseTransactionOverrides } from "../../utils/transactionOverrides";
 
 const requestBodySchema = Type.Object({
   toAddress: Type.Optional(AddressSchema),
@@ -93,11 +94,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
               accountFactoryAddress,
               "x-account-factory-address",
             ),
-            gas: maybeBigInt(txOverrides?.gas),
-            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-            maxPriorityFeePerGas: maybeBigInt(
-              txOverrides?.maxPriorityFeePerGas,
-            ),
+            ...parseTransactionOverrides(txOverrides),
           },
           shouldSimulate: simulateTx,
           idempotencyKey,

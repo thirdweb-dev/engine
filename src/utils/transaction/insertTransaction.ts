@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { TransactionDB } from "../../db/transactions/db";
 import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
@@ -6,7 +6,7 @@ import { getChecksumAddress } from "../primitiveTypes";
 import { recordMetrics } from "../prometheus";
 import { reportUsage } from "../usage";
 import { doSimulateTransaction } from "./simulateQueuedTransaction";
-import { InsertedTransaction, QueuedTransaction } from "./types";
+import type { InsertedTransaction, QueuedTransaction } from "./types";
 
 interface InsertTransactionData {
   insertedTransaction: InsertedTransaction;

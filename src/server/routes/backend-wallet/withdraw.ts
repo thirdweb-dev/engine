@@ -14,6 +14,7 @@ import { getChain } from "../../../utils/chain";
 import { logger } from "../../../utils/logger";
 import { getChecksumAddress, maybeBigInt } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
+import { PopulatedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../schemas/address";
 import { TokenAmountStringSchema } from "../../schemas/number";
@@ -130,7 +131,7 @@ export async function withdraw(fastify: FastifyInstance) {
 
 const getWithdrawValue = async (
   from: Address,
-  populatedTransaction: Awaited<ReturnType<typeof toSerializableTransaction>>,
+  populatedTransaction: PopulatedTransaction,
 ): Promise<bigint> => {
   const chain = await getChain(populatedTransaction.chainId);
 

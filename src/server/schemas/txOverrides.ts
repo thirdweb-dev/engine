@@ -9,6 +9,9 @@ export const txOverridesSchema = Type.Object({
           description: "Gas limit for the transaction",
         }),
       ),
+
+      // Overriding `gasPrice` is currently not supported.
+
       maxFeePerGas: Type.Optional(
         Type.String({
           examples: ["1000000000"],
@@ -19,6 +22,13 @@ export const txOverridesSchema = Type.Object({
         Type.String({
           examples: ["1000000000"],
           description: "Maximum priority fee per gas",
+        }),
+      ),
+      timeoutSeconds: Type.Optional(
+        Type.Integer({
+          examples: ["7200"],
+          description:
+            "Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout",
         }),
       ),
     }),
@@ -32,16 +42,10 @@ export const txOverridesWithValueSchema = Type.Object({
       value: Type.Optional(
         Type.String({
           examples: ["10000000000"],
-          description: "Amount of native currency to send",
+          description:
+            "Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.",
         }),
       ),
     }),
   ),
 });
-
-export type TxOverrides = {
-  gas?: string;
-  maxFeePerGas?: string;
-  maxPriorityFeePerGas?: string;
-  value?: string;
-};

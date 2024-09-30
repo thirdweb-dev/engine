@@ -1,5 +1,10 @@
-import { Address, Hex } from "thirdweb";
-import { TransactionType } from "viem";
+import type { Address, Hex, toSerializableTransaction } from "thirdweb";
+import type { TransactionType } from "viem";
+
+// TODO: Replace with thirdweb SDK exported type when available.
+export type PopulatedTransaction = Awaited<
+  ReturnType<typeof toSerializableTransaction>
+>;
 
 export type AnyTransaction =
   | QueuedTransaction
@@ -20,10 +25,14 @@ export type InsertedTransaction = {
   functionName?: string;
   functionArgs?: any[];
 
+  // User-provided overrides.
+  overrides?: {
+    maxFeePerGas?: bigint;
+  };
   gas?: bigint;
   gasPrice?: bigint;
-  maxFeePerGas?: bigint;
   maxPriorityFeePerGas?: bigint;
+  timeoutSeconds?: number;
 
   // Offchain metadata
   deployedContractAddress?: Address;
@@ -52,17 +61,17 @@ export type QueuedTransaction = InsertedTransaction & {
 };
 
 // SentTransaction has been submitted to RPC successfully.
-export type SentTransaction =
-  | (Omit<QueuedTransaction, "status"> & {
-      status: "sent";
+export type SentTransaction = (Omit<QueuedTransaction, "status"> & {
+  status: "sent";
 
-      sentAt: Date;
-      sentAtBlock: bigint;
-    }) &
-      (
-        | { isUserOp: false; nonce: number; sentTransactionHashes: Hex[] }
-        | { isUserOp: true; nonce: string; userOpHash: Hex }
-      );
+  sentAt: Date;
+  sentAtBlock: bigint;
+  maxFeePerGas?: bigint;
+}) &
+  (
+    | { isUserOp: false; nonce: number; sentTransactionHashes: Hex[] }
+    | { isUserOp: true; nonce: string; userOpHash: Hex }
+  );
 
 // This type allows extending SentTransaction to support the ORed fields.
 type _SentTransactionEOA = SentTransaction & { isUserOp: false };

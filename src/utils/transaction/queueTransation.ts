@@ -1,7 +1,13 @@
+import type { Static } from "@sinclair/typebox";
 import { StatusCodes } from "http-status-codes";
-import { Address, encode, Hex, PreparedTransaction } from "thirdweb";
+import {
+  encode,
+  type Address,
+  type Hex,
+  type PreparedTransaction,
+} from "thirdweb";
 import { createCustomError } from "../../server/middleware/error";
-import { TxOverrides } from "../../server/schemas/txOverrides";
+import type { txOverridesWithValueSchema } from "../../server/schemas/txOverrides";
 import { maybeBigInt } from "../primitiveTypes";
 import { insertTransaction } from "./insertTransaction";
 
@@ -11,7 +17,9 @@ export type QueuedTransactionParams = {
   toAddress: Address | undefined;
   accountAddress: Address | undefined;
   accountFactoryAddress: Address | undefined;
-  txOverrides?: TxOverrides;
+  txOverrides?: Static<
+    typeof txOverridesWithValueSchema.properties.txOverrides
+  >;
   idempotencyKey?: string;
   shouldSimulate?: boolean;
 };
