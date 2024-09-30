@@ -1,4 +1,4 @@
-import { Address } from "thirdweb";
+import type { Address } from "thirdweb";
 import { checksumAddress } from "thirdweb/utils";
 
 export const maybeBigInt = (val?: string) => (val ? BigInt(val) : undefined);

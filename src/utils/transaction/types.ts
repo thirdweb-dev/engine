@@ -27,11 +27,11 @@ export type InsertedTransaction = {
 
   // User-provided overrides.
   overrides?: {
+    gas?: bigint;
+    gasPrice?: bigint;
     maxFeePerGas?: bigint;
+    maxPriorityFeePerGas?: bigint;
   };
-  gas?: bigint;
-  gasPrice?: bigint;
-  maxPriorityFeePerGas?: bigint;
   timeoutSeconds?: number;
 
   // Offchain metadata
@@ -66,7 +66,13 @@ export type SentTransaction = (Omit<QueuedTransaction, "status"> & {
 
   sentAt: Date;
   sentAtBlock: bigint;
+
+  // Gas settings are estimated if not provided in `overrides`.
+  // For a MinedTransaction, these are replaced by onchain values from the receipt.
+  gas: bigint;
+  gasPrice?: bigint;
   maxFeePerGas?: bigint;
+  maxPriorityFeePerGas?: bigint;
 }) &
   (
     | { isUserOp: false; nonce: number; sentTransactionHashes: Hex[] }

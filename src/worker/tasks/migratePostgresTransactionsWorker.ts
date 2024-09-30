@@ -1,15 +1,15 @@
-import { Transactions } from "@prisma/client";
-import assert from "assert";
-import { Job, Processor, Worker } from "bullmq";
-import { Hex } from "thirdweb";
+import type { Transactions } from "@prisma/client";
+import { Worker, type Job, type Processor } from "bullmq";
+import assert from "node:assert";
+import type { Hex } from "thirdweb";
 import { getPrismaWithPostgresTx, prisma } from "../../db/client";
 import { TransactionDB } from "../../db/transactions/db";
-import { PrismaTransaction } from "../../schema/prisma";
+import type { PrismaTransaction } from "../../schema/prisma";
 import { getConfig } from "../../utils/cache/getConfig";
 import { logger } from "../../utils/logger";
 import { maybeBigInt, normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
-import {
+import type {
   QueuedTransaction,
   SentTransaction,
 } from "../../utils/transaction/types";
@@ -168,6 +168,7 @@ const toSentTransaction = (row: Transactions): SentTransaction => {
       sentAtBlock: BigInt(row.sentAtBlockNumber),
       nonce: "", // unused
       userOpHash: row.userOpHash as Hex,
+      gas: maybeBigInt(row.gasLimit ?? undefined) ?? 0n,
     };
   }
 
@@ -175,12 +176,14 @@ const toSentTransaction = (row: Transactions): SentTransaction => {
   assert(row.nonce);
   return {
     ...queuedTransaction,
+    ...queuedTransaction.overrides,
     status: "sent",
     isUserOp: false,
     sentAt: row.sentAt,
     sentAtBlock: BigInt(row.sentAtBlockNumber),
     nonce: row.nonce,
     sentTransactionHashes: [row.transactionHash as Hex],
+    gas: maybeBigInt(row.gasLimit ?? undefined) ?? 0n,
   };
 };
 
@@ -204,10 +207,12 @@ const toQueuedTransaction = (row: Transactions): QueuedTransaction => {
     functionName: row.functionName ?? undefined,
     functionArgs: row.functionArgs?.split(","),
 
-    gas: maybeBigInt(row.gasLimit ?? undefined),
-    gasPrice: maybeBigInt(row.gasPrice ?? undefined),
-    maxFeePerGas: maybeBigInt(row.maxFeePerGas ?? undefined),
-    maxPriorityFeePerGas: maybeBigInt(row.maxPriorityFeePerGas ?? undefined),
+    overrides: {
+      gas: maybeBigInt(row.gasLimit ?? undefined),
+      gasPrice: maybeBigInt(row.gasPrice ?? undefined),
+      maxFeePerGas: maybeBigInt(row.maxFeePerGas ?? undefined),
+      maxPriorityFeePerGas: maybeBigInt(row.maxPriorityFeePerGas ?? undefined),
+    },
 
     // Offchain metadata
     deployedContractAddress: normalizeAddress(row.deployedContractAddress),

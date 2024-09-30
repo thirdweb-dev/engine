@@ -1,8 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex } from "thirdweb";
-import { maybeBigInt } from "../../../utils/primitiveTypes";
+import type { Address, Hex } from "thirdweb";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import { AddressSchema } from "../../schemas/address";
 import {
@@ -108,12 +107,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
             to: toAddress as Address | undefined,
             data: data as Hex,
             value: BigInt(value),
-
-            gas: maybeBigInt(txOverrides?.gas),
-            maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-            maxPriorityFeePerGas: maybeBigInt(
-              txOverrides?.maxPriorityFeePerGas,
-            ),
+            ...parseTransactionOverrides(txOverrides),
           },
           shouldSimulate: simulateTx,
           idempotencyKey,

@@ -107,6 +107,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         await _reportSuccess(resultTransaction);
       }
     } else if (resultTransaction.status === "errored") {
+      await enqueueTransactionWebhook(resultTransaction);
       _reportError(resultTransaction);
     }
   }
@@ -127,20 +128,22 @@ const _sendUserOp = async (
     };
   }
 
-  const from = queuedTransaction.accountAddress;
-  assert(from, "Invalid transaction parameters: from");
-  const to = queuedTransaction.to ?? queuedTransaction.target;
-  assert(to, "Invalid transaction parameters: to");
+  const { accountAddress, to, target, chainId } = queuedTransaction;
+  const chain = await getChain(chainId);
+
+  assert(accountAddress, "Invalid userOp parameters: accountAddress");
+  const toAddress = to ?? target;
+  assert(toAddress, "Invalid transaction parameters: to");
 
   let populatedTransaction: PopulatedTransaction;
   try {
     populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(from),
+      from: getChecksumAddress(accountAddress),
       transaction: {
         client: thirdwebClient,
-        chain: await getChain(queuedTransaction.chainId),
+        chain,
         ...queuedTransaction,
-        to: getChecksumAddress(to),
+        to: getChecksumAddress(toAddress),
       },
     });
   } catch (e) {
@@ -164,8 +167,8 @@ const _sendUserOp = async (
   const userOpHash = await bundleUserOp({
     userOp: signedUserOp,
     options: {
-      chain: await getChain(queuedTransaction.chainId),
       client: thirdwebClient,
+      chain,
     },
   });
 
@@ -177,6 +180,7 @@ const _sendUserOp = async (
     userOpHash,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(queuedTransaction.chainId),
+    gas: signedUserOp.callGasLimit,
     maxFeePerGas: signedUserOp.maxFeePerGas,
     maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
   };
@@ -198,7 +202,7 @@ const _sendTransaction = async (
   }
 
   const { queueId, chainId, from, to, overrides } = queuedTransaction;
-  assert(to, "Invalid transaction parameters: to");
+  const chain = await getChain(chainId);
 
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
@@ -210,13 +214,11 @@ const _sendTransaction = async (
       from: getChecksumAddress(from),
       transaction: {
         client: thirdwebClient,
-        chain: await getChain(chainId),
+        chain,
         ...queuedTransaction,
         to: getChecksumAddress(to),
         // Use a dummy nonce since we override it later.
         nonce: 1,
-        // Unset gas overrides to estimate current gas fees.
-        maxFeePerGas: undefined,
       },
     });
   } catch (e: unknown) {
@@ -232,9 +234,9 @@ const _sendTransaction = async (
   }
 
   if (overrides?.maxFeePerGas && populatedTransaction.maxFeePerGas) {
-    // Use the provided `maxFeePerGas` if higher than current gas fees.
+    // Use the `maxFeePerGas` override if greater than current gas fees.
     // Else delay this job.
-    if (populatedTransaction.maxFeePerGas < overrides.maxFeePerGas) {
+    if (overrides.maxFeePerGas > populatedTransaction.maxFeePerGas) {
       populatedTransaction.maxFeePerGas = overrides.maxFeePerGas;
     } else {
       await job.moveToDelayed(_minutesFromNow(5));
@@ -316,21 +318,26 @@ const _resendTransaction = async (
       client: thirdwebClient,
       chain: await getChain(chainId),
       ...sentTransaction,
-      // Unset gas settings so it can be re-populated.
-      // Keep user-defined overrides.
-      gas: undefined,
-      gasPrice: undefined,
+      // Use overrides, if any.
+      // If no overrides, set to undefined so gas settings can be re-populated.
+      gas: overrides?.gas,
+      gasPrice: overrides?.gasPrice,
       maxFeePerGas: overrides?.maxFeePerGas,
-      maxPriorityFeePerGas: undefined,
+      maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
     },
   });
-  if (populatedTransaction.gasPrice) {
+
+  // Double gas fee settings if they were not provded in `overrides`.
+  if (populatedTransaction.gasPrice && !overrides?.gasPrice) {
     populatedTransaction.gasPrice *= 2n;
   }
   if (populatedTransaction.maxFeePerGas && !overrides?.maxFeePerGas) {
     populatedTransaction.maxFeePerGas *= 2n;
   }
-  if (populatedTransaction.maxPriorityFeePerGas) {
+  if (
+    populatedTransaction.maxPriorityFeePerGas &&
+    !overrides?.maxPriorityFeePerGas
+  ) {
     populatedTransaction.maxPriorityFeePerGas *= 2n;
   }
 
@@ -341,9 +348,8 @@ const _resendTransaction = async (
   let transactionHash: Hex;
   try {
     const account = await getAccount({ chainId, from });
-    const sendTransactionResult =
-      await account.sendTransaction(populatedTransaction);
-    transactionHash = sendTransactionResult.transactionHash;
+    const result = await account.sendTransaction(populatedTransaction);
+    transactionHash = result.transactionHash;
   } catch (error) {
     if (isNonceAlreadyUsedError(error)) {
       job.log(

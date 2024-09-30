@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { WeiAmountStringSchema } from "./number";
 
 export const txOverridesSchema = Type.Object({
   txOverrides: Type.Optional(
@@ -12,18 +13,14 @@ export const txOverridesSchema = Type.Object({
 
       // Overriding `gasPrice` is currently not supported.
 
-      maxFeePerGas: Type.Optional(
-        Type.String({
-          examples: ["1000000000"],
-          description: "Maximum fee per gas",
-        }),
-      ),
-      maxPriorityFeePerGas: Type.Optional(
-        Type.String({
-          examples: ["1000000000"],
-          description: "Maximum priority fee per gas",
-        }),
-      ),
+      maxFeePerGas: Type.Optional({
+        ...WeiAmountStringSchema,
+        description: "Maximum fee per gas",
+      }),
+      maxPriorityFeePerGas: Type.Optional({
+        ...WeiAmountStringSchema,
+        description: "Maximum priority fee per gas",
+      }),
       timeoutSeconds: Type.Optional(
         Type.Integer({
           examples: ["7200"],
@@ -39,13 +36,11 @@ export const txOverridesWithValueSchema = Type.Object({
   txOverrides: Type.Optional(
     Type.Object({
       ...txOverridesSchema.properties.txOverrides.properties,
-      value: Type.Optional(
-        Type.String({
-          examples: ["10000000000"],
-          description:
-            "Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.",
-        }),
-      ),
+      value: Type.Optional({
+        ...WeiAmountStringSchema,
+        description:
+          "Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.",
+      }),
     }),
   ),
 });

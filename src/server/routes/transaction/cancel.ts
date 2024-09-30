@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getBlockNumberish } from "../../../utils/block";
@@ -7,7 +7,7 @@ import { getConfig } from "../../../utils/cache/getConfig";
 import { getChain } from "../../../utils/chain";
 import { msSince } from "../../../utils/date";
 import { sendCancellationTransaction } from "../../../utils/transaction/cancelTransaction";
-import { CancelledTransaction } from "../../../utils/transaction/types";
+import type { CancelledTransaction } from "../../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
 import { reportUsage } from "../../../utils/usage";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
@@ -98,10 +98,13 @@ export async function cancelTransaction(fastify: FastifyInstance) {
             ...transaction,
             status: "cancelled",
             cancelledAt: new Date(),
+
+            // Dummy data since the transaction was never sent.
             sentAt: new Date(),
             sentAtBlock: await getBlockNumberish(transaction.chainId),
 
             isUserOp: false,
+            gas: 0n,
             nonce: -1,
             sentTransactionHashes: [],
           };

@@ -23,12 +23,12 @@ export const generateSignedUserOperation = async (
 ): Promise<UserOperation> => {
   const {
     chainId,
-    gas,
     signerAddress,
     accountAddress,
     accountFactoryAddress: userProvidedAccountFactoryAddress,
     target,
     from,
+    overrides,
   } = queuedTransaction;
 
   if (!from || !accountAddress || !signerAddress || !target) {
@@ -93,9 +93,9 @@ export const generateSignedUserOperation = async (
     adminAddress: signerAddress,
   })) as UserOperation; // TODO support entrypoint v0.7 accounts
 
-  // Pass custom gas limit for UserOperation
-  if (gas) {
-    unsignedOp.callGasLimit = gas;
+  // Handle gas limit override.
+  if (overrides?.gas) {
+    unsignedOp.callGasLimit = overrides.gas;
     unsignedOp.paymasterAndData = "0x";
     const DUMMY_SIGNATURE =
       "0xfffffffffffffffffffffffffffffff0000000000000000000000000000000007aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1c";
