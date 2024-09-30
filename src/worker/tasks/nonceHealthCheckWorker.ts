@@ -13,8 +13,8 @@ import { logWorkerExceptions } from "../queues/queues";
 // Configuration
 
 // Number of consecutive periods to check
-// Checking over multiple periods helps to avoid false positives due to timing issues
-const CHECK_PERIODS = 3;
+// Checking over multiple periods avoids false positives due to intermittent stale RPC responses.
+const CHECK_PERIODS = 5;
 
 // Frequency of the worker
 const RUN_FREQUENCY_SECONDS = 60; // Run every minute
