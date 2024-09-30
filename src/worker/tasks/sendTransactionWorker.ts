@@ -219,6 +219,11 @@ const _sendTransaction = async (
         to: getChecksumAddress(to),
         // Use a dummy nonce since we override it later.
         nonce: 1,
+
+        // Apply gas setting overrides.
+        // Do not set `maxFeePerGas` to estimate the onchain value.
+        gas: overrides?.gas,
+        maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
       },
     });
   } catch (e: unknown) {
@@ -233,9 +238,9 @@ const _sendTransaction = async (
     return erroredTransaction;
   }
 
+  // Handle if `maxFeePerGas` is overridden.
+  // Set it if the transaction will be sent, otherwise delay the job.
   if (overrides?.maxFeePerGas && populatedTransaction.maxFeePerGas) {
-    // Use the `maxFeePerGas` override if greater than current gas fees.
-    // Else delay this job.
     if (overrides.maxFeePerGas > populatedTransaction.maxFeePerGas) {
       populatedTransaction.maxFeePerGas = overrides.maxFeePerGas;
     } else {
@@ -321,14 +326,13 @@ const _resendTransaction = async (
       // Use overrides, if any.
       // If no overrides, set to undefined so gas settings can be re-populated.
       gas: overrides?.gas,
-      gasPrice: overrides?.gasPrice,
       maxFeePerGas: overrides?.maxFeePerGas,
       maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
     },
   });
 
   // Double gas fee settings if they were not provded in `overrides`.
-  if (populatedTransaction.gasPrice && !overrides?.gasPrice) {
+  if (populatedTransaction.gasPrice) {
     populatedTransaction.gasPrice *= 2n;
   }
   if (populatedTransaction.maxFeePerGas && !overrides?.maxFeePerGas) {
