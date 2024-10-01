@@ -23,7 +23,7 @@ export class MineTransactionQueue {
     const jobId = this.jobId(data);
     await this.q.add(jobId, serialized, {
       jobId,
-      attempts: 200, // > 30 minutes with the backoffStrategy defined on the worker
+      attempts: 100, // > 30 minutes with the backoffStrategy defined on the worker
       backoff: { type: "custom" },
     });
   };

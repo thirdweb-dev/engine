@@ -2,6 +2,9 @@ import Redis from "ioredis";
 import { env } from "../env";
 import { logger } from "../logger";
 
+// ioredis has issues with batches over 100k+ (source: https://github.com/redis/ioredis/issues/801).
+export const MAX_REDIS_BATCH_SIZE = 50_000;
+
 export const redis = new Redis(env.REDIS_URL, {
   enableAutoPipelining: true,
   maxRetriesPerRequest: null,

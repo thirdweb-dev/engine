@@ -90,10 +90,6 @@ export const env = createEnv({
     // Sets the max amount of memory Redis can use.
     // "0" means use all available memory.
     REDIS_MAXMEMORY: z.string().default("0"),
-    // Sets the max batch Redis will handle in batch operations like MGET and UNLINK.
-    // This will be removed if a consistent batch size works for all use cases.
-    // ioredis has issues with batches over 100k+ (source: https://github.com/redis/ioredis/issues/801).
-    __EXPERIMENTAL_REDIS_BATCH_SIZE: z.coerce.number().default(50_000),
     // Sets the number of recent transactions to store. Older transactions are pruned periodically.
     // In testing, 100k transactions consumes ~300mb memory.
     TRANSACTION_HISTORY_COUNT: z.coerce.number().default(100_000),
@@ -101,7 +97,7 @@ export const env = createEnv({
     QUEUE_COMPLETE_HISTORY_COUNT: z.coerce.number().default(2_000),
     // Sets the number of recent failed jobs in each queue.
     // These limits are higher to debug failed jobs.
-    QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(20_000),
+    QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(10_000),
     // Sets the number of recent nonces to map to queue IDs.
     NONCE_MAP_COUNT: z.coerce.number().default(10_000),
   },
@@ -134,8 +130,6 @@ export const env = createEnv({
       process.env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     ENGINE_MODE: process.env.ENGINE_MODE,
     REDIS_MAXMEMORY: process.env.REDIS_MAXMEMORY,
-    __EXPERIMENTAL_REDIS_BATCH_SIZE:
-      process.env.__EXPERIMENTAL_REDIS_BATCH_SIZE,
     TRANSACTION_HISTORY_COUNT: process.env.TRANSACTION_HISTORY_COUNT,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
     DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
