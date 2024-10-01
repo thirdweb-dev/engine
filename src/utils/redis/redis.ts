@@ -35,7 +35,7 @@ export const isRedisReachable = async () => {
   try {
     await redis.ping();
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 };

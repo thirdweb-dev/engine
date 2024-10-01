@@ -97,7 +97,7 @@ export const initServer = async () => {
         logger({
           service: "server",
           level: "fatal",
-          message: `Failed to start server`,
+          message: "Failed to start server",
           error: err,
         });
         process.exit(1);
