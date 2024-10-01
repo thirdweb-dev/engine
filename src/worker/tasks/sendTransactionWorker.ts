@@ -107,6 +107,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         await _reportSuccess(resultTransaction);
       }
     } else if (resultTransaction.status === "errored") {
+      job.log(`Transaction errored: ${stringify(resultTransaction)}.`);
       await enqueueTransactionWebhook(resultTransaction);
       _reportError(resultTransaction);
     }
@@ -124,7 +125,7 @@ const _sendUserOp = async (
     return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: `Exceeded ${queuedTransaction.timeoutSeconds}s timeout.`,
+      errorMessage: `Exceeded ${queuedTransaction.timeoutSeconds}s timeout`,
     };
   }
 
@@ -197,7 +198,7 @@ const _sendTransaction = async (
     return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: `Exceeded ${queuedTransaction.timeoutSeconds}s timeout.`,
+      errorMessage: `Exceeded ${queuedTransaction.timeoutSeconds}s timeout`,
     };
   }
 
@@ -244,7 +245,11 @@ const _sendTransaction = async (
     if (overrides.maxFeePerGas > populatedTransaction.maxFeePerGas) {
       populatedTransaction.maxFeePerGas = overrides.maxFeePerGas;
     } else {
-      await job.moveToDelayed(_minutesFromNow(5));
+      const retryAt = _minutesFromNow(5);
+      job.log(
+        `Override gas fee (${overrides.maxFeePerGas}) is lower than onchain fee (${populatedTransaction.maxFeePerGas}). Delaying job until ${retryAt}.`,
+      );
+      await job.moveToDelayed(retryAt.getTime());
       return null;
     }
   }
@@ -449,10 +454,10 @@ const _hasExceededTimeout = (
   transaction: QueuedTransaction | SentTransaction,
 ) =>
   transaction.timeoutSeconds !== undefined &&
-  msSince(transaction.queuedAt) * 1000 > transaction.timeoutSeconds;
+  msSince(transaction.queuedAt) / 1000 > transaction.timeoutSeconds;
 
 const _minutesFromNow = (minutes: number) =>
-  new Date(Date.now() + minutes * 60_000).getTime();
+  new Date(Date.now() + minutes * 60_000);
 
 // Must be explicitly called for the worker to run on this host.
 export const initSendTransactionWorker = () => {

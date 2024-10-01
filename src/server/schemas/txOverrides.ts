@@ -26,6 +26,8 @@ export const txOverridesSchema = Type.Object({
           examples: ["7200"],
           description:
             "Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout",
+          minimum: 30,
+          maximum: 48 * 60 * 60, // 48 hours
         }),
       ),
     }),
