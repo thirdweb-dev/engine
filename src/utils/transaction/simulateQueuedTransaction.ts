@@ -1,15 +1,15 @@
 import {
-  PreparedTransaction,
   prepareTransaction,
   simulateTransaction,
+  type PreparedTransaction,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
-import { Account } from "thirdweb/wallets";
+import type { Account } from "thirdweb/wallets";
 import { getAccount } from "../account";
 import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
 import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
-import { AnyTransaction } from "./types";
+import type { AnyTransaction } from "./types";
 
 /**
  * Simulate the queued transaction.
@@ -24,10 +24,6 @@ export const doSimulateTransaction = async (
     to,
     data,
     value,
-    gas,
-    gasPrice,
-    maxFeePerGas,
-    maxPriorityFeePerGas,
     accountAddress,
     accountFactoryAddress,
     target,
@@ -45,10 +41,6 @@ export const doSimulateTransaction = async (
       to: to ?? target,
       data,
       value,
-      gas,
-      gasPrice,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
     });
   } else {
     throw new Error(

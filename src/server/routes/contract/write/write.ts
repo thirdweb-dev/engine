@@ -2,8 +2,8 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
+import type { AbiFunction } from "thirdweb/utils";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
-import { maybeBigInt } from "../../../../utils/primitiveTypes";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
 import { createCustomError } from "../../../middleware/error";
 import { abiSchema } from "../../../schemas/contract";
@@ -19,6 +19,7 @@ import {
   walletWithAAHeaderSchema,
 } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
+import { parseTransactionOverrides } from "../../../utils/transactionOverrides";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
@@ -78,7 +79,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       // 2. functionName passed as function name + passed in ABI
       // 3. functionName passed as function name + inferred ABI (fetched at encode time)
       // this is all handled inside the `resolveMethod` function
-      let method;
+      let method: AbiFunction;
       try {
         method = await resolveMethod(functionName)(contract);
       } catch (e: any) {
@@ -88,10 +89,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         contract,
         method,
         params: args,
-        gas: maybeBigInt(txOverrides?.gas),
-        value: maybeBigInt(txOverrides?.value),
-        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
+        ...parseTransactionOverrides(txOverrides),
       });
 
       const queueId = await queueTransaction({

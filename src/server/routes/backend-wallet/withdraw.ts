@@ -12,8 +12,9 @@ import { getWalletBalance } from "thirdweb/wallets";
 import { getAccount } from "../../../utils/account";
 import { getChain } from "../../../utils/chain";
 import { logger } from "../../../utils/logger";
-import { getChecksumAddress, maybeBigInt } from "../../../utils/primitiveTypes";
+import { getChecksumAddress } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
+import type { PopulatedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../schemas/address";
 import { TokenAmountStringSchema } from "../../schemas/number";
@@ -27,6 +28,7 @@ import {
   walletWithAddressParamSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
+import { parseTransactionOverrides } from "../../utils/transactionOverrides";
 
 const ParamsSchema = Type.Omit(walletWithAddressParamSchema, ["walletAddress"]);
 
@@ -88,9 +90,7 @@ export async function withdraw(fastify: FastifyInstance) {
           data: "0x",
           // Dummy value, replaced below.
           value: 1n,
-          gas: maybeBigInt(txOverrides?.gas),
-          maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-          maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
+          ...parseTransactionOverrides(txOverrides).overrides,
         },
       });
 
@@ -130,7 +130,7 @@ export async function withdraw(fastify: FastifyInstance) {
 
 const getWithdrawValue = async (
   from: Address,
-  populatedTransaction: Awaited<ReturnType<typeof toSerializableTransaction>>,
+  populatedTransaction: PopulatedTransaction,
 ): Promise<bigint> => {
   const chain = await getChain(populatedTransaction.chainId);
 

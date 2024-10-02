@@ -88,9 +88,10 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           client: thirdwebClient,
           chain: await getChain(chainId),
           ...transaction,
+          // Explicitly reuse the same nonce the transaction had previously acquired.
+          nonce: transaction.nonce,
           maxFeePerGas: maybeBigInt(maxFeePerGas),
           maxPriorityFeePerGas: maybeBigInt(maxPriorityFeePerGas),
-          nonce: transaction.nonce,
         },
       });
 

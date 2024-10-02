@@ -9,7 +9,6 @@ import { resolvePromisedValue } from "thirdweb/utils";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
-import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
 import { insertTransaction } from "../../../../../../utils/transaction/insertTransaction";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import { signature721OutputSchema } from "../../../../../schemas/nft";
@@ -23,6 +22,7 @@ import {
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
 import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
+import { parseTransactionOverrides } from "../../../../../utils/transactionOverrides";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -122,11 +122,9 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
           from: fromAddress as Address,
           to: contractAddress as Address | undefined,
           data: (await resolvePromisedValue(transaction.data)) as Hex,
-          value: maybeBigInt(txOverrides?.value),
-          gas: maybeBigInt(txOverrides?.gas),
-          maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-          maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
+          ...parseTransactionOverrides(txOverrides),
         };
+
         if (accountAddress) {
           queueId = await insertTransaction({
             insertedTransaction: {

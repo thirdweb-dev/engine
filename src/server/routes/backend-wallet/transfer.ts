@@ -11,7 +11,7 @@ import {
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
 import { getChain } from "../../../utils/chain";
-import { maybeBigInt, normalizeAddress } from "../../../utils/primitiveTypes";
+import { normalizeAddress } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
 import { insertTransaction } from "../../../utils/transaction/insertTransaction";
 import type { InsertedTransaction } from "../../../utils/transaction/types";
@@ -29,6 +29,7 @@ import {
   walletWithAddressParamSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
+import { parseTransactionOverrides } from "../../utils/transactionOverrides";
 
 const requestSchema = Type.Omit(walletWithAddressParamSchema, [
   "walletAddress",
@@ -93,11 +94,6 @@ export async function transfer(fastify: FastifyInstance) {
       // Resolve inputs.
       const currencyAddress = normalizeAddress(_currencyAddress);
       const chainId = await getChainIdFromChain(chain);
-      const gasOverrides = {
-        gas: maybeBigInt(txOverrides?.gas),
-        maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-        maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
-      };
 
       let insertedTransaction: InsertedTransaction;
       if (
@@ -113,7 +109,7 @@ export async function transfer(fastify: FastifyInstance) {
           value: toWei(amount),
           extension: "none",
           functionName: "transfer",
-          ...gasOverrides,
+          ...parseTransactionOverrides(txOverrides),
         };
       } else {
         const contract = getContract({
@@ -147,7 +143,7 @@ export async function transfer(fastify: FastifyInstance) {
           extension: "erc20",
           functionName: "transfer",
           functionArgs: [to, amount, currencyAddress],
-          ...gasOverrides,
+          ...parseTransactionOverrides(txOverrides),
         };
       }
 

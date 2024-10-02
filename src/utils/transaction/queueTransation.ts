@@ -1,9 +1,16 @@
+import type { Static } from "@sinclair/typebox";
 import { StatusCodes } from "http-status-codes";
-import { Address, encode, Hex, PreparedTransaction } from "thirdweb";
+import {
+  encode,
+  type Address,
+  type Hex,
+  type PreparedTransaction,
+} from "thirdweb";
 import { createCustomError } from "../../server/middleware/error";
-import { TxOverrides } from "../../server/schemas/txOverrides";
-import { maybeBigInt } from "../primitiveTypes";
+import type { txOverridesWithValueSchema } from "../../server/schemas/txOverrides";
+import { parseTransactionOverrides } from "../../server/utils/transactionOverrides";
 import { insertTransaction } from "./insertTransaction";
+import type { InsertedTransaction } from "./types";
 
 export type QueuedTransactionParams = {
   transaction: PreparedTransaction;
@@ -11,7 +18,9 @@ export type QueuedTransactionParams = {
   toAddress: Address | undefined;
   accountAddress: Address | undefined;
   accountFactoryAddress: Address | undefined;
-  txOverrides?: TxOverrides;
+  txOverrides?: Static<
+    typeof txOverridesWithValueSchema.properties.txOverrides
+  >;
   idempotencyKey?: string;
   shouldSimulate?: boolean;
 };
@@ -35,15 +44,14 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     throw createCustomError(`${e}`, StatusCodes.BAD_REQUEST, "BAD_REQUEST");
   }
 
-  const insertedTransaction = {
+  const insertedTransaction: InsertedTransaction = {
     chainId: transaction.chain.id,
     from: fromAddress,
     to: toAddress,
     data,
-    value: maybeBigInt(txOverrides?.value),
-    gas: maybeBigInt(txOverrides?.gas),
-    maxFeePerGas: maybeBigInt(txOverrides?.maxFeePerGas),
-    maxPriorityFeePerGas: maybeBigInt(txOverrides?.maxPriorityFeePerGas),
+
+    ...parseTransactionOverrides(txOverrides),
+
     ...(accountAddress
       ? {
           isUserOp: true,

@@ -5,6 +5,6 @@
  * @returns number Milliseconds since the `from` date.
  */
 export const msSince = (from: Date) => {
-  const ms = new Date().getTime() - from.getTime();
+  const ms = Date.now() - from.getTime();
   return Math.max(ms, 0);
 };
