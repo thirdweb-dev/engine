@@ -1,17 +1,17 @@
-import { Prisma } from "@prisma/client";
-import { AbiEvent } from "abitype";
-import { Job, Processor, Worker } from "bullmq";
+import type { Prisma } from "@prisma/client";
+import type { AbiEvent } from "abitype";
+import { Worker, type Job, type Processor } from "bullmq";
 import superjson from "superjson";
 import {
-  Address,
-  ThirdwebContract,
   eth_getBlockByNumber,
   eth_getTransactionReceipt,
   getContract,
   getRpcClient,
+  type Address,
+  type ThirdwebContract,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
-import { Abi, Hash, decodeFunctionData } from "viem";
+import { decodeFunctionData, type Abi, type Hash } from "viem";
 import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getChain } from "../../utils/chain";
@@ -20,8 +20,8 @@ import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
-  EnqueueProcessTransactionReceiptsData,
   ProcessTransactionReceiptsQueue,
+  type EnqueueProcessTransactionReceiptsData,
 } from "../queues/processTransactionReceiptsQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import { SendWebhookQueue } from "../queues/sendWebhookQueue";
@@ -55,9 +55,8 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   // Enqueue webhooks.
-  const webhooksByContractAddress = await getWebhooksByContractAddresses(
-    chainId,
-  );
+  const webhooksByContractAddress =
+    await getWebhooksByContractAddresses(chainId);
   for (const transactionReceipt of insertedReceipts) {
     const webhooks =
       webhooksByContractAddress[transactionReceipt.contractAddress] ?? [];
@@ -154,17 +153,16 @@ const getFormattedTransactionReceipts = async ({
         continue;
       }
 
-      let functionName: string | undefined = undefined;
-      if (config.functions.length > 0) {
-        functionName = await getFunctionName({
-          contract: config.contract,
-          data: transaction.input,
-        });
-
-        if (!config.functions.includes(functionName)) {
-          // This transaction is not for a subscribed function name.
-          continue;
-        }
+      const functionName = await getFunctionName({
+        contract: config.contract,
+        data: transaction.input,
+      });
+      if (
+        config.functions.length > 0 &&
+        !config.functions.includes(functionName)
+      ) {
+        // This transaction is not for a subscribed function name.
+        continue;
       }
 
       // Store the transaction and receipt.

@@ -1,8 +1,8 @@
 import {
-  Address,
   eth_getTransactionCount,
   getAddress,
   getRpcClient,
+  type Address,
 } from "thirdweb";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
@@ -37,7 +37,7 @@ export const getUsedBackendWallets = async (
   return keys.map((key) => {
     const tokens = key.split(":");
     return {
-      chainId: parseInt(tokens[1]),
+      chainId: Number.parseInt(tokens[1]),
       walletAddress: getAddress(tokens[2]),
     };
   });
@@ -61,7 +61,7 @@ export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
 export const splitLastUsedNonceKey = (key: string) => {
   const _splittedKeys = key.split(":");
   const walletAddress = normalizeAddress(_splittedKeys[2]);
-  const chainId = parseInt(_splittedKeys[1]);
+  const chainId = Number.parseInt(_splittedKeys[1]);
   return { walletAddress, chainId };
 };
 
@@ -87,7 +87,7 @@ export const sentNoncesKey = (chainId: number, walletAddress: Address) =>
 export const splitSentNoncesKey = (key: string) => {
   const _splittedKeys = key.split(":");
   const walletAddress = normalizeAddress(_splittedKeys[2]);
-  const chainId = parseInt(_splittedKeys[1]);
+  const chainId = Number.parseInt(_splittedKeys[1]);
   return { walletAddress, chainId };
 };
 
@@ -166,7 +166,7 @@ export const acquireNonce = async (args: {
     nonce,
     queueId,
   });
-  return { nonce, isRecycledNonce: false };
+  return { nonce, isRecycledNonce };
 };
 
 /**
@@ -181,7 +181,7 @@ export const recycleNonce = async (
   walletAddress: Address,
   nonce: number,
 ) => {
-  if (isNaN(nonce)) {
+  if (Number.isNaN(nonce)) {
     logger({
       level: "warn",
       message: `[recycleNonce] Invalid nonce: ${nonce}`,
@@ -209,7 +209,7 @@ const _acquireRecycledNonce = async (
   if (result.length === 0) {
     return null;
   }
-  return parseInt(result[0]);
+  return Number.parseInt(result[0]);
 };
 
 /**
@@ -246,7 +246,7 @@ export const syncLatestNonceFromOnchain = async (
 export const inspectNonce = async (chainId: number, walletAddress: Address) => {
   const key = lastUsedNonceKey(chainId, walletAddress);
   const nonce = await redis.get(key);
-  return nonce ? parseInt(nonce) : 0;
+  return nonce ? Number.parseInt(nonce) : 0;
 };
 
 /**
