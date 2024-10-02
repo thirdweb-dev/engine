@@ -1,18 +1,18 @@
 import { logger } from "../utils/logger";
-import { acquireLock, releaseLock } from "../utils/redis/lock";
+import { acquireLock, releaseLock, waitForLock } from "../utils/redis/lock";
 import { redis } from "../utils/redis/redis";
 
-const MIGRATION_LOCK_KEY = "apply-migrations";
 const MIGRATION_LOCK_TTL_SECONDS = 60;
 
 const main = async () => {
-  // Acquire a lock to prevent duplicate migrations if there are
-  // multiple running server instances.
+  // Acquire a lock to allow only one host to run migrations.
+  // Other hosts block until the migration is completed or lock times out.
   const acquiredLock = await acquireLock(
-    MIGRATION_LOCK_KEY,
+    "lock:apply-migrations",
     MIGRATION_LOCK_TTL_SECONDS,
   );
   if (!acquiredLock) {
+    await waitForLock("lock:apply-migrations");
     return;
   }
 
@@ -32,7 +32,7 @@ const main = async () => {
     });
     process.exit(1);
   } finally {
-    await releaseLock(MIGRATION_LOCK_KEY);
+    await releaseLock("lock:apply-migrations");
   }
 
   process.exit(0);
