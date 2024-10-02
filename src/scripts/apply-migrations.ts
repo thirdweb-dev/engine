@@ -12,8 +12,13 @@ const main = async () => {
     MIGRATION_LOCK_TTL_SECONDS,
   );
   if (!acquiredLock) {
+    logger({
+      level: "info",
+      message: "Migration in progress. Waiting for the lock to release...",
+      service: "server",
+    });
     await waitForLock("lock:apply-migrations");
-    return;
+    process.exit(0);
   }
 
   try {
