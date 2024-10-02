@@ -153,16 +153,40 @@ const getFormattedTransactionReceipts = async ({
         continue;
       }
 
-      const functionName = await getFunctionName({
-        contract: config.contract,
-        data: transaction.input,
-      });
-      if (
-        config.functions.length > 0 &&
-        !config.functions.includes(functionName)
-      ) {
-        // This transaction is not for a subscribed function name.
-        continue;
+      let functionName: string | null = null;
+
+      try {
+        functionName = await getFunctionName({
+          contract: config.contract,
+          data: transaction.input,
+        });
+      } catch (error) {
+        // do not throw error if function name cannot be fetched
+        // job can partially succeed without function name
+        logger({
+          service: "worker",
+          level: "error",
+          message: `Failed to get function name for transaction: ${transaction.hash} on chain: ${chainId}.`,
+          error: error,
+        });
+      }
+
+      if (config.functions.length > 0) {
+        // if the subscription has functions, and we were not able to fetch the function name
+        // skip this transaction, as we cannot determine if it is a subscribed function
+        if (!functionName) {
+          logger({
+            service: "worker",
+            level: "error",
+            message: `Failure to fetch functionName impacted subscription to functions. ${transaction.hash} on chain: ${chainId}.`,
+          });
+          continue;
+        }
+
+        if (!config.functions.includes(functionName)) {
+          // This transaction is not for a subscribed function name.
+          continue;
+        }
       }
 
       // Store the transaction and receipt.
