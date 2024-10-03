@@ -525,17 +525,16 @@ const hashRequestBody = (req: FastifyRequest): string => {
  */
 const checkIpInAllowlist = async (
   req: FastifyRequest,
-): Promise<
-  { isAllowed: false; ip: string } | { isAllowed: true; ip?: string }
-> => {
-  const config = await getConfig();
-  if (config.ipAllowlist.length === 0) {
-    return { isAllowed: true };
+): Promise<{ isAllowed: boolean; ip: string }> => {
+  let ip = req.ip;
+  const trustProxy = env.TRUST_PROXY || !!env.ENGINE_TIER;
+  if (trustProxy && req.headers["cf-connecting-ip"]) {
+    ip = req.headers["cf-connecting-ip"] as string;
   }
 
-  let ip = req.ip;
-  if (req.headers["cf-connecting-ip"]) {
-    ip = req.headers["cf-connecting-ip"] as string;
+  const config = await getConfig();
+  if (config.ipAllowlist.length === 0) {
+    return { isAllowed: true, ip };
   }
 
   return {
