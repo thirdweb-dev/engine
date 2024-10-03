@@ -264,7 +264,7 @@ export const toTransactionSchema = (
     if (transaction.status === "sent") {
       return transaction.gasPrice?.toString() ?? null;
     }
-    return transaction.overrides?.gasPrice?.toString() ?? null;
+    return null;
   };
 
   const resolveMaxFeePerGas = (): string | null => {

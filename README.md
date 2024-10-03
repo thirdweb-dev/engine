@@ -33,7 +33,7 @@ Engine is an open-source, backend HTTP server that provides a production-ready i
 - 700+ transactions sent onchain per second (can fill up an EVM block!)
 - Managed backend wallets (local, KMS)
 - Contract calls and deployments ([all EVM blockchains](https://thirdweb.com/chainlist) + private subnets)
-- Gas optimizations with retries
+- Gas-optimized retries, gas ceilings, and timeouts
 - Smart account support with session tokens
 - Gasless transactions with relayers
 - Wallet and contract webhooks

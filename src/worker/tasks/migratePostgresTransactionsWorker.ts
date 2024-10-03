@@ -209,7 +209,6 @@ const toQueuedTransaction = (row: Transactions): QueuedTransaction => {
 
     overrides: {
       gas: maybeBigInt(row.gasLimit ?? undefined),
-      gasPrice: maybeBigInt(row.gasPrice ?? undefined),
       maxFeePerGas: maybeBigInt(row.maxFeePerGas ?? undefined),
       maxPriorityFeePerGas: maybeBigInt(row.maxPriorityFeePerGas ?? undefined),
     },
