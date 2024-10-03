@@ -1,13 +1,5 @@
 import { createThirdwebClient } from "thirdweb";
 
 const secretKey = process.env.TW_SECRET_KEY;
-
-export const TEST_CLIENT = createThirdwebClient(
-  secretKey
-    ? { secretKey }
-    : {
-        clientId: "TEST",
-        // if we don't have a secret key, we can use a public gateway for testing?
-        config: { storage: { gatewayUrl: "https://cf-ipfs.com" } },
-      },
-);
+if (!secretKey) throw new Error("TW_SECRET_KEY is required");
+export const TEST_CLIENT = createThirdwebClient({ secretKey });
