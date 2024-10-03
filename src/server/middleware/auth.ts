@@ -407,6 +407,13 @@ const handleAccessToken = async (
       level: "error",
       message: `Unauthorized IP address: ${req.ip}`,
     });
+
+    logger({
+      service: "server",
+      level: "error",
+      message: `[DEBUG] Request headers: ${req.headers}`,
+    });
+
     return {
       isAuthed: false,
       error:
