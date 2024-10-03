@@ -26,7 +26,7 @@ const main = async () => {
 
     logger({
       level: "info",
-      message: "Completed migrations without errors.",
+      message: "Completed migrations successfully.",
       service: "server",
     });
   } catch (e) {
