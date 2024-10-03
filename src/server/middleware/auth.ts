@@ -505,7 +505,6 @@ const hashRequestBody = (req: FastifyRequest): string => {
 /**
  * Check if the request IP is in the allowlist.
  * Fetches cached config if available.
- * env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
  * @param req FastifyRequest
  * @returns boolean
  * @async

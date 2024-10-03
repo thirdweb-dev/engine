@@ -25,13 +25,6 @@ export const UrlSchema = z
     { message: "Invalid URL" },
   );
 
-const boolSchema = (defaultBool: "true" | "false") =>
-  z
-    .string()
-    .default(defaultBool)
-    .refine((s) => s === "true" || s === "false", "must be 'true' or 'false'")
-    .transform((s) => s === "true");
-
 export const env = createEnv({
   server: {
     NODE_ENV: z
@@ -48,6 +41,8 @@ export const env = createEnv({
           .array(z.enum(["server", "worker", "cache", "websocket"]))
           .parse(s.split(",")),
       ),
+    ENGINE_VERSION: z.string().optional(),
+    ENGINE_TIER: z.string().optional(),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),
     ADMIN_WALLET_ADDRESS: z.string().min(1),
     ENCRYPTION_PASSWORD: z.string().min(1),
@@ -58,15 +53,15 @@ export const env = createEnv({
       ),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
-    ENABLE_HTTPS: boolSchema("false"),
+    ENABLE_HTTPS: z.coerce.boolean().default(false),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
-    TRUST_PROXY: z.boolean().default(false),
+    TRUST_PROXY: z.coerce.boolean().default(false),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
-    ENABLE_KEYPAIR_AUTH: boolSchema("false"),
+    ENABLE_KEYPAIR_AUTH: z.coerce.boolean().default(false),
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS: z.coerce
       .number()
       .nonnegative()
@@ -82,7 +77,7 @@ export const env = createEnv({
 
     // Prometheus
     METRICS_PORT: z.coerce.number().default(4001),
-    METRICS_ENABLED: boolSchema("true"),
+    METRICS_ENABLED: z.coerce.boolean().default(true),
 
     /**
      * Limits
@@ -108,6 +103,8 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     LOG_LEVEL: process.env.LOG_LEVEL,
     LOG_SERVICES: process.env.LOG_SERVICES,
+    ENGINE_VERSION: process.env.ENGINE_VERSION,
+    ENGINE_TIER: process.env.ENGINE_TIER,
     THIRDWEB_API_SECRET_KEY: process.env.THIRDWEB_API_SECRET_KEY,
     ADMIN_WALLET_ADDRESS: process.env.ADMIN_WALLET_ADDRESS,
     ENCRYPTION_PASSWORD: process.env.ENCRYPTION_PASSWORD,
