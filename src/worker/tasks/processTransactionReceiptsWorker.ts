@@ -153,15 +153,21 @@ const getFormattedTransactionReceipts = async ({
         continue;
       }
 
-      const functionName = await getFunctionName({
-        contract: config.contract,
-        data: transaction.input,
-      });
+      let functionName: string | undefined;
+      try {
+        functionName = await getFunctionName({
+          contract: config.contract,
+          data: transaction.input,
+        });
+      } catch {
+        // Unable to parse function. Continue.
+      }
+
       if (
         config.functions.length > 0 &&
-        !config.functions.includes(functionName)
+        (!functionName || !config.functions.includes(functionName))
       ) {
-        // This transaction is not for a subscribed function name.
+        // Function not found, or this transaction is not for a subscribed function.
         continue;
       }
 
