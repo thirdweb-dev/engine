@@ -9,7 +9,6 @@ interface ImportGcpKmsWalletParams {
   credentials: {
     email: string;
     privateKey: string;
-    shouldStore?: boolean;
   };
 }
 
@@ -43,12 +42,8 @@ export const importGcpKmsWallet = async ({
     label,
     gcpKmsResourcePath,
 
-    ...(credentials.shouldStore
-      ? {
-          gcpApplicationCredentialEmail: credentials.email,
-          gcpApplicationCredentialPrivateKey: credentials.privateKey,
-        }
-      : {}),
+    gcpApplicationCredentialEmail: credentials.email,
+    gcpApplicationCredentialPrivateKey: credentials.privateKey,
   });
 
   return walletAddress;

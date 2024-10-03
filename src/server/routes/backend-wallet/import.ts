@@ -166,16 +166,11 @@ export const importBackendWallet = async (fastify: FastifyInstance) => {
           );
         }
 
-        const shouldOverrideCredentials = !!(
-          credentials?.awsAccessKeyId && credentials?.awsSecretAccessKey
-        );
-
         walletAddress = await importAwsKmsWallet({
           awsKmsArn,
           crendentials: {
             accessKeyId,
             secretAccessKey,
-            shouldStore: shouldOverrideCredentials,
           },
           label,
         });
@@ -190,12 +185,6 @@ export const importBackendWallet = async (fastify: FastifyInstance) => {
         const privateKey =
           credentials?.privateKey ??
           config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey;
-
-        // if email and privateKey are provided in the request, then they should be stored in walletDetails
-        // they are considered to override the global configuration
-        const shouldOverrideCredentials = !!(
-          credentials?.email && credentials?.privateKey
-        );
 
         if (!(email && privateKey)) {
           throw createCustomError(
@@ -236,7 +225,6 @@ export const importBackendWallet = async (fastify: FastifyInstance) => {
           credentials: {
             email,
             privateKey,
-            shouldStore: shouldOverrideCredentials,
           },
           label,
         });

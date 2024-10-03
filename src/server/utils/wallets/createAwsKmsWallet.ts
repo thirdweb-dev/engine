@@ -53,10 +53,6 @@ export const createAwsKmsWallet = async ({
     throw new Error("Failed to create AWS KMS key");
   }
 
-  const wereCredentialsOverridden = !!(
-    overrides.awsSecretAccessKey && overrides.awsAccessKeyId
-  );
-
   const awsKmsArn = res.KeyMetadata.Arn;
   return importAwsKmsWallet({
     awsKmsArn,
@@ -64,7 +60,6 @@ export const createAwsKmsWallet = async ({
     crendentials: {
       accessKeyId: kmsWalletParams.awsAccessKeyId,
       secretAccessKey: kmsWalletParams.awsSecretAccessKey,
-      shouldStore: wereCredentialsOverridden,
     },
   });
 };

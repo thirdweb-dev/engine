@@ -9,11 +9,6 @@ interface ImportAwsKmsWalletParams {
   crendentials: {
     accessKeyId: string;
     secretAccessKey: string;
-    /**
-     * If true, the AWS access key and secret access key will be stored
-     * along with the wallet details, separately from the global configuration
-     */
-    shouldStore?: boolean;
   };
   label?: string;
 }
@@ -21,8 +16,6 @@ interface ImportAwsKmsWalletParams {
 /**
  * Import an AWS KMS wallet, and store it into the database
  *
- * If credentials.shouldStore is true, the AWS access key and secret access key will be stored
- * along with the wallet details, separately from the global configuration
  */
 export const importAwsKmsWallet = async ({
   crendentials,
@@ -50,12 +43,8 @@ export const importAwsKmsWallet = async ({
     awsKmsArn,
     label,
 
-    ...(crendentials.shouldStore
-      ? {
-          awsAccessKeyId: crendentials.accessKeyId,
-          awsSecretAccessKey: crendentials.secretAccessKey,
-        }
-      : {}),
+    awsKmsAccessKeyId: crendentials.accessKeyId,
+    awsKmsSecretAccessKey: crendentials.secretAccessKey,
   });
 
   return walletAddress;

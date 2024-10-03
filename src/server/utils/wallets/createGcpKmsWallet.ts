@@ -93,25 +93,15 @@ export const createGcpKmsWallet = async ({
 
   const walletAddress = account.address;
 
-  // if email and privateKey are provided explicitly in the request, then they should be stored in walletDetails
-  const areCredentialsOverridden = !!(
-    overrides.gcpApplicationCredentialEmail &&
-    overrides.gcpApplicationCredentialPrivateKey
-  );
-
   await createWalletDetails({
     type: WalletType.gcpKms,
     address: walletAddress,
     label,
     gcpKmsResourcePath: resourcePath,
 
-    ...(areCredentialsOverridden
-      ? {
-          gcpApplicationCredentialEmail: params.gcpApplicationCredentialEmail,
-          gcpApplicationCredentialPrivateKey:
-            params.gcpApplicationCredentialPrivateKey,
-        }
-      : {}),
+    gcpApplicationCredentialEmail: params.gcpApplicationCredentialEmail,
+    gcpApplicationCredentialPrivateKey:
+      params.gcpApplicationCredentialPrivateKey,
   });
 
   return walletAddress;
