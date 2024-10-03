@@ -26,17 +26,19 @@ const RequestBodySchema = Type.Intersect([
           "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
         ],
       }),
-      credentials: Type.Object(
-        {
-          awsAccessKeyId: Type.String({ description: "AWS Access Key ID" }),
-          awsSecretAccessKey: Type.String({
-            description: "AWS Secret Access Key",
-          }),
-        },
-        {
-          description:
-            "Optional AWS credentials to use for importing the wallet, if not provided, the default AWS credentials will be used (if available).",
-        },
+      credentials: Type.Optional(
+        Type.Object(
+          {
+            awsAccessKeyId: Type.String({ description: "AWS Access Key ID" }),
+            awsSecretAccessKey: Type.String({
+              description: "AWS Secret Access Key",
+            }),
+          },
+          {
+            description:
+              "Optional AWS credentials to use for importing the wallet, if not provided, the default AWS credentials will be used (if available).",
+          },
+        ),
       ),
     }),
     // TODO: with next breaking change, only require GCP KMS resource path

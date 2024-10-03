@@ -30,15 +30,15 @@ model Configuration {
   contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
   // AWS
-  awsAccessKeyId                     String?  @map("awsAccessKeyId") /// global config, precendence goes to WalletDetails
-  awsSecretAccessKey                 String?  @map("awsSecretAccessKey") /// global config, precendence goes to WalletDetails
+  awsAccessKeyId                     String?  @map("awsAccessKeyId") /// global config, precedence goes to WalletDetails
+  awsSecretAccessKey                 String?  @map("awsSecretAccessKey") /// global config, precedence goes to WalletDetails
   awsRegion                          String?  @map("awsRegion") /// global config, treat as "default", store in WalletDetails.awsKmsArn
   // GCP
-  gcpApplicationProjectId            String?  @map("gcpApplicationProjectId") /// global config, treat as "defult", store in WalletDetails.gcpKmsResourcePath
-  gcpKmsLocationId                   String?  @map("gcpKmsLocationId") /// global config, treat as "defult", store in WalletDetails.gcpKmsResourcePath
-  gcpKmsKeyRingId                    String?  @map("gcpKmsKeyRingId") /// global config, treat as "defult", store in WalletDetails.gcpKmsResourcePath
-  gcpApplicationCredentialEmail      String?  @map("gcpApplicationCredentialEmail") /// global config, precendence goes to WalletDetails
-  gcpApplicationCredentialPrivateKey String?  @map("gcpApplicationCredentialPrivateKey") /// global config, precendence goes to WalletDetails
+  gcpApplicationProjectId            String?  @map("gcpApplicationProjectId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
+  gcpKmsLocationId                   String?  @map("gcpKmsLocationId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
+  gcpKmsKeyRingId                    String?  @map("gcpKmsKeyRingId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
+  gcpApplicationCredentialEmail      String?  @map("gcpApplicationCredentialEmail") /// global config, precedence goes to WalletDetails
+  gcpApplicationCredentialPrivateKey String?  @map("gcpApplicationCredentialPrivateKey") /// global config, precedence goes to WalletDetails
   // Auth
   authDomain                         String   @default("") @map("authDomain") // TODO: Remove defaults on major
   authWalletEncryptedJson            String   @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
