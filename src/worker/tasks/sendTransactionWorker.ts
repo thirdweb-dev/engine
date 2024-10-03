@@ -151,7 +151,7 @@ const _sendUserOp = async (
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: `${e}`,
+      errorMessage: stringify(e),
     };
     job.log(
       `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
@@ -231,7 +231,7 @@ const _sendTransaction = async (
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: `${e}`,
+      errorMessage: stringify(e),
     };
     job.log(
       `Failed to populate transaction: ${erroredTransaction.errorMessage}`,

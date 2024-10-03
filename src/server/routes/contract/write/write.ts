@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
-import type { AbiFunction } from "thirdweb/utils";
+import { stringify, type AbiFunction } from "thirdweb/utils";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
 import { createCustomError } from "../../../middleware/error";
@@ -83,7 +83,11 @@ export async function writeToContract(fastify: FastifyInstance) {
       try {
         method = await resolveMethod(functionName)(contract);
       } catch (e: any) {
-        throw createCustomError(`${e}`, StatusCodes.BAD_REQUEST, "BAD_REQUEST");
+        throw createCustomError(
+          stringify(e),
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
       }
       const transaction = prepareContractCall({
         contract,
