@@ -411,7 +411,7 @@ const handleAccessToken = async (
     logger({
       service: "server",
       level: "error",
-      message: `[DEBUG] Request headers: ${req.headers}`,
+      message: `[DEBUG] Request headers: ${JSON.stringify(req.headers)}`,
     });
 
     return {
