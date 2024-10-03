@@ -408,12 +408,6 @@ const handleAccessToken = async (
       message: `Unauthorized IP address: ${req.ip}`,
     });
 
-    logger({
-      service: "server",
-      level: "error",
-      message: `[DEBUG] Request headers: ${JSON.stringify(req.headers)}`,
-    });
-
     return {
       isAuthed: false,
       error:
@@ -532,10 +526,20 @@ const hashRequestBody = (req: FastifyRequest): string => {
  */
 const checkIpInAllowlist = async (req: FastifyRequest) => {
   const config = await getConfig();
-
   if (config.ipAllowlist.length === 0) {
     return true;
   }
 
-  return config.ipAllowlist.includes(req.ip);
+  let ip = req.ip;
+  if (req.headers["cf-connecting-ip"]) {
+    ip = req.headers["cf-connecting-ip"] as string;
+  }
+
+  logger({
+    service: "server",
+    level: "error",
+    message: `[DEBUG] Request ip: ${ip}`,
+  });
+
+  return config.ipAllowlist.includes(ip);
 };
