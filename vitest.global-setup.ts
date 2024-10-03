@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import path from "node:path";
 
 config({
-  path: [path.resolve(".env.test"), path.resolve(".env.test.local")],
+  path: [path.resolve(".env.test.local"), path.resolve(".env.test")],
 });
 
 import { createServer } from "prool";
