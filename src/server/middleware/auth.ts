@@ -265,12 +265,12 @@ const handleWebsocketAuth = async (
     req.headers.authorization = `Bearer ${jwt}`;
     const user = await getUser(req);
 
-    const isIpInAllowlist = await checkIpInAllowlist(req);
-    if (!isIpInAllowlist) {
+    const { isAllowed, ip } = await checkIpInAllowlist(req);
+    if (!isAllowed) {
       logger({
         service: "server",
         level: "error",
-        message: `Unauthorized IP address: ${req.ip}`,
+        message: `Unauthorized IP address: ${ip}`,
       });
       return {
         isAuthed: false,
@@ -339,12 +339,12 @@ const handleKeypairAuth = async (args: {
       throw error;
     }
 
-    const isIpInAllowlist = await checkIpInAllowlist(req);
-    if (!isIpInAllowlist) {
+    const { isAllowed, ip } = await checkIpInAllowlist(req);
+    if (!isAllowed) {
       logger({
         service: "server",
         level: "error",
-        message: `Unauthorized IP address: ${req.ip}`,
+        message: `Unauthorized IP address: ${ip}`,
       });
       throw new Error(
         "Unauthorized IP address. See: https://portal.thirdweb.com/engine/features/security",
@@ -400,14 +400,13 @@ const handleAccessToken = async (
     return { isAuthed: false };
   }
 
-  const isIpInAllowlist = await checkIpInAllowlist(req);
-  if (!isIpInAllowlist) {
+  const { isAllowed, ip } = await checkIpInAllowlist(req);
+  if (!isAllowed) {
     logger({
       service: "server",
       level: "error",
-      message: `Unauthorized IP address: ${req.ip}`,
+      message: `Unauthorized IP address: ${ip}`,
     });
-
     return {
       isAuthed: false,
       error:
@@ -524,10 +523,14 @@ const hashRequestBody = (req: FastifyRequest): string => {
  * @returns boolean
  * @async
  */
-const checkIpInAllowlist = async (req: FastifyRequest) => {
+const checkIpInAllowlist = async (
+  req: FastifyRequest,
+): Promise<
+  { isAllowed: false; ip: string } | { isAllowed: true; ip?: string }
+> => {
   const config = await getConfig();
   if (config.ipAllowlist.length === 0) {
-    return true;
+    return { isAllowed: true };
   }
 
   let ip = req.ip;
@@ -535,11 +538,8 @@ const checkIpInAllowlist = async (req: FastifyRequest) => {
     ip = req.headers["cf-connecting-ip"] as string;
   }
 
-  logger({
-    service: "server",
-    level: "error",
-    message: `[DEBUG] Request ip: ${ip}`,
-  });
-
-  return config.ipAllowlist.includes(ip);
+  return {
+    isAllowed: config.ipAllowlist.includes(ip),
+    ip,
+  };
 };
