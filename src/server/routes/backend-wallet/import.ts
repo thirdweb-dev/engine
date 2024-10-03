@@ -10,89 +10,71 @@ import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
 import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
 import { importLocalWallet } from "../../utils/wallets/importLocalWallet";
 
-const RequestBodySchema = Type.Union([
+const RequestBodySchema = Type.Intersect([
   Type.Object({
     label: Type.Optional(
       Type.String({
         description: "Optional label for the imported wallet",
       }),
-    ),
-    awsKmsArn: Type.String({
-      description: "AWS KMS key ARN",
-      examples: [
-        "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
-      ],
-    }),
-    credentials: Type.Object(
-      {
-        awsAccessKeyId: Type.String({ description: "AWS Access Key ID" }),
-        awsSecretAccessKey: Type.String({
-          description: "AWS Secret Access Key",
-        }),
-      },
-      {
-        description:
-          "Optional AWS credentials to use for importing the wallet, if not provided, the default AWS credentials will be used (if available).",
-      },
-    ),
-  }),
-  // TODO: with next breaking change, only require GCP KMS resource path
-  Type.Object({
-    label: Type.Optional(
-      Type.String({
-        description: "Optional label for the imported wallet",
-      }),
-    ),
-    gcpKmsKeyId: Type.String({
-      description: "GCP KMS key ID",
-      examples: ["12345678-1234-1234-1234-123456789012"],
-    }),
-    gcpKmsKeyVersionId: Type.String({
-      description: "GCP KMS key version ID",
-      examples: ["1"],
-    }),
-    credentials: Type.Optional(
-      Type.Object(
-        {
-          email: Type.String({ description: "GCP service account email" }),
-          privateKey: Type.String({
-            description: "GCP service account private key",
-          }),
-        },
-        {
-          description:
-            "Optional GCP credentials to use for importing the wallet, if not provided, the default GCP credentials will be used (if available).",
-        },
-      ),
     ),
   }),
   Type.Union([
     Type.Object({
-      label: Type.Optional(
-        Type.String({
-          description: "Optional label for the imported wallet",
-        }),
+      awsKmsArn: Type.String({
+        description: "AWS KMS key ARN",
+        examples: [
+          "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+        ],
+      }),
+      credentials: Type.Object(
+        {
+          awsAccessKeyId: Type.String({ description: "AWS Access Key ID" }),
+          awsSecretAccessKey: Type.String({
+            description: "AWS Secret Access Key",
+          }),
+        },
+        {
+          description:
+            "Optional AWS credentials to use for importing the wallet, if not provided, the default AWS credentials will be used (if available).",
+        },
       ),
+    }),
+    // TODO: with next breaking change, only require GCP KMS resource path
+    Type.Object({
+      gcpKmsKeyId: Type.String({
+        description: "GCP KMS key ID",
+        examples: ["12345678-1234-1234-1234-123456789012"],
+      }),
+      gcpKmsKeyVersionId: Type.String({
+        description: "GCP KMS key version ID",
+        examples: ["1"],
+      }),
+      credentials: Type.Optional(
+        Type.Object(
+          {
+            email: Type.String({ description: "GCP service account email" }),
+            privateKey: Type.String({
+              description: "GCP service account private key",
+            }),
+          },
+          {
+            description:
+              "Optional GCP credentials to use for importing the wallet, if not provided, the default GCP credentials will be used (if available).",
+          },
+        ),
+      ),
+    }),
+    Type.Object({
       privateKey: Type.String({
         description: "The private key of the wallet to import",
       }),
     }),
     Type.Object({
-      label: Type.Optional(
-        Type.String({
-          description: "Optional label for the imported wallet",
-        }),
-      ),
       mnemonic: Type.String({
         description: "The mnemonic phrase of the wallet to import",
       }),
     }),
     Type.Object({
-      label: Type.Optional(
-        Type.String({
-          description: "Optional label for the imported wallet",
-        }),
-      ),
       encryptedJson: Type.String({
         description: "The encrypted JSON of the wallet to import",
       }),

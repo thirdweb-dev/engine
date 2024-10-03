@@ -9,14 +9,14 @@ export const responseBodySchema = Type.Object({
   result: Type.Object({
     type: Type.Enum(WalletType),
 
-    awsAccessKeyId: Type.String().Optional(),
-    awsRegion: Type.String().Optional(),
+    awsAccessKeyId: Type.Union([Type.String(), Type.Null()]),
+    awsRegion: Type.Union([Type.String(), Type.Null()]),
 
     // Omit awsSecretAccessKey
-    gcpApplicationProjectId: Type.String().Optional(),
-    gcpKmsLocationId: Type.String().Optional(),
-    gcpKmsKeyRingId: Type.String().Optional(),
-    gcpApplicationCredentialEmail: Type.String().Optional(),
+    gcpApplicationProjectId: Type.Union([Type.String(), Type.Null()]),
+    gcpKmsLocationId: Type.Union([Type.String(), Type.Null()]),
+    gcpKmsKeyRingId: Type.Union([Type.String(), Type.Null()]),
+    gcpApplicationCredentialEmail: Type.Union([Type.String(), Type.Null()]),
     // Omit gcpApplicationCredentialPrivateKey
   }),
 });

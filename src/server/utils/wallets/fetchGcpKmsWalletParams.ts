@@ -9,6 +9,8 @@ export type GcpKmsWalletParams = {
   gcpKmsLocationId: string;
 };
 
+export class FetchGcpKmsWalletParamsError extends Error {}
+
 /**
  * Fetches the GCP KMS wallet creation parameters from the configuration or overrides.
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
@@ -23,7 +25,7 @@ export async function fetchGcpKmsWalletParams(
     config.walletConfiguration.gcp?.gcpApplicationCredentialEmail;
 
   if (!gcpApplicationCredentialEmail) {
-    throw new Error(
+    throw new FetchGcpKmsWalletParamsError(
       "GCP application credential email is required for this wallet type. Could not find in configuration or params.",
     );
   }
@@ -33,7 +35,7 @@ export async function fetchGcpKmsWalletParams(
     config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey;
 
   if (!gcpApplicationCredentialPrivateKey) {
-    throw new Error(
+    throw new FetchGcpKmsWalletParamsError(
       "GCP application credential private key is required for this wallet type. Could not find in configuration or params.",
     );
   }
@@ -43,7 +45,7 @@ export async function fetchGcpKmsWalletParams(
     config.walletConfiguration.gcp?.defaultGcpApplicationProjectId;
 
   if (!gcpApplicationProjectId) {
-    throw new Error(
+    throw new FetchGcpKmsWalletParamsError(
       "GCP application project ID is required for this wallet type. Could not find in configuration or params.",
     );
   }
@@ -53,7 +55,7 @@ export async function fetchGcpKmsWalletParams(
     config.walletConfiguration.gcp?.defaultGcpKmsKeyRingId;
 
   if (!gcpKmsKeyRingId) {
-    throw new Error(
+    throw new FetchGcpKmsWalletParamsError(
       "GCP KMS key ring ID is required for this wallet type. Could not find in configuration or params.",
     );
   }
@@ -63,7 +65,7 @@ export async function fetchGcpKmsWalletParams(
     config.walletConfiguration.gcp?.defaultGcpKmsLocationId;
 
   if (!gcpKmsLocationId) {
-    throw new Error(
+    throw new FetchGcpKmsWalletParamsError(
       "GCP KMS location ID is required for this wallet type. Could not find in configuration or params.",
     );
   }

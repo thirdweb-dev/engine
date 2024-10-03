@@ -1,9 +1,9 @@
 import { KeyManagementServiceClient } from "@google-cloud/kms";
-import assert from "node:assert";
 import { createWalletDetails } from "../../../db/wallets/createWalletDetails";
 import { WalletType } from "../../../schema/wallet";
 import { thirdwebClient } from "../../../utils/sdk";
 import {
+  FetchGcpKmsWalletParamsError,
   fetchGcpKmsWalletParams,
   type GcpKmsWalletParams,
 } from "./fetchGcpKmsWalletParams";
@@ -13,6 +13,8 @@ import { getGcpKmsAccount } from "./getGcpKmsAccount";
 type CreateGcpKmsWallet = {
   label?: string;
 } & Partial<GcpKmsWalletParams>;
+
+export class CreateGcpKmsWalletError extends Error {}
 
 /**
  * Create an GCP KMS wallet, and store it into the database
@@ -24,7 +26,15 @@ export const createGcpKmsWallet = async ({
   label,
   ...overrides
 }: CreateGcpKmsWallet): Promise<string> => {
-  const params = await fetchGcpKmsWalletParams(overrides);
+  let params: GcpKmsWalletParams;
+  try {
+    params = await fetchGcpKmsWalletParams(overrides);
+  } catch (e) {
+    if (e instanceof FetchGcpKmsWalletParamsError) {
+      throw new CreateGcpKmsWalletError(e.message);
+    }
+    throw e;
+  }
 
   const client = new KeyManagementServiceClient({
     credentials: {
@@ -64,10 +74,11 @@ export const createGcpKmsWallet = async ({
     versionId: "1",
   });
 
-  assert(
-    `${key.name}/cryptoKeyVersions/1` === resourcePath,
-    `Expected created key resource path to be ${resourcePath}, but got ${key.name}`,
-  );
+  if (`${key.name}/cryptoKeyVersions/1` !== resourcePath) {
+    throw new CreateGcpKmsWalletError(
+      `Expected created key resource path to be ${resourcePath}, but got ${key.name}`,
+    );
+  }
 
   const account = await getGcpKmsAccount({
     client: thirdwebClient,

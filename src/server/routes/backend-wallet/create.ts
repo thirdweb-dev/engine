@@ -3,10 +3,17 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../schema/wallet";
 import { getConfig } from "../../../utils/cache/getConfig";
+import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { createAwsKmsWallet } from "../../utils/wallets/createAwsKmsWallet";
-import { createGcpKmsWallet } from "../../utils/wallets/createGcpKmsWallet";
+import {
+  CreateAwsKmsWalletError,
+  createAwsKmsWallet,
+} from "../../utils/wallets/createAwsKmsWallet";
+import {
+  CreateGcpKmsWalletError,
+  createGcpKmsWallet,
+} from "../../utils/wallets/createGcpKmsWallet";
 import { createLocalWallet } from "../../utils/wallets/createLocalWallet";
 
 const requestBodySchema = Type.Object({
@@ -66,10 +73,32 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           walletAddress = await createLocalWallet({ label });
           break;
         case WalletType.awsKms:
-          walletAddress = await createAwsKmsWallet({ label });
+          try {
+            walletAddress = await createAwsKmsWallet({ label });
+          } catch (e) {
+            if (e instanceof CreateAwsKmsWalletError) {
+              throw createCustomError(
+                e.message,
+                StatusCodes.BAD_REQUEST,
+                "CREATE_AWS_KMS_WALLET_ERROR",
+              );
+            }
+            throw e;
+          }
           break;
         case WalletType.gcpKms:
-          walletAddress = await createGcpKmsWallet({ label });
+          try {
+            walletAddress = await createGcpKmsWallet({ label });
+          } catch (e) {
+            if (e instanceof CreateGcpKmsWalletError) {
+              throw createCustomError(
+                e.message,
+                StatusCodes.BAD_REQUEST,
+                "CREATE_GCP_KMS_WALLET_ERROR",
+              );
+            }
+            throw e;
+          }
           break;
       }
 

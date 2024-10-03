@@ -1,5 +1,6 @@
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import {
+  FetchAwsKmsWalletParamsError,
   fetchAwsKmsWalletParams,
   type AwsKmsWalletParams,
 } from "./fetchAwsKmsWalletParams";
@@ -8,6 +9,8 @@ import { importAwsKmsWallet } from "./importAwsKmsWallet";
 type CreateAwsKmsWalletParams = {
   label?: string;
 } & Partial<AwsKmsWalletParams>;
+
+export class CreateAwsKmsWalletError extends Error {}
 
 /**
  * Create an AWS KMS wallet, and store it into the database
@@ -19,7 +22,15 @@ export const createAwsKmsWallet = async ({
   label,
   ...overrides
 }: CreateAwsKmsWalletParams): Promise<string> => {
-  const kmsWalletParams = await fetchAwsKmsWalletParams(overrides);
+  let kmsWalletParams: AwsKmsWalletParams;
+  try {
+    kmsWalletParams = await fetchAwsKmsWalletParams(overrides);
+  } catch (e) {
+    if (e instanceof FetchAwsKmsWalletParamsError) {
+      throw new CreateAwsKmsWalletError(e.message);
+    }
+    throw e;
+  }
 
   const client = new KMSClient({
     region: kmsWalletParams.awsRegion,

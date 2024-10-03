@@ -7,6 +7,8 @@ export type AwsKmsWalletParams = {
   awsRegion: string;
 };
 
+export class FetchAwsKmsWalletParamsError extends Error {}
+
 /**
  * Fetches the AWS KMS wallet creation parameters from the configuration or overrides.
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
@@ -20,7 +22,7 @@ export async function fetchAwsKmsWalletParams(
     overrides.awsAccessKeyId ?? config.walletConfiguration.aws?.awsAccessKeyId;
 
   if (!awsAccessKeyId) {
-    throw new Error(
+    throw new FetchAwsKmsWalletParamsError(
       "AWS access key ID is required for this wallet type. Could not find in configuration or params.",
     );
   }
@@ -30,7 +32,7 @@ export async function fetchAwsKmsWalletParams(
     config.walletConfiguration.aws?.awsSecretAccessKey;
 
   if (!awsSecretAccessKey) {
-    throw new Error(
+    throw new FetchAwsKmsWalletParamsError(
       "AWS secretAccessKey is required for this wallet type. Could not find in configuration or params.",
     );
   }
@@ -39,7 +41,7 @@ export async function fetchAwsKmsWalletParams(
     overrides.awsRegion ?? config.walletConfiguration.aws?.defaultAwsRegion;
 
   if (!awsRegion) {
-    throw new Error(
+    throw new FetchAwsKmsWalletParamsError(
       "AWS region is required for this wallet type. Could not find in configuration or params.",
     );
   }
