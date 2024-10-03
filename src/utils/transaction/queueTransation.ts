@@ -6,6 +6,7 @@ import {
   type Hex,
   type PreparedTransaction,
 } from "thirdweb";
+import { stringify } from "thirdweb/utils";
 import { createCustomError } from "../../server/middleware/error";
 import type { txOverridesWithValueSchema } from "../../server/schemas/txOverrides";
 import { parseTransactionOverrides } from "../../server/utils/transactionOverrides";
@@ -41,7 +42,11 @@ export async function queueTransaction(args: QueuedTransactionParams) {
   try {
     data = await encode(transaction);
   } catch (e) {
-    throw createCustomError(`${e}`, StatusCodes.BAD_REQUEST, "BAD_REQUEST");
+    throw createCustomError(
+      stringify(e),
+      StatusCodes.BAD_REQUEST,
+      "BAD_REQUEST",
+    );
   }
 
   const insertedTransaction: InsertedTransaction = {
