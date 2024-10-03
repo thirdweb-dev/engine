@@ -1,14 +1,14 @@
 import { parseJWT } from "@thirdweb-dev/auth";
 import {
   ThirdwebAuth,
-  ThirdwebAuthUser,
   getToken as getJWT,
+  type ThirdwebAuthUser,
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { createHash } from "crypto";
-import { FastifyInstance } from "fastify";
-import { FastifyRequest } from "fastify/types/request";
-import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
+import type { FastifyInstance } from "fastify";
+import type { FastifyRequest } from "fastify/types/request";
+import jsonwebtoken, { type JwtPayload } from "jsonwebtoken";
 import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
@@ -87,7 +87,7 @@ export const withAuth = async (server: FastifyInstance) => {
           await revokeToken({ id: payload.jti });
         } catch {
           logger({
-            service: "worker",
+            service: "server",
             level: "error",
             message: `[Auth] Failed to revoke token ${payload.jti}`,
           });
@@ -267,10 +267,15 @@ const handleWebsocketAuth = async (
 
     const isIpInAllowlist = await checkIpInAllowlist(req);
     if (!isIpInAllowlist) {
+      logger({
+        service: "server",
+        level: "error",
+        message: `Unauthorized IP address: ${req.ip}`,
+      });
       return {
         isAuthed: false,
         error:
-          "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+          "Unauthorized IP address. See: https://portal.thirdweb.com/engine/features/security",
       };
     }
 
@@ -336,9 +341,14 @@ const handleKeypairAuth = async (args: {
 
     const isIpInAllowlist = await checkIpInAllowlist(req);
     if (!isIpInAllowlist) {
-      error =
-        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security";
-      throw error;
+      logger({
+        service: "server",
+        level: "error",
+        message: `Unauthorized IP address: ${req.ip}`,
+      });
+      throw new Error(
+        "Unauthorized IP address. See: https://portal.thirdweb.com/engine/features/security",
+      );
     }
     return { isAuthed: true };
   } catch (e) {
@@ -391,12 +401,16 @@ const handleAccessToken = async (
   }
 
   const isIpInAllowlist = await checkIpInAllowlist(req);
-
   if (!isIpInAllowlist) {
+    logger({
+      service: "server",
+      level: "error",
+      message: `Unauthorized IP address: ${req.ip}`,
+    });
     return {
       isAuthed: false,
       error:
-        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+        "Unauthorized IP address. See: https://portal.thirdweb.com/engine/features/security",
     };
   }
 
@@ -505,7 +519,6 @@ const hashRequestBody = (req: FastifyRequest): string => {
 /**
  * Check if the request IP is in the allowlist.
  * Fetches cached config if available.
- * env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
  * @param req FastifyRequest
  * @returns boolean
  * @async

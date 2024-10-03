@@ -1,9 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isDatabaseReachable } from "../../../db/client";
 import { env } from "../../../utils/env";
-import { isRedisReachable, redis } from "../../../utils/redis/redis";
+import { isRedisReachable } from "../../../utils/redis/redis";
 import { createCustomError } from "../../middleware/error";
 
 type EngineFeature = "KEYPAIR_AUTH" | "CONTRACT_SUBSCRIPTIONS" | "IP_ALLOWLIST";
@@ -63,8 +63,8 @@ export async function healthCheck(fastify: FastifyInstance) {
 
       res.status(StatusCodes.OK).send({
         status: "OK",
-        engineVersion: process.env.ENGINE_VERSION,
-        engineTier: process.env.ENGINE_TIER ?? "SELF_HOSTED",
+        engineVersion: env.ENGINE_VERSION,
+        engineTier: env.ENGINE_TIER ?? "SELF_HOSTED",
         features: getFeatures(),
       });
     },
@@ -73,11 +73,9 @@ export async function healthCheck(fastify: FastifyInstance) {
 
 const getFeatures = (): EngineFeature[] => {
   // IP Allowlist is always available as a feature, but added as a feature for backwards compatibility.
-  const features: EngineFeature[] = ["IP_ALLOWLIST"];
+  const features: EngineFeature[] = ["CONTRACT_SUBSCRIPTIONS", "IP_ALLOWLIST"];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
-  // Contract Subscriptions requires Redis.
-  if (redis) features.push("CONTRACT_SUBSCRIPTIONS");
 
   return features;
 };
