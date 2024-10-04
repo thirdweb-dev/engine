@@ -1,21 +1,19 @@
-import { EVMWallet } from "@thirdweb-dev/wallets";
-import { Signer, providers } from "ethers";
-
 import { StatusCodes } from "http-status-codes";
-import { Address } from "thirdweb";
-import { ethers5Adapter } from "thirdweb/adapters/ethers5";
-import { Account } from "thirdweb/wallets";
+import type { Address } from "thirdweb";
+import type { Account } from "thirdweb/wallets";
 import { getWalletDetails } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
 import { createCustomError } from "../server/middleware/error";
-import { getAwsKmsWallet } from "../server/utils/wallets/getAwsKmsWallet";
-import { getGcpKmsWallet } from "../server/utils/wallets/getGcpKmsWallet";
-import {
-  getLocalWallet,
-  getLocalWalletAccount,
-} from "../server/utils/wallets/getLocalWallet";
-import { getSmartWallet } from "../server/utils/wallets/getSmartWallet";
+import { splitAwsKmsArn } from "../server/utils/wallets/awsKmsArn";
+import { getAwsKmsAccount } from "../server/utils/wallets/getAwsKmsAccount";
+import { getGcpKmsAccount } from "../server/utils/wallets/getGcpKmsAccount";
+import { getLocalWalletAccount } from "../server/utils/wallets/getLocalWallet";
+import { getConfig } from "./cache/getConfig";
+import { getSmartWalletV5 } from "./cache/getSmartWalletV5";
 import { getChain } from "./chain";
+import { decrypt } from "./crypto";
+import { env } from "./env";
+import { thirdwebClient } from "./sdk";
 
 export const _accountsCache = new Map<string, Account>();
 
@@ -36,6 +34,7 @@ export const getAccount = async (args: {
   const walletDetails = await getWalletDetails({
     address: from,
   });
+
   if (!walletDetails) {
     throw createCustomError(
       `No configured wallet found with address ${from}`,
@@ -43,64 +42,114 @@ export const getAccount = async (args: {
       "BAD_REQUEST",
     );
   }
+  const config = await getConfig();
 
-  let wallet: EVMWallet;
   switch (walletDetails.type) {
-    case WalletType.awsKms:
-      wallet = await getAwsKmsWallet({
-        awsKmsKeyId: walletDetails.awsKmsKeyId!,
+    case WalletType.awsKms: {
+      const arn = walletDetails.awsKmsArn;
+
+      if (!arn) {
+        throw new Error("AWS KMS ARN is missing for the wallet");
+      }
+
+      const { keyId, region } = splitAwsKmsArn(arn);
+
+      // try to decrypt the secret access key in walletDetails (if found)
+      // otherwise fallback to global config
+      const secretAccessKey = walletDetails.awsKmsSecretAccessKey
+        ? decrypt(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
+        : config.walletConfiguration.aws?.awsSecretAccessKey;
+
+      if (!secretAccessKey) {
+        throw new Error("AWS KMS secret access key is missing for the wallet");
+      }
+
+      // try to get the access key id from walletDetails (if found)
+      // otherwise fallback to global config
+      const accessKeyId =
+        walletDetails.awsKmsAccessKeyId ??
+        config.walletConfiguration.aws?.awsAccessKeyId;
+
+      if (!accessKeyId) {
+        throw new Error("AWS KMS access key id is missing for the wallet");
+      }
+
+      return await getAwsKmsAccount({
+        client: thirdwebClient,
+        keyId,
+        config: {
+          region,
+          credentials: {
+            accessKeyId,
+            secretAccessKey,
+          },
+        },
       });
-      break;
-    case WalletType.gcpKms:
-      wallet = await getGcpKmsWallet({
-        gcpKmsKeyId: walletDetails.gcpKmsKeyId!,
-        gcpKmsKeyVersionId: walletDetails.gcpKmsKeyVersionId!,
+    }
+    case WalletType.gcpKms: {
+      const resourcePath = walletDetails.gcpKmsResourcePath;
+      if (!resourcePath) {
+        throw new Error("GCP KMS resource path is missing for the wallet");
+      }
+
+      // try to decrypt the application credential private key in walletDetails (if found)
+      // otherwise fallback to global config
+      const gcpApplicationCredentialPrivateKey =
+        walletDetails.gcpApplicationCredentialPrivateKey
+          ? decrypt(
+              walletDetails.gcpApplicationCredentialPrivateKey,
+              env.ENCRYPTION_PASSWORD,
+            )
+          : config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey;
+
+      if (!gcpApplicationCredentialPrivateKey) {
+        throw new Error(
+          "GCP application credential private key is missing for the wallet",
+        );
+      }
+
+      // try to get the application credential email from walletDetails (if found)
+      // otherwise fallback to global config
+      const gcpApplicationCredentialEmail =
+        walletDetails.gcpApplicationCredentialEmail ??
+        config.walletConfiguration.gcp?.gcpApplicationCredentialEmail;
+
+      if (!gcpApplicationCredentialEmail) {
+        throw new Error(
+          "GCP application credential email is missing for the wallet",
+        );
+      }
+
+      return await getGcpKmsAccount({
+        client: thirdwebClient,
+        name: resourcePath,
+        clientOptions: {
+          credentials: {
+            client_email: gcpApplicationCredentialEmail,
+            private_key: gcpApplicationCredentialPrivateKey,
+          },
+        },
       });
-      break;
-    case WalletType.local:
-      // For non-AA
-      // @TODO: Update all wallets to use v5 sdk and avoid ethers.
-      if (!accountAddress) {
-        const account = await getLocalWalletAccount(from);
+    }
+    case WalletType.local: {
+      if (accountAddress) {
+        const chain = await getChain(chainId);
+        const account = await getSmartWalletV5({
+          chain,
+          accountAddress,
+          from,
+        });
         _accountsCache.set(cacheKey, account);
         return account;
       }
-      wallet = await getLocalWallet({ chainId, walletAddress: from });
-      break;
+
+      const account = await getLocalWalletAccount(from);
+      _accountsCache.set(cacheKey, account);
+      return account;
+    }
     default:
       throw new Error(`Wallet type not supported: ${walletDetails.type}`);
   }
-
-  // Get smart wallet if `accountAddress` is provided.
-  let signer: Signer;
-
-  if (accountAddress) {
-    const smartWallet = await getSmartWallet({
-      chainId,
-      backendWallet: wallet,
-      accountAddress,
-    });
-    signer = await smartWallet.getSigner();
-  } else {
-    signer = await wallet.getSigner();
-  }
-
-  if (walletDetails.type !== WalletType.local) {
-    // Get chain rpc provider.
-    const chain = await getChain(chainId);
-    const provider = new providers.JsonRpcProvider(chain.rpc);
-
-    signer = signer.connect(provider);
-  }
-
-  // @TODO: Move all wallets to use v5 SDK and avoid ethers adapter.
-  const account = await ethers5Adapter.signer.fromEthers({
-    signer,
-  });
-
-  // Set cache.
-  _accountsCache.set(cacheKey, account);
-  return account;
 };
 
 const getAccountCacheKey = (args: {

@@ -1,11 +1,14 @@
-import { EVMWallet } from "@thirdweb-dev/wallets";
+import type { EVMWallet } from "@thirdweb-dev/wallets";
+import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
+import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
 import { getWalletDetails } from "../../db/wallets/getWalletDetails";
-import { PrismaTransaction } from "../../schema/prisma";
+import type { PrismaTransaction } from "../../schema/prisma";
 import { WalletType } from "../../schema/wallet";
-import { getAwsKmsWallet } from "../../server/utils/wallets/getAwsKmsWallet";
-import { getGcpKmsWallet } from "../../server/utils/wallets/getGcpKmsWallet";
+import { splitAwsKmsArn } from "../../server/utils/wallets/awsKmsArn";
+import { splitGcpKmsResourcePath } from "../../server/utils/wallets/gcpKmsResourcePath";
 import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../../server/utils/wallets/getSmartWallet";
+import { getConfig } from "./getConfig";
 
 export const walletsCache = new Map<string, EVMWallet>();
 
@@ -25,8 +28,10 @@ export const getWallet = async <TWallet extends EVMWallet>({
   const cacheKey = accountAddress
     ? `${chainId}-${walletAddress}-${accountAddress}`
     : `${chainId}-${walletAddress}`;
-  if (walletsCache.has(cacheKey)) {
-    return walletsCache.get(cacheKey)! as TWallet;
+
+  const cachedWallet = walletsCache.get(cacheKey);
+  if (cachedWallet) {
+    return cachedWallet as TWallet;
   }
 
   const walletDetails = await getWalletDetails({
@@ -38,22 +43,79 @@ export const getWallet = async <TWallet extends EVMWallet>({
     throw new Error(`No configured wallet found with address ${walletAddress}`);
   }
 
+  const config = await getConfig();
+
   let wallet: EVMWallet;
   switch (walletDetails.type) {
-    case WalletType.awsKms:
-      wallet = await getAwsKmsWallet({
-        awsKmsKeyId: walletDetails.awsKmsKeyId!,
+    case WalletType.awsKms: {
+      if (!walletDetails.awsKmsArn) {
+        throw new Error("AWS KMS ARN is missing for the wallet");
+      }
+
+      const splitArn = splitAwsKmsArn(walletDetails.awsKmsArn);
+
+      const accessKeyId =
+        walletDetails.awsKmsAccessKeyId ??
+        config.walletConfiguration.aws?.awsAccessKeyId;
+
+      const secretAccessKey =
+        walletDetails.awsKmsSecretAccessKey ??
+        config.walletConfiguration.aws?.awsSecretAccessKey;
+
+      if (!(accessKeyId && secretAccessKey)) {
+        throw new Error(
+          "AWS KMS access key id and secret access key are missing for the wallet",
+        );
+      }
+
+      wallet = new AwsKmsWallet({
+        keyId: splitArn.keyId,
+        region: splitArn.region,
+        accessKeyId,
+        secretAccessKey,
+      });
+
+      break;
+    }
+
+    case WalletType.gcpKms: {
+      if (!walletDetails.gcpKmsResourcePath) {
+        throw new Error("GCP KMS resource path is missing for the wallet");
+      }
+      const splitResourcePath = splitGcpKmsResourcePath(
+        walletDetails.gcpKmsResourcePath,
+      );
+
+      const email =
+        walletDetails.gcpApplicationCredentialEmail ??
+        config.walletConfiguration.gcp?.gcpApplicationCredentialEmail;
+      const privateKey =
+        walletDetails.gcpApplicationCredentialPrivateKey ??
+        config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey;
+
+      if (!(email && privateKey)) {
+        throw new Error(
+          "GCP KMS email and private key are missing for the wallet",
+        );
+      }
+
+      wallet = new GcpKmsWallet({
+        keyId: splitResourcePath.cryptoKeyId,
+        keyRingId: splitResourcePath.keyRingId,
+        keyVersion: splitResourcePath.versionId,
+        locationId: splitResourcePath.locationId,
+        projectId: splitResourcePath.projectId,
+
+        applicationCredentialEmail: email,
+        applicationCredentialPrivateKey: privateKey,
       });
       break;
-    case WalletType.gcpKms:
-      wallet = await getGcpKmsWallet({
-        gcpKmsKeyId: walletDetails.gcpKmsKeyId!,
-        gcpKmsKeyVersionId: walletDetails.gcpKmsKeyVersionId!,
-      });
-      break;
+    }
+
     case WalletType.local:
       wallet = await getLocalWallet({ chainId, walletAddress });
       break;
+
     default:
       throw new Error(
         `Wallet with address ${walletAddress} was configured with unknown wallet type ${walletDetails.type}`,

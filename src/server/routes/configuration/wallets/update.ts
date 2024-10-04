@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { WalletType } from "../../../../schema/wallet";
@@ -10,16 +10,11 @@ import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Union([
   Type.Object({
-    type: Type.Literal(WalletType.local),
-  }),
-  Type.Object({
-    type: Type.Literal(WalletType.awsKms),
     awsAccessKeyId: Type.String(),
     awsSecretAccessKey: Type.String(),
     awsRegion: Type.String(),
   }),
   Type.Object({
-    type: Type.Literal(WalletType.gcpKms),
     gcpApplicationProjectId: Type.String(),
     gcpKmsLocationId: Type.String(),
     gcpKmsKeyRingId: Type.String(),
@@ -68,76 +63,66 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      switch (req.body.type) {
-        case WalletType.local:
-          await updateConfiguration({
-            awsAccessKeyId: null,
-            awsSecretAccessKey: null,
-            awsRegion: null,
-            gcpApplicationProjectId: null,
-            gcpKmsLocationId: null,
-            gcpKmsKeyRingId: null,
-            gcpApplicationCredentialEmail: null,
-            gcpApplicationCredentialPrivateKey: null,
-          });
-          break;
-        case WalletType.awsKms:
-          if (
-            !req.body.awsAccessKeyId ||
-            !req.body.awsSecretAccessKey ||
-            !req.body.awsRegion
-          ) {
-            throw createCustomError(
-              "Please specify all AWS KMS configuration.",
-              StatusCodes.BAD_REQUEST,
-              "BAD_REQUEST",
-            );
-          }
+      if ("awsAccessKeyId" in req.body) {
+        if (
+          !req.body.awsAccessKeyId ||
+          !req.body.awsSecretAccessKey ||
+          !req.body.awsRegion
+        ) {
+          throw createCustomError(
+            "Please specify all AWS KMS configuration.",
+            StatusCodes.BAD_REQUEST,
+            "BAD_REQUEST",
+          );
+        }
+        await updateConfiguration({
+          awsAccessKeyId: req.body.awsAccessKeyId,
+          awsSecretAccessKey: req.body.awsSecretAccessKey,
+          awsRegion: req.body.awsRegion,
+        });
+      }
 
-          await updateConfiguration({
-            awsAccessKeyId: req.body.awsAccessKeyId,
-            awsSecretAccessKey: req.body.awsSecretAccessKey,
-            awsRegion: req.body.awsRegion,
-            gcpApplicationProjectId: null,
-            gcpKmsLocationId: null,
-            gcpKmsKeyRingId: null,
-            gcpApplicationCredentialEmail: null,
-            gcpApplicationCredentialPrivateKey: null,
-          });
-          break;
-        case WalletType.gcpKms:
-          if (
-            !req.body.gcpApplicationProjectId ||
-            !req.body.gcpKmsLocationId ||
-            !req.body.gcpKmsKeyRingId ||
-            !req.body.gcpApplicationCredentialEmail ||
-            !req.body.gcpApplicationCredentialPrivateKey
-          ) {
-            throw createCustomError(
-              "Please specify all GCP KMS configuration.",
-              StatusCodes.BAD_REQUEST,
-              "BAD_REQUEST",
-            );
-          }
+      if ("gcpApplicationProjectId" in req.body) {
+        if (
+          !req.body.gcpApplicationProjectId ||
+          !req.body.gcpKmsLocationId ||
+          !req.body.gcpKmsKeyRingId ||
+          !req.body.gcpApplicationCredentialEmail ||
+          !req.body.gcpApplicationCredentialPrivateKey
+        ) {
+          throw createCustomError(
+            "Please specify all GCP KMS configuration.",
+            StatusCodes.BAD_REQUEST,
+            "BAD_REQUEST",
+          );
+        }
 
-          await updateConfiguration({
-            awsAccessKeyId: null,
-            awsSecretAccessKey: null,
-            awsRegion: null,
-            gcpApplicationProjectId: req.body.gcpApplicationProjectId,
-            gcpKmsLocationId: req.body.gcpKmsLocationId,
-            gcpKmsKeyRingId: req.body.gcpKmsKeyRingId,
-            gcpApplicationCredentialEmail:
-              req.body.gcpApplicationCredentialEmail,
-            gcpApplicationCredentialPrivateKey:
-              req.body.gcpApplicationCredentialPrivateKey,
-          });
-          break;
+        await updateConfiguration({
+          gcpApplicationProjectId: req.body.gcpApplicationProjectId,
+          gcpKmsLocationId: req.body.gcpKmsLocationId,
+          gcpKmsKeyRingId: req.body.gcpKmsKeyRingId,
+          gcpApplicationCredentialEmail: req.body.gcpApplicationCredentialEmail,
+          gcpApplicationCredentialPrivateKey:
+            req.body.gcpApplicationCredentialPrivateKey,
+        });
       }
 
       const config = await getConfig(false);
+
+      const { legacyWalletType_removeInNextBreakingChange, aws, gcp } =
+        config.walletConfiguration;
+
       res.status(StatusCodes.OK).send({
-        result: config.walletConfiguration,
+        result: {
+          type: legacyWalletType_removeInNextBreakingChange,
+          awsAccessKeyId: aws?.awsAccessKeyId ?? null,
+          awsRegion: aws?.defaultAwsRegion ?? null,
+          gcpApplicationProjectId: gcp?.defaultGcpApplicationProjectId ?? null,
+          gcpKmsLocationId: gcp?.defaultGcpKmsLocationId ?? null,
+          gcpKmsKeyRingId: gcp?.defaultGcpKmsKeyRingId ?? null,
+          gcpApplicationCredentialEmail:
+            gcp?.gcpApplicationCredentialEmail ?? null,
+        },
       });
     },
   });
