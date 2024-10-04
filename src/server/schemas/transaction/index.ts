@@ -253,6 +253,34 @@ export const toTransactionSchema = (
     return null;
   };
 
+  const resolveGas = (): string | null => {
+    if (transaction.status === "sent") {
+      return transaction.gas.toString();
+    }
+    return transaction.overrides?.gas?.toString() ?? null;
+  };
+
+  const resolveGasPrice = (): string | null => {
+    if (transaction.status === "sent") {
+      return transaction.gasPrice?.toString() ?? null;
+    }
+    return null;
+  };
+
+  const resolveMaxFeePerGas = (): string | null => {
+    if (transaction.status === "sent") {
+      return transaction.maxFeePerGas?.toString() ?? null;
+    }
+    return transaction.overrides?.maxFeePerGas?.toString() ?? null;
+  };
+
+  const resolveMaxPriorityFeePerGas = (): string | null => {
+    if (transaction.status === "sent") {
+      return transaction.maxPriorityFeePerGas?.toString() ?? null;
+    }
+    return transaction.overrides?.maxPriorityFeePerGas?.toString() ?? null;
+  };
+
   return {
     queueId: transaction.queueId,
     status: transaction.status,
@@ -269,10 +297,10 @@ export const toTransactionSchema = (
     functionArgs: resolveFunctionArgs(),
     extension: transaction.extension ?? null,
 
-    gasLimit: transaction.gas?.toString() ?? null,
-    gasPrice: transaction.gasPrice?.toString() ?? null,
-    maxFeePerGas: transaction.maxFeePerGas?.toString() ?? null,
-    maxPriorityFeePerGas: transaction.maxPriorityFeePerGas?.toString() ?? null,
+    gasLimit: resolveGas(),
+    gasPrice: resolveGasPrice(),
+    maxFeePerGas: resolveMaxFeePerGas(),
+    maxPriorityFeePerGas: resolveMaxPriorityFeePerGas(),
     transactionType: resolveTransactionType(),
     transactionHash: resolveTransactionHash(),
     queuedAt: transaction.queuedAt.toISOString(),

@@ -1,7 +1,7 @@
-import assert from "assert";
-import { Job, Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
+import assert from "node:assert";
 import superjson from "superjson";
-import { Hex, getAddress, toSerializableTransaction } from "thirdweb";
+import { getAddress, toSerializableTransaction, type Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { bundleUserOp } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
@@ -22,13 +22,13 @@ import {
   isReplacementGasFeeTooLow,
   prettifyError,
 } from "../../utils/error";
-import { logger } from "../../utils/logger";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
-import {
+import type {
   ErroredTransaction,
+  PopulatedTransaction,
   QueuedTransaction,
   SentTransaction,
 } from "../../utils/transaction/types";
@@ -38,8 +38,8 @@ import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import {
-  SendTransactionData,
   SendTransactionQueue,
+  type SendTransactionData,
 } from "../queues/sendTransactionQueue";
 
 /**
@@ -77,12 +77,12 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     } satisfies QueuedTransaction;
   }
 
-  // SentTransaction = the transaction or userOp was submitted successfully.
-  // ErroredTransaction = the transaction failed and should not be re-attempted.
-  // null = the transaction attemped to resend but was not needed. Ignore.
-  // A thrown exception indicates a retry-able error occurred (e.g. RPC outage).
+  let resultTransaction:
+    | SentTransaction // Transaction sent successfully.
+    | ErroredTransaction // Transaction failed and will not be retried.
+    | null; // No attempt to send is made.
+  // This job may also throw to indicate an unexpected error that will be retried.
 
-  let resultTransaction: SentTransaction | ErroredTransaction | null;
   if (transaction.status === "queued") {
     if (transaction.isUserOp) {
       resultTransaction = await _sendUserOp(job, transaction);
@@ -97,38 +97,19 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   if (resultTransaction) {
-    // Handle the resulting "sent" or "errored" transaction.
     await TransactionDB.set(resultTransaction);
-    await enqueueTransactionWebhook(resultTransaction);
 
     if (resultTransaction.status === "sent") {
       job.log(`Transaction sent: ${stringify(resultTransaction)}.`);
-      await MineTransactionQueue.add({ queueId: resultTransaction.queueId });
-
-      // Report usage only on the first transaction send.
-      if (transaction.status === "queued") {
-        await _reportUsageSuccess(resultTransaction);
-        recordMetrics({
-          event: "transaction_sent",
-          params: {
-            chainId: transaction.chainId.toString(),
-            success: true,
-            walletAddress: getAddress(transaction.from),
-            durationSeconds: msSince(transaction.queuedAt) / 1000,
-          },
-        });
+      if (resendCount === 0) {
+        await MineTransactionQueue.add({ queueId: resultTransaction.queueId });
+        await enqueueTransactionWebhook(resultTransaction);
+        await _reportSuccess(resultTransaction);
       }
     } else if (resultTransaction.status === "errored") {
-      _reportUsageError(resultTransaction);
-      recordMetrics({
-        event: "transaction_sent",
-        params: {
-          chainId: transaction.chainId.toString(),
-          success: false,
-          walletAddress: getAddress(transaction.from),
-          durationSeconds: msSince(transaction.queuedAt) / 1000,
-        },
-      });
+      job.log(`Transaction errored: ${stringify(resultTransaction)}.`);
+      await enqueueTransactionWebhook(resultTransaction);
+      _reportError(resultTransaction);
     }
   }
 };
@@ -136,17 +117,44 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 const _sendUserOp = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
-): Promise<SentTransaction | ErroredTransaction> => {
+): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(queuedTransaction.isUserOp);
 
-  const chain = await getChain(queuedTransaction.chainId);
+  if (_hasExceededTimeout(queuedTransaction)) {
+    // Fail if the transaction is not sent within the specified timeout.
+    return {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: `Exceeded ${queuedTransaction.timeoutSeconds}s timeout`,
+    };
+  }
 
-  const [populatedTransaction, erroredTransaction] =
-    await getPopulatedOrErroredTransaction(queuedTransaction);
+  const { accountAddress, to, target, chainId } = queuedTransaction;
+  const chain = await getChain(chainId);
 
-  if (erroredTransaction) {
+  assert(accountAddress, "Invalid userOp parameters: accountAddress");
+  const toAddress = to ?? target;
+  assert(toAddress, "Invalid transaction parameters: to");
+
+  let populatedTransaction: PopulatedTransaction;
+  try {
+    populatedTransaction = await toSerializableTransaction({
+      from: getChecksumAddress(accountAddress),
+      transaction: {
+        client: thirdwebClient,
+        chain,
+        ...queuedTransaction,
+        to: getChecksumAddress(toAddress),
+      },
+    });
+  } catch (e) {
+    const erroredTransaction: ErroredTransaction = {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: stringify(e),
+    };
     job.log(
-      `Failed to validate transaction: ${erroredTransaction.errorMessage}`,
+      `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
     );
     return erroredTransaction;
   }
@@ -155,15 +163,15 @@ const _sendUserOp = async (
     queuedTransaction,
     populatedTransaction,
   );
+  job.log(`Populated userOp: ${stringify(signedUserOp)}`);
 
   const userOpHash = await bundleUserOp({
     userOp: signedUserOp,
     options: {
-      chain,
       client: thirdwebClient,
+      chain,
     },
   });
-  job.log(`Sent transaction: ${userOpHash}`);
 
   return {
     ...queuedTransaction,
@@ -173,6 +181,7 @@ const _sendUserOp = async (
     userOpHash,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(queuedTransaction.chainId),
+    gas: signedUserOp.callGasLimit,
     maxFeePerGas: signedUserOp.maxFeePerGas,
     maxPriorityFeePerGas: signedUserOp.maxPriorityFeePerGas,
   };
@@ -181,21 +190,68 @@ const _sendUserOp = async (
 const _sendTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
-): Promise<SentTransaction | ErroredTransaction> => {
+): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(!queuedTransaction.isUserOp);
 
-  const { queueId, chainId, from } = queuedTransaction;
+  if (_hasExceededTimeout(queuedTransaction)) {
+    // Fail if the transaction is not sent within the specified timeout.
+    return {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: `Exceeded ${queuedTransaction.timeoutSeconds}s timeout`,
+    };
+  }
+
+  const { queueId, chainId, from, to, overrides } = queuedTransaction;
+  const chain = await getChain(chainId);
+
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
   // The nonce is _not_ set yet.
-  const [populatedTransaction, erroredTransaction] =
-    await getPopulatedOrErroredTransaction(queuedTransaction);
 
-  if (erroredTransaction) {
+  let populatedTransaction: PopulatedTransaction;
+  try {
+    populatedTransaction = await toSerializableTransaction({
+      from: getChecksumAddress(from),
+      transaction: {
+        client: thirdwebClient,
+        chain,
+        ...queuedTransaction,
+        to: getChecksumAddress(to),
+        // Use a dummy nonce since we override it later.
+        nonce: 1,
+
+        // Apply gas setting overrides.
+        // Do not set `maxFeePerGas` to estimate the onchain value.
+        gas: overrides?.gas,
+        maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
+      },
+    });
+  } catch (e: unknown) {
+    const erroredTransaction: ErroredTransaction = {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: stringify(e),
+    };
     job.log(
-      `Failed to validate transaction: ${erroredTransaction.errorMessage}`,
+      `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
     );
     return erroredTransaction;
+  }
+
+  // Handle if `maxFeePerGas` is overridden.
+  // Set it if the transaction will be sent, otherwise delay the job.
+  if (overrides?.maxFeePerGas && populatedTransaction.maxFeePerGas) {
+    if (overrides.maxFeePerGas > populatedTransaction.maxFeePerGas) {
+      populatedTransaction.maxFeePerGas = overrides.maxFeePerGas;
+    } else {
+      const retryAt = _minutesFromNow(5);
+      job.log(
+        `Override gas fee (${overrides.maxFeePerGas}) is lower than onchain fee (${populatedTransaction.maxFeePerGas}). Delaying job until ${retryAt}.`,
+      );
+      await job.moveToDelayed(retryAt.getTime());
+      return null;
+    }
   }
 
   // Acquire an unused nonce for this transaction.
@@ -204,34 +260,25 @@ const _sendTransaction = async (
     chainId,
     walletAddress: from,
   });
-  job.log(
-    `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
-  );
-  logger({
-    level: "info",
-    message: `Acquired nonce ${nonce} for transaction ${queueId}. isRecycledNonce=${isRecycledNonce}`,
-    service: "worker",
-  });
-
   populatedTransaction.nonce = nonce;
-  job.log(`Sending transaction: ${stringify(populatedTransaction)}`);
+  job.log(
+    `Populated transaction (isRecycledNonce=${isRecycledNonce}): ${stringify(populatedTransaction)}`,
+  );
 
   // Send transaction to RPC.
   // This call throws if the RPC rejects the transaction.
   let transactionHash: Hex;
   try {
     const account = await getAccount({ chainId, from });
-    const sendTransactionResult = await account.sendTransaction(
-      populatedTransaction,
-    );
+    const sendTransactionResult =
+      await account.sendTransaction(populatedTransaction);
     transactionHash = sendTransactionResult.transactionHash;
-    job.log(`Sent transaction: ${transactionHash}`);
   } catch (error: unknown) {
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
     // correct the DB nonce.
     if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
       const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
-      job.log(`Resynced nonce to ${result}.`);
+      job.log(`Re-synced nonce: ${result}`);
     } else {
       // Otherwise this nonce is not used yet. Recycle it to be used by a future transaction.
       job.log(`Recycling nonce: ${nonce}`);
@@ -268,44 +315,50 @@ const _resendTransaction = async (
 ): Promise<SentTransaction | null> => {
   assert(!sentTransaction.isUserOp);
 
+  if (_hasExceededTimeout(sentTransaction)) {
+    // Don't resend past the timeout. A transaction in mempool may still be mined later.
+    return null;
+  }
+
   // Populate the transaction with double gas.
-  const { chainId, from } = sentTransaction;
+  const { chainId, from, overrides, sentTransactionHashes } = sentTransaction;
   const populatedTransaction = await toSerializableTransaction({
     from: getChecksumAddress(from),
     transaction: {
       client: thirdwebClient,
       chain: await getChain(chainId),
       ...sentTransaction,
-      // Unset gas values so it can be re-populated.
-      gasPrice: undefined,
-      maxFeePerGas: undefined,
-      maxPriorityFeePerGas: undefined,
+      // Use overrides, if any.
+      // If no overrides, set to undefined so gas settings can be re-populated.
+      gas: overrides?.gas,
+      maxFeePerGas: overrides?.maxFeePerGas,
+      maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
     },
   });
+
+  // Double gas fee settings if they were not provded in `overrides`.
   if (populatedTransaction.gasPrice) {
     populatedTransaction.gasPrice *= 2n;
   }
-  if (populatedTransaction.maxFeePerGas) {
+  if (populatedTransaction.maxFeePerGas && !overrides?.maxFeePerGas) {
     populatedTransaction.maxFeePerGas *= 2n;
   }
-  if (populatedTransaction.maxPriorityFeePerGas) {
+  if (
+    populatedTransaction.maxPriorityFeePerGas &&
+    !overrides?.maxPriorityFeePerGas
+  ) {
     populatedTransaction.maxPriorityFeePerGas *= 2n;
   }
 
-  // Important: Don't acquire a different nonce.
-
-  job.log(`Sending transaction: ${stringify(populatedTransaction)}`);
+  job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
 
   // Send transaction to RPC.
   // This call throws if the RPC rejects the transaction.
   let transactionHash: Hex;
   try {
     const account = await getAccount({ chainId, from });
-    const sendTransactionResult = await account.sendTransaction(
-      populatedTransaction,
-    );
-    transactionHash = sendTransactionResult.transactionHash;
-    job.log(`Sent transaction: ${transactionHash}`);
+    const result = await account.sendTransaction(populatedTransaction);
+    transactionHash = result.transactionHash;
   } catch (error) {
     if (isNonceAlreadyUsedError(error)) {
       job.log(
@@ -325,10 +378,7 @@ const _resendTransaction = async (
     resendCount,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(chainId),
-    sentTransactionHashes: [
-      ...sentTransaction.sentTransactionHashes,
-      transactionHash,
-    ],
+    sentTransactionHashes: [...sentTransactionHashes, transactionHash],
     gas: populatedTransaction.gas,
     gasPrice: populatedTransaction.gasPrice,
     maxFeePerGas: populatedTransaction.maxFeePerGas,
@@ -336,7 +386,7 @@ const _resendTransaction = async (
   };
 };
 
-const _reportUsageSuccess = async (sentTransaction: SentTransaction) => {
+const _reportSuccess = async (sentTransaction: SentTransaction) => {
   const chain = await getChain(sentTransaction.chainId);
   reportUsage([
     {
@@ -348,9 +398,18 @@ const _reportUsageSuccess = async (sentTransaction: SentTransaction) => {
       },
     },
   ]);
+  recordMetrics({
+    event: "transaction_sent",
+    params: {
+      chainId: sentTransaction.chainId.toString(),
+      success: true,
+      walletAddress: getAddress(sentTransaction.from),
+      durationSeconds: msSince(sentTransaction.queuedAt) / 1000,
+    },
+  });
 };
 
-const _reportUsageError = (erroredTransaction: ErroredTransaction) => {
+const _reportError = (erroredTransaction: ErroredTransaction) => {
   reportUsage([
     {
       action: "error_tx",
@@ -361,6 +420,15 @@ const _reportUsageError = (erroredTransaction: ErroredTransaction) => {
       error: erroredTransaction.errorMessage,
     },
   ]);
+  recordMetrics({
+    event: "transaction_sent",
+    params: {
+      chainId: erroredTransaction.chainId.toString(),
+      success: false,
+      walletAddress: getAddress(erroredTransaction.from),
+      durationSeconds: msSince(erroredTransaction.queuedAt) / 1000,
+    },
+  });
 };
 
 const _resolveDeployedContractAddress = (
@@ -381,6 +449,15 @@ const _resolveDeployedContractAddress = (
     });
   }
 };
+
+const _hasExceededTimeout = (
+  transaction: QueuedTransaction | SentTransaction,
+) =>
+  transaction.timeoutSeconds !== undefined &&
+  msSince(transaction.queuedAt) / 1000 > transaction.timeoutSeconds;
+
+const _minutesFromNow = (minutes: number) =>
+  new Date(Date.now() + minutes * 60_000);
 
 // Must be explicitly called for the worker to run on this host.
 export const initSendTransactionWorker = () => {
@@ -405,48 +482,8 @@ export const initSendTransactionWorker = () => {
 
         await TransactionDB.set(erroredTransaction);
         await enqueueTransactionWebhook(erroredTransaction);
-        _reportUsageError(erroredTransaction);
+        _reportError(erroredTransaction);
       }
     }
   });
-};
-
-export const getPopulatedOrErroredTransaction = async (
-  queuedTransaction: QueuedTransaction,
-): Promise<
-  | [Awaited<ReturnType<typeof toSerializableTransaction>>, undefined]
-  | [undefined, ErroredTransaction]
-> => {
-  try {
-    const from = queuedTransaction.isUserOp
-      ? queuedTransaction.accountAddress
-      : queuedTransaction.from;
-
-    const to = queuedTransaction.to ?? queuedTransaction.target;
-
-    if (!from) throw new Error("Invalid transaction parameters: from");
-    if (!to) throw new Error("Invalid transaction parameters: to");
-
-    const populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(from),
-      transaction: {
-        client: thirdwebClient,
-        chain: await getChain(queuedTransaction.chainId),
-        ...queuedTransaction,
-        to: getChecksumAddress(to),
-        // if transaction is EOA, we stub the nonce to reduce RPC calls
-        nonce: queuedTransaction.isUserOp ? undefined : 1,
-      },
-    });
-
-    return [populatedTransaction, undefined];
-  } catch (e: unknown) {
-    const erroredTransaction: ErroredTransaction = {
-      ...queuedTransaction,
-      status: "errored",
-      errorMessage: (e as Error)?.message ?? `${e}`,
-    };
-
-    return [undefined, erroredTransaction];
-  }
 };

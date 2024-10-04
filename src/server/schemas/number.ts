@@ -7,5 +7,5 @@ export const TokenAmountStringSchema = Type.RegExp(/^\d+(\.\d+)?$/, {
 
 export const WeiAmountStringSchema = Type.RegExp(/^\d+$/, {
   description: 'An amount in wei (no decimals). Example: "100000000"',
-  examples: ["0"],
+  examples: ["50000000000"],
 });

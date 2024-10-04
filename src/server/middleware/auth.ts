@@ -1,14 +1,14 @@
 import { parseJWT } from "@thirdweb-dev/auth";
 import {
   ThirdwebAuth,
-  ThirdwebAuthUser,
   getToken as getJWT,
+  type ThirdwebAuthUser,
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import { createHash } from "crypto";
-import { FastifyInstance } from "fastify";
-import { FastifyRequest } from "fastify/types/request";
-import jsonwebtoken, { JwtPayload } from "jsonwebtoken";
+import type { FastifyInstance } from "fastify";
+import type { FastifyRequest } from "fastify/types/request";
+import jsonwebtoken, { type JwtPayload } from "jsonwebtoken";
 import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";
@@ -87,7 +87,7 @@ export const withAuth = async (server: FastifyInstance) => {
           await revokeToken({ id: payload.jti });
         } catch {
           logger({
-            service: "worker",
+            service: "server",
             level: "error",
             message: `[Auth] Failed to revoke token ${payload.jti}`,
           });
@@ -265,12 +265,17 @@ const handleWebsocketAuth = async (
     req.headers.authorization = `Bearer ${jwt}`;
     const user = await getUser(req);
 
-    const isIpInAllowlist = await checkIpInAllowlist(req);
-    if (!isIpInAllowlist) {
+    const { isAllowed, ip } = await checkIpInAllowlist(req);
+    if (!isAllowed) {
+      logger({
+        service: "server",
+        level: "error",
+        message: `Unauthorized IP address: ${ip}`,
+      });
       return {
         isAuthed: false,
         error:
-          "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+          "Unauthorized IP address. See: https://portal.thirdweb.com/engine/features/security",
       };
     }
 
@@ -334,11 +339,16 @@ const handleKeypairAuth = async (args: {
       throw error;
     }
 
-    const isIpInAllowlist = await checkIpInAllowlist(req);
-    if (!isIpInAllowlist) {
-      error =
-        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security";
-      throw error;
+    const { isAllowed, ip } = await checkIpInAllowlist(req);
+    if (!isAllowed) {
+      logger({
+        service: "server",
+        level: "error",
+        message: `Unauthorized IP address: ${ip}`,
+      });
+      throw new Error(
+        "Unauthorized IP address. See: https://portal.thirdweb.com/engine/features/security",
+      );
     }
     return { isAuthed: true };
   } catch (e) {
@@ -390,13 +400,17 @@ const handleAccessToken = async (
     return { isAuthed: false };
   }
 
-  const isIpInAllowlist = await checkIpInAllowlist(req);
-
-  if (!isIpInAllowlist) {
+  const { isAllowed, ip } = await checkIpInAllowlist(req);
+  if (!isAllowed) {
+    logger({
+      service: "server",
+      level: "error",
+      message: `Unauthorized IP address: ${ip}`,
+    });
     return {
       isAuthed: false,
       error:
-        "Unauthorized IP Address. See: https://portal.thirdweb.com/engine/features/security",
+        "Unauthorized IP address. See: https://portal.thirdweb.com/engine/features/security",
     };
   }
 
@@ -505,17 +519,26 @@ const hashRequestBody = (req: FastifyRequest): string => {
 /**
  * Check if the request IP is in the allowlist.
  * Fetches cached config if available.
- * env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
  * @param req FastifyRequest
  * @returns boolean
  * @async
  */
-const checkIpInAllowlist = async (req: FastifyRequest) => {
-  const config = await getConfig();
-
-  if (config.ipAllowlist.length === 0) {
-    return true;
+const checkIpInAllowlist = async (
+  req: FastifyRequest,
+): Promise<{ isAllowed: boolean; ip: string }> => {
+  let ip = req.ip;
+  const trustProxy = env.TRUST_PROXY || !!env.ENGINE_TIER;
+  if (trustProxy && req.headers["cf-connecting-ip"]) {
+    ip = req.headers["cf-connecting-ip"] as string;
   }
 
-  return config.ipAllowlist.includes(req.ip);
+  const config = await getConfig();
+  if (config.ipAllowlist.length === 0) {
+    return { isAllowed: true, ip };
+  }
+
+  return {
+    isAllowed: config.ipAllowlist.includes(ip),
+    ip,
+  };
 };

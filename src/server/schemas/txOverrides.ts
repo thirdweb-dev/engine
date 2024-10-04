@@ -1,4 +1,5 @@
 import { Type } from "@sinclair/typebox";
+import { WeiAmountStringSchema } from "./number";
 
 export const txOverridesSchema = Type.Object({
   txOverrides: Type.Optional(
@@ -9,16 +10,24 @@ export const txOverridesSchema = Type.Object({
           description: "Gas limit for the transaction",
         }),
       ),
-      maxFeePerGas: Type.Optional(
-        Type.String({
-          examples: ["1000000000"],
-          description: "Maximum fee per gas",
-        }),
-      ),
-      maxPriorityFeePerGas: Type.Optional(
-        Type.String({
-          examples: ["1000000000"],
-          description: "Maximum priority fee per gas",
+
+      // Overriding `gasPrice` is currently not supported.
+
+      maxFeePerGas: Type.Optional({
+        ...WeiAmountStringSchema,
+        description: "Maximum fee per gas",
+      }),
+      maxPriorityFeePerGas: Type.Optional({
+        ...WeiAmountStringSchema,
+        description: "Maximum priority fee per gas",
+      }),
+      timeoutSeconds: Type.Optional(
+        Type.Integer({
+          examples: ["7200"],
+          description:
+            "Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout",
+          minimum: 1,
+          maximum: 7 * 24 * 60 * 60, // 1 week
         }),
       ),
     }),
@@ -29,19 +38,11 @@ export const txOverridesWithValueSchema = Type.Object({
   txOverrides: Type.Optional(
     Type.Object({
       ...txOverridesSchema.properties.txOverrides.properties,
-      value: Type.Optional(
-        Type.String({
-          examples: ["10000000000"],
-          description: "Amount of native currency to send",
-        }),
-      ),
+      value: Type.Optional({
+        ...WeiAmountStringSchema,
+        description:
+          "Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.",
+      }),
     }),
   ),
 });
-
-export type TxOverrides = {
-  gas?: string;
-  maxFeePerGas?: string;
-  maxPriorityFeePerGas?: string;
-  value?: string;
-};

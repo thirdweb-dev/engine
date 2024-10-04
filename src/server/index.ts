@@ -50,13 +50,23 @@ export const initServer = async () => {
     };
   }
 
+  // env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
+  // This option is force enabled for cloud-hosted Engines.
+  // See: https://fastify.dev/docs/latest/Reference/Server/#trustproxy
+  const trustProxy = env.TRUST_PROXY || !!env.ENGINE_TIER;
+  if (trustProxy) {
+    logger({
+      service: "server",
+      level: "info",
+      message: "Server is enabled with trustProxy.",
+    });
+  }
+
   // Start the server with middleware.
   const server: FastifyInstance = fastify({
     connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
-    // env.TRUST_PROXY is used to determine if the X-Forwarded-For header should be trusted.
-    // See: https://fastify.dev/docs/latest/Reference/Server/#trustproxy
-    trustProxy: env.TRUST_PROXY,
+    trustProxy,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
@@ -97,7 +107,7 @@ export const initServer = async () => {
         logger({
           service: "server",
           level: "fatal",
-          message: `Failed to start server`,
+          message: "Failed to start server",
           error: err,
         });
         process.exit(1);

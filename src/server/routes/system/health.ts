@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isDatabaseReachable } from "../../../db/client";
 import { env } from "../../../utils/env";
-import { isRedisReachable, redis } from "../../../utils/redis/redis";
+import { isRedisReachable } from "../../../utils/redis/redis";
 import { createCustomError } from "../../middleware/error";
 
 type EngineFeature =
@@ -68,8 +68,8 @@ export async function healthCheck(fastify: FastifyInstance) {
 
       res.status(StatusCodes.OK).send({
         status: "OK",
-        engineVersion: process.env.ENGINE_VERSION,
-        engineTier: process.env.ENGINE_TIER ?? "SELF_HOSTED",
+        engineVersion: env.ENGINE_VERSION,
+        engineTier: env.ENGINE_TIER ?? "SELF_HOSTED",
         features: getFeatures(),
       });
     },
@@ -82,11 +82,10 @@ const getFeatures = (): EngineFeature[] => {
   const features: EngineFeature[] = [
     "IP_ALLOWLIST",
     "HETEROGENEOUS_WALLET_TYPES",
+    "CONTRACT_SUBSCRIPTIONS"
   ];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
-  // Contract Subscriptions requires Redis.
-  if (redis) features.push("CONTRACT_SUBSCRIPTIONS");
 
   return features;
 };

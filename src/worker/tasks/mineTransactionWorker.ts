@@ -271,8 +271,8 @@ export const initMineTransactionWorker = () => {
     connection: redis,
     settings: {
       backoffStrategy: (attemptsMade: number) => {
-        // Retries after: 2s, 4s, 6s, 8s, 10s, 10s, 10s, 10s, ...
-        return Math.min(attemptsMade * 2_000, 10_000);
+        // Retries at 2s, 4s, 6s, ..., 18s, 20s, 20s, 20s, ...
+        return Math.min(attemptsMade * 2_000, 20_000);
       },
     },
   });

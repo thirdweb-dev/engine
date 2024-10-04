@@ -1,7 +1,6 @@
 import superjson from "superjson";
-import { env } from "../../utils/env";
-import { redis } from "../../utils/redis/redis";
-import { AnyTransaction } from "../../utils/transaction/types";
+import { MAX_REDIS_BATCH_SIZE, redis } from "../../utils/redis/redis";
+import type { AnyTransaction } from "../../utils/transaction/types";
 
 /**
  * Schemas
@@ -111,13 +110,9 @@ export class TransactionDB {
     }
 
     const result: AnyTransaction[] = [];
-    for (
-      let i = 0;
-      i < queueIds.length;
-      i += env.__EXPERIMENTAL_REDIS_BATCH_SIZE
-    ) {
+    for (let i = 0; i < queueIds.length; i += MAX_REDIS_BATCH_SIZE) {
       const keys = queueIds
-        .slice(i, i + env.__EXPERIMENTAL_REDIS_BATCH_SIZE)
+        .slice(i, i + MAX_REDIS_BATCH_SIZE)
         .map(this.transactionDetailsKey);
       const vals = await redis.mget(...keys);
 
@@ -141,13 +136,9 @@ export class TransactionDB {
     }
 
     let numDeleted = 0;
-    for (
-      let i = 0;
-      i < queueIds.length;
-      i += env.__EXPERIMENTAL_REDIS_BATCH_SIZE
-    ) {
+    for (let i = 0; i < queueIds.length; i += MAX_REDIS_BATCH_SIZE) {
       const keys = queueIds
-        .slice(i, i + env.__EXPERIMENTAL_REDIS_BATCH_SIZE)
+        .slice(i, i + MAX_REDIS_BATCH_SIZE)
         .map(this.transactionDetailsKey);
       numDeleted += await redis.unlink(...keys);
     }
