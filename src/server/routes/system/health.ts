@@ -1,12 +1,16 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isDatabaseReachable } from "../../../db/client";
 import { env } from "../../../utils/env";
 import { isRedisReachable, redis } from "../../../utils/redis/redis";
 import { createCustomError } from "../../middleware/error";
 
-type EngineFeature = "KEYPAIR_AUTH" | "CONTRACT_SUBSCRIPTIONS" | "IP_ALLOWLIST";
+type EngineFeature =
+  | "KEYPAIR_AUTH"
+  | "CONTRACT_SUBSCRIPTIONS"
+  | "IP_ALLOWLIST"
+  | "HETEROGENEOUS_WALLET_TYPES";
 
 const ReplySchemaOk = Type.Object({
   status: Type.String(),
@@ -17,6 +21,7 @@ const ReplySchemaOk = Type.Object({
       Type.Literal("KEYPAIR_AUTH"),
       Type.Literal("CONTRACT_SUBSCRIPTIONS"),
       Type.Literal("IP_ALLOWLIST"),
+      Type.Literal("HETEROGENEOUS_WALLET_TYPES"),
     ]),
   ),
 });
@@ -44,7 +49,7 @@ export async function healthCheck(fastify: FastifyInstance) {
         [StatusCodes.SERVICE_UNAVAILABLE]: ReplySchemaError,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_, res) => {
       if (!(await isDatabaseReachable())) {
         throw createCustomError(
           "The database is unreachable.",
@@ -72,8 +77,12 @@ export async function healthCheck(fastify: FastifyInstance) {
 }
 
 const getFeatures = (): EngineFeature[] => {
-  // IP Allowlist is always available as a feature, but added as a feature for backwards compatibility.
-  const features: EngineFeature[] = ["IP_ALLOWLIST"];
+  // Default list is populated with features that are always enabled.
+  // Added here to make dashboard UI backwards compatible.
+  const features: EngineFeature[] = [
+    "IP_ALLOWLIST",
+    "HETEROGENEOUS_WALLET_TYPES",
+  ];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
   // Contract Subscriptions requires Redis.
