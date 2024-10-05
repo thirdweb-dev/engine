@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { contractSchemaTypes } from "../sharedApiSchemas";
 
 /**
@@ -60,6 +60,9 @@ export const abiSchema = Type.Object({
   outputs: Type.Optional(Type.Array(abiTypeSchema)),
   stateMutability: Type.Optional(Type.String()),
 });
+
+export const abiArraySchema = Type.Array(abiSchema);
+export type AbiSchemaType = Static<typeof abiArraySchema>;
 
 export const contractEventSchema = Type.Record(Type.String(), Type.Any());
 

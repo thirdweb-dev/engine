@@ -1,10 +1,10 @@
 import type { Static } from "@sinclair/typebox";
 import { StatusCodes } from "http-status-codes";
 import {
-  encode,
   type Address,
   type Hex,
   type PreparedTransaction,
+  encode,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { createCustomError } from "../../server/middleware/error";
