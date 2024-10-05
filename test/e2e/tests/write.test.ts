@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, test } from "bun:test";
+import assert from "node:assert";
 import type { Address } from "thirdweb";
 import { zeroAddress } from "viem";
 import type { ApiError } from "../../../sdk/dist/thirdweb-dev-engine.cjs";
@@ -15,7 +16,7 @@ describe("Write Tests", () => {
   beforeAll(async () => {
     const { engine: _engine, backendWallet: _backendWallet } = await setup();
     engine = _engine;
-    backendWallet = _backendWallet;
+    backendWallet = _backendWallet as Address;
 
     const res = await engine.deploy.deployToken(
       CONFIG.CHAIN.id.toString(),
@@ -32,16 +33,18 @@ describe("Write Tests", () => {
     );
 
     expect(res.result.queueId).toBeDefined();
+    assert(res.result.queueId, "queueId must be defined");
     expect(res.result.deployedAddress).toBeDefined();
 
     const transactionStatus = await pollTransactionStatus(
       engine,
-      res.result.queueId!,
+      res.result.queueId,
       true,
     );
 
     expect(transactionStatus.minedAt).toBeDefined();
-    tokenContractAddress = res.result.deployedAddress!;
+    assert(res.result.deployedAddress, "deployedAddress must be defined");
+    tokenContractAddress = res.result.deployedAddress;
     console.log("tokenContractAddress", tokenContractAddress);
   });
 
@@ -60,7 +63,7 @@ describe("Write Tests", () => {
 
     const writeTransactionStatus = await pollTransactionStatus(
       engine,
-      writeRes.result.queueId!,
+      writeRes.result.queueId,
       true,
     );
 
@@ -82,7 +85,7 @@ describe("Write Tests", () => {
 
     const writeTransactionStatus = await pollTransactionStatus(
       engine,
-      writeRes.result.queueId!,
+      writeRes.result.queueId,
       true,
     );
 
@@ -118,7 +121,7 @@ describe("Write Tests", () => {
 
     const writeTransactionStatus = await pollTransactionStatus(
       engine,
-      writeRes.result.queueId!,
+      writeRes.result.queueId,
       true,
     );
 
@@ -132,7 +135,7 @@ describe("Write Tests", () => {
       backendWallet,
       {
         functionName: "setContractURI",
-        args: ["https://abi-test.com"],q
+        args: ["https://abi-test.com"],
         abi: [
           {
             inputs: [
@@ -153,7 +156,7 @@ describe("Write Tests", () => {
 
     const writeTransactionStatus = await pollTransactionStatus(
       engine,
-      writeRes.result.queueId!,
+      writeRes.result.queueId,
       true,
     );
 

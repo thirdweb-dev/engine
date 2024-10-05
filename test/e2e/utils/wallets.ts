@@ -10,7 +10,7 @@ export const ANVIL_PKEY_C =
 export const ANVIL_PKEY_D =
   "0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6";
 
-const client = createThirdwebClient({
+export const client = createThirdwebClient({
   secretKey: process.env.THIRDWEB_API_SECRET_KEY as string,
 });
 
