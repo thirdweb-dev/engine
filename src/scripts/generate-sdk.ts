@@ -1,8 +1,9 @@
-import { execSync } from "child_process";
-import fs from "fs";
-import { kill } from "process";
+import { execSync } from "node:child_process";
+import fs from "node:fs";
+import { kill } from "node:process";
 
-const ENGINE_OPENAPI_URL = "https://demo.web3api.thirdweb.com/json";
+// requires engine to be running locally
+const ENGINE_OPENAPI_URL = "http://localhost:3005/json";
 
 async function main() {
   try {
@@ -22,7 +23,8 @@ async function main() {
 
     const code = fs
       .readFileSync("./sdk/src/Engine.ts", "utf-8")
-      .replace(`export class Engine`, `class EngineLogic`).concat(`
+      .replace("export class Engine", "class EngineLogic")
+      .concat(`
 export class Engine extends EngineLogic {
   constructor(config: { url: string; accessToken: string; }) {
     super({ BASE: config.url, TOKEN: config.accessToken });

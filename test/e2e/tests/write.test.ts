@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, test } from "bun:test";
+import assert from "node:assert";
 import type { Address } from "thirdweb";
 import { zeroAddress } from "viem";
+import type { ApiError } from "../../../sdk/dist/thirdweb-dev-engine.cjs";
 import { CONFIG } from "../config";
 import type { setupEngine } from "../utils/engine";
 import { pollTransactionStatus } from "../utils/transactions";
@@ -14,7 +16,7 @@ describe("Write Tests", () => {
   beforeAll(async () => {
     const { engine: _engine, backendWallet: _backendWallet } = await setup();
     engine = _engine;
-    backendWallet = _backendWallet;
+    backendWallet = _backendWallet as Address;
 
     const res = await engine.deploy.deployToken(
       CONFIG.CHAIN.id.toString(),
@@ -31,16 +33,18 @@ describe("Write Tests", () => {
     );
 
     expect(res.result.queueId).toBeDefined();
+    assert(res.result.queueId, "queueId must be defined");
     expect(res.result.deployedAddress).toBeDefined();
 
     const transactionStatus = await pollTransactionStatus(
       engine,
-      res.result.queueId!,
+      res.result.queueId,
       true,
     );
 
     expect(transactionStatus.minedAt).toBeDefined();
-    tokenContractAddress = res.result.deployedAddress!;
+    assert(res.result.deployedAddress, "deployedAddress must be defined");
+    tokenContractAddress = res.result.deployedAddress;
     console.log("tokenContractAddress", tokenContractAddress);
   });
 
@@ -59,7 +63,7 @@ describe("Write Tests", () => {
 
     const writeTransactionStatus = await pollTransactionStatus(
       engine,
-      writeRes.result.queueId!,
+      writeRes.result.queueId,
       true,
     );
 
@@ -81,7 +85,7 @@ describe("Write Tests", () => {
 
     const writeTransactionStatus = await pollTransactionStatus(
       engine,
-      writeRes.result.queueId!,
+      writeRes.result.queueId,
       true,
     );
 
@@ -107,7 +111,7 @@ describe("Write Tests", () => {
             name: "setContractURI",
             stateMutability: "nonpayable",
             type: "function",
-            // outputs: [],
+            outputs: [],
           },
         ],
       },
@@ -117,14 +121,49 @@ describe("Write Tests", () => {
 
     const writeTransactionStatus = await pollTransactionStatus(
       engine,
-      writeRes.result.queueId!,
+      writeRes.result.queueId,
       true,
     );
 
     expect(writeTransactionStatus.minedAt).toBeDefined();
   });
 
-  test.only("Should throw error if function name is not found", async () => {
+  test("Write to a contract with non-standard abi", async () => {
+    const writeRes = await engine.contract.write(
+      CONFIG.CHAIN.id.toString(),
+      tokenContractAddress,
+      backendWallet,
+      {
+        functionName: "setContractURI",
+        args: ["https://abi-test.com"],
+        abi: [
+          {
+            inputs: [
+              {
+                name: "uri",
+                type: "string",
+              },
+            ],
+            name: "setContractURI",
+            stateMutability: "nonpayable",
+            type: "function",
+          },
+        ],
+      },
+    );
+
+    expect(writeRes.result.queueId).toBeDefined();
+
+    const writeTransactionStatus = await pollTransactionStatus(
+      engine,
+      writeRes.result.queueId,
+      true,
+    );
+
+    expect(writeTransactionStatus.minedAt).toBeDefined();
+  });
+
+  test("Should throw error if function name is not found", async () => {
     try {
       await engine.contract.write(
         CONFIG.CHAIN.id.toString(),
@@ -135,8 +174,8 @@ describe("Write Tests", () => {
           args: [""],
         },
       );
-    } catch (e: any) {
-      expect(e.message).toBe(
+    } catch (e) {
+      expect((e as ApiError).body?.error?.message).toBe(
         `could not find function with name "nonExistentFunction" in abi`,
       );
     }

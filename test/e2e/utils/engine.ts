@@ -16,8 +16,8 @@ export const createChain = async (engine: Engine) => {
   const chains = await engine.configuration.getChainsConfiguration();
 
   if (chains.result) {
-    const parsedChains = JSON.parse(chains.result);
-    if (parsedChains.find((chain: any) => chain.chainId === CONFIG.CHAIN.id)) {
+    const parsedChains = chains.result;
+    if (parsedChains.find((chain) => chain.chainId === CONFIG.CHAIN.id)) {
       console.log("Anvil chain already exists in engine");
       return;
     }

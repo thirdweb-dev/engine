@@ -1,12 +1,12 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
-import { stringify, type AbiFunction } from "thirdweb/utils";
+import type { AbiFunction } from "thirdweb/utils";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
-import { createCustomError } from "../../../middleware/error";
-import { abiSchema } from "../../../schemas/contract";
+import { createCustomError, formatError } from "../../../middleware/error";
+import { abiArraySchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -18,6 +18,7 @@ import {
   requiredAddress,
   walletWithAAHeaderSchema,
 } from "../../../schemas/wallet";
+import { sanitizeAbi } from "../../../utils/abi";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { parseTransactionOverrides } from "../../../utils/transactionOverrides";
 
@@ -30,7 +31,7 @@ const writeRequestBodySchema = Type.Object({
     description: "The arguments to call on the function",
   }),
   ...txOverridesWithValueSchema.properties,
-  abi: Type.Optional(Type.Array(abiSchema)),
+  abi: Type.Optional(abiArraySchema),
 });
 
 // LOGIC
@@ -71,7 +72,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const contract = await getContractV5({
         chainId,
         contractAddress,
-        abi,
+        abi: sanitizeAbi(abi),
       });
 
       // 3 possible ways to get function from abi:
@@ -82,9 +83,9 @@ export async function writeToContract(fastify: FastifyInstance) {
       let method: AbiFunction;
       try {
         method = await resolveMethod(functionName)(contract);
-      } catch (e: any) {
+      } catch (e) {
         throw createCustomError(
-          stringify(e),
+          formatError(e),
           StatusCodes.BAD_REQUEST,
           "BAD_REQUEST",
         );

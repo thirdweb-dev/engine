@@ -54,29 +54,31 @@ const LogSchema = Type.Object({
   blockHash: Type.String(),
   logIndex: Type.Number(),
   removed: Type.Boolean(),
+
+  // Additional properties only for parsed logs
+  eventName: Type.Optional(
+    Type.String({
+      description: "Event name, only returned when `parseLogs` is true",
+    }),
+  ),
+  args: Type.Optional(
+    Type.Unknown({
+      description: "Event arguments. Only returned when `parseLogs` is true",
+      examples: [
+        {
+          from: "0xdeadbeeefdeadbeeefdeadbeeefdeadbeeefdead",
+          to: "0xdeadbeeefdeadbeeefdeadbeeefdeadbeeefdead",
+          value: "1000000000000000000n",
+        },
+      ],
+    }),
+  ),
 });
 
-const ParsedLogSchema = Type.Object({
-  ...LogSchema.properties,
-  eventName: Type.String(),
-  args: Type.Unknown({
-    description: "Event arguments.",
-    examples: [
-      {
-        from: "0xdeadbeeefdeadbeeefdeadbeeefdeadbeeefdead",
-        to: "0xdeadbeeefdeadbeeefdeadbeeefdeadbeeefdead",
-        value: "1000000000000000000n",
-      },
-    ],
-  }),
-});
-
+// DO NOT USE type.union
+// this is known to cause issues with the generated types
 export const responseBodySchema = Type.Object({
-  result: Type.Union([
-    // ParsedLogSchema is listed before LogSchema because it is more specific.
-    Type.Array(ParsedLogSchema),
-    Type.Array(LogSchema),
-  ]),
+  result: Type.Array(LogSchema),
 });
 
 responseBodySchema.example = {
@@ -221,7 +223,7 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: superjson.serialize(parsedLogs).json as Static<
-          typeof ParsedLogSchema
+          typeof LogSchema
         >[],
       });
     },

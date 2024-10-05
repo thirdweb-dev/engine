@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
+import { stringify } from "thirdweb/utils";
 import { ZodError } from "zod";
 import { env } from "../../utils/env";
 import { parseEthersError } from "../../utils/ethers";
@@ -21,6 +22,13 @@ export const createCustomError = (
   statusCode,
   code,
 });
+
+export function formatError(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return stringify(error);
+}
 
 export const customDateTimestampError = (date: string): CustomError =>
   createCustomError(

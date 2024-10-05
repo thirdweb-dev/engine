@@ -12,16 +12,13 @@ describe("Smoke Test", () => {
       backendWallet,
       {
         amount: "0",
-        currencyAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         to: backendWallet,
       },
     );
 
-    expect(res.result.queueId).toBeDefined();
-
     const transactionStatus = await pollTransactionStatus(
       engine,
-      res.result.queueId!,
+      res.result.queueId,
       true,
     );
 

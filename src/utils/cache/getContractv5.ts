@@ -1,11 +1,12 @@
-import { getContract } from "thirdweb";
+import { type ThirdwebContract, getContract } from "thirdweb";
+import type { Abi } from "thirdweb/utils";
 import { thirdwebClient } from "../../utils/sdk";
 import { getChain } from "../chain";
 
 interface GetContractParams {
   chainId: number;
   contractAddress: string;
-  abi?: any;
+  abi?: Abi;
 }
 
 // Using new v5 SDK
@@ -13,7 +14,7 @@ export const getContractV5 = async ({
   chainId,
   contractAddress,
   abi,
-}: GetContractParams) => {
+}: GetContractParams): Promise<ThirdwebContract> => {
   const definedChain = await getChain(chainId);
 
   // get a contract
@@ -25,5 +26,5 @@ export const getContractV5 = async ({
     // the chain the contract is deployed on
     chain: definedChain,
     abi,
-  });
+  }) as ThirdwebContract; // not using type inference here;
 };
