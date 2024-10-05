@@ -3,7 +3,6 @@ import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
 import { env } from "../../utils/env";
 import { parseEthersError } from "../../utils/ethers";
-import { logger } from "../../utils/logger";
 
 export type CustomError = {
   message: string;
@@ -55,13 +54,6 @@ const isZodError = (err: unknown): boolean => {
 export const withErrorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler(
     (error: Error | CustomError | ZodError, request, reply) => {
-      logger({
-        service: "server",
-        level: "error",
-        message: `Encountered server error`,
-        error,
-      });
-
       // Ethers Error Codes
       if (parseEthersError(error)) {
         return reply.status(StatusCodes.BAD_REQUEST).send({
