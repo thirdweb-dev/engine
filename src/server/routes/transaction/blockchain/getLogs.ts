@@ -1,15 +1,15 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { AbiEvent } from "abitype";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import superjson from "superjson";
 import {
+  type Hex,
   eth_getTransactionReceipt,
   getContract,
   getRpcClient,
   parseEventLogs,
   prepareEvent,
-  type Hex,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import { TransactionDB } from "../../../../db/transactions/db";
@@ -72,6 +72,7 @@ const ParsedLogSchema = Type.Object({
 });
 
 export const responseBodySchema = Type.Object({
+  // TODO: this breaks the SDK generation, returning Any works though
   result: Type.Union([
     // ParsedLogSchema is listed before LogSchema because it is more specific.
     Type.Array(ParsedLogSchema),
