@@ -18,6 +18,13 @@ export const JsonSchema = z.string().refine(
   { message: "Invalid JSON string" },
 );
 
+const boolEnvSchema = (defaultBool: boolean) =>
+  z
+    .string()
+    .default(defaultBool ? "true" : "false")
+    .refine((s) => s === "true" || s === "false", "must be 'true' or 'false'")
+    .transform((s) => s === "true");
+
 export const UrlSchema = z
   .string()
   .refine(
@@ -53,15 +60,15 @@ export const env = createEnv({
       ),
     PORT: z.coerce.number().default(3005),
     HOST: z.string().default("0.0.0.0"),
-    ENABLE_HTTPS: z.coerce.boolean().default(false),
+    ENABLE_HTTPS: boolEnvSchema(false),
     HTTPS_PASSPHRASE: z.string().default("thirdweb-engine"),
-    TRUST_PROXY: z.coerce.boolean().default(false),
+    TRUST_PROXY: boolEnvSchema(false),
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
-    ENABLE_KEYPAIR_AUTH: z.coerce.boolean().default(false),
+    ENABLE_KEYPAIR_AUTH: boolEnvSchema(false),
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS: z.coerce
       .number()
       .nonnegative()
@@ -73,11 +80,11 @@ export const env = createEnv({
       .enum(["default", "sandbox", "server_only", "worker_only"])
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
-    DD_TRACER_ACTIVATED: z.coerce.boolean().default(false),
+    DD_TRACER_ACTIVATED: boolEnvSchema(false),
 
     // Prometheus
     METRICS_PORT: z.coerce.number().default(4001),
-    METRICS_ENABLED: z.coerce.boolean().default(true),
+    METRICS_ENABLED: boolEnvSchema(true),
 
     /**
      * Limits
