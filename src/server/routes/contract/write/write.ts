@@ -6,7 +6,7 @@ import { stringify, type AbiFunction } from "thirdweb/utils";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
 import { createCustomError } from "../../../middleware/error";
-import { abiSchema } from "../../../schemas/contract";
+import { AbiSchema } from "../../../schemas/contract/abi";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -30,7 +30,7 @@ const writeRequestBodySchema = Type.Object({
     description: "The arguments to call on the function",
   }),
   ...txOverridesWithValueSchema.properties,
-  abi: Type.Optional(Type.Array(abiSchema)),
+  abi: Type.Optional(AbiSchema),
 });
 
 // LOGIC

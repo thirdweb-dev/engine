@@ -21,46 +21,6 @@ export interface readSchema extends contractSchemaTypes {
   Querystring: Static<typeof readRequestQuerySchema>;
 }
 
-const abiTypeSchema = Type.Object({
-  type: Type.Optional(Type.String()),
-  name: Type.Optional(Type.String()),
-  internalType: Type.Optional(Type.String()),
-  stateMutability: Type.Optional(Type.String()),
-  components: Type.Optional(
-    Type.Array(
-      Type.Object({
-        type: Type.Optional(Type.String()),
-        name: Type.Optional(Type.String()),
-        internalType: Type.Optional(Type.String()),
-      }),
-    ),
-  ),
-});
-
-export const abiFunctionSchema = Type.Object({
-  name: Type.String(),
-  inputs: Type.Array(abiTypeSchema),
-  outputs: Type.Array(abiTypeSchema),
-  comment: Type.Optional(Type.String()),
-  signature: Type.String(),
-  stateMutability: Type.String(),
-});
-
-export const abiEventSchema = Type.Object({
-  name: Type.String(),
-  inputs: Type.Array(abiTypeSchema),
-  outputs: Type.Array(abiTypeSchema),
-  comment: Type.Optional(Type.String()),
-});
-
-export const abiSchema = Type.Object({
-  type: Type.String(),
-  name: Type.Optional(Type.String()),
-  inputs: Type.Optional(Type.Array(abiTypeSchema)),
-  outputs: Type.Optional(Type.Array(abiTypeSchema)),
-  stateMutability: Type.Optional(Type.String()),
-});
-
 export const contractEventSchema = Type.Record(Type.String(), Type.Any());
 
 export const rolesResponseSchema = Type.Object({

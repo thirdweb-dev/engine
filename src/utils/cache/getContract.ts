@@ -1,17 +1,14 @@
-import { Static, Type } from "@sinclair/typebox";
+import type { Abi } from "@thirdweb-dev/sdk";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../server/middleware/error";
-import { abiSchema } from "../../server/schemas/contract";
 import { getSdk } from "./getSdk";
-
-const abiArraySchema = Type.Array(abiSchema);
 
 interface GetContractParams {
   chainId: number;
   walletAddress?: string;
   accountAddress?: string;
   contractAddress: string;
-  abi?: Static<typeof abiArraySchema>;
+  abi?: Abi;
 }
 
 export const getContract = async ({

@@ -1,8 +1,10 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
-import { abiFunctionSchema } from "../../../schemas/contract";
+import { resolveContractAbi } from "thirdweb/contract";
+import { Abi, AbiFunction } from "thirdweb/utils";
+import { getContractV5 } from "../../../../utils/cache/getContractv5";
+import { AbiFunctionSchema } from "../../../schemas/contract/abi";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -13,7 +15,7 @@ const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Array(abiFunctionSchema),
+  result: Type.Array(AbiFunctionSchema),
 });
 
 responseSchema.example = {
@@ -76,15 +78,18 @@ export async function extractFunctions(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
 
-      let returnData = await contract.publishedMetadata.extractFunctions();
+      const abi: Abi = await resolveContractAbi(contract);
+      const functions = abi.filter(
+        (abiItem): abiItem is AbiFunction => abiItem.type === "function",
+      );
 
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        result: functions,
       });
     },
   });

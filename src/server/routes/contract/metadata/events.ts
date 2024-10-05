@@ -1,8 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
-import { abiEventSchema } from "../../../schemas/contract";
+import { resolveContractAbi } from "thirdweb/contract";
+import type { Abi, AbiEvent } from "thirdweb/utils";
+import { getContractV5 } from "../../../../utils/cache/getContractv5";
+import { AbiEventSchema } from "../../../schemas/contract/abi";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -13,7 +15,7 @@ const requestSchema = contractParamSchema;
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Array(abiEventSchema),
+  result: Type.Array(AbiEventSchema),
 });
 
 responseSchema.example = {
@@ -79,15 +81,18 @@ export async function extractEvents(fastify: FastifyInstance) {
       const { chain, contractAddress } = request.params;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
       });
 
-      let returnData = await contract.publishedMetadata.extractEvents();
+      const abi: Abi = await resolveContractAbi(contract);
+      const events = abi.filter(
+        (abiItem): abiItem is AbiEvent => abiItem.type === "event",
+      );
 
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        result: events,
       });
     },
   });
