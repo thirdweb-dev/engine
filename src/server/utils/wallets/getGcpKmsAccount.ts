@@ -40,10 +40,15 @@ export async function getGcpKmsAccount(
 ): Promise<GcpKmsAccount> {
   const { name: unprocessedName, clientOptions, client } = options;
 
-  let rawPrivateKey: string | undefined;
   if (clientOptions?.credentials) {
-    if ("private_key" in clientOptions.credentials) {
-      rawPrivateKey = clientOptions.credentials.private_key;
+    if (
+      "private_key" in clientOptions.credentials &&
+      clientOptions.credentials.private_key
+    ) {
+      // https://stackoverflow.com/questions/74131595/error-error1e08010cdecoder-routinesunsupported-with-google-auth-library
+      // new keys are stored correctly with newlines, but older keys need this sanitization for backwards compatibility
+      clientOptions.credentials.private_key =
+        clientOptions.credentials.private_key.split(String.raw`\n`).join("\n");
     }
   }
 
@@ -54,14 +59,7 @@ export async function getGcpKmsAccount(
     ? unprocessedName
     : unprocessedName.replace("cryptoKeyVersion", "cryptoKeyVersions");
 
-  const signer = new CloudKmsSigner(name, {
-    ...clientOptions,
-    credentials: {
-      ...clientOptions?.credentials,
-      // https://stackoverflow.com/questions/74131595/error-error1e08010cdecoder-routinesunsupported-with-google-auth-library
-      private_key: rawPrivateKey?.split(String.raw`\n`).join("\n"),
-    },
-  });
+  const signer = new CloudKmsSigner(name, clientOptions);
 
   // Populate address immediately
   const publicKey = await signer.getPublicKey();
