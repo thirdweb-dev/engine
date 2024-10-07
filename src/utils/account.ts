@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import type { Address } from "thirdweb";
-import type { Account } from "thirdweb/wallets";
+import { getAddress, type Address } from "thirdweb";
+import { smartWallet, type Account } from "thirdweb/wallets";
 import { getWalletDetails } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
 import { createCustomError } from "../server/middleware/error";
@@ -146,6 +146,33 @@ export const getAccount = async (args: {
       const account = await getLocalWalletAccount(from);
       _accountsCache.set(cacheKey, account);
       return account;
+    }
+    case WalletType.smartAwsKms:
+    case WalletType.smartGcpKms:
+    case WalletType.smartLocal: {
+      if (!walletDetails.accountSignerAddress) {
+        throw createCustomError(
+          "Account signer address is missing for this smart wallet",
+          StatusCodes.INTERNAL_SERVER_ERROR,
+          "INTERNAL_SERVER_ERROR",
+        );
+      }
+
+      const adminAccount = await getAccount({
+        chainId,
+        from: getAddress(walletDetails.accountSignerAddress),
+      });
+
+      const unconnectedSmartWallet = smartWallet({
+        chain: await getChain(chainId),
+        sponsorGas: true,
+        factoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+      });
+
+      return await unconnectedSmartWallet.connect({
+        client: thirdwebClient,
+        personalAccount: adminAccount,
+      });
     }
     default:
       throw new Error(`Wallet type not supported: ${walletDetails.type}`);

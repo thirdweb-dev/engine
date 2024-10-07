@@ -16,6 +16,10 @@ interface GetLocalWalletParams {
   walletAddress: string;
 }
 
+/**
+ * @deprecated
+ * DEPRECATED: Use getLocalWalletAccount instead
+ */
 export const getLocalWallet = async ({
   chainId,
   walletAddress,
@@ -74,10 +78,17 @@ export const getLocalWallet = async ({
 export const getLocalWalletAccount = async (
   walletAddress: Address,
 ): Promise<Account> => {
-  const json = await new LocalFileStorage(walletAddress).getItem("");
-  if (!json) {
-    throw new Error(`Wallet not found for address ${walletAddress}`);
+  const walletDetails = await getWalletDetails({ address: walletAddress });
+
+  if (
+    !walletDetails ||
+    walletDetails.type !== "local" ||
+    !walletDetails.encryptedJson
+  ) {
+    throw new Error(`Local Wallet not found for address ${walletAddress}`);
   }
+
+  const json = walletDetails.encryptedJson;
 
   const wallet = await Wallet.fromEncryptedJson(
     JSON.parse(json).data,

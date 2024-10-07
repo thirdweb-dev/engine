@@ -1,0 +1,17 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Wallet Encryption/Decryption > Test Case 1 > should match the snapshot for re-encrypted wallet 1`] = `
+{
+  "address": "f39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "crypto": {
+    "cipher": "aes-128-ctr",
+    "kdf": "scrypt",
+    "kdfparams": {
+      "dklen": 32,
+      "p": 1,
+      "r": 8,
+    },
+  },
+  "version": 3,
+}
+`;

@@ -1,4 +1,4 @@
-import { EVMWallet, SmartWallet } from "@thirdweb-dev/wallets";
+import { SmartWallet, type EVMWallet } from "@thirdweb-dev/wallets";
 import { getContract } from "../../../utils/cache/getContract";
 import { env } from "../../../utils/env";
 import { redis } from "../../../utils/redis/redis";
@@ -9,12 +9,16 @@ interface GetSmartWalletParams {
   accountAddress: string;
 }
 
+/**
+ * @deprecated
+ * DEPRECATED: Use `getSmartWalletV5` instead
+ */
 export const getSmartWallet = async ({
   chainId,
   backendWallet,
   accountAddress,
 }: GetSmartWalletParams) => {
-  let factoryAddress: string = "";
+  let factoryAddress = "";
 
   try {
     // Note: This is a temporary solution to use cached deployed address's factory address from create-account

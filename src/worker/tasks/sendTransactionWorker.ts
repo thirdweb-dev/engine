@@ -47,7 +47,7 @@ import {
  *
  * This worker also handles retried EOA transactions.
  */
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const { queueId, resendCount } = superjson.parse<SendTransactionData>(
     job.data,
   );
