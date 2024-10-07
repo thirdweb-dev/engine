@@ -126,10 +126,7 @@ export const getAccount = async (args: {
         clientOptions: {
           credentials: {
             client_email: gcpApplicationCredentialEmail,
-            // https://stackoverflow.com/questions/74131595/error-error1e08010cdecoder-routinesunsupported-with-google-auth-library
-            private_key: gcpApplicationCredentialPrivateKey
-              .split(String.raw`\n`)
-              .join("\n"),
+            private_key: gcpApplicationCredentialPrivateKey,
           },
         },
       });
