@@ -2,6 +2,7 @@ import { Static } from "@sinclair/typebox";
 import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import { FastifyInstance } from "fastify";
 import { Address, Hex } from "thirdweb";
+import { ADMIN_QUEUES_BASEPATH } from "../server/middleware/adminRoutes";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletWithAddressParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
@@ -44,29 +45,31 @@ const ANALYTICS_DEFAULT_HEADERS = {
 } as HeadersInit;
 
 const SKIP_USAGE_PATHS = new Set([
+  "",
   "/",
   "/favicon.ico",
   "/system/health",
   "/json",
   "/static",
-  "",
 ]);
 
 export const withServerUsageReporting = (server: FastifyInstance) => {
-  // Skip reporting if CLIENT_ANALYTICS_URL is not set.
+  // Skip reporting if CLIENT_ANALYTICS_URL is unset.
   if (env.CLIENT_ANALYTICS_URL === "") {
     return;
   }
 
   server.addHook("onResponse", async (request, reply) => {
     if (
-      SKIP_USAGE_PATHS.has(reply.request.routerPath) ||
-      reply.request.method === "OPTIONS"
+      request.method === "OPTIONS" ||
+      !request.routeOptions.url ||
+      SKIP_USAGE_PATHS.has(request.routeOptions.url) ||
+      request.routeOptions.url.startsWith(ADMIN_QUEUES_BASEPATH)
     ) {
       return;
     }
 
-    const requestParams = request?.params as
+    const requestParams = request.params as
       | (Static<typeof contractParamSchema> &
           Static<typeof walletWithAddressParamSchema>)
       | undefined;
@@ -79,7 +82,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       source: "engine",
       action: "api_request",
       clientId: thirdwebClientId,
-      pathname: reply.request.routerPath,
+      pathname: reply.request.routeOptions.url,
       chainId,
       walletAddress: requestParams?.walletAddress,
       contractAddress: requestParams?.contractAddress,
@@ -97,7 +100,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
 };
 
 export const reportUsage = (usageEvents: ReportUsageParams[]) => {
-  // Skip reporting if CLIENT_ANALYTICS_URL is not set.
+  // Skip reporting if CLIENT_ANALYTICS_URL is unset.
   if (env.CLIENT_ANALYTICS_URL === "") {
     return;
   }
