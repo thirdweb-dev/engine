@@ -40,6 +40,13 @@ export async function getGcpKmsAccount(
 ): Promise<GcpKmsAccount> {
   const { name: unprocessedName, clientOptions, client } = options;
 
+  let rawPrivateKey: string | undefined;
+  if (clientOptions?.credentials) {
+    if ("private_key" in clientOptions.credentials) {
+      rawPrivateKey = clientOptions.credentials.private_key;
+    }
+  }
+
   // we had a bug previously where we previously called it "cryptoKeyVersion" instead of "cryptoKeyVersions"
   // if we detect that, we'll fix it here
   // TODO: remove this as a breaking change
@@ -47,7 +54,14 @@ export async function getGcpKmsAccount(
     ? unprocessedName
     : unprocessedName.replace("cryptoKeyVersion", "cryptoKeyVersions");
 
-  const signer = new CloudKmsSigner(name, clientOptions);
+  const signer = new CloudKmsSigner(name, {
+    ...clientOptions,
+    credentials: {
+      ...clientOptions?.credentials,
+      // https://stackoverflow.com/questions/74131595/error-error1e08010cdecoder-routinesunsupported-with-google-auth-library
+      private_key: rawPrivateKey?.split(String.raw`\n`).join("\n"),
+    },
+  });
 
   // Populate address immediately
   const publicKey = await signer.getPublicKey();
