@@ -1,16 +1,12 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
-<<<<<<< Updated upstream
 import type { AbiFunction } from "thirdweb/utils";
-=======
-import { type AbiFunction } from "thirdweb/utils";
->>>>>>> Stashed changes
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
 import { prettifyError } from "../../../../utils/error";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
-import { createCustomError, formatError } from "../../../middleware/error";
+import { createCustomError } from "../../../middleware/error";
 import { abiArraySchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
@@ -90,11 +86,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         method = await resolveMethod(functionName)(contract);
       } catch (e) {
         throw createCustomError(
-<<<<<<< Updated upstream
-          formatError(e),
-=======
           prettifyError(e),
->>>>>>> Stashed changes
           StatusCodes.BAD_REQUEST,
           "BAD_REQUEST",
         );
