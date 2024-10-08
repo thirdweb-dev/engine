@@ -10,7 +10,7 @@ import {
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import {
-  UserOperation,
+  type UserOperation,
   bundleUserOp,
   createAndSignUserOp,
 } from "thirdweb/wallets/smart";
