@@ -21,6 +21,7 @@ import {
   isNonceAlreadyUsedError,
   isReplacementGasFeeTooLow,
   prettifyError,
+  prettifyTransactionError,
 } from "../../utils/error";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
@@ -151,7 +152,7 @@ const _sendUserOp = async (
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: stringify(e),
+      errorMessage: prettifyError(e),
     };
     job.log(
       `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
@@ -231,7 +232,7 @@ const _sendTransaction = async (
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: stringify(e),
+      errorMessage: prettifyError(e),
     };
     job.log(
       `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
@@ -476,7 +477,7 @@ export const initSendTransactionWorker = () => {
         const erroredTransaction: ErroredTransaction = {
           ...transaction,
           status: "errored",
-          errorMessage: await prettifyError(transaction, error),
+          errorMessage: await prettifyTransactionError(transaction, error),
         };
         job.log(`Transaction errored: ${stringify(erroredTransaction)}`);
 

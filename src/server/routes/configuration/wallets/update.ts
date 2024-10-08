@@ -25,9 +25,6 @@ const requestBodySchema = Type.Union([
 
 requestBodySchema.examples = [
   {
-    type: WalletType.local,
-  },
-  {
     type: WalletType.awsKms,
     awsAccessKeyId: "<your-aws-access-key-id>",
     awsSecretAccessKey: "<your-aws-secret-access-key>",
