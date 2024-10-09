@@ -16,6 +16,13 @@ export const withOpenApi = async (server: FastifyInstance) => {
           url: "http://www.apache.org/licenses/LICENSE-2.0.html",
         },
       },
+      servers: [
+        {
+          // This will appear in API documentation.
+          url: "https://YOUR_ENGINE_URL",
+          description: "Provide your Engine URL",
+        },
+      ],
       components: {
         securitySchemes: {
           bearerAuth: {
