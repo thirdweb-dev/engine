@@ -1,13 +1,16 @@
 import swagger from "@fastify/swagger";
 import type { FastifyInstance } from "fastify";
 
+export const OPENAPI_ROUTES = ["/json", "/openapi.json"];
+
 export const withOpenApi = async (server: FastifyInstance) => {
   await server.register(swagger, {
     openapi: {
       info: {
         title: "thirdweb Engine",
-        description: "The open-source server for scalable web3 apps.",
-        version: "0.0.2",
+        description:
+          "Engine is an open-source, backend server that reads, writes, and deploys contracts at production scale.",
+        version: "1.0.0",
         license: {
           name: "Apache 2.0",
           url: "http://www.apache.org/licenses/LICENSE-2.0.html",
@@ -31,8 +34,9 @@ export const withOpenApi = async (server: FastifyInstance) => {
     },
   });
 
-  // Exports the /json endpoint without the Swagger UI.
-  server.get("/json", {}, async (_, res) => {
-    res.send(server.swagger());
-  });
+  for (const path of OPENAPI_ROUTES) {
+    server.get(path, {}, async (_, res) => {
+      res.send(server.swagger());
+    });
+  }
 };

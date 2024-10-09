@@ -1,12 +1,15 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { createCustomError } from "./error";
+import { OPENAPI_ROUTES } from "./open-api";
+
+const SKIP_RATELIMIT_PATHS = ["/", ...OPENAPI_ROUTES];
 
 export const withRateLimit = async (server: FastifyInstance) => {
   server.addHook("onRequest", async (request, reply) => {
-    if (request.url === "/" || request.url === "/json") {
+    if (SKIP_RATELIMIT_PATHS.includes(request.url)) {
       return;
     }
 

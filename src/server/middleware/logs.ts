@@ -2,14 +2,15 @@ import type { FastifyInstance } from "fastify";
 import { stringify } from "thirdweb/utils";
 import { logger } from "../../utils/logger";
 import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
+import { OPENAPI_ROUTES } from "./open-api";
 
 const SKIP_LOG_PATHS = new Set([
   "",
   "/",
   "/favicon.ico",
   "/system/health",
-  "/json",
   "/static",
+  ...OPENAPI_ROUTES,
   // Skip these routes case of importing sensitive details.
   "/backend-wallet/import",
   "/configuration/wallets",
