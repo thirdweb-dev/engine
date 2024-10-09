@@ -7,6 +7,7 @@ type Timing = {
   queuedAt?: number;
   sentAt?: number;
   minedAt?: number;
+  errorMessage?: string;
 };
 
 export const sendNoOpTransaction = async (
@@ -65,7 +66,7 @@ export const pollTransactionStatus = async (
   log = false,
 ) => {
   let mined = false;
-  let timing = {} as Timing;
+  const timing: Timing = {};
 
   while (!mined) {
     await sleep(Math.random() * CONFIG.STAGGER_MAX);
@@ -77,7 +78,8 @@ export const pollTransactionStatus = async (
     }
 
     if (res.result.errorMessage) {
-      console.error(`Transaction Error:`, res.result.errorMessage);
+      console.error("Transaction Error:", res.result.errorMessage);
+      timing.errorMessage = res.result.errorMessage;
       return timing;
     }
 
@@ -96,6 +98,7 @@ export const pollTransactionStatus = async (
 
     if (res.result.status === "errored") {
       console.error("Transaction errored:", res.result.errorMessage);
+      timing.errorMessage = res.result.errorMessage ?? undefined;
       return timing;
     }
 
