@@ -19,6 +19,7 @@ export type QueuedTransactionParams = {
   toAddress: Address | undefined;
   accountAddress: Address | undefined;
   accountFactoryAddress: Address | undefined;
+  accountSalt: string | undefined;
   txOverrides?: Static<
     typeof txOverridesWithValueSchema.properties.txOverrides
   >;
@@ -33,6 +34,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     toAddress,
     accountAddress,
     accountFactoryAddress,
+    accountSalt,
     txOverrides,
     idempotencyKey,
     shouldSimulate,
@@ -64,6 +66,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
           signerAddress: fromAddress,
           target: toAddress,
           accountFactoryAddress,
+          accountSalt,
         }
       : { isUserOp: false }),
   };
