@@ -3,6 +3,7 @@ import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import { FastifyInstance } from "fastify";
 import { Address, Hex } from "thirdweb";
 import { ADMIN_QUEUES_BASEPATH } from "../server/middleware/adminRoutes";
+import { OPENAPI_ROUTES } from "../server/middleware/open-api";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletWithAddressParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
@@ -49,8 +50,8 @@ const SKIP_USAGE_PATHS = new Set([
   "/",
   "/favicon.ico",
   "/system/health",
-  "/json",
   "/static",
+  ...OPENAPI_ROUTES,
 ]);
 
 export const withServerUsageReporting = (server: FastifyInstance) => {
