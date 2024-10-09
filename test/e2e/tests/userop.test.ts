@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { type Address, getAddress } from "thirdweb";
 import { sepolia } from "thirdweb/chains";
+import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";
+import type { ApiError } from "../../../sdk/dist/declarations/src/core/ApiError";
 import type { setupEngine } from "../utils/engine";
 import { pollTransactionStatus } from "../utils/transactions";
 import { setup } from "./setup";
@@ -10,7 +12,7 @@ describe("Userop Tests", () => {
   let backendWallet: Address;
   let accountAddress: Address;
 
-  const accountFactoryAddress = "0xD8a284BdF6fda948ac684ba72445e65e1f7b982A";
+  const accountFactoryAddress = DEFAULT_ACCOUNT_FACTORY_V0_6;
 
   beforeAll(async () => {
     const { engine: _engine, backendWallet: _backendWallet } = await setup();
@@ -51,5 +53,55 @@ describe("Userop Tests", () => {
     );
 
     expect(writeTransactionStatus.minedAt).toBeDefined();
+  });
+
+  test("Should throw decoded error with simulate false", async () => {
+    const res = await engine.contractRoles.grantContractRole(
+      sepolia.id.toString(),
+      "0xe2cb0eb5147b42095c2FfA6F7ec953bb0bE347D8",
+      backendWallet,
+      {
+        address: accountAddress,
+        role: "minter",
+      },
+      false,
+      undefined,
+      accountAddress,
+      accountFactoryAddress,
+    );
+
+    expect(res.result.queueId).toBeDefined();
+
+    const writeTransactionStatus = await pollTransactionStatus(
+      engine,
+      res.result.queueId,
+      true,
+    );
+
+    expect(writeTransactionStatus.errorMessage).toBe(
+      `Error - Permissions: account ${accountAddress.toLowerCase()} is missing role 0x0000000000000000000000000000000000000000000000000000000000000000`,
+    );
+  });
+
+  test("Should throw decoded error with simulate true", async () => {
+    try {
+      await engine.contractRoles.grantContractRole(
+        sepolia.id.toString(),
+        "0xe2cb0eb5147b42095c2FfA6F7ec953bb0bE347D8",
+        backendWallet,
+        {
+          address: accountAddress,
+          role: "minter",
+        },
+        true,
+        undefined,
+        accountAddress,
+        accountFactoryAddress,
+      );
+    } catch (e) {
+      expect((e as ApiError).body?.error?.message).toBe(
+        `Simulation failed: TransactionError: Error - Permissions: account ${accountAddress.toLowerCase()} is missing role 0x0000000000000000000000000000000000000000000000000000000000000000`,
+      );
+    }
   });
 });
