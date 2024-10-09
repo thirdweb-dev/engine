@@ -1,9 +1,19 @@
 import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
-import { getAddress, toSerializableTransaction, type Hex } from "thirdweb";
+import {
+  getAddress,
+  getContract,
+  readContract,
+  toSerializableTransaction,
+  type Hex,
+} from "thirdweb";
 import { stringify } from "thirdweb/utils";
-import { bundleUserOp } from "thirdweb/wallets/smart";
+import {
+  bundleUserOp,
+  createAndSignUserOp,
+  type UserOperation,
+} from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
 import {
@@ -33,7 +43,6 @@ import type {
   QueuedTransaction,
   SentTransaction,
 } from "../../utils/transaction/types";
-import { generateSignedUserOperation } from "../../utils/transaction/userOperation";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
@@ -130,24 +139,80 @@ const _sendUserOp = async (
     };
   }
 
-  const { accountAddress, to, target, chainId } = queuedTransaction;
+  const {
+    accountAddress,
+    to,
+    target,
+    chainId,
+    from,
+    accountFactoryAddress: userProvidedAccountFactoryAddress,
+    overrides,
+  } = queuedTransaction;
   const chain = await getChain(chainId);
 
   assert(accountAddress, "Invalid userOp parameters: accountAddress");
   const toAddress = to ?? target;
   assert(toAddress, "Invalid transaction parameters: to");
 
-  let populatedTransaction: PopulatedTransaction;
+  // Resolve Admin-Account for UserOperation Signer
+  const adminAccount = await getAccount({
+    chainId,
+    from,
+  });
+
+  let signedUserOp: UserOperation;
   try {
-    populatedTransaction = await toSerializableTransaction({
-      from: getChecksumAddress(accountAddress),
-      transaction: {
-        client: thirdwebClient,
+    // Resolve the user factory from the provided address, or from the `factory()` method if found.
+    let accountFactoryAddress = userProvidedAccountFactoryAddress;
+    if (!accountFactoryAddress) {
+      // TODO: this is not a good solution since the assumption that the account has a factory function is not guaranteed
+      // instead, we should use default account factory address or throw here.
+      try {
+        const smartAccountContract = getContract({
+          client: thirdwebClient,
+          chain,
+          address: accountAddress,
+        });
+        const onchainAccountFactoryAddress = await readContract({
+          contract: smartAccountContract,
+          method: "function factory() view returns (address)",
+          params: [],
+        });
+        accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
+      } catch {
+        throw new Error(
+          `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
+        );
+      }
+    }
+
+    signedUserOp = (await createAndSignUserOp({
+      client: thirdwebClient,
+      transactions: [
+        {
+          client: thirdwebClient,
+          chain,
+          ...queuedTransaction,
+          ...overrides,
+          to: getChecksumAddress(toAddress),
+        },
+      ],
+      adminAccount,
+      smartWalletOptions: {
         chain,
-        ...queuedTransaction,
-        to: getChecksumAddress(toAddress),
+        sponsorGas: true,
+        factoryAddress: accountFactoryAddress,
+        overrides: {
+          accountAddress,
+          // TODO: let user pass entrypoint address for 0.7 support
+        },
       },
-    });
+      // don't wait for the account to be deployed between userops
+      // making this true will cause issues since it will block this call
+      // until the previous userop for the same account is mined
+      // we don't want this behavior in the engine context
+      waitForDeployment: false,
+    })) as UserOperation; // TODO support entrypoint v0.7 accounts
   } catch (e) {
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
@@ -160,10 +225,6 @@ const _sendUserOp = async (
     return erroredTransaction;
   }
 
-  const signedUserOp = await generateSignedUserOperation(
-    queuedTransaction,
-    populatedTransaction,
-  );
   job.log(`Populated userOp: ${stringify(signedUserOp)}`);
 
   const userOpHash = await bundleUserOp({
