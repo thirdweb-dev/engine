@@ -1,18 +1,18 @@
-import { type Job, type Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
 import {
-  type Hex,
   getAddress,
   getContract,
   readContract,
   toSerializableTransaction,
+  type Hex,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import {
-  type UserOperation,
   bundleUserOp,
   createAndSignUserOp,
+  type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
@@ -48,8 +48,8 @@ import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import {
-  type SendTransactionData,
   SendTransactionQueue,
+  type SendTransactionData,
 } from "../queues/sendTransactionQueue";
 
 /**
@@ -146,6 +146,7 @@ const _sendUserOp = async (
     chainId,
     from,
     accountFactoryAddress: userProvidedAccountFactoryAddress,
+    overrides,
   } = queuedTransaction;
   const chain = await getChain(chainId);
 
@@ -161,14 +162,12 @@ const _sendUserOp = async (
 
   let signedUserOp: UserOperation;
   try {
-    // use the user provided factory address if available
+    // Resolve the user factory from the provided address, or from the `factory()` method if found.
     let accountFactoryAddress = userProvidedAccountFactoryAddress;
     if (!accountFactoryAddress) {
-      // Resolve Factory Contract Address from Smart-Account Contract
       // TODO: this is not a good solution since the assumption that the account has a factory function is not guaranteed
       // instead, we should use default account factory address or throw here.
       try {
-        // Resolve Smart-Account Contract
         const smartAccountContract = getContract({
           client: thirdwebClient,
           chain,
@@ -181,7 +180,6 @@ const _sendUserOp = async (
         });
         accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
       } catch {
-        // if no factory address is found, throw an error
         throw new Error(
           `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
         );
@@ -195,6 +193,7 @@ const _sendUserOp = async (
           client: thirdwebClient,
           chain,
           ...queuedTransaction,
+          ...overrides,
           to: getChecksumAddress(toAddress),
         },
       ],

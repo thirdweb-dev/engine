@@ -147,6 +147,8 @@ describe("Write Tests", () => {
             name: "setContractURI",
             stateMutability: "nonpayable",
             type: "function",
+            // Omitted
+            // outputs: [],
           },
         ],
       },
