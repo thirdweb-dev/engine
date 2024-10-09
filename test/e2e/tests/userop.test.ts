@@ -1,17 +1,16 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { type Address, getAddress } from "thirdweb";
 import { sepolia } from "thirdweb/chains";
-import { isContractDeployed } from "thirdweb/utils";
-import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";
 import type { setupEngine } from "../utils/engine";
 import { pollTransactionStatus } from "../utils/transactions";
-import { client } from "../utils/wallets";
 import { setup } from "./setup";
 
 describe("Userop Tests", () => {
   let engine: ReturnType<typeof setupEngine>;
   let backendWallet: Address;
   let accountAddress: Address;
+
+  const accountFactoryAddress = "0xD8a284BdF6fda948ac684ba72445e65e1f7b982A";
 
   beforeAll(async () => {
     const { engine: _engine, backendWallet: _backendWallet } = await setup();
@@ -21,33 +20,10 @@ describe("Userop Tests", () => {
     const addr = await engine.accountFactory.predictAccountAddress(
       backendWallet,
       sepolia.id.toString(),
-      DEFAULT_ACCOUNT_FACTORY_V0_6,
+      accountFactoryAddress,
     );
 
-    const _accountAddress = getAddress(addr.result);
-
-    const isDeployed = await isContractDeployed({
-      client,
-      chain: sepolia,
-      address: _accountAddress,
-    });
-
-    if (!isDeployed) {
-      const res = await engine.accountFactory.createAccount(
-        sepolia.id.toString(),
-        DEFAULT_ACCOUNT_FACTORY_V0_6,
-        backendWallet,
-        {
-          adminAddress: backendWallet,
-        },
-      );
-
-      if (!res.result.deployedAddress) {
-        throw new Error("Account address not found");
-      }
-    }
-
-    accountAddress = _accountAddress;
+    accountAddress = getAddress(addr.result);
   });
 
   test("Should send a nft claim userop", async () => {
@@ -63,7 +39,7 @@ describe("Userop Tests", () => {
       false,
       undefined,
       accountAddress,
-      DEFAULT_ACCOUNT_FACTORY_V0_6,
+      accountFactoryAddress,
     );
 
     expect(writeRes.result.queueId).toBeDefined();
