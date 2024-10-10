@@ -1,9 +1,11 @@
 import type { EVMWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
+import { StatusCodes } from "http-status-codes";
 import { getWalletDetails } from "../../db/wallets/getWalletDetails";
 import type { PrismaTransaction } from "../../schema/prisma";
 import { WalletType } from "../../schema/wallet";
+import { createCustomError } from "../../server/middleware/error";
 import { splitAwsKmsArn } from "../../server/utils/wallets/awsKmsArn";
 import { splitGcpKmsResourcePath } from "../../server/utils/wallets/gcpKmsResourcePath";
 import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
@@ -40,7 +42,11 @@ export const getWallet = async <TWallet extends EVMWallet>({
   });
 
   if (!walletDetails) {
-    throw new Error(`No configured wallet found with address ${walletAddress}`);
+    throw createCustomError(
+      `No configured wallet found with address ${walletAddress}`,
+      StatusCodes.BAD_REQUEST,
+      "BAD_REQUEST",
+    );
   }
 
   const config = await getConfig();

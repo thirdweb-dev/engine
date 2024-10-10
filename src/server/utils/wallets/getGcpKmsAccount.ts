@@ -8,7 +8,7 @@ import {
   keccak256,
 } from "thirdweb";
 import { serializeTransaction } from "thirdweb/transaction";
-import { toBytes } from "thirdweb/utils";
+import { hashMessage } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import type {
   SignableMessage,
@@ -98,16 +98,7 @@ export async function getGcpKmsAccount(
   }: {
     message: SignableMessage;
   }): Promise<Hex> {
-    let messageHash: Hex;
-    if (typeof message === "string") {
-      const prefixedMessage = `\x19Ethereum Signed Message:\n${message.length}${message}`;
-      messageHash = keccak256(toBytes(prefixedMessage));
-    } else if ("raw" in message) {
-      messageHash = keccak256(message.raw);
-    } else {
-      throw new Error("Invalid message format");
-    }
-
+    const messageHash = hashMessage(message);
     const signature = await signer.sign(Bytes.fromString(messageHash));
     return signature.bytes.toString() as Hex;
   }
