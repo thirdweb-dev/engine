@@ -27,7 +27,6 @@ const requestBodySchema = Type.Object({
     accessList: Type.Optional(Type.Any()),
     maxFeePerGas: Type.Optional(Type.String()),
     maxPriorityFeePerGas: Type.Optional(Type.String()),
-    customData: Type.Optional(Type.Record(Type.String(), Type.Any())),
     ccipReadEnabled: Type.Optional(Type.Boolean()),
   }),
 });
@@ -89,7 +88,6 @@ export async function signTransaction(fastify: FastifyInstance) {
           accessList: transaction.accessList,
           maxFeePerGas: maybeBigInt(transaction.maxFeePerGas),
           maxPriorityFeePerGas: maybeBigInt(transaction.maxPriorityFeePerGas),
-          customData: transaction.customData,
           ccipReadEnabled: transaction.ccipReadEnabled,
         };
       } catch (e) {
