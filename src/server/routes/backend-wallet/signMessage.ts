@@ -2,7 +2,6 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isHex, type Hex } from "thirdweb";
-import { fromHex } from "thirdweb/utils";
 import { getAccount } from "../../../utils/account";
 import { getChecksumAddress } from "../../../utils/primitiveTypes";
 import { createCustomError } from "../../middleware/error";
@@ -54,8 +53,9 @@ export async function signMessageRoute(fastify: FastifyInstance) {
         chainId: 1,
         from: getChecksumAddress(walletAddress),
       });
+      const messageToSign = isBytes ? { raw: message as Hex } : message;
       const signedMessage = await account.signMessage({
-        message: isBytes ? fromHex(message as Hex, "string") : message,
+        message: messageToSign,
       });
 
       reply.status(StatusCodes.OK).send({
