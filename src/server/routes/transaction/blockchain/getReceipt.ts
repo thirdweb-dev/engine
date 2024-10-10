@@ -11,9 +11,9 @@ import { stringify } from "thirdweb/utils";
 import type { TransactionReceipt } from "viem";
 import { getChain } from "../../../../utils/chain";
 import {
+  fromTransactionStatus,
+  fromTransactionType,
   thirdwebClient,
-  toTransactionStatus,
-  toTransactionType,
 } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
@@ -166,8 +166,8 @@ export async function getTransactionReceipt(fastify: FastifyInstance) {
           cumulativeGasUsed: toHex(receipt.cumulativeGasUsed),
           effectiveGasPrice: toHex(receipt.effectiveGasPrice),
           blockNumber: Number(receipt.blockNumber),
-          type: toTransactionType(receipt.type),
-          status: toTransactionStatus(receipt.status),
+          type: fromTransactionType(receipt.type),
+          status: fromTransactionStatus(receipt.status),
         },
       });
     },

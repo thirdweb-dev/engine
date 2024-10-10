@@ -25,7 +25,7 @@ export const walletWithAAHeaderSchema = Type.Object({
   "x-account-factory-address": Type.Optional({
     ...AddressSchema,
     description:
-      "Smart account factory address. If omitted, engine will try to resolve it from the chain.",
+      "Smart account factory address. If omitted, Engine will try to resolve it from the contract.",
   }),
 });
 

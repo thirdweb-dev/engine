@@ -2,8 +2,8 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { kill } from "node:process";
 
-// requires engine to be running locally
-const ENGINE_OPENAPI_URL = "http://localhost:3005/json";
+// Requires Engine to be running locally
+const ENGINE_OPENAPI_URL = "https://demo.web3api.thirdweb.com/json";
 
 async function main() {
   try {

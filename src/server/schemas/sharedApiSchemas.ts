@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
-import { RouteGenericInterface } from "fastify";
-import { FastifySchema } from "fastify/types/schema";
+import type { RouteGenericInterface } from "fastify";
+import type { FastifySchema } from "fastify/types/schema";
 import { StatusCodes } from "http-status-codes";
 import { AddressSchema } from "./address";
 
@@ -182,7 +182,6 @@ export const erc20ContractParamSchema = Type.Object({
   }),
   contractAddress: {
     ...AddressSchema,
-    examples: ["0x365b83D67D5539C6583b9c0266A548926Bf216F4"],
     description: "ERC20 contract address",
   },
 });

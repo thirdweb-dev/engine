@@ -1,14 +1,22 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getWallet } from "../../../utils/cache/getWallet";
+import type { Hex } from "thirdweb";
+import { getAccount } from "../../../utils/account";
+import { prettifyError } from "../../../utils/error";
+import {
+  getChecksumAddress,
+  maybeBigInt,
+  maybeInt,
+} from "../../../utils/primitiveTypes";
+import { toTransactionType } from "../../../utils/sdk";
+import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
 
 const requestBodySchema = Type.Object({
   transaction: Type.Object({
     to: Type.Optional(Type.String()),
-    from: Type.Optional(Type.String()),
     nonce: Type.Optional(Type.String()),
     gasLimit: Type.Optional(Type.String()),
     gasPrice: Type.Optional(Type.String()),
@@ -52,16 +60,50 @@ export async function signTransaction(fastify: FastifyInstance) {
       const { "x-backend-wallet-address": walletAddress } =
         request.headers as Static<typeof walletHeaderSchema>;
 
-      const wallet = await getWallet({
+      const account = await getAccount({
         chainId: 1,
-        walletAddress,
+        from: getChecksumAddress(walletAddress),
       });
+      if (!account.signTransaction) {
+        throw createCustomError(
+          'This backend wallet does not support "signTransaction".',
+          StatusCodes.BAD_REQUEST,
+          "SIGN_TRANSACTION_UNIMPLEMENTED",
+        );
+      }
 
-      const signer = await wallet.getSigner();
-      const signedMessage = await signer.signTransaction(transaction);
+      // @TODO: Assert type to viem TransactionSerializable.
+      let serializableTransaction: any;
+      try {
+        serializableTransaction = {
+          chainId: transaction.chainId,
+          to: getChecksumAddress(transaction.to),
+          nonce: maybeInt(transaction.nonce),
+          gas: maybeBigInt(transaction.gasLimit),
+          gasPrice: maybeBigInt(transaction.gasPrice),
+          data: transaction.data as Hex | undefined,
+          value: maybeBigInt(transaction.value),
+          type: transaction.type
+            ? toTransactionType(transaction.type)
+            : undefined,
+          accessList: transaction.accessList,
+          maxFeePerGas: maybeBigInt(transaction.maxFeePerGas),
+          maxPriorityFeePerGas: maybeBigInt(transaction.maxPriorityFeePerGas),
+          customData: transaction.customData,
+          ccipReadEnabled: transaction.ccipReadEnabled,
+        };
+      } catch (e) {
+        throw createCustomError(
+          `Failed to serialize transaction: ${prettifyError(e)}`,
+          StatusCodes.BAD_REQUEST,
+          "INVALID_TRANSACTION",
+        );
+      }
+
+      const signature = await account.signTransaction(serializableTransaction);
 
       reply.status(StatusCodes.OK).send({
-        result: signedMessage,
+        result: signature,
       });
     },
   });
