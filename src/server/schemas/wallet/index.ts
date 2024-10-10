@@ -30,7 +30,7 @@ export const walletWithAAHeaderSchema = Type.Object({
   "x-account-salt": Type.Optional(
     Type.String({
       description:
-        "Smart account salt in hex format. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.",
+        "Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.",
     }),
   ),
 });
