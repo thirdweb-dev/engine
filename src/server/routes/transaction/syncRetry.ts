@@ -1,17 +1,15 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { toSerializableTransaction } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getAccount } from "../../../utils/account";
 import { getBlockNumberish } from "../../../utils/block";
 import { getChain } from "../../../utils/chain";
-import { msSince } from "../../../utils/date";
 import { getChecksumAddress, maybeBigInt } from "../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../utils/sdk";
-import { SentTransaction } from "../../../utils/transaction/types";
+import type { SentTransaction } from "../../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
-import { reportUsage } from "../../../utils/usage";
 import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { TransactionHashSchema } from "../../schemas/address";
@@ -71,7 +69,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           "TRANSACTION_NOT_FOUND",
         );
       }
-      if (transaction.status !== "sent" || transaction.isUserOp) {
+      if (transaction.isUserOp || !("nonce" in transaction)) {
         throw createCustomError(
           "Transaction cannot be retried.",
           StatusCodes.BAD_REQUEST,
@@ -103,6 +101,7 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
       // Update state if the send was successful.
       const sentTransaction: SentTransaction = {
         ...transaction,
+        status: "sent",
         resendCount: transaction.resendCount + 1,
         sentAt: new Date(),
         sentAtBlock: await getBlockNumberish(chainId),
@@ -127,17 +126,3 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
     },
   });
 }
-
-const _reportUsageSuccess = async (sentTransaction: SentTransaction) => {
-  const chain = await getChain(sentTransaction.chainId);
-  reportUsage([
-    {
-      action: "send_tx",
-      input: {
-        ...sentTransaction,
-        provider: chain.rpc,
-        msSinceQueue: msSince(sentTransaction.queuedAt),
-      },
-    },
-  ]);
-};
