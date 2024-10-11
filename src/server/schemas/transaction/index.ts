@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import type { AnyTransaction } from "../../../utils/transaction/types";
@@ -178,6 +178,8 @@ export const TransactionSchema = Type.Object({
   ]),
   signerAddress: Type.Union([AddressSchema, Type.Null()]),
   accountAddress: Type.Union([AddressSchema, Type.Null()]),
+  accountSalt: Type.Union([Type.String(), Type.Null()]),
+  accountFactoryAddress: Type.Union([AddressSchema, Type.Null()]),
   target: Type.Union([AddressSchema, Type.Null()]),
   sender: Type.Union([AddressSchema, Type.Null()]),
   initCode: Type.Union([Type.String(), Type.Null()]),
@@ -333,6 +335,8 @@ export const toTransactionSchema = (
     // User Operation
     signerAddress: transaction.from,
     accountAddress: transaction.accountAddress ?? null,
+    accountSalt: transaction.accountSalt ?? null,
+    accountFactoryAddress: transaction.accountFactoryAddress ?? null,
     target: transaction.target ?? null,
     sender: transaction.sender ?? null,
     initCode: null,

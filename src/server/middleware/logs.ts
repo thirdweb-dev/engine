@@ -1,89 +1,71 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
+import { stringify } from "thirdweb/utils";
 import { logger } from "../../utils/logger";
+import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
+import { OPENAPI_ROUTES } from "./open-api";
+
+const SKIP_LOG_PATHS = new Set([
+  "",
+  "/",
+  "/favicon.ico",
+  "/system/health",
+  "/static",
+  ...OPENAPI_ROUTES,
+  // Skip these routes case of importing sensitive details.
+  "/backend-wallet/import",
+  "/configuration/wallets",
+]);
 
 export const withRequestLogs = async (server: FastifyInstance) => {
-  server.addHook("onRequest", async (request, reply) => {
+  server.addHook("onSend", (request, reply, payload, done) => {
     if (
-      !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json") &&
-      request.method !== "OPTIONS" &&
-      request.routerPath !== "/"
+      request.method === "OPTIONS" ||
+      !request.routeOptions.url ||
+      SKIP_LOG_PATHS.has(request.routeOptions.url) ||
+      request.routeOptions.url.startsWith(ADMIN_QUEUES_BASEPATH)
     ) {
-      logger({
-        service: "server",
-        level: "info",
-        message: `Request received - ${request.method} - ${request.routerPath}`,
-      });
+      done();
+      return;
     }
 
-    if (process.env.NODE_ENV === "production") {
-      if (
-        request.routerPath?.includes("static") &&
-        // Bullboard requires access to static bundle files
-        !request.routerPath?.startsWith("/admin/queues")
-      ) {
-        return reply.status(404).send({
-          statusCode: 404,
-          error: "Not Found",
-          message: "Not Found",
-        });
-      }
-    }
-  });
+    const { method, routeOptions, headers, params, query, body } = request;
+    const { statusCode, elapsedTime } = reply;
+    const isError = statusCode >= 400;
 
-  server.addHook("preHandler", async (request, reply) => {
-    if (
-      !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json") &&
-      !request.routerPath?.includes("/backend-wallet/import") &&
-      request.method !== "OPTIONS"
-    ) {
-      if (request.body && Object.keys(request.body).length > 0) {
-        logger({
-          service: "server",
-          level: "info",
-          message: `Request body - ${request.method} - ${request.routerPath}`,
-          data: request.body,
-        });
-      }
+    const extractedHeaders = {
+      "x-backend-wallet-address": headers["x-backend-wallet-address"],
+      "x-idempotency-key": headers["x-idempotency-key"],
+      "x-account-address": headers["x-account-address"],
+      "x-account-factory-address": headers["x-account-factory-address"],
+    };
 
-      if (request.params && Object.keys(request.params).length > 0) {
-        logger({
-          service: "server",
-          level: "info",
-          message: `Request params - ${request.method}`,
-          data: request.params,
-        });
-      }
+    const paramsStr =
+      params && Object.keys(params).length
+        ? `params=${stringify(params)}`
+        : undefined;
+    const queryStr =
+      query && Object.keys(query).length
+        ? `querystring=${stringify(query)}`
+        : undefined;
+    const bodyStr =
+      body && Object.keys(body).length ? `body=${stringify(body)}` : undefined;
+    const payloadStr = isError ? `payload=${payload}` : undefined;
 
-      if (request.query && Object.keys(request.query).length > 0) {
-        logger({
-          service: "server",
-          level: "info",
-          message: `Request querystring - ${request.method} - ${request.routerPath}`,
-          data: request.query,
-        });
-      }
-    }
-  });
-
-  server.addHook("onResponse", (request, reply, done) => {
-    if (
-      !request.routerPath?.includes("static") &&
-      !request.routerPath?.includes("json") &&
-      request.method !== "OPTIONS" &&
-      request.routerPath !== "/"
-    ) {
-      logger({
-        service: "server",
-        level: "info",
-        message: `Request completed - ${request.method} - ${
-          reply.request.routerPath
-        } - status code: ${reply.statusCode} - Response time: ${reply
-          .getResponseTime()
-          .toFixed(2)}ms`,
-      });
-    }
+    logger({
+      service: "server",
+      level: isError ? "error" : "info",
+      message: [
+        `[Request complete - ${statusCode}]`,
+        `method=${method}`,
+        `path=${routeOptions.url}`,
+        `headers=${stringify(extractedHeaders)}`,
+        paramsStr,
+        queryStr,
+        bodyStr,
+        `duration=${elapsedTime.toFixed(1)}ms`,
+        payloadStr,
+      ].join(" "),
+    });
 
     done();
   });

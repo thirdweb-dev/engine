@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 
 const responseBodySchema = Type.Object({
@@ -22,7 +22,7 @@ export async function home(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_, res) => {
       return res.status(StatusCodes.OK).send({
         message:
           "Engine is set up successfully. Manage your Engine from https://thirdweb.com/dashboard/engine.",

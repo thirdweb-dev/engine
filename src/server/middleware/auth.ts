@@ -25,6 +25,7 @@ import { logger } from "../../utils/logger";
 import { sendWebhookRequest } from "../../utils/webhook";
 import { Permission } from "../schemas/auth";
 import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
+import { OPENAPI_ROUTES } from "./open-api";
 
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };
@@ -211,7 +212,7 @@ const handlePublicEndpoints = (req: FastifyRequest): AuthResponse => {
       req.url === "/favicon.ico" ||
       req.url === "/" ||
       req.url === "/system/health" ||
-      req.url === "/json" ||
+      OPENAPI_ROUTES.includes(req.url) ||
       req.url.startsWith("/auth/user") ||
       req.url.startsWith("/transaction/status")
     ) {

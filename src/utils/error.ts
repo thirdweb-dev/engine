@@ -1,11 +1,19 @@
 import { ethers } from "ethers";
 import { getChainMetadata } from "thirdweb/chains";
+import { stringify } from "thirdweb/utils";
 import { getChain } from "./chain";
 import { isEthersErrorCode } from "./ethers";
 import { doSimulateTransaction } from "./transaction/simulateQueuedTransaction";
 import type { AnyTransaction } from "./transaction/types";
 
-export const prettifyError = async (
+export const prettifyError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return stringify(error);
+};
+
+export const prettifyTransactionError = async (
   transaction: AnyTransaction,
   error: Error,
 ): Promise<string> => {

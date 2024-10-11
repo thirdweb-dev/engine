@@ -6,10 +6,10 @@ import {
   type PreparedTransaction,
   encode,
 } from "thirdweb";
-import { stringify } from "thirdweb/utils";
 import { createCustomError } from "../../server/middleware/error";
 import type { txOverridesWithValueSchema } from "../../server/schemas/txOverrides";
 import { parseTransactionOverrides } from "../../server/utils/transactionOverrides";
+import { prettifyError } from "../error";
 import { insertTransaction } from "./insertTransaction";
 import type { InsertedTransaction } from "./types";
 
@@ -19,6 +19,7 @@ export type QueuedTransactionParams = {
   toAddress: Address | undefined;
   accountAddress: Address | undefined;
   accountFactoryAddress: Address | undefined;
+  accountSalt: string | undefined;
   txOverrides?: Static<
     typeof txOverridesWithValueSchema.properties.txOverrides
   >;
@@ -33,6 +34,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     toAddress,
     accountAddress,
     accountFactoryAddress,
+    accountSalt,
     txOverrides,
     idempotencyKey,
     shouldSimulate,
@@ -43,7 +45,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     data = await encode(transaction);
   } catch (e) {
     throw createCustomError(
-      stringify(e),
+      prettifyError(e),
       StatusCodes.BAD_REQUEST,
       "BAD_REQUEST",
     );
@@ -64,6 +66,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
           signerAddress: fromAddress,
           target: toAddress,
           accountFactoryAddress,
+          accountSalt,
         }
       : { isUserOp: false }),
   };

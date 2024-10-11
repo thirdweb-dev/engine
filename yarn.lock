@@ -11805,10 +11805,10 @@ thirdweb@5.26.0:
     uqr "0.1.2"
     viem "2.10.9"
 
-thirdweb@^5.60.1:
-  version "5.60.1"
-  resolved "https://registry.yarnpkg.com/thirdweb/-/thirdweb-5.60.1.tgz#cd5de2492c5b2afcdd549e14692ab3873b1f95cd"
-  integrity sha512-5N5QZ5JmzHaMeVegcIuR/ZHIh3fmyzBsBvgXqS7MPQI6aigLEQLAh2Hz4iPv8aVTX0KhPyLeVMlAXQgtbHVbmQ==
+thirdweb@5.61.3:
+  version "5.61.3"
+  resolved "https://registry.yarnpkg.com/thirdweb/-/thirdweb-5.61.3.tgz#f52e5fee0ba8c3b7ac6cd68bc33d7a85f185ebd2"
+  integrity sha512-7rZ46VF/8wd8tj534+LTY9MQQmglsSl0cnsgCo7+xFyZx7uArXdqMDi6a6NKZwsHdEaijlFD36lYlTXm6DCLIw==
   dependencies:
     "@coinbase/wallet-sdk" "4.1.0"
     "@emotion/react" "11.13.3"

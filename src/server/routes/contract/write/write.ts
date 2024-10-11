@@ -4,8 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
 import type { AbiFunction } from "thirdweb/utils";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
+import { prettifyError } from "../../../../utils/error";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
-import { createCustomError, formatError } from "../../../middleware/error";
+import { createCustomError } from "../../../middleware/error";
 import { abiArraySchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
@@ -66,6 +67,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -85,7 +87,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         method = await resolveMethod(functionName)(contract);
       } catch (e) {
         throw createCustomError(
-          formatError(e),
+          prettifyError(e),
           StatusCodes.BAD_REQUEST,
           "BAD_REQUEST",
         );
@@ -106,6 +108,7 @@ export async function writeToContract(fastify: FastifyInstance) {
           accountFactoryAddress,
           "x-account-factory-address",
         ),
+        accountSalt,
         txOverrides,
         idempotencyKey,
         shouldSimulate: simulateTx,

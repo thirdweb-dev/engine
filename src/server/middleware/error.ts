@@ -1,10 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
-import { stringify } from "thirdweb/utils";
 import { ZodError } from "zod";
 import { env } from "../../utils/env";
 import { parseEthersError } from "../../utils/ethers";
-import { logger } from "../../utils/logger";
 
 export type CustomError = {
   message: string;
@@ -22,13 +20,6 @@ export const createCustomError = (
   statusCode,
   code,
 });
-
-export function formatError(error: unknown) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return stringify(error);
-}
 
 export const customDateTimestampError = (date: string): CustomError =>
   createCustomError(
@@ -63,13 +54,6 @@ const isZodError = (err: unknown): boolean => {
 export const withErrorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler(
     (error: Error | CustomError | ZodError, request, reply) => {
-      logger({
-        service: "server",
-        level: "error",
-        message: `Encountered server error`,
-        error,
-      });
-
       // Ethers Error Codes
       if (parseEthersError(error)) {
         return reply.status(StatusCodes.BAD_REQUEST).send({
