@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, test } from "bun:test";
+import { randomBytes } from "crypto";
 import { type Address, getAddress } from "thirdweb";
 import { sepolia } from "thirdweb/chains";
 import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";
@@ -42,6 +43,45 @@ describe("Userop Tests", () => {
       undefined,
       accountAddress,
       accountFactoryAddress,
+    );
+
+    expect(writeRes.result.queueId).toBeDefined();
+
+    const writeTransactionStatus = await pollTransactionStatus(
+      engine,
+      writeRes.result.queueId,
+      true,
+    );
+
+    expect(writeTransactionStatus.minedAt).toBeDefined();
+  });
+
+  test("Should send a nft claim userop with undeployed account with salt", async () => {
+    const accountSalt = `user-${randomBytes(32).toString("hex")}`;
+    const predictedAddress = await engine.accountFactory.predictAccountAddress(
+      backendWallet,
+      sepolia.id.toString(),
+      accountFactoryAddress,
+      accountSalt,
+    );
+
+    const userAddress = getAddress(predictedAddress.result);
+    console.log("userAddress", userAddress);
+
+    const writeRes = await engine.erc1155.erc1155ClaimTo(
+      sepolia.id.toString(),
+      "0xe2cb0eb5147b42095c2FfA6F7ec953bb0bE347D8",
+      backendWallet,
+      {
+        quantity: "1",
+        receiver: userAddress,
+        tokenId: "0",
+      },
+      false,
+      undefined,
+      userAddress,
+      accountFactoryAddress,
+      accountSalt,
     );
 
     expect(writeRes.result.queueId).toBeDefined();
