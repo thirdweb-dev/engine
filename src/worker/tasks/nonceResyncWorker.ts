@@ -1,4 +1,4 @@
-import { Job, Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
 import { eth_getTransactionCount, getRpcClient } from "thirdweb";
 import {
   inspectNonce,
@@ -58,7 +58,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       inspectNonce(chainId, walletAddress),
     ]);
 
-    if (isNaN(transactionCount)) {
+    if (Number.isNaN(transactionCount)) {
       job.log(
         `Received invalid onchain transaction count for ${walletAddress}: ${transactionCount}`,
       );
@@ -67,7 +67,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         message: `[nonceResyncWorker] Received invalid onchain transaction count for ${walletAddress}: ${transactionCount}`,
         service: "worker",
       });
-      return;
+      continue;
     }
 
     const lastUsedNonceOnchain = transactionCount - 1;
@@ -90,7 +90,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         message: `[nonceResyncWorker] No need to resync nonce for ${walletAddress}`,
         service: "worker",
       });
-      return;
+      continue;
     }
 
     //  for each nonce between last used db nonce and last used onchain nonce
