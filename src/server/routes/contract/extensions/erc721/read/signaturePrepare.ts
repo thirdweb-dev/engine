@@ -1,18 +1,25 @@
 import { Type, type Static } from "@sinclair/typebox";
 import { MintRequest721 } from "@thirdweb-dev/sdk";
-import { randomBytes } from "crypto";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { ZERO_ADDRESS, getContract, type Hex } from "thirdweb";
+import { getRandomValues } from "node:crypto";
+import {
+  ZERO_ADDRESS,
+  getContract,
+  isHex,
+  stringToHex,
+  uint8ArrayToHex,
+  type Hex,
+} from "thirdweb";
 import {
   primarySaleRecipient as getDefaultPrimarySaleRecipient,
   getDefaultRoyaltyInfo,
 } from "thirdweb/extensions/common";
-import type { GenerateMintSignatureOptions } from "thirdweb/extensions/erc721";
+import { decimals } from "thirdweb/extensions/erc20";
 import { upload } from "thirdweb/storage";
+import { checksumAddress } from "thirdweb/utils";
 import { getChain } from "../../../../../../utils/chain";
-import { logger } from "../../../../../../utils/logger";
-import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
+import { prettifyError } from "../../../../../../utils/error";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { createCustomError } from "../../../../../middleware/error";
 import {
@@ -84,76 +91,74 @@ const responseSchema = Type.Object({
 
 responseSchema.example = {
   result: {
-    result: {
-      mintPayload: {
-        uri: "ipfs://...",
+    mintPayload: {
+      uri: "ipfs://...",
+      currency: "0x0000000000000000000000000000000000000000",
+      uid: "0x3862386334363135326230303461303939626136653361643131343836373563",
+      to: "0x...",
+      royaltyRecipient: "0x...",
+      primarySaleRecipient: "0x...",
+    },
+    typedDataPayload: {
+      domain: {
+        name: "TokenERC721",
+        version: "1",
+        chainId: 84532,
+        verifyingContract: "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
+      },
+      types: {
+        MintRequest: [
+          {
+            name: "to",
+            type: "address",
+          },
+          {
+            name: "royaltyRecipient",
+            type: "address",
+          },
+          {
+            name: "royaltyBps",
+            type: "uint256",
+          },
+          {
+            name: "primarySaleRecipient",
+            type: "address",
+          },
+          {
+            name: "uri",
+            type: "string",
+          },
+          {
+            name: "price",
+            type: "uint256",
+          },
+          {
+            name: "currency",
+            type: "address",
+          },
+          {
+            name: "validityStartTimestamp",
+            type: "uint128",
+          },
+          {
+            name: "validityEndTimestamp",
+            type: "uint128",
+          },
+          {
+            name: "uid",
+            type: "bytes32",
+          },
+        ],
+      },
+      message: {
+        uri: "ipfs://test",
         currency: "0x0000000000000000000000000000000000000000",
-        uid: "0x3862386334363135326230303461303939626136653361643131343836373563",
-        to: "0x...",
-        royaltyRecipient: "0x...",
-        primarySaleRecipient: "0x...",
+        uid: "0xmyuid",
+        to: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
+        royaltyRecipient: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
+        primarySaleRecipient: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
       },
-      typedDataPayload: {
-        domain: {
-          name: "TokenERC721",
-          version: "1",
-          chainId: 84532,
-          verifyingContract: "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
-        },
-        types: {
-          MintRequest: [
-            {
-              name: "to",
-              type: "address",
-            },
-            {
-              name: "royaltyRecipient",
-              type: "address",
-            },
-            {
-              name: "royaltyBps",
-              type: "uint256",
-            },
-            {
-              name: "primarySaleRecipient",
-              type: "address",
-            },
-            {
-              name: "uri",
-              type: "string",
-            },
-            {
-              name: "price",
-              type: "uint256",
-            },
-            {
-              name: "currency",
-              type: "address",
-            },
-            {
-              name: "validityStartTimestamp",
-              type: "uint128",
-            },
-            {
-              name: "validityEndTimestamp",
-              type: "uint128",
-            },
-            {
-              name: "uid",
-              type: "bytes32",
-            },
-          ],
-        },
-        message: {
-          uri: "ipfs://test",
-          currency: "0x0000000000000000000000000000000000000000",
-          uid: "0xmyuid",
-          to: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
-          royaltyRecipient: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
-          primarySaleRecipient: "0x4Ff9aa707AE1eAeb40E581DF2cf4e14AffcC553d",
-        },
-        primaryType: "MintRequest",
-      },
+      primaryType: "MintRequest",
     },
   },
 };
@@ -179,7 +184,7 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain: chainSlug, contractAddress } = request.params;
       const {
         metadata,
         to,
@@ -191,17 +196,16 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
         uid,
       } = request.body;
 
-      const chainId = await getChainIdFromChain(chain);
+      const chainId = await getChainIdFromChain(chainSlug);
+      const chain = await getChain(chainId);
       const contract = await getContract({
         client: thirdwebClient,
-        chain: await getChain(chainId),
+        chain,
         address: contractAddress,
       });
 
-      let primarySaleRecipient = request.body.primarySaleRecipient;
       let royaltyRecipient = request.body.royaltyRecipient;
       let royaltyBps = request.body.royaltyBps;
-
       if (!royaltyRecipient || !royaltyBps) {
         try {
           const [defaultRoyaltyRecipient, defaultRoyaltyBps] =
@@ -212,68 +216,99 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
           royaltyRecipient = royaltyRecipient ?? defaultRoyaltyRecipient;
           royaltyBps = royaltyBps ?? defaultRoyaltyBps;
         } catch (e) {
-          logger({
-            level: "error",
-            message: "Could not get default royalty info.",
-            service: "server",
-            error: e,
-          });
           throw createCustomError(
-            "Could not get default royalty info.",
+            `Could not get default royalty info: ${prettifyError(e)}`,
             StatusCodes.BAD_REQUEST,
             "DEFAULT_ROYALTY_INFO",
           );
         }
       }
 
+      let primarySaleRecipient = request.body.primarySaleRecipient;
       if (!primarySaleRecipient) {
         try {
           primarySaleRecipient = await getDefaultPrimarySaleRecipient({
             contract,
           });
         } catch (e) {
-          logger({
-            level: "error",
-            message: "Could not get default primary sale recipient.",
-            service: "server",
-            error: e,
-          });
           throw createCustomError(
-            "Could not get default primary sale recipient.",
+            `Could not get default primary sale recipient: ${prettifyError(e)}`,
             StatusCodes.BAD_REQUEST,
             "DEFAULT_PRIMARY_SALE_RECIPIENT",
           );
         }
       }
 
-      const mintPayload = await generateMintSignaturePayload({
-        metadata,
-        to,
-        price,
-        priceInWei: maybeBigInt(priceInWei),
-        currency,
-        primarySaleRecipient,
+      const parsedCurrency = currency || ZERO_ADDRESS;
+
+      let parsedPrice = 0n;
+      if (priceInWei) {
+        parsedPrice = BigInt(priceInWei);
+      } else if (price) {
+        let _decimals = 18;
+        if (
+          !(
+            parsedCurrency === ZERO_ADDRESS ||
+            parsedCurrency === "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+          )
+        ) {
+          const contract = getContract({
+            chain,
+            client: thirdwebClient,
+            address: parsedCurrency,
+          });
+          _decimals = await decimals({ contract });
+        }
+        parsedPrice = BigInt(Number.parseFloat(price) * 10 ** _decimals);
+      }
+
+      let parsedUri = "";
+      if (metadata) {
+        parsedUri =
+          typeof metadata === "string"
+            ? metadata
+            : await upload({
+                client: thirdwebClient,
+                files: [metadata],
+              });
+      }
+
+      let parsedUid: Hex;
+      if (uid) {
+        if (isHex(uid)) {
+          if (uid.length !== 64) {
+            throw createCustomError(
+              '"uid" must be a valid 32-byte hex string.',
+              StatusCodes.BAD_REQUEST,
+              "INVALID_UID",
+            );
+          }
+          parsedUid = uid;
+        } else {
+          parsedUid = stringToHex(uid, { size: 32 });
+        }
+      } else {
+        parsedUid = uint8ArrayToHex(getRandomValues(new Uint8Array(32)));
+      }
+
+      const mintPayload: Static<typeof signature721OutputSchemaV5> = {
+        uri: parsedUri,
+        uid: parsedUid,
+        currency: parsedCurrency,
+        price: parsedPrice.toString(),
+        to: checksumAddress(to),
         royaltyRecipient,
-        royaltyBps,
-        validityStartTimestamp: validityStartTimestamp
-          ? new Date(validityStartTimestamp * 1000)
-          : undefined,
-        validityEndTimestamp: validityEndTimestamp
-          ? new Date(validityEndTimestamp * 1000)
-          : undefined,
-        uid: uid as Hex,
-      });
-      const sanitizedMintPayload: Static<typeof signature721OutputSchemaV5> = {
-        ...mintPayload,
-        price: mintPayload.price.toString(),
-        royaltyBps: mintPayload.royaltyBps.toString(),
-        validityStartTimestamp: Number(mintPayload.validityStartTimestamp),
-        validityEndTimestamp: Number(mintPayload.validityEndTimestamp),
+        royaltyBps: royaltyBps.toString(),
+        primarySaleRecipient,
+        validityStartTimestamp:
+          validityStartTimestamp ?? toSeconds(new Date(0)),
+        validityEndTimestamp:
+          validityEndTimestamp ?? toSeconds(tenYearsFromNow()),
       };
 
       reply.status(StatusCodes.OK).send({
         result: {
-          mintPayload: sanitizedMintPayload,
+          mintPayload: mintPayload,
           typedDataPayload: {
             domain: {
               name: "TokenERC721",
@@ -291,7 +326,7 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
               ],
               MintRequest: MintRequest721,
             },
-            message: sanitizedMintPayload,
+            message: mintPayload,
             primaryType: "MintRequest",
           },
         },
@@ -300,73 +335,9 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
   });
 }
 
-type GenerateMintSignaturePayloadOptions = Omit<
-  GenerateMintSignatureOptions["mintRequest"],
-  "royaltyRecipient" | "primarySaleRecipient" | "royaltyBps"
-> & {
-  royaltyRecipient: string;
-  primarySaleRecipient: string;
-  royaltyBps: number;
-};
-
-/**
- * Helper functions copied from v5 SDK.
- * The logic to generate a mint signature is not exported.
- */
-export async function generateMintSignaturePayload(
-  mintRequest: GenerateMintSignaturePayloadOptions,
-) {
-  const currency = mintRequest.currency || ZERO_ADDRESS;
-  const [price, uri, uid] = await Promise.all([
-    // price
-    (async () => {
-      if (mintRequest.priceInWei) {
-        return mintRequest.priceInWei;
-      }
-      if (mintRequest.price) {
-        return mintRequest.price;
-      }
-      return 0n;
-    })(),
-    // uri
-    (async () => {
-      if (mintRequest.metadata) {
-        if (typeof mintRequest.metadata === "object") {
-          return await upload({
-            client: thirdwebClient,
-            files: [mintRequest.metadata],
-          });
-        }
-        return mintRequest.metadata;
-      }
-      return "";
-    })(),
-    // uid
-    mintRequest.uid || (await randomBytesHex()),
-  ]);
-
-  const startTime = mintRequest.validityStartTimestamp || new Date(0);
-  const endTime = mintRequest.validityEndTimestamp || tenYearsFromNow();
-
-  return {
-    uri,
-    currency,
-    uid,
-    price,
-    to: mintRequest.to,
-    royaltyRecipient: mintRequest.royaltyRecipient,
-    royaltyBps: mintRequest.royaltyBps,
-    primarySaleRecipient: mintRequest.primarySaleRecipient,
-    validityStartTimestamp: dateToSeconds(startTime),
-    validityEndTimestamp: dateToSeconds(endTime),
-  };
-}
-
-const randomBytesHex = (length = 32) => randomBytes(length).toString("hex");
-
 const tenYearsFromNow = () =>
   new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10);
 
-const dateToSeconds = (date: Date) => {
-  return BigInt(Math.floor(date.getTime() / 1000));
+const toSeconds = (date: Date) => {
+  return Math.floor(date.getTime() / 1000);
 };
