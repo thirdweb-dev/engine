@@ -121,7 +121,7 @@ describe("signaturePrepareRoute", () => {
             validityEndTimestamp: 1729194714,
             uid: "DO_NOT_ASSERT",
           },
-          primaryType: "MintRequest",
+          primaryType: "MintRequest" as const,
         },
       },
     };
@@ -133,5 +133,74 @@ describe("signaturePrepareRoute", () => {
     expected.result.typedDataPayload.message.uid = res.result.mintPayload.uid;
 
     expect(res).toEqual(expected);
+  });
+
+  test("Prepare a signature with provided hex uid", async () => {
+    const { engine, backendWallet } = await setup();
+
+    const res = await engine.erc721.erc721SignaturePrepare(
+      "84532",
+      "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
+      {
+        metadata: "ipfs://...",
+        validityEndTimestamp: 1729194714,
+        validityStartTimestamp: 1728589914,
+        to: backendWallet,
+        uid: "0x25d29226fc7c310ed308c1eea8a3ed2d9f660d873ba6348b6649da4cae3877a4",
+      },
+    );
+
+    expect(res.result.mintPayload.uid).toEqual(
+      "0x25d29226fc7c310ed308c1eea8a3ed2d9f660d873ba6348b6649da4cae3877a4",
+    );
+    expect(res.result.mintPayload.uid).toEqual(
+      "0x25d29226fc7c310ed308c1eea8a3ed2d9f660d873ba6348b6649da4cae3877a4",
+    );
+  });
+
+  test("Prepare a signature with string uid", async () => {
+    const { engine, backendWallet } = await setup();
+
+    const res = await engine.erc721.erc721SignaturePrepare(
+      "84532",
+      "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
+      {
+        metadata: "ipfs://...",
+        validityEndTimestamp: 1729194714,
+        validityStartTimestamp: 1728589914,
+        to: backendWallet,
+        uid: "my-test-uuid",
+      },
+    );
+
+    expect(res.result.mintPayload.uid).toEqual(
+      "0x6d792d746573742d757569640000000000000000000000000000000000000000",
+    );
+    expect(res.result.mintPayload.uid).toEqual(
+      "0x6d792d746573742d757569640000000000000000000000000000000000000000",
+    );
+  });
+
+  test("Prepare a signature with invalid hex uid", async () => {
+    const { engine, backendWallet } = await setup();
+
+    let threw = false;
+    try {
+      await engine.erc721.erc721SignaturePrepare(
+        "84532",
+        "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
+        {
+          metadata: "ipfs://...",
+          validityEndTimestamp: 1729194714,
+          validityStartTimestamp: 1728589914,
+          to: backendWallet,
+          uid: "0x25d29226fc7c310ed308c1eea8a3ed2d",
+        },
+      );
+    } catch {
+      threw = true;
+    }
+
+    expect(threw).toBeTrue();
   });
 });

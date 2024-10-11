@@ -276,7 +276,8 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
       let parsedUid: Hex;
       if (uid) {
         if (isHex(uid)) {
-          if (uid.length !== 64) {
+          // 0x + 32-byte hex
+          if (uid.length !== 66) {
             throw createCustomError(
               '"uid" must be a valid 32-byte hex string.',
               StatusCodes.BAD_REQUEST,
