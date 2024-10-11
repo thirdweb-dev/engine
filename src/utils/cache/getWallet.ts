@@ -10,6 +10,8 @@ import { splitAwsKmsArn } from "../../server/utils/wallets/awsKmsArn";
 import { splitGcpKmsResourcePath } from "../../server/utils/wallets/gcpKmsResourcePath";
 import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../../server/utils/wallets/getSmartWallet";
+import { decrypt } from "../crypto";
+import { env } from "../env";
 import { getConfig } from "./getConfig";
 
 export const walletsCache = new Map<string, EVMWallet>();
@@ -64,9 +66,9 @@ export const getWallet = async <TWallet extends EVMWallet>({
         walletDetails.awsKmsAccessKeyId ??
         config.walletConfiguration.aws?.awsAccessKeyId;
 
-      const secretAccessKey =
-        walletDetails.awsKmsSecretAccessKey ??
-        config.walletConfiguration.aws?.awsSecretAccessKey;
+      const secretAccessKey = walletDetails.awsKmsSecretAccessKey
+        ? decrypt(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
+        : config.walletConfiguration.aws?.awsSecretAccessKey;
 
       if (!(accessKeyId && secretAccessKey)) {
         throw new Error(
