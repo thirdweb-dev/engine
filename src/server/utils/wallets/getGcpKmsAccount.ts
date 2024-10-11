@@ -52,12 +52,12 @@ export async function getGcpKmsAccount(
     }
   }
 
-  // we had a bug previously where we previously called it "cryptoKeyVersion" instead of "cryptoKeyVersions"
+  // we had a bug previously where we previously called it "cryptoKeysVersion" instead of "cryptoKeyVersions"
   // if we detect that, we'll fix it here
   // TODO: remove this as a breaking change
   const name = unprocessedName.includes("cryptoKeyVersions")
     ? unprocessedName
-    : unprocessedName.replace("cryptoKeyVersion", "cryptoKeyVersions");
+    : unprocessedName.replace("cryptoKeysVersion", "cryptoKeyVersions");
 
   const signer = new CloudKmsSigner(name, clientOptions);
 
