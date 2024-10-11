@@ -97,9 +97,12 @@ export const getWallet = async <TWallet extends EVMWallet>({
       const email =
         walletDetails.gcpApplicationCredentialEmail ??
         config.walletConfiguration.gcp?.gcpApplicationCredentialEmail;
-      const privateKey =
-        walletDetails.gcpApplicationCredentialPrivateKey ??
-        config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey;
+      const privateKey = walletDetails.gcpApplicationCredentialPrivateKey
+        ? decrypt(
+            walletDetails.gcpApplicationCredentialPrivateKey,
+            env.ENCRYPTION_PASSWORD,
+          )
+        : config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey;
 
       if (!(email && privateKey)) {
         throw new Error(
