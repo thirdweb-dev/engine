@@ -56,8 +56,6 @@ export async function toEncryptedJson({
   const computedMac = keccak256(concatArray).substring(2);
 
   const address = privateKeyToAddress(ensureHexPrefix(privateKey));
-  console.log(address);
-
   const keystore: EncryptedKeystore = {
     address: address.slice(2),
     crypto: {
@@ -90,7 +88,6 @@ export async function decryptJsonWallet({
   privateKey: string;
   address: string;
 }> {
-  console.log(encryptedJson);
   const keystore: EncryptedKeystore = JSON.parse(encryptedJson);
 
   const salt = keystore.crypto.kdfparams.salt;

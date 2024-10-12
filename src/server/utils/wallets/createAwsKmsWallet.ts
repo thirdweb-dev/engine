@@ -18,11 +18,11 @@ export class CreateAwsKmsWalletError extends Error {}
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
  * Credentials (awsAccessKeyId and awsSecretAccessKey) are explicitly stored separately from the global configuration
  */
-export const createAndStoreAwsKmsWallet = async ({
+export const createAwsKmsWalletDetails = async ({
   label,
   ...overrides
 }: CreateAwsKmsWalletParams): Promise<string> => {
-  const { awsKmsArn, params } = await createAwsKmsWallet(overrides);
+  const { awsKmsArn, params } = await createAwsKmsKey(overrides);
 
   return importAwsKmsWallet({
     awsKmsArn,
@@ -39,9 +39,7 @@ export const createAndStoreAwsKmsWallet = async ({
  * All optional parameters are overrides for the configuration in the database
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
  */
-export const createAwsKmsWallet = async (
-  params: Partial<AwsKmsWalletParams>,
-) => {
+export const createAwsKmsKey = async (params: Partial<AwsKmsWalletParams>) => {
   let kmsWalletParams: AwsKmsWalletParams;
   try {
     kmsWalletParams = await fetchAwsKmsWalletParams(params);

@@ -22,12 +22,12 @@ export class CreateGcpKmsWalletError extends Error {}
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
  * Credentials (gcpApplicationCredentialEmail and gcpApplicationCredentialPrivateKey) are stored separately from the global configuration
  */
-export const createAndStoreGcpKmsWallet = async ({
+export const createGcpKmsWalletDetails = async ({
   label,
   ...overrides
 }: CreateGcpKmsWalletParams): Promise<string> => {
   const { walletAddress, resourcePath, params } =
-    await createGcpKmsWallet(overrides);
+    await createGcpKmsKey(overrides);
 
   await createWalletDetails({
     type: WalletType.gcpKms,
@@ -48,7 +48,7 @@ export const createAndStoreGcpKmsWallet = async ({
  * All optional parameters are overrides for the configuration in the database
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
  */
-export const createGcpKmsWallet = async (
+export const createGcpKmsKey = async (
   partialParams: Partial<GcpKmsWalletParams>,
 ) => {
   let params: GcpKmsWalletParams;

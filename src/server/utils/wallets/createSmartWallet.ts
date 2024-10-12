@@ -5,18 +5,18 @@ import { WalletType } from "../../../schema/wallet";
 import { thirdwebClient } from "../../../utils/sdk";
 import { splitAwsKmsArn } from "./awsKmsArn";
 import {
-  createAwsKmsWallet,
+  createAwsKmsKey,
   type CreateAwsKmsWalletParams,
 } from "./createAwsKmsWallet";
 import {
-  createGcpKmsWallet,
+  createGcpKmsKey,
   type CreateGcpKmsWalletParams,
 } from "./createGcpKmsWallet";
 import { createLocalWallet } from "./createLocalWallet";
 import { getAwsKmsAccount } from "./getAwsKmsAccount";
 import { getGcpKmsAccount } from "./getGcpKmsAccount";
 
-const createSmartWallet = async ({
+const getSmartWalletAddresses = async ({
   adminAccount,
   accountFactoryAddress,
 }: {
@@ -44,12 +44,12 @@ export type CreateSmartAwsWalletParams = CreateAwsKmsWalletParams & {
   accountFactoryAddress?: Address;
 };
 
-export const createAndStoreSmartAwsWallet = async ({
+export const createSmartAwsWalletDetails = async ({
   label,
   accountFactoryAddress,
   ...awsKmsWalletParams
 }: CreateSmartAwsWalletParams) => {
-  const awsKmsWallet = await createAwsKmsWallet(awsKmsWalletParams);
+  const awsKmsWallet = await createAwsKmsKey(awsKmsWalletParams);
 
   const { keyId } = splitAwsKmsArn(awsKmsWallet.awsKmsArn);
 
@@ -65,7 +65,7 @@ export const createAndStoreSmartAwsWallet = async ({
     },
   });
 
-  const smartAccountAddress = await createSmartWallet({
+  const smartAccountAddress = await getSmartWalletAddresses({
     adminAccount,
     accountFactoryAddress,
   });
@@ -88,12 +88,12 @@ export type CreateSmartGcpWalletParams = CreateGcpKmsWalletParams & {
   accountFactoryAddress?: Address;
 };
 
-export const createAndStoreSmartGcpWallet = async ({
+export const createSmartGcpWalletDetails = async ({
   label,
   accountFactoryAddress,
   ...gcpKmsWalletParams
 }: CreateSmartGcpWalletParams) => {
-  const gcpKmsWallet = await createGcpKmsWallet(gcpKmsWalletParams);
+  const gcpKmsWallet = await createGcpKmsKey(gcpKmsWalletParams);
 
   const adminAccount = await getGcpKmsAccount({
     client: thirdwebClient,
@@ -106,7 +106,7 @@ export const createAndStoreSmartGcpWallet = async ({
     },
   });
 
-  const smartAccountAddress = await createSmartWallet({
+  const smartAccountAddress = await getSmartWalletAddresses({
     adminAccount,
     accountFactoryAddress,
   });
@@ -130,13 +130,13 @@ export type CreateSmartLocalWalletParams = {
   accountFactoryAddress?: Address;
 };
 
-export const createAndStoreSmartLocalWallet = async ({
+export const createSmartLocalWalletDetails = async ({
   label,
   accountFactoryAddress,
 }: CreateSmartLocalWalletParams) => {
   const { account, encryptedJson } = await createLocalWallet();
 
-  const smartAccountAddress = await createSmartWallet({
+  const smartAccountAddress = await getSmartWalletAddresses({
     adminAccount: account,
     accountFactoryAddress,
   });

@@ -8,17 +8,17 @@ import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   CreateAwsKmsWalletError,
-  createAndStoreAwsKmsWallet,
+  createAwsKmsWalletDetails,
 } from "../../utils/wallets/createAwsKmsWallet";
 import {
   CreateGcpKmsWalletError,
-  createAndStoreGcpKmsWallet,
+  createGcpKmsWalletDetails,
 } from "../../utils/wallets/createGcpKmsWallet";
 import { createAndStoreLocalWallet } from "../../utils/wallets/createLocalWallet";
 import {
-  createAndStoreSmartAwsWallet,
-  createAndStoreSmartGcpWallet,
-  createAndStoreSmartLocalWallet,
+  createSmartAwsWalletDetails,
+  createSmartGcpWalletDetails,
+  createSmartLocalWalletDetails,
 } from "../../utils/wallets/createSmartWallet";
 
 const requestBodySchema = Type.Object({
@@ -81,7 +81,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           break;
         case WalletType.awsKms:
           try {
-            walletAddress = await createAndStoreAwsKmsWallet({ label });
+            walletAddress = await createAwsKmsWalletDetails({ label });
           } catch (e) {
             if (e instanceof CreateAwsKmsWalletError) {
               throw createCustomError(
@@ -95,7 +95,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           break;
         case WalletType.gcpKms:
           try {
-            walletAddress = await createAndStoreGcpKmsWallet({ label });
+            walletAddress = await createGcpKmsWalletDetails({ label });
           } catch (e) {
             if (e instanceof CreateGcpKmsWalletError) {
               throw createCustomError(
@@ -109,7 +109,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           break;
         case WalletType.smartAwsKms:
           try {
-            const smartAwsWallet = await createAndStoreSmartAwsWallet({
+            const smartAwsWallet = await createSmartAwsWalletDetails({
               label,
             });
 
@@ -127,7 +127,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           break;
         case WalletType.smartGcpKms:
           try {
-            const smartGcpWallet = await createAndStoreSmartGcpWallet({
+            const smartGcpWallet = await createSmartGcpWalletDetails({
               label,
             });
             walletAddress = smartGcpWallet.address;
@@ -144,7 +144,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           break;
         case WalletType.smartLocal:
           walletAddress = (
-            await createAndStoreSmartLocalWallet({
+            await createSmartLocalWalletDetails({
               label,
             })
           ).address;
