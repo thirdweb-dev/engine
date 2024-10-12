@@ -50,11 +50,6 @@ export const getLocalWallet = async ({
 
     // If that works, save the wallet using the encryption password for the future
     const walletDetails = await getWalletDetails({ address: walletAddress });
-    if (!walletDetails) {
-      throw new Error(
-        `Wallet details not found for wallet address ${walletAddress}`,
-      );
-    }
 
     logger({
       service: "worker",
@@ -80,11 +75,7 @@ export const getLocalWalletAccount = async (
 ): Promise<Account> => {
   const walletDetails = await getWalletDetails({ address: walletAddress });
 
-  if (
-    !walletDetails ||
-    walletDetails.type !== "local" ||
-    !walletDetails.encryptedJson
-  ) {
+  if (walletDetails.type !== "local") {
     throw new Error(`Local Wallet not found for address ${walletAddress}`);
   }
 
