@@ -3,7 +3,6 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Hex } from "thirdweb";
 import { getAccount } from "../../../utils/account";
-import { prettifyError } from "../../../utils/error";
 import {
   getChecksumAddress,
   maybeBigInt,
@@ -72,32 +71,22 @@ export async function signTransaction(fastify: FastifyInstance) {
       }
 
       // @TODO: Assert type to viem TransactionSerializable.
-      let serializableTransaction: any;
-      try {
-        serializableTransaction = {
-          chainId: transaction.chainId,
-          to: getChecksumAddress(transaction.to),
-          nonce: maybeInt(transaction.nonce),
-          gas: maybeBigInt(transaction.gasLimit),
-          gasPrice: maybeBigInt(transaction.gasPrice),
-          data: transaction.data as Hex | undefined,
-          value: maybeBigInt(transaction.value),
-          type: transaction.type
-            ? toTransactionType(transaction.type)
-            : undefined,
-          accessList: transaction.accessList,
-          maxFeePerGas: maybeBigInt(transaction.maxFeePerGas),
-          maxPriorityFeePerGas: maybeBigInt(transaction.maxPriorityFeePerGas),
-          ccipReadEnabled: transaction.ccipReadEnabled,
-        };
-      } catch (e) {
-        throw createCustomError(
-          `Failed to serialize transaction: ${prettifyError(e)}`,
-          StatusCodes.BAD_REQUEST,
-          "INVALID_TRANSACTION",
-        );
-      }
-
+      const serializableTransaction: any = {
+        chainId: transaction.chainId,
+        to: getChecksumAddress(transaction.to),
+        nonce: maybeInt(transaction.nonce),
+        gas: maybeBigInt(transaction.gasLimit),
+        gasPrice: maybeBigInt(transaction.gasPrice),
+        data: transaction.data as Hex | undefined,
+        value: maybeBigInt(transaction.value),
+        type: transaction.type
+          ? toTransactionType(transaction.type)
+          : undefined,
+        accessList: transaction.accessList,
+        maxFeePerGas: maybeBigInt(transaction.maxFeePerGas),
+        maxPriorityFeePerGas: maybeBigInt(transaction.maxPriorityFeePerGas),
+        ccipReadEnabled: transaction.ccipReadEnabled,
+      };
       const signature = await account.signTransaction(serializableTransaction);
 
       reply.status(StatusCodes.OK).send({
