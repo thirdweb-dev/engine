@@ -6,20 +6,32 @@ import { kill } from "node:process";
 const ENGINE_OPENAPI_URL = "http://localhost:3005/json";
 const REPLACE_LOG_FILE = "sdk/replacement_log.txt";
 
+type BasicOpenAPISpec = {
+  paths?: {
+    [path: string]: {
+      [method: string]: {
+        operationId?: string;
+      };
+    };
+  };
+};
+
 function generateOperationIdMappings(
-  oldSpec: any,
-  newSpec: any,
+  oldSpec: BasicOpenAPISpec,
+  newSpec: BasicOpenAPISpec,
 ): Record<string, string> {
   const mappings: Record<string, string> = {};
 
-  for (const [path, methods] of Object.entries(newSpec.paths)) {
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    for (const [method, details] of Object.entries(methods as any)) {
-      if (details.operationId && oldSpec.paths[path]?.[method]?.operationId) {
-        const newId = details.operationId;
-        const oldId = oldSpec.paths[path][method].operationId;
-        if (newId !== oldId) {
-          mappings[newId] = oldId;
+  if (newSpec.paths && oldSpec.paths) {
+    for (const [path, pathItem] of Object.entries(newSpec.paths)) {
+      for (const [method, operation] of Object.entries(pathItem)) {
+        const oldOperation = oldSpec.paths[path]?.[method];
+        if (
+          operation.operationId &&
+          oldOperation?.operationId &&
+          operation.operationId !== oldOperation.operationId
+        ) {
+          mappings[operation.operationId] = oldOperation.operationId;
         }
       }
     }
@@ -101,7 +113,10 @@ async function main(): Promise<void> {
 
     fs.writeFileSync("openapi.json", JSON.stringify(newSpec, null, 2), "utf-8");
 
-    const operationIdMappings = generateOperationIdMappings(oldSpec, newSpec);
+    const operationIdMappings = generateOperationIdMappings(
+      oldSpec,
+      newSpec as BasicOpenAPISpec,
+    );
 
     execSync(
       "yarn openapi --input ./openapi.json --output ./sdk/src --name Engine",
