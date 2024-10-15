@@ -72,15 +72,16 @@ export async function getGcpKmsAccount(
 
     const r = signature.r.toString() as Hex;
     const s = signature.s.toString() as Hex;
-    const v = signature.v;
+    const v = BigInt(signature.v);
 
-    const yParity = v % 2 === 0 ? 1 : (0 as 0 | 1);
+    const yParity = signature.v % 2 === 0 ? 1 : (0 as 0 | 1);
 
     const signedTx = serializeTransaction({
       transaction: tx,
       signature: {
         r,
         s,
+        v,
         yParity,
       },
     });
