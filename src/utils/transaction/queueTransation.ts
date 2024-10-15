@@ -1,11 +1,12 @@
 import type { Static } from "@sinclair/typebox";
 import { StatusCodes } from "http-status-codes";
 import {
+  encode,
   type Address,
   type Hex,
   type PreparedTransaction,
-  encode,
 } from "thirdweb";
+import { resolvePromisedValue } from "thirdweb/utils";
 import { createCustomError } from "../../server/middleware/error";
 import type { txOverridesWithValueSchema } from "../../server/schemas/txOverrides";
 import { parseTransactionOverrides } from "../../server/utils/transactionOverrides";
@@ -19,13 +20,22 @@ export type QueuedTransactionParams = {
   toAddress: Address | undefined;
   accountAddress: Address | undefined;
   accountFactoryAddress: Address | undefined;
+  accountSalt: string | undefined;
   txOverrides?: Static<
     typeof txOverridesWithValueSchema.properties.txOverrides
   >;
   idempotencyKey?: string;
   shouldSimulate?: boolean;
+  functionName?: string;
 };
 
+/**
+ * Encodes a transaction to generate data, and inserts it into the transaction queue using the insertTransaction()
+ *
+ * Note:
+ *  - functionName must be be provided to populate the functionName field in the queued transaction
+ *  - value and chain details are resolved from the transaction
+ */
 export async function queueTransaction(args: QueuedTransactionParams) {
   const {
     transaction,
@@ -33,9 +43,11 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     toAddress,
     accountAddress,
     accountFactoryAddress,
+    accountSalt,
     txOverrides,
     idempotencyKey,
     shouldSimulate,
+    functionName,
   } = args;
 
   let data: Hex;
@@ -54,9 +66,9 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     from: fromAddress,
     to: toAddress,
     data,
-
+    functionName: functionName,
+    value: await resolvePromisedValue(transaction.value),
     ...parseTransactionOverrides(txOverrides),
-
     ...(accountAddress
       ? {
           isUserOp: true,
@@ -64,6 +76,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
           signerAddress: fromAddress,
           target: toAddress,
           accountFactoryAddress,
+          accountSalt,
         }
       : { isUserOp: false }),
   };

@@ -67,6 +67,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -99,6 +100,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       });
 
       const queueId = await queueTransaction({
+        functionName,
         transaction,
         fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
         toAddress: maybeAddress(contractAddress, "to"),
@@ -107,6 +109,7 @@ export async function writeToContract(fastify: FastifyInstance) {
           accountFactoryAddress,
           "x-account-factory-address",
         ),
+        accountSalt,
         txOverrides,
         idempotencyKey,
         shouldSimulate: simulateTx,

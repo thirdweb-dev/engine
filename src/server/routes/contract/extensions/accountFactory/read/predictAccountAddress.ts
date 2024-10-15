@@ -1,7 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { predictAddress } from "thirdweb/wallets/smart";
+import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
 import { AddressSchema } from "../../../../../schemas/address";
 import {
   contractParamSchema,
@@ -22,7 +23,8 @@ const QuerySchema = Type.Object({
   },
   extraData: Type.Optional(
     Type.String({
-      description: "Extra data to add to use in predicting the account address",
+      description:
+        "Extra data (account salt) to add to use in predicting the account address",
     }),
   ),
 });
@@ -51,16 +53,16 @@ export const predictAccountAddress = async (fastify: FastifyInstance) => {
       const { chain, contractAddress } = request.params;
       const { adminAddress, extraData } = request.query;
       const chainId = await getChainIdFromChain(chain);
-
-      const contract = await getContract({
+      const factoryContract = await getContractV5({
         chainId,
         contractAddress,
       });
-      const accountAddress =
-        await contract.accountFactory.predictAccountAddress(
-          adminAddress,
-          extraData,
-        );
+
+      const accountAddress = await predictAddress({
+        factoryContract,
+        adminAddress,
+        accountSalt: extraData,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: accountAddress,

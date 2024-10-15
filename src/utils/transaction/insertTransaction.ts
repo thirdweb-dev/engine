@@ -47,6 +47,7 @@ export const insertTransaction = async (
     to: getChecksumAddress(insertedTransaction.to),
     signerAddress: getChecksumAddress(insertedTransaction.signerAddress),
     accountAddress: getChecksumAddress(insertedTransaction.accountAddress),
+    accountSalt: insertedTransaction.accountSalt,
     target: getChecksumAddress(insertedTransaction.target),
     sender: getChecksumAddress(insertedTransaction.sender),
     value: insertedTransaction.value ?? 0n,

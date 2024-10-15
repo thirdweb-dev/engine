@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { getAddress, type Address } from "thirdweb";
+import { type Address, getAddress } from "thirdweb";
 import { env } from "../../../utils/env";
 import { badAddressError } from "../../middleware/error";
 import { AddressSchema } from "../address";
@@ -27,6 +27,12 @@ export const walletWithAAHeaderSchema = Type.Object({
     description:
       "Smart account factory address. If omitted, Engine will try to resolve it from the contract.",
   }),
+  "x-account-salt": Type.Optional(
+    Type.String({
+      description:
+        "Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.",
+    }),
+  ),
 });
 
 /**

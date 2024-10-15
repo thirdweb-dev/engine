@@ -11,6 +11,6 @@
   "type": "module",
   "dependencies": {
     "prool": "^0.0.16",
-    "thirdweb": "^5.43.2"
+    "thirdweb": "^5.61.5"
   }
 }
