@@ -3,65 +3,41 @@ import fs from "node:fs";
 import path from "node:path";
 import { kill } from "node:process";
 
-// requires engine to be running locally
 const ENGINE_OPENAPI_URL = "http://localhost:3005/json";
+const REPLACE_LOG_FILE = "sdk/replacement_log.txt";
 
-const OPERATION_ID_MAPPINGS = {
-  createWebhook: "create",
-  listWebhooks: "getAll",
-  listTransactions: "getAll",
-  createRelayer: "create",
-  listRelayers: "getAll",
-  revokeRelayer: "revoke",
-  updateRelayer: "update",
-  getContractEvents: "getEvents",
-  getContractRole: "getRole",
-  listContractRoles: "getAll",
-  grantContractRole: "grant",
-  revokeContractRole: "revoke",
-  getAllDirectListings: "getAll",
-  getAllValidDirectListings: "getAllValid",
-  getDirectListing: "getListing",
-  getDirectListingsTotalCount: "getTotalCount",
-  isBuyerApprovedForDirectListings: "isBuyerApprovedForListing",
-  isCurrencyApprovedForDirectListings: "isCurrencyApprovedForListing",
-  buyFromDirectListing: "buyFromListing",
-  cancelDirectListing: "cancelListing",
-  createDirectListing: "createListing",
-  updateDirectListing: "updateListing",
-  getAllEnglishAuctions: "getAll",
-  getAllValidEnglishAuctions: "getAllValid",
-  getEnglishAuction: "getAuction",
-  getEnglishAuctionsBidBufferBps: "getBidBufferBps",
-  getEnglishAuctionsMinimumNextBid: "getMinimumNextBid",
-  getEnglishAuctionsTotalCount: "getTotalCount",
-  getEnglishAuctionsWinner: "getWinner",
-  getEnglishAuctionsWinningBid: "getWinningBid",
-  isEnglishAuctionsWinningBid: "isWinningBid",
-  buyoutEnglishAuction: "buyoutAuction",
-  cancelEnglishAuction: "cancelAuction",
-  closeEnglishAuctionForBidder: "closeAuctionForBidder",
-  closeEnglishAuctionForSeller: "closeAuctionForSeller",
-  createEnglishAuction: "createAuction",
-  executeEnglishAuctionSale: "executeSale",
-  makeEnglishAuctionBid: "makeBid",
-  getAllMarketplaceOffers: "getAll",
-  getAllValidMarketplaceOffers: "getAllValid",
-  getMarketplaceOffer: "getOffer",
-  getMarketplaceOffersTotalCount: "getTotalCount",
-  acceptMarketplaceOffer: "acceptOffer",
-  cancelMarketplaceOffer: "cancelOffer",
-  makeMarketplaceOffer: "makeOffer",
-};
+function generateOperationIdMappings(
+  oldSpec: any,
+  newSpec: any,
+): Record<string, string> {
+  const mappings: Record<string, string> = {};
+
+  for (const [path, methods] of Object.entries(newSpec.paths)) {
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    for (const [method, details] of Object.entries(methods as any)) {
+      if (details.operationId && oldSpec.paths[path]?.[method]?.operationId) {
+        const newId = details.operationId;
+        const oldId = oldSpec.paths[path][method].operationId;
+        if (newId !== oldId) {
+          mappings[newId] = oldId;
+        }
+      }
+    }
+  }
+
+  console.log("Operation ID mappings:", mappings);
+  return mappings;
+}
 
 function applyOperationIdMappings(
   originalCode: string,
   fileName: string,
+  mappings: Record<string, string>,
 ): string {
   const replacementLog: string[] = [];
   let newCode: string = originalCode;
 
-  for (const [newId, oldId] of Object.entries(OPERATION_ID_MAPPINGS)) {
+  for (const [newId, oldId] of Object.entries(mappings)) {
     const regex: RegExp = new RegExp(`public\\s+${newId}\\(`, "g");
     const methods = newCode.match(regex);
 
@@ -78,7 +54,7 @@ function applyOperationIdMappings(
     }
   }
 
-  fs.appendFileSync("replacement_log.txt", `${replacementLog.join("\n")}\n`);
+  fs.appendFileSync(REPLACE_LOG_FILE, `${replacementLog.join("\n")}\n`);
   return newCode;
 }
 
@@ -108,39 +84,41 @@ function processErcServices(
     }
   }
 
-  fs.appendFileSync("replacement_log.txt", `${replacementLog.join("\n")}\n`);
+  fs.appendFileSync(REPLACE_LOG_FILE, `${replacementLog.join("\n")}\n`);
   return newCode;
 }
 
-async function main() {
+async function main(): Promise<void> {
   try {
-    // Clear the log file
-    fs.writeFileSync("replacement_log.txt", "");
+    fs.writeFileSync(REPLACE_LOG_FILE, "");
 
-    const response = await fetch(ENGINE_OPENAPI_URL);
-    const jsonData = await response.json();
-
-    fs.writeFileSync(
-      "openapi.json",
-      JSON.stringify(jsonData, null, 2),
-      "utf-8",
+    const oldSpec = JSON.parse(
+      fs.readFileSync("sdk/old_openapi.json", "utf-8"),
     );
+
+    const response: Response = await fetch(ENGINE_OPENAPI_URL);
+    const newSpec: unknown = await response.json();
+
+    fs.writeFileSync("openapi.json", JSON.stringify(newSpec, null, 2), "utf-8");
+
+    const operationIdMappings = generateOperationIdMappings(oldSpec, newSpec);
 
     execSync(
       "yarn openapi --input ./openapi.json --output ./sdk/src --name Engine",
     );
 
-    const engineCode = fs
+    const engineCode: string = fs
       .readFileSync("./sdk/src/Engine.ts", "utf-8")
-      .replace("export class Engine", "class EngineLogic")
-      .concat(`
+      .replace("export class Engine", "class EngineLogic");
+
+    const newEngineCode: string = `${engineCode}
 export class Engine extends EngineLogic {
   constructor(config: { url: string; accessToken: string; }) {
     super({ BASE: config.url, TOKEN: config.accessToken });
   }
 }
-`);
-    fs.writeFileSync("./sdk/src/Engine.ts", engineCode);
+`;
+    fs.writeFileSync("./sdk/src/Engine.ts", newEngineCode);
 
     const servicesDir: string = "./sdk/src/services";
     const serviceFiles: string[] = fs.readdirSync(servicesDir);
@@ -165,13 +143,17 @@ export class Engine extends EngineLogic {
         const filePath: string = path.join(servicesDir, file);
         const originalCode: string = fs.readFileSync(filePath, "utf-8");
 
-        const newCode = applyOperationIdMappings(originalCode, file);
+        const newCode = applyOperationIdMappings(
+          originalCode,
+          file,
+          operationIdMappings,
+        );
 
         fs.writeFileSync(filePath, newCode);
       }
     }
 
-    console.log("Replacements have been logged to replacement_log.txt");
+    console.log("Replacements have been logged to sdk/replacement_log.txt");
   } catch (error) {
     console.error("Error:", error);
     kill(process.pid, "SIGINT");
