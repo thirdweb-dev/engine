@@ -673,17 +673,17 @@ export class Erc20Service {
      * @returns any Default Response
      * @throws ApiError
      */
-    public erc20Transfer(
+    public transfer(
         chain: string,
         contractAddress: string,
         xBackendWalletAddress: string,
         requestBody: {
             /**
-             * Address of the wallet you want to send the tokens to
+             * The recipient address.
              */
             toAddress: string;
             /**
-             * The amount of tokens you want to send
+             * The amount of tokens to transfer.
              */
             amount: string;
             txOverrides?: {
@@ -770,15 +770,15 @@ export class Erc20Service {
         xBackendWalletAddress: string,
         requestBody: {
             /**
-             * Address of the wallet sending the tokens
+             * The sender address.
              */
             fromAddress: string;
             /**
-             * Address of the wallet you want to send the tokens to
+             * The recipient address.
              */
             toAddress: string;
             /**
-             * The amount of tokens you want to send
+             * The amount of tokens to transfer.
              */
             amount: string;
             txOverrides?: {

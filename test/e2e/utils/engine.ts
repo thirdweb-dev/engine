@@ -1,7 +1,7 @@
-import { getAddress } from "viem";
+import { checksumAddress } from "thirdweb/utils";
 import { Engine } from "../../../sdk";
 import { CONFIG } from "../config";
-import { ANVIL_PKEY_A, TEST_ACCOUNT_A } from "./wallets";
+import { ANVIL_PKEY_A, ANVIL_PKEY_B } from "./wallets";
 
 export const setupEngine = () => {
   return new Engine({
@@ -44,19 +44,17 @@ export const createChain = async (engine: Engine) => {
 };
 
 export const getEngineBackendWallet = async (engine: Engine) => {
-  const res = await engine.backendWallet.getAll();
-  if (
-    !res.result.find((r) => r.address.toLowerCase() === TEST_ACCOUNT_A.address)
-  ) {
-    console.log("Creating backend wallet");
-    const newWallet = await engine.backendWallet.import({
-      privateKey: ANVIL_PKEY_A,
-    });
-    console.log("Created new wallet", newWallet.result.walletAddress);
+  const { result } = await engine.backendWallet.import({
+    label: "Anvil test wallet A",
+    privateKey: ANVIL_PKEY_A,
+  });
+  return checksumAddress(result.walletAddress);
+};
 
-    return getAddress(newWallet.result.walletAddress);
-  }
-
-  console.log("Using existing wallet", res.result[0].address);
-  return getAddress(res.result[0].address);
+export const getEngineBackendWalletB = async (engine: Engine) => {
+  const { result } = await engine.backendWallet.import({
+    label: "Anvil test wallet B",
+    privateKey: ANVIL_PKEY_B,
+  });
+  return checksumAddress(result.walletAddress);
 };
