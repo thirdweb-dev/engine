@@ -1,13 +1,13 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "thirdweb";
+import { getContract, type Hex } from "thirdweb";
 import { safeTransferFrom } from "thirdweb/extensions/erc1155";
 import { getChain } from "../../../../../../utils/chain";
 import { getChecksumAddress } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
-import { AddressSchema } from "../../../../../schemas/address";
+import { AddressSchema, HexSchema } from "../../../../../schemas/address";
 import { NumberStringSchema } from "../../../../../schemas/number";
 import {
   erc1155ContractParamSchema,
@@ -38,6 +38,7 @@ const requestBodySchema = Type.Object({
     ...NumberStringSchema,
     description: "The amount of tokens to transfer.",
   },
+  data: Type.Optional(HexSchema),
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -79,7 +80,7 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { from, to, tokenId, amount, txOverrides } = request.body;
+      const { from, to, tokenId, amount, data, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
@@ -101,7 +102,7 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
         to: getChecksumAddress(to),
         tokenId: BigInt(tokenId),
         value: BigInt(amount),
-        data: "0x",
+        data: (data as Hex | undefined) ?? "0x",
       });
 
       const queueId = await queueTransaction({

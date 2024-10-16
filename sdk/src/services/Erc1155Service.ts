@@ -1743,17 +1743,21 @@ export class Erc1155Service {
         xBackendWalletAddress: string,
         requestBody: {
             /**
-             * Address of the wallet to transfer to
+             * The recipient address.
              */
             to: string;
             /**
-             * the tokenId to transfer
+             * The token ID to transfer.
              */
             tokenId: string;
             /**
-             * the amount of tokens to transfer
+             * The amount of tokens to transfer.
              */
             amount: string;
+            /**
+             * A valid hex string
+             */
+            data?: string;
             txOverrides?: {
                 /**
                  * Gas limit for the transaction
@@ -1838,21 +1842,25 @@ export class Erc1155Service {
         xBackendWalletAddress: string,
         requestBody: {
             /**
-             * Address of the token owner
+             * The sender address.
              */
             from: string;
             /**
-             * Address of the wallet to transferFrom to
+             * The recipient address.
              */
             to: string;
             /**
-             * the tokenId to transferFrom
+             * The token ID to transfer.
              */
             tokenId: string;
             /**
-             * the amount of tokens to transfer
+             * The amount of tokens to transfer.
              */
             amount: string;
+            /**
+             * A valid hex string
+             */
+            data?: string;
             txOverrides?: {
                 /**
                  * Gas limit for the transaction

@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { kill } from "node:process";
 
-const ENGINE_OPENAPI_URL = "https://demo.web3api.thirdweb.com/json";
+const ENGINE_OPENAPI_URL = "http://127.0.0.1:3010/json";
 const REPLACE_LOG_FILE = "sdk/replacement_log.txt";
 
 type BasicOpenAPISpec = {

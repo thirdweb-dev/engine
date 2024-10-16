@@ -735,11 +735,11 @@ export class Erc721Service {
         xBackendWalletAddress: string,
         requestBody: {
             /**
-             * Address of the wallet to transfer to
+             * The recipient address.
              */
             to: string;
             /**
-             * The tokenId to transfer
+             * The token ID to transfer.
              */
             tokenId: string;
             txOverrides?: {
@@ -826,15 +826,15 @@ export class Erc721Service {
         xBackendWalletAddress: string,
         requestBody: {
             /**
-             * Address of the token owner
+             * The sender address.
              */
             from: string;
             /**
-             * Address of the wallet to transferFrom to
+             * The recipient address.
              */
             to: string;
             /**
-             * the tokenId to transferFrom
+             * The token ID to transfer.
              */
             tokenId: string;
             txOverrides?: {

@@ -421,7 +421,7 @@ export class BackendWalletService {
              */
             transactionHash: string;
             /**
-             * An amount in native token (decimals allowed). Example: "1.5"
+             * An amount in native token (decimals allowed). Example: "0.1"
              */
             amount: string;
         };
