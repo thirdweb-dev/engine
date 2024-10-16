@@ -8,6 +8,7 @@ import { getChecksumAddress } from "../../../../../../utils/primitiveTypes";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
 import { AddressSchema } from "../../../../../schemas/address";
+import { NumberStringSchema } from "../../../../../schemas/number";
 import {
   erc1155ContractParamSchema,
   requestQuerystringSchema,
@@ -23,18 +24,20 @@ const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   from: {
     ...AddressSchema,
-    description: "Address of the token owner",
+    description: "The sender address.",
   },
   to: {
     ...AddressSchema,
-    description: "Address of the wallet to transfer to",
+    description: "The recipient address.",
   },
-  tokenId: Type.String({
-    description: "the tokenId to transferFrom",
-  }),
-  amount: Type.String({
-    description: "the amount of tokens to transfer",
-  }),
+  tokenId: {
+    ...NumberStringSchema,
+    description: "The token ID to transfer.",
+  },
+  amount: {
+    ...NumberStringSchema,
+    description: "The amount of tokens to transfer.",
+  },
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -94,8 +97,8 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
 
       const transaction = safeTransferFrom({
         contract,
-        from,
-        to,
+        from: getChecksumAddress(from),
+        to: getChecksumAddress(to),
         tokenId: BigInt(tokenId),
         value: BigInt(amount),
         data: "0x",
@@ -104,7 +107,7 @@ export async function erc1155transferFrom(fastify: FastifyInstance) {
       const queueId = await queueTransaction({
         transaction,
         fromAddress: getChecksumAddress(walletAddress),
-        toAddress: getChecksumAddress(to),
+        toAddress: getChecksumAddress(contractAddress),
         accountAddress: getChecksumAddress(accountAddress),
         accountFactoryAddress: getChecksumAddress(accountFactoryAddress),
         accountSalt,
