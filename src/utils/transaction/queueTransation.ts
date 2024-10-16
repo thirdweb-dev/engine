@@ -26,7 +26,10 @@ export type QueuedTransactionParams = {
   >;
   idempotencyKey?: string;
   shouldSimulate?: boolean;
+  /** For display purposes only. */
   functionName?: string;
+  /** For display purposes only. */
+  extension?: string;
 };
 
 /**
@@ -48,6 +51,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     idempotencyKey,
     shouldSimulate,
     functionName,
+    extension,
   } = args;
 
   let data: Hex;
@@ -66,8 +70,9 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     from: fromAddress,
     to: toAddress,
     data,
-    functionName: functionName,
     value: await resolvePromisedValue(transaction.value),
+    functionName,
+    extension,
     ...parseTransactionOverrides(txOverrides),
     ...(accountAddress
       ? {

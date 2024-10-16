@@ -1,8 +1,13 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { getContract } from "thirdweb";
+import { safeTransferFrom } from "thirdweb/extensions/erc1155";
+import { getChain } from "../../../../../../utils/chain";
+import { getChecksumAddress } from "../../../../../../utils/primitiveTypes";
+import { thirdwebClient } from "../../../../../../utils/sdk";
+import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
+import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc1155ContractParamSchema,
   requestQuerystringSchema,
@@ -16,9 +21,10 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
-  to: Type.String({
+  to: {
+    ...AddressSchema,
     description: "Address of the wallet to transfer to",
-  }),
+  },
   tokenId: Type.String({
     description: "the tokenId to transfer",
   }),
@@ -67,24 +73,38 @@ export async function erc1155transfer(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
-        chainId,
-        contractAddress,
-        walletAddress,
-        accountAddress,
+        client: thirdwebClient,
+        chain: await getChain(chainId),
+        address: contractAddress,
       });
-      const tx = await contract.erc1155.transfer.prepare(to, tokenId, amount);
 
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
-        extension: "erc1155",
-        idempotencyKey,
+      const transaction = safeTransferFrom({
+        contract,
+        from: getChecksumAddress(walletAddress),
+        to,
+        tokenId: BigInt(tokenId),
+        value: BigInt(amount),
+        data: "0x",
+      });
+
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: getChecksumAddress(walletAddress),
+        toAddress: getChecksumAddress(to),
+        accountAddress: getChecksumAddress(accountAddress),
+        accountFactoryAddress: getChecksumAddress(accountFactoryAddress),
+        accountSalt,
         txOverrides,
+        idempotencyKey,
+        shouldSimulate: simulateTx,
+        functionName: "safeTransferFrom",
+        extension: "erc1155",
       });
 
       reply.status(StatusCodes.OK).send({
