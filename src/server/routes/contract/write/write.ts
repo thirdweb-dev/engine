@@ -1,4 +1,4 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
@@ -100,6 +100,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       });
 
       const queueId = await queueTransaction({
+        functionName,
         transaction,
         fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
         toAddress: maybeAddress(contractAddress, "to"),

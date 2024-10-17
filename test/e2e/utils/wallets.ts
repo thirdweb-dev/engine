@@ -18,3 +18,8 @@ export const TEST_ACCOUNT_A = privateKeyToAccount({
   client,
   privateKey: ANVIL_PKEY_A,
 });
+
+export const TEST_ACCOUNT_B = privateKeyToAccount({
+  client,
+  privateKey: ANVIL_PKEY_B,
+});
