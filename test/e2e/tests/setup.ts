@@ -6,7 +6,7 @@ import {
   setupEngine,
 } from "../utils/engine";
 
-import type { Address } from "viem";
+import type { Address } from "thirdweb";
 import { CONFIG } from "../config";
 import { startAnvil, stopAnvil } from "../utils/anvil";
 

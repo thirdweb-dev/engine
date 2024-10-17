@@ -45,7 +45,6 @@ describe("Write Tests", () => {
     expect(transactionStatus.minedAt).toBeDefined();
     assert(res.result.deployedAddress, "deployedAddress must be defined");
     tokenContractAddress = res.result.deployedAddress;
-    console.log("tokenContractAddress", tokenContractAddress);
   });
 
   test("Write to a contract with function name", async () => {

@@ -1,18 +1,18 @@
-import { Worker, type Job, type Processor } from "bullmq";
+import { type Job, type Processor, Worker } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
 import {
+  type Hex,
   getAddress,
   getContract,
   readContract,
   toSerializableTransaction,
-  type Hex,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import {
+  type UserOperation,
   bundleUserOp,
   createAndSignUserOp,
-  type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
@@ -48,8 +48,8 @@ import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import {
-  SendTransactionQueue,
   type SendTransactionData,
+  SendTransactionQueue,
 } from "../queues/sendTransactionQueue";
 
 /**
@@ -146,6 +146,7 @@ const _sendUserOp = async (
     chainId,
     from,
     accountFactoryAddress: userProvidedAccountFactoryAddress,
+    accountSalt,
     overrides,
   } = queuedTransaction;
   const chain = await getChain(chainId);
@@ -204,6 +205,7 @@ const _sendUserOp = async (
         factoryAddress: accountFactoryAddress,
         overrides: {
           accountAddress,
+          accountSalt,
           // TODO: let user pass entrypoint address for 0.7 support
         },
       },

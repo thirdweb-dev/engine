@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
@@ -71,6 +71,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -94,6 +95,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
           accountFactoryAddress,
           "x-account-factory-address",
         ),
+        accountSalt,
         txOverrides,
         idempotencyKey,
         shouldSimulate: simulateTx,

@@ -1,8 +1,14 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { getContract } from "thirdweb";
+import { transferFrom } from "thirdweb/extensions/erc721";
+import { getChain } from "../../../../../../utils/chain";
+import { getChecksumAddress } from "../../../../../../utils/primitiveTypes";
+import { thirdwebClient } from "../../../../../../utils/sdk";
+import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
+import { AddressSchema } from "../../../../../schemas/address";
+import { NumberStringSchema } from "../../../../../schemas/number";
 import {
   contractParamSchema,
   requestQuerystringSchema,
@@ -13,15 +19,16 @@ import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
 import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-// INPUTS
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  to: Type.String({
-    description: "Address of the wallet to transfer to",
-  }),
-  tokenId: Type.String({
-    description: "The tokenId to transfer",
-  }),
+  to: {
+    ...AddressSchema,
+    description: "The recipient address.",
+  },
+  tokenId: {
+    ...NumberStringSchema,
+    description: "The token ID to transfer.",
+  },
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -63,24 +70,36 @@ export async function erc721transfer(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
-        chainId,
-        contractAddress,
-        walletAddress,
-        accountAddress,
+        client: thirdwebClient,
+        chain: await getChain(chainId),
+        address: contractAddress,
       });
-      const tx = await contract.erc721.transfer.prepare(to, tokenId);
 
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
-        extension: "erc721",
-        idempotencyKey,
+      const transaction = transferFrom({
+        contract,
+        from: getChecksumAddress(walletAddress),
+        to: getChecksumAddress(to),
+        tokenId: BigInt(tokenId),
+      });
+
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: getChecksumAddress(walletAddress),
+        toAddress: getChecksumAddress(contractAddress),
+        accountAddress: getChecksumAddress(accountAddress),
+        accountFactoryAddress: getChecksumAddress(accountFactoryAddress),
+        accountSalt,
         txOverrides,
+        idempotencyKey,
+        shouldSimulate: simulateTx,
+        functionName: "transferFrom",
+        extension: "erc721",
       });
 
       reply.status(StatusCodes.OK).send({
