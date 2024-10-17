@@ -1,9 +1,9 @@
+import { encryptKeystore } from "@ethersproject/json-wallets";
 import { privateKeyToAccount } from "thirdweb/wallets";
 import { generatePrivateKey } from "viem/accounts";
 import { createWalletDetails } from "../../../db/wallets/createWalletDetails";
 import { env } from "../../../utils/env";
 import { thirdwebClient } from "../../../utils/sdk";
-import { toEncryptedJson } from "./legacyLocalCrypto";
 
 interface CreateLocalWallet {
   label?: string;
@@ -20,10 +20,13 @@ export const createLocalWallet = async () => {
     privateKey: pk,
   });
 
-  const encryptedJsonData = await toEncryptedJson({
-    password: env.ENCRYPTION_PASSWORD,
-    privateKey: pk,
-  });
+  const encryptedJsonData = await encryptKeystore(
+    {
+      address: account.address,
+      privateKey: pk,
+    },
+    env.ENCRYPTION_PASSWORD,
+  );
 
   return {
     account,

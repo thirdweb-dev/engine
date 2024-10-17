@@ -84,10 +84,17 @@ const walletDetailsSchema = z.discriminatedUnion("type", [
   smartGcpKmsWalletSchema,
 ]);
 
-export function isSmartBackendWalletType(
-  type: BackendWalletType,
-): type is SmartBackendWalletType {
-  return SmartBackendWalletTypes.includes(type as SmartBackendWalletType);
+export type SmartBackendWalletDetails =
+  | z.infer<typeof smartLocalWalletSchema>
+  | z.infer<typeof smartAwsKmsWalletSchema>
+  | z.infer<typeof smartGcpKmsWalletSchema>;
+
+export function isSmartBackendWallet(
+  wallet: ParsedWalletDetails,
+): wallet is SmartBackendWalletDetails {
+  return SmartBackendWalletTypes.includes(
+    wallet.type as SmartBackendWalletType,
+  );
 }
 
 export const SmartBackendWalletTypes = [

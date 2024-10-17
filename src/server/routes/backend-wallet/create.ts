@@ -1,6 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";
 import { WalletType } from "../../../schema/wallet";
 import { getConfig } from "../../../utils/cache/getConfig";
 import { createCustomError } from "../../middleware/error";
@@ -111,6 +112,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           try {
             const smartAwsWallet = await createSmartAwsWalletDetails({
               label,
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
             });
 
             walletAddress = smartAwsWallet.address;
@@ -129,6 +131,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           try {
             const smartGcpWallet = await createSmartGcpWalletDetails({
               label,
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
             });
             walletAddress = smartGcpWallet.address;
           } catch (e) {
@@ -143,11 +146,13 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           }
           break;
         case WalletType.smartLocal:
-          walletAddress = (
-            await createSmartLocalWalletDetails({
+          {
+            const smartLocalWallet = await createSmartLocalWalletDetails({
               label,
-            })
-          ).address;
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
+            });
+            walletAddress = smartLocalWallet.address;
+          }
           break;
       }
 

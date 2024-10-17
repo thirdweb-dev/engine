@@ -145,6 +145,23 @@ export const getWallet = async <TWallet extends EVMWallet>({
       return smartWallet as TWallet;
     }
 
+    case WalletType.smartLocal: {
+      if (accountAddress)
+        throw new Error(
+          "Smart backend wallet cannot be used to operate external smart account",
+        );
+
+      const personalWallet = await getLocalWallet({ chainId, walletAddress });
+
+      const smartWallet: EVMWallet = await getSmartWallet({
+        chainId,
+        backendWallet: personalWallet,
+        accountAddress: walletDetails.address,
+      });
+
+      return smartWallet as TWallet;
+    }
+
     default:
       throw new Error(
         `Wallet with address ${walletAddress} was configured with unknown wallet type ${walletDetails.type}`,

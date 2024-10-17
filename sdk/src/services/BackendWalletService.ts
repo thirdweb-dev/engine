@@ -20,9 +20,9 @@ export class BackendWalletService {
         requestBody?: {
             label?: string;
             /**
-             * Optional wallet type. If not provided, the default wallet type will be used.
+             * Type of new wallet to create. It is recommended to always provide this value. If not provided, the default wallet type will be used.
              */
-            type?: ('local' | 'aws-kms' | 'gcp-kms');
+            type?: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
         },
     ): CancelablePromise<{
         result: {
@@ -31,6 +31,7 @@ export class BackendWalletService {
              */
             walletAddress: string;
             status: string;
+            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
         };
     }> {
         return this.httpRequest.request({

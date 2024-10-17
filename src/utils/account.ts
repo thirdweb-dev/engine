@@ -2,14 +2,17 @@ import { getAddress, type Address, type Chain } from "thirdweb";
 import { smartWallet, type Account } from "thirdweb/wallets";
 import {
   getWalletDetails,
-  isSmartBackendWalletType,
+  isSmartBackendWallet,
   type ParsedWalletDetails,
 } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
 import { splitAwsKmsArn } from "../server/utils/wallets/awsKmsArn";
 import { getAwsKmsAccount } from "../server/utils/wallets/getAwsKmsAccount";
 import { getGcpKmsAccount } from "../server/utils/wallets/getGcpKmsAccount";
-import { getLocalWalletAccount } from "../server/utils/wallets/getLocalWallet";
+import {
+  encryptedJsonToAccount,
+  getLocalWalletAccount,
+} from "../server/utils/wallets/getLocalWallet";
 import { getSmartWalletV5 } from "./cache/getSmartWalletV5";
 import { getChain } from "./chain";
 import { thirdwebClient } from "./sdk";
@@ -142,11 +145,9 @@ export const walletDetailsToAccount = async ({
     }
 
     case WalletType.smartLocal: {
-      const adminAccount = await getAccount({
-        chainId: chain.id,
-        from: getAddress(walletDetails.accountSignerAddress),
-      });
-
+      const adminAccount = await encryptedJsonToAccount(
+        walletDetails.encryptedJson,
+      );
       const unconnectedSmartWallet = smartWallet({
         chain,
         sponsorGas: true,
@@ -191,7 +192,7 @@ export const getSmartBackendWalletAdminAccount = async ({
     address: accountAddress,
   });
 
-  if (!isSmartBackendWalletType(walletDetails.type)) {
+  if (!isSmartBackendWallet(walletDetails)) {
     throw new Error(
       "Wallet is not a smart backend wallet and does not have an admin account",
     );

@@ -1,6 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { TransactionDB } from "../../db/transactions/db";
+import {
+  getWalletDetails,
+  isSmartBackendWallet,
+  type ParsedWalletDetails,
+} from "../../db/wallets/getWalletDetails";
 import { createCustomError } from "../../server/middleware/error";
+import { maybeAddress } from "../../server/schemas/wallet";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
 import { getChecksumAddress } from "../primitiveTypes";
 import { recordMetrics } from "../prometheus";
@@ -36,7 +42,7 @@ export const insertTransaction = async (
     }
   }
 
-  const queuedTransaction: QueuedTransaction = {
+  let queuedTransaction: QueuedTransaction = {
     ...insertedTransaction,
     status: "queued",
     queueId,
@@ -52,6 +58,34 @@ export const insertTransaction = async (
     sender: getChecksumAddress(insertedTransaction.sender),
     value: insertedTransaction.value ?? 0n,
   };
+
+  let walletDetails: ParsedWalletDetails | undefined;
+
+  try {
+    walletDetails = await getWalletDetails({
+      address: queuedTransaction.from,
+    });
+  } catch {
+    // if wallet details are not found, this is a smart backend wallet using a v4 endpoint
+  }
+
+  // v5 SDK using smart backend wallet sets isUserOp false, accountAddress is undefined, and from is account address
+  // worker needs values to be corrected: isUserOp true, accountAddress is accountAddress, and from is signerAddress
+  if (walletDetails && isSmartBackendWallet(walletDetails)) {
+    queuedTransaction = {
+      ...queuedTransaction,
+      isUserOp: true,
+      accountAddress: queuedTransaction.from,
+      signerAddress: getChecksumAddress(walletDetails.accountSignerAddress),
+      from: getChecksumAddress(walletDetails.accountSignerAddress),
+      target: queuedTransaction.to,
+      accountFactoryAddress:
+        maybeAddress(
+          walletDetails.accountFactoryAddress ?? undefined,
+          "accountFactoryAddress",
+        ) ?? undefined,
+    };
+  }
 
   // Simulate the transaction.
   if (shouldSimulate) {

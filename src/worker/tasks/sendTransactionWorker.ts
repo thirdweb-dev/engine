@@ -98,10 +98,6 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   // This job may also throw to indicate an unexpected error that will be retried.
 
   if (transaction.status === "queued") {
-    // If the wallet is a smart backend wallet, depending on the SDK version of the route used:
-    // 1. SDK V4 will set `isUserOp` true, with correct account (Smart Account) and from (Admin EOA) addresses.
-    // 2. SDK V5 will set `isUserOp` false, with from address as the Smart Account address.
-
     if (transaction.isUserOp) {
       // this can either be a regular backend wallet userop or a smart backend wallet userop
       const accountAddress = transaction.accountAddress;
@@ -139,37 +135,12 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
         resultTransaction = await _sendUserOp(job, transaction, adminAccount);
       }
     } else {
-      // this can be either a regular backend wallet transaction or a v5 SDK smart backend wallet transaction
-      // in case of a smart backend wallet transaction, isUserOp is false and from is the smart account address, we need to fix these
-      let adminAccount: Account | undefined;
-      try {
-        adminAccount = await getSmartBackendWalletAdminAccount({
-          accountAddress: transaction.from,
-          chainId: transaction.chainId,
-        });
-      } catch {
-        // do nothing, this might still be a regular backend wallet transaction
-      }
+      const account = await getAccount({
+        chainId: transaction.chainId,
+        from: transaction.from,
+      });
 
-      if (adminAccount) {
-        resultTransaction = await _sendUserOp(
-          job,
-          {
-            ...transaction,
-            isUserOp: true,
-            accountAddress: transaction.from,
-            from: getAddress(adminAccount.address),
-          },
-          adminAccount,
-        );
-      } else {
-        const account = await getAccount({
-          chainId: transaction.chainId,
-          from: transaction.from,
-        });
-
-        resultTransaction = await _sendTransaction(job, transaction, account);
-      }
+      resultTransaction = await _sendTransaction(job, transaction, account);
     }
   } else if (transaction.status === "sent") {
     resultTransaction = await _resendTransaction(job, transaction, resendCount);
@@ -179,7 +150,6 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   }
 
   if (resultTransaction) {
-    console.log(resultTransaction);
     await TransactionDB.set(resultTransaction);
 
     if (resultTransaction.status === "sent") {
@@ -202,7 +172,6 @@ const _sendUserOp = async (
   queuedTransaction: QueuedTransaction,
   adminAccount: Account,
 ): Promise<SentTransaction | ErroredTransaction | null> => {
-  console.log("queuedTransaction", queuedTransaction);
   assert(queuedTransaction.isUserOp);
 
   if (_hasExceededTimeout(queuedTransaction)) {

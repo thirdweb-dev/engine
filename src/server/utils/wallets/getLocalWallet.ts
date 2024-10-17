@@ -79,8 +79,10 @@ export const getLocalWalletAccount = async (
     throw new Error(`Local Wallet not found for address ${walletAddress}`);
   }
 
-  const json = walletDetails.encryptedJson;
+  return encryptedJsonToAccount(walletDetails.encryptedJson);
+};
 
+export const encryptedJsonToAccount = async (json: string) => {
   const wallet = await Wallet.fromEncryptedJson(
     JSON.parse(json).data,
     env.ENCRYPTION_PASSWORD,
