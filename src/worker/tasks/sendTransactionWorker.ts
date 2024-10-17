@@ -1,18 +1,19 @@
-import { type Job, type Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
 import {
-  type Hex,
   getAddress,
   getContract,
   readContract,
   toSerializableTransaction,
+  type Hex,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
+import type { Account } from "thirdweb/wallets";
 import {
-  type UserOperation,
   bundleUserOp,
   createAndSignUserOp,
+  type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
@@ -22,7 +23,10 @@ import {
   recycleNonce,
   syncLatestNonceFromOnchainIfHigher,
 } from "../../db/wallets/walletNonce";
-import { getAccount } from "../../utils/account";
+import {
+  getAccount,
+  getSmartBackendWalletAdminAccount,
+} from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
@@ -48,8 +52,8 @@ import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import {
-  type SendTransactionData,
   SendTransactionQueue,
+  type SendTransactionData,
 } from "../queues/sendTransactionQueue";
 
 /**
@@ -94,10 +98,78 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   // This job may also throw to indicate an unexpected error that will be retried.
 
   if (transaction.status === "queued") {
+    // If the wallet is a smart backend wallet, depending on the SDK version of the route used:
+    // 1. SDK V4 will set `isUserOp` true, with correct account (Smart Account) and from (Admin EOA) addresses.
+    // 2. SDK V5 will set `isUserOp` false, with from address as the Smart Account address.
+
     if (transaction.isUserOp) {
-      resultTransaction = await _sendUserOp(job, transaction);
+      // this can either be a regular backend wallet userop or a smart backend wallet userop
+      const accountAddress = transaction.accountAddress;
+      assert(accountAddress, "Invalid userOp parameters: accountAddress");
+
+      let adminAccount: Account | undefined;
+
+      try {
+        adminAccount = await getSmartBackendWalletAdminAccount({
+          accountAddress,
+          chainId: transaction.chainId,
+        });
+      } catch {
+        // do nothing, this might still be a regular backend wallet userop
+      }
+
+      try {
+        adminAccount = await getAccount({
+          chainId: transaction.chainId,
+          from: transaction.from,
+        });
+      } catch {
+        job.log(
+          `Failed to get admin account for userOp: ${stringify(transaction)}`,
+        );
+      }
+
+      if (!adminAccount) {
+        resultTransaction = {
+          ...transaction,
+          status: "errored",
+          errorMessage: "Failed to get admin account",
+        };
+      } else {
+        resultTransaction = await _sendUserOp(job, transaction, adminAccount);
+      }
     } else {
-      resultTransaction = await _sendTransaction(job, transaction);
+      // this can be either a regular backend wallet transaction or a v5 SDK smart backend wallet transaction
+      // in case of a smart backend wallet transaction, isUserOp is false and from is the smart account address, we need to fix these
+      let adminAccount: Account | undefined;
+      try {
+        adminAccount = await getSmartBackendWalletAdminAccount({
+          accountAddress: transaction.from,
+          chainId: transaction.chainId,
+        });
+      } catch {
+        // do nothing, this might still be a regular backend wallet transaction
+      }
+
+      if (adminAccount) {
+        resultTransaction = await _sendUserOp(
+          job,
+          {
+            ...transaction,
+            isUserOp: true,
+            accountAddress: transaction.from,
+            from: getAddress(adminAccount.address),
+          },
+          adminAccount,
+        );
+      } else {
+        const account = await getAccount({
+          chainId: transaction.chainId,
+          from: transaction.from,
+        });
+
+        resultTransaction = await _sendTransaction(job, transaction, account);
+      }
     }
   } else if (transaction.status === "sent") {
     resultTransaction = await _resendTransaction(job, transaction, resendCount);
@@ -107,6 +179,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   }
 
   if (resultTransaction) {
+    console.log(resultTransaction);
     await TransactionDB.set(resultTransaction);
 
     if (resultTransaction.status === "sent") {
@@ -127,7 +200,9 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
 const _sendUserOp = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
+  adminAccount: Account,
 ): Promise<SentTransaction | ErroredTransaction | null> => {
+  console.log("queuedTransaction", queuedTransaction);
   assert(queuedTransaction.isUserOp);
 
   if (_hasExceededTimeout(queuedTransaction)) {
@@ -144,7 +219,6 @@ const _sendUserOp = async (
     to,
     target,
     chainId,
-    from,
     accountFactoryAddress: userProvidedAccountFactoryAddress,
     accountSalt,
     overrides,
@@ -154,12 +228,6 @@ const _sendUserOp = async (
   assert(accountAddress, "Invalid userOp parameters: accountAddress");
   const toAddress = to ?? target;
   assert(toAddress, "Invalid transaction parameters: to");
-
-  // Resolve Admin-Account for UserOperation Signer
-  const adminAccount = await getAccount({
-    chainId,
-    from,
-  });
 
   let signedUserOp: UserOperation;
   try {
@@ -254,6 +322,7 @@ const _sendUserOp = async (
 const _sendTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
+  account: Account,
 ): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(!queuedTransaction.isUserOp);
 
@@ -333,7 +402,6 @@ const _sendTransaction = async (
   // This call throws if the RPC rejects the transaction.
   let transactionHash: Hex;
   try {
-    const account = await getAccount({ chainId, from });
     const sendTransactionResult =
       await account.sendTransaction(populatedTransaction);
     transactionHash = sendTransactionResult.transactionHash;
