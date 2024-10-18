@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import { LRUMap } from "mnemonist";
 import type { Address } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
 import { getWalletDetails } from "../db/wallets/getWalletDetails";
@@ -15,7 +16,7 @@ import { decrypt } from "./crypto";
 import { env } from "./env";
 import { thirdwebClient } from "./sdk";
 
-export const _accountsCache = new Map<string, Account>();
+export const _accountsCache = new LRUMap<string, Account>(2048);
 
 export const getAccount = async (args: {
   chainId: number;
