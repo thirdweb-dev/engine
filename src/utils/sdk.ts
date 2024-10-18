@@ -1,6 +1,6 @@
 import { sha256HexSync } from "@thirdweb-dev/crypto";
 import { createThirdwebClient } from "thirdweb";
-import { TransactionReceipt } from "thirdweb/dist/types/transaction/types";
+import type { TransactionReceipt } from "thirdweb/transaction";
 import { env } from "./env";
 
 export const thirdwebClientId = sha256HexSync(

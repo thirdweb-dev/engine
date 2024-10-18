@@ -4,6 +4,7 @@ import path from "node:path";
 import { kill } from "node:process";
 
 const ENGINE_OPENAPI_URL = "https://demo.web3api.thirdweb.com/json";
+// const ENGINE_OPENAPI_URL = "http://localhost:3005/json";
 const REPLACE_LOG_FILE = "sdk/replacement_log.txt";
 
 type BasicOpenAPISpec = {

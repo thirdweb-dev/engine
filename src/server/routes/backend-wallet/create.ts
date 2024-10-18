@@ -1,6 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";
 import { WalletType } from "../../../schema/wallet";
 import { getConfig } from "../../../utils/cache/getConfig";
 import { createCustomError } from "../../middleware/error";
@@ -8,20 +9,25 @@ import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   CreateAwsKmsWalletError,
-  createAwsKmsWallet,
+  createAwsKmsWalletDetails,
 } from "../../utils/wallets/createAwsKmsWallet";
 import {
   CreateGcpKmsWalletError,
-  createGcpKmsWallet,
+  createGcpKmsWalletDetails,
 } from "../../utils/wallets/createGcpKmsWallet";
-import { createLocalWallet } from "../../utils/wallets/createLocalWallet";
+import { createAndStoreLocalWallet } from "../../utils/wallets/createLocalWallet";
+import {
+  createSmartAwsWalletDetails,
+  createSmartGcpWalletDetails,
+  createSmartLocalWalletDetails,
+} from "../../utils/wallets/createSmartWallet";
 
 const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),
   type: Type.Optional(
     Type.Enum(WalletType, {
       description:
-        "Optional wallet type. If not provided, the default wallet type will be used.",
+        "Type of new wallet to create. It is recommended to always provide this value. If not provided, the default wallet type will be used.",
     }),
   ),
 });
@@ -30,6 +36,7 @@ const responseSchema = Type.Object({
   result: Type.Object({
     walletAddress: AddressSchema,
     status: Type.String(),
+    type: Type.Enum(WalletType),
   }),
 });
 
@@ -37,6 +44,7 @@ responseSchema.example = {
   result: {
     walletAddress: "0x....",
     status: "success",
+    type: WalletType.local,
   },
 };
 
@@ -70,11 +78,11 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
 
       switch (walletType) {
         case WalletType.local:
-          walletAddress = await createLocalWallet({ label });
+          walletAddress = await createAndStoreLocalWallet({ label });
           break;
         case WalletType.awsKms:
           try {
-            walletAddress = await createAwsKmsWallet({ label });
+            walletAddress = await createAwsKmsWalletDetails({ label });
           } catch (e) {
             if (e instanceof CreateAwsKmsWalletError) {
               throw createCustomError(
@@ -88,7 +96,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           break;
         case WalletType.gcpKms:
           try {
-            walletAddress = await createGcpKmsWallet({ label });
+            walletAddress = await createGcpKmsWalletDetails({ label });
           } catch (e) {
             if (e instanceof CreateGcpKmsWalletError) {
               throw createCustomError(
@@ -100,11 +108,58 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
             throw e;
           }
           break;
+        case WalletType.smartAwsKms:
+          try {
+            const smartAwsWallet = await createSmartAwsWalletDetails({
+              label,
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
+            });
+
+            walletAddress = smartAwsWallet.address;
+          } catch (e) {
+            if (e instanceof CreateAwsKmsWalletError) {
+              throw createCustomError(
+                e.message,
+                StatusCodes.BAD_REQUEST,
+                "CREATE_AWS_KMS_WALLET_ERROR",
+              );
+            }
+            throw e;
+          }
+          break;
+        case WalletType.smartGcpKms:
+          try {
+            const smartGcpWallet = await createSmartGcpWalletDetails({
+              label,
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
+            });
+            walletAddress = smartGcpWallet.address;
+          } catch (e) {
+            if (e instanceof CreateGcpKmsWalletError) {
+              throw createCustomError(
+                e.message,
+                StatusCodes.BAD_REQUEST,
+                "CREATE_GCP_KMS_WALLET_ERROR",
+              );
+            }
+            throw e;
+          }
+          break;
+        case WalletType.smartLocal:
+          {
+            const smartLocalWallet = await createSmartLocalWalletDetails({
+              label,
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
+            });
+            walletAddress = smartLocalWallet.address;
+          }
+          break;
       }
 
       reply.status(StatusCodes.OK).send({
         result: {
           walletAddress,
+          type: walletType,
           status: "success",
         },
       });

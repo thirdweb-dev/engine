@@ -31,6 +31,7 @@
     "@bull-board/fastify": "^5.21.1",
     "@cloud-cryptographic-wallet/cloud-kms-signer": "^0.1.2",
     "@cloud-cryptographic-wallet/signer": "^0.0.5",
+    "@ethersproject/json-wallets": "^5.7.0",
     "@fastify/basic-auth": "^5.1.1",
     "@fastify/cookie": "^8.3.0",
     "@fastify/express": "^2.3.0",

@@ -1,13 +1,21 @@
-import { AsyncStorage } from "@thirdweb-dev/wallets";
-import fs from "fs";
+import type { AsyncStorage } from "@thirdweb-dev/wallets";
+import fs from "node:fs";
 import { prisma } from "../../../db/client";
 import { WalletType } from "../../../schema/wallet";
 import { logger } from "../../../utils/logger";
 
+/**
+ * @deprecated
+ * Deprecated local file storage implementation for use with v4 sdk
+ * Use `legacyLocalCrypto` for encryption and decryption instead
+ */
 export class LocalFileStorage implements AsyncStorage {
   label?: string;
 
-  constructor(private readonly walletAddress: string, label?: string) {
+  constructor(
+    private readonly walletAddress: string,
+    label?: string,
+  ) {
     this.walletAddress = walletAddress.toLowerCase();
     this.label = label;
   }

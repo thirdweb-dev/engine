@@ -10,25 +10,50 @@ import {
 import { getGcpKmsResourcePath } from "./gcpKmsResourcePath";
 import { getGcpKmsAccount } from "./getGcpKmsAccount";
 
-type CreateGcpKmsWallet = {
+export type CreateGcpKmsWalletParams = {
   label?: string;
 } & Partial<GcpKmsWalletParams>;
 
 export class CreateGcpKmsWalletError extends Error {}
 
 /**
- * Create an GCP KMS wallet, and store it into the database
+ * Create a GCP KMS wallet, and store it into the database
  * All optional parameters are overrides for the configuration in the database
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
- * If credentials (gcpApplicationCredentialEmail and gcpApplicationCredentialPrivateKey) are explicitly provided, they will be stored separately from the global configuration
+ * Credentials (gcpApplicationCredentialEmail and gcpApplicationCredentialPrivateKey) are stored separately from the global configuration
  */
-export const createGcpKmsWallet = async ({
+export const createGcpKmsWalletDetails = async ({
   label,
   ...overrides
-}: CreateGcpKmsWallet): Promise<string> => {
+}: CreateGcpKmsWalletParams): Promise<string> => {
+  const { walletAddress, resourcePath, params } =
+    await createGcpKmsKey(overrides);
+
+  await createWalletDetails({
+    type: WalletType.gcpKms,
+    address: walletAddress,
+    label,
+    gcpKmsResourcePath: resourcePath,
+
+    gcpApplicationCredentialEmail: params.gcpApplicationCredentialEmail,
+    gcpApplicationCredentialPrivateKey:
+      params.gcpApplicationCredentialPrivateKey,
+  });
+
+  return walletAddress;
+};
+
+/**
+ * Creates a GCP KMS wallet and returns the GCP KMS resource path. DOES NOT store the wallet in the database.
+ * All optional parameters are overrides for the configuration in the database
+ * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
+ */
+export const createGcpKmsKey = async (
+  partialParams: Partial<GcpKmsWalletParams>,
+) => {
   let params: GcpKmsWalletParams;
   try {
-    params = await fetchGcpKmsWalletParams(overrides);
+    params = await fetchGcpKmsWalletParams(partialParams);
   } catch (e) {
     if (e instanceof FetchGcpKmsWalletParamsError) {
       throw new CreateGcpKmsWalletError(e.message);
@@ -93,16 +118,9 @@ export const createGcpKmsWallet = async ({
 
   const walletAddress = account.address;
 
-  await createWalletDetails({
-    type: WalletType.gcpKms,
-    address: walletAddress,
-    label,
-    gcpKmsResourcePath: resourcePath,
-
-    gcpApplicationCredentialEmail: params.gcpApplicationCredentialEmail,
-    gcpApplicationCredentialPrivateKey:
-      params.gcpApplicationCredentialPrivateKey,
-  });
-
-  return walletAddress;
+  return {
+    walletAddress,
+    resourcePath,
+    params,
+  };
 };
