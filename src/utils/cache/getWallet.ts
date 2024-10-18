@@ -2,7 +2,7 @@ import type { EVMWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
 import { StatusCodes } from "http-status-codes";
-import { LRUMap } from "mnemonist";
+import LRUMap from "mnemonist/lru-map";
 import { getWalletDetails } from "../../db/wallets/getWalletDetails";
 import type { PrismaTransaction } from "../../schema/prisma";
 import { WalletType } from "../../schema/wallet";

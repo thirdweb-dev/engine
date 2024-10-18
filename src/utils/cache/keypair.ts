@@ -1,5 +1,5 @@
 import type { Keypairs } from "@prisma/client";
-import { LRUMap } from "mnemonist";
+import LRUMap from "mnemonist/lru-map";
 import { getKeypairByHash, getKeypairByPublicKey } from "../../db/keypair/get";
 
 // Cache a public key to the Keypair object, or null if not found.

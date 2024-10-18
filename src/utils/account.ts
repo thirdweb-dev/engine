@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import { LRUMap } from "mnemonist";
+import LRUMap from "mnemonist/lru-map";
 import type { Address } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
 import { getWalletDetails } from "../db/wallets/getWalletDetails";

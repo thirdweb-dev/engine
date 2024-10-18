@@ -1,4 +1,4 @@
-import { FastifyReply } from "fastify";
+import type { FastifyReply } from "fastify";
 import LRUCache from "mnemonist/lru-cache";
 
 /**
