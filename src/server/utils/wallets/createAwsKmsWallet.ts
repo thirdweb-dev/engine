@@ -39,10 +39,12 @@ export const createAwsKmsWalletDetails = async ({
  * All optional parameters are overrides for the configuration in the database
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
  */
-export const createAwsKmsKey = async (params: Partial<AwsKmsWalletParams>) => {
-  let kmsWalletParams: AwsKmsWalletParams;
+export const createAwsKmsKey = async (
+  partialParams: Partial<AwsKmsWalletParams>,
+) => {
+  let params: AwsKmsWalletParams;
   try {
-    kmsWalletParams = await fetchAwsKmsWalletParams(params);
+    params = await fetchAwsKmsWalletParams(partialParams);
   } catch (e) {
     if (e instanceof FetchAwsKmsWalletParamsError) {
       throw new CreateAwsKmsWalletError(e.message);
@@ -51,10 +53,10 @@ export const createAwsKmsKey = async (params: Partial<AwsKmsWalletParams>) => {
   }
 
   const client = new KMSClient({
-    region: kmsWalletParams.awsRegion,
+    region: params.awsRegion,
     credentials: {
-      accessKeyId: kmsWalletParams.awsAccessKeyId,
-      secretAccessKey: kmsWalletParams.awsSecretAccessKey,
+      accessKeyId: params.awsAccessKeyId,
+      secretAccessKey: params.awsSecretAccessKey,
     },
   });
 
@@ -75,6 +77,6 @@ export const createAwsKmsKey = async (params: Partial<AwsKmsWalletParams>) => {
 
   return {
     awsKmsArn,
-    params: kmsWalletParams,
+    params: params,
   };
 };
