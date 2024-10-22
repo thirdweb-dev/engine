@@ -1,4 +1,4 @@
-import { defineChain, type Address } from "thirdweb";
+import { defineChain, type Address, type Chain } from "thirdweb";
 import { smartWallet, type Account } from "thirdweb/wallets";
 import { createWalletDetails } from "../../../db/wallets/createWalletDetails";
 import { WalletType } from "../../../schema/wallet";
@@ -12,41 +12,50 @@ import {
   createGcpKmsKey,
   type CreateGcpKmsWalletParams,
 } from "./createGcpKmsWallet";
-import { createLocalWallet } from "./createLocalWallet";
+import { createRandomLocalWallet } from "./createLocalWallet";
 import { getAwsKmsAccount } from "./getAwsKmsAccount";
 import { getGcpKmsAccount } from "./getGcpKmsAccount";
 
-const getSmartWalletAddresses = async ({
+/**
+ * Get a smart wallet address for a given admin account
+ * Optionally specify the account factory address, and entrypoint address
+ * If no network is specified, it will default to ethereum mainnet
+ */
+export const getConnectedSmartWallet = async ({
   adminAccount,
   accountFactoryAddress,
+  entrypointAddress,
+  chain,
 }: {
   adminAccount: Account;
   accountFactoryAddress?: Address;
+  entrypointAddress?: Address;
+  chain?: Chain;
 }) => {
   const smartAccount = smartWallet({
-    chain: defineChain(1),
+    chain: chain ?? defineChain(1),
     sponsorGas: true,
     factoryAddress: accountFactoryAddress,
+    overrides: {
+      entrypointAddress,
+    },
   });
 
-  const connectedAccount = await smartAccount.connect({
+  return await smartAccount.connect({
     client: thirdwebClient,
     personalAccount: adminAccount,
   });
-
-  return {
-    accountAddress: connectedAccount.address,
-    accountFactoryAddress,
-  };
 };
 
 export type CreateSmartAwsWalletParams = CreateAwsKmsWalletParams & {
   accountFactoryAddress?: Address;
+  entrypointAddress?: Address;
 };
 
 export const createSmartAwsWalletDetails = async ({
   label,
   accountFactoryAddress,
+  entrypointAddress,
   ...awsKmsWalletParams
 }: CreateSmartAwsWalletParams) => {
   const awsKmsWallet = await createAwsKmsKey(awsKmsWalletParams);
@@ -65,16 +74,18 @@ export const createSmartAwsWalletDetails = async ({
     },
   });
 
-  const smartAccountAddress = await getSmartWalletAddresses({
+  const smartWallet = await getConnectedSmartWallet({
     adminAccount,
     accountFactoryAddress,
+    entrypointAddress,
   });
 
   return await createWalletDetails({
     type: WalletType.smartAwsKms,
 
-    address: smartAccountAddress.accountAddress,
-    accountFactoryAddress: smartAccountAddress.accountFactoryAddress,
+    address: smartWallet.address,
+    accountFactoryAddress,
+    entrypointAddress,
     accountSignerAddress: adminAccount.address as Address,
 
     awsKmsArn: awsKmsWallet.awsKmsArn,
@@ -86,11 +97,13 @@ export const createSmartAwsWalletDetails = async ({
 
 export type CreateSmartGcpWalletParams = CreateGcpKmsWalletParams & {
   accountFactoryAddress?: Address;
+  entrypointAddress?: Address;
 };
 
 export const createSmartGcpWalletDetails = async ({
   label,
   accountFactoryAddress,
+  entrypointAddress,
   ...gcpKmsWalletParams
 }: CreateSmartGcpWalletParams) => {
   const gcpKmsWallet = await createGcpKmsKey(gcpKmsWalletParams);
@@ -106,16 +119,18 @@ export const createSmartGcpWalletDetails = async ({
     },
   });
 
-  const smartAccountAddress = await getSmartWalletAddresses({
+  const smartWallet = await getConnectedSmartWallet({
     adminAccount,
     accountFactoryAddress,
+    entrypointAddress,
   });
 
   return await createWalletDetails({
     type: WalletType.smartGcpKms,
-    address: smartAccountAddress.accountAddress,
+    address: smartWallet.address,
     accountSignerAddress: adminAccount.address as Address,
-    accountFactoryAddress: smartAccountAddress.accountFactoryAddress,
+    accountFactoryAddress,
+    entrypointAddress,
     gcpKmsResourcePath: gcpKmsWallet.resourcePath,
     gcpApplicationCredentialEmail:
       gcpKmsWallet.params.gcpApplicationCredentialEmail,
@@ -128,24 +143,28 @@ export const createSmartGcpWalletDetails = async ({
 export type CreateSmartLocalWalletParams = {
   label?: string;
   accountFactoryAddress?: Address;
+  entrypointAddress?: Address;
 };
 
 export const createSmartLocalWalletDetails = async ({
   label,
   accountFactoryAddress,
+  entrypointAddress,
 }: CreateSmartLocalWalletParams) => {
-  const { account, encryptedJson } = await createLocalWallet();
+  const { account, encryptedJson } = await createRandomLocalWallet();
 
-  const smartAccountAddress = await getSmartWalletAddresses({
+  const wallet = await getConnectedSmartWallet({
     adminAccount: account,
     accountFactoryAddress,
+    entrypointAddress,
   });
 
   return await createWalletDetails({
     type: WalletType.smartLocal,
-    address: smartAccountAddress.accountAddress,
+    address: wallet.address,
     accountSignerAddress: account.address as Address,
-    accountFactoryAddress: smartAccountAddress.accountFactoryAddress,
+    accountFactoryAddress,
+    entrypointAddress,
     encryptedJson,
     label: label,
   });

@@ -6,7 +6,7 @@ import { setup } from "../setup";
 
 const chain = arbitrumSepolia.id.toString();
 
-describe("smart local wallet", () => {
+describe("smart gcp-kms wallet", () => {
   let smartWalletAddress: string | undefined;
   let tokenAddress: string | undefined;
 
@@ -24,16 +24,16 @@ describe("smart local wallet", () => {
     return tokenAddress;
   };
 
-  test("Create a local smart backend wallet", async () => {
+  test("Create a gcp-kms smart backend wallet", async () => {
     const { engine } = await setup();
 
     const res = await engine.backendWallet.create({
-      type: "smart:local",
+      type: "smart:gcp-kms",
       label: "test",
     });
 
     expect(res.result.status).toEqual("success");
-    expect(res.result.type).toEqual("smart:local");
+    expect(res.result.type).toEqual("smart:gcp-kms");
     expect(res.result.walletAddress).toBeDefined();
 
     smartWalletAddress = res.result.walletAddress;
@@ -140,7 +140,7 @@ describe("smart local wallet", () => {
     expect(Number(backendWalletBalance.result.displayValue)).toEqual(100);
   });
 
-  test("Delete local smart backend wallet", async () => {
+  test("Delete gcp-kms smart backend wallet", async () => {
     const { engine } = await setup();
 
     const res = await engine.backendWallet.removeBackendWallet(

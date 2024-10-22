@@ -6,7 +6,6 @@ import {
   type ParsedWalletDetails,
 } from "../../db/wallets/getWalletDetails";
 import { createCustomError } from "../../server/middleware/error";
-import { maybeAddress } from "../../server/schemas/wallet";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
 import { getChecksumAddress } from "../primitiveTypes";
 import { recordMetrics } from "../prometheus";
@@ -79,12 +78,24 @@ export const insertTransaction = async (
       signerAddress: getChecksumAddress(walletDetails.accountSignerAddress),
       from: getChecksumAddress(walletDetails.accountSignerAddress),
       target: queuedTransaction.to,
-      accountFactoryAddress:
-        maybeAddress(
-          walletDetails.accountFactoryAddress ?? undefined,
-          "accountFactoryAddress",
-        ) ?? undefined,
+      accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+      entrypointAddress: walletDetails.entrypointAddress ?? undefined,
     };
+  }
+
+  try {
+    if (queuedTransaction.accountAddress) {
+      walletDetails = await getWalletDetails({
+        address: queuedTransaction.accountAddress,
+      });
+    }
+  } catch {
+    // if wallet details are not found, this backend wallet does not exist at all
+  }
+
+  if (walletDetails && isSmartBackendWallet(walletDetails)) {
+    queuedTransaction.entrypointAddress =
+      walletDetails.entrypointAddress ?? undefined;
   }
 
   // Simulate the transaction.

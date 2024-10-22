@@ -1,5 +1,5 @@
 import { getAddress, type Address, type Chain } from "thirdweb";
-import { smartWallet, type Account } from "thirdweb/wallets";
+import type { Account } from "thirdweb/wallets";
 import {
   getWalletDetails,
   isSmartBackendWallet,
@@ -7,6 +7,7 @@ import {
 } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
 import { splitAwsKmsArn } from "../server/utils/wallets/awsKmsArn";
+import { getConnectedSmartWallet } from "../server/utils/wallets/createSmartWallet";
 import { getAwsKmsAccount } from "../server/utils/wallets/getAwsKmsAccount";
 import { getGcpKmsAccount } from "../server/utils/wallets/getGcpKmsAccount";
 import {
@@ -104,22 +105,18 @@ export const walletDetailsToAccount = async ({
         },
       });
 
-      const unconnectedSmartWallet = smartWallet({
-        chain,
-        sponsorGas: true,
-        factoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+      const connectedWallet = await getConnectedSmartWallet({
+        adminAccount: signerAccount,
+        accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+        entrypointAddress: walletDetails.entrypointAddress ?? undefined,
+        chain: chain,
       });
 
-      const account = await unconnectedSmartWallet.connect({
-        client: thirdwebClient,
-        personalAccount: signerAccount,
-      });
-
-      return { account, adminAccount: signerAccount };
+      return { account: connectedWallet, adminAccount: signerAccount };
     }
 
     case WalletType.smartGcpKms: {
-      const signerAccount = await getGcpKmsAccount({
+      const adminAccount = await getGcpKmsAccount({
         client: thirdwebClient,
         name: walletDetails.gcpKmsResourcePath,
         clientOptions: {
@@ -130,36 +127,29 @@ export const walletDetailsToAccount = async ({
         },
       });
 
-      const unconnectedSmartWallet = smartWallet({
-        chain,
-        sponsorGas: true,
-        factoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+      const connectedWallet = await getConnectedSmartWallet({
+        adminAccount: adminAccount,
+        accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+        entrypointAddress: walletDetails.entrypointAddress ?? undefined,
+        chain: chain,
       });
 
-      const account = await unconnectedSmartWallet.connect({
-        client: thirdwebClient,
-        personalAccount: signerAccount,
-      });
-
-      return { account, adminAccount: signerAccount };
+      return { account: connectedWallet, adminAccount };
     }
 
     case WalletType.smartLocal: {
       const adminAccount = await encryptedJsonToAccount(
         walletDetails.encryptedJson,
       );
-      const unconnectedSmartWallet = smartWallet({
-        chain,
-        sponsorGas: true,
-        factoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+
+      const connectedWallet = await getConnectedSmartWallet({
+        adminAccount: adminAccount,
+        accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+        entrypointAddress: walletDetails.entrypointAddress ?? undefined,
+        chain: chain,
       });
 
-      const account = await unconnectedSmartWallet.connect({
-        client: thirdwebClient,
-        personalAccount: adminAccount,
-      });
-
-      return { account, adminAccount };
+      return { account: connectedWallet, adminAccount };
     }
     default:
       throw new Error(`Wallet type not supported: ${walletDetails.type}`);

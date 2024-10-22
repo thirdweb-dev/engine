@@ -189,6 +189,7 @@ const _sendUserOp = async (
     target,
     chainId,
     accountFactoryAddress: userProvidedAccountFactoryAddress,
+    entrypointAddress: userProvidedEntrypointAddress,
     accountSalt,
     overrides,
   } = queuedTransaction;
@@ -243,6 +244,7 @@ const _sendUserOp = async (
         overrides: {
           accountAddress,
           accountSalt,
+          entrypointAddress: userProvidedEntrypointAddress,
           // TODO: let user pass entrypoint address for 0.7 support
         },
       },
@@ -271,6 +273,7 @@ const _sendUserOp = async (
     options: {
       client: thirdwebClient,
       chain,
+      entrypointAddress: userProvidedEntrypointAddress,
     },
   });
 

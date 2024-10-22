@@ -1,3 +1,4 @@
+import { getAddress } from "thirdweb";
 import { z } from "zod";
 import type { PrismaTransaction } from "../../schema/prisma";
 import { getConfig } from "../../utils/cache/getConfig";
@@ -17,14 +18,31 @@ export class WalletDetailsError extends Error {
   }
 }
 
+/**
+ * Use the Zod schema to validate the EVM address.
+ * Uses getAddress from thirdweb/utils to validate the address.
+ */
+const zodEvmAddressSchema = z.string().transform((address, ctx) => {
+  try {
+    return getAddress(address);
+  } catch {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Invalid EVM address format",
+    });
+    return z.NEVER;
+  }
+});
+
 const baseWalletPartialSchema = z.object({
-  address: z.string(),
+  address: zodEvmAddressSchema,
   label: z.string().nullable(),
 });
 
 const smartWalletPartialSchema = z.object({
-  accountSignerAddress: z.string(),
-  accountFactoryAddress: z.string().nullable(),
+  accountSignerAddress: zodEvmAddressSchema,
+  accountFactoryAddress: zodEvmAddressSchema.nullable(),
+  entrypointAddress: zodEvmAddressSchema.nullable(),
 });
 
 const localWalletSchema = z
@@ -44,7 +62,6 @@ const smartLocalWalletSchema = localWalletSchema
 const awsKmsWalletSchema = z
   .object({
     type: z.literal("aws-kms"),
-    address: z.string(),
     awsKmsArn: z.string(),
     awsKmsSecretAccessKey: z.string(),
     awsKmsAccessKeyId: z.string(),
@@ -61,7 +78,6 @@ const smartAwsKmsWalletSchema = awsKmsWalletSchema
 const gcpKmsWalletSchema = z
   .object({
     type: z.literal("gcp-kms"),
-    address: z.string(),
     gcpKmsResourcePath: z.string(),
     gcpApplicationCredentialPrivateKey: z.string(),
     gcpApplicationCredentialEmail: z.string(),

@@ -1,7 +1,11 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";
+import { getAddress } from "thirdweb";
+import {
+  DEFAULT_ACCOUNT_FACTORY_V0_7,
+  ENTRYPOINT_ADDRESS_v0_7,
+} from "thirdweb/wallets/smart";
 import { WalletType } from "../../../schema/wallet";
 import { getConfig } from "../../../utils/cache/getConfig";
 import { createCustomError } from "../../middleware/error";
@@ -15,7 +19,7 @@ import {
   CreateGcpKmsWalletError,
   createGcpKmsWalletDetails,
 } from "../../utils/wallets/createGcpKmsWallet";
-import { createAndStoreLocalWallet } from "../../utils/wallets/createLocalWallet";
+import { createLocalWalletDetails } from "../../utils/wallets/createLocalWallet";
 import {
   createSmartAwsWalletDetails,
   createSmartGcpWalletDetails,
@@ -78,7 +82,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
 
       switch (walletType) {
         case WalletType.local:
-          walletAddress = await createAndStoreLocalWallet({ label });
+          walletAddress = await createLocalWalletDetails({ label });
           break;
         case WalletType.awsKms:
           try {
@@ -112,10 +116,11 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           try {
             const smartAwsWallet = await createSmartAwsWalletDetails({
               label,
-              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_7,
+              entrypointAddress: ENTRYPOINT_ADDRESS_v0_7,
             });
 
-            walletAddress = smartAwsWallet.address;
+            walletAddress = getAddress(smartAwsWallet.address);
           } catch (e) {
             if (e instanceof CreateAwsKmsWalletError) {
               throw createCustomError(
@@ -131,9 +136,10 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           try {
             const smartGcpWallet = await createSmartGcpWalletDetails({
               label,
-              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_7,
+              entrypointAddress: ENTRYPOINT_ADDRESS_v0_7,
             });
-            walletAddress = smartGcpWallet.address;
+            walletAddress = getAddress(smartGcpWallet.address);
           } catch (e) {
             if (e instanceof CreateGcpKmsWalletError) {
               throw createCustomError(
@@ -149,9 +155,10 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           {
             const smartLocalWallet = await createSmartLocalWalletDetails({
               label,
-              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_6,
+              accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_7,
+              entrypointAddress: ENTRYPOINT_ADDRESS_v0_7,
             });
-            walletAddress = smartLocalWallet.address;
+            walletAddress = getAddress(smartLocalWallet.address);
           }
           break;
       }

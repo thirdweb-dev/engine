@@ -39,7 +39,8 @@ type CreateWalletDetailsParams = {
       awsKmsAccessKeyId: string;
       accountSignerAddress: Address;
 
-      accountFactoryAddress?: Address;
+      accountFactoryAddress: Address | undefined;
+      entrypointAddress: Address | undefined;
     }
   | {
       type: "smart:gcp-kms";
@@ -48,14 +49,16 @@ type CreateWalletDetailsParams = {
       gcpApplicationCredentialEmail: string;
       accountSignerAddress: Address;
 
-      accountFactoryAddress?: Address;
+      accountFactoryAddress: Address | undefined;
+      entrypointAddress: Address | undefined;
     }
   | {
       type: "smart:local";
       encryptedJson: string; // ENCRYPTION IS NOT HANDLED HERE, process privatekey with legacyLocalCrytpo before passing to this function
       accountSignerAddress: Address;
 
-      accountFactoryAddress?: Address;
+      accountFactoryAddress: Address | undefined;
+      entrypointAddress: Address | undefined;
     }
 );
 
@@ -125,6 +128,7 @@ export const createWalletDetails = async ({
 
         accountFactoryAddress:
           walletDetails.accountFactoryAddress?.toLowerCase(),
+        entrypointAddress: walletDetails.entrypointAddress?.toLowerCase(),
       },
     });
   }
@@ -143,6 +147,7 @@ export const createWalletDetails = async ({
 
         accountFactoryAddress:
           walletDetails.accountFactoryAddress?.toLowerCase(),
+        entrypointAddress: walletDetails.entrypointAddress?.toLowerCase(),
       },
     });
   }
@@ -156,6 +161,7 @@ export const createWalletDetails = async ({
 
         accountFactoryAddress:
           walletDetails.accountFactoryAddress?.toLowerCase(),
+        entrypointAddress: walletDetails.entrypointAddress?.toLowerCase(),
       },
     });
   }
