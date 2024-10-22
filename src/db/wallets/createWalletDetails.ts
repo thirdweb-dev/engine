@@ -160,7 +160,5 @@ export const createWalletDetails = async ({
     });
   }
 
-  // we will never reach here
-  // this helps typescript understand that this function will always return
   throw new Error("Unsupported wallet type");
 };
