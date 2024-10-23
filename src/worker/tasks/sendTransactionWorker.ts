@@ -99,48 +99,9 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
 
   if (transaction.status === "queued") {
     if (transaction.isUserOp) {
-      // this can either be a regular backend wallet userop or a smart backend wallet userop
-      const accountAddress = transaction.accountAddress;
-      assert(accountAddress, "Invalid userOp parameters: accountAddress");
-
-      let adminAccount: Account | undefined;
-
-      try {
-        adminAccount = await getSmartBackendWalletAdminAccount({
-          accountAddress,
-          chainId: transaction.chainId,
-        });
-      } catch {
-        // do nothing, this might still be a regular backend wallet userop
-      }
-
-      try {
-        adminAccount = await getAccount({
-          chainId: transaction.chainId,
-          from: transaction.from,
-        });
-      } catch {
-        job.log(
-          `Failed to get admin account for userOp: ${stringify(transaction)}`,
-        );
-      }
-
-      if (!adminAccount) {
-        resultTransaction = {
-          ...transaction,
-          status: "errored",
-          errorMessage: "Failed to get admin account",
-        };
-      } else {
-        resultTransaction = await _sendUserOp(job, transaction, adminAccount);
-      }
+      resultTransaction = await _sendUserOp(job, transaction);
     } else {
-      const account = await getAccount({
-        chainId: transaction.chainId,
-        from: transaction.from,
-      });
-
-      resultTransaction = await _sendTransaction(job, transaction, account);
+      resultTransaction = await _sendTransaction(job, transaction);
     }
   } else if (transaction.status === "sent") {
     resultTransaction = await _resendTransaction(job, transaction, resendCount);
@@ -170,7 +131,6 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
 const _sendUserOp = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
-  adminAccount: Account,
 ): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(queuedTransaction.isUserOp);
 
@@ -184,6 +144,7 @@ const _sendUserOp = async (
   }
 
   const {
+    from,
     accountAddress,
     to,
     target,
@@ -198,6 +159,34 @@ const _sendUserOp = async (
   assert(accountAddress, "Invalid userOp parameters: accountAddress");
   const toAddress = to ?? target;
   assert(toAddress, "Invalid transaction parameters: to");
+
+  // this can either be a regular backend wallet userop or a smart backend wallet userop
+  let adminAccount: Account | undefined;
+
+  try {
+    adminAccount = await getSmartBackendWalletAdminAccount({
+      accountAddress,
+      chainId: chainId,
+    });
+  } catch {
+    // do nothing, this might still be a regular backend wallet userop
+  }
+
+  if (!adminAccount) {
+    adminAccount = await getAccount({
+      chainId: chainId,
+      from,
+    });
+  }
+
+  if (!adminAccount) {
+    job.log("Failed to find admin account for userop");
+    return {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: "Failed to find admin account for userop",
+    };
+  }
 
   let signedUserOp: UserOperation;
   try {
@@ -294,7 +283,6 @@ const _sendUserOp = async (
 const _sendTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
-  account: Account,
 ): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(!queuedTransaction.isUserOp);
 
@@ -309,6 +297,10 @@ const _sendTransaction = async (
 
   const { queueId, chainId, from, to, overrides } = queuedTransaction;
   const chain = await getChain(chainId);
+  const account = await getAccount({
+    chainId: chainId,
+    from: from,
+  });
 
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
