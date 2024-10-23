@@ -1,10 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { ZERO_ADDRESS } from "thirdweb";
+import { verifyContractWalletSignature } from "thirdweb/auth";
 import { arbitrumSepolia } from "thirdweb/chains";
 import { pollTransactionStatus } from "../../utils/transactions";
 import { setup } from "../setup";
 
-const chain = arbitrumSepolia.id.toString();
+const chain = arbitrumSepolia;
+const chainId = arbitrumSepolia.id.toString();
+const message = "test";
 
 describe("smart local wallet", () => {
   let smartWalletAddress: string | undefined;
@@ -39,10 +42,35 @@ describe("smart local wallet", () => {
     smartWalletAddress = res.result.walletAddress;
   });
 
+  test("Sign message", async () => {
+    const { engine, thirdwebClient } = await setup();
+
+    const res = await engine.backendWallet.signMessage(
+      getSmartWalletAddress(),
+      {
+        message,
+        isBytes: false,
+        chainId: chain.id,
+      },
+    );
+
+    const signature = res.result;
+
+    const valid = await verifyContractWalletSignature({
+      address: getSmartWalletAddress(),
+      chain,
+      client: thirdwebClient,
+      message,
+      signature: signature,
+    });
+
+    expect(valid).toBeTruthy();
+  });
+
   test("Send a SDK v5 Transaction (sendTransaction noop)", async () => {
     const { engine } = await setup();
     const res = await engine.backendWallet.sendTransaction(
-      chain,
+      chainId,
       getSmartWalletAddress(),
       {
         data: "0x",
@@ -62,7 +90,7 @@ describe("smart local wallet", () => {
     const { engine } = await setup();
 
     const deployRes = await engine.deploy.deployToken(
-      chain,
+      chainId,
       getSmartWalletAddress(),
       {
         contractMetadata: {
@@ -85,7 +113,7 @@ describe("smart local wallet", () => {
     await pollTransactionStatus(engine, deployQueueId);
 
     const mintRes = await engine.erc20.mintTo(
-      chain,
+      chainId,
       deployedAddress,
       getSmartWalletAddress(),
       {
@@ -100,7 +128,7 @@ describe("smart local wallet", () => {
 
     const balance = await engine.erc20.balanceOf(
       getSmartWalletAddress(),
-      chain,
+      chainId,
       deployedAddress,
     );
 
@@ -111,7 +139,7 @@ describe("smart local wallet", () => {
     const { engine, backendWallet } = await setup();
 
     const res = await engine.erc20.transfer(
-      chain,
+      chainId,
       getTokenAddress(),
       getSmartWalletAddress(),
       {
@@ -126,13 +154,13 @@ describe("smart local wallet", () => {
 
     const smartWalletBalance = await engine.erc20.balanceOf(
       getSmartWalletAddress(),
-      chain,
+      chainId,
       getTokenAddress(),
     );
 
     const backendWalletBalance = await engine.erc20.balanceOf(
       backendWallet,
-      chain,
+      chainId,
       getTokenAddress(),
     );
 
