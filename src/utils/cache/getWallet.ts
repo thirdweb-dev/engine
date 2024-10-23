@@ -2,6 +2,7 @@ import type { EVMWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
 import { StatusCodes } from "http-status-codes";
+import LRUMap from "mnemonist/lru-map";
 import { getWalletDetails } from "../../db/wallets/getWalletDetails";
 import type { PrismaTransaction } from "../../schema/prisma";
 import { WalletType } from "../../schema/wallet";
@@ -14,7 +15,7 @@ import { decrypt } from "../crypto";
 import { env } from "../env";
 import { getConfig } from "./getConfig";
 
-export const walletsCache = new Map<string, EVMWallet>();
+export const walletsCache = new LRUMap<string, EVMWallet>(2048);
 
 interface GetWalletParams {
   pgtx?: PrismaTransaction;
