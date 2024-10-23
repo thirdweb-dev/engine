@@ -98,7 +98,7 @@ export const getWallet = async <TWallet extends EVMWallet>({
 
       const splitArn = splitAwsKmsArn(walletDetails.awsKmsArn);
 
-      const personalWallet = new AwsKmsWallet({
+      const adminWallet = new AwsKmsWallet({
         keyId: splitArn.keyId,
         region: splitArn.region,
         accessKeyId: walletDetails.awsKmsAccessKeyId,
@@ -107,7 +107,7 @@ export const getWallet = async <TWallet extends EVMWallet>({
 
       const smartWallet: EVMWallet = await getSmartWallet({
         chainId,
-        backendWallet: personalWallet,
+        backendWallet: adminWallet,
         accountAddress: walletDetails.address,
       });
 
@@ -124,7 +124,7 @@ export const getWallet = async <TWallet extends EVMWallet>({
         walletDetails.gcpKmsResourcePath,
       );
 
-      const personalWallet = new GcpKmsWallet({
+      const adminWallet = new GcpKmsWallet({
         keyId: splitResourcePath.cryptoKeyId,
         keyRingId: splitResourcePath.keyRingId,
         keyVersion: splitResourcePath.versionId,
@@ -138,7 +138,7 @@ export const getWallet = async <TWallet extends EVMWallet>({
 
       const smartWallet: EVMWallet = await getSmartWallet({
         chainId,
-        backendWallet: personalWallet,
+        backendWallet: adminWallet,
         accountAddress: walletDetails.address,
       });
 
@@ -151,11 +151,11 @@ export const getWallet = async <TWallet extends EVMWallet>({
           "Smart backend wallet cannot be used to operate external smart account",
         );
 
-      const personalWallet = await getLocalWallet({ chainId, walletAddress });
+      const adminWallet = await getLocalWallet({ chainId, walletAddress });
 
       const smartWallet: EVMWallet = await getSmartWallet({
         chainId,
-        backendWallet: personalWallet,
+        backendWallet: adminWallet,
         accountAddress: walletDetails.address,
       });
 
