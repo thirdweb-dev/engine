@@ -665,6 +665,7 @@ export class BackendWalletService {
         requestBody: {
             message: string;
             isBytes?: boolean;
+            chainId?: number;
         },
         xIdempotencyKey?: string,
     ): CancelablePromise<{

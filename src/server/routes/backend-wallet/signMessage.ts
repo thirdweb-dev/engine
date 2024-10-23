@@ -2,6 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isHex, type Hex } from "thirdweb";
+import { arbitrumSepolia } from "thirdweb/chains";
 import { getAccount } from "../../../utils/account";
 import { getChecksumAddress } from "../../../utils/primitiveTypes";
 import { createCustomError } from "../../middleware/error";
@@ -11,6 +12,7 @@ import { walletHeaderSchema } from "../../schemas/wallet";
 const requestBodySchema = Type.Object({
   message: Type.String(),
   isBytes: Type.Optional(Type.Boolean()),
+  chainId: Type.Optional(Type.Number()),
 });
 
 const responseBodySchema = Type.Object({
@@ -37,7 +39,7 @@ export async function signMessageRoute(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { message, isBytes } = request.body;
+      const { message, isBytes, chainId } = request.body;
       const { "x-backend-wallet-address": walletAddress } =
         request.headers as Static<typeof walletHeaderSchema>;
 
@@ -50,7 +52,7 @@ export async function signMessageRoute(fastify: FastifyInstance) {
       }
 
       const account = await getAccount({
-        chainId: 1,
+        chainId: chainId ?? arbitrumSepolia.id,
         from: getChecksumAddress(walletAddress),
       });
       const messageToSign = isBytes ? { raw: message as Hex } : message;
