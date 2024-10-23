@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { eth_getTransactionReceipt, getRpcClient } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";

@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, getAddress } from "thirdweb";
+import { getAddress, type Address } from "thirdweb";
 import {
   deleteAllNonces,
   syncLatestNonceFromOnchain,
@@ -21,7 +21,9 @@ responseSchema.example = {
   },
 };
 
-export const resetBackendWalletNonces = async (fastify: FastifyInstance) => {
+export const resetAllBackendWalletNoncesRoute = async (
+  fastify: FastifyInstance,
+) => {
   fastify.route<{
     Reply: Static<typeof responseSchema>;
   }>({

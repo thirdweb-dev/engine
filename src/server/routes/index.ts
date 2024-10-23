@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { cancelNoncesRoute } from "./admin/cancelNonces";
 import { getNonceDetailsRoute } from "./admin/nonces";
 import { getTransactionDetails } from "./admin/transaction";
 import { createAccessToken } from "./auth/access-tokens/create";
@@ -19,7 +20,8 @@ import { getTransactionsForBackendWallet } from "./backend-wallet/getTransaction
 import { getTransactionsForBackendWalletByNonce } from "./backend-wallet/getTransactionsByNonce";
 import { importBackendWallet } from "./backend-wallet/import";
 import { removeBackendWallet } from "./backend-wallet/remove";
-import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
+import { resetBackendWalletNonceRoute } from "./backend-wallet/resetNonce";
+import { resetAllBackendWalletNoncesRoute } from "./backend-wallet/resetNonces";
 import { sendTransaction } from "./backend-wallet/sendTransaction";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
 import { signMessageRoute } from "./backend-wallet/signMessage";
@@ -102,7 +104,7 @@ import { cancelTransaction } from "./transaction/cancel";
 import { getAllTransactions } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
 import { retryTransaction } from "./transaction/retry";
-import { retryFailedTransaction } from "./transaction/retry-failed";
+import { retryFailedTransaction } from "./transaction/retryFailed";
 import { checkTxStatus } from "./transaction/status";
 import { syncRetryTransaction } from "./transaction/syncRetry";
 import { createWebhook } from "./webhooks/create";
@@ -127,7 +129,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(signTypedData);
   await fastify.register(getTransactionsForBackendWallet);
   await fastify.register(getTransactionsForBackendWalletByNonce);
-  await fastify.register(resetBackendWalletNonces);
+  await fastify.register(resetBackendWalletNonceRoute);
+  await fastify.register(resetAllBackendWalletNoncesRoute);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
 
@@ -265,4 +268,5 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   // Admin
   await fastify.register(getTransactionDetails);
   await fastify.register(getNonceDetailsRoute);
+  await fastify.register(cancelNoncesRoute);
 };
