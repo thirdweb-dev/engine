@@ -1,6 +1,6 @@
 import { sha256HexSync } from "@thirdweb-dev/crypto";
 import { createThirdwebClient } from "thirdweb";
-import { TransactionReceipt } from "thirdweb/dist/types/transaction/types";
+import type { TransactionType } from "viem";
 import { env } from "./env";
 
 export const thirdwebClientId = sha256HexSync(
@@ -18,14 +18,23 @@ export const thirdwebClient = createThirdwebClient({
  * Helper functions to handle v4 -> v5 SDK migration.
  */
 
-export const toTransactionStatus = (status: "success" | "reverted"): number =>
+export const fromTransactionStatus = (status: "success" | "reverted") =>
   status === "success" ? 1 : 0;
 
-export const toTransactionType = (type: TransactionReceipt["type"]): number => {
+export const fromTransactionType = (type: TransactionType) => {
   if (type === "legacy") return 0;
   if (type === "eip1559") return 1;
   if (type === "eip2930") return 2;
   if (type === "eip4844") return 3;
   if (type === "eip7702") return 4;
   throw new Error(`Unexpected transaction type ${type}`);
+};
+
+export const toTransactionType = (value: number) => {
+  if (value === 0) return "legacy";
+  if (value === 1) return "eip1559";
+  if (value === 2) return "eip2930";
+  if (value === 3) return "eip4844";
+  if (value === 4) return "eip7702";
+  throw new Error(`Unexpected transaction type number ${value}`);
 };
