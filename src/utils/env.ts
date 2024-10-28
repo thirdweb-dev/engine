@@ -68,7 +68,6 @@ export const env = createEnv({
       .default("https://c.thirdweb.com/event"),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
-    ENABLE_KEYPAIR_AUTH: boolEnvSchema(false),
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS: z.coerce
       .number()
       .nonnegative()
@@ -102,6 +101,12 @@ export const env = createEnv({
     QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(10_000),
     // Sets the number of recent nonces to map to queue IDs.
     NONCE_MAP_COUNT: z.coerce.number().default(10_000),
+
+    /**
+     * Enable experimental or custom features.
+     */
+    ENABLE_KEYPAIR_AUTH: boolEnvSchema(false),
+    ENABLE_CUSTOM_HMAC_AUTH: boolEnvSchema(false),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -124,7 +129,6 @@ export const env = createEnv({
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
-    ENABLE_KEYPAIR_AUTH: process.env.ENABLE_KEYPAIR_AUTH,
     CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
       process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
@@ -142,6 +146,8 @@ export const env = createEnv({
     NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
     METRICS_PORT: process.env.METRICS_PORT,
     METRICS_ENABLED: process.env.METRICS_ENABLED,
+    ENABLE_KEYPAIR_AUTH: process.env.ENABLE_KEYPAIR_AUTH,
+    ENABLE_CUSTOM_HMAC_AUTH: process.env.ENABLE_CUSTOM_HMAC_AUTH,
   },
   onValidationError: (error: ZodError) => {
     console.error(

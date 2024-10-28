@@ -72,10 +72,7 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // TODO: Remove backwards compatibility with next breaking change
   if (awsAccessKeyId && awsSecretAccessKey && awsRegion) {
     // First try to load the aws secret using the encryption password
-    let decryptedSecretAccessKey = decrypt(
-      awsSecretAccessKey,
-      env.ENCRYPTION_PASSWORD,
-    );
+    let decryptedSecretAccessKey = decrypt(awsSecretAccessKey);
 
     // If that fails, try to load the aws secret using the thirdweb api secret key
     if (!awsSecretAccessKey) {
@@ -115,10 +112,7 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // TODO: Remove backwards compatibility with next breaking change
   if (gcpApplicationCredentialEmail && gcpApplicationCredentialPrivateKey) {
     // First try to load the gcp secret using the encryption password
-    let decryptedGcpKey = decrypt(
-      gcpApplicationCredentialPrivateKey,
-      env.ENCRYPTION_PASSWORD,
-    );
+    let decryptedGcpKey = decrypt(gcpApplicationCredentialPrivateKey);
 
     // If that fails, try to load the gcp secret using the thirdweb api secret key
     if (!gcpApplicationCredentialPrivateKey) {

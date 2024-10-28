@@ -1,8 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
+import { encrypt } from "../../../utils/crypto";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
@@ -13,12 +14,26 @@ const requestBodySchema = Type.Object({
     description: "Webhook URL",
     examples: ["https://example.com/webhook"],
   }),
-  name: Type.Optional(
+  name: Type.Optional(Type.String()),
+  eventType: Type.Enum(WebhooksEventTypes),
+  mtlsClientCert: Type.Optional(
     Type.String({
-      minLength: 3,
+      description:
+        "(For mTLS) The client certificate used to authenticate your to your server.",
     }),
   ),
-  eventType: Type.Enum(WebhooksEventTypes),
+  mtlsClientKey: Type.Optional(
+    Type.String({
+      description:
+        "(For mTLS) The private key associated with your client certificate.",
+    }),
+  ),
+  mtlsCaCert: Type.Optional(
+    Type.String({
+      description:
+        "(For mTLS) The Certificate Authority (CA) that signed your client certificate, used to verify the authenticity of the `mtlsClientCert`. This is only required if using a self-signed certficate.",
+    }),
+  ),
 });
 
 requestBodySchema.examples = [
@@ -76,7 +91,7 @@ export async function createWebhook(fastify: FastifyInstance) {
     method: "POST",
     url: "/webhooks/create",
     schema: {
-      summary: "Create a webhook",
+      summary: "Create webhook",
       description:
         "Create a webhook to call when certain blockchain events occur.",
       tags: ["Webhooks"],
@@ -88,7 +103,26 @@ export async function createWebhook(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { url, name, eventType } = req.body;
+      const {
+        url,
+        name,
+        eventType,
+        mtlsClientCert,
+        mtlsClientKey,
+        mtlsCaCert,
+      } = req.body;
+
+      // Assert neither or both required mTLS fields are provided.
+      if (
+        (!mtlsClientCert && mtlsClientKey) ||
+        (mtlsClientCert && !mtlsClientKey)
+      ) {
+        throw createCustomError(
+          `"mtlsClientCert" and "mtlsClientKey" must be set if using mTLS.`,
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
+      }
 
       if (!isValidHttpUrl(url)) {
         throw createCustomError(
@@ -102,6 +136,9 @@ export async function createWebhook(fastify: FastifyInstance) {
         url,
         name,
         eventType,
+        mtlsClientCert: mtlsClientCert ? encrypt(mtlsClientCert) : undefined,
+        mtlsClientKey: mtlsClientKey ? encrypt(mtlsClientKey) : undefined,
+        mtlsCaCert: mtlsCaCert ? encrypt(mtlsCaCert) : undefined,
       });
 
       res.status(StatusCodes.OK).send({

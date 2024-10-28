@@ -172,14 +172,20 @@ model Transactions {
 }
 
 model Webhooks {
-  id                    Int                     @id @default(autoincrement()) @map("id")
-  name                  String?                 @map("name")
-  url                   String                  @map("url")
-  secret                String                  @map("secret")
-  eventType             String                  @map("evenType")
-  createdAt             DateTime                @default(now()) @map("createdAt")
-  updatedAt             DateTime                @updatedAt @map("updatedAt")
-  revokedAt             DateTime?               @map("revokedAt")
+  id        Int     @id @default(autoincrement()) @map("id")
+  name      String? @map("name")
+  url       String  @map("url")
+  secret    String  @map("secret")
+  eventType String  @map("evenType")
+
+  mtlsClientCert String?
+  mtlsClientKey  String?
+  mtlsCaCert     String?
+
+  createdAt DateTime  @default(now()) @map("createdAt")
+  updatedAt DateTime  @updatedAt @map("updatedAt")
+  revokedAt DateTime? @map("revokedAt")
+
   ContractSubscriptions ContractSubscriptions[]
 
   @@map("webhooks")

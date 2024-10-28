@@ -1,7 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { FastifyRequest } from "fastify/types/request";
+import type { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken from "jsonwebtoken";
 import { getPermissions } from "../db/permissions/getPermissions";
 import { WebhooksEventTypes } from "../schema/webhooks";
@@ -274,11 +274,6 @@ describe("Websocket requests", () => {
     mockGetUser.mockReturnValue({
       session: { permissions: Permission.Admin },
     });
-
-    const mockSocket = {
-      write: vi.fn(),
-      destroy: vi.fn(),
-    };
 
     const defaultConfig = await getConfig();
     mockGetConfig.mockResolvedValueOnce({

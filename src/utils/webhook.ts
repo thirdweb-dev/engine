@@ -1,49 +1,67 @@
-import { Webhooks } from "@prisma/client";
-import crypto from "crypto";
+import type { Webhooks } from "@prisma/client";
+import crypto, { randomUUID } from "node:crypto";
+import { Agent, fetch } from "undici";
 import {
-  WalletBalanceWebhookSchema,
   WebhooksEventTypes,
+  type WalletBalanceWebhookSchema,
 } from "../schema/webhooks";
 import { getWebhooksByEventType } from "./cache/getWebhook";
+import { decrypt } from "./crypto";
+import { env } from "./env";
+import { prettifyError } from "./error";
 import { logger } from "./logger";
+import { generateSecretHmac256 } from "./webhook/customAuthHeader";
 
 let balanceNotificationLastSentAt = -1;
 
-export const generateSignature = (
-  body: Record<string, any>,
-  timestamp: string,
+const generateSignature = (
+  body: Record<string, unknown>,
+  timestampSeconds: number,
   secret: string,
 ): string => {
   const _body = JSON.stringify(body);
-  const payload = `${timestamp}.${_body}`;
+  const payload = `${timestampSeconds}.${_body}`;
   return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 };
 
-export const createWebhookRequestHeaders = async (
+const generateAuthorization = (args: {
+  webhook: Webhooks;
+  timestampSeconds: number;
+  body: Record<string, unknown>;
+}): string => {
+  const { webhook, timestampSeconds, body } = args;
+  if (env.ENABLE_CUSTOM_HMAC_AUTH) {
+    return generateSecretHmac256({
+      webhookUrl: webhook.url,
+      body,
+      timestampSeconds,
+      nonce: randomUUID(),
+      // DEBUG
+      clientId: "@TODO: UNIMPLEMENTED",
+      clientSecret: "@TODO: UNIMPLEMENTED",
+    });
+  }
+  return `Bearer ${webhook.secret}`;
+};
+
+const generateRequestHeaders = (
   webhook: Webhooks,
-  body: Record<string, any>,
-): Promise<HeadersInit> => {
-  const headers: {
-    Accept: string;
-    "Content-Type": string;
-    Authorization?: string;
-    "x-engine-signature"?: string;
-    "x-engine-timestamp"?: string;
-  } = {
+  body: Record<string, unknown>,
+): HeadersInit => {
+  const timestampSeconds = Math.floor(Date.now() / 1000);
+  const signature = generateSignature(body, timestampSeconds, webhook.secret);
+  const authorization = generateAuthorization({
+    webhook,
+    timestampSeconds,
+    body,
+  });
+  return {
     Accept: "application/json",
     "Content-Type": "application/json",
+    Authorization: authorization,
+    "x-engine-signature": signature,
+    "x-engine-timestamp": timestampSeconds.toString(),
   };
-
-  if (webhook.secret) {
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    const signature = generateSignature(body, timestamp, webhook.secret);
-
-    headers["Authorization"] = `Bearer ${webhook.secret}`;
-    headers["x-engine-signature"] = signature;
-    headers["x-engine-timestamp"] = timestamp;
-  }
-
-  return headers;
 };
 
 export interface WebhookResponse {
@@ -54,14 +72,29 @@ export interface WebhookResponse {
 
 export const sendWebhookRequest = async (
   webhook: Webhooks,
-  body: Record<string, any>,
+  body: Record<string, unknown>,
 ): Promise<WebhookResponse> => {
   try {
-    const headers = await createWebhookRequestHeaders(webhook, body);
+    // If mTLS is enabled, provide the certificate with this request.
+    const dispatcher =
+      webhook.mtlsClientCert && webhook.mtlsClientKey
+        ? new Agent({
+            connect: {
+              cert: decrypt(webhook.mtlsClientCert),
+              key: decrypt(webhook.mtlsClientKey),
+              ca: webhook.mtlsCaCert ? decrypt(webhook.mtlsCaCert) : undefined,
+              // Validate the server's certificate.
+              rejectUnauthorized: true,
+            },
+          })
+        : undefined;
+
+    const headers = await generateRequestHeaders(webhook, body);
     const resp = await fetch(webhook.url, {
       method: "POST",
       headers: headers,
       body: JSON.stringify(body),
+      dispatcher,
     });
 
     return {
@@ -69,11 +102,11 @@ export const sendWebhookRequest = async (
       status: resp.status,
       body: await resp.text(),
     };
-  } catch (e: any) {
+  } catch (e) {
     return {
       ok: false,
       status: 500,
-      body: e.toString(),
+      body: prettifyError(e),
     };
   }
 };

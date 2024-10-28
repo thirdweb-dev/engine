@@ -13,7 +13,6 @@ import { getConfig } from "./cache/getConfig";
 import { getSmartWalletV5 } from "./cache/getSmartWalletV5";
 import { getChain } from "./chain";
 import { decrypt } from "./crypto";
-import { env } from "./env";
 import { thirdwebClient } from "./sdk";
 
 export const _accountsCache = new LRUMap<string, Account>(2048);
@@ -58,7 +57,7 @@ export const getAccount = async (args: {
       // try to decrypt the secret access key in walletDetails (if found)
       // otherwise fallback to global config
       const secretAccessKey = walletDetails.awsKmsSecretAccessKey
-        ? decrypt(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
+        ? decrypt(walletDetails.awsKmsSecretAccessKey)
         : config.walletConfiguration.aws?.awsSecretAccessKey;
 
       if (!secretAccessKey) {
@@ -97,10 +96,7 @@ export const getAccount = async (args: {
       // otherwise fallback to global config
       const gcpApplicationCredentialPrivateKey =
         walletDetails.gcpApplicationCredentialPrivateKey
-          ? decrypt(
-              walletDetails.gcpApplicationCredentialPrivateKey,
-              env.ENCRYPTION_PASSWORD,
-            )
+          ? decrypt(walletDetails.gcpApplicationCredentialPrivateKey)
           : config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey;
 
       if (!gcpApplicationCredentialPrivateKey) {
