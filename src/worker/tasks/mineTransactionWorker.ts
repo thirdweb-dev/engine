@@ -77,12 +77,6 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         walletAddress: getAddress(resultTransaction.from),
       },
     });
-    logger({
-      level: "info",
-      queueId: resultTransaction.queueId,
-      message: `Transaction mined [${resultTransaction.transactionHash}]`,
-      service: "worker",
-    });
   }
 };
 
@@ -180,10 +174,9 @@ const _mineTransaction = async (
   const blockNumber = await getBlockNumberish(chainId);
   const ellapsedBlocks = blockNumber - sentAtBlock;
   if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
-    const message = `Resending transaction after ${ellapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentAtBlock}`;
-    job.log(message);
-    logger({ service: "worker", level: "info", queueId, message });
-
+    job.log(
+      `Resending transaction after ${ellapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentAtBlock}`,
+    );
     await SendTransactionQueue.add({
       queueId,
       resendCount: resendCount + 1,
