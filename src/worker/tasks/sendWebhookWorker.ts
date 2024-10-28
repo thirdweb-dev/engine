@@ -2,7 +2,10 @@ import type { Static } from "@sinclair/typebox";
 import { Worker, type Job, type Processor } from "bullmq";
 import superjson from "superjson";
 import { TransactionDB } from "../../db/transactions/db";
-import { WebhooksEventTypes } from "../../schema/webhooks";
+import {
+  BackendWalletBalanceWebhookParams,
+  WebhooksEventTypes,
+} from "../../schema/webhooks";
 import { toEventLogSchema } from "../../server/schemas/eventLog";
 import {
   toTransactionSchema,
@@ -57,10 +60,15 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       resp = await sendWebhookRequest(webhook, webhookBody);
       break;
     }
+
+    case WebhooksEventTypes.BACKEND_WALLET_BALANCE: {
+      const webhookBody: BackendWalletBalanceWebhookParams = data.body;
+      resp = await sendWebhookRequest(webhook, webhookBody);
+      break;
+    }
   }
 
-  const shouldRetry = resp && resp.status >= 500 && resp.status <= 599;
-  if (shouldRetry) {
+  if (resp && resp.status >= 500) {
     // Throw on 5xx so it remains in the queue to retry later.
     throw new Error(
       `Received status ${resp.status} from webhook ${webhook.url}.`,
