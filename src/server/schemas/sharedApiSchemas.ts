@@ -4,6 +4,7 @@ import type { RouteGenericInterface } from "fastify";
 import type { FastifySchema } from "fastify/types/schema";
 import { StatusCodes } from "http-status-codes";
 import { AddressSchema } from "./address";
+import { chainIdOrSlugSchema } from "./chain";
 
 export const baseReplyErrorSchema = Type.Object({
   message: Type.Optional(Type.String()),
@@ -17,10 +18,7 @@ export const baseReplyErrorSchema = Type.Object({
  * Basic schema for Request Parameters
  */
 export const contractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "Contract address",
@@ -37,10 +35,7 @@ export const requestQuerystringSchema = Type.Object({
 });
 
 export const prebuiltDeployParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractType: Type.String({
     examples: Object.keys(PREBUILT_CONTRACTS_MAP),
     description: "Contract type to deploy",
@@ -48,10 +43,7 @@ export const prebuiltDeployParamSchema = Type.Object({
 });
 
 export const publishedDeployParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   publisher: Type.String({
     examples: ["deployer.thirdweb.eth"],
     description: "Address or ENS of the publisher of the contract",
@@ -176,10 +168,7 @@ transactionWritesResponseSchema.example = {
  * Basic schema for ERC721 Contract Request Parameters
  */
 export const erc20ContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "ERC20 contract address",
@@ -190,10 +179,7 @@ export const erc20ContractParamSchema = Type.Object({
  * Basic schema for ERC721 Contract Request Parameters
  */
 export const erc1155ContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "ERC1155 contract address",
@@ -204,10 +190,7 @@ export const erc1155ContractParamSchema = Type.Object({
  * Basic schema for ERC721 Contract Request Parameters
  */
 export const erc721ContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "ERC721 contract address",
@@ -234,10 +217,7 @@ export enum Status {
 }
 
 export const marketplaceV3ContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "Contract address",

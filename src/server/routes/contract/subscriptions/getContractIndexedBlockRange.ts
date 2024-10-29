@@ -1,9 +1,10 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractEventLogsIndexedBlockRange } from "../../../../db/contractEventLogs/getContractEventLogs";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema } from "../../../schemas/address";
+import { chainIdOrSlugSchema } from "../../../schemas/chain";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -12,7 +13,7 @@ import { getChainIdFromChain } from "../../../utils/chain";
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    chain: Type.String(),
+    chain: chainIdOrSlugSchema,
     contractAddress: AddressSchema,
     fromBlock: Type.Number(),
     toBlock: Type.Number(),

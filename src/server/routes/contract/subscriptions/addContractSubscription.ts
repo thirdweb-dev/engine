@@ -13,6 +13,7 @@ import { getChain } from "../../../../utils/chain";
 import { thirdwebClient } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema } from "../../../schemas/address";
+import { chainIdOrSlugSchema } from "../../../schemas/chain";
 import {
   contractSubscriptionSchema,
   toContractSubscriptionSchema,
@@ -22,9 +23,7 @@ import { getChainIdFromChain } from "../../../utils/chain";
 import { isValidHttpUrl } from "../../../utils/validator";
 
 const bodySchema = Type.Object({
-  chain: Type.String({
-    description: "The chain for the contract.",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "The address for the contract.",

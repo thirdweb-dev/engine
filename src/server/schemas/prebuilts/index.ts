@@ -1,6 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import { constants } from "ethers";
 import { AddressSchema } from "../address";
+import { chainIdOrSlugSchema } from "../chain";
 
 const MAX_BPS = 10000;
 
@@ -87,10 +88,7 @@ export const commonTrustedForwarderSchema = Type.Object({
 });
 
 export const prebuiltDeployContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
 });
 
 export const prebuiltDeployResponseSchema = Type.Object({

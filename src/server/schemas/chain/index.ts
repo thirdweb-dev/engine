@@ -1,10 +1,12 @@
 import { Type } from "@sinclair/typebox";
 
+export const chainIdOrSlugSchema = Type.RegExp(/^[\w-]{1,50}$/, {
+  description: `A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.`,
+  examples: ["80002"],
+});
+
 export const chainRequestQuerystringSchema = Type.Object({
-  chain: Type.String({
-    description: "Chain name or ID",
-    examples: ["1", "ethereum"],
-  }),
+  chain: chainIdOrSlugSchema,
 });
 
 export const chainResponseSchema = Type.Partial(
