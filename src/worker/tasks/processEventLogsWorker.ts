@@ -3,15 +3,15 @@ import { AbiEvent } from "abitype";
 import { Job, Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
-	Address,
-	Chain,
-	PreparedEvent,
-	ThirdwebContract,
-	eth_getBlockByHash,
-	getContract,
-	getContractEvents,
-	getRpcClient,
-	prepareEvent,
+  Address,
+  Chain,
+  PreparedEvent,
+  ThirdwebContract,
+  eth_getBlockByHash,
+  getContract,
+  getContractEvents,
+  getRpcClient,
+  prepareEvent,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import { Hash } from "viem";
@@ -24,83 +24,84 @@ import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import {
-	EnqueueProcessEventLogsData,
-	ProcessEventsLogQueue,
+  EnqueueProcessEventLogsData,
+  ProcessEventsLogQueue,
 } from "../queues/processEventLogsQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import { SendWebhookQueue } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
-	const {
-		chainId,
-		filters = [],
-		fromBlock,
-		toBlock,
-	} = superjson.parse<EnqueueProcessEventLogsData>(job.data);
+  const {
+    chainId,
+    filters = [],
+    fromBlock,
+    toBlock,
+  } = superjson.parse<EnqueueProcessEventLogsData>(job.data);
 
-	const logs = await getLogs({
-		chainId,
-		fromBlock,
-		toBlock,
-		filters,
-	});
-	if (logs.length === 0) {
-		return;
-	}
+  const logs = await getLogs({
+    chainId,
+    fromBlock,
+    toBlock,
+    filters,
+  });
+  if (logs.length === 0) {
+    return;
+  }
 
-	// Store logs to DB.
-	const insertedLogs = await bulkInsertContractEventLogs({ logs });
-	if (insertedLogs.length === 0) {
-		return;
-	}
+  // Store logs to DB.
+  const insertedLogs = await bulkInsertContractEventLogs({ logs });
+  if (insertedLogs.length === 0) {
+    return;
+  }
 
-	// Enqueue webhooks.
-	const webhooksByContractAddress =
-		await getWebhooksByContractAddresses(chainId);
-	for (const eventLog of insertedLogs) {
-		const webhooks = webhooksByContractAddress[eventLog.contractAddress] ?? [];
-		for (const webhook of webhooks) {
-			await SendWebhookQueue.enqueueWebhook({
-				type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
-				webhook,
-				eventLog,
-			});
-		}
-	}
+  // Enqueue webhooks.
+  const webhooksByContractAddress = await getWebhooksByContractAddresses(
+    chainId,
+  );
+  for (const eventLog of insertedLogs) {
+    const webhooks = webhooksByContractAddress[eventLog.contractAddress] ?? [];
+    for (const webhook of webhooks) {
+      await SendWebhookQueue.enqueueWebhook({
+        type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
+        webhook,
+        eventLog,
+      });
+    }
+  }
 
-	// Any logs inserted in a delayed job indicates missed logs in the realtime job.
-	if (job.opts.delay && job.opts.delay > 0) {
-		logger({
-			service: "worker",
-			level: "warn",
-			message: `Found ${
-				insertedLogs.length
-			} logs on chain: ${chainId}, block: ${insertedLogs.map(
-				(log) => log.blockNumber,
-			)}  after ${job.opts.delay / 1000}s.`,
-		});
-	}
+  // Any logs inserted in a delayed job indicates missed logs in the realtime job.
+  if (job.opts.delay && job.opts.delay > 0) {
+    logger({
+      service: "worker",
+      level: "warn",
+      message: `Found ${
+        insertedLogs.length
+      } logs on chain: ${chainId}, block: ${insertedLogs.map(
+        (log) => log.blockNumber,
+      )}  after ${job.opts.delay / 1000}s.`,
+    });
+  }
 };
 
 export const getWebhooksByContractAddresses = async (
-	chainId: number,
+  chainId: number,
 ): Promise<Record<string, Webhooks[]>> => {
-	const contractSubscriptions = await getContractSubscriptionsByChainId(
-		chainId,
-		true,
-	);
+  const contractSubscriptions = await getContractSubscriptionsByChainId(
+    chainId,
+    true,
+  );
 
-	// Map { contractAddress => array of webhooks }
-	const webhooksByContractAddress: Record<string, Webhooks[]> = {};
-	for (const { contractAddress, webhook } of contractSubscriptions) {
-		if (webhook) {
-			if (!webhooksByContractAddress[contractAddress]) {
-				webhooksByContractAddress[contractAddress] = [];
-			}
-			webhooksByContractAddress[contractAddress].push(webhook);
-		}
-	}
-	return webhooksByContractAddress;
+  // Map { contractAddress => array of webhooks }
+  const webhooksByContractAddress: Record<string, Webhooks[]> = {};
+  for (const { contractAddress, webhook } of contractSubscriptions) {
+    if (webhook) {
+      if (!webhooksByContractAddress[contractAddress]) {
+        webhooksByContractAddress[contractAddress] = [];
+      }
+      webhooksByContractAddress[contractAddress].push(webhook);
+    }
+  }
+  return webhooksByContractAddress;
 };
 
 type GetLogsParams = EnqueueProcessEventLogsData;
@@ -110,90 +111,89 @@ type GetLogsParams = EnqueueProcessEventLogsData;
  * @returns A list of logs to insert to the ContractEventLogs table.
  */
 const getLogs = async ({
-	chainId,
-	fromBlock,
-	toBlock,
-	filters,
+  chainId,
+  fromBlock,
+  toBlock,
+  filters,
 }: GetLogsParams): Promise<Prisma.ContractEventLogsCreateInput[]> => {
-	if (filters.length === 0) {
-		return [];
-	}
+  if (filters.length === 0) {
+    return [];
+  }
 
-	const chain = await getChain(chainId);
-	// Store a reference to `contract` so ABI fetches are cached.
-	const addressConfig: Record<
-		Address,
-		{
-			contract: ThirdwebContract;
-		}
-	> = {};
-	for (const filter of filters) {
-		addressConfig[filter.address] = {
-			contract: getContract({
-				client: thirdwebClient,
-				chain,
-				address: filter.address,
-			}),
-		};
-	}
+  const chain = await getChain(chainId);
+  // Store a reference to `contract` so ABI fetches are cached.
+  const addressConfig: Record<
+    Address,
+    {
+      contract: ThirdwebContract;
+    }
+  > = {};
+  for (const filter of filters) {
+    addressConfig[filter.address] = {
+      contract: getContract({
+        client: thirdwebClient,
+        chain,
+        address: filter.address,
+      }),
+    };
+  }
 
-	// Get events for each contract address. Apply any filters.
-	const promises = filters.map(async (f) => {
-		const { contract } = addressConfig[f.address];
+  // Get events for each contract address. Apply any filters.
+  const promises = filters.map(async (f) => {
+    const { contract } = addressConfig[f.address];
 
-		// Get events to filter by, if any.
-		// Resolve the event name, "Transfer", to event signature, "Transfer(address to, uint256 quantity)".
-		const events: PreparedEvent<AbiEvent>[] = [];
-		if (f.events.length > 0) {
-			const abi = await resolveContractAbi<AbiEvent[]>(contract);
-			for (const signature of abi) {
-				if (f.events.includes(signature.name)) {
-					events.push(prepareEvent({ signature }));
-				}
-			}
-		}
+    // Get events to filter by, if any.
+    // Resolve the event name, "Transfer", to event signature, "Transfer(address to, uint256 quantity)".
+    const events: PreparedEvent<AbiEvent>[] = [];
+    if (f.events.length > 0) {
+      const abi = await resolveContractAbi<AbiEvent[]>(contract);
+      for (const signature of abi) {
+        if (f.events.includes(signature.name)) {
+          events.push(prepareEvent({ signature }));
+        }
+      }
+    }
 
-		return await getContractEvents({
-			contract,
-			fromBlock: BigInt(fromBlock),
-			toBlock: BigInt(toBlock),
-			events, // [] means return all events
-		});
-	});
+    return await getContractEvents({
+      contract,
+      fromBlock: BigInt(fromBlock),
+      toBlock: BigInt(toBlock),
+      events, // [] means return all events
+    });
+  });
 
-	// Query and flatten all events.
-	const allLogs = (await Promise.all(promises)).flat();
-	console.log("[DEBUG] allLogs", allLogs);
+  // Query and flatten all events.
+  const allLogs = (await Promise.all(promises)).flat();
 
-	// Get timestamps for blocks.
-	const blockHashes = allLogs.map((e) => e.blockHash);
-	const blockTimestamps = await getBlockTimestamps(chain, blockHashes);
+  // Get timestamps for blocks.
+  const blockHashes = allLogs.map((e) => e.blockHash);
+  const blockTimestamps = await getBlockTimestamps(chain, blockHashes);
 
-	// Transform logs into the DB schema.
-	return await Promise.all(
-		allLogs.map(
-			async (log): Promise<Prisma.ContractEventLogsCreateInput> => ({
-				chainId,
-				blockNumber: Number(log.blockNumber),
-				contractAddress: normalizeAddress(log.address),
-				transactionHash: log.transactionHash,
-				topic0: log.topics[0],
-				topic1: log.topics[1],
-				topic2: log.topics[2],
-				topic3: log.topics[3],
-				data: log.data,
-				eventName: log.eventName,
-				decodedLog: await formatDecodedLog({
-					contract: addressConfig[normalizeAddress(log.address)].contract,
-					eventName: log.eventName,
-					logArgs: log.args as Record<string, unknown>,
-				}),
-				timestamp: blockTimestamps[log.blockHash],
-				transactionIndex: log.transactionIndex,
-				logIndex: log.logIndex,
-			}),
-		),
-	);
+  // Transform logs into the DB schema.
+  return await Promise.all(
+    allLogs.map(
+      async (log): Promise<Prisma.ContractEventLogsCreateInput> => ({
+        chainId,
+        blockNumber: Number(log.blockNumber),
+        contractAddress: normalizeAddress(log.address),
+        transactionHash: log.transactionHash,
+        topic0: log.topics[0],
+        topic1: log.topics[1],
+        topic2: log.topics[2],
+        topic3: log.topics[3],
+        data: log.data,
+        eventName: log.eventName,
+        decodedLog: await formatDecodedLog({
+          contract: addressConfig[normalizeAddress(log.address)].contract,
+          eventName: log.eventName,
+          logArgs: log.args as Record<string, unknown>,
+        }),
+        timestamp: blockTimestamps[log.blockHash],
+        transactionIndex: log.transactionIndex,
+        logIndex: log.logIndex,
+      }),
+    ),
+  );
 };
 
 /**
@@ -218,28 +218,28 @@ const getLogs = async ({
  *    }
  */
 const formatDecodedLog = async (args: {
-	contract: ThirdwebContract;
-	eventName: string;
-	logArgs: Record<string, unknown>;
+  contract: ThirdwebContract;
+  eventName: string;
+  logArgs: Record<string, unknown>;
 }): Promise<Record<string, Prisma.InputJsonObject> | undefined> => {
-	const { contract, eventName, logArgs } = args;
+  const { contract, eventName, logArgs } = args;
 
-	const abi = await resolveContractAbi<AbiEvent[]>(contract);
-	const eventSignature = abi.find((a) => a.name === eventName);
-	if (!eventSignature) {
-		return;
-	}
+  const abi = await resolveContractAbi<AbiEvent[]>(contract);
+  const eventSignature = abi.find((a) => a.name === eventName);
+  if (!eventSignature) {
+    return;
+  }
 
-	const res: Record<string, Prisma.InputJsonObject> = {};
-	for (const { name, type } of eventSignature.inputs) {
-		if (name && name in logArgs) {
-			res[name] = {
-				type,
-				value: logArgToString(logArgs[name]),
-			};
-		}
-	}
-	return res;
+  const res: Record<string, Prisma.InputJsonObject> = {};
+  for (const { name, type } of eventSignature.inputs) {
+    if (name && name in logArgs) {
+      res[name] = {
+        type,
+        value: logArgToString(logArgs[name]),
+      };
+    }
+  }
+  return res;
 };
 
 /**
@@ -249,49 +249,49 @@ const formatDecodedLog = async (args: {
  * @returns Record<Hash, Date>
  */
 const getBlockTimestamps = async (
-	chain: Chain,
-	blockHashes: Hash[],
+  chain: Chain,
+  blockHashes: Hash[],
 ): Promise<Record<Hash, Date>> => {
-	const now = new Date();
-	const dedupe = Array.from(new Set(blockHashes));
-	const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
+  const now = new Date();
+  const dedupe = Array.from(new Set(blockHashes));
+  const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
 
-	const blocks = await Promise.all(
-		dedupe.map(async (blockHash) => {
-			try {
-				const block = await eth_getBlockByHash(rpcRequest, { blockHash });
-				return new Date(Number(block.timestamp) * 1000);
-			} catch (e) {
-				return now;
-			}
-		}),
-	);
+  const blocks = await Promise.all(
+    dedupe.map(async (blockHash) => {
+      try {
+        const block = await eth_getBlockByHash(rpcRequest, { blockHash });
+        return new Date(Number(block.timestamp) * 1000);
+      } catch (e) {
+        return now;
+      }
+    }),
+  );
 
-	const res: Record<Hash, Date> = {};
-	for (let i = 0; i < dedupe.length; i++) {
-		res[dedupe[i]] = blocks[i];
-	}
-	return res;
+  const res: Record<Hash, Date> = {};
+  for (let i = 0; i < dedupe.length; i++) {
+    res[dedupe[i]] = blocks[i];
+  }
+  return res;
 };
 
 const logArgToString = (arg: any): string => {
-	if (arg === null) {
-		return "";
-	}
-	if (typeof arg === "object") {
-		return Object.values(arg).map(logArgToString).join(",");
-	}
-	if (Array.isArray(arg)) {
-		return arg.map(logArgToString).join(",");
-	}
-	return arg.toString();
+  if (arg === null) {
+    return "";
+  }
+  if (typeof arg === "object") {
+    return Object.values(arg).map(logArgToString).join(",");
+  }
+  if (Array.isArray(arg)) {
+    return arg.map(logArgToString).join(",");
+  }
+  return arg.toString();
 };
 
 // Must be explicitly called for the worker to run on this host.
 export const initProcessEventLogsWorker = () => {
-	const _worker = new Worker(ProcessEventsLogQueue.q.name, handler, {
-		concurrency: 5,
-		connection: redis,
-	});
-	logWorkerExceptions(_worker);
+  const _worker = new Worker(ProcessEventsLogQueue.q.name, handler, {
+    concurrency: 5,
+    connection: redis,
+  });
+  logWorkerExceptions(_worker);
 };
