@@ -58,7 +58,7 @@ const handler: Processor<null, void, string> = async (_job: Job<null>) => {
 
         logger({
           service: "worker",
-          level: isStuck ? "fatal" : "info",
+          level: isStuck ? "fatal" : "debug",
           message: `[WALLET_HEALTH] ${walletAddress}:${chainId} isStuck:${isStuck} onchainNonce:${currentState.onchainNonce} largestSentNonce:${currentState.largestSentNonce}`,
         });
       }),
