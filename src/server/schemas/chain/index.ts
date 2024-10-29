@@ -1,10 +1,8 @@
 import { Type } from "@sinclair/typebox";
+import { chainIdOrSlugSchema } from "../chain";
 
 export const chainRequestQuerystringSchema = Type.Object({
-  chain: Type.String({
-    description: "Chain name or ID",
-    examples: ["1", "ethereum"],
-  }),
+  chain: chainIdOrSlugSchema,
 });
 
 export const chainResponseSchema = Type.Partial(
