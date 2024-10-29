@@ -1,5 +1,9 @@
 import { Type } from "@sinclair/typebox";
-import { chainIdOrSlugSchema } from "../chain";
+
+export const chainIdOrSlugSchema = Type.RegExp(/^[\w-]{1,50}$/, {
+  description: `A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.`,
+  examples: ["80002"],
+});
 
 export const chainRequestQuerystringSchema = Type.Object({
   chain: chainIdOrSlugSchema,
