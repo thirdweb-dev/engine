@@ -2,8 +2,6 @@ import { Type } from "@sinclair/typebox";
 import { constants } from "ethers";
 import { AddressSchema } from "../address";
 
-const MAX_BPS = 10000;
-
 export const commonContractSchema = Type.Object({
   name: Type.String(),
   description: Type.Optional(Type.String()),
@@ -15,9 +13,9 @@ export const commonContractSchema = Type.Object({
 
 export const splitRecipientInputSchema = Type.Object({
   address: AddressSchema,
-  sharesBps: Type.Number({
-    exclusiveMinimum: 0,
-    maximum: MAX_BPS,
+  sharesBps: Type.Integer({
+    minimum: 0,
+    maximum: 10_000,
   }),
 });
 
@@ -28,8 +26,8 @@ const percentSchema = Type.Number({
 });
 
 export const commonRoyaltySchema = Type.Object({
-  seller_fee_basis_points: Type.Number({
-    maximum: MAX_BPS,
+  seller_fee_basis_points: Type.Integer({
+    maximum: 10_000,
     minimum: 0,
     default: 0,
   }),
@@ -52,11 +50,11 @@ export const commonSymbolSchema = Type.Object({
 });
 
 export const voteSettingsInputSchema = Type.Object({
-  voting_delay_in_blocks: Type.Number({
+  voting_delay_in_blocks: Type.Integer({
     minimum: 0,
     default: 0,
   }),
-  voting_period_in_blocks: Type.Number({
+  voting_period_in_blocks: Type.Integer({
     minimum: 1,
     default: 1,
   }),
@@ -72,8 +70,8 @@ export const commonPrimarySaleSchema = Type.Object({
 });
 
 export const commonPlatformFeeSchema = Type.Object({
-  platform_fee_basis_points: Type.Number({
-    maximum: MAX_BPS,
+  platform_fee_basis_points: Type.Integer({
+    maximum: 10_000,
     minimum: 0,
     default: 0,
   }),

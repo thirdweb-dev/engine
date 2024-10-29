@@ -50,9 +50,9 @@ const LogSchema = Type.Object({
   data: Type.String(),
   blockNumber: Type.String(),
   transactionHash: TransactionHashSchema,
-  transactionIndex: Type.Number(),
+  transactionIndex: Type.Integer(),
   blockHash: Type.String(),
-  logIndex: Type.Number(),
+  logIndex: Type.Integer(),
   removed: Type.Boolean(),
 
   // Additional properties only for parsed logs

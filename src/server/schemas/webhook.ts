@@ -1,14 +1,14 @@
-import { Webhooks } from "@prisma/client";
-import { Static, Type } from "@sinclair/typebox";
+import type { Webhooks } from "@prisma/client";
+import { Type, type Static } from "@sinclair/typebox";
 
 export const WebhookSchema = Type.Object({
+  id: Type.Integer(),
   url: Type.String(),
   name: Type.Union([Type.String(), Type.Null()]),
   secret: Type.Optional(Type.String()),
   eventType: Type.String(),
   active: Type.Boolean(),
   createdAt: Type.String(),
-  id: Type.Number(),
 });
 
 export const toWebhookSchema = (

@@ -34,7 +34,7 @@ export const chainResponseSchema = Type.Partial(
     shortName: Type.String({
       description: "Chain short name",
     }),
-    chainId: Type.Number({
+    chainId: Type.Integer({
       description: "Chain ID",
     }),
     testnet: Type.Boolean({

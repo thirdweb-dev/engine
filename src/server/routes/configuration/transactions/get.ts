@@ -1,20 +1,20 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
-    minTxsToProcess: Type.Number(),
-    maxTxsToProcess: Type.Number(),
+    minTxsToProcess: Type.Integer(),
+    maxTxsToProcess: Type.Integer(),
     minedTxListenerCronSchedule: Type.Union([Type.String(), Type.Null()]),
-    maxTxsToUpdate: Type.Number(),
+    maxTxsToUpdate: Type.Integer(),
     retryTxListenerCronSchedule: Type.Union([Type.String(), Type.Null()]),
-    minEllapsedBlocksBeforeRetry: Type.Number(),
+    minEllapsedBlocksBeforeRetry: Type.Integer(),
     maxFeePerGasForRetries: Type.String(),
     maxPriorityFeePerGasForRetries: Type.String(),
-    maxRetriesPerTx: Type.Number(),
+    maxRetriesPerTx: Type.Integer(),
     clearCacheCronSchedule: Type.Union([Type.String(), Type.Null()]),
   }),
 });

@@ -14,8 +14,8 @@ const responseSchema = Type.Object({
   result: Type.Object({
     chain: Type.String(),
     contractAddress: AddressSchema,
-    fromBlock: Type.Number(),
-    toBlock: Type.Number(),
+    fromBlock: Type.Integer(),
+    toBlock: Type.Integer(),
     status: Type.String(),
   }),
 });
