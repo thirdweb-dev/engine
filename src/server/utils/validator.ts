@@ -6,6 +6,7 @@ import type {
 } from "../schemas/erc20";
 import type {
   ercNFTResponseType,
+  signature1155InputSchema,
   signature721InputSchema,
 } from "../schemas/nft";
 
