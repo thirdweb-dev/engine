@@ -26,8 +26,9 @@ export const OfferV3InputSchema = Type.Object({
     description: "the price to offer in the currency specified",
   }),
   endTimestamp: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description: "Defaults to 10 years from now.",
+      minimum: 0,
     }),
   ),
 });
@@ -64,8 +65,9 @@ export const OfferV3OutputSchema = Type.Object({
   }),
   asset: Type.Optional(nftMetadataSchema),
   endTimeInSeconds: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description: "The end time of the auction.",
+      minimum: 0,
     }),
   ),
   status: Type.Optional(

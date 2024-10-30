@@ -28,14 +28,14 @@ export const networkResponseSchema = Type.Object({
     symbol: Type.String({
       description: "Native currency symbol",
     }),
-    decimals: Type.Number({
+    decimals: Type.Integer({
       description: "Native currency decimals",
     }),
   }),
   shortName: Type.String({
     description: "Chain short name",
   }),
-  chainId: Type.Number({
+  chainId: Type.Integer({
     description: "Chain ID",
   }),
   testnet: Type.Boolean({

@@ -1,6 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { BigNumber } from "ethers";
 import { AddressSchema } from "../address";
+import { NumberStringSchema } from "../number";
 
 // NFTInput format compatible with v5 SDK
 export const nftInputSchema = Type.Partial(
@@ -115,33 +116,33 @@ export const nftSchema = Type.Object({
 });
 
 export const signature721InputSchema = Type.Object({
-  to: Type.String({
+  to: {
+    ...AddressSchema,
     description:
       "The wallet address that can use this signature to mint tokens. This is to prevent another wallet from intercepting the signature and using it to mint tokens for themselves.",
+  },
+  royaltyRecipient: Type.Optional({
+    ...AddressSchema,
+    description:
+      "The address that will receive the royalty fees from secondary sales. Defaults to the royaltyRecipient address of the contract.",
   }),
-  royaltyRecipient: Type.Optional(
-    Type.String({
-      description:
-        "The address that will receive the royalty fees from secondary sales. Defaults to the royaltyRecipient address of the contract.",
-    }),
-  ),
-  quantity: Type.Optional(
-    Type.String({
-      description: "The number of tokens this signature can be used to mint.",
-    }),
-  ),
+  quantity: Type.Optional({
+    ...NumberStringSchema,
+    description: "The number of tokens this signature can be used to mint.",
+  }),
   royaltyBps: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description:
         "The percentage fee you want to charge for secondary sales. Defaults to the royaltyBps of the contract.",
+      minimum: 0,
+      maximum: 10_000,
     }),
   ),
-  primarySaleRecipient: Type.Optional(
-    Type.String({
-      description:
-        "If a price is specified, the funds will be sent to the primarySaleRecipient address. Defaults to the primarySaleRecipient address of the contract.",
-    }),
-  ),
+  primarySaleRecipient: Type.Optional({
+    ...AddressSchema,
+    description:
+      "If a price is specified, the funds will be sent to the primarySaleRecipient address. Defaults to the primarySaleRecipient address of the contract.",
+  }),
   uid: Type.Optional(
     Type.String({
       description: `A unique identifier for the payload, used to prevent replay attacks and other types of exploits.
@@ -151,12 +152,11 @@ export const signature721InputSchema = Type.Object({
     }),
   ),
   metadata: Type.Union([nftMetadataInputSchema, Type.String()]),
-  currencyAddress: Type.Optional(
-    Type.String({
-      description:
-        "The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS",
-    }),
-  ),
+  currencyAddress: Type.Optional({
+    ...AddressSchema,
+    description:
+      "The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS",
+  }),
   price: Type.Optional(
     Type.String({
       description:
@@ -169,7 +169,7 @@ export const signature721InputSchema = Type.Object({
         description:
           "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
       }),
-      Type.Number(),
+      Type.Integer({ minimum: 0 }),
     ]),
   ),
   mintEndTime: Type.Optional(
@@ -178,7 +178,7 @@ export const signature721InputSchema = Type.Object({
         description:
           "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
       }),
-      Type.Number(),
+      Type.Integer({ minimum: 0 }),
     ]),
   ),
 });
@@ -189,21 +189,24 @@ export const signature721OutputSchema = Type.Object({
     description:
       "The wallet address that can use this signature to mint tokens. This is to prevent another wallet from intercepting the signature and using it to mint tokens for themselves.",
   }),
-  royaltyRecipient: Type.String({
+  royaltyRecipient: {
+    ...AddressSchema,
     description:
       "The address that will receive the royalty fees from secondary sales. Defaults to the royaltyRecipient address of the contract.",
-  }),
-  quantity: Type.String({
+  },
+  quantity: {
+    ...NumberStringSchema,
     description: "The number of tokens this signature can be used to mint.",
-  }),
+  },
   royaltyBps: Type.String({
     description:
       "The percentage fee you want to charge for secondary sales. Defaults to the royaltyBps of the contract.",
   }),
-  primarySaleRecipient: Type.String({
+  primarySaleRecipient: {
+    ...AddressSchema,
     description:
       "If a price is specified, the funds will be sent to the primarySaleRecipient address. Defaults to the primarySaleRecipient address of the contract.",
-  }),
+  },
   uid: Type.String({
     description: `A unique identifier for the payload, used to prevent replay attacks and other types of exploits.
       Note that the input value gets hashed in the actual payload that gets generated. 
@@ -222,11 +225,11 @@ export const signature721OutputSchema = Type.Object({
         "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
     }),
   ),
-  mintStartTime: Type.Number({
+  mintStartTime: Type.Integer({
     description:
       "The time from which the signature can be used to mint tokens. Defaults to now.",
   }),
-  mintEndTime: Type.Number({
+  mintEndTime: Type.Integer({
     description:
       "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
   }),
@@ -248,9 +251,11 @@ export const signature1155InputSchema = Type.Object({
     }),
   ),
   royaltyBps: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description:
         "The percentage fee you want to charge for secondary sales. Defaults to the royaltyBps of the contract.",
+      minimum: 0,
+      maximum: 10_000,
     }),
   ),
   primarySaleRecipient: Type.Optional(
@@ -285,7 +290,7 @@ export const signature1155InputSchema = Type.Object({
         description:
           "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
       }),
-      Type.Number(),
+      Type.Integer({ minimum: 0 }),
     ]),
   ),
   mintEndTime: Type.Optional(
@@ -294,7 +299,7 @@ export const signature1155InputSchema = Type.Object({
         description:
           "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
       }),
-      Type.Number(),
+      Type.Integer({ minimum: 0 }),
     ]),
   ),
 });
@@ -338,13 +343,15 @@ export const signature1155OutputSchema = Type.Object({
       "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
     default: "0",
   }),
-  mintStartTime: Type.Number({
+  mintStartTime: Type.Integer({
     description:
       "The time from which the signature can be used to mint tokens. Defaults to now if value not provided.",
+    minimum: 0,
   }),
-  mintEndTime: Type.Number({
+  mintEndTime: Type.Integer({
     description:
       "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
+    minimum: 0,
   }),
 });
 

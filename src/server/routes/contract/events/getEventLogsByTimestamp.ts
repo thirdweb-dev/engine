@@ -9,8 +9,8 @@ import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 const requestQuerySchema = Type.Object({
   contractAddresses: Type.Optional(Type.Array(AddressSchema)),
   topics: Type.Optional(Type.Array(Type.String())),
-  fromBlockTimestamp: Type.Number(),
-  toBlockTimestamp: Type.Optional(Type.Number()),
+  fromBlockTimestamp: Type.Integer({ minimum: 0 }),
+  toBlockTimestamp: Type.Optional(Type.Integer({ minimum: 0 })),
 });
 
 const responseSchema = Type.Object({
