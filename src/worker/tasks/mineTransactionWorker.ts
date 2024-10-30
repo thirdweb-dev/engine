@@ -280,10 +280,12 @@ const _notifyIfLowBalance = async (transaction: MinedTransaction) => {
       return;
     }
 
+    // Set a key with 5min TTL if it doesn't exist.
+    // This effectively throttles this check once every 5min.
     const throttleKey = `webhook:${WebhooksEventTypes.BACKEND_WALLET_BALANCE}:${chainId}:${from}`;
-    const isThrottled = (await redis.get(throttleKey)) !== null;
+    const isThrottled =
+      (await redis.set(throttleKey, "", "EX", 5 * 60, "NX")) === null;
     if (isThrottled) {
-      // Skip if this wallet was checked recently.
       return;
     }
 
@@ -312,9 +314,6 @@ const _notifyIfLowBalance = async (transaction: MinedTransaction) => {
         message: `LowBalance: The backend wallet ${from} on chain ${chainId} has ${toTokens(currentBalance, 18)} gas remaining.`,
       },
     });
-
-    // Don't check more than once every 5 minutes.
-    await redis.setex(throttleKey, "", 5 * 60);
   } catch (e) {
     logger({
       level: "warn",
