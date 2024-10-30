@@ -23,7 +23,7 @@ const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   claimConditionsForToken: Type.Array(
     Type.Object({
-      tokenId: Type.Union([Type.String(), Type.Number()], {
+      tokenId: Type.Union([Type.String(), Type.Integer()], {
         description: "ID of the token to set the claim conditions for",
       }),
       claimConditions: Type.Array(claimConditionInputSchema),

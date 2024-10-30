@@ -53,7 +53,7 @@ export const signature20InputSchema = Type.Object({
         description:
           "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
       }),
-      Type.Number(),
+      Type.Integer({ minimum: 0 }),
     ]),
   ),
   mintEndTime: Type.Optional(
@@ -62,7 +62,7 @@ export const signature20InputSchema = Type.Object({
         description:
           "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
       }),
-      Type.Number(),
+      Type.Integer({ minimum: 0 }),
     ]),
   ),
 });
@@ -94,15 +94,17 @@ export const signature20OutputSchema = Type.Object({
     description:
       "If you want the user to pay for minting the tokens, you can specify the price per token. Defaults to 0.",
   }),
-  mintStartTime: Type.Number({
+  mintStartTime: Type.Integer({
     description:
       "The time from which the signature can be used to mint tokens. Defaults to now.",
     default: Date.now(),
+    minimum: 0,
   }),
-  mintEndTime: Type.Number({
+  mintEndTime: Type.Integer({
     description:
       "The time until which the signature can be used to mint tokens. Defaults to 10 years from now.",
     default: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 10).getTime(),
+    minimum: 0,
   }),
 });
 

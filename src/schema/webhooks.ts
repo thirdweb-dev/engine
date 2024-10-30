@@ -10,10 +10,10 @@ export enum WebhooksEventTypes {
   CONTRACT_SUBSCRIPTION = "contract_subscription",
 }
 
-export interface WalletBalanceWebhookSchema {
+export type BackendWalletBalanceWebhookParams = {
   walletAddress: string;
   minimumBalance: string;
   currentBalance: string;
   chainId: number;
   message: string;
-}
+};

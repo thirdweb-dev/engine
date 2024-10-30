@@ -14,7 +14,7 @@ import {
 
 const requestQuerySchema = Type.Object({
   cursor: Type.Optional(Type.String()),
-  pageSize: Type.Optional(Type.Number()),
+  pageSize: Type.Optional(Type.Integer({ minimum: 1 })),
   contractAddresses: Type.Optional(Type.Array(AddressSchema)),
 });
 
