@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
@@ -7,29 +7,27 @@ import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const requestBodySchema = Type.Partial(
   Type.Object({
-    minTxsToProcess: Type.Number(),
-    maxTxsToProcess: Type.Number(),
+    maxTxsToProcess: Type.Integer({ minimum: 1, maximum: 10_000 }),
+    maxTxsToUpdate: Type.Integer({ minimum: 1, maximum: 10_000 }),
     minedTxListenerCronSchedule: Type.Union([Type.String(), Type.Null()]),
-    maxTxsToUpdate: Type.Number(),
     retryTxListenerCronSchedule: Type.Union([Type.String(), Type.Null()]),
-    minEllapsedBlocksBeforeRetry: Type.Number(),
+    minEllapsedBlocksBeforeRetry: Type.Integer({ minimum: 1, maximum: 10_000 }),
     maxFeePerGasForRetries: Type.String(),
-    maxPriorityFeePerGasForRetries: Type.String(),
-    maxRetriesPerTx: Type.Number(),
+    maxRetriesPerTx: Type.Integer({ minimum: 0, maximum: 10_000 }),
   }),
 );
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
-    minTxsToProcess: Type.Number(),
-    maxTxsToProcess: Type.Number(),
+    minTxsToProcess: Type.Integer(),
+    maxTxsToProcess: Type.Integer(),
     minedTxListenerCronSchedule: Type.Union([Type.String(), Type.Null()]),
-    maxTxsToUpdate: Type.Number(),
+    maxTxsToUpdate: Type.Integer(),
     retryTxListenerCronSchedule: Type.Union([Type.String(), Type.Null()]),
-    minEllapsedBlocksBeforeRetry: Type.Number(),
+    minEllapsedBlocksBeforeRetry: Type.Integer(),
     maxFeePerGasForRetries: Type.String(),
     maxPriorityFeePerGasForRetries: Type.String(),
-    maxRetriesPerTx: Type.Number(),
+    maxRetriesPerTx: Type.Integer(),
   }),
 });
 

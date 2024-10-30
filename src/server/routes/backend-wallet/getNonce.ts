@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address } from "thirdweb";
+import type { Address } from "thirdweb";
 import { inspectNonce } from "../../../db/wallets/walletNonce";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletWithAddressParamSchema } from "../../schemas/wallet";
@@ -11,7 +11,7 @@ const requestSchema = walletWithAddressParamSchema;
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    nonce: Type.Number(),
+    nonce: Type.Integer(),
   }),
 });
 
