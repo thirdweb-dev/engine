@@ -1,53 +1,57 @@
 import cron from "node-cron";
-import { prettifyError } from "../../utils/error";
 import { getBlockTimeSeconds } from "../../utils/indexer/getBlockTime";
 import { logger } from "../../utils/logger";
-import { createChainIndexerTask } from "../tasks/chainIndexer";
+import { handleContractSubscriptions } from "../tasks/chainIndexer";
 
 // @TODO: Move all worker logic to Bullmq to better handle multiple hosts.
 export const INDEXER_REGISTRY = {} as Record<number, cron.ScheduledTask>;
 
 export const addChainIndexer = async (chainId: number) => {
   if (INDEXER_REGISTRY[chainId]) {
-    console.log("[DEBUG] AAA");
     return;
   }
 
-  let processStarted = false;
-
-  console.log("[DEBUG] BBB");
-  const handler = await createChainIndexerTask(chainId);
-
-  console.log("[DEBUG] CCCC");
-
-  // Estimate the block time in the last 100 blocks.
-  const blockTimeSeconds = await getBlockTimeSeconds(chainId, 100);
-  console.log("[DEBUG] DDD", blockTimeSeconds);
+  // Estimate the block time in the last 100 blocks. Default to 2 second block times.
+  let blockTimeSeconds: number;
+  try {
+    blockTimeSeconds = await getBlockTimeSeconds(chainId, 100);
+  } catch (error) {
+    logger({
+      service: "worker",
+      level: "error",
+      message: `Could not estimate block time for chain ${chainId}`,
+      error,
+    });
+    blockTimeSeconds = 2;
+  }
   const cronSchedule = createScheduleSeconds(
     Math.max(Math.round(blockTimeSeconds), 1),
   );
-  console.log("[DEBUG] cronSchedule", cronSchedule);
   logger({
     service: "worker",
     level: "info",
-    message: `Indexing contracts on chain ${chainId} with schedule: ${cronSchedule}, max blocks to index: ${maxBlocksToIndex}`,
+    message: `Indexing contracts on chain ${chainId} with schedule: ${cronSchedule}`,
   });
 
-  const task = cron.schedule(cronSchedule, async () => {
-    if (!processStarted) {
-      processStarted = true;
+  let inProgress = false;
 
-      try {
-        await handler();
-      } catch (e) {
-        logger({
-          service: "worker",
-          level: "error",
-          message: prettifyError(e),
-        });
-      } finally {
-        processStarted = false;
-      }
+  const task = cron.schedule(cronSchedule, async () => {
+    if (inProgress) {
+      return;
+    }
+
+    inProgress = true;
+    try {
+      await handleContractSubscriptions(chainId);
+    } catch (error) {
+      logger({
+        service: "worker",
+        level: "error",
+        message: `Failed to index on chain ${chainId}`,
+        error,
+      });
+    } finally {
+      inProgress = false;
     }
   });
 
