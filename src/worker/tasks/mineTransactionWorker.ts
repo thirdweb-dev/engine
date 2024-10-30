@@ -2,21 +2,26 @@ import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
 import {
+  eth_getBalance,
   eth_getTransactionByHash,
   eth_getTransactionReceipt,
   getAddress,
   getRpcClient,
+  toTokens,
   type Address,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceipt, getUserOpReceiptRaw } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
 import { recycleNonce, removeSentNonce } from "../../db/wallets/walletNonce";
+import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
+import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
 import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
+import { prettifyError } from "../../utils/error";
 import { logger } from "../../utils/logger";
 import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
@@ -33,6 +38,7 @@ import {
   type MineTransactionData,
 } from "../queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../queues/sendTransactionQueue";
+import { SendWebhookQueue } from "../queues/sendWebhookQueue";
 
 /**
  * Check if the submitted transaction or userOp is mined onchain.
@@ -66,6 +72,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   if (resultTransaction.status === "mined") {
     await TransactionDB.set(resultTransaction);
     await enqueueTransactionWebhook(resultTransaction);
+    await _notifyIfLowBalance(resultTransaction);
     await _reportUsageSuccess(resultTransaction);
     recordMetrics({
       event: "transaction_mined",
@@ -255,6 +262,65 @@ const _mineUserOp = async (
     nonce: userOpReceiptRaw.nonce.toString(),
     errorMessage,
   };
+};
+
+const _notifyIfLowBalance = async (transaction: MinedTransaction) => {
+  const { isUserOp, chainId, from } = transaction;
+  if (isUserOp) {
+    // Skip for userOps since they may not use the wallet's gas balance.
+    return;
+  }
+
+  try {
+    const webhooks = await getWebhooksByEventType(
+      WebhooksEventTypes.BACKEND_WALLET_BALANCE,
+    );
+    if (webhooks.length === 0) {
+      // Skip if no webhooks configured.
+      return;
+    }
+
+    // Set a key with 5min TTL if it doesn't exist.
+    // This effectively throttles this check once every 5min.
+    const throttleKey = `webhook:${WebhooksEventTypes.BACKEND_WALLET_BALANCE}:${chainId}:${from}`;
+    const isThrottled =
+      (await redis.set(throttleKey, "", "EX", 5 * 60, "NX")) === null;
+    if (isThrottled) {
+      return;
+    }
+
+    // Get the current wallet balance.
+    const rpcRequest = getRpcClient({
+      client: thirdwebClient,
+      chain: await getChain(chainId),
+    });
+    const currentBalance = await eth_getBalance(rpcRequest, {
+      address: from,
+    });
+
+    const config = await getConfig();
+    if (currentBalance >= BigInt(config.minWalletBalance)) {
+      // Skip if the balance is above the alert threshold.
+      return;
+    }
+
+    await SendWebhookQueue.enqueueWebhook({
+      type: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
+      body: {
+        chainId,
+        walletAddress: from,
+        minimumBalance: config.minWalletBalance,
+        currentBalance: currentBalance.toString(),
+        message: `LowBalance: The backend wallet ${from} on chain ${chainId} has ${toTokens(currentBalance, 18)} gas remaining.`,
+      },
+    });
+  } catch (e) {
+    logger({
+      level: "warn",
+      message: `[mineTransactionWorker] Error sending low balance notification: ${prettifyError(e)}`,
+      service: "worker",
+    });
+  }
 };
 
 // Must be explicitly called for the worker to run on this host.
