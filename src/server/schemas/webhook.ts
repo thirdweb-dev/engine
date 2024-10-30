@@ -19,6 +19,6 @@ export const toWebhookSchema = (
   eventType: webhook.eventType,
   secret: webhook.secret,
   createdAt: webhook.createdAt.toISOString(),
-  active: webhook.revokedAt ? false : true,
+  active: !webhook.revokedAt,
   id: webhook.id,
 });
