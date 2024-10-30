@@ -3,8 +3,8 @@ import { Worker, type Job, type Processor } from "bullmq";
 import superjson from "superjson";
 import { TransactionDB } from "../../db/transactions/db";
 import {
-  BackendWalletBalanceWebhookParams,
   WebhooksEventTypes,
+  type BackendWalletBalanceWebhookParams,
 } from "../../schema/webhooks";
 import { toEventLogSchema } from "../../server/schemas/eventLog";
 import {

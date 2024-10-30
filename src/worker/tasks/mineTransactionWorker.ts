@@ -21,6 +21,7 @@ import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
 import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
+import { prettifyError } from "../../utils/error";
 import { logger } from "../../utils/logger";
 import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
