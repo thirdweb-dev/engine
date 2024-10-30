@@ -25,4 +25,10 @@ describe("isValidWebhookUrl", () => {
   it("should return false for an empty string", () => {
     expect(isValidWebhookUrl("")).toBe(false);
   });
+
+  it("should return true for a http localhost", () => {
+    expect(isValidWebhookUrl("http://localhost:3000")).toBe(true);
+    expect(isValidWebhookUrl("http://0.0.0.0:3000")).toBe(true);
+    expect(isValidWebhookUrl("http://user:pass@127.0.0.1:3000")).toBe(true);
+  });
 });
