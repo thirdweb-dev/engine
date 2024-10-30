@@ -6,7 +6,6 @@ import type {
 } from "../schemas/erc20";
 import type {
   ercNFTResponseType,
-  signature1155InputSchema,
   signature721InputSchema,
 } from "../schemas/nft";
 
@@ -90,10 +89,10 @@ export const checkAndReturnNFTSignaturePayload = <
   return updatedPayload;
 };
 
-export const isValidHttpUrl = (urlString: string): boolean => {
+export const isValidWebhookUrl = (input: string): boolean => {
   try {
-    const url = new URL(urlString);
-    return url.protocol === "http:" || url.protocol === "https:";
+    const url = new URL(input);
+    return url.protocol === "https:";
   } catch {
     return false;
   }

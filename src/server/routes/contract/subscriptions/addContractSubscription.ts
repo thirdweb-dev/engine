@@ -20,7 +20,7 @@ import {
 } from "../../../schemas/contractSubscription";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
-import { isValidHttpUrl } from "../../../utils/validator";
+import { isValidWebhookUrl } from "../../../utils/validator";
 
 const bodySchema = Type.Object({
   chain: chainIdOrSlugSchema,
@@ -140,7 +140,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
       // Create the webhook (if provided).
       let webhookId: number | undefined;
       if (webhookUrl) {
-        if (!isValidHttpUrl(webhookUrl)) {
+        if (!isValidWebhookUrl(webhookUrl)) {
           throw createCustomError(
             "Invalid webhook URL. Make sure it starts with 'https://'.",
             StatusCodes.BAD_REQUEST,
