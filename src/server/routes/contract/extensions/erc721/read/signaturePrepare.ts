@@ -2,12 +2,11 @@ import { Type, type Static } from "@sinclair/typebox";
 import { MintRequest721 } from "@thirdweb-dev/sdk";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getRandomValues } from "node:crypto";
+import { createHash, getRandomValues } from "node:crypto";
 import {
   ZERO_ADDRESS,
   getContract,
   isHex,
-  stringToHex,
   uint8ArrayToHex,
   type Hex,
 } from "thirdweb";
@@ -44,7 +43,7 @@ const responseSchema = Type.Object({
           {
             name: Type.String(),
             version: Type.String(),
-            chainId: Type.Number(),
+            chainId: Type.Integer(),
             verifyingContract: Type.String(),
           },
           {
@@ -286,7 +285,7 @@ export async function erc721SignaturePrepare(fastify: FastifyInstance) {
           }
           parsedUid = uid;
         } else {
-          parsedUid = stringToHex(uid, { size: 32 });
+          parsedUid = `0x${createHash("sha256").update(uid).digest("hex")}`;
         }
       } else {
         parsedUid = uint8ArrayToHex(getRandomValues(new Uint8Array(32)));

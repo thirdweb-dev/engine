@@ -1,8 +1,9 @@
 import { Type } from "@sinclair/typebox";
-import { type Address, getAddress } from "thirdweb";
+import { getAddress, type Address } from "thirdweb";
 import { env } from "../../../utils/env";
 import { badAddressError } from "../../middleware/error";
 import { AddressSchema } from "../address";
+import { chainIdOrSlugSchema } from "../chain";
 
 export const walletHeaderSchema = Type.Object({
   "x-backend-wallet-address": {
@@ -66,10 +67,7 @@ export function requiredAddress(
 }
 
 export const walletChainParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID",
-  }),
+  chain: chainIdOrSlugSchema,
 });
 
 export const walletWithAddressParamSchema = Type.Object({

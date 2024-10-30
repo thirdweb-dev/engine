@@ -21,7 +21,7 @@ import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 // INPUT
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
-  tokenId: Type.Union([Type.String(), Type.Number()], {
+  tokenId: Type.Union([Type.String(), Type.Integer()], {
     description: "ID of the token to set the claim conditions for",
   }),
   claimConditionInputs: Type.Array(claimConditionInputSchema),

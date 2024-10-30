@@ -43,18 +43,22 @@ export const signature721InputSchemaV5 = Type.Object({
     Type.Integer({
       description:
         'The percentage fee you want to charge for secondary sales. Defaults to the "royaltyBps" of the contract.',
+      minimum: 0,
+      maximum: 10_000,
     }),
   ),
   validityStartTimestamp: Type.Optional(
     Type.Integer({
       description:
         "The start time (in Unix seconds) when the signature can be used to mint. Default: now",
+      minimum: 0,
     }),
   ),
   validityEndTimestamp: Type.Optional(
     Type.Integer({
       description:
         "The end time (in Unix seconds) when the signature can be used to mint. Default: 10 years",
+      minimum: 0,
     }),
   ),
   uid: Type.Optional(
