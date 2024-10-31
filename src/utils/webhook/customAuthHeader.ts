@@ -5,7 +5,7 @@ import { createHmac } from "node:crypto";
  *
  * @param webhookUrl - The URL to call.
  * @param body - The request body.
- * @param timestampSeconds - The timestamp in seconds.
+ * @param timestamp - The request timestamp.
  * @param nonce - A unique string for this request. Should not be re-used.
  * @param clientId - Your application's client id.
  * @param clientSecret - Your application's client secret.
@@ -14,13 +14,12 @@ import { createHmac } from "node:crypto";
 export const generateSecretHmac256 = (args: {
   webhookUrl: string;
   body: Record<string, unknown>;
-  timestampSeconds: number;
+  timestamp: Date;
   nonce: string;
   clientId: string;
   clientSecret: string;
 }): string => {
-  const { webhookUrl, body, timestampSeconds, nonce, clientId, clientSecret } =
-    args;
+  const { webhookUrl, body, timestamp, nonce, clientId, clientSecret } = args;
 
   // Create the body hash by hashing the payload.
   const bodyHash = createHmac("sha256", clientSecret)
@@ -28,7 +27,7 @@ export const generateSecretHmac256 = (args: {
     .digest("base64");
 
   // Create the signature hash by hashing the signature.
-  const ts = timestampSeconds * 1000; // timestamp expected in milliseconds
+  const ts = timestamp.getTime(); // timestamp expected in milliseconds
   const httpMethod = "POST";
   const url = new URL(webhookUrl);
   const resourcePath = url.pathname;

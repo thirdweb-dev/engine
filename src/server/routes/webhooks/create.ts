@@ -13,26 +13,12 @@ const requestBodySchema = Type.Object({
     description: "Webhook URL. Non-HTTPS URLs are not supported.",
     examples: ["https://example.com/webhook"],
   }),
-  name: Type.Optional(Type.String()),
+  name: Type.Optional(
+    Type.String({
+      minLength: 3,
+    }),
+  ),
   eventType: Type.Enum(WebhooksEventTypes),
-  mtlsClientCert: Type.Optional(
-    Type.String({
-      description:
-        "(For mTLS) The client certificate used to authenticate your to your server.",
-    }),
-  ),
-  mtlsClientKey: Type.Optional(
-    Type.String({
-      description:
-        "(For mTLS) The private key associated with your client certificate.",
-    }),
-  ),
-  mtlsCaCert: Type.Optional(
-    Type.String({
-      description:
-        "(For mTLS) The Certificate Authority (CA) that signed your client certificate, used to verify the authenticity of the `mtlsClientCert`. This is only required if using a self-signed certficate.",
-    }),
-  ),
 });
 
 requestBodySchema.examples = [

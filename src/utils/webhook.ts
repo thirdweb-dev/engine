@@ -20,10 +20,10 @@ const generateSignature = (
 
 const generateAuthorization = (args: {
   webhook: Webhooks;
-  timestampSeconds: number;
+  timestamp: Date;
   body: Record<string, unknown>;
 }): string => {
-  const { webhook, timestampSeconds, body } = args;
+  const { webhook, timestamp, body } = args;
   if (env.ENABLE_CUSTOM_HMAC_AUTH) {
     assert(
       env.CUSTOM_HMAC_AUTH_CLIENT_ID,
@@ -37,7 +37,7 @@ const generateAuthorization = (args: {
     return generateSecretHmac256({
       webhookUrl: webhook.url,
       body,
-      timestampSeconds,
+      timestamp,
       nonce: randomUUID(),
       clientId: env.CUSTOM_HMAC_AUTH_CLIENT_ID,
       clientSecret: env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
@@ -46,17 +46,16 @@ const generateAuthorization = (args: {
   return `Bearer ${webhook.secret}`;
 };
 
-const generateRequestHeaders = (
-  webhook: Webhooks,
-  body: Record<string, unknown>,
-): HeadersInit => {
-  const timestampSeconds = Math.floor(Date.now() / 1000);
+export const generateRequestHeaders = (args: {
+  webhook: Webhooks;
+  body: Record<string, unknown>;
+  timestamp: Date;
+}): HeadersInit => {
+  const { webhook, body, timestamp } = args;
+
+  const timestampSeconds = Math.floor(timestamp.getTime() / 1000);
   const signature = generateSignature(body, timestampSeconds, webhook.secret);
-  const authorization = generateAuthorization({
-    webhook,
-    timestampSeconds,
-    body,
-  });
+  const authorization = generateAuthorization({ webhook, timestamp, body });
   return {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -92,7 +91,11 @@ export const sendWebhookRequest = async (
           })
         : undefined;
 
-    const headers = await generateRequestHeaders(webhook, body);
+    const headers = await generateRequestHeaders({
+      webhook,
+      body,
+      timestamp: new Date(),
+    });
     const resp = await fetch(webhook.url, {
       method: "POST",
       headers: headers,

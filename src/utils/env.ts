@@ -6,18 +6,6 @@ import { z } from "zod";
 const path = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
 dotenv.config({ path });
 
-export const JsonSchema = z.string().refine(
-  (value) => {
-    try {
-      JSON.parse(value);
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  { message: "Invalid JSON string" },
-);
-
 const boolEnvSchema = (defaultBool: boolean) =>
   z
     .string()
