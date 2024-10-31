@@ -33,7 +33,8 @@ export const getAuthWallet = async (): Promise<LocalWallet> => {
       logger({
         service: "server",
         level: "info",
-        message: `[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD`,
+        message:
+          "[Encryption] Updating authWalletEncryptedJson to use ENCRYPTION_PASSWORD",
       });
 
       await updateConfiguration({

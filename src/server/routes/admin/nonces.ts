@@ -27,7 +27,7 @@ export const responseBodySchema = Type.Object({
         ...AddressSchema,
         description: "Backend wallet address",
       },
-      chainId: Type.Number({
+      chainId: Type.Integer({
         description: "Chain ID",
         examples: [80002],
       }),

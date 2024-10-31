@@ -4,19 +4,17 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "../../../../utils/env";
 import { createCustomError } from "../../../middleware/error";
 import { TransactionHashSchema } from "../../../schemas/address";
+import { chainIdOrSlugSchema } from "../../../schemas/chain";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const requestSchema = Type.Object({
+  chain: chainIdOrSlugSchema,
   userOpHash: {
     ...TransactionHashSchema,
     description: "User operation hash",
   },
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
 });
 
 // OUTPUT

@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllWallets } from "../../../db/wallets/getAllWallets";
 import {
@@ -8,15 +8,17 @@ import {
 } from "../../schemas/sharedApiSchemas";
 
 const QuerySchema = Type.Object({
-  page: Type.Number({
+  page: Type.Integer({
     description: "The page of wallets to get.",
     examples: ["1"],
     default: "1",
+    minimum: 1,
   }),
-  limit: Type.Number({
+  limit: Type.Integer({
     description: "The number of wallets to get per page.",
     examples: ["10"],
     default: "10",
+    minimum: 1,
   }),
 });
 

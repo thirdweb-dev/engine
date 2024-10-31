@@ -1,4 +1,5 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
+import { AddressSchema } from "../address";
 import type { contractSchemaTypes } from "../sharedApiSchemas";
 
 /**
@@ -81,10 +82,12 @@ export const rolesResponseSchema = Type.Object({
 export const eventsQuerystringSchema = Type.Object(
   {
     fromBlock: Type.Optional(
-      Type.Union([Type.Number(), Type.String()], { default: "0" }),
+      Type.Union([Type.Integer({ minimum: 0 }), Type.String()], {
+        default: "0",
+      }),
     ),
     toBlock: Type.Optional(
-      Type.Union([Type.Number({ default: 0 }), Type.String({ default: "0" })], {
+      Type.Union([Type.Integer({ minimum: 0 }), Type.String()], {
         default: "latest",
       }),
     ),
@@ -101,12 +104,15 @@ export const eventsQuerystringSchema = Type.Object(
 );
 
 export const royaltySchema = Type.Object({
-  seller_fee_basis_points: Type.Number({
+  seller_fee_basis_points: Type.Integer({
     description: "The royalty fee in BPS (basis points). 100 = 1%.",
+    minimum: 0,
+    maximum: 10_000,
   }),
-  fee_recipient: Type.String({
+  fee_recipient: {
+    ...AddressSchema,
     description: "The wallet address that will receive the royalty fees.",
-  }),
+  },
 });
 
 export const contractDeployBasicSchema = Type.Object({

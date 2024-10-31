@@ -1,18 +1,11 @@
 import type { Webhooks } from "@prisma/client";
 import crypto, { randomUUID } from "node:crypto";
 import { Agent, fetch } from "undici";
-import {
-  WebhooksEventTypes,
-  type WalletBalanceWebhookSchema,
-} from "../schema/webhooks";
-import { getWebhooksByEventType } from "./cache/getWebhook";
+import { getConfig } from "./cache/getConfig";
 import { decrypt } from "./crypto";
 import { env } from "./env";
 import { prettifyError } from "./error";
-import { logger } from "./logger";
 import { generateSecretHmac256 } from "./webhook/customAuthHeader";
-
-let balanceNotificationLastSentAt = -1;
 
 const generateSignature = (
   body: Record<string, unknown>,
@@ -75,14 +68,15 @@ export const sendWebhookRequest = async (
   body: Record<string, unknown>,
 ): Promise<WebhookResponse> => {
   try {
+    const config = await getConfig();
+
     // If mTLS is enabled, provide the certificate with this request.
     const dispatcher =
-      webhook.mtlsClientCert && webhook.mtlsClientKey
+      config.mtlsCertificate && config.mtlsPrivateKey
         ? new Agent({
             connect: {
-              cert: decrypt(webhook.mtlsClientCert),
-              key: decrypt(webhook.mtlsClientKey),
-              ca: webhook.mtlsCaCert ? decrypt(webhook.mtlsCaCert) : undefined,
+              cert: decrypt(config.mtlsCertificate),
+              key: decrypt(config.mtlsPrivateKey),
               // Validate the server's certificate.
               rejectUnauthorized: true,
             },
@@ -108,61 +102,5 @@ export const sendWebhookRequest = async (
       status: 500,
       body: prettifyError(e),
     };
-  }
-};
-
-// TODO: Add retry logic upto
-export const sendBalanceWebhook = async (
-  data: WalletBalanceWebhookSchema,
-): Promise<void> => {
-  try {
-    const elaspsedTime = Date.now() - balanceNotificationLastSentAt;
-    if (elaspsedTime < 30000) {
-      logger({
-        service: "server",
-        level: "warn",
-        message: `[sendBalanceWebhook] Low wallet balance notification sent within last 30 Seconds. Skipping.`,
-      });
-      return;
-    }
-
-    const webhooks = await getWebhooksByEventType(
-      WebhooksEventTypes.BACKEND_WALLET_BALANCE,
-    );
-
-    if (webhooks.length === 0) {
-      logger({
-        service: "server",
-        level: "debug",
-        message: "No webhook set, skipping webhook send",
-      });
-
-      return;
-    }
-
-    webhooks.map(async (config) => {
-      if (!config || config.revokedAt) {
-        logger({
-          service: "server",
-          level: "debug",
-          message: "No webhook set or active, skipping webhook send",
-        });
-
-        return;
-      }
-
-      const success = await sendWebhookRequest(config, data);
-
-      if (success) {
-        balanceNotificationLastSentAt = Date.now();
-      }
-    });
-  } catch (error) {
-    logger({
-      service: "server",
-      level: "error",
-      message: `Failed to send balance webhook`,
-      error,
-    });
   }
 };

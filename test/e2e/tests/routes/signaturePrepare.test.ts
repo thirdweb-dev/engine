@@ -5,7 +5,7 @@ describe("signaturePrepareRoute", () => {
   test("Prepare a signature with upload, no uid, no royalty/sale recipients", async () => {
     const { engine, backendWallet } = await setup();
 
-    const res = await engine.erc721.erc721SignaturePrepare(
+    const res = await engine.erc721.signaturePrepare(
       "84532",
       "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
       {
@@ -138,7 +138,7 @@ describe("signaturePrepareRoute", () => {
   test("Prepare a signature with provided hex uid", async () => {
     const { engine, backendWallet } = await setup();
 
-    const res = await engine.erc721.erc721SignaturePrepare(
+    const res = await engine.erc721.signaturePrepare(
       "84532",
       "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
       {
@@ -153,15 +153,12 @@ describe("signaturePrepareRoute", () => {
     expect(res.result.mintPayload.uid).toEqual(
       "0x25d29226fc7c310ed308c1eea8a3ed2d9f660d873ba6348b6649da4cae3877a4",
     );
-    expect(res.result.mintPayload.uid).toEqual(
-      "0x25d29226fc7c310ed308c1eea8a3ed2d9f660d873ba6348b6649da4cae3877a4",
-    );
   });
 
   test("Prepare a signature with string uid", async () => {
     const { engine, backendWallet } = await setup();
 
-    const res = await engine.erc721.erc721SignaturePrepare(
+    const res = await engine.erc721.signaturePrepare(
       "84532",
       "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
       {
@@ -169,15 +166,12 @@ describe("signaturePrepareRoute", () => {
         validityEndTimestamp: 1729194714,
         validityStartTimestamp: 1728589914,
         to: backendWallet,
-        uid: "my-test-uuid",
+        uid: "my-really-long-test-uuid-my-really-long-test-uuid-my-really-long-test-uuid",
       },
     );
 
     expect(res.result.mintPayload.uid).toEqual(
-      "0x6d792d746573742d757569640000000000000000000000000000000000000000",
-    );
-    expect(res.result.mintPayload.uid).toEqual(
-      "0x6d792d746573742d757569640000000000000000000000000000000000000000",
+      "0xa74a3badce5090a5afead99c9d80e08169468a2442a6f79692001aed81acf2bc",
     );
   });
 
@@ -186,7 +180,7 @@ describe("signaturePrepareRoute", () => {
 
     let threw = false;
     try {
-      await engine.erc721.erc721SignaturePrepare(
+      await engine.erc721.signaturePrepare(
         "84532",
         "0x5002e3bF97F376Fe0480109e26c0208786bCDDd4",
         {

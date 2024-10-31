@@ -28,7 +28,7 @@ redis.on("error", (error) => () => {
 });
 redis.on("ready", () => {
   logger({
-    level: "info",
+    level: "debug",
     message: "Redis ready",
     service: "worker",
   });

@@ -3,15 +3,14 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";
-import { encrypt } from "../../../utils/crypto";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
-import { isValidHttpUrl } from "../../utils/validator";
+import { isValidWebhookUrl } from "../../utils/validator";
 
 const requestBodySchema = Type.Object({
   url: Type.String({
-    description: "Webhook URL",
+    description: "Webhook URL. Non-HTTPS URLs are not supported.",
     examples: ["https://example.com/webhook"],
   }),
   name: Type.Optional(Type.String()),
@@ -38,44 +37,13 @@ const requestBodySchema = Type.Object({
 
 requestBodySchema.examples = [
   {
-    url: "https://example.com/allTxUpdate",
-    name: "All Transaction Events",
+    url: "https://example.com/webhook",
+    name: "Notify of transaction updates",
+    secret: "...",
     eventType: WebhooksEventTypes.ALL_TX,
-  },
-  {
-    url: "https://example.com/queuedTx",
-    name: "QueuedTx",
-    eventType: WebhooksEventTypes.QUEUED_TX,
-  },
-  {
-    url: "https://example.com/sentTx",
-    name: "Sent Transaction Event",
-    eventType: WebhooksEventTypes.SENT_TX,
-  },
-  {
-    url: "https://example.com/minedTx",
-    name: "Mined Transaction Event",
-    eventType: WebhooksEventTypes.MINED_TX,
-  },
-  {
-    url: "https://example.com/erroredTx",
-    name: "Errored Transaction Event",
-    eventType: WebhooksEventTypes.ERRORED_TX,
-  },
-  {
-    url: "https://example.com/cancelledTx",
-    name: "Cancelled Transaction Event",
-    eventType: WebhooksEventTypes.CANCELLED_TX,
-  },
-  {
-    url: "https://example.com/walletBalance",
-    name: "Backend Wallet Balance Event",
-    eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
-  },
-  {
-    url: "https://example.com/auth",
-    name: "Auth Check",
-    eventType: WebhooksEventTypes.AUTH,
+    active: true,
+    createdAt: "2024-10-02T02:07:27.255Z",
+    id: 42,
   },
 ];
 
@@ -83,7 +51,7 @@ const responseBodySchema = Type.Object({
   result: WebhookSchema,
 });
 
-export async function createWebhook(fastify: FastifyInstance) {
+export async function createWebhookRoute(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
@@ -93,7 +61,7 @@ export async function createWebhook(fastify: FastifyInstance) {
     schema: {
       summary: "Create webhook",
       description:
-        "Create a webhook to call when certain blockchain events occur.",
+        "Create a webhook to call when a specific Engine event occurs.",
       tags: ["Webhooks"],
       operationId: "createWebhook",
       body: requestBodySchema,
@@ -103,28 +71,9 @@ export async function createWebhook(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const {
-        url,
-        name,
-        eventType,
-        mtlsClientCert,
-        mtlsClientKey,
-        mtlsCaCert,
-      } = req.body;
+      const { url, name, eventType } = req.body;
 
-      // Assert neither or both required mTLS fields are provided.
-      if (
-        (!mtlsClientCert && mtlsClientKey) ||
-        (mtlsClientCert && !mtlsClientKey)
-      ) {
-        throw createCustomError(
-          `"mtlsClientCert" and "mtlsClientKey" must be set if using mTLS.`,
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-      }
-
-      if (!isValidHttpUrl(url)) {
+      if (!isValidWebhookUrl(url)) {
         throw createCustomError(
           "Invalid webhook URL. Make sure it starts with 'https://'.",
           StatusCodes.BAD_REQUEST,
@@ -136,9 +85,6 @@ export async function createWebhook(fastify: FastifyInstance) {
         url,
         name,
         eventType,
-        mtlsClientCert: mtlsClientCert ? encrypt(mtlsClientCert) : undefined,
-        mtlsClientKey: mtlsClientKey ? encrypt(mtlsClientKey) : undefined,
-        mtlsCaCert: mtlsCaCert ? encrypt(mtlsCaCert) : undefined,
       });
 
       res.status(StatusCodes.OK).send({

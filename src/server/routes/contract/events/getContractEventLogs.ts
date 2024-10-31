@@ -12,8 +12,8 @@ import {
 import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestQuerySchema = Type.Object({
-  fromBlock: Type.Number(),
-  toBlock: Type.Optional(Type.Number()),
+  fromBlock: Type.Integer({ minimum: 0 }),
+  toBlock: Type.Optional(Type.Integer({ minimum: 0 })),
   topics: Type.Optional(Type.Array(Type.String())),
 });
 
@@ -21,17 +21,17 @@ const responseSchema = Type.Object({
   result: Type.Object({
     logs: Type.Array(
       Type.Object({
-        chainId: Type.Number(),
+        chainId: Type.Integer(),
         contractAddress: AddressSchema,
-        blockNumber: Type.Number(),
+        blockNumber: Type.Integer(),
         transactionHash: TransactionHashSchema,
         topics: Type.Array(Type.String()),
         data: Type.String(),
         eventName: Type.Optional(Type.String()),
         decodedLog: Type.Any(),
-        timestamp: Type.Number(),
-        transactionIndex: Type.Number(),
-        logIndex: Type.Number(),
+        timestamp: Type.Integer(),
+        transactionIndex: Type.Integer(),
+        logIndex: Type.Integer(),
       }),
     ),
     status: Type.String(),

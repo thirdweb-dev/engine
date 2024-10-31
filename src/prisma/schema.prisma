@@ -50,6 +50,9 @@ model Configuration {
   accessControlAllowOrigin           String   @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
   ipAllowlist                        String[] @default([]) @map("ipAllowlist")
   clearCacheCronSchedule             String   @default("*/30 * * * * *") @map("clearCacheCronSchedule")
+  // mTLS support
+  mtlsCertificateEncrypted           String?
+  mtlsPrivateKeyEncrypted            String?
 
   @@map("configuration")
 }
@@ -177,10 +180,6 @@ model Webhooks {
   url       String  @map("url")
   secret    String  @map("secret")
   eventType String  @map("evenType")
-
-  mtlsClientCert String?
-  mtlsClientKey  String?
-  mtlsCaCert     String?
 
   createdAt DateTime  @default(now()) @map("createdAt")
   updatedAt DateTime  @updatedAt @map("updatedAt")

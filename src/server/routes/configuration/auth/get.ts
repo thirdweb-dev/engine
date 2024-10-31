@@ -1,12 +1,14 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 export const responseBodySchema = Type.Object({
   result: Type.Object({
-    domain: Type.String(),
+    authDomain: Type.String(),
+    mtlsCertificate: Type.Union([Type.String(), Type.Null()]),
+    // Do not return mtlsPrivateKey.
   }),
 });
 
@@ -27,10 +29,12 @@ export async function getAuthConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const config = await getConfig();
+      const { authDomain, mtlsCertificate } = await getConfig();
+
       res.status(StatusCodes.OK).send({
         result: {
-          domain: config.authDomain,
+          authDomain,
+          mtlsCertificate,
         },
       });
     },

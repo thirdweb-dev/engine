@@ -3,7 +3,7 @@ import { encrypt } from "../../utils/crypto";
 import { prisma } from "../client";
 
 export const updateConfiguration = async (
-  data: Prisma.ConfigurationUpdateArgs["data"],
+  data: Prisma.ConfigurationUpdateInput,
 ) => {
   return prisma.configuration.update({
     where: {

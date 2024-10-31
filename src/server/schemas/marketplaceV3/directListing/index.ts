@@ -32,15 +32,17 @@ export const directListingV3InputSchema = Type.Object({
     }),
   ),
   startTimestamp: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description:
         "The start time of the listing. If not set, defaults to now.",
+      minimum: 0,
     }),
   ),
   endTimestamp: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description:
         "The end time of the listing. If not set, defaults to 7 days from now.",
+      minimum: 0,
     }),
   ),
 });
@@ -89,15 +91,17 @@ export const directListingV3OutputSchema = Type.Object({
     ]),
   ),
   startTimeInSeconds: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description:
         "The start time of the listing. If not set, defaults to now.",
+      minimum: 0,
     }),
   ),
   endTimeInSeconds: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description:
         "The end time of the listing. If not set, defaults to 7 days from now.",
+      minimum: 0,
     }),
   ),
 });

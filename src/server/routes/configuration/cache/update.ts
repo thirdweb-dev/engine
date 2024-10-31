@@ -5,12 +5,12 @@ import { updateConfiguration } from "../../../../db/configuration/updateConfigur
 import { getConfig } from "../../../../utils/cache/getConfig";
 import { clearCacheCron } from "../../../../utils/cron/clearCacheCron";
 import { isValidCron } from "../../../../utils/cron/isValidCron";
+import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Object({
   clearCacheCronSchedule: Type.String({
-    minLength: 11,
     description:
       "Cron expression for clearing cache. It should be in the format of 'ss mm hh * * *' where ss is seconds, mm is minutes and hh is hours. Seconds should not be '*' or less than 10",
     default: "*/30 * * * * *",
@@ -37,12 +37,11 @@ export async function updateCacheConfiguration(fastify: FastifyInstance) {
     handler: async (req, res) => {
       const { clearCacheCronSchedule } = req.body;
       if (isValidCron(clearCacheCronSchedule) === false) {
-        return res.status(400).send({
-          error: {
-            code: 400,
-            message: "Invalid cron expression",
-          },
-        });
+        throw createCustomError(
+          "Invalid cron expression.",
+          StatusCodes.BAD_REQUEST,
+          "INVALID_CRON",
+        );
       }
 
       await updateConfiguration({ ...req.body });

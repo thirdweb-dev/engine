@@ -13,15 +13,15 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 const requestSchema = contractParamSchema;
 const querystringSchema = Type.Object({
   start: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description: "The start token id for paginated results. Defaults to 0.",
-      examples: ["0"],
+      minimum: 0,
     }),
   ),
   count: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description: "The page count for paginated results. Defaults to 100.",
-      examples: ["20"],
+      minimum: 1,
     }),
   ),
 });

@@ -1,14 +1,24 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { encrypt } from "../../../../utils/crypto";
+import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { responseBodySchema } from "./get";
 
-export const requestBodySchema = Type.Object({
-  domain: Type.String(),
-});
+export const requestBodySchema = Type.Partial(
+  Type.Object({
+    authDomain: Type.String(),
+    mtlsCertificate: Type.String({
+      description: "Engine certificate used for outbound mTLS requests.",
+    }),
+    mtlsPrivateKey: Type.String({
+      description: "Engine private key used for outbound mTLS requests.",
+    }),
+  }),
+);
 
 export async function updateAuthConfiguration(fastify: FastifyInstance) {
   fastify.route<{
@@ -29,15 +39,53 @@ export async function updateAuthConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
+      const { authDomain, mtlsCertificate, mtlsPrivateKey } = req.body;
+
+      if (mtlsCertificate) {
+        if (
+          !(
+            mtlsCertificate.startsWith("-----BEGIN CERTIFICATE-----\n") &&
+            mtlsCertificate.endsWith("\n-----END CERTIFICATE-----")
+          )
+        ) {
+          throw createCustomError(
+            "Invalid mtlsCertificate.",
+            StatusCodes.BAD_REQUEST,
+            "INVALID_MTLS_CERTIFICATE",
+          );
+        }
+      }
+      if (mtlsPrivateKey) {
+        if (
+          !(
+            mtlsPrivateKey.startsWith("-----BEGIN PRIVATE KEY-----\n") &&
+            mtlsPrivateKey.endsWith("\n-----END PRIVATE KEY-----")
+          )
+        ) {
+          throw createCustomError(
+            "Invalid mtlsPrivateKey.",
+            StatusCodes.BAD_REQUEST,
+            "INVALID_MTLS_PRIVATE_KEY",
+          );
+        }
+      }
+
       await updateConfiguration({
-        authDomain: req.body.domain,
+        authDomain,
+        mtlsCertificateEncrypted: mtlsCertificate
+          ? encrypt(mtlsCertificate)
+          : undefined,
+        mtlsPrivateKeyEncrypted: mtlsPrivateKey
+          ? encrypt(mtlsPrivateKey)
+          : undefined,
       });
 
       const config = await getConfig(false);
 
       res.status(StatusCodes.OK).send({
         result: {
-          domain: config.authDomain,
+          authDomain: config.authDomain,
+          mtlsCertificate: config.mtlsCertificate,
         },
       });
     },

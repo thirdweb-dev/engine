@@ -1,4 +1,4 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { Type, type Static } from "@sinclair/typebox";
 import type { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import type { AnyTransaction } from "../../../utils/transaction/types";
@@ -61,7 +61,7 @@ export const TransactionSchema = Type.Object({
     Type.Null(),
   ]),
   nonce: Type.Union([
-    Type.Number({
+    Type.Integer({
       description: "The nonce used by the backend wallet for this transaction",
     }),
     Type.String({
@@ -94,7 +94,7 @@ export const TransactionSchema = Type.Object({
     Type.Null(),
   ]),
   transactionType: Type.Union([
-    Type.Number({
+    Type.Integer({
       description: "The type of transaction",
     }),
     Type.Null(),
@@ -143,19 +143,19 @@ export const TransactionSchema = Type.Object({
     Type.Null(),
   ]),
   sentAtBlockNumber: Type.Union([
-    Type.Number({
+    Type.Integer({
       description:
         "The block number when the transaction is submitted to mempool",
     }),
     Type.Null(),
   ]),
   blockNumber: Type.Union([
-    Type.Number({
+    Type.Integer({
       description: "The block number when the transaction is mined",
     }),
     Type.Null(),
   ]),
-  retryCount: Type.Number({
+  retryCount: Type.Integer({
     description: "The number of retry attempts",
   }),
   retryGasValues: Type.Union([
@@ -192,7 +192,7 @@ export const TransactionSchema = Type.Object({
   functionName: Type.Union([Type.String(), Type.Null()]),
   functionArgs: Type.Union([Type.String(), Type.Null()]),
   // @deprecated
-  onChainTxStatus: Type.Union([Type.Number(), Type.Null()]),
+  onChainTxStatus: Type.Union([Type.Integer(), Type.Null()]),
   onchainStatus: Type.Union([
     Type.Literal("success"),
     Type.Literal("reverted"),

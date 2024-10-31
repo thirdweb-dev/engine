@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getLastIndexedBlock } from "../../../../db/chainIndexers/getChainIndexer";
 import { chainRequestQuerystringSchema } from "../../../schemas/chain";
@@ -8,7 +8,7 @@ import { getChainIdFromChain } from "../../../utils/chain";
 
 const responseSchema = Type.Object({
   result: Type.Object({
-    lastBlock: Type.Number(),
+    lastBlock: Type.Integer(),
     status: Type.String(),
   }),
 });
