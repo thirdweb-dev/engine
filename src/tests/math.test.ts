@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPercentile } from "../utils/math";
+import { clamp, getPercentile } from "../utils/math";
 
 describe("getPercentile", () => {
   it("should correctly calculate the p50 (median) of a sorted array", () => {
@@ -25,5 +25,27 @@ describe("getPercentile", () => {
   it("should handle empty array", () => {
     const numbers: number[] = [];
     expect(getPercentile(numbers, 50)).toBe(0);
+  });
+});
+
+describe("clamp", () => {
+  it("clamps the value correctly below the minimum", () => {
+    expect(clamp(0, { min: 2, max: 10 })).toBe(2);
+  });
+
+  it("clamps the value correctly at the minimum", () => {
+    expect(clamp(1, { min: 2, max: 10 })).toBe(2);
+  });
+
+  it("returns the value when within bounds", () => {
+    expect(clamp(3, { min: 2, max: 10 })).toBe(6);
+  });
+
+  it("clamps the value correctly at the maximum", () => {
+    expect(clamp(5, { min: 2, max: 10 })).toBe(10);
+  });
+
+  it("clamps the value correctly above the maximum", () => {
+    expect(clamp(6, { min: 2, max: 10 })).toBe(10);
   });
 });

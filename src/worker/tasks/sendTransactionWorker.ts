@@ -1,18 +1,18 @@
-import { type Job, type Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
 import {
-  type Hex,
   getAddress,
   getContract,
   readContract,
   toSerializableTransaction,
+  type Hex,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import {
-  type UserOperation,
   bundleUserOp,
   createAndSignUserOp,
+  type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
@@ -33,6 +33,7 @@ import {
   prettifyError,
   prettifyTransactionError,
 } from "../../utils/error";
+import { clamp } from "../../utils/math";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
@@ -48,8 +49,8 @@ import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import {
-  type SendTransactionData,
   SendTransactionQueue,
+  type SendTransactionData,
 } from "../queues/sendTransactionQueue";
 
 /**
@@ -400,18 +401,20 @@ const _resendTransaction = async (
     },
   });
 
-  // Double gas fee settings if they were not provded in `overrides`.
+  // Double the gas fee settings each attempt up to 10x.
+  // Do not update gas if overrides were provided.
+  const gasMultiple = BigInt(clamp(job.attemptsMade * 2, { min: 2, max: 10 }));
   if (populatedTransaction.gasPrice) {
-    populatedTransaction.gasPrice *= 2n;
+    populatedTransaction.gasPrice *= gasMultiple;
   }
   if (populatedTransaction.maxFeePerGas && !overrides?.maxFeePerGas) {
-    populatedTransaction.maxFeePerGas *= 2n;
+    populatedTransaction.maxFeePerGas *= gasMultiple;
   }
   if (
     populatedTransaction.maxPriorityFeePerGas &&
     !overrides?.maxPriorityFeePerGas
   ) {
-    populatedTransaction.maxPriorityFeePerGas *= 2n;
+    populatedTransaction.maxPriorityFeePerGas *= gasMultiple;
   }
 
   job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
