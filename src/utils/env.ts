@@ -107,6 +107,8 @@ export const env = createEnv({
      */
     ENABLE_KEYPAIR_AUTH: boolEnvSchema(false),
     ENABLE_CUSTOM_HMAC_AUTH: boolEnvSchema(false),
+    CUSTOM_HMAC_AUTH_CLIENT_ID: z.string().optional(),
+    CUSTOM_HMAC_AUTH_CLIENT_SECRET: z.string().optional(),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -148,6 +150,8 @@ export const env = createEnv({
     METRICS_ENABLED: process.env.METRICS_ENABLED,
     ENABLE_KEYPAIR_AUTH: process.env.ENABLE_KEYPAIR_AUTH,
     ENABLE_CUSTOM_HMAC_AUTH: process.env.ENABLE_CUSTOM_HMAC_AUTH,
+    CUSTOM_HMAC_AUTH_CLIENT_ID: process.env.CUSTOM_HMAC_AUTH_CLIENT_ID,
+    CUSTOM_HMAC_AUTH_CLIENT_SECRET: process.env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
   },
   onValidationError: (error: ZodError) => {
     console.error(

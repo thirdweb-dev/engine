@@ -1,4 +1,5 @@
 import type { Webhooks } from "@prisma/client";
+import assert from "node:assert";
 import crypto, { randomUUID } from "node:crypto";
 import { Agent, fetch } from "undici";
 import { getConfig } from "./cache/getConfig";
@@ -24,14 +25,22 @@ const generateAuthorization = (args: {
 }): string => {
   const { webhook, timestampSeconds, body } = args;
   if (env.ENABLE_CUSTOM_HMAC_AUTH) {
+    assert(
+      env.CUSTOM_HMAC_AUTH_CLIENT_ID,
+      'Missing "CUSTOM_HMAC_AUTH_CLIENT_ID".',
+    );
+    assert(
+      env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
+      'Missing "CUSTOM_HMAC_AUTH_CLIENT_SECRET"',
+    );
+
     return generateSecretHmac256({
       webhookUrl: webhook.url,
       body,
       timestampSeconds,
       nonce: randomUUID(),
-      // DEBUG
-      clientId: "@TODO: UNIMPLEMENTED",
-      clientSecret: "@TODO: UNIMPLEMENTED",
+      clientId: env.CUSTOM_HMAC_AUTH_CLIENT_ID,
+      clientSecret: env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
     });
   }
   return `Bearer ${webhook.secret}`;
