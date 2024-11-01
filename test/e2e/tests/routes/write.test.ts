@@ -2,13 +2,13 @@ import { beforeAll, describe, expect, test } from "bun:test";
 import assert from "node:assert";
 import type { Address } from "thirdweb";
 import { zeroAddress } from "viem";
-import type { ApiError } from "../../../sdk/dist/thirdweb-dev-engine.cjs";
-import { CONFIG } from "../config";
-import type { setupEngine } from "../utils/engine";
-import { pollTransactionStatus } from "../utils/transactions";
-import { setup } from "./setup";
+import type { ApiError } from "../../../../sdk/dist/thirdweb-dev-engine.cjs.js";
+import { CONFIG } from "../../config";
+import type { setupEngine } from "../../utils/engine";
+import { pollTransactionStatus } from "../../utils/transactions";
+import { setup } from "../setup";
 
-describe("Write Tests", () => {
+describe("/contract/write route", () => {
   let tokenContractAddress: string;
   let engine: ReturnType<typeof setupEngine>;
   let backendWallet: Address;
@@ -76,6 +76,28 @@ describe("Write Tests", () => {
       backendWallet,
       {
         functionName: "function setContractURI(string uri)",
+        args: ["https://signature-test.com"],
+      },
+    );
+
+    expect(writeRes.result.queueId).toBeDefined();
+
+    const writeTransactionStatus = await pollTransactionStatus(
+      engine,
+      writeRes.result.queueId,
+      true,
+    );
+
+    expect(writeTransactionStatus.minedAt).toBeDefined();
+  });
+
+  test("Write to a contract with function signature without prefix", async () => {
+    const writeRes = await engine.contract.write(
+      CONFIG.CHAIN.id.toString(),
+      tokenContractAddress,
+      backendWallet,
+      {
+        functionName: "setContractURI(string uri)",
         args: ["https://signature-test.com"],
       },
     );
