@@ -1,12 +1,13 @@
 import { Type } from "@sinclair/typebox";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import LRUMap from "mnemonist/lru-map";
 import { getChainMetadata } from "thirdweb/chains";
 import { badChainError } from "../../server/middleware/error";
 import { getChain } from "../chain";
 import { env } from "../env";
 import { getWallet } from "./getWallet";
 
-export const sdkCache = new Map<string, ThirdwebSDK>();
+export const sdkCache = new LRUMap<string, ThirdwebSDK>(2048);
 
 export const networkResponseSchema = Type.Object({
   name: Type.String({
@@ -27,14 +28,14 @@ export const networkResponseSchema = Type.Object({
     symbol: Type.String({
       description: "Native currency symbol",
     }),
-    decimals: Type.Number({
+    decimals: Type.Integer({
       description: "Native currency decimals",
     }),
   }),
   shortName: Type.String({
     description: "Chain short name",
   }),
-  chainId: Type.Number({
+  chainId: Type.Integer({
     description: "Chain ID",
   }),
   testnet: Type.Boolean({

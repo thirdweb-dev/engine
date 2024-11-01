@@ -6,7 +6,7 @@ import { Status } from "../../sharedApiSchemas";
 const currencyValueSchema = Type.Object({
   name: Type.Optional(Type.String()),
   symbol: Type.Optional(Type.String()),
-  decimals: Type.Optional(Type.Number()),
+  decimals: Type.Optional(Type.Integer({ minimum: 1 })),
   value: Type.Optional(Type.String()),
   displayValue: Type.Optional(Type.String()),
 });
@@ -34,15 +34,17 @@ export const englishAuctionInputSchema = Type.Object({
     }),
   ),
   startTimestamp: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description:
         "The start time of the listing. If not set, defaults to now.",
+      minimum: 0,
     }),
   ),
   endTimestamp: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description:
         "The end time of the listing. If not set, defaults to 7 days from now.",
+      minimum: 0,
     }),
   ),
   buyoutBidAmount: Type.String({
@@ -100,15 +102,19 @@ export const englishAuctionOutputSchema = Type.Object({
   timeBufferInSeconds: Type.Number({
     description: "This is a buffer e.g. x seconds.",
   }),
-  bidBufferBps: Type.Number({
+  bidBufferBps: Type.Integer({
     description:
       "To be considered as a new winning bid, a bid must be at least x% greater than the previous bid.",
+    minimum: 0,
+    maximum: 10_000,
   }),
-  startTimeInSeconds: Type.Number({
+  startTimeInSeconds: Type.Integer({
     description: "The start time of the auction.",
+    minimum: 0,
   }),
-  endTimeInSeconds: Type.Number({
+  endTimeInSeconds: Type.Integer({
     description: "The end time of the auction.",
+    minimum: 0,
   }),
   asset: Type.Optional(nftMetadataSchema),
   status: Type.Optional(

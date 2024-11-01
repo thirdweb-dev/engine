@@ -1,10 +1,10 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getNonceMap } from "../../../db/wallets/nonceMap";
 import { normalizeAddress } from "../../../utils/primitiveTypes";
-import { AnyTransaction } from "../../../utils/transaction/types";
+import type { AnyTransaction } from "../../../utils/transaction/types";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   TransactionSchema,
@@ -34,7 +34,7 @@ const requestQuerySchema = Type.Object({
 const responseBodySchema = Type.Object({
   result: Type.Array(
     Type.Object({
-      nonce: Type.Number(),
+      nonce: Type.Integer(),
       // Returns the transaction details by default.
       // Falls back to the queueId if the transaction details have been pruned.
       transaction: Type.Union([TransactionSchema, Type.String()]),

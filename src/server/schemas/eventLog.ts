@@ -3,17 +3,17 @@ import { Type, type Static } from "@sinclair/typebox";
 import { AddressSchema, TransactionHashSchema } from "./address";
 
 export const eventLogSchema = Type.Object({
-  chainId: Type.Number(),
+  chainId: Type.Integer(),
   contractAddress: AddressSchema,
-  blockNumber: Type.Number(),
+  blockNumber: Type.Integer(),
   transactionHash: TransactionHashSchema,
   topics: Type.Array(Type.String()),
   data: Type.String(),
   eventName: Type.Optional(Type.String()),
   decodedLog: Type.Any(),
-  timestamp: Type.Number(),
-  transactionIndex: Type.Number(),
-  logIndex: Type.Number(),
+  timestamp: Type.Integer(),
+  transactionIndex: Type.Integer(),
+  logIndex: Type.Integer(),
 });
 
 export const toEventLogSchema = (

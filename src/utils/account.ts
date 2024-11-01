@@ -1,3 +1,4 @@
+import LRUMap from "mnemonist/lru-map";
 import { getAddress, type Address, type Chain } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
 import {
@@ -18,7 +19,7 @@ import { getSmartWalletV5 } from "./cache/getSmartWalletV5";
 import { getChain } from "./chain";
 import { thirdwebClient } from "./sdk";
 
-export const _accountsCache = new Map<string, Account>();
+export const _accountsCache = new LRUMap<string, Account>(2048);
 
 export const getAccount = async (args: {
   chainId: number;
@@ -156,7 +157,7 @@ export const walletDetailsToAccount = async ({
   }
 };
 
-export const _adminAccountsCache = new Map<string, Account>();
+export const _adminAccountsCache = new LRUMap<string, Account>(2048);
 
 /**
  * Get the admin account for a smart backend wallet (cached)

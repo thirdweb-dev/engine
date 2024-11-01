@@ -13,7 +13,7 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 const requestQueryString = Type.Object({
-  tokenId: Type.Union([Type.String(), Type.Number()], {
+  tokenId: Type.Union([Type.String(), Type.Integer()], {
     description:
       "The token ID of the NFT you want to get the claimer proofs for.",
   }),

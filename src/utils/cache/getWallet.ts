@@ -1,6 +1,7 @@
 import type { EVMWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
+import LRUMap from "mnemonist/lru-map";
 import {
   WalletDetailsError,
   getWalletDetails,
@@ -14,7 +15,7 @@ import { splitGcpKmsResourcePath } from "../../server/utils/wallets/gcpKmsResour
 import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../../server/utils/wallets/getSmartWallet";
 
-export const walletsCache = new Map<string, EVMWallet>();
+export const walletsCache = new LRUMap<string, EVMWallet>(2048);
 
 interface GetWalletParams {
   pgtx?: PrismaTransaction;

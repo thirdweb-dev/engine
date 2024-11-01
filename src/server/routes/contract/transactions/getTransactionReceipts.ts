@@ -12,8 +12,8 @@ import { transactionReceiptSchema } from "../../../schemas/transactionReceipt";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestQuerySchema = Type.Object({
-  fromBlock: Type.Number(),
-  toBlock: Type.Optional(Type.Number()),
+  fromBlock: Type.Integer({ minimum: 0 }),
+  toBlock: Type.Optional(Type.Integer({ minimum: 0 })),
 });
 
 const responseSchema = Type.Object({

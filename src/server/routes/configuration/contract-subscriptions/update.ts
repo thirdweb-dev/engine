@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
@@ -10,8 +10,12 @@ import {
 } from "../../../schemas/sharedApiSchemas";
 
 const requestBodySchema = Type.Object({
-  maxBlocksToIndex: Type.Optional(Type.Number({ minimum: 1, maximum: 25 })),
-  contractSubscriptionsRequeryDelaySeconds: Type.Optional(Type.String()),
+  maxBlocksToIndex: Type.Optional(Type.Integer({ minimum: 1, maximum: 100 })),
+  contractSubscriptionsRequeryDelaySeconds: Type.Optional(
+    Type.String({
+      description: `Requery after one or more delays. Use comma-separated positive integers. Example: "2,10" means requery after 2s and 10s.`,
+    }),
+  ),
 });
 
 const responseSchema = Type.Object({
@@ -51,11 +55,14 @@ export async function updateContractSubscriptionsConfiguration(
 
       if (contractSubscriptionsRequeryDelaySeconds) {
         try {
-          contractSubscriptionsRequeryDelaySeconds.split(",").forEach((d) => {
-            if (Number.isNaN(parseInt(d))) {
-              throw "Invalid number";
+          for (const delayStr of contractSubscriptionsRequeryDelaySeconds.split(
+            ",",
+          )) {
+            const delayInt = Number.parseInt(delayStr);
+            if (Number.isNaN(delayInt) || delayInt <= 0) {
+              throw `Invalid delay value. Use comma-separated positive integers: "2,10"`;
             }
-          });
+          }
         } catch {
           throw createCustomError(
             'At least one integer "contractSubscriptionsRequeryDelaySeconds" is required',

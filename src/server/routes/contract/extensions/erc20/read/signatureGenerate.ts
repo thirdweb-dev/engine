@@ -38,8 +38,8 @@ const requestBodySchemaV5 = Type.Intersect([
     price: Type.Optional(Type.String()),
     priceInWei: Type.Optional(Type.String()),
     currency: Type.Optional(Type.String()),
-    validityStartTimestamp: Type.Integer(),
-    validityEndTimestamp: Type.Optional(Type.Integer()),
+    validityStartTimestamp: Type.Integer({ minimum: 0 }),
+    validityEndTimestamp: Type.Optional(Type.Integer({ minimum: 0 })),
     uid: Type.Optional(Type.String()),
   }),
   Type.Union([

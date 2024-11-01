@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
-import type { AbiFunction } from "thirdweb/utils";
+import { parseAbiParams, type AbiFunction } from "thirdweb/utils";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
 import { prettifyError } from "../../../../utils/error";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
@@ -19,17 +19,26 @@ import {
   requiredAddress,
   walletWithAAHeaderSchema,
 } from "../../../schemas/wallet";
-import { sanitizeAbi } from "../../../utils/abi";
+import { sanitizeAbi, sanitizeFunctionName } from "../../../utils/abi";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { parseTransactionOverrides } from "../../../utils/transactionOverrides";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
   functionName: Type.String({
-    description: "The function to call on the contract",
+    description: `The function to call on the contract. It is highly recommended to provide a full function signature, such as "function mintTo(address to, uint256 amount)", to avoid ambiguity and to skip ABI resolution.`,
+    examples: ["function mintTo(address to, uint256 amount)"],
   }),
   args: Type.Array(Type.Any(), {
-    description: "The arguments to call on the function",
+    description:
+      "An array of arguments to provide the function. Supports: numbers, strings, arrays, objects. Do not provide: BigNumber, bigint, Date objects",
+    examples: [
+      [
+        1730380951,
+        "0x09530565aC1Ce08C3621f5B24Fca6d9a76574620",
+        ["a", "b", "c"],
+      ],
+    ],
   }),
   ...txOverridesWithValueSchema.properties,
   abi: Type.Optional(abiArraySchema),
@@ -83,8 +92,14 @@ export async function writeToContract(fastify: FastifyInstance) {
       // 3. functionName passed as function name + inferred ABI (fetched at encode time)
       // this is all handled inside the `resolveMethod` function
       let method: AbiFunction;
+      let params: Array<string | bigint | boolean | object>;
       try {
-        method = await resolveMethod(functionName)(contract);
+        const functionNameOrSignature = sanitizeFunctionName(functionName);
+        method = await resolveMethod(functionNameOrSignature)(contract);
+        params = parseAbiParams(
+          method.inputs.map((i) => i.type),
+          args,
+        );
       } catch (e) {
         throw createCustomError(
           prettifyError(e),
@@ -92,10 +107,11 @@ export async function writeToContract(fastify: FastifyInstance) {
           "BAD_REQUEST",
         );
       }
+
       const transaction = prepareContractCall({
         contract,
         method,
-        params: args,
+        params,
         ...parseTransactionOverrides(txOverrides),
       });
 

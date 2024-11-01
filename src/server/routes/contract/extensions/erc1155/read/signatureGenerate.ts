@@ -18,6 +18,10 @@ import {
   type ercNFTResponseType,
 } from "../../../../../schemas/nft";
 import {
+  TokenAmountStringSchema,
+  WeiAmountStringSchema,
+} from "../../../../../schemas/number";
+import {
   erc1155ContractParamSchema,
   standardResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
@@ -44,13 +48,13 @@ const requestBodySchemaV5 = Type.Intersect([
     to: Type.String(),
     quantity: Type.String(),
     royaltyRecipient: Type.Optional(Type.String()),
-    royaltyBps: Type.Optional(Type.Number()),
+    royaltyBps: Type.Optional(Type.Integer({ minimum: 0, maximum: 10_000 })),
     primarySaleRecipient: Type.Optional(Type.String()),
-    pricePerToken: Type.Optional(Type.String()),
-    pricePerTokenWei: Type.Optional(Type.String()),
+    pricePerToken: Type.Optional(TokenAmountStringSchema),
+    pricePerTokenWei: Type.Optional(WeiAmountStringSchema),
     currency: Type.Optional(Type.String()),
-    validityStartTimestamp: Type.Integer(),
-    validityEndTimestamp: Type.Optional(Type.Integer()),
+    validityStartTimestamp: Type.Integer({ minimum: 0 }),
+    validityEndTimestamp: Type.Optional(Type.Integer({ minimum: 0 })),
     uid: Type.Optional(Type.String()),
   }),
   Type.Union([
