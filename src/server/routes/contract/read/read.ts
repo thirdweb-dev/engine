@@ -43,7 +43,7 @@ export async function readContract(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let parsedArgs: unknown[] | undefined = [];
+      let parsedArgs: unknown[] | undefined;
 
       try {
         const jsonStringArgs = `[${args}]`;
