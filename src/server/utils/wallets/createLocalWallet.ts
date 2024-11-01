@@ -13,7 +13,7 @@ interface CreateLocalWallet {
  * Create a local wallet with a random private key
  * Does not store the wallet in the database
  */
-export const createRandomLocalWallet = async () => {
+export const generateLocalWallet = async () => {
   const pk = generatePrivateKey();
   const account = privateKeyToAccount({
     client: thirdwebClient,
@@ -47,7 +47,7 @@ export const createRandomLocalWallet = async () => {
 export const createLocalWalletDetails = async ({
   label,
 }: CreateLocalWallet): Promise<string> => {
-  const { account, encryptedJson } = await createRandomLocalWallet();
+  const { account, encryptedJson } = await generateLocalWallet();
 
   await createWalletDetails({
     type: "local",

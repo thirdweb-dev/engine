@@ -94,7 +94,7 @@ export const walletDetailsToAccount = async ({
     case WalletType.smartAwsKms: {
       const { keyId, region } = splitAwsKmsArn(walletDetails.awsKmsArn);
 
-      const signerAccount = await getAwsKmsAccount({
+      const adminAccount = await getAwsKmsAccount({
         client: thirdwebClient,
         keyId,
         config: {
@@ -107,13 +107,13 @@ export const walletDetailsToAccount = async ({
       });
 
       const connectedWallet = await getConnectedSmartWallet({
-        adminAccount: signerAccount,
+        adminAccount: adminAccount,
         accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
         entrypointAddress: walletDetails.entrypointAddress ?? undefined,
         chain: chain,
       });
 
-      return { account: connectedWallet, adminAccount: signerAccount };
+      return { account: connectedWallet, adminAccount: adminAccount };
     }
 
     case WalletType.smartGcpKms: {

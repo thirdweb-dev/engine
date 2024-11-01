@@ -12,7 +12,7 @@ import {
   createGcpKmsKey,
   type CreateGcpKmsWalletParams,
 } from "./createGcpKmsWallet";
-import { createRandomLocalWallet } from "./createLocalWallet";
+import { generateLocalWallet } from "./createLocalWallet";
 import { getAwsKmsAccount } from "./getAwsKmsAccount";
 import { getGcpKmsAccount } from "./getGcpKmsAccount";
 
@@ -151,7 +151,7 @@ export const createSmartLocalWalletDetails = async ({
   accountFactoryAddress,
   entrypointAddress,
 }: CreateSmartLocalWalletParams) => {
-  const { account, encryptedJson } = await createRandomLocalWallet();
+  const { account, encryptedJson } = await generateLocalWallet();
 
   const wallet = await getConnectedSmartWallet({
     adminAccount: account,
