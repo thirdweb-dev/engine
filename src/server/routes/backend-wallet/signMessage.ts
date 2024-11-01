@@ -3,8 +3,12 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isHex, type Hex } from "thirdweb";
 import { arbitrumSepolia } from "thirdweb/chains";
-import { getAccount } from "../../../utils/account";
-import { getChecksumAddress } from "../../../utils/primitiveTypes";
+import {
+  getWalletDetails,
+  isSmartBackendWallet,
+} from "../../../db/wallets/getWalletDetails";
+import { walletDetailsToAccount } from "../../../utils/account";
+import { getChain } from "../../../utils/chain";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
@@ -51,10 +55,25 @@ export async function signMessageRoute(fastify: FastifyInstance) {
         );
       }
 
-      const account = await getAccount({
-        chainId: chainId ?? arbitrumSepolia.id,
-        from: getChecksumAddress(walletAddress),
+      const walletDetails = await getWalletDetails({
+        address: walletAddress,
       });
+
+      if (isSmartBackendWallet(walletDetails) && !chainId) {
+        throw createCustomError(
+          "Chain ID is required for signing messages with smart wallets.",
+          StatusCodes.BAD_REQUEST,
+          "CHAIN_ID_REQUIRED",
+        );
+      }
+
+      const chain = chainId ? await getChain(chainId) : arbitrumSepolia;
+
+      const { account } = await walletDetailsToAccount({
+        walletDetails,
+        chain,
+      });
+
       const messageToSign = isBytes ? { raw: message as Hex } : message;
       const signedMessage = await account.signMessage({
         message: messageToSign,
