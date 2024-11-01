@@ -15,7 +15,7 @@ describe("Read Tests", () => {
     engine = _engine;
   });
 
-  test("Write to a contract with function name", async () => {
+  test("Read a contract method with struct and number params", async () => {
     const structValues = {
       name: "test",
       value: 123,
