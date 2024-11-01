@@ -6,6 +6,7 @@ import {
   isSmartBackendWallet,
   type ParsedWalletDetails,
 } from "../../db/wallets/getWalletDetails";
+import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
 import { createCustomError } from "../../server/middleware/error";
 import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
 import { getChecksumAddress } from "../primitiveTypes";
@@ -83,6 +84,19 @@ export const insertTransaction = async (
       );
     }
 
+    if (
+      !(await doesChainSupportService(
+        queuedTransaction.chainId,
+        "account-abstraction",
+      ))
+    ) {
+      throw createCustomError(
+        "Chain does not support smart backend wallets",
+        StatusCodes.BAD_REQUEST,
+        "SBW_CHAIN_NOT_SUPPORTED",
+      );
+    }
+
     queuedTransaction = {
       ...queuedTransaction,
       isUserOp: true,
@@ -113,6 +127,19 @@ export const insertTransaction = async (
   // when using v4 SDK with smart backend wallets, the following values are not set correctly:
   // entrypointAddress is not set
   if (walletDetails && isSmartBackendWallet(walletDetails)) {
+    if (
+      !(await doesChainSupportService(
+        queuedTransaction.chainId,
+        "account-abstraction",
+      ))
+    ) {
+      throw createCustomError(
+        "Chain does not support smart backend wallets",
+        StatusCodes.BAD_REQUEST,
+        "SBW_CHAIN_NOT_SUPPORTED",
+      );
+    }
+
     queuedTransaction = {
       ...queuedTransaction,
       entrypointAddress: walletDetails.entrypointAddress ?? undefined,
