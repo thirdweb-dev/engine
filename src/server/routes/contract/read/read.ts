@@ -43,7 +43,16 @@ export async function readContract(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      const parsedArgs = args?.split(",").map((arg) => {
+      let parsedArgs: unknown[] | undefined = [];
+
+      try {
+        const jsonStringArgs = `[${args}]`;
+        parsedArgs = JSON.parse(jsonStringArgs);
+      } catch {
+        // fallback to string split
+      }
+
+      parsedArgs ??= args?.split(",").map((arg) => {
         if (arg === "true") {
           return true;
         }
