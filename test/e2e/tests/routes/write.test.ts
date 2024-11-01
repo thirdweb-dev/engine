@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import assert from "node:assert";
-import type { Address } from "thirdweb";
+import { type Address, stringToHex } from "thirdweb";
 import { zeroAddress } from "viem";
 import type { ApiError } from "../../../../sdk/dist/thirdweb-dev-engine.cjs.js";
 import { CONFIG } from "../../config";
@@ -67,6 +67,98 @@ describe("/contract/write route", () => {
     );
 
     expect(writeTransactionStatus.minedAt).toBeDefined();
+  });
+
+  test.only("Write to a contract with untyped args", async () => {
+    const res = await engine.deploy.deployNftDrop(
+      CONFIG.CHAIN.id.toString(),
+      backendWallet,
+      {
+        contractMetadata: {
+          name: "test token",
+          platform_fee_basis_points: 0,
+          platform_fee_recipient: zeroAddress,
+          symbol: "TT",
+          trusted_forwarders: [],
+          seller_fee_basis_points: 0,
+          fee_recipient: zeroAddress,
+        },
+      },
+    );
+
+    expect(res.result.queueId).toBeDefined();
+    assert(res.result.queueId, "queueId must be defined");
+    expect(res.result.deployedAddress).toBeDefined();
+    const nftDropContractAddress = res.result.deployedAddress;
+
+    if (!nftDropContractAddress) {
+      throw new Error("nftDropContractAddress must be defined");
+    }
+
+    const transactionStatus = await pollTransactionStatus(
+      engine,
+      res.result.queueId,
+      true,
+    );
+
+    expect(transactionStatus.minedAt).toBeDefined();
+    const writeRes = await engine.contract.write(
+      CONFIG.CHAIN.id.toString(),
+      nftDropContractAddress,
+      backendWallet,
+      {
+        functionName: "setApprovalForAll",
+        args: [
+          "0x1234567890123456789012345678901234567890",
+          "true", // string instead of bool
+        ],
+      },
+    );
+
+    expect(writeRes.result.queueId).toBeDefined();
+
+    const writeTransactionStatus = await pollTransactionStatus(
+      engine,
+      writeRes.result.queueId,
+      true,
+    );
+
+    expect(writeTransactionStatus.minedAt).toBeDefined();
+
+    const writeRes2 = await engine.contract.write(
+      CONFIG.CHAIN.id.toString(),
+      nftDropContractAddress,
+      backendWallet,
+      {
+        functionName: "setClaimConditions",
+        args: [
+          // stringified array of structs
+          JSON.stringify([
+            {
+              startTimestamp: "0",
+              maxClaimableSupply: "100000",
+              supplyClaimed: "0",
+              quantityLimitPerWallet: "10",
+              merkleRoot: stringToHex("", { size: 32 }),
+              pricePerToken: "0",
+              currency: zeroAddress,
+              metadata: "",
+            },
+          ]),
+          "false",
+        ],
+      },
+    );
+
+    expect(writeRes2.result.queueId).toBeDefined();
+
+    const writeTransactionStatus2 = await pollTransactionStatus(
+      engine,
+      writeRes2.result.queueId,
+      true,
+    );
+
+    expect(writeTransactionStatus2.minedAt).toBeDefined();
   });
 
   test("Write to a contract with function signature", async () => {

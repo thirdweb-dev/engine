@@ -3,6 +3,8 @@ import { ClaimEligibility } from "@thirdweb-dev/sdk";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../utils/cache/getContract";
+import { AddressSchema } from "../../../../../schemas/address";
+import { NumberStringSchema } from "../../../../../schemas/number";
 import {
   contractParamSchema,
   standardResponseSchema,
@@ -12,19 +14,18 @@ import { getChainIdFromChain } from "../../../../../utils/chain";
 // INPUT
 const requestSchema = contractParamSchema;
 const requestQueryString = Type.Object({
-  tokenId: Type.Union([Type.String(), Type.Number()], {
+  tokenId: Type.Union([Type.String(), Type.Integer()], {
     description:
       "The token ID of the NFT you want to check if the wallet address can claim.",
   }),
-  quantity: Type.String({
+  quantity: {
+    ...NumberStringSchema,
     description: "The amount of tokens to claim.",
+  },
+  addressToCheck: Type.Optional({
+    ...AddressSchema,
+    description: "The wallet address to check if it can claim tokens.",
   }),
-  addressToCheck: Type.Optional(
-    Type.String({
-      description: "The wallet address to check if it can claim tokens.",
-      examples: ["0x1946267d81Fb8aDeeEa28e6B98bcD446c8248473"],
-    }),
-  ),
 });
 
 // OUTPUT

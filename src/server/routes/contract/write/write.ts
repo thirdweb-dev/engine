@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
-import type { AbiFunction } from "thirdweb/utils";
+import { parseAbiParams, type AbiFunction } from "thirdweb/utils";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
 import { prettifyError } from "../../../../utils/error";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";
@@ -92,9 +92,14 @@ export async function writeToContract(fastify: FastifyInstance) {
       // 3. functionName passed as function name + inferred ABI (fetched at encode time)
       // this is all handled inside the `resolveMethod` function
       let method: AbiFunction;
+      let params: Array<string | bigint | boolean | object>;
       try {
         const functionNameOrSignature = sanitizeFunctionName(functionName);
         method = await resolveMethod(functionNameOrSignature)(contract);
+        params = parseAbiParams(
+          method.inputs.map((i) => i.type),
+          args,
+        );
       } catch (e) {
         throw createCustomError(
           prettifyError(e),
@@ -106,7 +111,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       const transaction = prepareContractCall({
         contract,
         method,
-        params: args,
+        params,
         ...parseTransactionOverrides(txOverrides),
       });
 
