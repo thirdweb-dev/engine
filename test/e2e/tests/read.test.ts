@@ -1,6 +1,6 @@
-import { beforeAll, describe, test } from "bun:test";
+import { beforeAll, describe, expect, test } from "bun:test";
 import { sepolia } from "thirdweb/chains";
-import { expect } from "vitest";
+import type { ApiError } from "../../../sdk/dist/thirdweb-dev-engine.cjs";
 import type { setupEngine } from "../utils/engine";
 import { setup } from "./setup";
 
@@ -34,5 +34,26 @@ describe("Read Tests", () => {
     expect(result[1]).toEqual("123");
     expect(result[2]).toEqual("1");
     expect(result[3]).toEqual("2");
+  });
+
+  test("Incorrectly read a contract should 400 (incorrect arity)", async () => {
+    const structValues = {
+      name: "test",
+      value: 123,
+    };
+
+    const structString = JSON.stringify(structValues);
+
+    try {
+      await engine.contract.read(
+        "readStructAndInts",
+        chainIdString,
+        structContractAddress,
+        [structString, 1].join(","),
+      );
+      throw new Error("Expected method to throw");
+    } catch (error) {
+      expect((error as ApiError).status).toBe(400);
+    }
   });
 });
