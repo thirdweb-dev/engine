@@ -1,15 +1,14 @@
 import { Type } from "@sinclair/typebox";
-import { WeiAmountStringSchema } from "./number";
+import { NumberStringSchema, WeiAmountStringSchema } from "./number";
 
 export const txOverridesSchema = Type.Object({
   txOverrides: Type.Optional(
     Type.Object({
-      gas: Type.Optional(
-        Type.String({
-          examples: ["530000"],
-          description: "Gas limit for the transaction",
-        }),
-      ),
+      gas: Type.Optional({
+        ...NumberStringSchema,
+        examples: ["530000"],
+        description: "Gas limit for the transaction",
+      }),
 
       // Overriding `gasPrice` is currently not supported.
 

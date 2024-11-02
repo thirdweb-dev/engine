@@ -17,15 +17,13 @@ import { getChain } from "../../../../utils/chain";
 import { thirdwebClient } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
+import { chainIdOrSlugSchema } from "../../../schemas/chain";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const requestQuerystringSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   queueId: Type.Optional(
     Type.String({
       description: "The queue ID for a mined transaction.",
@@ -50,9 +48,9 @@ const LogSchema = Type.Object({
   data: Type.String(),
   blockNumber: Type.String(),
   transactionHash: TransactionHashSchema,
-  transactionIndex: Type.Number(),
+  transactionIndex: Type.Integer(),
   blockHash: Type.String(),
-  logIndex: Type.Number(),
+  logIndex: Type.Integer(),
   removed: Type.Boolean(),
 
   // Additional properties only for parsed logs

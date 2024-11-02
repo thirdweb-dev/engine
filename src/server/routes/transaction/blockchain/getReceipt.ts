@@ -17,19 +17,17 @@ import {
 } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
+import { chainIdOrSlugSchema } from "../../../schemas/chain";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 // INPUT
 const requestSchema = Type.Object({
+  chain: chainIdOrSlugSchema,
   transactionHash: {
     ...TransactionHashSchema,
     description: "Transaction hash",
   },
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
 });
 
 // OUTPUT
@@ -40,20 +38,20 @@ export const responseBodySchema = Type.Object({
         to: Type.String(),
         from: Type.String(),
         contractAddress: Type.Union([AddressSchema, Type.Null()]),
-        transactionIndex: Type.Number(),
+        transactionIndex: Type.Integer(),
         root: Type.String(),
         gasUsed: Type.String(),
         logsBloom: Type.String(),
         blockHash: Type.String(),
         transactionHash: TransactionHashSchema,
         logs: Type.Array(Type.Any()),
-        blockNumber: Type.Number(),
-        confirmations: Type.Number(),
+        blockNumber: Type.Integer(),
+        confirmations: Type.Integer(),
         cumulativeGasUsed: Type.String(),
         effectiveGasPrice: Type.String(),
         byzantium: Type.Boolean(),
-        type: Type.Number(),
-        status: Type.Number(),
+        type: Type.Integer(),
+        status: Type.Integer(),
       }),
     ),
     Type.Null(),

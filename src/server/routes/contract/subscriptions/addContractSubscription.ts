@@ -13,18 +13,17 @@ import { getChain } from "../../../../utils/chain";
 import { thirdwebClient } from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema } from "../../../schemas/address";
+import { chainIdOrSlugSchema } from "../../../schemas/chain";
 import {
   contractSubscriptionSchema,
   toContractSubscriptionSchema,
 } from "../../../schemas/contractSubscription";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
-import { isValidHttpUrl } from "../../../utils/validator";
+import { isValidWebhookUrl } from "../../../utils/validator";
 
 const bodySchema = Type.Object({
-  chain: Type.String({
-    description: "The chain for the contract.",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "The address for the contract.",
@@ -141,7 +140,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
       // Create the webhook (if provided).
       let webhookId: number | undefined;
       if (webhookUrl) {
-        if (!isValidHttpUrl(webhookUrl)) {
+        if (!isValidWebhookUrl(webhookUrl)) {
           throw createCustomError(
             "Invalid webhook URL. Make sure it starts with 'https://'.",
             StatusCodes.BAD_REQUEST,

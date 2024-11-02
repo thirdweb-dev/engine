@@ -4,23 +4,21 @@ import type { RouteGenericInterface } from "fastify";
 import type { FastifySchema } from "fastify/types/schema";
 import { StatusCodes } from "http-status-codes";
 import { AddressSchema } from "./address";
+import { chainIdOrSlugSchema } from "./chain";
 
 export const baseReplyErrorSchema = Type.Object({
   message: Type.Optional(Type.String()),
   reason: Type.Optional(Type.Any()),
   code: Type.Optional(Type.String()),
   stack: Type.Optional(Type.String()),
-  statusCode: Type.Optional(Type.Number()),
+  statusCode: Type.Optional(Type.Integer()),
 });
 
 /**
  * Basic schema for Request Parameters
  */
 export const contractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "Contract address",
@@ -30,17 +28,14 @@ export const contractParamSchema = Type.Object({
 export const requestQuerystringSchema = Type.Object({
   simulateTx: Type.Optional(
     Type.Boolean({
-      description: "Simulate the transaction on-chain without executing",
+      description: "Simulate the transaction without executing it.",
       default: false,
     }),
   ),
 });
 
 export const prebuiltDeployParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractType: Type.String({
     examples: Object.keys(PREBUILT_CONTRACTS_MAP),
     description: "Contract type to deploy",
@@ -48,10 +43,7 @@ export const prebuiltDeployParamSchema = Type.Object({
 });
 
 export const publishedDeployParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   publisher: Type.String({
     examples: ["deployer.thirdweb.eth"],
     description: "Address or ENS of the publisher of the contract",
@@ -176,10 +168,7 @@ transactionWritesResponseSchema.example = {
  * Basic schema for ERC721 Contract Request Parameters
  */
 export const erc20ContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "ERC20 contract address",
@@ -190,10 +179,7 @@ export const erc20ContractParamSchema = Type.Object({
  * Basic schema for ERC721 Contract Request Parameters
  */
 export const erc1155ContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "ERC1155 contract address",
@@ -204,10 +190,7 @@ export const erc1155ContractParamSchema = Type.Object({
  * Basic schema for ERC721 Contract Request Parameters
  */
 export const erc721ContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "ERC721 contract address",
@@ -216,7 +199,7 @@ export const erc721ContractParamSchema = Type.Object({
 export const currencyValueSchema = Type.Object({
   name: Type.String(),
   symbol: Type.String(),
-  decimals: Type.Number(),
+  decimals: Type.Integer(),
   value: Type.String(),
   displayValue: Type.String(),
 });
@@ -234,10 +217,7 @@ export enum Status {
 }
 
 export const marketplaceV3ContractParamSchema = Type.Object({
-  chain: Type.String({
-    examples: ["80002"],
-    description: "Chain ID or name",
-  }),
+  chain: chainIdOrSlugSchema,
   contractAddress: {
     ...AddressSchema,
     description: "Contract address",
@@ -246,30 +226,29 @@ export const marketplaceV3ContractParamSchema = Type.Object({
 
 export const marketplaceFilterSchema = Type.Object({
   count: Type.Optional(
-    Type.Number({
+    Type.Integer({
       description: "Number of listings to fetch",
+      minimum: 1,
     }),
   ),
-  offeror: Type.Optional(
-    Type.String({
-      description: "has offers from this Address",
-    }),
-  ),
-  seller: Type.Optional(
-    Type.String({
-      description: "Being sold by this Address",
-    }),
-  ),
+  offeror: Type.Optional({
+    ...AddressSchema,
+    description: "has offers from this Address",
+  }),
+  seller: Type.Optional({
+    ...AddressSchema,
+    description: "Being sold by this Address",
+  }),
   start: Type.Optional(
-    Type.Number({
-      description: "Satrt from this index (pagination)",
+    Type.Integer({
+      description: "Start from this index (pagination)",
+      minimum: 0,
     }),
   ),
-  tokenContract: Type.Optional(
-    Type.String({
-      description: "Token contract address to show NFTs from",
-    }),
-  ),
+  tokenContract: Type.Optional({
+    ...AddressSchema,
+    description: "Token contract address to show NFTs from",
+  }),
   tokenId: Type.Optional(
     Type.String({
       description: "Only show NFTs with this ID",
@@ -336,6 +315,6 @@ export const walletDetailsSchema = Type.Object({
 });
 
 export const contractSubscriptionConfigurationSchema = Type.Object({
-  maxBlocksToIndex: Type.Number(),
+  maxBlocksToIndex: Type.Integer(),
   contractSubscriptionsRequeryDelaySeconds: Type.String(),
 });

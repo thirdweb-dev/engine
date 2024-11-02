@@ -3,12 +3,13 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../db/client";
 import { AddressSchema } from "../../schemas/address";
+import { chainIdOrSlugSchema } from "../../schemas/chain";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const requestBodySchema = Type.Object({
   name: Type.Optional(Type.String()),
-  chain: Type.String(),
+  chain: chainIdOrSlugSchema,
   backendWalletAddress: {
     ...AddressSchema,
     description:

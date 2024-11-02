@@ -1,11 +1,14 @@
-import {
+import type {
   ContractEventLogs,
   ContractTransactionReceipts,
   Webhooks,
 } from "@prisma/client";
 import { Queue } from "bullmq";
 import SuperJSON from "superjson";
-import { WebhooksEventTypes } from "../../schema/webhooks";
+import {
+  WebhooksEventTypes,
+  type BackendWalletBalanceWebhookParams,
+} from "../../schema/webhooks";
 import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
@@ -27,10 +30,16 @@ export type EnqueueTransactionWebhookData = {
   queueId: string;
 };
 
+export type EnqueueLowBalanceWebhookData = {
+  type: WebhooksEventTypes.BACKEND_WALLET_BALANCE;
+  body: BackendWalletBalanceWebhookParams;
+};
+
 // Add other webhook event types here.
 type EnqueueWebhookData =
   | EnqueueContractSubscriptionWebhookData
-  | EnqueueTransactionWebhookData;
+  | EnqueueTransactionWebhookData
+  | EnqueueLowBalanceWebhookData;
 
 export interface WebhookJob {
   data: EnqueueWebhookData;
@@ -56,6 +65,8 @@ export class SendWebhookQueue {
       case WebhooksEventTypes.ERRORED_TX:
       case WebhooksEventTypes.CANCELLED_TX:
         return this._enqueueTransactionWebhook(data);
+      case WebhooksEventTypes.BACKEND_WALLET_BALANCE:
+        return this._enqueueBackendWalletBalanceWebhook(data);
       default:
         logger({
           service: "worker",
@@ -105,7 +116,8 @@ export class SendWebhookQueue {
 
     if (eventLog) {
       return `${webhook.url}.${eventLog.transactionHash}.${eventLog.logIndex}`;
-    } else if (transactionReceipt) {
+    }
+    if (transactionReceipt) {
       return `${webhook.url}.${transactionReceipt.transactionHash}`;
     }
     throw 'Must provide "eventLog" or "transactionReceipt".';
@@ -140,4 +152,20 @@ export class SendWebhookQueue {
     eventType: WebhooksEventTypes;
     queueId: string;
   }) => `${args.webhook.url}.${args.eventType}.${args.queueId}`;
+
+  private static _enqueueBackendWalletBalanceWebhook = async (
+    data: EnqueueLowBalanceWebhookData,
+  ) => {
+    const webhooks = await getWebhooksByEventType(
+      WebhooksEventTypes.BACKEND_WALLET_BALANCE,
+    );
+    for (const webhook of webhooks) {
+      const job: WebhookJob = { data, webhook };
+      const serialized = SuperJSON.stringify(job);
+      await this.q.add(
+        `${data.type}:${data.body.chainId}:${data.body.walletAddress}`,
+        serialized,
+      );
+    }
+  };
 }

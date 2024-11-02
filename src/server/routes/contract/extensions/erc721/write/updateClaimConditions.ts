@@ -22,8 +22,9 @@ import { isUnixEpochTimestamp } from "../../../../../utils/validator";
 const requestSchema = contractParamSchema;
 const requestBodySchema = Type.Object({
   claimConditionInput: claimConditionInputSchema,
-  index: Type.Number({
+  index: Type.Integer({
     description: "Index of the claim condition to update",
+    minimum: 0,
   }),
   ...txOverridesWithValueSchema.properties,
 });

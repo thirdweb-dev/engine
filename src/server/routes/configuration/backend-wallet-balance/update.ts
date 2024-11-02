@@ -1,16 +1,18 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
 import { getConfig } from "../../../../utils/cache/getConfig";
+import { WeiAmountStringSchema } from "../../../schemas/number";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Partial(
   Type.Object({
-    minWalletBalance: Type.String({
+    minWalletBalance: {
+      ...WeiAmountStringSchema,
       description: "Minimum wallet balance in wei",
-    }),
+    },
   }),
 );
 
