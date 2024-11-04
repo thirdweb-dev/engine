@@ -2,8 +2,13 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isHex, type Hex } from "thirdweb";
-import { getAccount } from "../../../utils/account";
-import { getChecksumAddress } from "../../../utils/primitiveTypes";
+import { arbitrumSepolia } from "thirdweb/chains";
+import {
+  getWalletDetails,
+  isSmartBackendWallet,
+} from "../../../db/wallets/getWalletDetails";
+import { walletDetailsToAccount } from "../../../utils/account";
+import { getChain } from "../../../utils/chain";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
@@ -11,6 +16,7 @@ import { walletHeaderSchema } from "../../schemas/wallet";
 const requestBodySchema = Type.Object({
   message: Type.String(),
   isBytes: Type.Optional(Type.Boolean()),
+  chainId: Type.Optional(Type.Number()),
 });
 
 const responseBodySchema = Type.Object({
@@ -37,7 +43,7 @@ export async function signMessageRoute(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { message, isBytes } = request.body;
+      const { message, isBytes, chainId } = request.body;
       const { "x-backend-wallet-address": walletAddress } =
         request.headers as Static<typeof walletHeaderSchema>;
 
@@ -49,10 +55,25 @@ export async function signMessageRoute(fastify: FastifyInstance) {
         );
       }
 
-      const account = await getAccount({
-        chainId: 1,
-        from: getChecksumAddress(walletAddress),
+      const walletDetails = await getWalletDetails({
+        address: walletAddress,
       });
+
+      if (isSmartBackendWallet(walletDetails) && !chainId) {
+        throw createCustomError(
+          "Chain ID is required for signing messages with smart wallets.",
+          StatusCodes.BAD_REQUEST,
+          "CHAIN_ID_REQUIRED",
+        );
+      }
+
+      const chain = chainId ? await getChain(chainId) : arbitrumSepolia;
+
+      const { account } = await walletDetailsToAccount({
+        walletDetails,
+        chain,
+      });
+
       const messageToSign = isBytes ? { raw: message as Hex } : message;
       const signedMessage = await account.signMessage({
         message: messageToSign,
