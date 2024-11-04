@@ -24,7 +24,7 @@
     "lint:fix": "eslint --fix 'src/**/*.ts'",
     "test:unit": "vitest",
     "test:coverage": "vitest run --coverage",
-    "copy-files": "copyfiles -u 2 ./src/prisma/* ./dist/prisma/ && copyfiles -u 3 ./src/prisma/migrations/**/*.sql ./dist/prisma/migrations/"
+    "copy-files": "cp -r ./src/prisma ./dist/"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.679.0",
@@ -48,7 +48,6 @@
     "aws-kms-signer": "^0.5.3",
     "base-64": "^1.0.0",
     "bullmq": "^5.11.0",
-    "copyfiles": "^2.4.1",
     "cron-parser": "^4.9.0",
     "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
