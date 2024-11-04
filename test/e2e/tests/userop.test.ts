@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "crypto";
-import { type Address, getAddress } from "thirdweb";
+import { getAddress, type Address } from "thirdweb";
 import { sepolia } from "thirdweb/chains";
 import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";
 import type { ApiError } from "../../../sdk/dist/declarations/src/core/ApiError";
@@ -30,7 +30,7 @@ describe("Userop Tests", () => {
   });
 
   test("Should send a nft claim userop", async () => {
-    const writeRes = await engine.erc1155.erc1155ClaimTo(
+    const writeRes = await engine.erc1155.claimTo(
       sepolia.id.toString(),
       "0xe2cb0eb5147b42095c2FfA6F7ec953bb0bE347D8",
       backendWallet,
@@ -68,7 +68,7 @@ describe("Userop Tests", () => {
     const userAddress = getAddress(predictedAddress.result);
     console.log("userAddress", userAddress);
 
-    const writeRes = await engine.erc1155.erc1155ClaimTo(
+    const writeRes = await engine.erc1155.claimTo(
       sepolia.id.toString(),
       "0xe2cb0eb5147b42095c2FfA6F7ec953bb0bE347D8",
       backendWallet,
@@ -96,7 +96,7 @@ describe("Userop Tests", () => {
   });
 
   test("Should throw decoded error with simulate false", async () => {
-    const res = await engine.contractRoles.grantContractRole(
+    const res = await engine.contractRoles.grant(
       sepolia.id.toString(),
       "0xe2cb0eb5147b42095c2FfA6F7ec953bb0bE347D8",
       backendWallet,
@@ -125,7 +125,7 @@ describe("Userop Tests", () => {
 
   test("Should throw decoded error with simulate true", async () => {
     try {
-      await engine.contractRoles.grantContractRole(
+      await engine.contractRoles.grant(
         sepolia.id.toString(),
         "0xe2cb0eb5147b42095c2FfA6F7ec953bb0bE347D8",
         backendWallet,
