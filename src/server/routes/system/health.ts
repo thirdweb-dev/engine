@@ -10,7 +10,8 @@ type EngineFeature =
   | "KEYPAIR_AUTH"
   | "CONTRACT_SUBSCRIPTIONS"
   | "IP_ALLOWLIST"
-  | "HETEROGENEOUS_WALLET_TYPES";
+  | "HETEROGENEOUS_WALLET_TYPES"
+  | "SMART_BACKEND_WALLETS";
 
 const ReplySchemaOk = Type.Object({
   status: Type.String(),
@@ -22,6 +23,7 @@ const ReplySchemaOk = Type.Object({
       Type.Literal("CONTRACT_SUBSCRIPTIONS"),
       Type.Literal("IP_ALLOWLIST"),
       Type.Literal("HETEROGENEOUS_WALLET_TYPES"),
+      Type.Literal("SMART_BACKEND_WALLETS"),
     ]),
   ),
 });
@@ -82,7 +84,8 @@ const getFeatures = (): EngineFeature[] => {
   const features: EngineFeature[] = [
     "IP_ALLOWLIST",
     "HETEROGENEOUS_WALLET_TYPES",
-    "CONTRACT_SUBSCRIPTIONS"
+    "CONTRACT_SUBSCRIPTIONS",
+    "SMART_BACKEND_WALLETS",
   ];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
