@@ -1,7 +1,17 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { AbiEvent } from "abitype";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
+import {
+  getAddress,
+  getContract,
+  getContractEvents,
+  prepareEvent,
+} from "thirdweb";
+import { resolveContractAbi } from "thirdweb/contract";
+import { getChain } from "../../../../utils/chain";
+import { thirdwebClient } from "../../../../utils/sdk";
+import { createCustomError } from "../../../middleware/error";
 import {
   contractEventSchema,
   eventsQuerystringSchema,
@@ -78,23 +88,46 @@ export async function getAllEvents(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain: chainSlug, contractAddress } = request.params;
       const { fromBlock, toBlock, order } = request.query;
 
-      const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
-        contractAddress,
+      const chainId = await getChainIdFromChain(chainSlug);
+      const chain = await getChain(chainId);
+
+      const contract = getContract({
+        address: getAddress(contractAddress),
+        chain,
+        client: thirdwebClient,
       });
 
-      let returnData = await contract.events.getAllEvents({
-        fromBlock,
-        toBlock,
-        order,
-      });
+      const abi: AbiEvent[] = await resolveContractAbi(contract);
+
+      const eventSignatures = abi.filter((item) => item.type === "event");
+      if (eventSignatures.length === 0) {
+        throw createCustomError(
+          "No events found in contract or could not resolve contract ABI",
+          StatusCodes.BAD_REQUEST,
+          "NO_EVENTS_FOUND",
+        );
+      }
+
+      const preparedEvents = eventSignatures.map((signature) =>
+        prepareEvent({ signature }),
+      );
+      let events: any;
+      try {
+        events = await getContractEvents({
+          contract,
+          fromBlock: fromBlock ? BigInt(fromBlock) : 0n,
+          toBlock: toBlock ? BigInt(toBlock) : "latest",
+          events: preparedEvents,
+        });
+      } catch (e) {
+        console.error(e);
+      }
 
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        result: events,
       });
     },
   });
