@@ -11,4 +11,4 @@ export const getPercentile = (arr: number[], percentile: number): number => {
 export const clamp = (
   val: number,
   { min, max }: { min: number; max: number },
-) => Math.max(min, Math.min(val * 2, max));
+) => Math.max(min, Math.min(val, max));

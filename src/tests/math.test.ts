@@ -34,18 +34,18 @@ describe("clamp", () => {
   });
 
   it("clamps the value correctly at the minimum", () => {
-    expect(clamp(1, { min: 2, max: 10 })).toBe(2);
+    expect(clamp(2, { min: 2, max: 10 })).toBe(2);
   });
 
   it("returns the value when within bounds", () => {
-    expect(clamp(3, { min: 2, max: 10 })).toBe(6);
+    expect(clamp(3, { min: 2, max: 10 })).toBe(3);
   });
 
   it("clamps the value correctly at the maximum", () => {
-    expect(clamp(5, { min: 2, max: 10 })).toBe(10);
+    expect(clamp(10, { min: 2, max: 10 })).toBe(10);
   });
 
   it("clamps the value correctly above the maximum", () => {
-    expect(clamp(6, { min: 2, max: 10 })).toBe(10);
+    expect(clamp(12, { min: 2, max: 10 })).toBe(10);
   });
 });
