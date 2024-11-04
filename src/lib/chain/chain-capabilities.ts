@@ -18,7 +18,7 @@ export type ChainCapabilities = Array<{
   enabled: boolean;
 }>;
 
-// Create cache with 2048 entries and 5 minute TTL
+// Create cache with 2048 entries and 30 minute TTL
 const chainCapabilitiesCache = createSWRCache<number, ChainCapabilities>({
   maxEntries: 2048,
   ttlMs: 1000 * 60 * 30, // 30 minutes

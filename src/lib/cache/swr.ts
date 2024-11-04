@@ -1,3 +1,5 @@
+import { logger } from "../../utils/logger";
+
 type CacheEntry<T> = {
   data: T;
   validUntil: number;
@@ -34,7 +36,13 @@ export class SWRCache<K, V> {
 
     // If stale, trigger background revalidation and return stale data
     if (isStale) {
-      this.dedupedFetch(key, fetchFn).catch(() => {
+      this.dedupedFetch(key, fetchFn).catch((error) => {
+        logger({
+          service: "server",
+          level: "error",
+          message: `Failed to revalidate cache for key ${key}`,
+          error,
+        });
         // Silence background revalidation errors
       });
     }
