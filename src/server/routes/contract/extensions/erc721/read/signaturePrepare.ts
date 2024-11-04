@@ -43,7 +43,7 @@ const responseSchema = Type.Object({
           {
             name: Type.String(),
             version: Type.String(),
-            chainId: Type.Number(),
+            chainId: Type.Integer(),
             verifyingContract: Type.String(),
           },
           {

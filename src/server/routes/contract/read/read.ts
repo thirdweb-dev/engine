@@ -2,6 +2,7 @@ import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../utils/cache/getContract";
+import { createCustomError } from "../../../middleware/error";
 import {
   readRequestQuerySchema,
   type readSchema,
@@ -43,7 +44,16 @@ export async function readContract(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      const parsedArgs = args?.split(",").map((arg) => {
+      let parsedArgs: unknown[] | undefined;
+
+      try {
+        const jsonStringArgs = `[${args}]`;
+        parsedArgs = JSON.parse(jsonStringArgs);
+      } catch {
+        // fallback to string split
+      }
+
+      parsedArgs ??= args?.split(",").map((arg) => {
         if (arg === "true") {
           return true;
         }
@@ -53,11 +63,28 @@ export async function readContract(fastify: FastifyInstance) {
         return arg;
       });
 
-      let returnData = await contract.call(functionName, parsedArgs ?? []);
+      let returnData: unknown;
+
+      try {
+        returnData = await contract.call(functionName, parsedArgs ?? []);
+      } catch (e) {
+        if (
+          e instanceof Error &&
+          (e.message.includes("is not a function") ||
+            e.message.includes("arguments, but"))
+        ) {
+          throw createCustomError(
+            e.message,
+            StatusCodes.BAD_REQUEST,
+            "BAD_REQUEST",
+          );
+        }
+      }
       returnData = bigNumberReplacer(returnData);
 
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        // biome-ignore lint/suspicious/noExplicitAny: data from chain
+        result: returnData as any,
       });
     },
   });

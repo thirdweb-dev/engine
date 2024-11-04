@@ -6,7 +6,7 @@ import {
 } from "./fetchAwsKmsWalletParams";
 import { importAwsKmsWallet } from "./importAwsKmsWallet";
 
-type CreateAwsKmsWalletParams = {
+export type CreateAwsKmsWalletParams = {
   label?: string;
 } & Partial<AwsKmsWalletParams>;
 
@@ -16,15 +16,35 @@ export class CreateAwsKmsWalletError extends Error {}
  * Create an AWS KMS wallet, and store it into the database
  * All optional parameters are overrides for the configuration in the database
  * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
- * If credentials (awsAccessKeyId and awsSecretAccessKey) are explicitly provided, they will be stored separately from the global configuration
+ * Credentials (awsAccessKeyId and awsSecretAccessKey) are explicitly stored separately from the global configuration
  */
-export const createAwsKmsWallet = async ({
+export const createAwsKmsWalletDetails = async ({
   label,
   ...overrides
 }: CreateAwsKmsWalletParams): Promise<string> => {
-  let kmsWalletParams: AwsKmsWalletParams;
+  const { awsKmsArn, params } = await createAwsKmsKey(overrides);
+
+  return importAwsKmsWallet({
+    awsKmsArn,
+    label,
+    crendentials: {
+      accessKeyId: params.awsAccessKeyId,
+      secretAccessKey: params.awsSecretAccessKey,
+    },
+  });
+};
+
+/**
+ * Creates an AWS KMS wallet and returns the AWS KMS ARN
+ * All optional parameters are overrides for the configuration in the database
+ * If any required parameter cannot be resolved from either the configuration or the overrides, an error is thrown.
+ */
+export const createAwsKmsKey = async (
+  partialParams: Partial<AwsKmsWalletParams>,
+) => {
+  let params: AwsKmsWalletParams;
   try {
-    kmsWalletParams = await fetchAwsKmsWalletParams(overrides);
+    params = await fetchAwsKmsWalletParams(partialParams);
   } catch (e) {
     if (e instanceof FetchAwsKmsWalletParamsError) {
       throw new CreateAwsKmsWalletError(e.message);
@@ -33,10 +53,10 @@ export const createAwsKmsWallet = async ({
   }
 
   const client = new KMSClient({
-    region: kmsWalletParams.awsRegion,
+    region: params.awsRegion,
     credentials: {
-      accessKeyId: kmsWalletParams.awsAccessKeyId,
-      secretAccessKey: kmsWalletParams.awsSecretAccessKey,
+      accessKeyId: params.awsAccessKeyId,
+      secretAccessKey: params.awsSecretAccessKey,
     },
   });
 
@@ -54,12 +74,9 @@ export const createAwsKmsWallet = async ({
   }
 
   const awsKmsArn = res.KeyMetadata.Arn;
-  return importAwsKmsWallet({
+
+  return {
     awsKmsArn,
-    label,
-    crendentials: {
-      accessKeyId: kmsWalletParams.awsAccessKeyId,
-      secretAccessKey: kmsWalletParams.awsSecretAccessKey,
-    },
-  });
+    params: params,
+  };
 };

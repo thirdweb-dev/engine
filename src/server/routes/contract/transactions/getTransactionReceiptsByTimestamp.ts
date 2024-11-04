@@ -8,8 +8,8 @@ import { transactionReceiptSchema } from "../../../schemas/transactionReceipt";
 
 const requestQuerySchema = Type.Object({
   contractAddresses: Type.Optional(Type.Array(AddressSchema)),
-  fromBlockTimestamp: Type.Number(),
-  toBlockTimestamp: Type.Optional(Type.Number()),
+  fromBlockTimestamp: Type.Integer({ minimum: 0 }),
+  toBlockTimestamp: Type.Optional(Type.Integer({ minimum: 0 })),
 });
 
 const responseSchema = Type.Object({

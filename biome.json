@@ -26,5 +26,8 @@
         "noStaticOnlyClass": "off"
       }
     }
+  },
+  "files": {
+    "ignore": ["sdk"]
   }
 }

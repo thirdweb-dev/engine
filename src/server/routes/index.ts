@@ -59,7 +59,7 @@ import { pageEventLogs } from "./contract/events/paginateEventLogs";
 import { accountRoutes } from "./contract/extensions/account";
 import { accountFactoryRoutes } from "./contract/extensions/accountFactory";
 import { erc1155Routes } from "./contract/extensions/erc1155";
-import { erc20Routes } from "./contract/extensions/erc20/index";
+import { erc20Routes } from "./contract/extensions/erc20";
 import { erc721Routes } from "./contract/extensions/erc721";
 import { marketplaceV3Routes } from "./contract/extensions/marketplaceV3/index";
 import { getABI } from "./contract/metadata/abi";
@@ -105,7 +105,7 @@ import { retryTransaction } from "./transaction/retry";
 import { retryFailedTransaction } from "./transaction/retry-failed";
 import { checkTxStatus } from "./transaction/status";
 import { syncRetryTransaction } from "./transaction/syncRetry";
-import { createWebhook } from "./webhooks/create";
+import { createWebhookRoute } from "./webhooks/create";
 import { getWebhooksEventTypes } from "./webhooks/events";
 import { getAllWebhooksData } from "./webhooks/getAll";
 import { revokeWebhook } from "./webhooks/revoke";
@@ -155,7 +155,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
 
   // Webhooks
   await fastify.register(getAllWebhooksData);
-  await fastify.register(createWebhook);
+  await fastify.register(createWebhookRoute);
   await fastify.register(revokeWebhook);
   await fastify.register(getWebhooksEventTypes);
 
