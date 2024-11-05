@@ -12,9 +12,9 @@ import {
   type TransactionSchema,
 } from "../../server/schemas/transaction";
 import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
+import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { sendWebhookRequest, type WebhookResponse } from "../../utils/webhook";
-import { logWorkerExceptions } from "../queues/queues";
 import { SendWebhookQueue, type WebhookJob } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
@@ -68,19 +68,25 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     }
   }
 
+  // Throw on 5xx so it remains in the queue to retry later.
   if (resp && resp.status >= 500) {
-    // Throw on 5xx so it remains in the queue to retry later.
-    throw new Error(
+    const error = new Error(
       `Received status ${resp.status} from webhook ${webhook.url}.`,
     );
+    job.log(error.message);
+    logger({
+      level: "debug",
+      message: error.message,
+      service: "worker",
+    });
+    throw error;
   }
 };
 
 // Must be explicitly called for the worker to run on this host.
 export const initSendWebhookWorker = () => {
-  const _worker = new Worker(SendWebhookQueue.q.name, handler, {
+  new Worker(SendWebhookQueue.q.name, handler, {
     concurrency: 10,
     connection: redis,
   });
-  logWorkerExceptions(_worker);
 };

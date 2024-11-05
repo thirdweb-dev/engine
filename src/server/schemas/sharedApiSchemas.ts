@@ -28,7 +28,8 @@ export const contractParamSchema = Type.Object({
 export const requestQuerystringSchema = Type.Object({
   simulateTx: Type.Optional(
     Type.Boolean({
-      description: "Simulate the transaction without executing it.",
+      description:
+        "Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.",
       default: false,
     }),
   ),
