@@ -11,7 +11,7 @@ export const isContractSubscribed = async ({
 }: GetContractSubscriptionsParams) => {
   const contractSubscription = await prisma.contractSubscriptions.findFirst({
     where: {
-      chainId,
+      chainId: chainId.toString(),
       contractAddress,
       deletedAt: null,
     },
@@ -25,7 +25,7 @@ export const getContractSubscriptionsByChainId = async (
 ) => {
   return await prisma.contractSubscriptions.findMany({
     where: {
-      chainId,
+      chainId: chainId.toString(),
       deletedAt: null,
     },
     include: {
@@ -56,5 +56,5 @@ export const getContractSubscriptionsUniqueChainIds = async () => {
     },
   });
 
-  return uniqueChainIds.map((contract) => contract.chainId);
+  return uniqueChainIds.map((contract) => Number.parseInt(contract.chainId));
 };

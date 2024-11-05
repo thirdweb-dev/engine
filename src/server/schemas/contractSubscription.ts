@@ -22,7 +22,7 @@ export const toContractSubscriptionSchema = (
   contractSubscription: ContractSubscriptions & { webhook: Webhooks | null },
 ): Static<typeof contractSubscriptionSchema> => ({
   id: contractSubscription.id,
-  chainId: contractSubscription.chainId,
+  chainId: Number.parseInt(contractSubscription.chainId),
   contractAddress: contractSubscription.contractAddress,
   webhook: contractSubscription.webhook
     ? toWebhookSchema(contractSubscription.webhook)
