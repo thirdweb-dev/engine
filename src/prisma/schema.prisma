@@ -202,7 +202,7 @@ model Relayers {
 
 model ContractSubscriptions {
   id                         String   @id @default(uuid()) @map("id")
-  chainId                    Int
+  chainId                    String
   contractAddress            String
   webhookId                  Int?
   processEventLogs           Boolean  @default(true)

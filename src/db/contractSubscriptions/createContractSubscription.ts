@@ -21,7 +21,7 @@ export const createContractSubscription = async ({
 }: CreateContractSubscriptionParams) => {
   return prisma.contractSubscriptions.create({
     data: {
-      chainId,
+      chainId: chainId.toString(),
       contractAddress,
       webhookId,
       processEventLogs,
