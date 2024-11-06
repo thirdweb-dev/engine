@@ -6,8 +6,10 @@ import {
   getContract,
   readContract,
   toSerializableTransaction,
+  toTokens,
   type Hex,
 } from "thirdweb";
+import { getChainMetadata } from "thirdweb/chains";
 import { stringify } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import {
@@ -32,10 +34,10 @@ import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import {
+  isInsufficientFundsError,
   isNonceAlreadyUsedError,
   isReplacementGasFeeTooLow,
   prettifyError,
-  prettifyTransactionError,
 } from "../../utils/error";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
@@ -380,6 +382,18 @@ const _sendTransaction = async (
       job.log(`Recycling nonce: ${nonce}`);
       await recycleNonce(chainId, from, nonce);
     }
+
+    // Prettify "out of funds" error.
+    if (isInsufficientFundsError(error)) {
+      const gasPrice =
+        populatedTransaction.gasPrice ?? populatedTransaction.maxFeePerGas;
+      if (gasPrice) {
+        const chainMetadata = await getChainMetadata(chain);
+        const minGasTokens = toTokens(populatedTransaction.gas * gasPrice, 18);
+        throw `Insufficient funds in ${account.address} on ${chainMetadata.name}. Transaction requires ${minGasTokens} ${chainMetadata.nativeCurrency.symbol}.`;
+      }
+    }
+
     throw error;
   }
 
@@ -572,7 +586,7 @@ export const initSendTransactionWorker = () => {
         const erroredTransaction: ErroredTransaction = {
           ...transaction,
           status: "errored",
-          errorMessage: await prettifyTransactionError(transaction, error),
+          errorMessage: error.message,
         };
         job.log(`Transaction errored: ${stringify(erroredTransaction)}`);
 
