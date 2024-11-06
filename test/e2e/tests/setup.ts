@@ -1,4 +1,4 @@
-import { sleep } from "bun";
+import { env, sleep } from "bun";
 import { afterAll, beforeAll } from "bun:test";
 import {
   createChain,
@@ -6,13 +6,14 @@ import {
   setupEngine,
 } from "../utils/engine";
 
-import type { Address } from "thirdweb";
+import { createThirdwebClient, type Address } from "thirdweb";
 import { CONFIG } from "../config";
 import { startAnvil, stopAnvil } from "../utils/anvil";
 
 type SetupResult = {
   engine: ReturnType<typeof setupEngine>;
   backendWallet: Address;
+  thirdwebClient: ReturnType<typeof createThirdwebClient>;
 };
 
 let cachedSetup: SetupResult | null = null;
@@ -26,6 +27,13 @@ export const setup = async (): Promise<SetupResult> => {
   const backendWallet = await getEngineBackendWallet(engine);
   await engine.backendWallet.resetNonces();
 
+  if (!env.THIRDWEB_API_SECRET_KEY)
+    throw new Error("THIRDWEB_API_SECRET_KEY is not set");
+
+  const thirdwebClient = createThirdwebClient({
+    secretKey: env.THIRDWEB_API_SECRET_KEY,
+  });
+
   if (CONFIG.USE_LOCAL_CHAIN) {
     startAnvil();
 
@@ -33,7 +41,7 @@ export const setup = async (): Promise<SetupResult> => {
     await sleep(1000); // wait for chain to start producing blocks
   }
 
-  cachedSetup = { engine, backendWallet };
+  cachedSetup = { engine, backendWallet, thirdwebClient };
   return cachedSetup;
 };
 

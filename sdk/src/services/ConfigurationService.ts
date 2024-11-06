@@ -17,7 +17,7 @@ export class ConfigurationService {
      */
     public getWalletsConfiguration(): CancelablePromise<{
         result: {
-            type: ('local' | 'aws-kms' | 'gcp-kms');
+            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
             awsAccessKeyId: (string | null);
             awsRegion: (string | null);
             gcpApplicationProjectId: (string | null);
@@ -58,7 +58,7 @@ export class ConfigurationService {
         }),
     ): CancelablePromise<{
         result: {
-            type: ('local' | 'aws-kms' | 'gcp-kms');
+            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
             awsAccessKeyId: (string | null);
             awsRegion: (string | null);
             gcpApplicationProjectId: (string | null);

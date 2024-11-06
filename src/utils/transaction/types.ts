@@ -43,6 +43,7 @@ export type InsertedTransaction = {
   accountAddress?: Address;
   accountSalt?: string;
   accountFactoryAddress?: Address;
+  entrypointAddress?: Address;
   target?: Address;
   sender?: Address;
 };
