@@ -3,6 +3,7 @@ import type { Static } from "@sinclair/typebox";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import { ethers } from "ethers";
 import type { Chain } from "thirdweb";
+import { z } from "zod";
 import type {
   AwsWalletConfiguration,
   GcpWalletConfiguration,
@@ -17,6 +18,17 @@ import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./updateConfiguration";
 
+const circleCredentialSchema = z.object({
+  apiKey: z.string(),
+  entitySecret: z.string(),
+});
+
+export type CircleCredential = z.infer<typeof circleCredentialSchema>;
+
+export const walletProviderCredentialsSchema = z.object({
+  cirlce: circleCredentialSchema.optional(),
+});
+
 const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // We destructure the config to omit wallet related fields to prevent direct access
   const {
@@ -29,6 +41,7 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
     gcpApplicationCredentialEmail,
     gcpApplicationCredentialPrivateKey,
     contractSubscriptionsRetryDelaySeconds,
+    walletProviderCredentials,
     ...restConfig
   } = config;
 
@@ -162,6 +175,22 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
     legacyWalletType_removeInNextBreakingChange = WalletType.gcpKms;
   }
 
+  const otherCredentials = walletProviderCredentialsSchema.parse(
+    walletProviderCredentials,
+  );
+
+  let circleCredentials: CircleCredential | null = null;
+
+  if (otherCredentials.cirlce) {
+    circleCredentials = {
+      apiKey: otherCredentials.cirlce.apiKey,
+      entitySecret: decrypt(
+        otherCredentials.cirlce.entitySecret,
+        env.ENCRYPTION_PASSWORD,
+      ),
+    };
+  }
+
   return {
     ...restConfig,
     contractSubscriptionsRequeryDelaySeconds:
@@ -170,6 +199,7 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
     walletConfiguration: {
       aws: awsWalletConfiguration,
       gcp: gcpWalletConfiguration,
+      circle: circleCredentials,
       legacyWalletType_removeInNextBreakingChange,
     },
   };
