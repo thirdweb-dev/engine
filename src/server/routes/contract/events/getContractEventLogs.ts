@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContractEventLogsByBlockAndTopics } from "../../../../db/contractEventLogs/getContractEventLogs";
 import { isContractSubscribed } from "../../../../db/contractSubscriptions/getContractSubscriptions";
@@ -152,7 +152,7 @@ export async function getContractEventLogs(fastify: FastifyInstance) {
         });
 
         return {
-          chainId: log.chainId,
+          chainId: Number.parseInt(log.chainId),
           contractAddress: log.contractAddress,
           blockNumber: log.blockNumber,
           transactionHash: log.transactionHash,

@@ -11,7 +11,7 @@ export const deleteContractEventLogs = async ({
 }: DeleteContractEventLogsParams) => {
   return prisma.contractEventLogs.deleteMany({
     where: {
-      chainId,
+      chainId: chainId.toString(),
       contractAddress,
     },
   });

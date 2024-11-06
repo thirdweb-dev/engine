@@ -18,7 +18,7 @@ export const getContractEventLogsByBlockAndTopics = async ({
   topics,
 }: GetContractLogsParams) => {
   const whereClause = {
-    chainId,
+    chainId: chainId.toString(),
     contractAddress,
     blockNumber: {
       gte: fromBlock,
@@ -118,7 +118,9 @@ export const getEventLogsByCursor = async ({
   let cursorObj: z.infer<typeof CursorSchema> | null = null;
   if (cursor) {
     const decodedCursor = base64.decode(cursor);
-    const parsedCursor = decodedCursor.split("-").map((val) => parseInt(val));
+    const parsedCursor = decodedCursor
+      .split("-")
+      .map((val) => Number.parseInt(val));
     const [createdAt, chainId, blockNumber, transactionIndex, logIndex] =
       parsedCursor;
     const validationResult = CursorSchema.safeParse({
@@ -148,22 +150,22 @@ export const getEventLogsByCursor = async ({
                 { createdAt: { gt: cursorObj.createdAt } },
                 {
                   createdAt: { equals: cursorObj.createdAt },
-                  chainId: { gt: cursorObj.chainId },
+                  chainId: { equals: cursorObj.chainId.toString() },
                 },
                 {
                   createdAt: { equals: cursorObj.createdAt },
-                  chainId: { equals: cursorObj.chainId },
+                  chainId: { equals: cursorObj.chainId.toString() },
                   blockNumber: { gt: cursorObj.blockNumber },
                 },
                 {
                   createdAt: { equals: cursorObj.createdAt },
-                  chainId: { equals: cursorObj.chainId },
+                  chainId: { equals: cursorObj.chainId.toString() },
                   blockNumber: { equals: cursorObj.blockNumber },
                   transactionIndex: { gt: cursorObj.transactionIndex },
                 },
                 {
                   createdAt: { equals: cursorObj.createdAt },
-                  chainId: { equals: cursorObj.chainId },
+                  chainId: { equals: cursorObj.chainId.toString() },
                   blockNumber: { equals: cursorObj.blockNumber },
                   transactionIndex: { equals: cursorObj.transactionIndex },
                   logIndex: { gt: cursorObj.logIndex },
@@ -234,7 +236,7 @@ export const getContractEventLogsIndexedBlockRange = async ({
 }: GetContractEventLogsIndexedBlockRangeParams) => {
   const result = await prisma.contractEventLogs.aggregate({
     where: {
-      chainId,
+      chainId: chainId.toString(),
       contractAddress,
     },
     _min: {

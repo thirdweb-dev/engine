@@ -16,7 +16,7 @@ export const getContractTransactionReceiptsByBlock = async ({
   toBlock,
 }: GetContractTransactionReceiptsParams) => {
   const whereClause = {
-    chainId,
+    chainId: chainId.toString(),
     contractAddress,
     blockNumber: {
       gte: fromBlock,
@@ -90,7 +90,9 @@ export const getTransactionReceiptsByCursor = async ({
   let cursorObj: z.infer<typeof CursorSchema> | null = null;
   if (cursor) {
     const decodedCursor = base64.decode(cursor);
-    const parsedCursor = decodedCursor.split("-").map((val) => parseInt(val));
+    const parsedCursor = decodedCursor
+      .split("-")
+      .map((val) => Number.parseInt(val));
     const [createdAt, chainId, blockNumber, transactionIndex] = parsedCursor;
     const validationResult = CursorSchema.safeParse({
       createdAt,
@@ -118,16 +120,16 @@ export const getTransactionReceiptsByCursor = async ({
                 { createdAt: { gt: cursorObj.createdAt } },
                 {
                   createdAt: { equals: cursorObj.createdAt },
-                  chainId: { gt: cursorObj.chainId },
+                  chainId: { equals: cursorObj.chainId.toString() },
                 },
                 {
                   createdAt: { equals: cursorObj.createdAt },
-                  chainId: { equals: cursorObj.chainId },
+                  chainId: { equals: cursorObj.chainId.toString() },
                   blockNumber: { gt: cursorObj.blockNumber },
                 },
                 {
                   createdAt: { equals: cursorObj.createdAt },
-                  chainId: { equals: cursorObj.chainId },
+                  chainId: { equals: cursorObj.chainId.toString() },
                   blockNumber: { gt: cursorObj.blockNumber },
                   transactionIndex: { gt: cursorObj.transactionIndex },
                 },

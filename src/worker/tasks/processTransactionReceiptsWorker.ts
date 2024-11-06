@@ -178,7 +178,7 @@ const getFormattedTransactionReceipts = async ({
       });
 
       receipts.push({
-        chainId,
+        chainId: chainId.toString(),
         blockNumber: Number(receipt.blockNumber),
         contractAddress: toAddress,
         contractId: getContractId(chainId, toAddress),

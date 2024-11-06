@@ -173,7 +173,7 @@ const getLogs = async ({
   return await Promise.all(
     allLogs.map(
       async (log): Promise<Prisma.ContractEventLogsCreateInput> => ({
-        chainId,
+        chainId: chainId.toString(),
         blockNumber: Number(log.blockNumber),
         contractAddress: normalizeAddress(log.address),
         transactionHash: log.transactionHash,

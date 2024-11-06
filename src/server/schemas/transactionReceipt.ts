@@ -24,7 +24,7 @@ export const transactionReceiptSchema = Type.Object({
 export const toTransactionReceiptSchema = (
   transactionReceipt: ContractTransactionReceipts,
 ): Static<typeof transactionReceiptSchema> => ({
-  chainId: transactionReceipt.chainId,
+  chainId: Number.parseInt(transactionReceipt.chainId),
   blockNumber: transactionReceipt.blockNumber,
   contractAddress: transactionReceipt.contractAddress,
   transactionHash: transactionReceipt.transactionHash,
