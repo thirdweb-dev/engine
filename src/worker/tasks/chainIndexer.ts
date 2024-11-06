@@ -28,7 +28,13 @@ export const handleContractSubscriptions = async (chainId: number) => {
 
   await prisma.$transaction(
     async (pgtx) => {
-      const fromBlock = await getBlockForIndexing({ chainId, pgtx });
+      let fromBlock: number;
+      try {
+        fromBlock = await getBlockForIndexing({ chainId, pgtx });
+      } catch {
+        // row is locked, return
+        return;
+      }
 
       // Cap the range to avoid hitting rate limits or block range limits from RPC.
       const latestBlockNumber = await eth_blockNumber(rpcRequest);
