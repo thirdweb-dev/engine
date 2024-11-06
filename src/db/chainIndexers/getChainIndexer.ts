@@ -43,7 +43,7 @@ export const getBlockForIndexing = async ({
     FROM
       "chain_indexers"
     WHERE
-      "chainId"=${Prisma.sql`${chainId}`}
+      "chainId"=${Prisma.sql`${chainId.toString()}`}
     FOR UPDATE NOWAIT
   `;
   return lastIndexedBlock[0].lastIndexedBlock;
