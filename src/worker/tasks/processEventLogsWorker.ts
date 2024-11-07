@@ -1,20 +1,20 @@
 import type { Prisma, Webhooks } from "@prisma/client";
-import type { AbiEvent } from "abitype";
-import { Worker, type Job, type Processor } from "bullmq";
+import { type Job, type Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
-  eth_getBlockByHash,
-  getContract,
-  getContractEvents,
-  getRpcClient,
-  prepareEvent,
   type Address,
   type Chain,
   type Hex,
   type PreparedEvent,
   type ThirdwebContract,
+  eth_getBlockByHash,
+  getContract,
+  getContractEvents,
+  getRpcClient,
+  prepareEvent,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
+import type { AbiEvent } from "thirdweb/utils";
 import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { WebhooksEventTypes } from "../../schema/webhooks";

@@ -8,22 +8,16 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "noImplicitAny": false,
+    "baseUrl": ".",
     "skipLibCheck": true,
-    "allowJs": true,
-    "resolveJsonModule": true
+    "allowJs": true
   },
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": [
-    "src/server/**/*.ts",
-    "src/server/**/*.d.ts",
-    "src/server/**/*.js",
-    "src/utils/env.ts",
-    "src/**/*.ts",
-    "src/**/*.js",
-    "src/**/*.d.ts"
-  ],
-  "exclude": ["node_modules", "src/tests/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.js"],
+  "exclude": ["node_modules"],
+  "types": ["node"]
 }

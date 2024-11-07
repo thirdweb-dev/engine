@@ -1,11 +1,12 @@
-import { sha256HexSync } from "@thirdweb-dev/crypto";
+import { createHash } from "node:crypto";
 import { createThirdwebClient } from "thirdweb";
 import type { TransactionReceipt } from "thirdweb/transaction";
 import { env } from "./env";
 
-export const thirdwebClientId = sha256HexSync(
-  env.THIRDWEB_API_SECRET_KEY,
-).slice(0, 32);
+export const thirdwebClientId = createHash("sha256")
+  .update(env.THIRDWEB_API_SECRET_KEY)
+  .digest("hex")
+  .slice(0, 32);
 
 export const thirdwebClient = createThirdwebClient({
   secretKey: env.THIRDWEB_API_SECRET_KEY,

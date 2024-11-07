@@ -1,6 +1,6 @@
 import type { TypedDataSigner } from "@ethersproject/abstract-signer";
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getWallet } from "../../../utils/cache/getWallet";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
