@@ -37,7 +37,6 @@ import {
   isInsufficientFundsError,
   isNonceAlreadyUsedError,
   isReplacementGasFeeTooLow,
-  prettifyError,
   wrapError,
 } from "../../utils/error";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
@@ -378,16 +377,17 @@ const _sendTransaction = async (
 
     // Do not retry errors that are expected to be rejected by RPC again.
     if (isInsufficientFundsError(error)) {
+      const { name, nativeCurrency } = await getChainMetadata(chain);
+      const { gas, value = 0n } = populatedTransaction;
       const gasPrice =
         populatedTransaction.gasPrice ?? populatedTransaction.maxFeePerGas;
 
-      let errorMessage = prettifyError(error);
-      if (gasPrice) {
-        const { gas, value = 0n } = populatedTransaction;
-        const { name, nativeCurrency } = await getChainMetadata(chain);
-        const minGasTokens = toTokens(gas * gasPrice + value, 18);
-        errorMessage = `Insufficient funds in ${account.address} on ${name}. Transaction requires > ${minGasTokens} ${nativeCurrency.symbol}.`;
-      }
+      const minGasTokens = gasPrice
+        ? toTokens(gas * gasPrice + value, 18)
+        : null;
+      const errorMessage = minGasTokens
+        ? `Insufficient funds in ${account.address} on ${name}. Transaction requires > ${minGasTokens} ${nativeCurrency.symbol}.`
+        : `Insufficient funds in ${account.address} on ${name}. Transaction requires more ${nativeCurrency.symbol}.`;
       return {
         ...queuedTransaction,
         status: "errored",
