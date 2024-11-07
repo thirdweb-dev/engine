@@ -57,7 +57,7 @@ services:
         limits:
           cpus: "1"
           memory: 1024M
-    # entrypoint: "yarn start:dev"
+    # entrypoint: "pnpm start:dev"
     # volumes:
     # - ./:/app
     # - node_modules:/app/node_modules

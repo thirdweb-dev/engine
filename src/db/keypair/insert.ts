@@ -1,6 +1,6 @@
-import { Keypairs } from "@prisma/client";
-import { createHash } from "crypto";
-import { KeypairAlgorithm } from "../../server/schemas/keypairs";
+import type { Keypairs } from "@prisma/client";
+import { createHash } from "node:crypto";
+import type { KeypairAlgorithm } from "../../server/schemas/keypairs";
 import { prisma } from "../client";
 
 export const insertKeypair = async ({

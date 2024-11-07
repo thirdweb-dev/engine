@@ -1,5 +1,5 @@
-import { Keypairs } from "@prisma/client";
-import { createHash } from "crypto";
+import type { Keypairs } from "@prisma/client";
+import { createHash } from "node:crypto";
 import { prisma } from "../client";
 
 export const getKeypairByHash = async (

@@ -40,10 +40,10 @@ COPY . .
 # Install dependencies for both development and production (May need devDependencies to build)
 # Build the project
 # Prune dev dependencies from the packages
-RUN yarn install --frozen-lockfile --production=false --network-timeout 1000000 && \
-    yarn build && \
-    yarn copy-files && \
-    yarn install --frozen-lockfile --production=true --network-timeout 1000000
+RUN pnpm install --frozen-lockfile --production=false --network-timeout 1000000 && \
+    pnpm build && \
+    pnpm copy-files && \
+    pnpm install --frozen-lockfile --production=true --network-timeout 1000000
 
 ##############################
 ##############################
@@ -68,4 +68,4 @@ COPY --from=build /app/dist ./dist
 # Replace the schema path in the package.json file
 RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/prisma/schema.prisma"_g' package.json
 
-ENTRYPOINT [ "yarn", "start"]
+ENTRYPOINT [ "pnpm", "start"]

@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { getAddress, type Address } from "thirdweb";
 import { sepolia } from "thirdweb/chains";
 import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";

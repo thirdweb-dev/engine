@@ -10,7 +10,7 @@ Note: make sure `engine` is running, and `anvil` is installed if running the tes
 The test suite depends on a local SDK to run tests. To run the tests, you need to generate the SDK. To do this, run the following command from the root of the repository:
 
 ```bash
-yarn generate:sdk
+pnpm generate:sdk
 ```
 Run all subsequent commands from the `test/e2e` directory.
 

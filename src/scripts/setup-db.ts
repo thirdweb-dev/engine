@@ -18,16 +18,16 @@ const main = async () => {
       : `./src/prisma/schema.prisma`;
 
   if (hasWalletsTable) {
-    execSync(`yarn prisma migrate reset --force --schema ${schema}`, {
+    execSync(`pnpm prisma migrate reset --force --schema ${schema}`, {
       stdio: "inherit",
     });
   } else {
-    execSync(`yarn prisma migrate deploy --schema ${schema}`, {
+    execSync(`pnpm prisma migrate deploy --schema ${schema}`, {
       stdio: "inherit",
     });
   }
 
-  execSync(`yarn prisma generate --schema ${schema}`, { stdio: "inherit" });
+  execSync(`pnpm prisma generate --schema ${schema}`, { stdio: "inherit" });
 };
 
 main();

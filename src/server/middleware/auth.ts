@@ -5,10 +5,10 @@ import {
   type ThirdwebAuthUser,
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
-import { createHash } from "crypto";
 import type { FastifyInstance } from "fastify";
 import type { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken, { type JwtPayload } from "jsonwebtoken";
+import { createHash } from "node:crypto";
 import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../db/permissions/getPermissions";
 import { createToken } from "../../db/tokens/createToken";

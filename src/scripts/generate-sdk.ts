@@ -120,7 +120,7 @@ async function main(): Promise<void> {
     );
 
     execSync(
-      "yarn openapi --input ./openapi.json --output ./sdk/src --name Engine",
+      "pnpm openapi --input ./openapi.json --output ./sdk/src --name Engine",
     );
 
     const engineCode: string = fs

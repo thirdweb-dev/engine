@@ -17,7 +17,7 @@ For OSS contributions, we use a [Forking Workflow](https://www.atlassian.com/git
 1. Install the dependencies:
 
    ```bash
-   yarn install
+   pnpm install
    ```
 
 1. Make changes on your branch.
@@ -28,7 +28,7 @@ For OSS contributions, we use a [Forking Workflow](https://www.atlassian.com/git
 Please run Engine locally to test your changes.
 
 ```bash
-yarn dev
+pnpm dev
 ```
 
 You should be able to make requests to Engine locally and import it to the [thirdweb dashboard](https://thirdweb.com/dashboard/engine).
