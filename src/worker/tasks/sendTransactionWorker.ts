@@ -246,11 +246,11 @@ const _sendUserOp = async (
       // we don't want this behavior in the engine context
       waitForDeployment: false,
     })) as UserOperation; // TODO support entrypoint v0.7 accounts
-  } catch (e) {
+  } catch (error) {
     return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: wrapError(e, "Bundler").message,
+      errorMessage: wrapError(error, "Bundler").message,
     } satisfies ErroredTransaction;
   }
 
@@ -364,10 +364,10 @@ const _sendTransaction = async (
     const sendTransactionResult =
       await account.sendTransaction(populatedTransaction);
     transactionHash = sendTransactionResult.transactionHash;
-  } catch (e: unknown) {
+  } catch (error: unknown) {
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
     // correct the DB nonce.
-    if (isNonceAlreadyUsedError(e) || isReplacementGasFeeTooLow(e)) {
+    if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
       const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
       job.log(`Re-synced nonce: ${result}`);
     } else {
@@ -377,11 +377,11 @@ const _sendTransaction = async (
     }
 
     // Do not retry errors that are expected to be rejected by RPC again.
-    if (isInsufficientFundsError(e)) {
+    if (isInsufficientFundsError(error)) {
       const gasPrice =
         populatedTransaction.gasPrice ?? populatedTransaction.maxFeePerGas;
 
-      let errorMessage = prettifyError(e);
+      let errorMessage = prettifyError(error);
       if (gasPrice) {
         const { gas, value = 0n } = populatedTransaction;
         const { name, nativeCurrency } = await getChainMetadata(chain);
@@ -395,7 +395,7 @@ const _sendTransaction = async (
       } satisfies ErroredTransaction;
     }
 
-    throw wrapError(e, "RPC");
+    throw wrapError(error, "RPC");
   }
 
   await addSentNonce(chainId, from, nonce);
