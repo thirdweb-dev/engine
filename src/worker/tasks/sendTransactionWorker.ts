@@ -246,15 +246,11 @@ const _sendUserOp = async (
       waitForDeployment: false,
     })) as UserOperation; // TODO support entrypoint v0.7 accounts
   } catch (e) {
-    const erroredTransaction: ErroredTransaction = {
+    return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: prettifyError(e),
-    };
-    job.log(
-      `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
-    );
-    return erroredTransaction;
+      errorMessage: prettifyError(e, "Bundler"),
+    } satisfies ErroredTransaction;
   }
 
   job.log(`Populated userOp: ${stringify(signedUserOp)}`);
@@ -327,15 +323,11 @@ const _sendTransaction = async (
       },
     });
   } catch (e: unknown) {
-    const erroredTransaction: ErroredTransaction = {
+    return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: prettifyError(e),
-    };
-    job.log(
-      `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
-    );
-    return erroredTransaction;
+      errorMessage: prettifyError(e, "RPC"),
+    } satisfies ErroredTransaction;
   }
 
   // Handle if `maxFeePerGas` is overridden.
@@ -371,10 +363,10 @@ const _sendTransaction = async (
     const sendTransactionResult =
       await account.sendTransaction(populatedTransaction);
     transactionHash = sendTransactionResult.transactionHash;
-  } catch (error: unknown) {
+  } catch (e: unknown) {
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
     // correct the DB nonce.
-    if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
+    if (isNonceAlreadyUsedError(e) || isReplacementGasFeeTooLow(e)) {
       const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
       job.log(`Re-synced nonce: ${result}`);
     } else {
@@ -383,18 +375,26 @@ const _sendTransaction = async (
       await recycleNonce(chainId, from, nonce);
     }
 
-    // Prettify "out of funds" error.
-    if (isInsufficientFundsError(error)) {
+    // Do not retry errors that are expected to be rejected by RPC again.
+    if (isInsufficientFundsError(e)) {
       const gasPrice =
         populatedTransaction.gasPrice ?? populatedTransaction.maxFeePerGas;
+
+      let errorMessage = prettifyError(e, "RPC");
       if (gasPrice) {
-        const chainMetadata = await getChainMetadata(chain);
-        const minGasTokens = toTokens(populatedTransaction.gas * gasPrice, 18);
-        throw `Insufficient funds in ${account.address} on ${chainMetadata.name}. Transaction requires ${minGasTokens} ${chainMetadata.nativeCurrency.symbol}.`;
+        const { gas, value = 0n } = populatedTransaction;
+        const { name, nativeCurrency } = await getChainMetadata(chain);
+        const minGasTokens = toTokens(gas * gasPrice + value, 18);
+        errorMessage = `Insufficient funds in ${account.address} on ${name}. Transaction requires > ${minGasTokens} ${nativeCurrency.symbol}.`;
       }
+      return {
+        ...queuedTransaction,
+        status: "errored",
+        errorMessage,
+      } satisfies ErroredTransaction;
     }
 
-    throw error;
+    throw prettifyError(e, "RPC");
   }
 
   await addSentNonce(chainId, from, nonce);
