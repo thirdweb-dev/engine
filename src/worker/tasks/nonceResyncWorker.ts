@@ -8,6 +8,7 @@ import {
 } from "../../db/wallets/walletNonce";
 import { getConfig } from "../../utils/cache/getConfig";
 import { getChain } from "../../utils/chain";
+import { prettifyError } from "../../utils/error";
 import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
@@ -43,75 +44,46 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   job.log(`Found ${sentNoncesKeys.length} nonce-sent* keys`);
 
   for (const sentNonceKey of sentNoncesKeys) {
-    const { chainId, walletAddress } = splitSentNoncesKey(sentNonceKey);
+    try {
+      const { chainId, walletAddress } = splitSentNoncesKey(sentNonceKey);
 
-    const rpcRequest = getRpcClient({
-      client: thirdwebClient,
-      chain: await getChain(chainId),
-    });
+      const rpcRequest = getRpcClient({
+        client: thirdwebClient,
+        chain: await getChain(chainId),
+      });
+      const lastUsedNonceOnchain =
+        (await eth_getTransactionCount(rpcRequest, {
+          address: walletAddress,
+          blockTag: "latest",
+        })) - 1;
+      const lastUsedNonceDb = await inspectNonce(chainId, walletAddress);
 
-    const [transactionCount, lastUsedNonceDb] = await Promise.all([
-      eth_getTransactionCount(rpcRequest, {
-        address: walletAddress,
-        blockTag: "latest",
-      }),
-      inspectNonce(chainId, walletAddress),
-    ]);
-
-    if (Number.isNaN(transactionCount)) {
       job.log(
-        `Received invalid onchain transaction count for ${walletAddress}: ${transactionCount}`,
+        `wallet=${chainId}:${walletAddress} lastUsedNonceOnchain=${lastUsedNonceOnchain} lastUsedNonceDb=${lastUsedNonceDb}`,
       );
       logger({
-        level: "error",
-        message: `[nonceResyncWorker] Received invalid onchain transaction count for ${walletAddress}: ${transactionCount}`,
-        service: "worker",
-      });
-      continue;
-    }
-
-    const lastUsedNonceOnchain = transactionCount - 1;
-
-    job.log(
-      `${walletAddress} last used onchain nonce: ${lastUsedNonceOnchain} and last used db nonce: ${lastUsedNonceDb}`,
-    );
-    logger({
-      level: "debug",
-      message: `[nonceResyncWorker] last used onchain nonce: ${transactionCount} and last used db nonce: ${lastUsedNonceDb}`,
-      service: "worker",
-    });
-
-    // If the last used nonce onchain is the same as or ahead of the last used nonce in the db,
-    // There is no need to resync the nonce.
-    if (lastUsedNonceOnchain >= lastUsedNonceDb) {
-      job.log(`No need to resync nonce for ${walletAddress}`);
-      logger({
         level: "debug",
-        message: `[nonceResyncWorker] No need to resync nonce for ${walletAddress}`,
-        service: "worker",
-      });
-      continue;
-    }
-
-    //  for each nonce between last used db nonce and last used onchain nonce
-    //    check if nonce exists in nonce-sent set
-    //    if it does not exist, recycle it
-    for (
-      let _nonce = lastUsedNonceOnchain + 1;
-      _nonce < lastUsedNonceDb;
-      _nonce++
-    ) {
-      const exists = await isSentNonce(chainId, walletAddress, _nonce);
-      logger({
-        level: "debug",
-        message: `[nonceResyncWorker] nonce ${_nonce} exists in nonce-sent set: ${exists}`,
+        message: `[nonceResyncWorker] wallet=${chainId}:${walletAddress} lastUsedNonceOnchain=${lastUsedNonceOnchain} lastUsedNonceDb=${lastUsedNonceDb}`,
         service: "worker",
       });
 
-      // If nonce does not exist in nonce-sent set, recycle it
-      if (!exists) {
-        await recycleNonce(chainId, walletAddress, _nonce);
+      // Recycle all nonces between (onchain nonce, db nonce] if they aren't in-flight ("sent nonce").
+      for (
+        let nonce = lastUsedNonceOnchain + 1;
+        nonce <= lastUsedNonceDb;
+        nonce++
+      ) {
+        const exists = await isSentNonce(chainId, walletAddress, nonce);
+        if (!exists) {
+          await recycleNonce(chainId, walletAddress, nonce);
+        }
       }
+    } catch (error) {
+      logger({
+        level: "error",
+        message: `[nonceResyncWorker] ${prettifyError(error)}`,
+        service: "worker",
+      });
     }
   }
 };
