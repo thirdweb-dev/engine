@@ -18,7 +18,7 @@ const requestQuerySchema = Type.Object({
 
 // OUTPUT
 const responseSchema = Type.Object({
-  result: Type.Number({
+  result: Type.Integer({
     description:
       "Returns a number representing the basis points of the bid buffer.",
   }),

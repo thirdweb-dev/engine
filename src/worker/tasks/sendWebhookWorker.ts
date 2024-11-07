@@ -2,16 +2,19 @@ import type { Static } from "@sinclair/typebox";
 import { Worker, type Job, type Processor } from "bullmq";
 import superjson from "superjson";
 import { TransactionDB } from "../../db/transactions/db";
-import { WebhooksEventTypes } from "../../schema/webhooks";
+import {
+  WebhooksEventTypes,
+  type BackendWalletBalanceWebhookParams,
+} from "../../schema/webhooks";
 import { toEventLogSchema } from "../../server/schemas/eventLog";
 import {
   toTransactionSchema,
   type TransactionSchema,
 } from "../../server/schemas/transaction";
 import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
+import { logger } from "../../utils/logger";
 import { redis } from "../../utils/redis/redis";
 import { sendWebhookRequest, type WebhookResponse } from "../../utils/webhook";
-import { logWorkerExceptions } from "../queues/queues";
 import { SendWebhookQueue, type WebhookJob } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
@@ -57,22 +60,33 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
       resp = await sendWebhookRequest(webhook, webhookBody);
       break;
     }
+
+    case WebhooksEventTypes.BACKEND_WALLET_BALANCE: {
+      const webhookBody: BackendWalletBalanceWebhookParams = data.body;
+      resp = await sendWebhookRequest(webhook, webhookBody);
+      break;
+    }
   }
 
-  const shouldRetry = resp && resp.status >= 500 && resp.status <= 599;
-  if (shouldRetry) {
-    // Throw on 5xx so it remains in the queue to retry later.
-    throw new Error(
+  // Throw on 5xx so it remains in the queue to retry later.
+  if (resp && resp.status >= 500) {
+    const error = new Error(
       `Received status ${resp.status} from webhook ${webhook.url}.`,
     );
+    job.log(error.message);
+    logger({
+      level: "debug",
+      message: error.message,
+      service: "worker",
+    });
+    throw error;
   }
 };
 
 // Must be explicitly called for the worker to run on this host.
 export const initSendWebhookWorker = () => {
-  const _worker = new Worker(SendWebhookQueue.q.name, handler, {
+  new Worker(SendWebhookQueue.q.name, handler, {
     concurrency: 10,
     connection: redis,
   });
-  logWorkerExceptions(_worker);
 };

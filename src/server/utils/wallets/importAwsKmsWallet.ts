@@ -15,7 +15,6 @@ interface ImportAwsKmsWalletParams {
 
 /**
  * Import an AWS KMS wallet, and store it into the database
- *
  */
 export const importAwsKmsWallet = async ({
   crendentials,

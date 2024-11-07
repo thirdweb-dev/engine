@@ -1,4 +1,4 @@
-import { Job, JobsOptions, Worker } from "bullmq";
+import type { Job, JobsOptions, Worker } from "bullmq";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 

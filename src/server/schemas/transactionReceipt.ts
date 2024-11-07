@@ -3,22 +3,22 @@ import { Type, type Static } from "@sinclair/typebox";
 import { AddressSchema, TransactionHashSchema } from "./address";
 
 export const transactionReceiptSchema = Type.Object({
-  chainId: Type.Number(),
-  blockNumber: Type.Number(),
+  chainId: Type.Integer(),
+  blockNumber: Type.Integer(),
   contractAddress: AddressSchema,
   transactionHash: TransactionHashSchema,
   blockHash: Type.String(),
-  timestamp: Type.Number(),
+  timestamp: Type.Integer(),
   data: Type.String(),
   value: Type.String(),
 
   to: Type.String(),
   from: Type.String(),
-  transactionIndex: Type.Number(),
+  transactionIndex: Type.Integer(),
 
   gasUsed: Type.String(),
   effectiveGasPrice: Type.String(),
-  status: Type.Number(),
+  status: Type.Integer(),
 });
 
 export const toTransactionReceiptSchema = (

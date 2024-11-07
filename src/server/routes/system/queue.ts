@@ -1,17 +1,17 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getPercentile } from "../../../utils/math";
-import { MinedTransaction } from "../../../utils/transaction/types";
+import type { MinedTransaction } from "../../../utils/transaction/types";
 import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
-    queued: Type.Number(),
-    pending: Type.Number(),
+    queued: Type.Integer(),
+    pending: Type.Integer(),
     latency: Type.Object({
       msToSend: Type.Object({
         p50: Type.Number(),

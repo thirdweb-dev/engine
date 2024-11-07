@@ -53,6 +53,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   if (insertedReceipts.length === 0) {
     return;
   }
+  job.log(`Inserted ${insertedReceipts.length} events.`);
 
   // Enqueue webhooks.
   const webhooksByContractAddress =

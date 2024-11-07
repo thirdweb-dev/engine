@@ -90,10 +90,15 @@ export const checkAndReturnNFTSignaturePayload = <
   return updatedPayload;
 };
 
-export const isValidHttpUrl = (urlString: string): boolean => {
+export const isValidWebhookUrl = (input: string): boolean => {
   try {
-    const url = new URL(urlString);
-    return url.protocol === "http:" || url.protocol === "https:";
+    const url = new URL(input);
+    return (
+      url.protocol === "https:" ||
+      // Allow http for localhost only.
+      (url.protocol === "http:" &&
+        ["localhost", "0.0.0.0", "127.0.0.1"].includes(url.hostname))
+    );
   } catch {
     return false;
   }
