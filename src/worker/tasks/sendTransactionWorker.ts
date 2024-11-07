@@ -38,6 +38,7 @@ import {
   isNonceAlreadyUsedError,
   isReplacementGasFeeTooLow,
   prettifyError,
+  wrapError,
 } from "../../utils/error";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
@@ -249,7 +250,7 @@ const _sendUserOp = async (
     return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: prettifyError(e, "Bundler"),
+      errorMessage: wrapError(e, "Bundler").message,
     } satisfies ErroredTransaction;
   }
 
@@ -326,7 +327,7 @@ const _sendTransaction = async (
     return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: prettifyError(e, "RPC"),
+      errorMessage: wrapError(e, "RPC").message,
     } satisfies ErroredTransaction;
   }
 
@@ -380,7 +381,7 @@ const _sendTransaction = async (
       const gasPrice =
         populatedTransaction.gasPrice ?? populatedTransaction.maxFeePerGas;
 
-      let errorMessage = prettifyError(e, "RPC");
+      let errorMessage = prettifyError(e);
       if (gasPrice) {
         const { gas, value = 0n } = populatedTransaction;
         const { name, nativeCurrency } = await getChainMetadata(chain);
@@ -394,7 +395,7 @@ const _sendTransaction = async (
       } satisfies ErroredTransaction;
     }
 
-    throw prettifyError(e, "RPC");
+    throw wrapError(e, "RPC");
   }
 
   await addSentNonce(chainId, from, nonce);
@@ -480,7 +481,7 @@ const _resendTransaction = async (
       job.log("A pending transaction exists with >= gas fees. Do not resend.");
       return null;
     }
-    throw error;
+    throw wrapError(error, "RPC");
   }
 
   return {

@@ -2,14 +2,11 @@ import { ethers } from "ethers";
 import { stringify } from "thirdweb/utils";
 import { isEthersErrorCode } from "./ethers";
 
-/**
- * Pretty print an error with an optional contextual prefix ("[RpcError] \<response from RPC\>").
- */
-export const prettifyError = (
-  error: unknown,
-  prefix?: "RPC" | "Bundler",
-): string =>
-  `[${prefix}] ${error instanceof Error ? error.message : stringify(error)}`;
+export const wrapError = (error: unknown, prefix: "RPC" | "Bundler") =>
+  new Error(`[${prefix}] ${prettifyError(error)}`);
+
+export const prettifyError = (error: unknown): string =>
+  error instanceof Error ? error.message : stringify(error);
 
 const _parseMessage = (error: unknown): string | null => {
   return error && typeof error === "object" && "message" in error
