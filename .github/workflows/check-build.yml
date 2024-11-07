@@ -14,11 +14,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18"
-          cache: "yarn"
+          node-version: "22"
+          cache: "pnpm"
   
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Run build
-        run: yarn build
+        run: pnpm build
