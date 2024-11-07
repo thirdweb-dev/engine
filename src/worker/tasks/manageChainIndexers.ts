@@ -15,7 +15,7 @@ export const manageChainIndexers = async () => {
   }
 
   for (const chainId in INDEXER_REGISTRY) {
-    const chainIdNum = parseInt(chainId);
+    const chainIdNum = Number.parseInt(chainId);
     if (!chainIdsToIndex.includes(chainIdNum)) {
       await removeChainIndexer(chainIdNum);
     }

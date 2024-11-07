@@ -6,8 +6,10 @@ import {
   getContract,
   readContract,
   toSerializableTransaction,
+  toTokens,
   type Hex,
 } from "thirdweb";
+import { getChainMetadata } from "thirdweb/chains";
 import { stringify } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import {
@@ -32,10 +34,10 @@ import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import {
+  isInsufficientFundsError,
   isNonceAlreadyUsedError,
   isReplacementGasFeeTooLow,
-  prettifyError,
-  prettifyTransactionError,
+  wrapError,
 } from "../../utils/error";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
@@ -243,16 +245,12 @@ const _sendUserOp = async (
       // we don't want this behavior in the engine context
       waitForDeployment: false,
     })) as UserOperation; // TODO support entrypoint v0.7 accounts
-  } catch (e) {
-    const erroredTransaction: ErroredTransaction = {
+  } catch (error) {
+    return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: prettifyError(e),
-    };
-    job.log(
-      `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
-    );
-    return erroredTransaction;
+      errorMessage: wrapError(error, "Bundler").message,
+    } satisfies ErroredTransaction;
   }
 
   job.log(`Populated userOp: ${stringify(signedUserOp)}`);
@@ -325,15 +323,11 @@ const _sendTransaction = async (
       },
     });
   } catch (e: unknown) {
-    const erroredTransaction: ErroredTransaction = {
+    return {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: prettifyError(e),
-    };
-    job.log(
-      `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
-    );
-    return erroredTransaction;
+      errorMessage: wrapError(e, "RPC").message,
+    } satisfies ErroredTransaction;
   }
 
   // Handle if `maxFeePerGas` is overridden.
@@ -380,7 +374,28 @@ const _sendTransaction = async (
       job.log(`Recycling nonce: ${nonce}`);
       await recycleNonce(chainId, from, nonce);
     }
-    throw error;
+
+    // Do not retry errors that are expected to be rejected by RPC again.
+    if (isInsufficientFundsError(error)) {
+      const { name, nativeCurrency } = await getChainMetadata(chain);
+      const { gas, value = 0n } = populatedTransaction;
+      const gasPrice =
+        populatedTransaction.gasPrice ?? populatedTransaction.maxFeePerGas;
+
+      const minGasTokens = gasPrice
+        ? toTokens(gas * gasPrice + value, 18)
+        : null;
+      const errorMessage = minGasTokens
+        ? `Insufficient funds in ${account.address} on ${name}. Transaction requires > ${minGasTokens} ${nativeCurrency.symbol}.`
+        : `Insufficient funds in ${account.address} on ${name}. Transaction requires more ${nativeCurrency.symbol}.`;
+      return {
+        ...queuedTransaction,
+        status: "errored",
+        errorMessage,
+      } satisfies ErroredTransaction;
+    }
+
+    throw wrapError(error, "RPC");
   }
 
   await addSentNonce(chainId, from, nonce);
@@ -466,7 +481,7 @@ const _resendTransaction = async (
       job.log("A pending transaction exists with >= gas fees. Do not resend.");
       return null;
     }
-    throw error;
+    throw wrapError(error, "RPC");
   }
 
   return {
@@ -572,7 +587,7 @@ export const initSendTransactionWorker = () => {
         const erroredTransaction: ErroredTransaction = {
           ...transaction,
           status: "errored",
-          errorMessage: await prettifyTransactionError(transaction, error),
+          errorMessage: error.message,
         };
         job.log(`Transaction errored: ${stringify(erroredTransaction)}`);
 

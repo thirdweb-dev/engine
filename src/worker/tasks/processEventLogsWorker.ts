@@ -1,20 +1,20 @@
-import { Prisma, Webhooks } from "@prisma/client";
-import { AbiEvent } from "abitype";
-import { Job, Processor, Worker } from "bullmq";
+import type { Prisma, Webhooks } from "@prisma/client";
+import type { AbiEvent } from "abitype";
+import { Worker, type Job, type Processor } from "bullmq";
 import superjson from "superjson";
 import {
-  Address,
-  Chain,
-  PreparedEvent,
-  ThirdwebContract,
   eth_getBlockByHash,
   getContract,
   getContractEvents,
   getRpcClient,
   prepareEvent,
+  type Address,
+  type Chain,
+  type Hex,
+  type PreparedEvent,
+  type ThirdwebContract,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
-import { Hash } from "viem";
 import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
 import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
 import { WebhooksEventTypes } from "../../schema/webhooks";
@@ -53,11 +53,11 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   if (insertedLogs.length === 0) {
     return;
   }
+  job.log(`Inserted ${insertedLogs.length} events.`);
 
   // Enqueue webhooks.
-  const webhooksByContractAddress = await getWebhooksByContractAddresses(
-    chainId,
-  );
+  const webhooksByContractAddress =
+    await getWebhooksByContractAddresses(chainId);
   for (const eventLog of insertedLogs) {
     const webhooks = webhooksByContractAddress[eventLog.contractAddress] ?? [];
     for (const webhook of webhooks) {
@@ -246,12 +246,12 @@ const formatDecodedLog = async (args: {
  * Gets the timestamps for a list of block hashes. Falls back to the current time.
  * @param chain
  * @param blockHashes
- * @returns Record<Hash, Date>
+ * @returns Record<Hex, Date>
  */
 const getBlockTimestamps = async (
   chain: Chain,
-  blockHashes: Hash[],
-): Promise<Record<Hash, Date>> => {
+  blockHashes: Hex[],
+): Promise<Record<Hex, Date>> => {
   const now = new Date();
   const dedupe = Array.from(new Set(blockHashes));
   const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
@@ -267,7 +267,7 @@ const getBlockTimestamps = async (
     }),
   );
 
-  const res: Record<Hash, Date> = {};
+  const res: Record<Hex, Date> = {};
   for (let i = 0; i < dedupe.length; i++) {
     res[dedupe[i]] = blocks[i];
   }

@@ -1,4 +1,4 @@
-import { PrismaTransaction } from "../../schema/prisma";
+import type { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface GetLastIndexedBlockParams {
@@ -45,5 +45,5 @@ export const getBlockForIndexing = async ({
       "chainId"=${chainId}
     FOR UPDATE NOWAIT
   `;
-  return lastIndexedBlock[0]["lastIndexedBlock"];
+  return lastIndexedBlock[0].lastIndexedBlock;
 };
