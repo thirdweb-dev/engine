@@ -120,7 +120,7 @@ export const getTransactionReceiptsByCursor = async ({
                 { createdAt: { gt: cursorObj.createdAt } },
                 {
                   createdAt: { equals: cursorObj.createdAt },
-                  chainId: { equals: cursorObj.chainId.toString() },
+                  chainId: { gt: cursorObj.chainId.toString() },
                 },
                 {
                   createdAt: { equals: cursorObj.createdAt },
