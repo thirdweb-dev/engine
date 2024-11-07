@@ -75,7 +75,9 @@ export class SWRCache<K, V> {
   private set(key: K, data: V): void {
     if (this.cache.size >= this.options.maxEntries) {
       const firstKey = this.cache.keys().next().value;
-      this.cache.delete(firstKey);
+      if (firstKey) {
+        this.cache.delete(firstKey);
+      }
     }
 
     this.cache.set(key, {

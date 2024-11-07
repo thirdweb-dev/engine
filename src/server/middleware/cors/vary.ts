@@ -28,7 +28,7 @@ function validateFieldname(fieldname: string) {
 
 export const parse = (header: string) => {
   header = header.trim().toLowerCase();
-  const result = [];
+  const result: string[] = [];
 
   if (header.length === 0) {
     // pass through
@@ -38,7 +38,7 @@ export const parse = (header: string) => {
     const il = header.length;
     let i = 0;
     let pos = 0;
-    let char;
+    let char: string;
 
     // tokenize the header
     for (i = 0; i < il; ++i) {

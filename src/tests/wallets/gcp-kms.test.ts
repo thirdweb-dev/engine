@@ -1,10 +1,4 @@
-import { beforeAll, expect, test, vi } from "vitest";
-
-import { ANVIL_CHAIN, anvilTestClient } from "../shared/chain.ts";
-
-import { typedData } from "../shared/typed-data.ts";
-
-import { verifyTypedData } from "thirdweb";
+import { type Hex, verifyTypedData } from "thirdweb";
 import { verifyEOASignature } from "thirdweb/auth";
 import {
   prepareTransaction,
@@ -12,9 +6,12 @@ import {
 } from "thirdweb/transaction";
 import { toUnits, toWei } from "thirdweb/utils";
 import { getWalletBalance } from "thirdweb/wallets";
-import { getGcpKmsAccount } from "../../server/utils/wallets/getGcpKmsAccount.ts";
-import { TEST_GCP_KMS_CONFIG } from "../config/gcp-kms.ts";
-import { TEST_CLIENT } from "../shared/client.ts";
+import { beforeAll, expect, test, vi } from "vitest";
+import { getGcpKmsAccount } from "../../server/utils/wallets/getGcpKmsAccount";
+import { TEST_GCP_KMS_CONFIG } from "../config/gcp-kms";
+import { ANVIL_CHAIN, anvilTestClient } from "../shared/chain";
+import { TEST_CLIENT } from "../shared/client";
+import { typedData } from "../shared/typed-data";
 
 let account: Awaited<ReturnType<typeof getGcpKmsAccount>>;
 
@@ -90,7 +87,7 @@ test("send transaction", async () => {
   const recipient = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 
   await anvilTestClient.setBalance({
-    address: account.address,
+    address: account.address as Hex,
     value: toWei("10"),
   });
 

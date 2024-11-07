@@ -1,21 +1,21 @@
-import { Worker, type Job, type Processor } from "bullmq";
+import { type Job, type Processor, Worker } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
 import {
+  type Hex,
   getAddress,
   getContract,
   readContract,
   toSerializableTransaction,
   toTokens,
-  type Hex,
 } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { stringify } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import {
+  type UserOperation,
   bundleUserOp,
   createAndSignUserOp,
-  type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
@@ -54,8 +54,8 @@ import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import {
-  SendTransactionQueue,
   type SendTransactionData,
+  SendTransactionQueue,
 } from "../queues/sendTransactionQueue";
 
 /**

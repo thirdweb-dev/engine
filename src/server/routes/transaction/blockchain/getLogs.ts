@@ -1,17 +1,17 @@
-import { Type, type Static } from "@sinclair/typebox";
-import type { AbiEvent } from "abitype";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import superjson from "superjson";
 import {
+  type Hex,
   eth_getTransactionReceipt,
   getContract,
   getRpcClient,
   parseEventLogs,
   prepareEvent,
-  type Hex,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
+import type { AbiEvent } from "thirdweb/utils";
 import { TransactionDB } from "../../../../db/transactions/db";
 import { getChain } from "../../../../utils/chain";
 import { thirdwebClient } from "../../../../utils/sdk";

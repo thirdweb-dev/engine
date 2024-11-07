@@ -1,7 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import assert from "node:assert";
-import { type Address, stringToHex } from "thirdweb";
-import { zeroAddress } from "viem";
+import { type Address, ZERO_ADDRESS, stringToHex } from "thirdweb";
 import type { ApiError } from "../../../../sdk/dist/thirdweb-dev-engine.cjs.js";
 import { CONFIG } from "../../config";
 import type { setupEngine } from "../../utils/engine";
@@ -25,7 +24,7 @@ describe("/contract/write route", () => {
         contractMetadata: {
           name: "test token",
           platform_fee_basis_points: 0,
-          platform_fee_recipient: zeroAddress,
+          platform_fee_recipient: ZERO_ADDRESS,
           symbol: "TT",
           trusted_forwarders: [],
         },
@@ -77,11 +76,11 @@ describe("/contract/write route", () => {
         contractMetadata: {
           name: "test token",
           platform_fee_basis_points: 0,
-          platform_fee_recipient: zeroAddress,
+          platform_fee_recipient: ZERO_ADDRESS,
           symbol: "TT",
           trusted_forwarders: [],
           seller_fee_basis_points: 0,
-          fee_recipient: zeroAddress,
+          fee_recipient: ZERO_ADDRESS,
         },
       },
     );
@@ -141,7 +140,7 @@ describe("/contract/write route", () => {
               quantityLimitPerWallet: "10",
               merkleRoot: stringToHex("", { size: 32 }),
               pricePerToken: "0",
-              currency: zeroAddress,
+              currency: ZERO_ADDRESS,
               metadata: "",
             },
           ]),

@@ -1,7 +1,7 @@
-import assert from "assert";
 import { sleep } from "bun";
 import { describe, expect, test } from "bun:test";
-import { getAddress } from "viem";
+import assert from "node:assert";
+import { getAddress } from "thirdweb";
 import { CONFIG } from "../config";
 import { printStats } from "../utils/statistics";
 import {
