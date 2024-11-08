@@ -43,11 +43,11 @@ import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
-import {
-  type ErroredTransaction,
-  type PopulatedTransaction,
-  type QueuedTransaction,
-  type SentTransaction,
+import type {
+  ErroredTransaction,
+  PopulatedTransaction,
+  QueuedTransaction,
+  SentTransaction,
 } from "../../utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
