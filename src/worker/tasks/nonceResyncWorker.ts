@@ -41,7 +41,10 @@ export const initNonceResyncWorker = async () => {
  */
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const sentNoncesKeys = await redis.keys("nonce-sent*");
-  job.log(`Found ${sentNoncesKeys.length} nonce-sent* keys`);
+  if (sentNoncesKeys.length === 0) {
+    job.log("No active wallets.");
+    return;
+  }
 
   for (const sentNonceKey of sentNoncesKeys) {
     try {
@@ -58,16 +61,8 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         })) - 1;
       const lastUsedNonceDb = await inspectNonce(chainId, walletAddress);
 
-      job.log(
-        `wallet=${chainId}:${walletAddress} lastUsedNonceOnchain=${lastUsedNonceOnchain} lastUsedNonceDb=${lastUsedNonceDb}`,
-      );
-      logger({
-        level: "debug",
-        message: `[nonceResyncWorker] wallet=${chainId}:${walletAddress} lastUsedNonceOnchain=${lastUsedNonceOnchain} lastUsedNonceDb=${lastUsedNonceDb}`,
-        service: "worker",
-      });
-
       // Recycle all nonces between (onchain nonce, db nonce] if they aren't in-flight ("sent nonce").
+      const recycled: number[] = [];
       for (
         let nonce = lastUsedNonceOnchain + 1;
         nonce <= lastUsedNonceDb;
@@ -76,8 +71,13 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
         const exists = await isSentNonce(chainId, walletAddress, nonce);
         if (!exists) {
           await recycleNonce(chainId, walletAddress, nonce);
+          recycled.push(nonce);
         }
       }
+
+      const message = `wallet=${chainId}:${walletAddress} lastUsedNonceOnchain=${lastUsedNonceOnchain} lastUsedNonceDb=${lastUsedNonceDb}, recycled=${recycled.join(",")}`;
+      job.log(message);
+      logger({ level: "debug", service: "worker", message });
     } catch (error) {
       logger({
         level: "error",
