@@ -1,4 +1,4 @@
-import { Hex } from "thirdweb";
+import type { Hex } from "thirdweb";
 import { describe, expect, it } from "vitest";
 import { _updateGasFees } from "../worker/tasks/sendTransactionWorker";
 
@@ -13,17 +13,6 @@ describe("_updateGasFees", () => {
     accessList: undefined,
     value: undefined,
   };
-
-  //   const legacyTransaction: PopulatedTransaction = {
-  //     ...base,
-  //     gasPrice: 35000000000n,
-  //   };
-
-  //   const eip1559Transaction: PopulatedTransaction = {
-  //     ...base,
-  //     maxPriorityFeePerGas: 500000000n,
-  //     maxFeePerGas: 35000000000n,
-  //   };
 
   it("returns the original transaction on first send (resendCount = 0)", () => {
     let result = _updateGasFees({ ...base, gasPrice: 100n }, 0, undefined);
