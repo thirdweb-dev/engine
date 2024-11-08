@@ -39,7 +39,6 @@ import {
   isReplacementGasFeeTooLow,
   wrapError,
 } from "../../utils/error";
-import { clamp } from "../../utils/math";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
@@ -595,7 +594,7 @@ export const _updateGasFees = (
     return populatedTransaction;
   }
 
-  const multiplier = BigInt(clamp(resendCount * 2, { min: 2, max: 10 }));
+  const multiplier = BigInt(Math.min(10, resendCount * 2));
 
   const updated = { ...populatedTransaction };
   if (updated.gasPrice) {
