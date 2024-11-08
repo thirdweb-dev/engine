@@ -75,10 +75,15 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     return;
   }
 
-  // The transaction may be errored if it is manually retried.
-  // For example, the developer retried all failed transactions during an RPC outage.
-  // An errored queued transaction (resendCount = 0) is safe to retry: the transaction wasn't sent to RPC.
-  if (transaction.status === "errored" && resendCount === 0) {
+  // If the transaction is errored and has not yet been sent,
+  // reset it to a QueuedTransaction to try again.
+  // No transaction hashes means the transaction is not in-flight.
+  if (
+    transaction.status === "errored" &&
+    !transaction.isUserOp &&
+    "sentTransactionHashes" in transaction &&
+    transaction.sentTransactionHashes.length > 0
+  ) {
     const { errorMessage, ...omitted } = transaction;
     transaction = {
       ...omitted,
@@ -438,7 +443,7 @@ const _resendTransaction = async (
 
   // Populate the transaction with double gas.
   const { chainId, from, overrides, sentTransactionHashes } = sentTransaction;
-  const populatedTransaction = await toSerializableTransaction({
+  let populatedTransaction = await toSerializableTransaction({
     from: getChecksumAddress(from),
     transaction: {
       client: thirdwebClient,
@@ -452,21 +457,12 @@ const _resendTransaction = async (
     },
   });
 
-  // Double the gas fee settings each attempt up to 10x.
-  // Do not update gas if overrides were provided.
-  const gasMultiple = BigInt(clamp(job.attemptsMade * 2, { min: 2, max: 10 }));
-  if (populatedTransaction.gasPrice) {
-    populatedTransaction.gasPrice *= gasMultiple;
-  }
-  if (populatedTransaction.maxFeePerGas && !overrides?.maxFeePerGas) {
-    populatedTransaction.maxFeePerGas *= gasMultiple;
-  }
-  if (
-    populatedTransaction.maxPriorityFeePerGas &&
-    !overrides?.maxPriorityFeePerGas
-  ) {
-    populatedTransaction.maxPriorityFeePerGas *= gasMultiple;
-  }
+  // Increase gas fees for this resend attempt.
+  populatedTransaction = _updateGasFees(
+    populatedTransaction,
+    sentTransaction.resendCount + 1,
+    sentTransaction.overrides,
+  );
 
   job.log(`Populated transaction: ${stringify(populatedTransaction)}`);
 
@@ -576,6 +572,47 @@ const _hasExceededTimeout = (
 
 const _minutesFromNow = (minutes: number) =>
   new Date(Date.now() + minutes * 60_000);
+
+/**
+ * Computes the aggressive gas fees to use when resending a transaction.
+ *
+ * For legacy transactions (pre-EIP1559):
+ * - Set gas price to 2 * current attempt, capped at 10x.
+ *
+ * For transactions with maxFeePerGas + maxPriorityFeePerGas:
+ * - Set maxPriorityFeePerGas to 2x current attempt, capped at 10x.
+ * - Set maxFeePerGas to 2 * current max fee, plus the maxPriorityFeePerGas.
+ *
+ * @param populatedTransaction The transaction with estimated gas from RPC.
+ * @param resendCount The resend attempt #. Example: 2 = the transaction was initially sent, then resent once. This is the second resend attempt.
+ */
+export const _updateGasFees = (
+  populatedTransaction: PopulatedTransaction,
+  resendCount: number,
+  overrides: SentTransaction["overrides"],
+): PopulatedTransaction => {
+  if (resendCount === 0) {
+    return populatedTransaction;
+  }
+
+  const multiplier = BigInt(clamp(resendCount * 2, { min: 2, max: 10 }));
+
+  const updated = { ...populatedTransaction };
+  if (updated.gasPrice) {
+    updated.gasPrice *= multiplier;
+  }
+  // Don't update gas fees that are explicitly overridden.
+  if (updated.maxPriorityFeePerGas && !overrides?.maxPriorityFeePerGas) {
+    updated.maxPriorityFeePerGas *= multiplier;
+  }
+  // Don't update gas fees that are explicitly overridden.
+  if (updated.maxFeePerGas && !overrides?.maxFeePerGas) {
+    updated.maxFeePerGas =
+      updated.maxFeePerGas * 2n + (updated.maxPriorityFeePerGas ?? 0n);
+  }
+
+  return updated;
+};
 
 // Must be explicitly called for the worker to run on this host.
 export const initSendTransactionWorker = () => {
