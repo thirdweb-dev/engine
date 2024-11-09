@@ -78,17 +78,15 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   // For example, the developer retried all failed transactions during an RPC outage.
   // An errored queued transaction (resendCount = 0) is safe to retry: the transaction wasn't sent to RPC.
   if (transaction.status === "errored" && resendCount === 0) {
+    const { errorMessage, ...omitted } = transaction;
     transaction = {
-      ...{
-        ...transaction,
-        nonce: undefined,
-        errorMessage: undefined,
-        gas: undefined,
-        gasPrice: undefined,
-        maxFeePerGas: undefined,
-        maxPriorityFeePerGas: undefined,
-      },
+      ...omitted,
       status: "queued",
+      resendCount: 0,
+      queueId: transaction.queueId,
+      queuedAt: transaction.queuedAt,
+      value: transaction.value,
+      data: transaction.data,
       manuallyResentAt: new Date(),
     } satisfies QueuedTransaction;
   }
@@ -246,11 +244,14 @@ const _sendUserOp = async (
       waitForDeployment: false,
     })) as UserOperation; // TODO support entrypoint v0.7 accounts
   } catch (error) {
-    return {
+    const errorMessage = wrapError(error, "Bundler").message;
+    const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: wrapError(error, "Bundler").message,
-    } satisfies ErroredTransaction;
+      errorMessage,
+    };
+    job.log(`Failed to populate transaction: ${errorMessage}`);
+    return erroredTransaction;
   }
 
   job.log(`Populated userOp: ${stringify(signedUserOp)}`);
@@ -322,12 +323,15 @@ const _sendTransaction = async (
         maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
       },
     });
-  } catch (e: unknown) {
-    return {
+  } catch (error: unknown) {
+    const errorMessage = wrapError(error, "RPC").message;
+    const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: wrapError(e, "RPC").message,
-    } satisfies ErroredTransaction;
+      errorMessage,
+    };
+    job.log(`Failed to populate transaction: ${errorMessage}`);
+    return erroredTransaction;
   }
 
   // Handle if `maxFeePerGas` is overridden.
