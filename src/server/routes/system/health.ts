@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { isDatabaseReachable } from "../../../db/client";
 import { env } from "../../../utils/env";
 import { isRedisReachable } from "../../../utils/redis/redis";
+import { thirdwebClientId } from "../../../utils/sdk";
 import { createCustomError } from "../../middleware/error";
 
 type EngineFeature =
@@ -26,6 +27,7 @@ const ReplySchemaOk = Type.Object({
       Type.Literal("SMART_BACKEND_WALLETS"),
     ]),
   ),
+  clientId: Type.String(),
 });
 
 const ReplySchemaError = Type.Object({
@@ -73,6 +75,7 @@ export async function healthCheck(fastify: FastifyInstance) {
         engineVersion: env.ENGINE_VERSION,
         engineTier: env.ENGINE_TIER ?? "SELF_HOSTED",
         features: getFeatures(),
+        clientId: `${thirdwebClientId.slice(0, 4)}...${thirdwebClientId.slice(-4)}`,
       });
     },
   });
