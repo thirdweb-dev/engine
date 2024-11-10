@@ -69,10 +69,9 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
         );
       }
 
-      // temp do not handle userop
       if (transaction.isUserOp) {
         throw createCustomError(
-          `Transaction cannot be retried because it is a userop`,
+          "Transaction cannot be retried because it is a userop",
           StatusCodes.BAD_REQUEST,
           "TRANSACTION_CANNOT_BE_RETRIED",
         );
