@@ -56,10 +56,6 @@ export const env = createEnv({
       .default("https://c.thirdweb.com/event"),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
-    CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS: z.coerce
-      .number()
-      .nonnegative()
-      .default(0),
     REDIS_URL: z.string(),
     SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
     CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
@@ -119,8 +115,6 @@ export const env = createEnv({
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
-    CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS:
-      process.env.CONTRACT_SUBSCRIPTIONS_DELAY_SECONDS,
     REDIS_URL: process.env.REDIS_URL,
     SEND_TRANSACTION_QUEUE_CONCURRENCY:
       process.env.SEND_TRANSACTION_QUEUE_CONCURRENCY,

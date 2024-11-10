@@ -1,18 +1,21 @@
-import { type Job, type Processor, Worker } from "bullmq";
+import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
 import {
-  type Hex,
   getAddress,
   getContract,
   readContract,
   toSerializableTransaction,
+  toTokens,
+  type Hex,
 } from "thirdweb";
+import { getChainMetadata } from "thirdweb/chains";
 import { stringify } from "thirdweb/utils";
+import type { Account } from "thirdweb/wallets";
 import {
-  type UserOperation,
   bundleUserOp,
   createAndSignUserOp,
+  type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
 import { TransactionDB } from "../../db/transactions/db";
@@ -22,16 +25,19 @@ import {
   recycleNonce,
   syncLatestNonceFromOnchainIfHigher,
 } from "../../db/wallets/walletNonce";
-import { getAccount } from "../../utils/account";
+import {
+  getAccount,
+  getSmartBackendWalletAdminAccount,
+} from "../../utils/account";
 import { getBlockNumberish } from "../../utils/block";
 import { getChain } from "../../utils/chain";
 import { msSince } from "../../utils/date";
 import { env } from "../../utils/env";
 import {
+  isInsufficientFundsError,
   isNonceAlreadyUsedError,
   isReplacementGasFeeTooLow,
-  prettifyError,
-  prettifyTransactionError,
+  wrapError,
 } from "../../utils/error";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
@@ -48,8 +54,8 @@ import { reportUsage } from "../../utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import {
-  type SendTransactionData,
   SendTransactionQueue,
+  type SendTransactionData,
 } from "../queues/sendTransactionQueue";
 
 /**
@@ -57,7 +63,7 @@ import {
  *
  * This worker also handles retried EOA transactions.
  */
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const { queueId, resendCount } = superjson.parse<SendTransactionData>(
     job.data,
   );
@@ -72,17 +78,15 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   // For example, the developer retried all failed transactions during an RPC outage.
   // An errored queued transaction (resendCount = 0) is safe to retry: the transaction wasn't sent to RPC.
   if (transaction.status === "errored" && resendCount === 0) {
+    const { errorMessage, ...omitted } = transaction;
     transaction = {
-      ...{
-        ...transaction,
-        nonce: undefined,
-        errorMessage: undefined,
-        gas: undefined,
-        gasPrice: undefined,
-        maxFeePerGas: undefined,
-        maxPriorityFeePerGas: undefined,
-      },
+      ...omitted,
       status: "queued",
+      resendCount: 0,
+      queueId: transaction.queueId,
+      queuedAt: transaction.queuedAt,
+      value: transaction.value,
+      data: transaction.data,
       manuallyResentAt: new Date(),
     } satisfies QueuedTransaction;
   }
@@ -140,12 +144,13 @@ const _sendUserOp = async (
   }
 
   const {
+    from,
     accountAddress,
     to,
     target,
     chainId,
-    from,
     accountFactoryAddress: userProvidedAccountFactoryAddress,
+    entrypointAddress: userProvidedEntrypointAddress,
     accountSalt,
     overrides,
   } = queuedTransaction;
@@ -155,11 +160,33 @@ const _sendUserOp = async (
   const toAddress = to ?? target;
   assert(toAddress, "Invalid transaction parameters: to");
 
-  // Resolve Admin-Account for UserOperation Signer
-  const adminAccount = await getAccount({
-    chainId,
-    from,
-  });
+  // this can either be a regular backend wallet userop or a smart backend wallet userop
+  let adminAccount: Account | undefined;
+
+  try {
+    adminAccount = await getSmartBackendWalletAdminAccount({
+      accountAddress,
+      chainId: chainId,
+    });
+  } catch {
+    // do nothing, this might still be a regular backend wallet userop
+  }
+
+  if (!adminAccount) {
+    adminAccount = await getAccount({
+      chainId: chainId,
+      from,
+    });
+  }
+
+  if (!adminAccount) {
+    job.log("Failed to find admin account for userop");
+    return {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage: "Failed to find admin account for userop",
+    };
+  }
 
   let signedUserOp: UserOperation;
   try {
@@ -206,6 +233,7 @@ const _sendUserOp = async (
         overrides: {
           accountAddress,
           accountSalt,
+          entrypointAddress: userProvidedEntrypointAddress,
           // TODO: let user pass entrypoint address for 0.7 support
         },
       },
@@ -215,15 +243,14 @@ const _sendUserOp = async (
       // we don't want this behavior in the engine context
       waitForDeployment: false,
     })) as UserOperation; // TODO support entrypoint v0.7 accounts
-  } catch (e) {
+  } catch (error) {
+    const errorMessage = wrapError(error, "Bundler").message;
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: prettifyError(e),
+      errorMessage,
     };
-    job.log(
-      `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
-    );
+    job.log(`Failed to populate transaction: ${errorMessage}`);
     return erroredTransaction;
   }
 
@@ -234,6 +261,7 @@ const _sendUserOp = async (
     options: {
       client: thirdwebClient,
       chain,
+      entrypointAddress: userProvidedEntrypointAddress,
     },
   });
 
@@ -268,6 +296,10 @@ const _sendTransaction = async (
 
   const { queueId, chainId, from, to, overrides } = queuedTransaction;
   const chain = await getChain(chainId);
+  const account = await getAccount({
+    chainId: chainId,
+    from: from,
+  });
 
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
@@ -291,15 +323,14 @@ const _sendTransaction = async (
         maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
       },
     });
-  } catch (e: unknown) {
+  } catch (error: unknown) {
+    const errorMessage = wrapError(error, "RPC").message;
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
-      errorMessage: prettifyError(e),
+      errorMessage,
     };
-    job.log(
-      `Failed to populate transaction: ${erroredTransaction.errorMessage}`,
-    );
+    job.log(`Failed to populate transaction: ${errorMessage}`);
     return erroredTransaction;
   }
 
@@ -333,7 +364,6 @@ const _sendTransaction = async (
   // This call throws if the RPC rejects the transaction.
   let transactionHash: Hex;
   try {
-    const account = await getAccount({ chainId, from });
     const sendTransactionResult =
       await account.sendTransaction(populatedTransaction);
     transactionHash = sendTransactionResult.transactionHash;
@@ -348,7 +378,28 @@ const _sendTransaction = async (
       job.log(`Recycling nonce: ${nonce}`);
       await recycleNonce(chainId, from, nonce);
     }
-    throw error;
+
+    // Do not retry errors that are expected to be rejected by RPC again.
+    if (isInsufficientFundsError(error)) {
+      const { name, nativeCurrency } = await getChainMetadata(chain);
+      const { gas, value = 0n } = populatedTransaction;
+      const gasPrice =
+        populatedTransaction.gasPrice ?? populatedTransaction.maxFeePerGas;
+
+      const minGasTokens = gasPrice
+        ? toTokens(gas * gasPrice + value, 18)
+        : null;
+      const errorMessage = minGasTokens
+        ? `Insufficient funds in ${account.address} on ${name}. Transaction requires > ${minGasTokens} ${nativeCurrency.symbol}.`
+        : `Insufficient funds in ${account.address} on ${name}. Transaction requires more ${nativeCurrency.symbol}.`;
+      return {
+        ...queuedTransaction,
+        status: "errored",
+        errorMessage,
+      } satisfies ErroredTransaction;
+    }
+
+    throw wrapError(error, "RPC");
   }
 
   await addSentNonce(chainId, from, nonce);
@@ -434,7 +485,7 @@ const _resendTransaction = async (
       job.log("A pending transaction exists with >= gas fees. Do not resend.");
       return null;
     }
-    throw error;
+    throw wrapError(error, "RPC");
   }
 
   return {
@@ -540,7 +591,7 @@ export const initSendTransactionWorker = () => {
         const erroredTransaction: ErroredTransaction = {
           ...transaction,
           status: "errored",
-          errorMessage: await prettifyTransactionError(transaction, error),
+          errorMessage: error.message,
         };
         job.log(`Transaction errored: ${stringify(erroredTransaction)}`);
 

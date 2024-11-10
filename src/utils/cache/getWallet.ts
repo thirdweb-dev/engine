@@ -1,9 +1,12 @@
 import type { EVMWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
-import { StatusCodes } from "http-status-codes";
 import LRUMap from "mnemonist/lru-map";
-import { getWalletDetails } from "../../db/wallets/getWalletDetails";
+import {
+  WalletDetailsError,
+  getWalletDetails,
+  type ParsedWalletDetails,
+} from "../../db/wallets/getWalletDetails";
 import type { PrismaTransaction } from "../../schema/prisma";
 import { WalletType } from "../../schema/wallet";
 import { createCustomError } from "../../server/middleware/error";
@@ -11,9 +14,6 @@ import { splitAwsKmsArn } from "../../server/utils/wallets/awsKmsArn";
 import { splitGcpKmsResourcePath } from "../../server/utils/wallets/gcpKmsResourcePath";
 import { getLocalWallet } from "../../server/utils/wallets/getLocalWallet";
 import { getSmartWallet } from "../../server/utils/wallets/getSmartWallet";
-import { decrypt } from "../crypto";
-import { env } from "../env";
-import { getConfig } from "./getConfig";
 
 export const walletsCache = new LRUMap<string, EVMWallet>(2048);
 
@@ -39,74 +39,39 @@ export const getWallet = async <TWallet extends EVMWallet>({
     return cachedWallet as TWallet;
   }
 
-  const walletDetails = await getWalletDetails({
-    pgtx,
-    address: walletAddress,
-  });
+  let walletDetails: ParsedWalletDetails;
 
-  if (!walletDetails) {
-    throw createCustomError(
-      `No configured wallet found with address ${walletAddress}`,
-      StatusCodes.BAD_REQUEST,
-      "BAD_REQUEST",
-    );
+  try {
+    walletDetails = await getWalletDetails({
+      pgtx,
+      address: walletAddress,
+    });
+  } catch (e) {
+    if (e instanceof WalletDetailsError) {
+      throw createCustomError(e.message, 400, "BAD_REQUEST");
+    }
+    throw e;
   }
-
-  const config = await getConfig();
 
   let wallet: EVMWallet;
   switch (walletDetails.type) {
     case WalletType.awsKms: {
-      if (!walletDetails.awsKmsArn) {
-        throw new Error("AWS KMS ARN is missing for the wallet");
-      }
-
       const splitArn = splitAwsKmsArn(walletDetails.awsKmsArn);
-
-      const accessKeyId =
-        walletDetails.awsKmsAccessKeyId ??
-        config.walletConfiguration.aws?.awsAccessKeyId;
-
-      const secretAccessKey = walletDetails.awsKmsSecretAccessKey
-        ? decrypt(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
-        : config.walletConfiguration.aws?.awsSecretAccessKey;
-
-      if (!(accessKeyId && secretAccessKey)) {
-        throw new Error(
-          "AWS KMS access key id and secret access key are missing for the wallet",
-        );
-      }
 
       wallet = new AwsKmsWallet({
         keyId: splitArn.keyId,
         region: splitArn.region,
-        accessKeyId,
-        secretAccessKey,
+        accessKeyId: walletDetails.awsKmsAccessKeyId,
+        secretAccessKey: walletDetails.awsKmsSecretAccessKey,
       });
 
       break;
     }
 
     case WalletType.gcpKms: {
-      if (!walletDetails.gcpKmsResourcePath) {
-        throw new Error("GCP KMS resource path is missing for the wallet");
-      }
       const splitResourcePath = splitGcpKmsResourcePath(
         walletDetails.gcpKmsResourcePath,
       );
-
-      const email =
-        walletDetails.gcpApplicationCredentialEmail ??
-        config.walletConfiguration.gcp?.gcpApplicationCredentialEmail;
-      const privateKey = walletDetails.gcpApplicationCredentialPrivateKey
-        ? decrypt(walletDetails.gcpApplicationCredentialPrivateKey)
-        : config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey;
-
-      if (!(email && privateKey)) {
-        throw new Error(
-          "GCP KMS email and private key are missing for the wallet",
-        );
-      }
 
       wallet = new GcpKmsWallet({
         keyId: splitResourcePath.cryptoKeyId,
@@ -115,8 +80,9 @@ export const getWallet = async <TWallet extends EVMWallet>({
         locationId: splitResourcePath.locationId,
         projectId: splitResourcePath.projectId,
 
-        applicationCredentialEmail: email,
-        applicationCredentialPrivateKey: privateKey,
+        applicationCredentialEmail: walletDetails.gcpApplicationCredentialEmail,
+        applicationCredentialPrivateKey:
+          walletDetails.gcpApplicationCredentialPrivateKey,
       });
       break;
     }
@@ -124,6 +90,78 @@ export const getWallet = async <TWallet extends EVMWallet>({
     case WalletType.local:
       wallet = await getLocalWallet({ chainId, walletAddress });
       break;
+
+    case WalletType.smartAwsKms: {
+      if (accountAddress)
+        throw new Error(
+          "Smart backend wallet cannot be used to operate external smart account",
+        );
+
+      const splitArn = splitAwsKmsArn(walletDetails.awsKmsArn);
+
+      const adminWallet = new AwsKmsWallet({
+        keyId: splitArn.keyId,
+        region: splitArn.region,
+        accessKeyId: walletDetails.awsKmsAccessKeyId,
+        secretAccessKey: walletDetails.awsKmsSecretAccessKey,
+      });
+
+      const smartWallet: EVMWallet = await getSmartWallet({
+        chainId,
+        backendWallet: adminWallet,
+        accountAddress: walletDetails.address,
+      });
+
+      return smartWallet as TWallet;
+    }
+
+    case WalletType.smartGcpKms: {
+      if (accountAddress)
+        throw new Error(
+          "Smart backend wallet cannot be used to operate external smart account",
+        );
+
+      const splitResourcePath = splitGcpKmsResourcePath(
+        walletDetails.gcpKmsResourcePath,
+      );
+
+      const adminWallet = new GcpKmsWallet({
+        keyId: splitResourcePath.cryptoKeyId,
+        keyRingId: splitResourcePath.keyRingId,
+        keyVersion: splitResourcePath.versionId,
+        locationId: splitResourcePath.locationId,
+        projectId: splitResourcePath.projectId,
+
+        applicationCredentialEmail: walletDetails.gcpApplicationCredentialEmail,
+        applicationCredentialPrivateKey:
+          walletDetails.gcpApplicationCredentialPrivateKey,
+      });
+
+      const smartWallet: EVMWallet = await getSmartWallet({
+        chainId,
+        backendWallet: adminWallet,
+        accountAddress: walletDetails.address,
+      });
+
+      return smartWallet as TWallet;
+    }
+
+    case WalletType.smartLocal: {
+      if (accountAddress)
+        throw new Error(
+          "Smart backend wallet cannot be used to operate external smart account",
+        );
+
+      const adminWallet = await getLocalWallet({ chainId, walletAddress });
+
+      const smartWallet: EVMWallet = await getSmartWallet({
+        chainId,
+        backendWallet: adminWallet,
+        accountAddress: walletDetails.address,
+      });
+
+      return smartWallet as TWallet;
+    }
 
     default:
       throw new Error(

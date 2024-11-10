@@ -1,49 +1,26 @@
-import { getSdk } from "../cache/getSdk";
-import { logger } from "../logger";
+import { eth_getBlockByNumber, getRpcClient } from "thirdweb";
+import { getChain } from "../chain";
+import { thirdwebClient } from "../sdk";
 
-const KNOWN_BLOCKTIME_SECONDS = {
-  1: 12,
-  137: 2,
-} as Record<number, number>;
+export const getBlockTimeSeconds = async (
+  chainId: number,
+  blocksToEstimate: number,
+) => {
+  const chain = await getChain(chainId);
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain,
+  });
 
-const DEFAULT_BLOCKTIME_SECONDS = 10;
-const BLOCKS_TO_ESTIMATE = 100;
+  const latestBlock = await eth_getBlockByNumber(rpcRequest, {
+    blockTag: "latest",
+    includeTransactions: false,
+  });
+  const referenceBlock = await eth_getBlockByNumber(rpcRequest, {
+    blockNumber: latestBlock.number - BigInt(blocksToEstimate),
+    includeTransactions: false,
+  });
 
-export const getBlockTimeSeconds = async (chainId: number) => {
-  if (KNOWN_BLOCKTIME_SECONDS[chainId]) {
-    return KNOWN_BLOCKTIME_SECONDS[chainId];
-  }
-
-  const sdk = await getSdk({ chainId });
-  const provider = sdk.getProvider();
-  try {
-    const latestBlockNumber = await provider.getBlockNumber();
-    const blockNumbers = Array.from(
-      { length: BLOCKS_TO_ESTIMATE },
-      (_, i) => latestBlockNumber - i - 1,
-    );
-
-    const blocks = await Promise.all(
-      blockNumbers.map(async (blockNumber) => {
-        const block = await provider.getBlock(blockNumber);
-        return block;
-      }),
-    );
-
-    let totalTimeDiff = 0;
-    for (let i = 0; i < blocks.length - 1; i++) {
-      totalTimeDiff += blocks[i].timestamp - blocks[i + 1].timestamp;
-    }
-
-    const averageBlockTime = totalTimeDiff / (blocks.length - 1);
-    return averageBlockTime;
-  } catch (error) {
-    logger({
-      service: "worker",
-      level: "error",
-      message: `Error estimating block time for chainId ${chainId}:`,
-      error,
-    });
-    return DEFAULT_BLOCKTIME_SECONDS;
-  }
+  const diffSeconds = latestBlock.timestamp - referenceBlock.timestamp;
+  return Number(diffSeconds) / (blocksToEstimate + 1);
 };

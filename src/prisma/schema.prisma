@@ -97,6 +97,10 @@ model WalletDetails {
   gcpKmsResourcePath                 String? @map("gcpKmsResourcePath") @db.Text
   gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail") /// if not available, default to: Configuration.gcpApplicationCredentialEmail
   gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey") /// if not available, default to: Configuration.gcpApplicationCredentialPrivateKey
+  // Smart Backend Wallet
+  accountSignerAddress               String? @map("accountSignerAddress") /// this, and either local, aws or gcp encryptedJson, are required for smart wallet
+  accountFactoryAddress              String? @map("accountFactoryAddress") /// optional even for smart wallet, if not available default factory will be used
+  entrypointAddress                  String? @map("entrypointAddress") /// optional even for smart wallet, if not available SDK will use default entrypoint
 
   @@map("wallet_details")
 }
@@ -202,7 +206,7 @@ model Relayers {
 
 model ContractSubscriptions {
   id                         String   @id @default(uuid()) @map("id")
-  chainId                    Int
+  chainId                    String
   contractAddress            String
   webhookId                  Int?
   processEventLogs           Boolean  @default(true)

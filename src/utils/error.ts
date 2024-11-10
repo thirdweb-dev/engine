@@ -1,39 +1,12 @@
 import { ethers } from "ethers";
-import { getChainMetadata } from "thirdweb/chains";
 import { stringify } from "thirdweb/utils";
-import { getChain } from "./chain";
 import { isEthersErrorCode } from "./ethers";
-import { doSimulateTransaction } from "./transaction/simulateQueuedTransaction";
-import type { AnyTransaction } from "./transaction/types";
 
-export const prettifyError = (error: unknown): string => {
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return stringify(error);
-};
+export const wrapError = (error: unknown, prefix: "RPC" | "Bundler") =>
+  new Error(`[${prefix}] ${prettifyError(error)}`);
 
-export const prettifyTransactionError = async (
-  transaction: AnyTransaction,
-  error: Error,
-): Promise<string> => {
-  if (!transaction.isUserOp) {
-    if (isInsufficientFundsError(error)) {
-      const chain = await getChain(transaction.chainId);
-      const metadata = await getChainMetadata(chain);
-      return `Insufficient ${metadata.nativeCurrency?.symbol} on ${metadata.name} in ${transaction.from}.`;
-    }
-
-    if (isEthersErrorCode(error, ethers.errors.UNPREDICTABLE_GAS_LIMIT)) {
-      const simulateError = await doSimulateTransaction(transaction);
-      if (simulateError) {
-        return simulateError;
-      }
-    }
-  }
-
-  return error.message;
-};
+export const prettifyError = (error: unknown): string =>
+  error instanceof Error ? error.message : stringify(error);
 
 const _parseMessage = (error: unknown): string | null => {
   return error && typeof error === "object" && "message" in error
