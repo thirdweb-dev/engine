@@ -6,7 +6,7 @@ import { pollTransactionStatus } from "../../utils/transactions";
 import { setup } from "../setup";
 
 const chain = arbitrumSepolia;
-const chainId = arbitrumSepolia.id.toString();
+const chainId = chain.id.toString();
 const message = "test";
 
 describe("smart local wallet", () => {
