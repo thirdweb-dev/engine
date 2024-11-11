@@ -8,6 +8,7 @@ interface GetSmartWalletParams {
   backendWallet: EVMWallet;
   accountAddress: string;
   factoryAddress?: string;
+  entrypointAddress?: string;
 }
 
 /**
@@ -19,6 +20,7 @@ export const getSmartWallet = async ({
   backendWallet,
   accountAddress,
   factoryAddress,
+  entrypointAddress,
 }: GetSmartWalletParams) => {
   let resolvedFactoryAddress: string | undefined = factoryAddress;
 
@@ -51,6 +53,7 @@ export const getSmartWallet = async ({
   const smartWallet = new SmartWallet({
     chain: chainId,
     factoryAddress: resolvedFactoryAddress,
+    entryPointAddress: entrypointAddress,
     secretKey: env.THIRDWEB_API_SECRET_KEY,
     gasless: true,
   });

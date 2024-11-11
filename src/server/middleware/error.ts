@@ -53,7 +53,17 @@ const isZodError = (err: unknown): boolean => {
 
 export const withErrorHandler = async (server: FastifyInstance) => {
   server.setErrorHandler(
-    (error: Error | CustomError | ZodError, request, reply) => {
+    (error: string | Error | CustomError | ZodError, request, reply) => {
+      if (typeof error === "string") {
+        return reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+          error: {
+            statusCode: 500,
+            code: "INTERNAL_SERVER_ERROR",
+            message: error || ReasonPhrases.INTERNAL_SERVER_ERROR,
+          },
+        });
+      }
+
       // Ethers Error Codes
       if (parseEthersError(error)) {
         return reply.status(StatusCodes.BAD_REQUEST).send({
@@ -103,7 +113,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
           StatusCodes.INTERNAL_SERVER_ERROR;
 
         const message = error.message ?? ReasonPhrases.INTERNAL_SERVER_ERROR;
-        reply.status(statusCode).send({
+        return reply.status(statusCode).send({
           error: {
             code,
             message,
@@ -111,17 +121,16 @@ export const withErrorHandler = async (server: FastifyInstance) => {
             stack: env.NODE_ENV !== "production" ? error.stack : undefined,
           },
         });
-      } else {
-        // Handle non-custom errors
-        reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-          error: {
-            statusCode: 500,
-            code: "INTERNAL_SERVER_ERROR",
-            message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
-            stack: env.NODE_ENV !== "production" ? error.stack : undefined,
-          },
-        });
       }
+
+      reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        error: {
+          statusCode: 500,
+          code: "INTERNAL_SERVER_ERROR",
+          message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
+          stack: env.NODE_ENV !== "production" ? error.stack : undefined,
+        },
+      });
     },
   );
 };

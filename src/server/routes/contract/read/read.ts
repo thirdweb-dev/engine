@@ -2,6 +2,7 @@ import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../utils/cache/getContract";
+import { prettifyError } from "../../../../utils/error";
 import { createCustomError } from "../../../middleware/error";
 import {
   readRequestQuerySchema,
@@ -64,22 +65,16 @@ export async function readContract(fastify: FastifyInstance) {
       });
 
       let returnData: unknown;
-
       try {
         returnData = await contract.call(functionName, parsedArgs ?? []);
       } catch (e) {
-        if (
-          e instanceof Error &&
-          (e.message.includes("is not a function") ||
-            e.message.includes("arguments, but"))
-        ) {
-          throw createCustomError(
-            e.message,
-            StatusCodes.BAD_REQUEST,
-            "BAD_REQUEST",
-          );
-        }
+        throw createCustomError(
+          prettifyError(e),
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
       }
+
       returnData = bigNumberReplacer(returnData);
 
       reply.status(StatusCodes.OK).send({
