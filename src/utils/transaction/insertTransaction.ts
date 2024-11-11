@@ -117,6 +117,7 @@ export const insertTransaction = async (
 
       // when using v4 SDK with smart backend wallets, the following values are not set correctly:
       // entrypointAddress is not set
+      // accountFactoryAddress is not set
       if (walletDetails && isSmartBackendWallet(walletDetails)) {
         if (
           !(await doesChainSupportService(
@@ -134,6 +135,8 @@ export const insertTransaction = async (
         queuedTransaction = {
           ...queuedTransaction,
           entrypointAddress: walletDetails.entrypointAddress ?? undefined,
+          accountFactoryAddress:
+            walletDetails.accountFactoryAddress ?? undefined,
         };
       }
     } catch {
