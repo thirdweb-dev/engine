@@ -110,6 +110,8 @@ export const getWallet = async <TWallet extends EVMWallet>({
         chainId,
         backendWallet: adminWallet,
         accountAddress: walletDetails.address,
+        factoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+        entrypointAddress: walletDetails.entrypointAddress ?? undefined,
       });
 
       return smartWallet as TWallet;
@@ -141,6 +143,8 @@ export const getWallet = async <TWallet extends EVMWallet>({
         chainId,
         backendWallet: adminWallet,
         accountAddress: walletDetails.address,
+        factoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+        entrypointAddress: walletDetails.entrypointAddress ?? undefined,
       });
 
       return smartWallet as TWallet;
@@ -158,6 +162,8 @@ export const getWallet = async <TWallet extends EVMWallet>({
         chainId,
         backendWallet: adminWallet,
         accountAddress: walletDetails.address,
+        factoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+        entrypointAddress: walletDetails.entrypointAddress ?? undefined,
       });
 
       return smartWallet as TWallet;
