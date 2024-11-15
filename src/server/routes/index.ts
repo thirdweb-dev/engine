@@ -67,6 +67,7 @@ import { extractEvents } from "./contract/metadata/events";
 import { getContractExtensions } from "./contract/metadata/extensions";
 import { extractFunctions } from "./contract/metadata/functions";
 import { readContract } from "./contract/read/read";
+import { readMulticall } from "./contract/read/read-batch";
 import { getRoles } from "./contract/roles/read/get";
 import { getAllRoles } from "./contract/roles/read/getAll";
 import { grantRole } from "./contract/roles/write/grant";
@@ -190,6 +191,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
 
   // Generic
   await fastify.register(readContract);
+  await fastify.register(readMulticall);
   await fastify.register(writeToContract);
 
   // Contract Events
