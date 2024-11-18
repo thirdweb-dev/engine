@@ -1,7 +1,9 @@
+import { walletDetailsCache } from "../../db/wallets/getWalletDetails";
 import type { env } from "../env";
 import { accessTokenCache } from "./accessToken";
 import { invalidateConfig } from "./getConfig";
 import { sdkCache } from "./getSdk";
+import { smartWalletsCache } from "./getSmartWalletV5";
 import { walletsCache } from "./getWallet";
 import { webhookCache } from "./getWebhook";
 import { keypairCache } from "./keypair";
@@ -15,4 +17,6 @@ export const clearCache = async (
   walletsCache.clear();
   accessTokenCache.clear();
   keypairCache.clear();
+  smartWalletsCache.clear();
+  walletDetailsCache.clear();
 };

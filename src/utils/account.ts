@@ -39,7 +39,7 @@ export const getAccount = async (args: {
   }
 
   const walletDetails = await getWalletDetails({
-    address: from,
+    walletAddress: from,
   });
 
   const { account } = await walletDetailsToAccount({ walletDetails, chain });
@@ -180,7 +180,7 @@ export const getSmartBackendWalletAdminAccount = async ({
   }
 
   const walletDetails = await getWalletDetails({
-    address: accountAddress,
+    walletAddress: accountAddress,
   });
 
   if (!isSmartBackendWallet(walletDetails)) {

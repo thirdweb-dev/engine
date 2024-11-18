@@ -1,5 +1,6 @@
 import type { Address, Hex, toSerializableTransaction } from "thirdweb";
 import type { TransactionType } from "viem";
+import { BackendWalletType } from "../../db/wallets/getWalletDetails";
 
 // TODO: Replace with thirdweb SDK exported type when available.
 export type PopulatedTransaction = Awaited<
@@ -52,6 +53,7 @@ export type InsertedTransaction = {
 export type QueuedTransaction = InsertedTransaction & {
   status: "queued";
 
+  walletType: BackendWalletType;
   resendCount: number;
   queueId: string;
   queuedAt: Date;

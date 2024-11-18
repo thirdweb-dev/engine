@@ -2,9 +2,9 @@ import { StatusCodes } from "http-status-codes";
 import { randomUUID } from "node:crypto";
 import { TransactionDB } from "../../db/transactions/db";
 import {
+  ParsedWalletDetails,
   getWalletDetails,
   isSmartBackendWallet,
-  type ParsedWalletDetails,
 } from "../../db/wallets/getWalletDetails";
 import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
 import { createCustomError } from "../../server/middleware/error";
@@ -43,6 +43,32 @@ export const insertTransaction = async (
     }
   }
 
+  // Get wallet details. For EOA and SBW (v5 endpoints), `from` should return a valid backend wallet.
+  // For SBW (v4 endpoints), `accountAddress` should return a valid backend wallet.
+  // Else the provided details are incorrect (user error).
+  let walletDetails: ParsedWalletDetails | undefined;
+  let isSmartBackendWalletV4 = false;
+  try {
+    walletDetails = await getWalletDetails({
+      walletAddress: insertedTransaction.from,
+    });
+  } catch {}
+  if (!walletDetails && insertedTransaction.accountAddress) {
+    try {
+      walletDetails = await getWalletDetails({
+        walletAddress: insertedTransaction.accountAddress,
+      });
+      isSmartBackendWalletV4 = true;
+    } catch {}
+  }
+  if (!walletDetails) {
+    throw createCustomError(
+      "Account not found",
+      StatusCodes.BAD_REQUEST,
+      "ACCOUNT_NOT_FOUND",
+    );
+  }
+
   let queuedTransaction: QueuedTransaction = {
     ...insertedTransaction,
     status: "queued",
@@ -50,6 +76,7 @@ export const insertTransaction = async (
     queuedAt: new Date(),
     resendCount: 0,
 
+    walletType: walletDetails.type,
     from: getChecksumAddress(insertedTransaction.from),
     to: getChecksumAddress(insertedTransaction.to),
     signerAddress: getChecksumAddress(insertedTransaction.signerAddress),
@@ -60,37 +87,34 @@ export const insertTransaction = async (
     value: insertedTransaction.value ?? 0n,
   };
 
-  let walletDetails: ParsedWalletDetails | undefined;
+  // Handle smart backend wallets details.
+  if (isSmartBackendWallet(walletDetails)) {
+    if (
+      !(await doesChainSupportService(
+        queuedTransaction.chainId,
+        "account-abstraction",
+      ))
+    ) {
+      throw createCustomError(
+        `Smart backend wallets do not support chain ${queuedTransaction.chainId}.`,
+        StatusCodes.BAD_REQUEST,
+        "INVALID_SMART_BACKEND_WALLET_TRANSACTION",
+      );
+    }
 
-  try {
-    walletDetails = await getWalletDetails({
-      address: queuedTransaction.from,
-    });
+    queuedTransaction = {
+      ...queuedTransaction,
+      accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+      entrypointAddress: walletDetails.entrypointAddress ?? undefined,
+    };
 
-    // when using the v5 SDK with smart backend wallets, the following values are not set correctly:
-    // isUserOp is set to false
-    // account address is blank or the user provided value (this should be the SBW account address)
-    // from is set to the SBW account address (this should be the SBW signer address)
-    // these values need to be corrected so the worker can process the transaction
-    if (isSmartBackendWallet(walletDetails)) {
+    if (!isSmartBackendWalletV4) {
       if (queuedTransaction.accountAddress) {
+        // Disallow smart backend wallets from sending userOps.
         throw createCustomError(
-          "Smart backend wallets do not support interacting with other smart accounts",
+          "Smart backend wallets do not support sending transactions with other smart accounts",
           StatusCodes.BAD_REQUEST,
-          "INVALID_SMART_BACKEND_WALLET_INTERACTION",
-        );
-      }
-
-      if (
-        !(await doesChainSupportService(
-          queuedTransaction.chainId,
-          "account-abstraction",
-        ))
-      ) {
-        throw createCustomError(
-          "Chain does not support smart backend wallets",
-          StatusCodes.BAD_REQUEST,
-          "SBW_CHAIN_NOT_SUPPORTED",
+          "INVALID_SMART_BACKEND_WALLET_TRANSACTION",
         );
       }
 
@@ -101,51 +125,7 @@ export const insertTransaction = async (
         from: walletDetails.accountSignerAddress,
         accountAddress: queuedTransaction.from,
         target: queuedTransaction.to,
-        accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
-        entrypointAddress: walletDetails.entrypointAddress ?? undefined,
       };
-    }
-  } catch {
-    // if wallet details are not found, this is a smart backend wallet using a v4 endpoint
-  }
-
-  if (!walletDetails && queuedTransaction.accountAddress) {
-    try {
-      walletDetails = await getWalletDetails({
-        address: queuedTransaction.accountAddress,
-      });
-
-      // when using v4 SDK with smart backend wallets, the following values are not set correctly:
-      // entrypointAddress is not set
-      // accountFactoryAddress is not set
-      if (walletDetails && isSmartBackendWallet(walletDetails)) {
-        if (
-          !(await doesChainSupportService(
-            queuedTransaction.chainId,
-            "account-abstraction",
-          ))
-        ) {
-          throw createCustomError(
-            "Chain does not support smart backend wallets",
-            StatusCodes.BAD_REQUEST,
-            "SBW_CHAIN_NOT_SUPPORTED",
-          );
-        }
-
-        queuedTransaction = {
-          ...queuedTransaction,
-          entrypointAddress: walletDetails.entrypointAddress ?? undefined,
-          accountFactoryAddress:
-            walletDetails.accountFactoryAddress ?? undefined,
-        };
-      }
-    } catch {
-      // if wallet details are not found for this either, this backend wallet does not exist at all
-      throw createCustomError(
-        "Account not found",
-        StatusCodes.BAD_REQUEST,
-        "ACCOUNT_NOT_FOUND",
-      );
     }
   }
 

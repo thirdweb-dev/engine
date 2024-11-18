@@ -2,6 +2,7 @@ import { Static } from "@sinclair/typebox";
 import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import { FastifyInstance } from "fastify";
 import { Address, Hex } from "thirdweb";
+import { BackendWalletType } from "../db/wallets/getWalletDetails";
 import { ADMIN_QUEUES_BASEPATH } from "../server/middleware/adminRoutes";
 import { OPENAPI_ROUTES } from "../server/middleware/open-api";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
@@ -22,6 +23,7 @@ export interface ReportUsageParams {
     | "api_request";
   input: {
     chainId?: number;
+    walletType?: BackendWalletType;
     from?: Address;
     to?: Address;
     value?: bigint;
@@ -113,6 +115,7 @@ export const reportUsage = (usageEvents: ReportUsageParams[]) => {
         action,
         clientId: thirdwebClientId,
         chainId: input.chainId,
+        walletType: input.walletType,
         walletAddress: input.from,
         contractAddress: input.to,
         transactionValue: input.value?.toString(),
@@ -136,7 +139,7 @@ export const reportUsage = (usageEvents: ReportUsageParams[]) => {
       logger({
         service: "worker",
         level: "error",
-        message: `Error:`,
+        message: "Error reporting usage event:",
         error: e,
       });
     }
