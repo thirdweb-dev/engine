@@ -51,7 +51,7 @@ function applyOperationIdMappings(
   let newCode: string = originalCode;
 
   for (const [newId, oldId] of Object.entries(mappings)) {
-    const regex: RegExp = new RegExp(`public\\s+${newId}\\(`, "g");
+    const regex = new RegExp(`public\\s+${newId}\\(`, "g");
     const methods = newCode.match(regex);
 
     if (methods) {
@@ -79,7 +79,7 @@ function processErcServices(
   const replacementLog: string[] = [];
   let newCode: string = originalCode;
 
-  const regex: RegExp = new RegExp(`public\\s+${tag}(\\w+)\\(`, "g");
+  const regex = new RegExp(`public\\s+${tag}(\\w+)\\(`, "g");
   const methods = newCode.match(regex);
 
   if (methods) {
@@ -127,7 +127,7 @@ async function main(): Promise<void> {
       .readFileSync("./sdk/src/Engine.ts", "utf-8")
       .replace("export class Engine", "class EngineLogic");
 
-    const newEngineCode: string = `${engineCode}
+    const newEngineCode = `${engineCode}
 export class Engine extends EngineLogic {
   constructor(config: { url: string; accessToken: string; }) {
     super({ BASE: config.url, TOKEN: config.accessToken });
@@ -136,7 +136,7 @@ export class Engine extends EngineLogic {
 `;
     fs.writeFileSync("./sdk/src/Engine.ts", newEngineCode);
 
-    const servicesDir: string = "./sdk/src/services";
+    const servicesDir = "./sdk/src/services";
     const serviceFiles: string[] = fs.readdirSync(servicesDir);
 
     const ercServices: string[] = ["erc20", "erc721", "erc1155"];
@@ -176,4 +176,4 @@ export class Engine extends EngineLogic {
   }
 }
 
-main();
+main().then();

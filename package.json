@@ -11,7 +11,8 @@
     "dev:infra": "docker compose -f ./docker-compose.yml up -d",
     "dev:db": "yarn prisma:setup:dev",
     "dev:run": "npx nodemon --watch 'src/**/*.ts' --exec 'npx tsx ./src/index.ts' --files src/index.ts",
-    "build": "rm -rf dist && tsc -p ./tsconfig.json --outDir dist",
+    "prebuild": "rm -r dist",
+    "build": "tsc -p ./tsconfig.json --outDir dist",
     "build:docker": "docker build . -f Dockerfile -t prod",
     "generate:sdk": "npx tsx ./src/scripts/generate-sdk && cd ./sdk && yarn build",
     "prisma:setup:dev": "npx tsx ./src/scripts/setup-db.ts",
@@ -113,5 +114,6 @@
     "micromatch": ">=4.0.8",
     "secp256k1": ">=4.0.4",
     "ws": ">=8.17.1"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
 }

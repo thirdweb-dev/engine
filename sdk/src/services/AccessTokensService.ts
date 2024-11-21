@@ -16,18 +16,18 @@ export class AccessTokensService {
      * @throws ApiError
      */
     public getAll(): CancelablePromise<{
-        result: Array<{
-            id: string;
-            tokenMask: string;
-            /**
-             * A contract or wallet address
-             */
-            walletAddress: string;
-            createdAt: string;
-            expiresAt: string;
-            label: (string | null);
-        }>;
-    }> {
+result: Array<{
+id: string;
+tokenMask: string;
+/**
+ * A contract or wallet address
+ */
+walletAddress: string;
+createdAt: string;
+expiresAt: string;
+label: (string | null);
+}>;
+}> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/auth/access-tokens/get-all',
@@ -42,28 +42,28 @@ export class AccessTokensService {
     /**
      * Create a new access token
      * Create a new access token
-     * @param requestBody
+     * @param requestBody 
      * @returns any Default Response
      * @throws ApiError
      */
     public create(
-        requestBody?: {
-            label?: string;
-        },
-    ): CancelablePromise<{
-        result: {
-            id: string;
-            tokenMask: string;
-            /**
-             * A contract or wallet address
-             */
-            walletAddress: string;
-            createdAt: string;
-            expiresAt: string;
-            label: (string | null);
-            accessToken: string;
-        };
-    }> {
+requestBody?: {
+label?: string;
+},
+): CancelablePromise<{
+result: {
+id: string;
+tokenMask: string;
+/**
+ * A contract or wallet address
+ */
+walletAddress: string;
+createdAt: string;
+expiresAt: string;
+label: (string | null);
+accessToken: string;
+};
+}> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/access-tokens/create',
@@ -80,19 +80,19 @@ export class AccessTokensService {
     /**
      * Revoke an access token
      * Revoke an access token
-     * @param requestBody
+     * @param requestBody 
      * @returns any Default Response
      * @throws ApiError
      */
     public revoke(
-        requestBody: {
-            id: string;
-        },
-    ): CancelablePromise<{
-        result: {
-            success: boolean;
-        };
-    }> {
+requestBody: {
+id: string;
+},
+): CancelablePromise<{
+result: {
+success: boolean;
+};
+}> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/access-tokens/revoke',
@@ -109,20 +109,20 @@ export class AccessTokensService {
     /**
      * Update an access token
      * Update an access token
-     * @param requestBody
+     * @param requestBody 
      * @returns any Default Response
      * @throws ApiError
      */
     public update(
-        requestBody: {
-            id: string;
-            label?: string;
-        },
-    ): CancelablePromise<{
-        result: {
-            success: boolean;
-        };
-    }> {
+requestBody: {
+id: string;
+label?: string;
+},
+): CancelablePromise<{
+result: {
+success: boolean;
+};
+}> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/access-tokens/update',

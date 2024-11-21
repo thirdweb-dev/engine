@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "../../../../../../../utils/cache/getContract";
@@ -20,44 +20,42 @@ const responseSchema = Type.Object({
   result: Type.Array(directListingV3OutputSchema),
 });
 
-responseSchema.example = [
-  {
-    result: [
-      {
-        assetContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
-        tokenId: "0",
-        currencyContractAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-        quantity: "1",
-        pricePerToken: "10000000000",
-        isReservedListing: false,
-        id: "0",
-        currencyValuePerToken: {
-          name: "MATIC",
-          symbol: "MATIC",
-          decimals: 18,
-          value: "10000000000",
-          displayValue: "0.00000001",
-        },
-        asset: {
-          id: "0",
-          uri: "ipfs://QmPw2Dd1dnB6dQCnqGayCTnxUxHrB7m4YFeyph6PYPMboP/0",
-          name: "TJ-Origin",
-          description: "Origin",
-          external_url: "",
-          attributes: [
-            {
-              trait_type: "Mode",
-              value: "GOD",
-            },
-          ],
-        },
-        status: 1,
-        startTimeInSeconds: 1686006043,
-        endTimeInSeconds: 1686610889,
+responseSchema.example = {
+  result: [
+    {
+      assetContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
+      tokenId: "0",
+      currencyContractAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      quantity: "1",
+      pricePerToken: "10000000000",
+      isReservedListing: false,
+      id: "0",
+      currencyValuePerToken: {
+        name: "MATIC",
+        symbol: "MATIC",
+        decimals: 18,
+        value: "10000000000",
+        displayValue: "0.00000001",
       },
-    ],
-  },
-];
+      asset: {
+        id: "0",
+        uri: "ipfs://QmPw2Dd1dnB6dQCnqGayCTnxUxHrB7m4YFeyph6PYPMboP/0",
+        name: "TJ-Origin",
+        description: "Origin",
+        external_url: "",
+        attributes: [
+          {
+            trait_type: "Mode",
+            value: "GOD",
+          },
+        ],
+      },
+      status: 1,
+      startTimeInSeconds: 1686006043,
+      endTimeInSeconds: 1686610889,
+    },
+  ],
+};
 
 // LOGIC
 export async function directListingsGetAll(fastify: FastifyInstance) {

@@ -13,20 +13,20 @@ export class ContractService {
      * Read from contract
      * Call a read function on a contract.
      * @param functionName Name of the function to call on Contract
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param args Arguments for the function. Comma Separated
      * @returns any Default Response
      * @throws ApiError
      */
     public read(
-        functionName: string,
-        chain: string,
-        contractAddress: string,
-        args?: string,
-    ): CancelablePromise<{
-        result: any;
-    }> {
+functionName: string,
+chain: string,
+contractAddress: string,
+args?: string,
+): CancelablePromise<{
+result: any;
+}> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/contract/{chain}/{contractAddress}/read',
@@ -49,94 +49,94 @@ export class ContractService {
     /**
      * Write to contract
      * Call a write function on a contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
-     * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param requestBody 
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
      */
     public write(
-        chain: string,
-        contractAddress: string,
-        xBackendWalletAddress: string,
-        requestBody: {
-            /**
-             * The function to call on the contract
-             */
-            functionName: string;
-            /**
-             * The arguments to call on the function
-             */
-            args: Array<any>;
-            txOverrides?: {
-                /**
-                 * Gas limit for the transaction
-                 */
-                gas?: string;
-                /**
-                 * Maximum fee per gas
-                 */
-                maxFeePerGas?: string;
-                /**
-                 * Maximum priority fee per gas
-                 */
-                maxPriorityFeePerGas?: string;
-                /**
-                 * Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout
-                 */
-                timeoutSeconds?: number;
-                /**
-                 * Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.
-                 */
-                value?: string;
-            };
-            abi?: Array<{
-                type: string;
-                name?: string;
-                inputs?: Array<{
-                    type?: string;
-                    name?: string;
-                    internalType?: string;
-                    stateMutability?: string;
-                    components?: Array<{
-                        type?: string;
-                        name?: string;
-                        internalType?: string;
-                    }>;
-                }>;
-                outputs?: Array<{
-                    type?: string;
-                    name?: string;
-                    internalType?: string;
-                    stateMutability?: string;
-                    components?: Array<{
-                        type?: string;
-                        name?: string;
-                        internalType?: string;
-                    }>;
-                }>;
-                stateMutability?: string;
-            }>;
-        },
-        simulateTx: boolean = false,
-        xIdempotencyKey?: string,
-        xAccountAddress?: string,
-        xAccountFactoryAddress?: string,
-        xAccountSalt?: string,
-    ): CancelablePromise<{
-        result: {
-            /**
-             * Queue ID
-             */
-            queueId: string;
-        };
-    }> {
+chain: string,
+contractAddress: string,
+xBackendWalletAddress: string,
+requestBody: {
+/**
+ * The function to call on the contract. It is highly recommended to provide a full function signature, such as "function mintTo(address to, uint256 amount)", to avoid ambiguity and to skip ABI resolution.
+ */
+functionName: string;
+/**
+ * An array of arguments to provide the function. Supports: numbers, strings, arrays, objects. Do not provide: BigNumber, bigint, Date objects
+ */
+args: Array<any>;
+txOverrides?: {
+/**
+ * Gas limit for the transaction
+ */
+gas?: string;
+/**
+ * Maximum fee per gas
+ */
+maxFeePerGas?: string;
+/**
+ * Maximum priority fee per gas
+ */
+maxPriorityFeePerGas?: string;
+/**
+ * Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout
+ */
+timeoutSeconds?: number;
+/**
+ * Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.
+ */
+value?: string;
+};
+abi?: Array<{
+type: string;
+name?: string;
+inputs?: Array<{
+type?: string;
+name?: string;
+internalType?: string;
+stateMutability?: string;
+components?: Array<{
+type?: string;
+name?: string;
+internalType?: string;
+}>;
+}>;
+outputs?: Array<{
+type?: string;
+name?: string;
+internalType?: string;
+stateMutability?: string;
+components?: Array<{
+type?: string;
+name?: string;
+internalType?: string;
+}>;
+}>;
+stateMutability?: string;
+}>;
+},
+simulateTx: boolean = false,
+xIdempotencyKey?: string,
+xAccountAddress?: string,
+xAccountFactoryAddress?: string,
+xAccountSalt?: string,
+): CancelablePromise<{
+result: {
+/**
+ * Queue ID
+ */
+queueId: string;
+};
+}> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/contract/{chain}/{contractAddress}/write',

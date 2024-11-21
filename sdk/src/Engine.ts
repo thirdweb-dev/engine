@@ -105,7 +105,6 @@ class EngineLogic {
     }
 }
 
-
 export class Engine extends EngineLogic {
   constructor(config: { url: string; accessToken: string; }) {
     super({ BASE: config.url, TOKEN: config.accessToken });

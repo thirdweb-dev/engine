@@ -16,33 +16,33 @@ export class KeypairService {
      * @throws ApiError
      */
     public list(): CancelablePromise<{
-        result: Array<{
-            /**
-             * A unique identifier for the keypair
-             */
-            hash: string;
-            /**
-             * The public key
-             */
-            publicKey: string;
-            /**
-             * The keypair algorithm.
-             */
-            algorithm: string;
-            /**
-             * A description for the keypair.
-             */
-            label?: string;
-            /**
-             * When the keypair was added
-             */
-            createdAt: string;
-            /**
-             * When the keypair was updated
-             */
-            updatedAt: string;
-        }>;
-    }> {
+result: Array<{
+/**
+ * A unique identifier for the keypair
+ */
+hash: string;
+/**
+ * The public key
+ */
+publicKey: string;
+/**
+ * The keypair algorithm.
+ */
+algorithm: string;
+/**
+ * A description for the keypair.
+ */
+label?: string;
+/**
+ * When the keypair was added
+ */
+createdAt: string;
+/**
+ * When the keypair was updated
+ */
+updatedAt: string;
+}>;
+}> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/auth/keypair/get-all',
@@ -57,49 +57,49 @@ export class KeypairService {
     /**
      * Add public key
      * Add the public key for a keypair
-     * @param requestBody
+     * @param requestBody 
      * @returns any Default Response
      * @throws ApiError
      */
     public add(
-        requestBody: {
-            /**
-             * The public key of your keypair beginning with '-----BEGIN PUBLIC KEY-----'.
-             */
-            publicKey: string;
-            algorithm: ('RS256' | 'RS384' | 'RS512' | 'ES256' | 'ES384' | 'ES512' | 'PS256' | 'PS384' | 'PS512');
-            label?: string;
-        },
-    ): CancelablePromise<{
-        result: {
-            keypair: {
-                /**
-                 * A unique identifier for the keypair
-                 */
-                hash: string;
-                /**
-                 * The public key
-                 */
-                publicKey: string;
-                /**
-                 * The keypair algorithm.
-                 */
-                algorithm: string;
-                /**
-                 * A description for the keypair.
-                 */
-                label?: string;
-                /**
-                 * When the keypair was added
-                 */
-                createdAt: string;
-                /**
-                 * When the keypair was updated
-                 */
-                updatedAt: string;
-            };
-        };
-    }> {
+requestBody: {
+/**
+ * The public key of your keypair beginning with '-----BEGIN PUBLIC KEY-----'.
+ */
+publicKey: string;
+algorithm: ('RS256' | 'RS384' | 'RS512' | 'ES256' | 'ES384' | 'ES512' | 'PS256' | 'PS384' | 'PS512');
+label?: string;
+},
+): CancelablePromise<{
+result: {
+keypair: {
+/**
+ * A unique identifier for the keypair
+ */
+hash: string;
+/**
+ * The public key
+ */
+publicKey: string;
+/**
+ * The keypair algorithm.
+ */
+algorithm: string;
+/**
+ * A description for the keypair.
+ */
+label?: string;
+/**
+ * When the keypair was added
+ */
+createdAt: string;
+/**
+ * When the keypair was updated
+ */
+updatedAt: string;
+};
+};
+}> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/keypair/add',
@@ -116,19 +116,19 @@ export class KeypairService {
     /**
      * Remove public key
      * Remove the public key for a keypair
-     * @param requestBody
+     * @param requestBody 
      * @returns any Default Response
      * @throws ApiError
      */
     public remove(
-        requestBody: {
-            hash: string;
-        },
-    ): CancelablePromise<{
-        result: {
-            success: boolean;
-        };
-    }> {
+requestBody: {
+hash: string;
+},
+): CancelablePromise<{
+result: {
+success: boolean;
+};
+}> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/keypair/remove',
