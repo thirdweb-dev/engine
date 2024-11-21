@@ -1,13 +1,14 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import SuperJSON from "superjson";
 import {
   getContract,
   prepareContractCall,
   readContract,
   resolveMethod,
 } from "thirdweb";
-import { prepareMethod } from "thirdweb/dist/types/utils/abi/prepare-method";
+import { prepareMethod } from "thirdweb/contract";
 import { resolvePromisedValue, type AbiFunction } from "thirdweb/utils";
 import { decodeAbiParameters } from "viem/utils";
 import { getChain } from "../../../../utils/chain";
@@ -153,7 +154,9 @@ export async function readMulticall(fastify: FastifyInstance) {
         });
 
         reply.status(StatusCodes.OK).send({
-          results: processedResults,
+          results: SuperJSON.serialize(processedResults).json as Static<
+            typeof responseSchema
+          >["results"],
         });
       } catch (e) {
         throw createCustomError(
