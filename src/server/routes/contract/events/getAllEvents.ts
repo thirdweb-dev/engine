@@ -87,7 +87,7 @@ export async function getAllEvents(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = await contract.events.getAllEvents({
+      const returnData = await contract.events.getAllEvents({
         fromBlock,
         toBlock,
         order,

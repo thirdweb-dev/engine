@@ -18,7 +18,7 @@ export const newConfigurationListener = async (): Promise<void> => {
   // Whenever we receive a new transaction, process it
   connection.on(
     "notification",
-    async (msg: { channel: string; payload: string }) => {
+    async (_msg: { channel: string; payload: string }) => {
       // Update Configs Data
       await getConfig(false);
     },
@@ -69,7 +69,7 @@ export const updatedConfigurationListener = async (): Promise<void> => {
   // Whenever we receive a new transaction, process it
   connection.on(
     "notification",
-    async (msg: { channel: string; payload: string }) => {
+    async (_msg: { channel: string; payload: string }) => {
       // Update Configs Data
       logger({
         service: "worker",

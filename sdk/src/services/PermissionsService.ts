@@ -15,7 +15,7 @@ export class PermissionsService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(): CancelablePromise<{
+    public listAdmins(): CancelablePromise<{
 result: Array<{
 /**
  * A contract or wallet address
@@ -43,7 +43,7 @@ label: (string | null);
      * @returns any Default Response
      * @throws ApiError
      */
-    public grant(
+    public grantAdmin(
 requestBody: {
 /**
  * A contract or wallet address
@@ -77,7 +77,7 @@ success: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public revoke(
+    public revokeAdmin(
 requestBody: {
 /**
  * A contract or wallet address

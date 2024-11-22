@@ -28,7 +28,7 @@ export const updateTxListener = async (): Promise<void> => {
         (sub) => sub.requestId === parsedPayload.id,
       );
 
-      if (index == -1) {
+      if (index === -1) {
         return;
       }
 
@@ -47,7 +47,9 @@ export const updateTxListener = async (): Promise<void> => {
       userSubscription.socket.send(
         await formatSocketMessage(returnData, message),
       );
-      closeConnection ? userSubscription.socket.close() : null;
+      if (closeConnection) {
+        userSubscription.socket.close();
+      }
     },
   );
 

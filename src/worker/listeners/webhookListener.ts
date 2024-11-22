@@ -16,7 +16,7 @@ export const newWebhooksListener = async (): Promise<void> => {
   // Whenever we receive a new transaction, process it
   connection.on(
     "notification",
-    async (msg: { channel: string; payload: string }) => {
+    async (_msg: { channel: string; payload: string }) => {
       logger({
         service: "worker",
         level: "info",
@@ -72,7 +72,7 @@ export const updatedWebhooksListener = async (): Promise<void> => {
   // Whenever we receive a new transaction, process it
   connection.on(
     "notification",
-    async (msg: { channel: string; payload: string }) => {
+    async (_msg: { channel: string; payload: string }) => {
       // Update Configs Data
       logger({
         service: "worker",

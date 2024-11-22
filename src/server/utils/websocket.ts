@@ -10,7 +10,7 @@ const timeoutDuration = 10 * 60 * 1000;
 
 export const findWSConnectionInSharedState = async (
   connection: SocketStream,
-  request: FastifyRequest,
+  _request: FastifyRequest,
 ): Promise<number> => {
   const index = subscriptionsData.findIndex(
     (sub) => sub.socket === connection.socket,

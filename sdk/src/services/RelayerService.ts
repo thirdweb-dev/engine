@@ -15,7 +15,7 @@ export class RelayerService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(): CancelablePromise<{
+    public listRelayers(): CancelablePromise<{
 result: Array<{
 id: string;
 name: (string | null);
@@ -46,7 +46,7 @@ allowedForwarders: (Array<string> | null);
      * @returns any Default Response
      * @throws ApiError
      */
-    public create(
+    public createRelayer(
 requestBody: {
 name?: string;
 /**
@@ -85,7 +85,7 @@ relayerId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public revoke(
+    public revokeRelayer(
 requestBody: {
 id: string;
 },
@@ -114,7 +114,7 @@ success: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public update(
+    public updateRelayer(
 requestBody: {
 id: string;
 name?: string;

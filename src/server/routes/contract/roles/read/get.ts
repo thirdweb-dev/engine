@@ -56,7 +56,7 @@ export async function getRoles(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = await contract.roles.get(role);
+      const returnData = await contract.roles.get(role);
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

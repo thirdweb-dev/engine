@@ -18,7 +18,7 @@ export class Erc721Service {
      * @returns any Default Response
      * @throws ApiError
      */
-    public get(
+    public erc721Get(
 tokenId: string,
 chain: string,
 contractAddress: string,
@@ -59,7 +59,7 @@ quantityOwned?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(
+    public erc721GetAll(
 chain: string,
 contractAddress: string,
 start?: number,
@@ -101,7 +101,7 @@ quantityOwned?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getOwned(
+    public erc721GetOwned(
 walletAddress: string,
 chain: string,
 contractAddress: string,
@@ -141,7 +141,7 @@ quantityOwned?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public balanceOf(
+    public erc721BalanceOf(
 walletAddress: string,
 chain: string,
 contractAddress: string,
@@ -176,7 +176,7 @@ result?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public isApproved(
+    public erc721IsApproved(
 ownerWallet: string,
 operator: string,
 chain: string,
@@ -211,7 +211,7 @@ result?: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public totalCount(
+    public erc721TotalCount(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -240,7 +240,7 @@ result?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public totalClaimedSupply(
+    public erc721TotalClaimedSupply(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -269,7 +269,7 @@ result?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public totalUnclaimedSupply(
+    public erc721TotalUnclaimedSupply(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -300,7 +300,7 @@ result?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public canClaim(
+    public erc721CanClaim(
 quantity: string,
 chain: string,
 contractAddress: string,
@@ -336,7 +336,7 @@ result: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getActiveClaimConditions(
+    public erc721GetActiveClaimConditions(
 chain: string,
 contractAddress: string,
 withAllowList?: boolean,
@@ -397,7 +397,7 @@ snapshot?: (null | Array<string>);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAllClaimConditions(
+    public erc721GetAllClaimConditions(
 chain: string,
 contractAddress: string,
 withAllowList?: boolean,
@@ -459,7 +459,7 @@ snapshot?: (null | Array<string>);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getClaimIneligibilityReasons(
+    public erc721GetClaimIneligibilityReasons(
 quantity: string,
 chain: string,
 contractAddress: string,
@@ -495,7 +495,7 @@ result: Array<(string | ('There is not enough supply to claim.' | 'This address 
      * @returns any Default Response
      * @throws ApiError
      */
-    public getClaimerProofs(
+    public erc721GetClaimerProofs(
 walletAddress: string,
 chain: string,
 contractAddress: string,
@@ -547,7 +547,7 @@ proof: Array<string>;
      * @returns any Default Response
      * @throws ApiError
      */
-    public setApprovalForAll(
+    public erc721SetApprovalForAll(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -638,7 +638,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public setApprovalForToken(
+    public erc721SetApprovalForToken(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -729,7 +729,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public transfer(
+    public erc721Transfer(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -820,7 +820,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public transferFrom(
+    public erc721TransferFrom(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -915,7 +915,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public mintTo(
+    public erc721MintTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1036,7 +1036,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public mintBatchTo(
+    public erc721MintBatchTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1157,7 +1157,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public burn(
+    public erc721Burn(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1244,7 +1244,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public lazyMint(
+    public erc721LazyMint(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1361,7 +1361,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public claimTo(
+    public erc721ClaimTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1452,7 +1452,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public signatureGenerate(
+    public erc721SignatureGenerate(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress?: string,
@@ -1754,7 +1754,7 @@ signature: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public signatureMint(
+    public erc721SignatureMint(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1932,7 +1932,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public setClaimConditions(
+    public erc721SetClaimConditions(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -2032,7 +2032,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateClaimConditions(
+    public erc721UpdateClaimConditions(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -2129,7 +2129,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public signaturePrepare(
+    public erc721SignaturePrepare(
 chain: string,
 contractAddress: string,
 requestBody: {
@@ -2311,7 +2311,7 @@ primaryType: 'MintRequest';
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateTokenMetadata(
+    public erc721UpdateTokenMetadata(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,

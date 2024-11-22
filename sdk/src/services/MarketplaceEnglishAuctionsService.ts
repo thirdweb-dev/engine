@@ -22,7 +22,7 @@ export class MarketplaceEnglishAuctionsService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(
+    public getAllEnglishAuctions(
 chain: string,
 contractAddress: string,
 count?: number,
@@ -125,7 +125,7 @@ status?: (0 | 1 | 2 | 3 | 4 | 5);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAllValid(
+    public getAllValidEnglishAuctions(
 chain: string,
 contractAddress: string,
 count?: number,
@@ -224,7 +224,7 @@ status?: (0 | 1 | 2 | 3 | 4 | 5);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAuction(
+    public getEnglishAuction(
 listingId: string,
 chain: string,
 contractAddress: string,
@@ -318,7 +318,7 @@ status?: (0 | 1 | 2 | 3 | 4 | 5);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getBidBufferBps(
+    public getEnglishAuctionsBidBufferBps(
 listingId: string,
 chain: string,
 contractAddress: string,
@@ -357,7 +357,7 @@ result: number;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getMinimumNextBid(
+    public getEnglishAuctionsMinimumNextBid(
 listingId: string,
 chain: string,
 contractAddress: string,
@@ -400,7 +400,7 @@ displayValue: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getWinningBid(
+    public getEnglishAuctionsWinningBid(
 listingId: string,
 chain: string,
 contractAddress: string,
@@ -460,7 +460,7 @@ displayValue?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getTotalCount(
+    public getEnglishAuctionsTotalCount(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -491,7 +491,7 @@ result: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public isWinningBid(
+    public isEnglishAuctionsWinningBid(
 listingId: string,
 bidAmount: string,
 chain: string,
@@ -527,7 +527,7 @@ result: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getWinner(
+    public getEnglishAuctionsWinner(
 listingId: string,
 chain: string,
 contractAddress: string,
@@ -562,7 +562,7 @@ result: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public buyoutAuction(
+    public buyoutEnglishAuction(
 chain: string,
 contractAddress: string,
 requestBody: {
@@ -610,7 +610,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public cancelAuction(
+    public cancelEnglishAuction(
 chain: string,
 contractAddress: string,
 requestBody: {
@@ -658,7 +658,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public createAuction(
+    public createEnglishAuction(
 chain: string,
 contractAddress: string,
 requestBody: {
@@ -745,7 +745,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public closeAuctionForBidder(
+    public closeEnglishAuctionForBidder(
 chain: string,
 contractAddress: string,
 requestBody: {
@@ -795,7 +795,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public closeAuctionForSeller(
+    public closeEnglishAuctionForSeller(
 chain: string,
 contractAddress: string,
 requestBody: {
@@ -845,7 +845,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public executeSale(
+    public executeEnglishAuctionSale(
 chain: string,
 contractAddress: string,
 requestBody: {
@@ -893,7 +893,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public makeBid(
+    public makeEnglishAuctionBid(
 chain: string,
 contractAddress: string,
 requestBody: {

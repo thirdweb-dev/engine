@@ -20,9 +20,9 @@ export const getBlockNumberish = async (chainId: number): Promise<bigint> => {
   try {
     const blockNumber = await eth_blockNumber(rpcRequest);
     // Non-blocking update to cache.
-    redis.set(key, blockNumber.toString()).catch((e) => {});
+    redis.set(key, blockNumber.toString()).catch((_e) => {});
     return blockNumber;
-  } catch (e) {
+  } catch {
     const cached = await redis.get(key);
     if (cached) {
       return BigInt(cached);

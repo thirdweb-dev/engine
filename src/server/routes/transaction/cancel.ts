@@ -80,7 +80,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
         );
       }
 
-      let message = "Transaction successfully cancelled.";
+      const message = "Transaction successfully cancelled.";
       let cancelledTransaction: CancelledTransaction | null = null;
       if (!transaction.isUserOp) {
         if (transaction.status === "queued") {

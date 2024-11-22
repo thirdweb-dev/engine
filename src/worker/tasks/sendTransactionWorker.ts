@@ -78,6 +78,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   // For example, the developer retried all failed transactions during an RPC outage.
   // An errored queued transaction (resendCount = 0) is safe to retry: the transaction wasn't sent to RPC.
   if (transaction.status === "errored" && resendCount === 0) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { errorMessage, ...omitted } = transaction;
     transaction = {
       ...omitted,

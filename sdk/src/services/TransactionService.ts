@@ -18,7 +18,7 @@ export class TransactionService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(
+    public listTransactions(
 status: ('queued' | 'mined' | 'cancelled' | 'errored'),
 page: number = 1,
 limit: number = 100,

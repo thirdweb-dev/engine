@@ -16,7 +16,7 @@ export class ChainService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public get(
+    public getChain(
 chain: string,
 ): CancelablePromise<{
 result: {
@@ -81,7 +81,7 @@ slug?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(): CancelablePromise<{
+    public listChains(): CancelablePromise<{
 result: Array<{
 /**
  * Chain name

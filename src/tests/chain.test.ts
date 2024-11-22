@@ -22,7 +22,7 @@ describe("getChainIdFromChain", () => {
   });
 
   it("should return the chainId from chainOverrides if it exists by slug", async () => {
-    // @ts-ignore
+    // @ts-expect-error expected
     mockGetConfig.mockResolvedValueOnce({
       chainOverrides: JSON.stringify([
         {
@@ -40,7 +40,7 @@ describe("getChainIdFromChain", () => {
   });
 
   it("should return the chainId from chainOverrides if it exists by slug, case-insensitive", async () => {
-    // @ts-ignore
+    // @ts-expect-error expected
     mockGetConfig.mockResolvedValueOnce({
       chainOverrides: JSON.stringify([
         {
@@ -58,7 +58,7 @@ describe("getChainIdFromChain", () => {
   });
 
   it("should return the chainId from chainOverrides if it exists", async () => {
-    // @ts-ignore
+    // @ts-expect-error expected
     mockGetConfig.mockResolvedValueOnce({
       chainOverrides: JSON.stringify([
         {
@@ -76,7 +76,7 @@ describe("getChainIdFromChain", () => {
   });
 
   it("should return the chainId from getChainByChainIdAsync if chain is a valid numeric string", async () => {
-    // @ts-ignore
+    // @ts-expect-error expected
     mockGetChainByChainIdAsync.mockResolvedValueOnce({
       name: "Polygon",
       chainId: 137,
@@ -90,9 +90,9 @@ describe("getChainIdFromChain", () => {
   });
 
   it("should return the chainId from getChainBySlugAsync if chain is a valid string", async () => {
-    // @ts-ignore
+    // @ts-expect-error expected
     mockGetConfig.mockResolvedValueOnce({});
-    // @ts-ignore
+    // @ts-expect-error expected
     mockGetChainBySlugAsync.mockResolvedValueOnce({
       name: "Polygon",
       chainId: 137,
@@ -106,7 +106,7 @@ describe("getChainIdFromChain", () => {
   });
 
   it("should throw an error for an invalid chain", async () => {
-    // @ts-ignore
+    // @ts-expect-error expected
     mockGetConfig.mockResolvedValueOnce({});
 
     await expect(getChainIdFromChain("not_a_real_chain")).rejects.toEqual({

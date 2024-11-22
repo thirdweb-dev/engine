@@ -18,7 +18,7 @@ export class Erc1155Service {
      * @returns any Default Response
      * @throws ApiError
      */
-    public get(
+    public erc1155Get(
 tokenId: string,
 chain: string,
 contractAddress: string,
@@ -59,7 +59,7 @@ quantityOwned?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(
+    public erc1155GetAll(
 chain: string,
 contractAddress: string,
 start?: number,
@@ -101,7 +101,7 @@ quantityOwned?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getOwned(
+    public erc1155GetOwned(
 walletAddress: string,
 chain: string,
 contractAddress: string,
@@ -142,7 +142,7 @@ quantityOwned?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public balanceOf(
+    public erc1155BalanceOf(
 walletAddress: string,
 tokenId: string,
 chain: string,
@@ -179,7 +179,7 @@ result?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public isApproved(
+    public erc1155IsApproved(
 ownerWallet: string,
 operator: string,
 chain: string,
@@ -214,7 +214,7 @@ result?: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public totalCount(
+    public erc1155TotalCount(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -244,7 +244,7 @@ result?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public totalSupply(
+    public erc1155TotalSupply(
 tokenId: string,
 chain: string,
 contractAddress: string,
@@ -284,7 +284,7 @@ result?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public signatureGenerate(
+    public erc1155SignatureGenerate(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress?: string,
@@ -563,7 +563,7 @@ signature: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public canClaim(
+    public erc1155CanClaim(
 quantity: string,
 tokenId: string,
 chain: string,
@@ -602,7 +602,7 @@ result: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getActiveClaimConditions(
+    public erc1155GetActiveClaimConditions(
 tokenId: (string | number),
 chain: string,
 contractAddress: string,
@@ -666,7 +666,7 @@ snapshot?: (null | Array<string>);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAllClaimConditions(
+    public erc1155GetAllClaimConditions(
 tokenId: (string | number),
 chain: string,
 contractAddress: string,
@@ -730,7 +730,7 @@ snapshot?: (null | Array<string>);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getClaimerProofs(
+    public erc1155GetClaimerProofs(
 tokenId: (string | number),
 walletAddress: string,
 chain: string,
@@ -780,7 +780,7 @@ proof: Array<string>;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getClaimIneligibilityReasons(
+    public erc1155GetClaimIneligibilityReasons(
 tokenId: (string | number),
 quantity: string,
 chain: string,
@@ -824,7 +824,7 @@ result: Array<(string | ('There is not enough supply to claim.' | 'This address 
      * @returns any Default Response
      * @throws ApiError
      */
-    public airdrop(
+    public erc1155Airdrop(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -921,7 +921,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public burn(
+    public erc1155Burn(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1012,7 +1012,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public burnBatch(
+    public erc1155BurnBatch(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1097,7 +1097,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public claimTo(
+    public erc1155ClaimTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1192,7 +1192,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public lazyMint(
+    public erc1155LazyMint(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1309,7 +1309,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public mintAdditionalSupplyTo(
+    public erc1155MintAdditionalSupplyTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1404,7 +1404,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public mintBatchTo(
+    public erc1155MintBatchTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1528,7 +1528,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public mintTo(
+    public erc1155MintTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1652,7 +1652,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public setApprovalForAll(
+    public erc1155SetApprovalForAll(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1743,7 +1743,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public transfer(
+    public erc1155Transfer(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1842,7 +1842,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public transferFrom(
+    public erc1155TransferFrom(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1945,7 +1945,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public signatureMint(
+    public erc1155SignatureMint(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -2110,7 +2110,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public setClaimConditions(
+    public erc1155SetClaimConditions(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -2214,7 +2214,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public claimConditionsUpdate(
+    public erc1155ClaimConditionsUpdate(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -2320,7 +2320,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateClaimConditions(
+    public erc1155UpdateClaimConditions(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -2427,7 +2427,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateTokenMetadata(
+    public erc1155UpdateTokenMetadata(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,

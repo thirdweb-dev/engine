@@ -14,7 +14,7 @@ export const isWellFormedPublicKey = (key: string) => {
   try {
     crypto.createPublicKey(key);
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 };

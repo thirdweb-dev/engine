@@ -85,7 +85,7 @@ const assertAdminBasicAuth = (username: string, password: string) => {
       const buf1 = Buffer.from(password.padEnd(100));
       const buf2 = Buffer.from(ADMIN_ROUTES_PASSWORD.padEnd(100));
       return timingSafeEqual(buf1, buf2);
-    } catch (e) {}
+    } catch { /* empty */ }
   }
   return false;
 };

@@ -50,7 +50,7 @@ const handler: Processor<null, void, string> = async (_job: Job<null>) => {
 
     await Promise.all(
       batch.map(async ({ chainId, walletAddress }) => {
-        const [_, isStuck, currentState] = await Promise.all([
+        const [, isStuck, currentState] = await Promise.all([
           updateNonceHistory(walletAddress, chainId),
           isQueueStuck(walletAddress, chainId),
           getCurrentNonceState(walletAddress, chainId),

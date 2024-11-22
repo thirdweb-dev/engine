@@ -32,6 +32,7 @@ const ReplySchemaError = Type.Object({
   error: Type.String(),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const responseBodySchema = Type.Union([ReplySchemaOk, ReplySchemaError]);
 
 export async function healthCheck(fastify: FastifyInstance) {

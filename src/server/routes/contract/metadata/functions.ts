@@ -81,7 +81,7 @@ export async function extractFunctions(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = await contract.publishedMetadata.extractFunctions();
+      const returnData = await contract.publishedMetadata.extractFunctions();
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

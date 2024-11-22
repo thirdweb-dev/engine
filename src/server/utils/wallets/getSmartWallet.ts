@@ -31,7 +31,7 @@ export const getSmartWallet = async ({
       resolvedFactoryAddress =
         (await redis.get(`account-factory:${accountAddress.toLowerCase()}`)) ??
         undefined;
-    } catch {}
+    } catch { /* empty */ }
   }
 
   if (!resolvedFactoryAddress) {
@@ -41,7 +41,7 @@ export const getSmartWallet = async ({
         contractAddress: accountAddress,
       });
       resolvedFactoryAddress = await contract.call("factory");
-    } catch {}
+    } catch { /* empty */ }
   }
 
   if (!resolvedFactoryAddress) {

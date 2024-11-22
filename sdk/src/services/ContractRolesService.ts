@@ -18,7 +18,7 @@ export class ContractRolesService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getRole(
+    public getContractRole(
 role: string,
 chain: string,
 contractAddress: string,
@@ -51,7 +51,7 @@ result: Array<string>;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(
+    public listContractRoles(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -97,7 +97,7 @@ signer: Array<string>;
      * @returns any Default Response
      * @throws ApiError
      */
-    public grant(
+    public grantContractRole(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -188,7 +188,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public revoke(
+    public revokeContractRole(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,

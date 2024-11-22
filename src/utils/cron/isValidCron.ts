@@ -5,7 +5,7 @@ import { createCustomError } from "../../server/middleware/error";
 export const isValidCron = (input: string): boolean => {
   try {
     cronParser.parseExpression(input);
-  } catch (error) {
+  } catch {
     throw createCustomError(
       "Invalid cron expression. Please check the cron expression.",
       StatusCodes.BAD_REQUEST,

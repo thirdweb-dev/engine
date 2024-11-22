@@ -22,7 +22,7 @@ export class MarketplaceDirectListingsService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(
+    public getAllDirectListings(
 chain: string,
 contractAddress: string,
 count?: number,
@@ -117,7 +117,7 @@ endTimeInSeconds?: number;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAllValid(
+    public getAllValidDirectListings(
 chain: string,
 contractAddress: string,
 count?: number,
@@ -208,7 +208,7 @@ endTimeInSeconds?: number;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getListing(
+    public getDirectListing(
 listingId: string,
 chain: string,
 contractAddress: string,
@@ -292,7 +292,7 @@ endTimeInSeconds?: number;
      * @returns any Default Response
      * @throws ApiError
      */
-    public isBuyerApprovedForListing(
+    public isBuyerApprovedForDirectListings(
 listingId: string,
 walletAddress: string,
 chain: string,
@@ -329,7 +329,7 @@ result: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public isCurrencyApprovedForListing(
+    public isCurrencyApprovedForDirectListings(
 listingId: string,
 currencyContractAddress: string,
 chain: string,
@@ -357,14 +357,14 @@ result: boolean;
     }
 
     /**
-     * Get Listing Count
+     * Transfer token from wallet
      * Get the total number of direct listings on this marketplace contract.
      * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
      */
-    public getTotalCount(
+    public getDirectListingsTotalCount(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -400,7 +400,7 @@ result: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public createListing(
+    public createDirectListing(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -515,7 +515,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateListing(
+    public updateDirectListing(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -634,7 +634,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public buyFromListing(
+    public buyFromDirectListing(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1002,7 +1002,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public cancelListing(
+    public cancelDirectListing(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,

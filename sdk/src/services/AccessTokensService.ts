@@ -15,7 +15,7 @@ export class AccessTokensService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(): CancelablePromise<{
+    public listAccessTokens(): CancelablePromise<{
 result: Array<{
 id: string;
 tokenMask: string;
@@ -46,7 +46,7 @@ label: (string | null);
      * @returns any Default Response
      * @throws ApiError
      */
-    public create(
+    public createAccessToken(
 requestBody?: {
 label?: string;
 },
@@ -84,7 +84,7 @@ accessToken: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public revoke(
+    public revokeAccessTokens(
 requestBody: {
 id: string;
 },
@@ -113,7 +113,7 @@ success: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public update(
+    public updateAccessTokens(
 requestBody: {
 id: string;
 label?: string;

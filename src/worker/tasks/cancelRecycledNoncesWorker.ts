@@ -66,7 +66,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 };
 
 const fromRecycledNoncesKey = (key: string) => {
-  const [_, chainId, walletAddress] = key.split(":");
+  const [, chainId, walletAddress] = key.split(":");
   return {
     chainId: parseInt(chainId),
     walletAddress: walletAddress as Address,

@@ -75,7 +75,7 @@ describe("Static paths", () => {
         method: "GET",
         url: path,
         headers: {},
-        // @ts-ignore
+        // @ts-expect-error expected
         raw: {},
       };
 
@@ -97,7 +97,7 @@ describe("Relayer endpoints", () => {
       method: "POST",
       url: "/relayer/be369f95-7bef-4e29-a016-3146fa394eb1",
       headers: {},
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -117,7 +117,7 @@ describe("Relayer endpoints", () => {
         method: "POST",
         url: path,
         headers: {},
-        // @ts-ignore
+        // @ts-expect-error expected
         raw: {},
       };
 
@@ -155,7 +155,7 @@ describe("Websocket requests", () => {
       url: "/backend-wallets/get-all",
       headers: { upgrade: "WEBSOCKET" },
       query: { token: "my-access-token" },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -188,7 +188,7 @@ describe("Websocket requests", () => {
       url: "/backend-wallets/get-all",
       headers: { upgrade: "WEBSOCKET" },
       query: { token: "my-access-token" },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: { socket: mockSocket },
     };
 
@@ -226,7 +226,7 @@ describe("Websocket requests", () => {
       url: "/backend-wallets/get-all",
       headers: { upgrade: "WEBSOCKET" },
       query: { token: "my-access-token" },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: { socket: mockSocket },
     };
 
@@ -249,7 +249,7 @@ describe("Websocket requests", () => {
       url: "/backend-wallets/get-all",
       headers: { upgrade: "WEBSOCKET" },
       query: { token: "my-access-token" },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: { socket: mockSocket },
     };
 
@@ -275,6 +275,7 @@ describe("Websocket requests", () => {
       session: { permissions: Permission.Admin },
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const mockSocket = {
       write: vi.fn(),
       destroy: vi.fn(),
@@ -292,7 +293,7 @@ describe("Websocket requests", () => {
       url: "/backend-wallets/get-all",
       headers: { upgrade: "WEBSOCKET" },
       query: { token: "my-access-token" },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -336,7 +337,7 @@ describe("Access tokens", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -369,7 +370,7 @@ describe("Access tokens", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -401,7 +402,7 @@ describe("Access tokens", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -424,7 +425,7 @@ describe("Access tokens", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -464,7 +465,7 @@ describe("Access tokens", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -521,7 +522,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -555,7 +556,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -583,7 +584,7 @@ C0cP9UNh7FQsLQ/l2BcOH8+G2xvh+8tjtQ==
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -615,7 +616,7 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -658,7 +659,7 @@ AwEHoUQDQgAE74w9+HXi/PCQZTu2AS4titehOFopNSrfqlFnFbtglPuwNB2ke53p
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -694,7 +695,7 @@ describe("Dashboard JWT", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -718,7 +719,7 @@ describe("Dashboard JWT", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -751,7 +752,7 @@ describe("Dashboard JWT", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -771,7 +772,7 @@ describe("Dashboard JWT", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -788,7 +789,7 @@ describe("Dashboard JWT", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: `Bearer ${jwt}` },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -809,7 +810,7 @@ describe("thirdweb secret key", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: "Bearer my-thirdweb-secret-key" },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -823,7 +824,7 @@ describe("thirdweb secret key", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: { authorization: "Bearer my-thirdweb-secret-key" },
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -888,7 +889,7 @@ describe("auth webhooks", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: {},
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -937,7 +938,7 @@ describe("auth webhooks", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: {},
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 
@@ -952,7 +953,7 @@ describe("auth webhooks", () => {
       method: "POST",
       url: "/backend-wallets/get-all",
       headers: {},
-      // @ts-ignore
+      // @ts-expect-error expected
       raw: {},
     };
 

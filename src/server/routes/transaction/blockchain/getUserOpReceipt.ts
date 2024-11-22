@@ -104,7 +104,7 @@ export async function getUserOpReceipt(fastify: FastifyInstance) {
         reply.status(StatusCodes.OK).send({
           result: json.result,
         });
-      } catch (e) {
+      } catch {
         throw createCustomError(
           "Unable to get receipt.",
           StatusCodes.INTERNAL_SERVER_ERROR,

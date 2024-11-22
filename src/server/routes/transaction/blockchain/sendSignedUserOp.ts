@@ -9,6 +9,8 @@ import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { walletChainParamSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const UserOp = Type.Object({
   sender: Type.String(),
   nonce: Type.String(),

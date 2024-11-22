@@ -94,7 +94,7 @@ approvedCallTargets: Array<string>;
      * @returns any Default Response
      * @throws ApiError
      */
-    public grantAdmin(
+    public grantAccountAdmin(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -181,7 +181,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public revokeAdmin(
+    public revokeAccountAdmin(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -268,7 +268,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public grantSession(
+    public grantAccountSession(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -359,7 +359,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public revokeSession(
+    public revokeAccountSession(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -446,7 +446,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateSession(
+    public updateAccountSession(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,

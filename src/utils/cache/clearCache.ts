@@ -7,7 +7,7 @@ import { webhookCache } from "./getWebhook";
 import { keypairCache } from "./keypair";
 
 export const clearCache = async (
-  service: (typeof env)["LOG_SERVICES"][0],
+  _service: (typeof env)["LOG_SERVICES"][0],
 ): Promise<void> => {
   invalidateConfig();
   webhookCache.clear();

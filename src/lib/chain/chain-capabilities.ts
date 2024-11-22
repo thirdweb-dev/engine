@@ -1,5 +1,6 @@
 import { createSWRCache } from "../cache/swr";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const Services = [
   "contracts",
   "connect-sdk",
@@ -11,7 +12,7 @@ const Services = [
   "insight",
 ] as const;
 
-export type Service = (typeof Services)[number];
+export type Service = typeof Services[number];
 
 export type ChainCapabilities = Array<{
   service: Service;

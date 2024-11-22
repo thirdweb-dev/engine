@@ -125,7 +125,7 @@ export async function checkTxStatus(fastify: FastifyInstance) {
         onError(error, connection, request);
       });
 
-      connection.socket.on("message", async (message, isBinary) => {
+      connection.socket.on("message", async (_message, _isBinary) => {
         onMessage(connection, request);
       });
 

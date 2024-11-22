@@ -86,7 +86,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      let queuedTransaction: QueuedTransaction = {
+      const queuedTransaction: QueuedTransaction = {
         status: "queued",
         queueId: randomUUID(),
         queuedAt: new Date(),

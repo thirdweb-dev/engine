@@ -7,8 +7,8 @@ export const withWebSocket = async (server: FastifyInstance) => {
     errorHandler: function (
       error,
       conn /* SocketStream */,
-      req /* FastifyRequest */,
-      reply /* FastifyReply */,
+      _req /* FastifyRequest */,
+      _reply /* FastifyReply */,
     ) {
       logger({
         service: "websocket",

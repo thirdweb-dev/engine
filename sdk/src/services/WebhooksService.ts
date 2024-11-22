@@ -15,7 +15,7 @@ export class WebhooksService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(): CancelablePromise<{
+    public listWebhooks(): CancelablePromise<{
 result: Array<{
 id: number;
 url: string;
@@ -44,7 +44,7 @@ createdAt: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public create(
+    public createWebhook(
 requestBody: {
 /**
  * Webhook URL. Non-HTTPS URLs are not supported.

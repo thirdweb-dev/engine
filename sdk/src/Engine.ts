@@ -34,7 +34,7 @@ import { WebhooksService } from './services/WebhooksService';
 
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
 
-class EngineLogic {
+export class Engine {
 
     public readonly accessTokens: AccessTokensService;
     public readonly account: AccountService;
@@ -103,10 +103,4 @@ class EngineLogic {
         this.transaction = new TransactionService(this.request);
         this.webhooks = new WebhooksService(this.request);
     }
-}
-
-export class Engine extends EngineLogic {
-  constructor(config: { url: string; accessToken: string; }) {
-    super({ BASE: config.url, TOKEN: config.accessToken });
-  }
 }

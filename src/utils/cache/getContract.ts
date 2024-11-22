@@ -4,6 +4,7 @@ import { createCustomError } from "../../server/middleware/error";
 import { abiSchema } from "../../server/schemas/contract";
 import { getSdk } from "./getSdk";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const abiArraySchema = Type.Array(abiSchema);
 
 interface GetContractParams {

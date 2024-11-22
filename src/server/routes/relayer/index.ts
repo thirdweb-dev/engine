@@ -60,6 +60,8 @@ const requestBodySchema = Type.Union([
   }),
 ]);
 
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const responseBodySchema = Type.Composite([
   Type.Object({
     result: Type.Optional(

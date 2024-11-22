@@ -19,7 +19,7 @@ export class Erc20Service {
      * @returns any Default Response
      * @throws ApiError
      */
-    public allowanceOf(
+    public erc20AllowanceOf(
 ownerWallet: string,
 spenderWallet: string,
 chain: string,
@@ -67,7 +67,7 @@ displayValue: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public balanceOf(
+    public erc20BalanceOf(
 walletAddress: string,
 chain: string,
 contractAddress: string,
@@ -112,7 +112,7 @@ displayValue: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public get(
+    public erc20Get(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -145,7 +145,7 @@ decimals: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public totalSupply(
+    public erc20TotalSupply(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -193,7 +193,7 @@ displayValue: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public signatureGenerate(
+    public erc20SignatureGenerate(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress?: string,
@@ -335,7 +335,7 @@ signature: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public canClaim(
+    public erc20CanClaim(
 quantity: string,
 chain: string,
 contractAddress: string,
@@ -371,7 +371,7 @@ result: boolean;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getActiveClaimConditions(
+    public erc20GetActiveClaimConditions(
 chain: string,
 contractAddress: string,
 withAllowList?: boolean,
@@ -432,7 +432,7 @@ snapshot?: (null | Array<string>);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAllClaimConditions(
+    public erc20GetAllClaimConditions(
 chain: string,
 contractAddress: string,
 withAllowList?: boolean,
@@ -494,7 +494,7 @@ snapshot?: (null | Array<string>);
      * @returns any Default Response
      * @throws ApiError
      */
-    public claimConditionsGetClaimIneligibilityReasons(
+    public erc20ClaimConditionsGetClaimIneligibilityReasons(
 quantity: string,
 chain: string,
 contractAddress: string,
@@ -530,7 +530,7 @@ result: Array<(string | ('There is not enough supply to claim.' | 'This address 
      * @returns any Default Response
      * @throws ApiError
      */
-    public claimConditionsGetClaimerProofs(
+    public erc20ClaimConditionsGetClaimerProofs(
 walletAddress: string,
 chain: string,
 contractAddress: string,
@@ -582,7 +582,7 @@ proof: Array<string>;
      * @returns any Default Response
      * @throws ApiError
      */
-    public setAllowance(
+    public erc20SetAllowance(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -673,7 +673,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public transfer(
+    public erc20Transfer(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -764,7 +764,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public transferFrom(
+    public erc20TransferFrom(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -859,7 +859,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public burn(
+    public erc20Burn(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -946,7 +946,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public burnFrom(
+    public erc20BurnFrom(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1037,7 +1037,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public claimTo(
+    public erc20ClaimTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1128,7 +1128,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public mintBatchTo(
+    public erc20MintBatchTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1221,7 +1221,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public mintTo(
+    public erc20MintTo(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1312,7 +1312,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public signatureMint(
+    public erc20SignatureMint(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1433,7 +1433,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public setClaimConditions(
+    public erc20SetClaimConditions(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -1533,7 +1533,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateClaimConditions(
+    public erc20UpdateClaimConditions(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,

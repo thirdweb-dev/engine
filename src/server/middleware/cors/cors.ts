@@ -16,7 +16,7 @@ declare module "fastify" {
   }
 }
 
-interface ArrayOfValueOrArray<T> extends Array<ValueOrArray<T>> {}
+type ArrayOfValueOrArray<T> = Array<ValueOrArray<T>>
 
 type OriginCallback = (
   err: Error | null,
@@ -155,6 +155,7 @@ export const fastifyCors = async (
 
   let hideOptionsRoute = true;
   if (opts.hideOptionsRoute !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     hideOptionsRoute = opts.hideOptionsRoute;
   }
   const corsOptions = normalizeCorsOptions(opts);

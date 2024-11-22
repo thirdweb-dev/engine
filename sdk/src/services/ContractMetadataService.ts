@@ -72,7 +72,7 @@ stateMutability?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public getEvents(
+    public getContractEvents(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{

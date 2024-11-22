@@ -383,7 +383,7 @@ const handleAccessToken = async (
 
   try {
     token = await getAccessToken({ jwt });
-  } catch (e) {
+  } catch {
     // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
     return { isAuthed: false };
   }

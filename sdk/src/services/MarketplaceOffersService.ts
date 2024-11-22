@@ -22,7 +22,7 @@ export class MarketplaceOffersService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAll(
+    public getAllMarketplaceOffers(
 chain: string,
 contractAddress: string,
 count?: number,
@@ -113,7 +113,7 @@ status?: (0 | 1 | 2 | 3 | 4 | 5);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getAllValid(
+    public getAllValidMarketplaceOffers(
 chain: string,
 contractAddress: string,
 count?: number,
@@ -200,7 +200,7 @@ status?: (0 | 1 | 2 | 3 | 4 | 5);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getOffer(
+    public getMarketplaceOffer(
 offerId: string,
 chain: string,
 contractAddress: string,
@@ -278,7 +278,7 @@ status?: (0 | 1 | 2 | 3 | 4 | 5);
      * @returns any Default Response
      * @throws ApiError
      */
-    public getTotalCount(
+    public getMarketplaceOffersTotalCount(
 chain: string,
 contractAddress: string,
 ): CancelablePromise<{
@@ -314,7 +314,7 @@ result: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public makeOffer(
+    public makeMarketplaceOffer(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -421,7 +421,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public cancelOffer(
+    public cancelMarketplaceOffer(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
@@ -508,7 +508,7 @@ queueId: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public acceptOffer(
+    public acceptMarketplaceOffer(
 chain: string,
 contractAddress: string,
 xBackendWalletAddress: string,
