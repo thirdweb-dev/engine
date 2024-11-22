@@ -24,7 +24,19 @@ const responseSchema = Type.Object({
 
 responseSchema.examples = [
   {
-    result: "0x...",
+    result: {
+      auctionId: "0",
+      bidderAddress: "0x...",
+      currencyContractAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      bidAmount: "10000000000",
+      bidAmountCurrencyValue: {
+        name: "MATIC",
+        symbol: "MATIC",
+        decimals: 18,
+        value: "10000000000",
+        displayValue: "0.00000001",
+      },
+    },
   },
 ];
 

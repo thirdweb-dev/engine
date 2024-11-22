@@ -357,7 +357,7 @@ result: boolean;
     }
 
     /**
-     * Transfer token from wallet
+     * Get Listing Count
      * Get the total number of direct listings on this marketplace contract.
      * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address

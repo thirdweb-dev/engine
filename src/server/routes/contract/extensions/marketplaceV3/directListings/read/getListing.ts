@@ -27,18 +27,36 @@ responseSchema.examples = [
   {
     result: [
       {
-        metadata: {
-          id: "0",
-          uri: "ipfs://QmdaWX1GEwnFW4NooYRej5BQybKNLdxkWtMwyw8KiWRueS/0",
-          name: "My Edition NFT",
-          description: "My Edition NFT description",
-          image:
-            "ipfs://QmciR3WLJsf2BgzTSjbG5zCxsrEQ8PqsHK7JWGWsDSNo46/nft.png",
+        assetContractAddress: "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e",
+        tokenId: "0",
+        currencyContractAddress: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+        quantity: "1",
+        pricePerToken: "10000000000",
+        isReservedListing: false,
+        id: "0",
+        currencyValuePerToken: {
+          name: "MATIC",
+          symbol: "MATIC",
+          decimals: 18,
+          value: "10000000000",
+          displayValue: "0.00000001",
         },
-        owner: "0xE79ee09bD47F4F5381dbbACaCff2040f2FbC5803",
-        type: "ERC1155",
-        supply: "100",
-        quantityOwned: "100",
+        asset: {
+          id: "0",
+          uri: "ipfs://QmPw2Dd1dnB6dQCnqGayCTnxUxHrB7m4YFeyph6PYPMboP/0",
+          name: "TJ-Origin",
+          description: "Origin",
+          external_url: "",
+          attributes: [
+            {
+              trait_type: "Mode",
+              value: "GOD",
+            },
+          ],
+        },
+        status: 1,
+        startTimeInSeconds: 1686006043,
+        endTimeInSeconds: 1686610889,
       },
     ],
   },

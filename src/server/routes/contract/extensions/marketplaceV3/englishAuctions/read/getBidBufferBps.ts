@@ -26,7 +26,7 @@ const responseSchema = Type.Object({
 
 responseSchema.examples = [
   {
-    result: "1",
+    result: 1,
   },
 ];
 

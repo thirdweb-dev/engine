@@ -72,12 +72,12 @@ export const OfferV3OutputSchema = Type.Object({
   ),
   status: Type.Optional(
     Type.Union([
-      Type.Literal(Status.UNSET),
-      Type.Literal(Status.Created),
-      Type.Literal(Status.Completed),
-      Type.Literal(Status.Cancelled),
-      Type.Literal(Status.Active),
-      Type.Literal(Status.Expired),
+      Type.Literal(Status.UNSET, { description: "UNSET" }),
+      Type.Literal(Status.Created, { description: "Created" }),
+      Type.Literal(Status.Completed, { description: "Completed" }),
+      Type.Literal(Status.Cancelled, { description: "Cancelled" }),
+      Type.Literal(Status.Active, { description: "Active" }),
+      Type.Literal(Status.Expired, { description: "Expired" }),
     ]),
   ),
 });
