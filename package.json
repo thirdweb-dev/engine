@@ -23,6 +23,7 @@
     "start:docker": "docker compose --profile engine --env-file ./.env up --remove-orphans",
     "start:docker-force-build": "docker compose --profile engine --env-file ./.env up --remove-orphans --build",
     "lint:fix": "eslint --fix 'src/**/*.ts'",
+    "lint:fix:sdk": "eslint --fix 'sdk/src/**/*.ts",
     "test:unit": "vitest",
     "test:coverage": "vitest run --coverage",
     "copy-files": "cp -r ./src/prisma ./dist/"
