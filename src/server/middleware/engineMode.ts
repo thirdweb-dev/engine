@@ -1,7 +1,7 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { env } from "../../utils/env";
 
-export const withEnforceEngineMode = async (server: FastifyInstance) => {
+export function withEnforceEngineMode(server: FastifyInstance) {
   if (env.ENGINE_MODE === "sandbox") {
     server.addHook("onRequest", async (request, reply) => {
       if (request.method !== "GET") {
@@ -13,4 +13,4 @@ export const withEnforceEngineMode = async (server: FastifyInstance) => {
       }
     });
   }
-};
+}

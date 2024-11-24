@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { stringify } from "thirdweb/utils";
 import { logger } from "../../utils/logger";
 import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
-import { OPENAPI_ROUTES } from "./open-api";
+import { OPENAPI_ROUTES } from "./openApi";
 
 const SKIP_LOG_PATHS = new Set([
   "",
@@ -16,16 +16,15 @@ const SKIP_LOG_PATHS = new Set([
   "/configuration/wallets",
 ]);
 
-export const withRequestLogs = async (server: FastifyInstance) => {
-  server.addHook("onSend", (request, reply, payload, done) => {
+export function withRequestLogs(server: FastifyInstance) {
+  server.addHook("onSend", (request, reply, payload) => {
     if (
       request.method === "OPTIONS" ||
       !request.routeOptions.url ||
       SKIP_LOG_PATHS.has(request.routeOptions.url) ||
       request.routeOptions.url.startsWith(ADMIN_QUEUES_BASEPATH)
     ) {
-      done();
-      return;
+      return payload;
     }
 
     const { method, routeOptions, headers, params, query, body } = request;
@@ -67,6 +66,6 @@ export const withRequestLogs = async (server: FastifyInstance) => {
       ].join(" "),
     });
 
-    done();
+    return payload;
   });
-};
+}

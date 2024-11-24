@@ -18,6 +18,7 @@ import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
 import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rateLimit";
+import { withSecurityHeaders } from "./middleware/securityHeaders";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
@@ -71,18 +72,19 @@ export const initServer = async () => {
 
   server.decorateRequest("corsPreflightEnabled", false);
 
-  await withCors(server);
-  await withRequestLogs(server);
-  await withPrometheus(server);
-  await withErrorHandler(server);
-  await withEnforceEngineMode(server);
-  await withRateLimit(server);
+  withCors(server);
+  withRequestLogs(server);
+  withPrometheus(server);
+  withErrorHandler(server);
+  withEnforceEngineMode(server);
+  withRateLimit(server);
   await withWebSocket(server);
   await withAuth(server);
   await withOpenApi(server);
   await withRoutes(server);
-  await withServerUsageReporting(server);
-  await withAdminRoutes(server);
+  withServerUsageReporting(server);
+  withAdminRoutes(server);
+  withSecurityHeaders(server);
 
   await server.ready();
 

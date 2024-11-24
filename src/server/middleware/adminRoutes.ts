@@ -3,9 +3,9 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { FastifyAdapter } from "@bull-board/fastify";
 import fastifyBasicAuth from "@fastify/basic-auth";
 import type { Queue } from "bullmq";
-import { timingSafeEqual } from "crypto";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import { timingSafeEqual } from "node:crypto";
 import { env } from "../../utils/env";
 import { CancelRecycledNoncesQueue } from "../../worker/queues/cancelRecycledNoncesQueue";
 import { MigratePostgresTransactionsQueue } from "../../worker/queues/migratePostgresTransactionsQueue";
@@ -37,12 +37,10 @@ const QUEUES: Queue[] = [
 export const withAdminRoutes = async (fastify: FastifyInstance) => {
   // Configure basic auth.
   await fastify.register(fastifyBasicAuth, {
-    validate: (username, password, req, reply, done) => {
-      if (assertAdminBasicAuth(username, password)) {
-        done();
-        return;
+    validate: async (username, password) => {
+      if (!assertAdminBasicAuth(username, password)) {
+        throw new Error("Unauthorized");
       }
-      done(new Error("Unauthorized"));
     },
     authenticate: true,
   });
@@ -63,18 +61,16 @@ export const withAdminRoutes = async (fastify: FastifyInstance) => {
     });
 
     // Apply basic auth only to admin routes.
-    fastify.addHook("onRequest", (req, reply, done) => {
+    fastify.addHook("onRequest", async (req, reply) => {
       if (req.url.startsWith(ADMIN_QUEUES_BASEPATH)) {
         fastify.basicAuth(req, reply, (error) => {
           if (error) {
-            reply
+            return reply
               .status(StatusCodes.UNAUTHORIZED)
               .send({ error: "Unauthorized" });
-            return done(error);
           }
         });
       }
-      done();
     });
   });
 };
@@ -85,7 +81,7 @@ const assertAdminBasicAuth = (username: string, password: string) => {
       const buf1 = Buffer.from(password.padEnd(100));
       const buf2 = Buffer.from(ADMIN_ROUTES_PASSWORD.padEnd(100));
       return timingSafeEqual(buf1, buf2);
-    } catch (e) {}
+    } catch {}
   }
   return false;
 };
