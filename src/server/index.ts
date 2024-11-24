@@ -72,19 +72,23 @@ export const initServer = async () => {
 
   server.decorateRequest("corsPreflightEnabled", false);
 
-  withCors(server);
-  withRequestLogs(server);
-  withPrometheus(server);
+  // Configure middleware
   withErrorHandler(server);
-  withEnforceEngineMode(server);
+  withRequestLogs(server);
+  withSecurityHeaders(server);
+  withCors(server);
+
   withRateLimit(server);
+  withEnforceEngineMode(server);
+  withServerUsageReporting(server);
+  withPrometheus(server);
+
+  // Register routes
   await withWebSocket(server);
   await withAuth(server);
   await withOpenApi(server);
   await withRoutes(server);
-  withServerUsageReporting(server);
   withAdminRoutes(server);
-  withSecurityHeaders(server);
 
   await server.ready();
 
