@@ -7,8 +7,9 @@ export function withEnforceEngineMode(server: FastifyInstance) {
       if (request.method !== "GET") {
         return reply.status(405).send({
           statusCode: 405,
-          error: "Read Only Mode. Method Not Allowed",
-          message: "Read Only Mode. Method Not Allowed",
+          error: "Engine is in read-only mode. Only GET requests are allowed.",
+          message:
+            "Engine is in read-only mode. Only GET requests are allowed.",
         });
       }
     });

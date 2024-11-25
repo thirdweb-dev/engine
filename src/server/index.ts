@@ -3,6 +3,7 @@ import fastify, { type FastifyInstance } from "fastify";
 import * as fs from "node:fs";
 import path from "node:path";
 import { URL } from "node:url";
+import { getConfig } from "../utils/cache/getConfig";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
@@ -11,14 +12,12 @@ import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listeners/updateTxListener";
 import { withAdminRoutes } from "./middleware/adminRoutes";
 import { withAuth } from "./middleware/auth";
-import { withCors } from "./middleware/cors";
 import { withEnforceEngineMode } from "./middleware/engineMode";
 import { withErrorHandler } from "./middleware/error";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/openApi";
 import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rateLimit";
-import { withSecurityHeaders } from "./middleware/securityHeaders";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
@@ -72,12 +71,13 @@ export const initServer = async () => {
 
   server.decorateRequest("corsPreflightEnabled", false);
 
+  const config = await getConfig();
+
   // Configure middleware
   withErrorHandler(server);
   withRequestLogs(server);
-  withSecurityHeaders(server);
-  withCors(server);
-
+  // withSecurityHeaders(server);
+  // withCors(server, config);
   withRateLimit(server);
   withEnforceEngineMode(server);
   withServerUsageReporting(server);
@@ -88,7 +88,7 @@ export const initServer = async () => {
   await withAuth(server);
   await withOpenApi(server);
   await withRoutes(server);
-  withAdminRoutes(server);
+  await withAdminRoutes(server);
 
   await server.ready();
 

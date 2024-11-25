@@ -17,7 +17,7 @@ const SKIP_LOG_PATHS = new Set([
 ]);
 
 export function withRequestLogs(server: FastifyInstance) {
-  server.addHook("onSend", (request, reply, payload) => {
+  server.addHook("onSend", async (request, reply, payload) => {
     if (
       request.method === "OPTIONS" ||
       !request.routeOptions.url ||
@@ -36,6 +36,7 @@ export function withRequestLogs(server: FastifyInstance) {
       "x-idempotency-key": headers["x-idempotency-key"],
       "x-account-address": headers["x-account-address"],
       "x-account-factory-address": headers["x-account-factory-address"],
+      "x-account-salt": headers["x-account-salt"],
     };
 
     const paramsStr =
