@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { ParsedConfig } from "../../schema/config";
+import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
 
 const STANDARD_METHODS = "GET,POST,DELETE,PUT,PATCH,HEAD,PUT,PATCH,POST,DELETE";
 const DEFAULT_ALLOWED_HEADERS = [
@@ -18,10 +19,9 @@ export function withCors(server: FastifyInstance, config: ParsedConfig) {
     }
 
     // Allow admin routes to be accessed from the same host.
-    if (request.url.startsWith("/admin/queues/")) {
+    if (request.url.startsWith(ADMIN_QUEUES_BASEPATH)) {
       const host = request.headers.host;
       const originHost = new URL(origin).host;
-
       if (originHost !== host) {
         reply.code(403).send({ error: "Invalid origin" });
         return;
