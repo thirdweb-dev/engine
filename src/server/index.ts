@@ -12,12 +12,14 @@ import { withServerUsageReporting } from "../utils/usage";
 import { updateTxListener } from "./listeners/updateTxListener";
 import { withAdminRoutes } from "./middleware/adminRoutes";
 import { withAuth } from "./middleware/auth";
+import { withCors } from "./middleware/cors";
 import { withEnforceEngineMode } from "./middleware/engineMode";
 import { withErrorHandler } from "./middleware/error";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/openApi";
 import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rateLimit";
+import { withSecurityHeaders } from "./middleware/securityHeaders";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
@@ -69,15 +71,13 @@ export const initServer = async () => {
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.decorateRequest("corsPreflightEnabled", false);
-
   const config = await getConfig();
 
   // Configure middleware
   withErrorHandler(server);
   withRequestLogs(server);
-  // withSecurityHeaders(server);
-  // withCors(server, config);
+  withSecurityHeaders(server);
+  withCors(server, config);
   withRateLimit(server);
   withEnforceEngineMode(server);
   withServerUsageReporting(server);

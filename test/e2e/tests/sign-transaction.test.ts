@@ -9,7 +9,7 @@ describe("signTransaction route", () => {
       transaction: {
         type: 0,
         chainId: 1,
-        to: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+        to: "0x000000000000000000000000000000000000dead",
         nonce: "42",
         gasLimit: "88000",
         gasPrice: "2000000000",
@@ -29,7 +29,7 @@ describe("signTransaction route", () => {
       transaction: {
         type: 1,
         chainId: 137,
-        to: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+        to: "0x000000000000000000000000000000000000dead",
         nonce: "42",
         gasLimit: "88000",
         maxFeePerGas: "2000000000",
@@ -37,7 +37,7 @@ describe("signTransaction route", () => {
         value: "100000000000000000",
         accessList: [
           {
-            address: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+            address: "0x000000000000000000000000000000000000dead",
             storageKeys: [
               "0x0000000000000000000000000000000000000000000000000000000000000001",
             ],
@@ -58,13 +58,13 @@ describe("signTransaction route", () => {
       transaction: {
         type: 2,
         chainId: 137,
-        to: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+        to: "0x000000000000000000000000000000000000dead",
         nonce: "42",
         gasLimit: "88000",
         value: "100000000000000000",
         accessList: [
           {
-            address: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+            address: "0x000000000000000000000000000000000000dead",
             storageKeys: [
               "0x0000000000000000000000000000000000000000000000000000000000000001",
             ],
@@ -85,7 +85,7 @@ describe("signTransaction route", () => {
       transaction: {
         type: 3,
         chainId: 137,
-        to: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+        to: "0x000000000000000000000000000000000000dead",
         nonce: "42",
         gasLimit: "88000",
         maxFeePerGas: "2000000000",
@@ -93,7 +93,7 @@ describe("signTransaction route", () => {
         value: "100000000000000000",
         accessList: [
           {
-            address: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+            address: "0x000000000000000000000000000000000000dead",
             storageKeys: [
               "0x0000000000000000000000000000000000000000000000000000000000000001",
             ],
@@ -114,7 +114,7 @@ describe("signTransaction route", () => {
       transaction: {
         type: 4,
         chainId: 137,
-        to: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+        to: "0x000000000000000000000000000000000000dead",
         nonce: "42",
         gasLimit: "88000",
         maxFeePerGas: "2000000000",
@@ -122,7 +122,7 @@ describe("signTransaction route", () => {
         value: "100000000000000000",
         accessList: [
           {
-            address: "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4",
+            address: "0x000000000000000000000000000000000000dead",
             storageKeys: [
               "0x0000000000000000000000000000000000000000000000000000000000000001",
             ],

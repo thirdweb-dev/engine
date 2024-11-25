@@ -1,7 +1,6 @@
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { FastifyAdapter } from "@bull-board/fastify";
-import fastifyBasicAuth from "@fastify/basic-auth";
 import type { Queue } from "bullmq";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
@@ -19,7 +18,9 @@ import { SendTransactionQueue } from "../../worker/queues/sendTransactionQueue";
 import { SendWebhookQueue } from "../../worker/queues/sendWebhookQueue";
 
 export const ADMIN_QUEUES_BASEPATH = "/admin/queues";
+const ADMIN_ROUTES_USERNAME = "admin";
 const ADMIN_ROUTES_PASSWORD = env.THIRDWEB_API_SECRET_KEY;
+
 // Add queues to monitor here.
 const QUEUES: Queue[] = [
   SendWebhookQueue.q,
@@ -35,19 +36,8 @@ const QUEUES: Queue[] = [
 ];
 
 export const withAdminRoutes = async (fastify: FastifyInstance) => {
-  // Configure basic auth.
-  await fastify.register(fastifyBasicAuth, {
-    validate: async (username, password) => {
-      if (!assertAdminBasicAuth(username, password)) {
-        throw new Error("Unauthorized");
-      }
-    },
-    authenticate: true,
-  });
-
-  // Set up routes after Fastify is set up.
   fastify.after(async () => {
-    // Register bullboard UI.
+    // Create a new route for Bullboard routes.
     const serverAdapter = new FastifyAdapter();
     serverAdapter.setBasePath(ADMIN_QUEUES_BASEPATH);
 
@@ -55,28 +45,45 @@ export const withAdminRoutes = async (fastify: FastifyInstance) => {
       queues: QUEUES.map((q) => new BullMQAdapter(q)),
       serverAdapter,
     });
+
     await fastify.register(serverAdapter.registerPlugin(), {
       basePath: ADMIN_QUEUES_BASEPATH,
       prefix: ADMIN_QUEUES_BASEPATH,
     });
 
-    // Apply basic auth only to admin routes.
     fastify.addHook("onRequest", async (req, reply) => {
       if (req.url.startsWith(ADMIN_QUEUES_BASEPATH)) {
-        fastify.basicAuth(req, reply, (error) => {
-          if (error) {
-            return reply
-              .status(StatusCodes.UNAUTHORIZED)
-              .send({ error: "Unauthorized" });
-          }
-        });
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith("Basic ")) {
+          reply
+            .status(StatusCodes.UNAUTHORIZED)
+            .header("WWW-Authenticate", 'Basic realm="Admin Routes"')
+            .send({ error: "Unauthorized" });
+          return;
+        }
+
+        // Parse the basic auth credentials (`Basic <base64 of username:password>`).
+        const base64Credentials = authHeader.split(" ")[1];
+        const credentials = Buffer.from(base64Credentials, "base64").toString(
+          "utf8",
+        );
+        const [username, password] = credentials.split(":");
+
+        if (!assertAdminBasicAuth(username, password)) {
+          reply
+            .status(StatusCodes.UNAUTHORIZED)
+            .header("WWW-Authenticate", 'Basic realm="Admin Routes"')
+            .send({ error: "Unauthorized" });
+          return;
+        }
       }
     });
   });
 };
 
 const assertAdminBasicAuth = (username: string, password: string) => {
-  if (username === "admin") {
+  if (username === ADMIN_ROUTES_USERNAME) {
     try {
       const buf1 = Buffer.from(password.padEnd(100));
       const buf2 = Buffer.from(ADMIN_ROUTES_PASSWORD.padEnd(100));

@@ -6,7 +6,7 @@ export function withSecurityHeaders(server: FastifyInstance) {
       "Strict-Transport-Security",
       "max-age=31536000; includeSubDomains; preload",
     );
-    reply.header("Content-Security-Policy", "default-src 'none';");
+    reply.header("Content-Security-Policy", "default-src 'self';");
     reply.header("X-Frame-Options", "DENY");
     reply.header("X-Content-Type-Options", "nosniff");
     reply.header("Referrer-Policy", "no-referrer");

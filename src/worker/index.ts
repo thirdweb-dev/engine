@@ -19,9 +19,6 @@ import { initSendTransactionWorker } from "./tasks/sendTransactionWorker";
 import { initSendWebhookWorker } from "./tasks/sendWebhookWorker";
 
 export const initWorker = async () => {
-  // DEBUG
-  return;
-
   initCancelRecycledNoncesWorker();
   initProcessEventLogsWorker();
   initProcessTransactionReceiptsWorker();
