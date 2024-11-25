@@ -15,7 +15,7 @@ import { withCors } from "./middleware/cors";
 import { withEnforceEngineMode } from "./middleware/engineMode";
 import { withErrorHandler } from "./middleware/error";
 import { withRequestLogs } from "./middleware/logs";
-import { withOpenApi } from "./middleware/open-api";
+import { withOpenApi } from "./middleware/openApi";
 import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rateLimit";
 import { withSecurityHeaders } from "./middleware/securityHeaders";
