@@ -9,6 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
+import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -21,6 +23,7 @@ const requestBodySchema = Type.Object({
     description:
       "The amount of the bid to place in the currency of the listing. Use getNextBidAmount to get the minimum amount for the next bid.",
   }),
+  ...txOverridesWithValueSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -45,6 +48,7 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
       description: "Place a bid on an English auction listing.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "makeEnglishAuctionBid",
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -56,11 +60,12 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { listingId, bidAmount } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const { listingId, bidAmount, txOverrides } = request.body;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -79,6 +84,8 @@ export async function englishAuctionsMakeBid(fastify: FastifyInstance) {
         chainId,
         simulateTx,
         extension: "marketplace-v3-english-auctions",
+        idempotencyKey,
+        txOverrides,
       });
       reply.status(StatusCodes.OK).send({
         result: {

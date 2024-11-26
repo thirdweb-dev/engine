@@ -9,6 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
+import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -17,6 +19,7 @@ const requestBodySchema = Type.Object({
   listingId: Type.String({
     description: "The ID of the listing to buy NFT(s) from.",
   }),
+  ...txOverridesWithValueSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -40,6 +43,7 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
       description: "Buyout the listing for this auction.",
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "buyoutEnglishAuction",
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -51,11 +55,12 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { listingId } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const { listingId, txOverrides } = request.body;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -64,14 +69,17 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
         accountAddress,
       });
 
-      const tx =
-        await contract.englishAuctions.buyoutAuction.prepare(listingId);
+      const tx = await contract.englishAuctions.buyoutAuction.prepare(
+        listingId,
+      );
 
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "marketplace-v3-english-auctions",
+        idempotencyKey,
+        txOverrides,
       });
       reply.status(StatusCodes.OK).send({
         result: {

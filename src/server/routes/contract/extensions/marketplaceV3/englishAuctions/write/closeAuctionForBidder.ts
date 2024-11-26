@@ -9,6 +9,8 @@ import {
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../../../../../schemas/sharedApiSchemas";
+import { txOverridesWithValueSchema } from "../../../../../../schemas/txOverrides";
+import { walletWithAAHeaderSchema } from "../../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../../utils/chain";
 
 // INPUT
@@ -17,6 +19,7 @@ const requestBodySchema = Type.Object({
   listingId: Type.String({
     description: "The ID of the listing to execute the sale for.",
   }),
+  ...txOverridesWithValueSchema.properties,
 });
 
 requestBodySchema.examples = [
@@ -45,6 +48,7 @@ You must also call closeAuctionForSeller to execute the sale for the seller,
 meaning the seller receives the payment from the highest bid.`,
       tags: ["Marketplace-EnglishAuctions"],
       operationId: "closeEnglishAuctionForBidder",
+      headers: walletWithAAHeaderSchema,
       params: requestSchema,
       body: requestBodySchema,
       querystring: requestQuerystringSchema,
@@ -56,11 +60,12 @@ meaning the seller receives the payment from the highest bid.`,
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { listingId } = request.body;
-      const walletAddress = request.headers[
-        "x-backend-wallet-address"
-      ] as string;
-      const accountAddress = request.headers["x-account-address"] as string;
+      const { listingId, txOverrides } = request.body;
+      const {
+        "x-backend-wallet-address": walletAddress,
+        "x-account-address": accountAddress,
+        "x-idempotency-key": idempotencyKey,
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContract({
         chainId,
@@ -69,14 +74,17 @@ meaning the seller receives the payment from the highest bid.`,
         accountAddress,
       });
 
-      const tx =
-        await contract.englishAuctions.closeAuctionForBidder.prepare(listingId);
+      const tx = await contract.englishAuctions.closeAuctionForBidder.prepare(
+        listingId,
+      );
 
       const queueId = await queueTx({
         tx,
         chainId,
         simulateTx,
         extension: "marketplace-v3-english-auctions",
+        idempotencyKey,
+        txOverrides,
       });
       reply.status(StatusCodes.OK).send({
         result: {
