@@ -15,19 +15,19 @@ export class AccessTokensService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public listAccessTokens(): CancelablePromise<{
-result: Array<{
-id: string;
-tokenMask: string;
-/**
- * A contract or wallet address
- */
-walletAddress: string;
-createdAt: string;
-expiresAt: string;
-label: (string | null);
-}>;
-}> {
+    public getAll(): CancelablePromise<{
+        result: Array<{
+            id: string;
+            tokenMask: string;
+            /**
+             * A contract or wallet address
+             */
+            walletAddress: string;
+            createdAt: string;
+            expiresAt: string;
+            label: (string | null);
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/auth/access-tokens/get-all',
@@ -42,28 +42,28 @@ label: (string | null);
     /**
      * Create a new access token
      * Create a new access token
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public createAccessToken(
-requestBody?: {
-label?: string;
-},
-): CancelablePromise<{
-result: {
-id: string;
-tokenMask: string;
-/**
- * A contract or wallet address
- */
-walletAddress: string;
-createdAt: string;
-expiresAt: string;
-label: (string | null);
-accessToken: string;
-};
-}> {
+    public create(
+        requestBody?: {
+            label?: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            id: string;
+            tokenMask: string;
+            /**
+             * A contract or wallet address
+             */
+            walletAddress: string;
+            createdAt: string;
+            expiresAt: string;
+            label: (string | null);
+            accessToken: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/access-tokens/create',
@@ -80,19 +80,19 @@ accessToken: string;
     /**
      * Revoke an access token
      * Revoke an access token
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public revokeAccessTokens(
-requestBody: {
-id: string;
-},
-): CancelablePromise<{
-result: {
-success: boolean;
-};
-}> {
+    public revoke(
+        requestBody: {
+            id: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            success: boolean;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/access-tokens/revoke',
@@ -109,20 +109,20 @@ success: boolean;
     /**
      * Update an access token
      * Update an access token
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateAccessTokens(
-requestBody: {
-id: string;
-label?: string;
-},
-): CancelablePromise<{
-result: {
-success: boolean;
-};
-}> {
+    public update(
+        requestBody: {
+            id: string;
+            label?: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            success: boolean;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/access-tokens/update',

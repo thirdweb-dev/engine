@@ -12,23 +12,23 @@ export class ContractEventsService {
     /**
      * Get all events
      * Get a list of all blockchain events for this contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
-     * @param fromBlock 
-     * @param toBlock 
-     * @param order 
+     * @param fromBlock
+     * @param toBlock
+     * @param order
      * @returns any Default Response
      * @throws ApiError
      */
     public getAllEvents(
-chain: string,
-contractAddress: string,
-fromBlock?: (number | string),
-toBlock?: (number | string),
-order?: ('asc' | 'desc'),
-): CancelablePromise<{
-result: Array<Record<string, any>>;
-}> {
+        chain: string,
+        contractAddress: string,
+        fromBlock?: (number | string),
+        toBlock?: (number | string),
+        order?: ('asc' | 'desc'),
+    ): CancelablePromise<{
+        result: Array<Record<string, any>>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/contract/{chain}/{contractAddress}/events/get-all',
@@ -52,25 +52,25 @@ result: Array<Record<string, any>>;
     /**
      * Get events
      * Get a list of specific blockchain events emitted from this contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param requestBody Specify the from and to block numbers to get events for, defaults to all blocks
      * @returns any Default Response
      * @throws ApiError
      */
     public getEvents(
-chain: string,
-contractAddress: string,
-requestBody: {
-eventName: string;
-fromBlock?: (number | string);
-toBlock?: (number | string);
-order?: ('asc' | 'desc');
-filters?: any;
-},
-): CancelablePromise<{
-result: Array<Record<string, any>>;
-}> {
+        chain: string,
+        contractAddress: string,
+        requestBody: {
+            eventName: string;
+            fromBlock?: (number | string);
+            toBlock?: (number | string);
+            order?: ('asc' | 'desc');
+            filters?: any;
+        },
+    ): CancelablePromise<{
+        result: Array<Record<string, any>>;
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/contract/{chain}/{contractAddress}/events/get',

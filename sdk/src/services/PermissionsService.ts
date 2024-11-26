@@ -15,16 +15,16 @@ export class PermissionsService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public listAdmins(): CancelablePromise<{
-result: Array<{
-/**
- * A contract or wallet address
- */
-walletAddress: string;
-permissions: string;
-label: (string | null);
-}>;
-}> {
+    public getAll(): CancelablePromise<{
+        result: Array<{
+            /**
+             * A contract or wallet address
+             */
+            walletAddress: string;
+            permissions: string;
+            label: (string | null);
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/auth/permissions/get-all',
@@ -39,24 +39,24 @@ label: (string | null);
     /**
      * Grant permissions to user
      * Grant permissions to a user
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public grantAdmin(
-requestBody: {
-/**
- * A contract or wallet address
- */
-walletAddress: string;
-permissions: ('ADMIN' | 'OWNER');
-label?: string;
-},
-): CancelablePromise<{
-result: {
-success: boolean;
-};
-}> {
+    public grant(
+        requestBody: {
+            /**
+             * A contract or wallet address
+             */
+            walletAddress: string;
+            permissions: ('ADMIN' | 'OWNER');
+            label?: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            success: boolean;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/permissions/grant',
@@ -73,22 +73,22 @@ success: boolean;
     /**
      * Revoke permissions from user
      * Revoke a user's permissions
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public revokeAdmin(
-requestBody: {
-/**
- * A contract or wallet address
- */
-walletAddress: string;
-},
-): CancelablePromise<{
-result: {
-success: boolean;
-};
-}> {
+    public revoke(
+        requestBody: {
+            /**
+             * A contract or wallet address
+             */
+            walletAddress: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            success: boolean;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/auth/permissions/revoke',

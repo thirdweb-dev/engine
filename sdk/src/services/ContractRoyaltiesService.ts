@@ -12,26 +12,26 @@ export class ContractRoyaltiesService {
     /**
      * Get royalty details
      * Gets the royalty recipient and BPS (basis points) of the smart contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
      */
     public getDefaultRoyaltyInfo(
-chain: string,
-contractAddress: string,
-): CancelablePromise<{
-result: {
-/**
- * The royalty fee in BPS (basis points). 100 = 1%.
- */
-seller_fee_basis_points: number;
-/**
- * The wallet address that will receive the royalty fees.
- */
-fee_recipient: string;
-};
-}> {
+        chain: string,
+        contractAddress: string,
+    ): CancelablePromise<{
+        result: {
+            /**
+             * The royalty fee in BPS (basis points). 100 = 1%.
+             */
+            seller_fee_basis_points: number;
+            /**
+             * The wallet address that will receive the royalty fees.
+             */
+            fee_recipient: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/contract/{chain}/{contractAddress}/royalties/get-default-royalty-info',
@@ -50,28 +50,28 @@ fee_recipient: string;
     /**
      * Get token royalty details
      * Gets the royalty recipient and BPS (basis points) of a particular token in the contract.
-     * @param tokenId 
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param tokenId
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
      */
     public getTokenRoyaltyInfo(
-tokenId: string,
-chain: string,
-contractAddress: string,
-): CancelablePromise<{
-result: {
-/**
- * The royalty fee in BPS (basis points). 100 = 1%.
- */
-seller_fee_basis_points: number;
-/**
- * The wallet address that will receive the royalty fees.
- */
-fee_recipient: string;
-};
-}> {
+        tokenId: string,
+        chain: string,
+        contractAddress: string,
+    ): CancelablePromise<{
+        result: {
+            /**
+             * The royalty fee in BPS (basis points). 100 = 1%.
+             */
+            seller_fee_basis_points: number;
+            /**
+             * The wallet address that will receive the royalty fees.
+             */
+            fee_recipient: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/contract/{chain}/{contractAddress}/royalties/get-token-royalty-info/{tokenId}',
@@ -91,67 +91,67 @@ fee_recipient: string;
     /**
      * Set royalty details
      * Set the royalty recipient and fee for the smart contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
-     * @param requestBody 
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param requestBody
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
      */
     public setDefaultRoyaltyInfo(
-chain: string,
-contractAddress: string,
-xBackendWalletAddress: string,
-requestBody: {
-/**
- * The royalty fee in BPS (basis points). 100 = 1%.
- */
-seller_fee_basis_points: number;
-/**
- * The wallet address that will receive the royalty fees.
- */
-fee_recipient: string;
-txOverrides?: {
-/**
- * Gas limit for the transaction
- */
-gas?: string;
-/**
- * Maximum fee per gas
- */
-maxFeePerGas?: string;
-/**
- * Maximum priority fee per gas
- */
-maxPriorityFeePerGas?: string;
-/**
- * Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout
- */
-timeoutSeconds?: number;
-/**
- * Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.
- */
-value?: string;
-};
-},
-simulateTx: boolean = false,
-xIdempotencyKey?: string,
-xAccountAddress?: string,
-xAccountFactoryAddress?: string,
-xAccountSalt?: string,
-): CancelablePromise<{
-result: {
-/**
- * Queue ID
- */
-queueId: string;
-};
-}> {
+        chain: string,
+        contractAddress: string,
+        xBackendWalletAddress: string,
+        requestBody: {
+            /**
+             * The royalty fee in BPS (basis points). 100 = 1%.
+             */
+            seller_fee_basis_points: number;
+            /**
+             * The wallet address that will receive the royalty fees.
+             */
+            fee_recipient: string;
+            txOverrides?: {
+                /**
+                 * Gas limit for the transaction
+                 */
+                gas?: string;
+                /**
+                 * Maximum fee per gas
+                 */
+                maxFeePerGas?: string;
+                /**
+                 * Maximum priority fee per gas
+                 */
+                maxPriorityFeePerGas?: string;
+                /**
+                 * Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout
+                 */
+                timeoutSeconds?: number;
+                /**
+                 * Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.
+                 */
+                value?: string;
+            };
+        },
+        simulateTx: boolean = false,
+        xIdempotencyKey?: string,
+        xAccountAddress?: string,
+        xAccountFactoryAddress?: string,
+        xAccountSalt?: string,
+    ): CancelablePromise<{
+        result: {
+            /**
+             * Queue ID
+             */
+            queueId: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/contract/{chain}/{contractAddress}/royalties/set-default-royalty-info',
@@ -182,71 +182,71 @@ queueId: string;
     /**
      * Set token royalty details
      * Set the royalty recipient and fee for a particular token in the contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
-     * @param requestBody 
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param requestBody
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
      */
     public setTokenRoyaltyInfo(
-chain: string,
-contractAddress: string,
-xBackendWalletAddress: string,
-requestBody: {
-/**
- * The royalty fee in BPS (basis points). 100 = 1%.
- */
-seller_fee_basis_points: number;
-/**
- * The wallet address that will receive the royalty fees.
- */
-fee_recipient: string;
-/**
- * The token ID to set the royalty info for.
- */
-token_id: string;
-txOverrides?: {
-/**
- * Gas limit for the transaction
- */
-gas?: string;
-/**
- * Maximum fee per gas
- */
-maxFeePerGas?: string;
-/**
- * Maximum priority fee per gas
- */
-maxPriorityFeePerGas?: string;
-/**
- * Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout
- */
-timeoutSeconds?: number;
-/**
- * Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.
- */
-value?: string;
-};
-},
-simulateTx: boolean = false,
-xIdempotencyKey?: string,
-xAccountAddress?: string,
-xAccountFactoryAddress?: string,
-xAccountSalt?: string,
-): CancelablePromise<{
-result: {
-/**
- * Queue ID
- */
-queueId: string;
-};
-}> {
+        chain: string,
+        contractAddress: string,
+        xBackendWalletAddress: string,
+        requestBody: {
+            /**
+             * The royalty fee in BPS (basis points). 100 = 1%.
+             */
+            seller_fee_basis_points: number;
+            /**
+             * The wallet address that will receive the royalty fees.
+             */
+            fee_recipient: string;
+            /**
+             * The token ID to set the royalty info for.
+             */
+            token_id: string;
+            txOverrides?: {
+                /**
+                 * Gas limit for the transaction
+                 */
+                gas?: string;
+                /**
+                 * Maximum fee per gas
+                 */
+                maxFeePerGas?: string;
+                /**
+                 * Maximum priority fee per gas
+                 */
+                maxPriorityFeePerGas?: string;
+                /**
+                 * Maximum duration that a transaction is valid. If a transaction cannot be sent before the timeout, the transaction will be set to 'errored'. Default: no timeout
+                 */
+                timeoutSeconds?: number;
+                /**
+                 * Amount of native currency in wei to send with this transaction. Used to transfer funds or pay a contract.
+                 */
+                value?: string;
+            };
+        },
+        simulateTx: boolean = false,
+        xIdempotencyKey?: string,
+        xAccountAddress?: string,
+        xAccountFactoryAddress?: string,
+        xAccountSalt?: string,
+    ): CancelablePromise<{
+        result: {
+            /**
+             * Queue ID
+             */
+            queueId: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/contract/{chain}/{contractAddress}/royalties/set-token-royalty-info',

@@ -16,16 +16,16 @@ export class ConfigurationService {
      * @throws ApiError
      */
     public getWalletsConfiguration(): CancelablePromise<{
-result: {
-type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
-awsAccessKeyId: (string | null);
-awsRegion: (string | null);
-gcpApplicationProjectId: (string | null);
-gcpKmsLocationId: (string | null);
-gcpKmsKeyRingId: (string | null);
-gcpApplicationCredentialEmail: (string | null);
-};
-}> {
+        result: {
+            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
+            awsAccessKeyId: (string | null);
+            awsRegion: (string | null);
+            gcpApplicationProjectId: (string | null);
+            gcpKmsLocationId: (string | null);
+            gcpKmsKeyRingId: (string | null);
+            gcpApplicationCredentialEmail: (string | null);
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/wallets',
@@ -40,33 +40,33 @@ gcpApplicationCredentialEmail: (string | null);
     /**
      * Update wallets configuration
      * Update wallets configuration
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public updateWalletsConfiguration(
-requestBody?: ({
-awsAccessKeyId: string;
-awsSecretAccessKey: string;
-awsRegion: string;
-} | {
-gcpApplicationProjectId: string;
-gcpKmsLocationId: string;
-gcpKmsKeyRingId: string;
-gcpApplicationCredentialEmail: string;
-gcpApplicationCredentialPrivateKey: string;
-}),
-): CancelablePromise<{
-result: {
-type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
-awsAccessKeyId: (string | null);
-awsRegion: (string | null);
-gcpApplicationProjectId: (string | null);
-gcpKmsLocationId: (string | null);
-gcpKmsKeyRingId: (string | null);
-gcpApplicationCredentialEmail: (string | null);
-};
-}> {
+        requestBody?: ({
+            awsAccessKeyId: string;
+            awsSecretAccessKey: string;
+            awsRegion: string;
+        } | {
+            gcpApplicationProjectId: string;
+            gcpKmsLocationId: string;
+            gcpKmsKeyRingId: string;
+            gcpApplicationCredentialEmail: string;
+            gcpApplicationCredentialPrivateKey: string;
+        }),
+    ): CancelablePromise<{
+        result: {
+            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
+            awsAccessKeyId: (string | null);
+            awsRegion: (string | null);
+            gcpApplicationProjectId: (string | null);
+            gcpKmsLocationId: (string | null);
+            gcpKmsKeyRingId: (string | null);
+            gcpApplicationCredentialEmail: (string | null);
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/configuration/wallets',
@@ -87,48 +87,48 @@ gcpApplicationCredentialEmail: (string | null);
      * @throws ApiError
      */
     public getChainsConfiguration(): CancelablePromise<{
-result: Array<{
-/**
- * Chain name
- */
-name?: string;
-/**
- * Chain name
- */
-chain?: string;
-rpc?: Array<string>;
-nativeCurrency?: {
-/**
- * Native currency name
- */
-name: string;
-/**
- * Native currency symbol
- */
-symbol: string;
-/**
- * Native currency decimals
- */
-decimals: number;
-};
-/**
- * Chain short name
- */
-shortName?: string;
-/**
- * Chain ID
- */
-chainId?: number;
-/**
- * Is testnet
- */
-testnet?: boolean;
-/**
- * Chain slug
- */
-slug?: string;
-}>;
-}> {
+        result: Array<{
+            /**
+             * Chain name
+             */
+            name?: string;
+            /**
+             * Chain name
+             */
+            chain?: string;
+            rpc?: Array<string>;
+            nativeCurrency?: {
+                /**
+                 * Native currency name
+                 */
+                name: string;
+                /**
+                 * Native currency symbol
+                 */
+                symbol: string;
+                /**
+                 * Native currency decimals
+                 */
+                decimals: number;
+            };
+            /**
+             * Chain short name
+             */
+            shortName?: string;
+            /**
+             * Chain ID
+             */
+            chainId?: number;
+            /**
+             * Is testnet
+             */
+            testnet?: boolean;
+            /**
+             * Chain slug
+             */
+            slug?: string;
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/chains',
@@ -143,97 +143,97 @@ slug?: string;
     /**
      * Update chain overrides configuration
      * Update chain overrides configuration
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public updateChainsConfiguration(
-requestBody: {
-chainOverrides: Array<{
-/**
- * Chain name
- */
-name?: string;
-/**
- * Chain name
- */
-chain?: string;
-rpc?: Array<string>;
-nativeCurrency?: {
-/**
- * Native currency name
- */
-name: string;
-/**
- * Native currency symbol
- */
-symbol: string;
-/**
- * Native currency decimals
- */
-decimals: number;
-};
-/**
- * Chain short name
- */
-shortName?: string;
-/**
- * Chain ID
- */
-chainId?: number;
-/**
- * Is testnet
- */
-testnet?: boolean;
-/**
- * Chain slug
- */
-slug?: string;
-}>;
-},
-): CancelablePromise<{
-result: Array<{
-/**
- * Chain name
- */
-name?: string;
-/**
- * Chain name
- */
-chain?: string;
-rpc?: Array<string>;
-nativeCurrency?: {
-/**
- * Native currency name
- */
-name: string;
-/**
- * Native currency symbol
- */
-symbol: string;
-/**
- * Native currency decimals
- */
-decimals: number;
-};
-/**
- * Chain short name
- */
-shortName?: string;
-/**
- * Chain ID
- */
-chainId?: number;
-/**
- * Is testnet
- */
-testnet?: boolean;
-/**
- * Chain slug
- */
-slug?: string;
-}>;
-}> {
+        requestBody: {
+            chainOverrides: Array<{
+                /**
+                 * Chain name
+                 */
+                name?: string;
+                /**
+                 * Chain name
+                 */
+                chain?: string;
+                rpc?: Array<string>;
+                nativeCurrency?: {
+                    /**
+                     * Native currency name
+                     */
+                    name: string;
+                    /**
+                     * Native currency symbol
+                     */
+                    symbol: string;
+                    /**
+                     * Native currency decimals
+                     */
+                    decimals: number;
+                };
+                /**
+                 * Chain short name
+                 */
+                shortName?: string;
+                /**
+                 * Chain ID
+                 */
+                chainId?: number;
+                /**
+                 * Is testnet
+                 */
+                testnet?: boolean;
+                /**
+                 * Chain slug
+                 */
+                slug?: string;
+            }>;
+        },
+    ): CancelablePromise<{
+        result: Array<{
+            /**
+             * Chain name
+             */
+            name?: string;
+            /**
+             * Chain name
+             */
+            chain?: string;
+            rpc?: Array<string>;
+            nativeCurrency?: {
+                /**
+                 * Native currency name
+                 */
+                name: string;
+                /**
+                 * Native currency symbol
+                 */
+                symbol: string;
+                /**
+                 * Native currency decimals
+                 */
+                decimals: number;
+            };
+            /**
+             * Chain short name
+             */
+            shortName?: string;
+            /**
+             * Chain ID
+             */
+            chainId?: number;
+            /**
+             * Is testnet
+             */
+            testnet?: boolean;
+            /**
+             * Chain slug
+             */
+            slug?: string;
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/configuration/chains',
@@ -254,19 +254,19 @@ slug?: string;
      * @throws ApiError
      */
     public getTransactionConfiguration(): CancelablePromise<{
-result: {
-minTxsToProcess: number;
-maxTxsToProcess: number;
-minedTxListenerCronSchedule: (string | null);
-maxTxsToUpdate: number;
-retryTxListenerCronSchedule: (string | null);
-minEllapsedBlocksBeforeRetry: number;
-maxFeePerGasForRetries: string;
-maxPriorityFeePerGasForRetries: string;
-maxRetriesPerTx: number;
-clearCacheCronSchedule: (string | null);
-};
-}> {
+        result: {
+            minTxsToProcess: number;
+            maxTxsToProcess: number;
+            minedTxListenerCronSchedule: (string | null);
+            maxTxsToUpdate: number;
+            retryTxListenerCronSchedule: (string | null);
+            minEllapsedBlocksBeforeRetry: number;
+            maxFeePerGasForRetries: string;
+            maxPriorityFeePerGasForRetries: string;
+            maxRetriesPerTx: number;
+            clearCacheCronSchedule: (string | null);
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/transactions',
@@ -281,33 +281,35 @@ clearCacheCronSchedule: (string | null);
     /**
      * Update transaction processing configuration
      * Update transaction processing configuration
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public updateTransactionConfiguration(
-requestBody?: {
-maxTxsToProcess?: number;
-maxTxsToUpdate?: number;
-minedTxListenerCronSchedule?: (string | null);
-retryTxListenerCronSchedule?: (string | null);
-minEllapsedBlocksBeforeRetry?: number;
-maxFeePerGasForRetries?: string;
-maxRetriesPerTx?: number;
-},
-): CancelablePromise<{
-result: {
-minTxsToProcess: number;
-maxTxsToProcess: number;
-minedTxListenerCronSchedule: (string | null);
-maxTxsToUpdate: number;
-retryTxListenerCronSchedule: (string | null);
-minEllapsedBlocksBeforeRetry: number;
-maxFeePerGasForRetries: string;
-maxPriorityFeePerGasForRetries: string;
-maxRetriesPerTx: number;
-};
-}> {
+        requestBody?: {
+            minTxsToProcess?: number;
+            maxTxsToProcess?: number;
+            minedTxListenerCronSchedule?: (string | null);
+            maxTxsToUpdate?: number;
+            retryTxListenerCronSchedule?: (string | null);
+            minEllapsedBlocksBeforeRetry?: number;
+            maxFeePerGasForRetries?: string;
+            maxPriorityFeePerGasForRetries?: string;
+            maxRetriesPerTx?: number;
+        },
+    ): CancelablePromise<{
+        result: {
+            minTxsToProcess: number;
+            maxTxsToProcess: number;
+            minedTxListenerCronSchedule: (string | null);
+            maxTxsToUpdate: number;
+            retryTxListenerCronSchedule: (string | null);
+            minEllapsedBlocksBeforeRetry: number;
+            maxFeePerGasForRetries: string;
+            maxPriorityFeePerGasForRetries: string;
+            maxRetriesPerTx: number;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/configuration/transactions',
@@ -328,10 +330,10 @@ maxRetriesPerTx: number;
      * @throws ApiError
      */
     public getAuthConfiguration(): CancelablePromise<{
-result: {
-domain: string;
-};
-}> {
+        result: {
+            domain: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/auth',
@@ -346,19 +348,19 @@ domain: string;
     /**
      * Update auth configuration
      * Update auth configuration
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public updateAuthConfiguration(
-requestBody: {
-domain: string;
-},
-): CancelablePromise<{
-result: {
-domain: string;
-};
-}> {
+        requestBody: {
+            domain: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            domain: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/configuration/auth',
@@ -379,13 +381,13 @@ domain: string;
      * @throws ApiError
      */
     public getBackendWalletBalanceConfiguration(): CancelablePromise<{
-result: {
-/**
- * Minimum wallet balance in wei
- */
-minWalletBalance: string;
-};
-}> {
+        result: {
+            /**
+             * Minimum wallet balance in wei
+             */
+            minWalletBalance: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/backend-wallet-balance',
@@ -400,25 +402,25 @@ minWalletBalance: string;
     /**
      * Update backend wallet balance configuration
      * Update backend wallet balance configuration
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public updateBackendWalletBalanceConfiguration(
-requestBody?: {
-/**
- * Minimum wallet balance in wei
- */
-minWalletBalance?: string;
-},
-): CancelablePromise<{
-result: {
-/**
- * Minimum wallet balance in wei
- */
-minWalletBalance: string;
-};
-}> {
+        requestBody?: {
+            /**
+             * Minimum wallet balance in wei
+             */
+            minWalletBalance?: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            /**
+             * Minimum wallet balance in wei
+             */
+            minWalletBalance: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/configuration/backend-wallet-balance',
@@ -439,8 +441,8 @@ minWalletBalance: string;
      * @throws ApiError
      */
     public getCorsConfiguration(): CancelablePromise<{
-result: Array<string>;
-}> {
+        result: Array<string>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/cors',
@@ -455,17 +457,17 @@ result: Array<string>;
     /**
      * Add a CORS URL
      * Add a URL to allow client-side calls to Engine
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public addUrlToCorsConfiguration(
-requestBody: {
-urlsToAdd: Array<string>;
-},
-): CancelablePromise<{
-result: Array<string>;
-}> {
+        requestBody: {
+            urlsToAdd: Array<string>;
+        },
+    ): CancelablePromise<{
+        result: Array<string>;
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/configuration/cors',
@@ -482,17 +484,17 @@ result: Array<string>;
     /**
      * Remove CORS URLs
      * Remove URLs from CORS configuration
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public removeUrlToCorsConfiguration(
-requestBody: {
-urlsToRemove: Array<string>;
-},
-): CancelablePromise<{
-result: Array<string>;
-}> {
+        requestBody: {
+            urlsToRemove: Array<string>;
+        },
+    ): CancelablePromise<{
+        result: Array<string>;
+    }> {
         return this.httpRequest.request({
             method: 'DELETE',
             url: '/configuration/cors',
@@ -509,17 +511,17 @@ result: Array<string>;
     /**
      * Set CORS URLs
      * Replaces the CORS URLs to allow client-side calls to Engine
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public setUrlsToCorsConfiguration(
-requestBody: {
-urls: Array<string>;
-},
-): CancelablePromise<{
-result: Array<string>;
-}> {
+        requestBody: {
+            urls: Array<string>;
+        },
+    ): CancelablePromise<{
+        result: Array<string>;
+    }> {
         return this.httpRequest.request({
             method: 'PUT',
             url: '/configuration/cors',
@@ -540,10 +542,10 @@ result: Array<string>;
      * @throws ApiError
      */
     public getCacheConfiguration(): CancelablePromise<{
-result: {
-clearCacheCronSchedule: string;
-};
-}> {
+        result: {
+            clearCacheCronSchedule: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/cache',
@@ -558,22 +560,22 @@ clearCacheCronSchedule: string;
     /**
      * Update cache configuration
      * Update cache configuration
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public updateCacheConfiguration(
-requestBody: {
-/**
- * Cron expression for clearing cache. It should be in the format of 'ss mm hh * * *' where ss is seconds, mm is minutes and hh is hours. Seconds should not be '*' or less than 10
- */
-clearCacheCronSchedule: string;
-},
-): CancelablePromise<{
-result: {
-clearCacheCronSchedule: string;
-};
-}> {
+        requestBody: {
+            /**
+             * Cron expression for clearing cache. It should be in the format of 'ss mm hh * * *' where ss is seconds, mm is minutes and hh is hours. Seconds should not be '*' or less than 10
+             */
+            clearCacheCronSchedule: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            clearCacheCronSchedule: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/configuration/cache',
@@ -594,11 +596,11 @@ clearCacheCronSchedule: string;
      * @throws ApiError
      */
     public getContractSubscriptionsConfiguration(): CancelablePromise<{
-result: {
-maxBlocksToIndex: number;
-contractSubscriptionsRequeryDelaySeconds: string;
-};
-}> {
+        result: {
+            maxBlocksToIndex: number;
+            contractSubscriptionsRequeryDelaySeconds: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/contract-subscriptions',
@@ -613,24 +615,21 @@ contractSubscriptionsRequeryDelaySeconds: string;
     /**
      * Update Contract Subscriptions configuration
      * Update the configuration for Contract Subscriptions
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public updateContractSubscriptionsConfiguration(
-requestBody?: {
-maxBlocksToIndex?: number;
-/**
- * Requery after one or more delays. Use comma-separated positive integers. Example: "2,10" means requery after 2s and 10s.
- */
-contractSubscriptionsRequeryDelaySeconds?: string;
-},
-): CancelablePromise<{
-result: {
-maxBlocksToIndex: number;
-contractSubscriptionsRequeryDelaySeconds: string;
-};
-}> {
+        requestBody?: {
+            maxBlocksToIndex?: number;
+            contractSubscriptionsRequeryDelaySeconds?: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            maxBlocksToIndex: number;
+            contractSubscriptionsRequeryDelaySeconds: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/configuration/contract-subscriptions',
@@ -651,8 +650,8 @@ contractSubscriptionsRequeryDelaySeconds: string;
      * @throws ApiError
      */
     public getIpAllowlist(): CancelablePromise<{
-result: Array<string>;
-}> {
+        result: Array<string>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/configuration/ip-allowlist',
@@ -667,20 +666,20 @@ result: Array<string>;
     /**
      * Set IP Allowlist
      * Replaces the IP Allowlist array to allow calls to Engine
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public setIpAllowlist(
-requestBody: {
-/**
- * Array of IP addresses to allowlist
- */
-ips: Array<string>;
-},
-): CancelablePromise<{
-result: Array<string>;
-}> {
+        requestBody: {
+            /**
+             * Array of IP addresses to allowlist
+             */
+            ips: Array<string>;
+        },
+    ): CancelablePromise<{
+        result: Array<string>;
+    }> {
         return this.httpRequest.request({
             method: 'PUT',
             url: '/configuration/ip-allowlist',

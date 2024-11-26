@@ -15,17 +15,17 @@ export class WebhooksService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public listWebhooks(): CancelablePromise<{
-result: Array<{
-id: number;
-url: string;
-name: (string | null);
-secret?: string;
-eventType: string;
-active: boolean;
-createdAt: string;
-}>;
-}> {
+    public getAll(): CancelablePromise<{
+        result: Array<{
+            url: string;
+            name: (string | null);
+            secret?: string;
+            eventType: string;
+            active: boolean;
+            createdAt: string;
+            id: number;
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/webhooks/get-all',
@@ -39,31 +39,31 @@ createdAt: string;
 
     /**
      * Create a webhook
-     * Create a webhook to call when a specific Engine event occurs.
-     * @param requestBody 
+     * Create a webhook to call when certain blockchain events occur.
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public createWebhook(
-requestBody: {
-/**
- * Webhook URL. Non-HTTPS URLs are not supported.
- */
-url: string;
-name?: string;
-eventType: ('queued_transaction' | 'sent_transaction' | 'mined_transaction' | 'errored_transaction' | 'cancelled_transaction' | 'all_transactions' | 'backend_wallet_balance' | 'auth' | 'contract_subscription');
-},
-): CancelablePromise<{
-result: {
-id: number;
-url: string;
-name: (string | null);
-secret?: string;
-eventType: string;
-active: boolean;
-createdAt: string;
-};
-}> {
+    public create(
+        requestBody: {
+            /**
+             * Webhook URL
+             */
+            url: string;
+            name?: string;
+            eventType: ('queued_transaction' | 'sent_transaction' | 'mined_transaction' | 'errored_transaction' | 'cancelled_transaction' | 'all_transactions' | 'backend_wallet_balance' | 'auth' | 'contract_subscription');
+        },
+    ): CancelablePromise<{
+        result: {
+            url: string;
+            name: (string | null);
+            secret?: string;
+            eventType: string;
+            active: boolean;
+            createdAt: string;
+            id: number;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/webhooks/create',
@@ -80,19 +80,19 @@ createdAt: string;
     /**
      * Revoke webhook
      * Revoke a Webhook
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public revoke(
-requestBody: {
-id: number;
-},
-): CancelablePromise<{
-result: {
-success: boolean;
-};
-}> {
+        requestBody: {
+            id: number;
+        },
+    ): CancelablePromise<{
+        result: {
+            success: boolean;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/webhooks/revoke',
@@ -113,41 +113,11 @@ success: boolean;
      * @throws ApiError
      */
     public getEventTypes(): CancelablePromise<{
-result: Array<('queued_transaction' | 'sent_transaction' | 'mined_transaction' | 'errored_transaction' | 'cancelled_transaction' | 'all_transactions' | 'backend_wallet_balance' | 'auth' | 'contract_subscription')>;
-}> {
+        result: Array<('queued_transaction' | 'sent_transaction' | 'mined_transaction' | 'errored_transaction' | 'cancelled_transaction' | 'all_transactions' | 'backend_wallet_balance' | 'auth' | 'contract_subscription')>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/webhooks/event-types',
-            errors: {
-                400: `Bad Request`,
-                404: `Not Found`,
-                500: `Internal Server Error`,
-            },
-        });
-    }
-
-    /**
-     * Test webhook
-     * Send a test payload to a webhook.
-     * @param webhookId 
-     * @returns any Default Response
-     * @throws ApiError
-     */
-    public testWebhook(
-webhookId: string,
-): CancelablePromise<{
-result: {
-ok: boolean;
-status: number;
-body: string;
-};
-}> {
-        return this.httpRequest.request({
-            method: 'POST',
-            url: '/webhooks/{webhookId}/test',
-            path: {
-                'webhookId': webhookId,
-            },
             errors: {
                 400: `Bad Request`,
                 404: `Not Found`,

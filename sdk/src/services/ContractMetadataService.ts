@@ -12,43 +12,43 @@ export class ContractMetadataService {
     /**
      * Get ABI
      * Get the ABI of a contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
      */
     public getAbi(
-chain: string,
-contractAddress: string,
-): CancelablePromise<{
-result: Array<{
-type: string;
-name?: string;
-inputs?: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-stateMutability?: string;
-components?: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-}>;
-}>;
-outputs?: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-stateMutability?: string;
-components?: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-}>;
-}>;
-stateMutability?: string;
-}>;
-}> {
+        chain: string,
+        contractAddress: string,
+    ): CancelablePromise<{
+        result: Array<{
+            type: string;
+            name?: string;
+            inputs?: Array<{
+                type?: string;
+                name?: string;
+                internalType?: string;
+                stateMutability?: string;
+                components?: Array<{
+                    type?: string;
+                    name?: string;
+                    internalType?: string;
+                }>;
+            }>;
+            outputs?: Array<{
+                type?: string;
+                name?: string;
+                internalType?: string;
+                stateMutability?: string;
+                components?: Array<{
+                    type?: string;
+                    name?: string;
+                    internalType?: string;
+                }>;
+            }>;
+            stateMutability?: string;
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/contract/{chain}/{contractAddress}/metadata/abi',
@@ -67,42 +67,42 @@ stateMutability?: string;
     /**
      * Get events
      * Get details of all events implemented by a contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
      */
-    public getContractEvents(
-chain: string,
-contractAddress: string,
-): CancelablePromise<{
-result: Array<{
-name: string;
-inputs: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-stateMutability?: string;
-components?: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-}>;
-}>;
-outputs: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-stateMutability?: string;
-components?: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-}>;
-}>;
-comment?: string;
-}>;
-}> {
+    public getEvents(
+        chain: string,
+        contractAddress: string,
+    ): CancelablePromise<{
+        result: Array<{
+            name: string;
+            inputs: Array<{
+                type?: string;
+                name?: string;
+                internalType?: string;
+                stateMutability?: string;
+                components?: Array<{
+                    type?: string;
+                    name?: string;
+                    internalType?: string;
+                }>;
+            }>;
+            outputs: Array<{
+                type?: string;
+                name?: string;
+                internalType?: string;
+                stateMutability?: string;
+                components?: Array<{
+                    type?: string;
+                    name?: string;
+                    internalType?: string;
+                }>;
+            }>;
+            comment?: string;
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/contract/{chain}/{contractAddress}/metadata/events',
@@ -121,20 +121,20 @@ comment?: string;
     /**
      * Get extensions
      * Get all detected extensions for a contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
      */
     public getExtensions(
-chain: string,
-contractAddress: string,
-): CancelablePromise<{
-/**
- * Array of detected extension names
- */
-result: Array<string>;
-}> {
+        chain: string,
+        contractAddress: string,
+    ): CancelablePromise<{
+        /**
+         * Array of detected extension names
+         */
+        result: Array<string>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/contract/{chain}/{contractAddress}/metadata/extensions',
@@ -153,44 +153,44 @@ result: Array<string>;
     /**
      * Get functions
      * Get details of all functions implemented by the contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
      */
     public getFunctions(
-chain: string,
-contractAddress: string,
-): CancelablePromise<{
-result: Array<{
-name: string;
-inputs: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-stateMutability?: string;
-components?: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-}>;
-}>;
-outputs: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-stateMutability?: string;
-components?: Array<{
-type?: string;
-name?: string;
-internalType?: string;
-}>;
-}>;
-comment?: string;
-signature: string;
-stateMutability: string;
-}>;
-}> {
+        chain: string,
+        contractAddress: string,
+    ): CancelablePromise<{
+        result: Array<{
+            name: string;
+            inputs: Array<{
+                type?: string;
+                name?: string;
+                internalType?: string;
+                stateMutability?: string;
+                components?: Array<{
+                    type?: string;
+                    name?: string;
+                    internalType?: string;
+                }>;
+            }>;
+            outputs: Array<{
+                type?: string;
+                name?: string;
+                internalType?: string;
+                stateMutability?: string;
+                components?: Array<{
+                    type?: string;
+                    name?: string;
+                    internalType?: string;
+                }>;
+            }>;
+            comment?: string;
+            signature: string;
+            stateMutability: string;
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/contract/{chain}/{contractAddress}/metadata/functions',

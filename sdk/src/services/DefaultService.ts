@@ -31,15 +31,4 @@ export class DefaultService {
         });
     }
 
-    /**
-     * @returns any Default Response
-     * @throws ApiError
-     */
-    public getJson1(): CancelablePromise<any> {
-        return this.httpRequest.request({
-            method: 'GET',
-            url: '/json/',
-        });
-    }
-
 }

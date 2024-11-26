@@ -12,55 +12,55 @@ export class ChainService {
     /**
      * Get chain details
      * Get details about a chain.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain name or ID
      * @returns any Default Response
      * @throws ApiError
      */
-    public getChain(
-chain: string,
-): CancelablePromise<{
-result: {
-/**
- * Chain name
- */
-name?: string;
-/**
- * Chain name
- */
-chain?: string;
-rpc?: Array<string>;
-nativeCurrency?: {
-/**
- * Native currency name
- */
-name: string;
-/**
- * Native currency symbol
- */
-symbol: string;
-/**
- * Native currency decimals
- */
-decimals: number;
-};
-/**
- * Chain short name
- */
-shortName?: string;
-/**
- * Chain ID
- */
-chainId?: number;
-/**
- * Is testnet
- */
-testnet?: boolean;
-/**
- * Chain slug
- */
-slug?: string;
-};
-}> {
+    public get(
+        chain: string,
+    ): CancelablePromise<{
+        result: {
+            /**
+             * Chain name
+             */
+            name?: string;
+            /**
+             * Chain name
+             */
+            chain?: string;
+            rpc?: Array<string>;
+            nativeCurrency?: {
+                /**
+                 * Native currency name
+                 */
+                name: string;
+                /**
+                 * Native currency symbol
+                 */
+                symbol: string;
+                /**
+                 * Native currency decimals
+                 */
+                decimals: number;
+            };
+            /**
+             * Chain short name
+             */
+            shortName?: string;
+            /**
+             * Chain ID
+             */
+            chainId?: number;
+            /**
+             * Is testnet
+             */
+            testnet?: boolean;
+            /**
+             * Chain slug
+             */
+            slug?: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/chain/get',
@@ -81,49 +81,49 @@ slug?: string;
      * @returns any Default Response
      * @throws ApiError
      */
-    public listChains(): CancelablePromise<{
-result: Array<{
-/**
- * Chain name
- */
-name?: string;
-/**
- * Chain name
- */
-chain?: string;
-rpc?: Array<string>;
-nativeCurrency?: {
-/**
- * Native currency name
- */
-name: string;
-/**
- * Native currency symbol
- */
-symbol: string;
-/**
- * Native currency decimals
- */
-decimals: number;
-};
-/**
- * Chain short name
- */
-shortName?: string;
-/**
- * Chain ID
- */
-chainId?: number;
-/**
- * Is testnet
- */
-testnet?: boolean;
-/**
- * Chain slug
- */
-slug?: string;
-}>;
-}> {
+    public getAll(): CancelablePromise<{
+        result: Array<{
+            /**
+             * Chain name
+             */
+            name?: string;
+            /**
+             * Chain name
+             */
+            chain?: string;
+            rpc?: Array<string>;
+            nativeCurrency?: {
+                /**
+                 * Native currency name
+                 */
+                name: string;
+                /**
+                 * Native currency symbol
+                 */
+                symbol: string;
+                /**
+                 * Native currency decimals
+                 */
+                decimals: number;
+            };
+            /**
+             * Chain short name
+             */
+            shortName?: string;
+            /**
+             * Chain ID
+             */
+            chainId?: number;
+            /**
+             * Is testnet
+             */
+            testnet?: boolean;
+            /**
+             * Chain slug
+             */
+            slug?: string;
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/chain/get-all',

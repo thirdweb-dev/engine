@@ -15,19 +15,19 @@ export class RelayerService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public listRelayers(): CancelablePromise<{
-result: Array<{
-id: string;
-name: (string | null);
-chainId: string;
-/**
- * A contract or wallet address
- */
-backendWalletAddress: string;
-allowedContracts: (Array<string> | null);
-allowedForwarders: (Array<string> | null);
-}>;
-}> {
+    public getAll(): CancelablePromise<{
+        result: Array<{
+            id: string;
+            name: (string | null);
+            chainId: string;
+            /**
+             * A contract or wallet address
+             */
+            backendWalletAddress: string;
+            allowedContracts: (Array<string> | null);
+            allowedForwarders: (Array<string> | null);
+        }>;
+    }> {
         return this.httpRequest.request({
             method: 'GET',
             url: '/relayer/get-all',
@@ -42,29 +42,26 @@ allowedForwarders: (Array<string> | null);
     /**
      * Create a new meta-transaction relayer
      * Create a new meta-transaction relayer
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public createRelayer(
-requestBody: {
-name?: string;
-/**
- * A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
- */
-chain: string;
-/**
- * The address of the backend wallet to use for relaying transactions.
- */
-backendWalletAddress: string;
-allowedContracts?: Array<string>;
-allowedForwarders?: Array<string>;
-},
-): CancelablePromise<{
-result: {
-relayerId: string;
-};
-}> {
+    public create(
+        requestBody: {
+            name?: string;
+            chain: string;
+            /**
+             * The address of the backend wallet to use for relaying transactions.
+             */
+            backendWalletAddress: string;
+            allowedContracts?: Array<string>;
+            allowedForwarders?: Array<string>;
+        },
+    ): CancelablePromise<{
+        result: {
+            relayerId: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/relayer/create',
@@ -81,19 +78,19 @@ relayerId: string;
     /**
      * Revoke a relayer
      * Revoke a relayer
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public revokeRelayer(
-requestBody: {
-id: string;
-},
-): CancelablePromise<{
-result: {
-success: boolean;
-};
-}> {
+    public revoke(
+        requestBody: {
+            id: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            success: boolean;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/relayer/revoke',
@@ -110,30 +107,27 @@ success: boolean;
     /**
      * Update a relayer
      * Update a relayer
-     * @param requestBody 
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public updateRelayer(
-requestBody: {
-id: string;
-name?: string;
-/**
- * A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
- */
-chain?: string;
-/**
- * A contract or wallet address
- */
-backendWalletAddress?: string;
-allowedContracts?: Array<string>;
-allowedForwarders?: Array<string>;
-},
-): CancelablePromise<{
-result: {
-success: boolean;
-};
-}> {
+    public update(
+        requestBody: {
+            id: string;
+            name?: string;
+            chain?: string;
+            /**
+             * A contract or wallet address
+             */
+            backendWalletAddress?: string;
+            allowedContracts?: Array<string>;
+            allowedForwarders?: Array<string>;
+        },
+    ): CancelablePromise<{
+        result: {
+            success: boolean;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/relayer/update',
@@ -150,57 +144,57 @@ success: boolean;
     /**
      * Relay a meta-transaction
      * Relay an EIP-2771 meta-transaction
-     * @param relayerId 
-     * @param requestBody 
+     * @param relayerId
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
     public relay(
-relayerId: string,
-requestBody?: ({
-type: 'forward';
-request: {
-from: string;
-to: string;
-value: string;
-gas: string;
-nonce: string;
-data: string;
-chainid?: string;
-};
-signature: string;
-/**
- * A contract or wallet address
- */
-forwarderAddress: string;
-} | {
-type: 'permit';
-request: {
-to: string;
-owner: string;
-spender: string;
-value: string;
-nonce: string;
-deadline: string;
-};
-signature: string;
-} | {
-type: 'execute-meta-transaction';
-request: {
-from: string;
-to: string;
-data: string;
-};
-signature: string;
-}),
-): CancelablePromise<{
-result: {
-/**
- * Queue ID
- */
-queueId: string;
-};
-}> {
+        relayerId: string,
+        requestBody?: ({
+            type: 'forward';
+            request: {
+                from: string;
+                to: string;
+                value: string;
+                gas: string;
+                nonce: string;
+                data: string;
+                chainid?: string;
+            };
+            signature: string;
+            /**
+             * A contract or wallet address
+             */
+            forwarderAddress: string;
+        } | {
+            type: 'permit';
+            request: {
+                to: string;
+                owner: string;
+                spender: string;
+                value: string;
+                nonce: string;
+                deadline: string;
+            };
+            signature: string;
+        } | {
+            type: 'execute-meta-transaction';
+            request: {
+                from: string;
+                to: string;
+                data: string;
+            };
+            signature: string;
+        }),
+    ): CancelablePromise<{
+        result: {
+            /**
+             * Queue ID
+             */
+            queueId: string;
+        };
+    }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/relayer/{relayerId}',
