@@ -24,13 +24,7 @@ const responseSchema = Type.Object({
 
 responseSchema.examples = [
   {
-    result: {
-      name: "MATIC",
-      symbol: "MATIC",
-      decimals: 18,
-      value: "10000000000",
-      displayValue: "0.00000001",
-    },
+    result: "10000000000",
   },
 ];
 
