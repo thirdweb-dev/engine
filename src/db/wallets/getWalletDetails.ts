@@ -186,7 +186,7 @@ export const getWalletDetails = async ({
       ? decrypt(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
       : (config.walletConfiguration.aws?.awsSecretAccessKey ?? null);
 
-    walletDetails.awsKmsKeyId =
+    walletDetails.awsKmsAccessKeyId =
       walletDetails.awsKmsAccessKeyId ??
       config.walletConfiguration.aws?.awsAccessKeyId ??
       null;

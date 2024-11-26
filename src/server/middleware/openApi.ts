@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 
 export const OPENAPI_ROUTES = ["/json", "/openapi.json", "/json/"];
 
-export const withOpenApi = async (server: FastifyInstance) => {
+export async function withOpenApi(server: FastifyInstance) {
   await server.register(swagger, {
     openapi: {
       info: {
@@ -39,4 +39,4 @@ export const withOpenApi = async (server: FastifyInstance) => {
       res.send(server.swagger());
     });
   }
-};
+}

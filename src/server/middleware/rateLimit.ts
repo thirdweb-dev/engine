@@ -3,12 +3,12 @@ import { StatusCodes } from "http-status-codes";
 import { env } from "../../utils/env";
 import { redis } from "../../utils/redis/redis";
 import { createCustomError } from "./error";
-import { OPENAPI_ROUTES } from "./open-api";
+import { OPENAPI_ROUTES } from "./openApi";
 
 const SKIP_RATELIMIT_PATHS = ["/", ...OPENAPI_ROUTES];
 
-export const withRateLimit = async (server: FastifyInstance) => {
-  server.addHook("onRequest", async (request, reply) => {
+export function withRateLimit(server: FastifyInstance) {
+  server.addHook("onRequest", async (request, _reply) => {
     if (SKIP_RATELIMIT_PATHS.includes(request.url)) {
       return;
     }
@@ -26,4 +26,4 @@ export const withRateLimit = async (server: FastifyInstance) => {
       );
     }
   });
-};
+}

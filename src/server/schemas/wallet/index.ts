@@ -22,11 +22,13 @@ export const walletWithAAHeaderSchema = Type.Object({
   "x-account-address": Type.Optional({
     ...AddressSchema,
     description: "Smart account address",
+    examples: [],
   }),
   "x-account-factory-address": Type.Optional({
     ...AddressSchema,
     description:
       "Smart account factory address. If omitted, Engine will try to resolve it from the contract.",
+    examples: [],
   }),
   "x-account-salt": Type.Optional(
     Type.String({

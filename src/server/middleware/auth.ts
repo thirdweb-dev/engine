@@ -25,7 +25,7 @@ import { logger } from "../../utils/logger";
 import { sendWebhookRequest } from "../../utils/webhook";
 import { Permission } from "../schemas/auth";
 import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
-import { OPENAPI_ROUTES } from "./open-api";
+import { OPENAPI_ROUTES } from "./openApi";
 
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };
@@ -43,7 +43,7 @@ declare module "fastify" {
   }
 }
 
-export const withAuth = async (server: FastifyInstance) => {
+export async function withAuth(server: FastifyInstance) {
   const config = await getConfig();
 
   // Configure the ThirdwebAuth fastify plugin
@@ -140,7 +140,7 @@ export const withAuth = async (server: FastifyInstance) => {
       message,
     });
   });
-};
+}
 
 export const onRequest = async ({
   req,
