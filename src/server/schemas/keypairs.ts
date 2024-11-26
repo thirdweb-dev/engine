@@ -1,5 +1,5 @@
-import { Keypairs } from "@prisma/client";
-import { Static, Type } from "@sinclair/typebox";
+import type { Keypairs } from "@prisma/client";
+import { type Static, Type } from "@sinclair/typebox";
 
 // https://github.com/auth0/node-jsonwebtoken#algorithms-supported
 const _supportedAlgorithms = [

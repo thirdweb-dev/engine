@@ -1,8 +1,8 @@
 import {
+  type Address,
   eth_getTransactionCount,
   getAddress,
   getRpcClient,
-  type Address,
 } from "thirdweb";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";

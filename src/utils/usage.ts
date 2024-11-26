@@ -1,11 +1,11 @@
-import { Static } from "@sinclair/typebox";
-import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
-import { FastifyInstance } from "fastify";
-import { Address, Hex } from "thirdweb";
+import type { Static } from "@sinclair/typebox";
+import type { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
+import type { FastifyInstance } from "fastify";
+import type { Address, Hex } from "thirdweb";
 import { ADMIN_QUEUES_BASEPATH } from "../server/middleware/adminRoutes";
 import { OPENAPI_ROUTES } from "../server/middleware/open-api";
-import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
-import { walletWithAddressParamSchema } from "../server/schemas/wallet";
+import type { contractParamSchema } from "../server/schemas/sharedApiSchemas";
+import type { walletWithAddressParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
 import { env } from "./env";
 import { logger } from "./logger";

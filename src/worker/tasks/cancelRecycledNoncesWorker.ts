@@ -1,5 +1,5 @@
-import { Job, Processor, Worker } from "bullmq";
-import { Address } from "thirdweb";
+import { type Job, type Processor, Worker } from "bullmq";
+import type { Address } from "thirdweb";
 import { recycleNonce } from "../../db/wallets/walletNonce";
 import { isNonceAlreadyUsedError } from "../../utils/error";
 import { logger } from "../../utils/logger";
@@ -68,7 +68,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 const fromRecycledNoncesKey = (key: string) => {
   const [, chainId, walletAddress] = key.split(":");
   return {
-    chainId: parseInt(chainId),
+    chainId: Number.parseInt(chainId),
     walletAddress: walletAddress as Address,
   };
 };
@@ -89,5 +89,5 @@ const getAndDeleteRecycledNonces = async (key: string) => {
     throw new Error(`Error getting members of ${key}: ${error}`);
   }
   // No need to sort here as ZRANGE returns elements in ascending order
-  return (nonces as string[]).map((v) => parseInt(v));
+  return (nonces as string[]).map((v) => Number.parseInt(v));
 };

@@ -2,10 +2,10 @@ import type { KMSClientConfig } from "@aws-sdk/client-kms";
 import { KmsSigner } from "aws-kms-signer";
 import type { Hex, ThirdwebClient } from "thirdweb";
 import {
+  type Address,
   eth_sendRawTransaction,
   getRpcClient,
   keccak256,
-  type Address,
 } from "thirdweb";
 import { serializeTransaction } from "thirdweb/transaction";
 import { hashMessage } from "thirdweb/utils";

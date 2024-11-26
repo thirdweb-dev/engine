@@ -1,11 +1,11 @@
+import { createHash } from "crypto";
 import { parseJWT } from "@thirdweb-dev/auth";
 import {
   ThirdwebAuth,
-  getToken as getJWT,
   type ThirdwebAuthUser,
+  getToken as getJWT,
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
-import { createHash } from "crypto";
 import type { FastifyInstance } from "fastify";
 import type { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken, { type JwtPayload } from "jsonwebtoken";

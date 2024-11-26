@@ -1,8 +1,8 @@
 import {
+  type Address,
   eth_blockNumber,
   eth_getBlockByNumber,
   getRpcClient,
-  type Address,
 } from "thirdweb";
 import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
 import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";

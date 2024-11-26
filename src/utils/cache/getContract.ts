@@ -1,4 +1,4 @@
-import { Static, Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../server/middleware/error";
 import { abiSchema } from "../../server/schemas/contract";

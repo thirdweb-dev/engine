@@ -1,14 +1,14 @@
-import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
+import { type Job, type Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
+  type Address,
   eth_getBalance,
   eth_getTransactionByHash,
   eth_getTransactionReceipt,
   getAddress,
   getRpcClient,
   toTokens,
-  type Address,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceipt, getUserOpReceiptRaw } from "thirdweb/wallets/smart";
@@ -34,8 +34,8 @@ import type {
 import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
 import { reportUsage } from "../../utils/usage";
 import {
-  MineTransactionQueue,
   type MineTransactionData,
+  MineTransactionQueue,
 } from "../queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../queues/sendTransactionQueue";
 import { SendWebhookQueue } from "../queues/sendWebhookQueue";

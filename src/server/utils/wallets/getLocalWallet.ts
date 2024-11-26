@@ -2,7 +2,7 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { Wallet } from "ethers";
 import type { Address } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
-import { privateKeyToAccount, type Account } from "thirdweb/wallets";
+import { type Account, privateKeyToAccount } from "thirdweb/wallets";
 import { getWalletDetails } from "../../../db/wallets/getWalletDetails";
 import { getChain } from "../../../utils/chain";
 import { env } from "../../../utils/env";

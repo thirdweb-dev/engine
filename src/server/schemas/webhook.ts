@@ -1,5 +1,5 @@
 import type { Webhooks } from "@prisma/client";
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 
 export const WebhookSchema = Type.Object({
   id: Type.Integer(),

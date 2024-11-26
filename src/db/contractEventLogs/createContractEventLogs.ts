@@ -1,5 +1,5 @@
-import { ContractEventLogs, Prisma } from "@prisma/client";
-import { PrismaTransaction } from "../../schema/prisma";
+import type { ContractEventLogs, Prisma } from "@prisma/client";
+import type { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
 export interface BulkInsertContractLogsParams {

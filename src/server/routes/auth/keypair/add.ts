@@ -1,6 +1,6 @@
-import { Keypairs, Prisma } from "@prisma/client";
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Keypairs, Prisma } from "@prisma/client";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertKeypair } from "../../../../db/keypair/insert";
 import { isWellFormedPublicKey } from "../../../../utils/crypto";

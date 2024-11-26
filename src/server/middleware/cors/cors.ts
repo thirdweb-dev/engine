@@ -1,4 +1,4 @@
-import {
+import type {
   FastifyInstance,
   FastifyReply,
   FastifyRequest,
@@ -16,7 +16,7 @@ declare module "fastify" {
   }
 }
 
-type ArrayOfValueOrArray<T> = Array<ValueOrArray<T>>
+type ArrayOfValueOrArray<T> = Array<ValueOrArray<T>>;
 
 type OriginCallback = (
   err: Error | null,

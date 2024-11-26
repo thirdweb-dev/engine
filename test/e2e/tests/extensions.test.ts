@@ -1,7 +1,7 @@
+import { beforeAll, describe, expect, test } from "bun:test";
 import assert from "assert";
 import { sleep } from "bun";
-import { beforeAll, describe, expect, test } from "bun:test";
-import { getAddress, type Address } from "viem";
+import { type Address, getAddress } from "viem";
 import { CONFIG } from "../config";
 import type { setupEngine } from "../utils/engine";
 import { setup } from "./setup";

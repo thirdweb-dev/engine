@@ -1,6 +1,6 @@
-import { Static, Type } from "@sinclair/typebox";
-import { Queue } from "bullmq";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { Queue } from "bullmq";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { stringify } from "thirdweb/utils";
 import { TransactionDB } from "../../../db/transactions/db";

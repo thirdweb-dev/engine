@@ -1,6 +1,6 @@
 import LRUMap from "mnemonist/lru-map";
-import { getContract, readContract, type Address, type Chain } from "thirdweb";
-import { smartWallet, type Account } from "thirdweb/wallets";
+import { type Address, type Chain, getContract, readContract } from "thirdweb";
+import { type Account, smartWallet } from "thirdweb/wallets";
 import { getAccount } from "../account";
 import { thirdwebClient } from "../sdk";
 

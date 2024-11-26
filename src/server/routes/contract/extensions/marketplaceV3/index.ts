@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { directListingsGetAll } from "./directListings/read/getAll";
 import { directListingsGetAllValid } from "./directListings/read/getAllValid";
 import { directListingsGetListing } from "./directListings/read/getListing";

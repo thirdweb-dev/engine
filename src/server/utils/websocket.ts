@@ -1,9 +1,9 @@
-import { SocketStream } from "@fastify/websocket";
-import { Static } from "@sinclair/typebox";
-import { FastifyRequest } from "fastify";
+import type { SocketStream } from "@fastify/websocket";
+import type { Static } from "@sinclair/typebox";
+import type { FastifyRequest } from "fastify";
 import { logger } from "../../utils/logger";
-import { TransactionSchema } from "../schemas/transaction";
-import { UserSubscription, subscriptionsData } from "../schemas/websocket";
+import type { TransactionSchema } from "../schemas/transaction";
+import { type UserSubscription, subscriptionsData } from "../schemas/websocket";
 
 // websocket timeout, i.e., ws connection closed after 10 seconds
 const timeoutDuration = 10 * 60 * 1000;

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { createSWRCache, type SWRCache } from "../lib/cache/swr";
+import { type SWRCache, createSWRCache } from "../lib/cache/swr";
 
 describe("SWRCache", () => {
   let cache: SWRCache<string, number>;

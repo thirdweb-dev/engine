@@ -6,8 +6,8 @@ import type {
 } from "../schemas/erc20";
 import type {
   ercNFTResponseType,
-  signature1155InputSchema,
   signature721InputSchema,
+  signature1155InputSchema,
 } from "../schemas/nft";
 
 const timestampValidator = (value: number | string | undefined): boolean => {

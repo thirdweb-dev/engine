@@ -1,6 +1,6 @@
 import { defineChain } from "thirdweb";
 import { anvil } from "thirdweb/chains";
-import { createTestClient, http } from "viem";
+import { http, createTestClient } from "viem";
 
 export const ANVIL_CHAIN = defineChain({
   ...anvil,

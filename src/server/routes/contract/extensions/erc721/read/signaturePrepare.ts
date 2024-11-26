@@ -1,14 +1,14 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { createHash, getRandomValues } from "node:crypto";
+import { type Static, Type } from "@sinclair/typebox";
 import { MintRequest721 } from "@thirdweb-dev/sdk";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { createHash, getRandomValues } from "node:crypto";
 import {
+  type Hex,
   ZERO_ADDRESS,
   getContract,
   isHex,
   uint8ArrayToHex,
-  type Hex,
 } from "thirdweb";
 import {
   primarySaleRecipient as getDefaultPrimarySaleRecipient,

@@ -1,5 +1,5 @@
 import assert from "assert";
-import { anvil, type Chain } from "thirdweb/chains";
+import { type Chain, anvil } from "thirdweb/chains";
 
 assert(process.env.ENGINE_URL, "ENGINE_URL is required");
 assert(process.env.ENGINE_ACCESS_TOKEN, "ENGINE_ACCESS_TOKEN is required");

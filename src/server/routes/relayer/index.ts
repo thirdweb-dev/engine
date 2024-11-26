@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { ethers, utils } from "ethers";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
@@ -59,7 +59,6 @@ const requestBodySchema = Type.Union([
     signature: Type.String(),
   }),
 ]);
-
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const responseBodySchema = Type.Composite([

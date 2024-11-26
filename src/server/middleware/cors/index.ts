@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { fastifyCors } from "./cors";
 
 export const withCors = async (server: FastifyInstance) => {

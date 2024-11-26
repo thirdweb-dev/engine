@@ -1,4 +1,4 @@
-import { Webhooks } from "@prisma/client";
+import type { Webhooks } from "@prisma/client";
 import { prisma } from "../client";
 
 export const getAllWebhooks = async (): Promise<Webhooks[]> => {

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import assert from "node:assert";
-import { ZERO_ADDRESS, type Address } from "thirdweb";
+import { type Address, ZERO_ADDRESS } from "thirdweb";
 import { CONFIG } from "../../config";
 import { getEngineBackendWalletB, type setupEngine } from "../../utils/engine";
 import { pollTransactionStatus } from "../../utils/transactions";

@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { insertWebhook } from "../../../db/webhooks/createWebhook";
 import { WebhooksEventTypes } from "../../../schema/webhooks";

@@ -1,7 +1,7 @@
 import {
+  type PreparedTransaction,
   prepareTransaction,
   simulateTransaction,
-  type PreparedTransaction,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";

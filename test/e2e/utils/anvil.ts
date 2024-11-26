@@ -1,4 +1,4 @@
-import { createServer, type CreateServerReturnType } from "prool";
+import { type CreateServerReturnType, createServer } from "prool";
 import { anvil } from "prool/instances";
 
 let server: CreateServerReturnType | undefined;

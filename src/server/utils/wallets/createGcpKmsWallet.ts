@@ -4,8 +4,8 @@ import { WalletType } from "../../../schema/wallet";
 import { thirdwebClient } from "../../../utils/sdk";
 import {
   FetchGcpKmsWalletParamsError,
-  fetchGcpKmsWalletParams,
   type GcpKmsWalletParams,
+  fetchGcpKmsWalletParams,
 } from "./fetchGcpKmsWalletParams";
 import { getGcpKmsResourcePath } from "./gcpKmsResourcePath";
 import { getGcpKmsAccount } from "./getGcpKmsAccount";

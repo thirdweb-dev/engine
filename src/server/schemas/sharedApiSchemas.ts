@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
 import type { RouteGenericInterface } from "fastify";
 import type { FastifySchema } from "fastify/types/schema";

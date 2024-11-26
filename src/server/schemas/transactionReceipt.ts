@@ -1,5 +1,5 @@
 import type { ContractTransactionReceipts } from "@prisma/client";
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { AddressSchema, TransactionHashSchema } from "./address";
 
 export const transactionReceiptSchema = Type.Object({

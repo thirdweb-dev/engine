@@ -70,7 +70,7 @@ function createAddFieldnameToVary(fieldname: string) {
 
   validateFieldname(fieldname);
 
-  return function (reply: FastifyReply) {
+  return (reply: FastifyReply) => {
     let header = reply.getHeader("Vary") as any;
 
     if (!header) {

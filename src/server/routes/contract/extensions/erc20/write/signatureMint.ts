@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { SignedPayload20 } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import type { FastifyInstance } from "fastify";

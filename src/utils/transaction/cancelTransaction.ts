@@ -1,4 +1,4 @@
-import { Address, toSerializableTransaction } from "thirdweb";
+import { type Address, toSerializableTransaction } from "thirdweb";
 import { getAccount } from "../account";
 import { getChain } from "../chain";
 import { getChecksumAddress } from "../primitiveTypes";
@@ -41,8 +41,7 @@ export const sendCancellationTransaction = async (
   }
 
   const account = await getAccount({ chainId, from });
-  const { transactionHash } = await account.sendTransaction(
-    populatedTransaction,
-  );
+  const { transactionHash } =
+    await account.sendTransaction(populatedTransaction);
   return transactionHash;
 };

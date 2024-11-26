@@ -1,4 +1,4 @@
-import { Worker, type Job, type Processor } from "bullmq";
+import { type Job, type Processor, Worker } from "bullmq";
 import { eth_getTransactionCount, getRpcClient } from "thirdweb";
 import {
   inspectNonce,

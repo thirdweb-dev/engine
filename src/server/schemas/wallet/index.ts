@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { getAddress, type Address } from "thirdweb";
+import { type Address, getAddress } from "thirdweb";
 import { env } from "../../../utils/env";
 import { badAddressError } from "../../middleware/error";
 import { AddressSchema } from "../address";

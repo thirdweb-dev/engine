@@ -1,8 +1,8 @@
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import {
+  type AwsKmsWalletParams,
   FetchAwsKmsWalletParamsError,
   fetchAwsKmsWalletParams,
-  type AwsKmsWalletParams,
 } from "./fetchAwsKmsWalletParams";
 import { importAwsKmsWallet } from "./importAwsKmsWallet";
 

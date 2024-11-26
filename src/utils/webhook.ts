@@ -1,5 +1,5 @@
-import type { Webhooks } from "@prisma/client";
 import crypto from "node:crypto";
+import type { Webhooks } from "@prisma/client";
 import { prettifyError } from "./error";
 
 export const generateSignature = (

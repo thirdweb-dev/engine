@@ -1,7 +1,7 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract, type Hex } from "thirdweb";
+import { type Hex, getContract } from "thirdweb";
 import { safeTransferFrom } from "thirdweb/extensions/erc1155";
 import { getChain } from "../../../../../../utils/chain";
 import { getChecksumAddress } from "../../../../../../utils/primitiveTypes";

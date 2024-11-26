@@ -1,11 +1,11 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  toSerializableTransaction,
-  toTokens,
   type Address,
   type Hex,
+  toSerializableTransaction,
+  toTokens,
 } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { getWalletBalance } from "thirdweb/wallets";

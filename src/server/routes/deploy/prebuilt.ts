@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address } from "thirdweb";
+import type { Address } from "thirdweb";
 import { queueTx } from "../../../db/transactions/queueTx";
 import { getSdk } from "../../../utils/cache/getSdk";
 import { AddressSchema } from "../../schemas/address";

@@ -1,6 +1,6 @@
-import { SocketStream } from "@fastify/websocket";
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import type { SocketStream } from "@fastify/websocket";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../db/transactions/db";
 import { logger } from "../../../utils/logger";

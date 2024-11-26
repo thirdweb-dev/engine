@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { buildJWT } from "@thirdweb-dev/auth";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import type { FastifyInstance } from "fastify";

@@ -1,4 +1,8 @@
-import { DirectListingV3, EnglishAuction, OfferV3 } from "@thirdweb-dev/sdk";
+import type {
+  DirectListingV3,
+  EnglishAuction,
+  OfferV3,
+} from "@thirdweb-dev/sdk";
 
 export const formatDirectListingV3Result = (listing: DirectListingV3) => {
   return {

@@ -1,7 +1,7 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { randomUUID } from "node:crypto";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { randomUUID } from "node:crypto";
 import type { Address, Hex } from "thirdweb";
 import { doSimulateTransaction } from "../../../utils/transaction/simulateQueuedTransaction";
 import type { QueuedTransaction } from "../../../utils/transaction/types";

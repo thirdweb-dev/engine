@@ -1,6 +1,6 @@
 import { sleep } from "bun";
-import { type Address } from "viem";
-import { Engine } from "../../../sdk";
+import type { Address } from "viem";
+import type { Engine } from "../../../sdk";
 import { CONFIG } from "../config";
 
 type Timing = {

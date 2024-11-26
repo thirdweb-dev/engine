@@ -1,12 +1,12 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
+  type Address,
   NATIVE_TOKEN_ADDRESS,
   ZERO_ADDRESS,
   getContract,
   toWei,
-  type Address,
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";

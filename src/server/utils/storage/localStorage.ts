@@ -1,5 +1,5 @@
-import type { AsyncStorage } from "@thirdweb-dev/wallets";
 import fs from "node:fs";
+import type { AsyncStorage } from "@thirdweb-dev/wallets";
 import { prisma } from "../../../db/client";
 import { WalletType } from "../../../schema/wallet";
 import { logger } from "../../../utils/logger";

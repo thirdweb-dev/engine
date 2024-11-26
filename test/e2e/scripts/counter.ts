@@ -1,9 +1,9 @@
 // Anvil chain outputs every RPC call to stdout
 // You can save the output to a file and then use this script to count the number of times a specific RPC call is made.
 
+import { join } from "path";
 import { argv } from "bun";
 import { readFile } from "fs/promises";
-import { join } from "path";
 
 const file = join(__dirname, argv[2]);
 

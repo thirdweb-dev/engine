@@ -1,16 +1,16 @@
-import { defineChain, type Address, type Chain } from "thirdweb";
-import { smartWallet, type Account } from "thirdweb/wallets";
+import { type Address, type Chain, defineChain } from "thirdweb";
+import { type Account, smartWallet } from "thirdweb/wallets";
 import { createWalletDetails } from "../../../db/wallets/createWalletDetails";
 import { WalletType } from "../../../schema/wallet";
 import { thirdwebClient } from "../../../utils/sdk";
 import { splitAwsKmsArn } from "./awsKmsArn";
 import {
-  createAwsKmsKey,
   type CreateAwsKmsWalletParams,
+  createAwsKmsKey,
 } from "./createAwsKmsWallet";
 import {
-  createGcpKmsKey,
   type CreateGcpKmsWalletParams,
+  createGcpKmsKey,
 } from "./createGcpKmsWallet";
 import { generateLocalWallet } from "./createLocalWallet";
 import { getAwsKmsAccount } from "./getAwsKmsAccount";

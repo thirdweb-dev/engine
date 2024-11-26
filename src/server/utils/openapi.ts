@@ -1,5 +1,5 @@
-import { FastifyInstance } from "fastify";
 import fs from "fs";
+import type { FastifyInstance } from "fastify";
 
 export const writeOpenApiToFile = (server: FastifyInstance) => {
   try {

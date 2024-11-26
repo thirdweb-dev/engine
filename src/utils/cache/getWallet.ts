@@ -3,9 +3,9 @@ import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
 import LRUMap from "mnemonist/lru-map";
 import {
+  type ParsedWalletDetails,
   WalletDetailsError,
   getWalletDetails,
-  type ParsedWalletDetails,
 } from "../../db/wallets/getWalletDetails";
 import type { PrismaTransaction } from "../../schema/prisma";
 import { WalletType } from "../../schema/wallet";

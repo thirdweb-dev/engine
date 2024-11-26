@@ -28,7 +28,7 @@ export const isValidCron = (input: string): boolean => {
 
   let parsedSecondsValue: number | null = null;
   if (seconds.startsWith("*/")) {
-    parsedSecondsValue = parseInt(seconds.split("/")[1]);
+    parsedSecondsValue = Number.parseInt(seconds.split("/")[1]);
   }
 
   // Check for specific invalid patterns in seconds field
@@ -66,7 +66,7 @@ const checkCronFieldInterval = (
   fieldName: string,
 ) => {
   if (field.startsWith("*/")) {
-    const parsedValue = parseInt(field.split("/")[1]);
+    const parsedValue = Number.parseInt(field.split("/")[1]);
     if (parsedValue < minValue || parsedValue > maxValue) {
       throw createCustomError(
         `Invalid cron expression. ${fieldName} must be between ${minValue} and ${maxValue} when using an interval.`,

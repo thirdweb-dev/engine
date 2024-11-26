@@ -1,11 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../db/transactions/queueTx";
 import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   claimConditionInputSchema,
-  sanitizedClaimConditionInputSchema,
+  type sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
@@ -78,8 +78,8 @@ export async function erc721SetClaimConditions(fastify: FastifyInstance) {
         return {
           ...item,
           startTime: item.startTime
-            ? isUnixEpochTimestamp(parseInt(item.startTime.toString()))
-              ? new Date(parseInt(item.startTime.toString()) * 1000)
+            ? isUnixEpochTimestamp(Number.parseInt(item.startTime.toString()))
+              ? new Date(Number.parseInt(item.startTime.toString()) * 1000)
               : new Date(item.startTime)
             : undefined,
         };

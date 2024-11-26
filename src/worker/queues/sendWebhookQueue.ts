@@ -6,8 +6,8 @@ import type {
 import { Queue } from "bullmq";
 import SuperJSON from "superjson";
 import {
-  WebhooksEventTypes,
   type BackendWalletBalanceWebhookParams,
+  WebhooksEventTypes,
 } from "../../schema/webhooks";
 import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
 import { logger } from "../../utils/logger";

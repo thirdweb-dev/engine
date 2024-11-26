@@ -1,9 +1,9 @@
+import { timingSafeEqual } from "crypto";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { FastifyAdapter } from "@bull-board/fastify";
 import fastifyBasicAuth from "@fastify/basic-auth";
 import type { Queue } from "bullmq";
-import { timingSafeEqual } from "crypto";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../utils/env";
@@ -85,7 +85,9 @@ const assertAdminBasicAuth = (username: string, password: string) => {
       const buf1 = Buffer.from(password.padEnd(100));
       const buf2 = Buffer.from(ADMIN_ROUTES_PASSWORD.padEnd(100));
       return timingSafeEqual(buf1, buf2);
-    } catch { /* empty */ }
+    } catch {
+      /* empty */
+    }
   }
   return false;
 };

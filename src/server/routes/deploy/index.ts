@@ -1,4 +1,6 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
+import { contractTypes } from "./contractTypes";
+import { deployPrebuilt } from "./prebuilt";
 import { deployPrebuiltEdition } from "./prebuilts/edition";
 import { deployPrebuiltEditionDrop } from "./prebuilts/editionDrop";
 import { deployPrebuiltMarketplaceV3 } from "./prebuilts/marketplaceV3";
@@ -11,9 +13,7 @@ import { deployPrebuiltSplit } from "./prebuilts/split";
 import { deployPrebuiltToken } from "./prebuilts/token";
 import { deployPrebuiltTokenDrop } from "./prebuilts/tokenDrop";
 import { deployPrebuiltVote } from "./prebuilts/vote";
-import { deployPrebuilt } from "./prebuilt";
 import { deployPublished } from "./published";
-import { contractTypes } from "./contractTypes";
 
 export const prebuiltsRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(deployPrebuiltEdition);

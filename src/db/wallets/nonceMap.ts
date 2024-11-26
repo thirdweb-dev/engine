@@ -1,4 +1,4 @@
-import { Address } from "thirdweb";
+import type { Address } from "thirdweb";
 import { env } from "../../utils/env";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
@@ -53,7 +53,7 @@ export const getNonceMap = async (args: {
   for (let i = 0; i < elementsWithScores.length; i += 2) {
     result.push({
       queueId: elementsWithScores[i],
-      nonce: parseInt(elementsWithScores[i + 1]),
+      nonce: Number.parseInt(elementsWithScores[i + 1]),
     });
   }
   return result;
@@ -73,7 +73,7 @@ export const pruneNonceMaps = async () => {
   let numDeleted = 0;
   for (const [error, result] of results) {
     if (!error) {
-      numDeleted += parseInt(result as string);
+      numDeleted += Number.parseInt(result as string);
     }
   }
   return numDeleted;

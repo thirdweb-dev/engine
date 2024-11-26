@@ -1,10 +1,10 @@
-import { StatusCodes } from "http-status-codes";
 import { randomUUID } from "node:crypto";
+import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../db/transactions/db";
 import {
+  type ParsedWalletDetails,
   getWalletDetails,
   isSmartBackendWallet,
-  type ParsedWalletDetails,
 } from "../../db/wallets/getWalletDetails";
 import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
 import { createCustomError } from "../../server/middleware/error";

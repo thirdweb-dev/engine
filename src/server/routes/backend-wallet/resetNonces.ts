@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, getAddress } from "thirdweb";
+import { type Address, getAddress } from "thirdweb";
 import {
   deleteAllNonces,
   syncLatestNonceFromOnchain,
@@ -71,7 +71,7 @@ const getUsedBackendWallets = async (): Promise<
   return keys.map((key) => {
     const tokens = key.split(":");
     return {
-      chainId: parseInt(tokens[1]),
+      chainId: Number.parseInt(tokens[1]),
       walletAddress: getAddress(tokens[2]),
     };
   });

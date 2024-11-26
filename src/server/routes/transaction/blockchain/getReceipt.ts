@@ -1,11 +1,11 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
+  type Hex,
   eth_getTransactionReceipt,
   getRpcClient,
   toHex,
-  type Hex,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import type { TransactionReceipt } from "viem";

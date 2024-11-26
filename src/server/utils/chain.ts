@@ -17,7 +17,9 @@ export const getChainIdFromChain = async (input: string): Promise<number> => {
     if (chainV4.status !== "deprecated") {
       return chainV4.chainId;
     }
-  } catch { /* empty */ }
+  } catch {
+    /* empty */
+  }
 
   throw badChainError(input);
 };

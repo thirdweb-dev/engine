@@ -1,8 +1,8 @@
-import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
-import fastify, { type FastifyInstance } from "fastify";
 import * as fs from "node:fs";
 import path from "node:path";
 import { URL } from "node:url";
+import type { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
+import fastify, { type FastifyInstance } from "fastify";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";

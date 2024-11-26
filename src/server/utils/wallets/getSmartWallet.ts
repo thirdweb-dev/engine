@@ -1,4 +1,4 @@
-import { SmartWallet, type EVMWallet } from "@thirdweb-dev/wallets";
+import { type EVMWallet, SmartWallet } from "@thirdweb-dev/wallets";
 import { getContract } from "../../../utils/cache/getContract";
 import { env } from "../../../utils/env";
 import { redis } from "../../../utils/redis/redis";
@@ -31,7 +31,9 @@ export const getSmartWallet = async ({
       resolvedFactoryAddress =
         (await redis.get(`account-factory:${accountAddress.toLowerCase()}`)) ??
         undefined;
-    } catch { /* empty */ }
+    } catch {
+      /* empty */
+    }
   }
 
   if (!resolvedFactoryAddress) {
@@ -41,7 +43,9 @@ export const getSmartWallet = async ({
         contractAddress: accountAddress,
       });
       resolvedFactoryAddress = await contract.call("factory");
-    } catch { /* empty */ }
+    } catch {
+      /* empty */
+    }
   }
 
   if (!resolvedFactoryAddress) {

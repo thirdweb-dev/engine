@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
@@ -73,9 +73,8 @@ You must also call closeAuctionForBidder to execute the sale for the buyer, mean
         accountAddress,
       });
 
-      const tx = await contract.englishAuctions.closeAuctionForSeller.prepare(
-        listingId,
-      );
+      const tx =
+        await contract.englishAuctions.closeAuctionForSeller.prepare(listingId);
 
       const queueId = await queueTx({
         tx,

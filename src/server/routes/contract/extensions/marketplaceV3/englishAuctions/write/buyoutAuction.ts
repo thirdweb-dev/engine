@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
@@ -69,9 +69,8 @@ export async function englishAuctionsBuyoutAuction(fastify: FastifyInstance) {
         accountAddress,
       });
 
-      const tx = await contract.englishAuctions.buyoutAuction.prepare(
-        listingId,
-      );
+      const tx =
+        await contract.englishAuctions.buyoutAuction.prepare(listingId);
 
       const queueId = await queueTx({
         tx,

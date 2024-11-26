@@ -1,6 +1,6 @@
-import type { Transactions } from "@prisma/client";
-import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
+import type { Transactions } from "@prisma/client";
+import { type Job, type Processor, Worker } from "bullmq";
 import type { Hex } from "thirdweb";
 import { getPrismaWithPostgresTx, prisma } from "../../db/client";
 import { TransactionDB } from "../../db/transactions/db";
@@ -198,7 +198,7 @@ const toQueuedTransaction = (row: Transactions): QueuedTransaction => {
     resendCount: 0,
 
     isUserOp: !!row.accountAddress,
-    chainId: parseInt(row.chainId),
+    chainId: Number.parseInt(row.chainId),
     from: normalizeAddress(row.fromAddress),
     to: normalizeAddress(row.toAddress),
     value: row.value ? BigInt(row.value) : 0n,

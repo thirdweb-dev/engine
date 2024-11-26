@@ -1,7 +1,7 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract, type Address, type Hex } from "thirdweb";
+import { type Address, type Hex, getContract } from "thirdweb";
 import type { NFTInput } from "thirdweb/dist/types/utils/nft/parseNft";
 import { generateMintSignature } from "thirdweb/extensions/erc1155";
 import { getAccount } from "../../../../../../utils/account";
@@ -12,10 +12,10 @@ import { thirdwebClient } from "../../../../../../utils/sdk";
 import { createCustomError } from "../../../../../middleware/error";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {
+  type ercNFTResponseType,
   nftInputSchema,
   signature1155InputSchema,
   signature1155OutputSchema,
-  type ercNFTResponseType,
 } from "../../../../../schemas/nft";
 import {
   TokenAmountStringSchema,

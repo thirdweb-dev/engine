@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { listKeypairs } from "../../../../db/keypair/list";
 import { KeypairSchema, toKeypairSchema } from "../../../schemas/keypairs";

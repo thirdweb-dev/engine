@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isContractSubscribed } from "../../../../db/contractSubscriptions/getContractSubscriptions";
 import { getContractTransactionReceiptsByBlock } from "../../../../db/contractTransactionReceipts/getContractTransactionReceipts";

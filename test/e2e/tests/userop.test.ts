@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import { randomBytes } from "crypto";
-import { getAddress, type Address } from "thirdweb";
+import { type Address, getAddress } from "thirdweb";
 import { sepolia } from "thirdweb/chains";
 import { DEFAULT_ACCOUNT_FACTORY_V0_6 } from "thirdweb/wallets/smart";
 import type { ApiError } from "../../../sdk/dist/declarations/src/core/ApiError";

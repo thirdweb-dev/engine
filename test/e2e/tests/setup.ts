@@ -1,12 +1,12 @@
-import { env, sleep } from "bun";
 import { afterAll, beforeAll } from "bun:test";
+import { env, sleep } from "bun";
 import {
   createChain,
   getEngineBackendWallet,
   setupEngine,
 } from "../utils/engine";
 
-import { createThirdwebClient, type Address } from "thirdweb";
+import { type Address, createThirdwebClient } from "thirdweb";
 import { CONFIG } from "../config";
 import { startAnvil, stopAnvil } from "../utils/anvil";
 

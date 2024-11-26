@@ -1,6 +1,6 @@
 import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
 import type { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
-import { ZERO_ADDRESS, type Address } from "thirdweb";
+import { type Address, ZERO_ADDRESS } from "thirdweb";
 import type { ContractExtension } from "../../schema/extension";
 import { parseTransactionOverrides } from "../../server/utils/transactionOverrides";
 import { maybeBigInt, normalizeAddress } from "../../utils/primitiveTypes";

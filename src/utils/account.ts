@@ -1,10 +1,10 @@
 import LRUMap from "mnemonist/lru-map";
-import { getAddress, type Address, type Chain } from "thirdweb";
+import { type Address, type Chain, getAddress } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
 import {
+  type ParsedWalletDetails,
   getWalletDetails,
   isSmartBackendWallet,
-  type ParsedWalletDetails,
 } from "../db/wallets/getWalletDetails";
 import { WalletType } from "../schema/wallet";
 import { splitAwsKmsArn } from "../server/utils/wallets/awsKmsArn";

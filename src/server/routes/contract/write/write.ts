@@ -1,8 +1,8 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
-import { parseAbiParams, type AbiFunction } from "thirdweb/utils";
+import { type AbiFunction, parseAbiParams } from "thirdweb/utils";
 import { getContractV5 } from "../../../../utils/cache/getContractv5";
 import { prettifyError } from "../../../../utils/error";
 import { queueTransaction } from "../../../../utils/transaction/queueTransation";

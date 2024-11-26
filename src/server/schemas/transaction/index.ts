@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import type { AnyTransaction } from "../../../utils/transaction/types";

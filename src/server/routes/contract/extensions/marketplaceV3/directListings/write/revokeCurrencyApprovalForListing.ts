@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../../db/transactions/queueTx";
@@ -18,7 +18,8 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
   listingId: Type.String({
-    description: "The ID of the listing you want to revoke currency approval for.",
+    description:
+      "The ID of the listing you want to revoke currency approval for.",
   }),
   currencyContractAddress: {
     ...AddressSchema,

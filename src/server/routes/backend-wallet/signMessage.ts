@@ -1,7 +1,7 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { isHex, type Hex } from "thirdweb";
+import { type Hex, isHex } from "thirdweb";
 import { arbitrumSepolia } from "thirdweb/chains";
 import {
   getWalletDetails,

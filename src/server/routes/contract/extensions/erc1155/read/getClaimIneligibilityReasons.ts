@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { ClaimEligibility } from "@thirdweb-dev/sdk";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";

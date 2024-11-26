@@ -1,5 +1,5 @@
-import { Worker, type Job, type Processor } from "bullmq";
-import { getAddress, type Address } from "thirdweb";
+import { type Job, type Processor, Worker } from "bullmq";
+import { type Address, getAddress } from "thirdweb";
 import {
   getUsedBackendWallets,
   inspectNonce,

@@ -1,6 +1,6 @@
-import { Static, Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
