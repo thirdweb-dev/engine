@@ -67,16 +67,16 @@ function isAllowedOrigin(origin: string, allowedOrigins: string[]) {
     allowedOrigins
       // Check if the origin matches any allowed origins.
       .some((allowed) => {
-        if (allowed.includes("thirdweb-preview.com")) {
+        if (allowed === "https://thirdweb-preview.com") {
           return /^https?:\/\/.*\.thirdweb-preview\.com$/.test(origin);
         }
-        if (allowed.includes("thirdweb-dev.com")) {
+        if (allowed === "https://thirdweb-dev.com") {
           return /^https?:\/\/.*\.thirdweb-dev\.com$/.test(origin);
         }
 
         // Allow wildcards in the origin. For example "foo.example.com" matches "*.example.com"
         if (allowed.includes("*")) {
-          const wildcardPattern = allowed.replace("*", ".*");
+          const wildcardPattern = allowed.replace(/\*/g, ".*");
           const regex = new RegExp(`^${wildcardPattern}$`);
           return regex.test(origin);
         }
