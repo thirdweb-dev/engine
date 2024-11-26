@@ -17,7 +17,7 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
   listingId: Type.String({
-    description: "The ID of the listing you want to approve a buyer for.",
+    description: "The ID of the listing you want to buy.",
   }),
   quantity: Type.String({
     description: "The number of tokens to buy (default is 1 for ERC721 NFTs).",

@@ -18,11 +18,11 @@ import { getChainIdFromChain } from "../../../../../../utils/chain";
 const requestSchema = marketplaceV3ContractParamSchema;
 const requestBodySchema = Type.Object({
   listingId: Type.String({
-    description: "The ID of the listing you want to approve a buyer for.",
+    description: "The ID of the listing you want to revoke currency approval for.",
   }),
   currencyContractAddress: {
     ...AddressSchema,
-    description: "The wallet address of the buyer to approve.",
+    description: "The address of the currency to revoke approval for.",
   },
   ...txOverridesWithValueSchema.properties,
 });
