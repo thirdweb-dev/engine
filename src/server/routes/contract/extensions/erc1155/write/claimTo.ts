@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
@@ -35,7 +35,7 @@ const requestBodySchema = Type.Object({
   }),
   singlePhaseDrop: Type.Optional(
     Type.Boolean({
-      description: "Whether the drop is a single phase drop. Default: false",
+      description: "Whether the drop is a single phase drop",
     }),
   ),
   ...txOverridesWithValueSchema.properties,
