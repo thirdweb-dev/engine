@@ -1,4 +1,4 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
@@ -28,6 +28,11 @@ const requestBodySchema = Type.Object({
   amount: Type.String({
     description: "The amount of tokens to claim.",
   }),
+  singlePhaseDrop: Type.Optional(
+    Type.Boolean({
+      description: "Whether the drop is a single phase drop",
+    }),
+  ),
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -65,7 +70,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { recipient, amount, txOverrides } = request.body;
+      const { recipient, amount, singlePhaseDrop, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
@@ -84,6 +89,7 @@ export async function erc20claimTo(fastify: FastifyInstance) {
         from: fromAddress as Address,
         to: recipient,
         quantity: amount,
+        singlePhaseDrop,
       });
 
       const queueId = await queueTransaction({
