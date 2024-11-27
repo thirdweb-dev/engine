@@ -3,7 +3,7 @@ import { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import { FastifyInstance } from "fastify";
 import { Address, Hex } from "thirdweb";
 import { ADMIN_QUEUES_BASEPATH } from "../server/middleware/adminRoutes";
-import { OPENAPI_ROUTES } from "../server/middleware/open-api";
+import { OPENAPI_ROUTES } from "../server/middleware/openApi";
 import { contractParamSchema } from "../server/schemas/sharedApiSchemas";
 import { walletWithAddressParamSchema } from "../server/schemas/wallet";
 import { getChainIdFromChain } from "../server/utils/chain";
@@ -54,7 +54,7 @@ const SKIP_USAGE_PATHS = new Set([
   ...OPENAPI_ROUTES,
 ]);
 
-export const withServerUsageReporting = (server: FastifyInstance) => {
+export function withServerUsageReporting(server: FastifyInstance) {
   // Skip reporting if CLIENT_ANALYTICS_URL is unset.
   if (env.CLIENT_ANALYTICS_URL === "") {
     return;
@@ -98,7 +98,7 @@ export const withServerUsageReporting = (server: FastifyInstance) => {
       body: JSON.stringify(requestBody),
     }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
   });
-};
+}
 
 export const reportUsage = (usageEvents: ReportUsageParams[]) => {
   // Skip reporting if CLIENT_ANALYTICS_URL is unset.

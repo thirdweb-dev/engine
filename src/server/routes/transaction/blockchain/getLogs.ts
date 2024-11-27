@@ -12,6 +12,7 @@ import {
   type Hex,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
+import { TransactionReceipt } from "thirdweb/transaction";
 import { TransactionDB } from "../../../../db/transactions/db";
 import { getChain } from "../../../../utils/chain";
 import { thirdwebClient } from "../../../../utils/sdk";
@@ -168,12 +169,14 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
       }
 
       // Try to get the receipt.
-      const transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
-        hash,
-      });
-      if (!transactionReceipt) {
+      let transactionReceipt: TransactionReceipt | undefined;
+      try {
+        transactionReceipt = await eth_getTransactionReceipt(rpcRequest, {
+          hash,
+        });
+      } catch {
         throw createCustomError(
-          "Cannot get logs for a transaction that is not mined.",
+          "Unable to get transaction receipt. The transaction may not have been mined yet.",
           StatusCodes.BAD_REQUEST,
           "TRANSACTION_NOT_MINED",
         );
