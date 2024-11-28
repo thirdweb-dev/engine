@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { toSerializableTransaction } from "thirdweb";
 import { TransactionDB } from "../../../db/transactions/db";
+import { getTransactionReceiptFromEOATransaction } from "../../../lib/transaction/get-transaction-receipt";
 import { getAccount } from "../../../utils/account";
 import { getBlockNumberish } from "../../../utils/block";
 import { getChain } from "../../../utils/chain";
@@ -15,7 +16,6 @@ import { createCustomError } from "../../middleware/error";
 import { TransactionHashSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
-// INPUT
 const requestBodySchema = Type.Object({
   queueId: Type.String({
     description: "Transaction queue ID",
@@ -25,7 +25,6 @@ const requestBodySchema = Type.Object({
   maxPriorityFeePerGas: Type.Optional(Type.String()),
 });
 
-// OUTPUT
 export const responseBodySchema = Type.Object({
   result: Type.Object({
     transactionHash: TransactionHashSchema,
@@ -39,7 +38,7 @@ responseBodySchema.example = {
   },
 };
 
-export async function syncRetryTransaction(fastify: FastifyInstance) {
+export async function syncRetryTransactionRoute(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
@@ -69,9 +68,20 @@ export async function syncRetryTransaction(fastify: FastifyInstance) {
           "TRANSACTION_NOT_FOUND",
         );
       }
+
       if (transaction.isUserOp || !("nonce" in transaction)) {
         throw createCustomError(
           "Transaction cannot be retried.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_CANNOT_BE_RETRIED",
+        );
+      }
+
+      const receipt =
+        await getTransactionReceiptFromEOATransaction(transaction);
+      if (receipt) {
+        throw createCustomError(
+          "Cannot retry a transaction that is already mined.",
           StatusCodes.BAD_REQUEST,
           "TRANSACTION_CANNOT_BE_RETRIED",
         );

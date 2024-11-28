@@ -1,13 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import assert from "node:assert";
-import { eth_getTransactionReceipt, getRpcClient } from "thirdweb";
-import { getUserOpReceiptRaw } from "thirdweb/dist/types/wallets/smart/lib/bundler";
 import { TransactionDB } from "../../../db/transactions/db";
-import { getChain } from "../../../utils/chain";
-import { thirdwebClient } from "../../../utils/sdk";
-import type { ErroredTransaction } from "../../../utils/transaction/types";
+import {
+  getTransactionReceiptFromEOATransaction,
+  getUserOpReceiptFromTransaction,
+} from "../../../lib/transaction/get-transaction-receipt";
+import type { QueuedTransaction } from "../../../utils/transaction/types";
 import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
@@ -71,10 +70,10 @@ export async function retryFailedTransactionRoute(fastify: FastifyInstance) {
         );
       }
 
-      const isMined = transaction.isUserOp
-        ? await isUserOpMined(transaction)
-        : await isTransactionMined(transaction);
-      if (isMined) {
+      const receipt = transaction.isUserOp
+        ? await getUserOpReceiptFromTransaction(transaction)
+        : await getTransactionReceiptFromEOATransaction(transaction);
+      if (receipt) {
         throw createCustomError(
           "Cannot retry a transaction that is already mined.",
           StatusCodes.BAD_REQUEST,
@@ -82,24 +81,30 @@ export async function retryFailedTransactionRoute(fastify: FastifyInstance) {
         );
       }
 
+      // Remove existing jobs.
       const sendJob = await SendTransactionQueue.q.getJob(
         SendTransactionQueue.jobId({
           queueId: transaction.queueId,
           resendCount: 0,
         }),
       );
-      if (sendJob) {
-        await sendJob.remove();
-      }
+      await sendJob?.remove();
 
       const mineJob = await MineTransactionQueue.q.getJob(
         MineTransactionQueue.jobId({
           queueId: transaction.queueId,
         }),
       );
-      if (mineJob) {
-        await mineJob.remove();
-      }
+      await mineJob?.remove();
+
+      // Reset the failed job as "queued" and re-enqueue it.
+      const { errorMessage, ...omitted } = transaction;
+      const queuedTransaction: QueuedTransaction = {
+        ...omitted,
+        status: "queued",
+        resendCount: 0,
+      };
+      await TransactionDB.set(queuedTransaction);
 
       await SendTransactionQueue.add({
         queueId: transaction.queueId,
@@ -114,45 +119,4 @@ export async function retryFailedTransactionRoute(fastify: FastifyInstance) {
       });
     },
   });
-}
-
-async function isTransactionMined(transaction: ErroredTransaction) {
-  assert(!transaction.isUserOp);
-
-  if (!("sentTransactionHashes" in transaction)) {
-    return false;
-  }
-
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain: await getChain(transaction.chainId),
-  });
-  const promises = transaction.sentTransactionHashes.map((hash) =>
-    eth_getTransactionReceipt(rpcRequest, { hash }),
-  );
-  const results = await Promise.allSettled(promises);
-
-  // If any eth_getTransactionReceipt call succeeded, a valid transaction receipt was found.
-  for (const result of results) {
-    if (result.status === "fulfilled" && !!result.value.blockNumber) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-async function isUserOpMined(transaction: ErroredTransaction) {
-  assert(transaction.isUserOp);
-
-  if (!("userOpHash" in transaction)) {
-    return false;
-  }
-
-  const userOpReceiptRaw = await getUserOpReceiptRaw({
-    client: thirdwebClient,
-    chain: await getChain(transaction.chainId),
-    userOpHash: transaction.userOpHash,
-  });
-  return !!userOpReceiptRaw;
 }

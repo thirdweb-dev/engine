@@ -68,27 +68,10 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     job.data,
   );
 
-  let transaction = await TransactionDB.get(queueId);
+  const transaction = await TransactionDB.get(queueId);
   if (!transaction) {
     job.log(`Invalid transaction state: ${stringify(transaction)}`);
     return;
-  }
-
-  // The transaction may be errored if it is manually retried.
-  // For example, the developer retried all failed transactions during an RPC outage.
-  // An errored queued transaction (resendCount = 0) is safe to retry: the transaction wasn't sent to RPC.
-  if (transaction.status === "errored" && resendCount === 0) {
-    const { errorMessage, ...omitted } = transaction;
-    transaction = {
-      ...omitted,
-      status: "queued",
-      resendCount: 0,
-      queueId: transaction.queueId,
-      queuedAt: transaction.queuedAt,
-      value: transaction.value,
-      data: transaction.data,
-      manuallyResentAt: new Date(),
-    } satisfies QueuedTransaction;
   }
 
   let resultTransaction:
