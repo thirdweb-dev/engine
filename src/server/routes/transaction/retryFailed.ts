@@ -1,10 +1,13 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import assert from "node:assert";
 import { eth_getTransactionReceipt, getRpcClient } from "thirdweb";
+import { getUserOpReceiptRaw } from "thirdweb/dist/types/wallets/smart/lib/bundler";
 import { TransactionDB } from "../../../db/transactions/db";
 import { getChain } from "../../../utils/chain";
 import { thirdwebClient } from "../../../utils/sdk";
+import type { ErroredTransaction } from "../../../utils/transaction/types";
 import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";
@@ -26,13 +29,12 @@ export const responseBodySchema = Type.Object({
 
 responseBodySchema.example = {
   result: {
-    message:
-      "Transaction queued for retry with queueId: a20ed4ce-301d-4251-a7af-86bd88f6c015",
+    message: "Sent transaction to be retried.",
     status: "success",
   },
 };
 
-export async function retryFailedTransaction(fastify: FastifyInstance) {
+export async function retryFailedTransactionRoute(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
@@ -63,49 +65,21 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
       }
       if (transaction.status !== "errored") {
         throw createCustomError(
-          `Transaction cannot be retried because status: ${transaction.status}`,
+          `Cannot retry a transaction with status ${transaction.status}.`,
           StatusCodes.BAD_REQUEST,
           "TRANSACTION_CANNOT_BE_RETRIED",
         );
       }
 
-      if (transaction.isUserOp) {
+      const isMined = transaction.isUserOp
+        ? await isUserOpMined(transaction)
+        : await isTransactionMined(transaction);
+      if (isMined) {
         throw createCustomError(
-          "Transaction cannot be retried because it is a userop",
+          "Cannot retry a transaction that is already mined.",
           StatusCodes.BAD_REQUEST,
           "TRANSACTION_CANNOT_BE_RETRIED",
         );
-      }
-
-      const rpcRequest = getRpcClient({
-        client: thirdwebClient,
-        chain: await getChain(transaction.chainId),
-      });
-
-      // if transaction has sentTransactionHashes, we need to check if any of them are mined
-      if ("sentTransactionHashes" in transaction) {
-        const receiptPromises = transaction.sentTransactionHashes.map(
-          (hash) => {
-            // if receipt is not found, it will throw an error
-            // so we catch it and return null
-            return eth_getTransactionReceipt(rpcRequest, {
-              hash,
-            }).catch(() => null);
-          },
-        );
-
-        const receipts = await Promise.all(receiptPromises);
-
-        // If any of the transactions are mined, we should not retry.
-        const minedReceipt = receipts.find((receipt) => !!receipt);
-
-        if (minedReceipt) {
-          throw createCustomError(
-            `Transaction cannot be retried because it has already been mined with hash: ${minedReceipt.transactionHash}`,
-            StatusCodes.BAD_REQUEST,
-            "TRANSACTION_CANNOT_BE_RETRIED",
-          );
-        }
       }
 
       const sendJob = await SendTransactionQueue.q.getJob(
@@ -134,10 +108,51 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: {
-          message: `Transaction queued for retry with queueId: ${queueId}`,
+          message: "Sent transaction to be retried.",
           status: "success",
         },
       });
     },
   });
+}
+
+async function isTransactionMined(transaction: ErroredTransaction) {
+  assert(!transaction.isUserOp);
+
+  if (!("sentTransactionHashes" in transaction)) {
+    return false;
+  }
+
+  const rpcRequest = getRpcClient({
+    client: thirdwebClient,
+    chain: await getChain(transaction.chainId),
+  });
+  const promises = transaction.sentTransactionHashes.map((hash) =>
+    eth_getTransactionReceipt(rpcRequest, { hash }),
+  );
+  const results = await Promise.allSettled(promises);
+
+  // If any eth_getTransactionReceipt call succeeded, a valid transaction receipt was found.
+  for (const result of results) {
+    if (result.status === "fulfilled" && !!result.value.blockNumber) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function isUserOpMined(transaction: ErroredTransaction) {
+  assert(transaction.isUserOp);
+
+  if (!("userOpHash" in transaction)) {
+    return false;
+  }
+
+  const userOpReceiptRaw = await getUserOpReceiptRaw({
+    client: thirdwebClient,
+    chain: await getChain(transaction.chainId),
+    userOpHash: transaction.userOpHash,
+  });
+  return !!userOpReceiptRaw;
 }
