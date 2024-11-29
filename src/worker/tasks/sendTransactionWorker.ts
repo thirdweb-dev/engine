@@ -305,6 +305,8 @@ const _sendTransaction = async (
   // This call throws if the execution would be reverted.
   // The nonce is _not_ set yet.
 
+  console.log("override gas price", overrides?.gasPrice);
+
   let populatedTransaction: PopulatedTransaction;
   try {
     populatedTransaction = await toSerializableTransaction({
@@ -320,6 +322,7 @@ const _sendTransaction = async (
         // Apply gas setting overrides.
         // Do not set `maxFeePerGas` to estimate the onchain value.
         gas: overrides?.gas,
+        gasPrice: overrides?.gasPrice,
         maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
       },
     });
@@ -403,6 +406,8 @@ const _sendTransaction = async (
   }
 
   await addSentNonce(chainId, from, nonce);
+  console.log("populated transaction gas price", populatedTransaction.gasPrice);
+
   return {
     ...queuedTransaction,
     status: "sent",
