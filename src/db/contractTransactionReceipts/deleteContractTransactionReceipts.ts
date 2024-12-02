@@ -11,7 +11,7 @@ export const deleteContractTransactionReceipts = async ({
 }: DeleteContractTransactionReceiptsParams) => {
   return prisma.contractTransactionReceipts.deleteMany({
     where: {
-      chainId,
+      chainId: chainId.toString(),
       contractAddress,
     },
   });

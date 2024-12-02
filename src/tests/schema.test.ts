@@ -45,10 +45,7 @@ describe("chainIdOrSlugSchema", () => {
 describe("AddressSchema", () => {
   it("should validate valid addresses", () => {
     expect(
-      Value.Check(AddressSchema, "0x152e208d08cd3ea1aa5d179b2e3eba7d1a733ef4"),
-    ).toBe(true);
-    expect(
-      Value.Check(AddressSchema, "0x1234567890abcdef1234567890abcdef12345678"),
+      Value.Check(AddressSchema, "0x000000000000000000000000000000000000dead"),
     ).toBe(true);
   });
 

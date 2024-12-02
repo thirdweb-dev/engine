@@ -81,7 +81,7 @@ export async function getContractTransactionReceiptsByTimestamp(
 
       const transactionReceipts = resultTransactionReceipts.map((txRcpt) => {
         return {
-          chainId: txRcpt.chainId,
+          chainId: Number.parseInt(txRcpt.chainId),
           blockNumber: txRcpt.blockNumber,
           contractAddress: txRcpt.contractAddress,
           transactionHash: txRcpt.transactionHash,

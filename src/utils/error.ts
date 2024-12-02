@@ -16,9 +16,14 @@ const _parseMessage = (error: unknown): string | null => {
 
 export const isNonceAlreadyUsedError = (error: unknown) => {
   const message = _parseMessage(error);
+  const errorPhrases = ["nonce too low", "already known"];
+
   if (message) {
-    return message.includes("nonce too low");
+    return errorPhrases.some((phrase) =>
+      message.toLowerCase().includes(phrase),
+    );
   }
+
   return isEthersErrorCode(error, ethers.errors.NONCE_EXPIRED);
 };
 

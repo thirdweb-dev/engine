@@ -109,8 +109,9 @@ import { createWebhookRoute } from "./webhooks/create";
 import { getWebhooksEventTypes } from "./webhooks/events";
 import { getAllWebhooksData } from "./webhooks/getAll";
 import { revokeWebhook } from "./webhooks/revoke";
+import { testWebhookRoute } from "./webhooks/test";
 
-export const withRoutes = async (fastify: FastifyInstance) => {
+export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
   await fastify.register(createBackendWallet);
   await fastify.register(removeBackendWallet);
@@ -158,6 +159,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(createWebhookRoute);
   await fastify.register(revokeWebhook);
   await fastify.register(getWebhooksEventTypes);
+  await fastify.register(testWebhookRoute);
 
   // Permissions
   await fastify.register(getAllPermissions);
@@ -265,4 +267,4 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   // Admin
   await fastify.register(getTransactionDetails);
   await fastify.register(getNonceDetailsRoute);
-};
+}
