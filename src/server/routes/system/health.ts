@@ -75,7 +75,7 @@ export async function healthCheck(fastify: FastifyInstance) {
         engineVersion: env.ENGINE_VERSION,
         engineTier: env.ENGINE_TIER ?? "SELF_HOSTED",
         features: getFeatures(),
-        clientId: `${thirdwebClientId.slice(0, 4)}...${thirdwebClientId.slice(-4)}`,
+        clientId: thirdwebClientId,
       });
     },
   });
