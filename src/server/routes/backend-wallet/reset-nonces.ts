@@ -54,6 +54,7 @@ export const resetBackendWalletNoncesRoute = async (
         "Reset nonces for all backend wallets. This is for debugging purposes and does not impact held tokens.",
       tags: ["Backend Wallet"],
       operationId: "resetNonces",
+      body: requestBodySchema,
       response: {
         ...standardResponseSchema,
         [StatusCodes.OK]: responseSchema,
