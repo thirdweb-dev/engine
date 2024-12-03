@@ -19,7 +19,7 @@ import { getTransactionsForBackendWallet } from "./backend-wallet/getTransaction
 import { getTransactionsForBackendWalletByNonce } from "./backend-wallet/getTransactionsByNonce";
 import { importBackendWallet } from "./backend-wallet/import";
 import { removeBackendWallet } from "./backend-wallet/remove";
-import { resetBackendWalletNoncesRoute } from "./backend-wallet/resetNonces";
+import { resetBackendWalletNoncesRoute } from "./backend-wallet/reset-nonces";
 import { sendTransaction } from "./backend-wallet/sendTransaction";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
 import { signMessageRoute } from "./backend-wallet/signMessage";
