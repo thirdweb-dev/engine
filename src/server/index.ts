@@ -65,6 +65,7 @@ export const initServer = async () => {
 
   // Start the server with middleware.
   const server: FastifyInstance = fastify({
+    maxParamLength: 200,
     connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
     trustProxy,
