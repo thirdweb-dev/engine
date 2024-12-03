@@ -250,18 +250,19 @@ export const inspectNonce = async (chainId: number, walletAddress: Address) => {
 };
 
 /**
- * Delete all wallet nonces. Useful when they get out of sync.
+ * Delete nonce state for the provided wallets.
+ * @param backendWallets
  */
-export const deleteAllNonces = async () => {
-  const keys = [
-    ...(await redis.keys("nonce:*")),
-    ...(await redis.keys("nonce-recycled:*")),
-    ...(await redis.keys("sent-nonce:*")),
-  ];
-  if (keys.length > 0) {
-    await redis.del(keys);
-  }
-};
+export async function deleteNoncesForBackendWallets(
+  backendWallets: { chainId: number; walletAddress: Address }[],
+) {
+  const keys = backendWallets.flatMap(({ chainId, walletAddress }) => [
+    lastUsedNonceKey(chainId, walletAddress),
+    recycledNoncesKey(chainId, walletAddress),
+    sentNoncesKey(chainId, walletAddress),
+  ]);
+  await redis.del(keys);
+}
 
 /**
  * Resync the nonce to the higher of (db nonce, onchain nonce).
