@@ -19,7 +19,7 @@ import { getTransactionsForBackendWallet } from "./backend-wallet/getTransaction
 import { getTransactionsForBackendWalletByNonce } from "./backend-wallet/getTransactionsByNonce";
 import { importBackendWallet } from "./backend-wallet/import";
 import { removeBackendWallet } from "./backend-wallet/remove";
-import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
+import { resetBackendWalletNoncesRoute } from "./backend-wallet/resetNonces";
 import { sendTransaction } from "./backend-wallet/sendTransaction";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
 import { signMessageRoute } from "./backend-wallet/signMessage";
@@ -128,7 +128,7 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(signTypedData);
   await fastify.register(getTransactionsForBackendWallet);
   await fastify.register(getTransactionsForBackendWalletByNonce);
-  await fastify.register(resetBackendWalletNonces);
+  await fastify.register(resetBackendWalletNoncesRoute);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
 
