@@ -131,7 +131,6 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(getTransactionsForBackendWalletByNonce);
   await fastify.register(resetBackendWalletNoncesRoute);
   await fastify.register(cancelBackendWalletNoncesRoute);
-  await fastify.register(resetBackendWalletNoncesRoute);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
 
