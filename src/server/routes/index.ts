@@ -11,6 +11,7 @@ import { removePublicKey } from "./auth/keypair/remove";
 import { getAllPermissions } from "./auth/permissions/getAll";
 import { grantPermissions } from "./auth/permissions/grant";
 import { revokePermissions } from "./auth/permissions/revoke";
+import { cancelBackendWalletNoncesRoute } from "./backend-wallet/cancel-nonces";
 import { createBackendWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
@@ -128,6 +129,8 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(signTypedData);
   await fastify.register(getTransactionsForBackendWallet);
   await fastify.register(getTransactionsForBackendWalletByNonce);
+  await fastify.register(resetBackendWalletNoncesRoute);
+  await fastify.register(cancelBackendWalletNoncesRoute);
   await fastify.register(resetBackendWalletNoncesRoute);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
