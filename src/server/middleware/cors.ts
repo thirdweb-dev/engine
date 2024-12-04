@@ -56,9 +56,6 @@ export function withCors(server: FastifyInstance) {
         reply.code(204).send();
         return;
       }
-    } else {
-      // reply.code(403).send({ error: "Invalid origin" });
-      return;
     }
   });
 }
