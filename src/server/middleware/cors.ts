@@ -37,12 +37,6 @@ export function withCors(server: FastifyInstance) {
     // Always set `Vary: Origin` to prevent caching issues even on invalid origins.
     reply.header("Vary", "Origin");
 
-    console.log("[DEBUG] allowedOrigins:", allowedOrigins);
-    console.log(
-      "[DEBUG] isAllowedOrigin(origin, allowedOrigins):",
-      isAllowedOrigin(origin, allowedOrigins),
-    );
-
     if (isAllowedOrigin(origin, allowedOrigins)) {
       // Set CORS headers if valid origin.
       reply.header("Access-Control-Allow-Origin", origin);
