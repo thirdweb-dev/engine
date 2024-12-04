@@ -6,20 +6,17 @@ import { checksumAddress } from "thirdweb/utils";
 import { getChain } from "../../../utils/chain";
 import { thirdwebClient } from "../../../utils/sdk";
 import { sendCancellationTransaction } from "../../../utils/transaction/cancelTransaction";
-import { createCustomError } from "../../middleware/error";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
 } from "../../schemas/sharedApiSchemas";
 import {
+  walletChainParamSchema,
   walletHeaderSchema,
-  walletWithAddressParamSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 
-const requestSchema = Type.Omit(walletWithAddressParamSchema, [
-  "walletAddress",
-]);
+const requestSchema = walletChainParamSchema;
 
 const requestBodySchema = Type.Object({
   toNonce: Type.Number({
@@ -58,7 +55,7 @@ export async function cancelBackendWalletNoncesRoute(fastify: FastifyInstance) {
     schema: {
       summary: "Cancel nonces",
       description:
-        "Cancel nonces from the next available onchain nonce to the provided nonce. This is useful to unblock a backend wallet that has transactions waiting for nonces to be mined.",
+        "Cancel all nonces up to the provided nonce. This is useful to unblock a backend wallet that has transactions waiting for nonces to be mined.",
       tags: ["Backend Wallet"],
       operationId: "cancelNonces",
       params: requestSchema,
@@ -89,13 +86,6 @@ export async function cancelBackendWalletNoncesRoute(fastify: FastifyInstance) {
         address: walletAddress,
         blockTag: "latest",
       });
-      if (transactionCount > toNonce) {
-        throw createCustomError(
-          `"toNonce" (${toNonce}) is lower than the next unused onchain nonce (${transactionCount}).`,
-          StatusCodes.BAD_REQUEST,
-          "BAD_REQUEST",
-        );
-      }
 
       const cancelledNonces: number[] = [];
       for (let nonce = transactionCount; nonce <= toNonce; nonce++) {
