@@ -12,6 +12,7 @@ export const walletHeaderSchema = Type.Object({
   },
   "x-idempotency-key": Type.Optional(
     Type.String({
+      maxLength: 200,
       description: `Transactions submitted with the same idempotency key will be de-duplicated. Only the last ${env.TRANSACTION_HISTORY_COUNT} transactions are compared.`,
     }),
   ),

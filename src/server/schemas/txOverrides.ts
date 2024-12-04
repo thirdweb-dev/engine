@@ -10,8 +10,11 @@ export const txOverridesSchema = Type.Object({
         description: "Gas limit for the transaction",
       }),
 
-      // Overriding `gasPrice` is currently not supported.
-
+      gasPrice: Type.Optional({
+        ...WeiAmountStringSchema,
+        description:
+          "Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.",
+      }),
       maxFeePerGas: Type.Optional({
         ...WeiAmountStringSchema,
         description: "Maximum fee per gas",
