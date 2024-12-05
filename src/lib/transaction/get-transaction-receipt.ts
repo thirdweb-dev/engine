@@ -12,32 +12,41 @@ import type { AnyTransaction } from "../../utils/transaction/types";
  * @param transaction
  * @returns TransactionReceipt | null
  */
-export async function getTransactionReceiptFromEOATransaction(
-  transaction: AnyTransaction,
+export async function getReceiptForEOATransaction(
+	transaction: AnyTransaction,
 ): Promise<TransactionReceipt | null> {
-  assert(!transaction.isUserOp);
+	assert(!transaction.isUserOp);
 
-  if (!("sentTransactionHashes" in transaction)) {
-    return null;
-  }
+	if (!("sentTransactionHashes" in transaction)) {
+		return null;
+	}
 
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain: await getChain(transaction.chainId),
-  });
+	const rpcRequest = getRpcClient({
+		client: thirdwebClient,
+		chain: await getChain(transaction.chainId),
+	});
 
-  const results = await Promise.allSettled(
-    transaction.sentTransactionHashes.map((hash) =>
-      eth_getTransactionReceipt(rpcRequest, { hash }),
-    ),
-  );
+	// Get the receipt for each transaction hash (in batches).
+	// Return if any receipt is found.
+	const BATCH_SIZE = 10;
+	for (
+		let i = 0;
+		i < transaction.sentTransactionHashes.length;
+		i += BATCH_SIZE
+	) {
+		const batch = transaction.sentTransactionHashes.slice(i, i + BATCH_SIZE);
+		const results = await Promise.allSettled(
+			batch.map((hash) => eth_getTransactionReceipt(rpcRequest, { hash })),
+		);
 
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      return result.value;
-    }
-  }
-  return null;
+		for (const result of results) {
+			if (result.status === "fulfilled") {
+				return result.value;
+			}
+		}
+	}
+
+	return null;
 }
 
 /**
@@ -46,19 +55,19 @@ export async function getTransactionReceiptFromEOATransaction(
  * @param transaction
  * @returns UserOperationReceipt | null
  */
-export async function getUserOpReceiptFromTransaction(
-  transaction: AnyTransaction,
+export async function getReceiptForUserOp(
+	transaction: AnyTransaction,
 ): Promise<UserOperationReceipt | null> {
-  assert(transaction.isUserOp);
+	assert(transaction.isUserOp);
 
-  if (!("userOpHash" in transaction)) {
-    return null;
-  }
+	if (!("userOpHash" in transaction)) {
+		return null;
+	}
 
-  const receipt = await getUserOpReceiptRaw({
-    client: thirdwebClient,
-    chain: await getChain(transaction.chainId),
-    userOpHash: transaction.userOpHash,
-  });
-  return receipt ?? null;
+	const receipt = await getUserOpReceiptRaw({
+		client: thirdwebClient,
+		chain: await getChain(transaction.chainId),
+		userOpHash: transaction.userOpHash,
+	});
+	return receipt ?? null;
 }
