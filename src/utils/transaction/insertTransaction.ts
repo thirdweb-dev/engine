@@ -19,50 +19,57 @@ import type { InsertedTransaction, QueuedTransaction } from "./types";
 /**
  * Transaction Processing Cases & SDK Compatibility Layer
  *
- * This code handles transaction processing across two SDK versions (v4 and v5) and two wallet types
- * (smart backend wallets and regular wallets). Each case needs different handling:
+ * Transaction Detection Logic:
+ * 1. First, try to find wallet by 'from' address:
+ *    - If found and is smart backend wallet -> Must be V5 SDK, needs transformation
+ *    - If found and is regular wallet -> Could be V4 or V5, no transformation needed
+ *    - If not found -> Check for V4 smart backend wallet case
+ * 2. If 'from' not found and has accountAddress:
+ *    - If found and is smart backend wallet -> V4 SDK case
+ *    - Otherwise -> Server Error (invalid wallet configuration)
+ * 3. If 'from' not found and no accountAddress -> Error
  *
- * Case 1: V5 SDK with Smart Backend Wallet
- * - 'from' address is the smart backend wallet address
- * - accountAddress must NOT be set (SDK shouldn't allow interacting with other accounts)
- * - Requires transformation:
+ * Cases by Detection Path:
+ *
+ * Found by 'from' address, is Smart Backend Wallet:
+ * Case 1: V5 Smart Backend Wallet
+ * - 'from' is smart backend wallet address
+ * - accountAddress must NOT be set
+ * - Needs transformation:
  *   * from -> becomes signer address (from wallet.accountSignerAddress)
  *   * original from -> becomes account address
  *   * to -> becomes target
  *   * set isUserOp true
- *   * add accountFactoryAddress and entrypoint from wallet details
+ *   * add wallet specific addresses (entrypoint, factory)
  *
- * Case 2: V4 SDK with Smart Backend Wallet
- * - accountAddress is set to the smart backend wallet address
- * - 'from' address not in wallet DB
- * - Requires transformation:
- *   * add entrypoint and accountFactory addresses from wallet details
- *
- * Case 3: V5 SDK with Regular Wallet
- * - 'from' address is a regular wallet
+ * Found by 'from' address, is Regular Wallet:
+ * Case 2: Regular Wallet (V4 or V5)
+ * - 'from' exists as regular wallet
+ * - may optionally have accountAddress for AA
  * - No transformation needed, just add wallet type
- * - May optionally have accountAddress for sending via a smart account
  *
- * Case 4: V4 SDK with Regular Wallet
- * - Similar to Case 3
- * - Only difference is how we detect wallet (via accountAddress)
+ * Found by accountAddress after 'from' not found:
+ * Case 3: V4 Smart Backend Wallet
+ * - 'from' not found in DB
+ * - accountAddress must exist as smart backend wallet
+ * - Needs transformation:
+ *   * add wallet specific addresses (entrypoint, factory)
+ *
+ * Critical Requirements:
+ * 1. Smart backend wallets must be validated for chain support
+ * 2. V5 smart backend wallets must not have accountAddress set
+ * 3. Every transaction needs a wallet type
+ * 4. Addresses must be normalized to checksum format
+ * 5. Properties like accountSignerAddress, accountFactoryAddress, and entrypoint
+ *    are only available on SmartBackendWalletDetails type
+ * 6. Only smart backend wallets can be found via accountAddress lookup when 'from'
+ *    is not found - finding anything else indicates invalid wallet configuration
  */
 
 interface InsertTransactionData {
   insertedTransaction: InsertedTransaction;
   idempotencyKey?: string;
   shouldSimulate?: boolean;
-}
-
-interface TransactionContext {
-  processedTransaction: QueuedTransaction;
-}
-
-type SdkVersion = "v4" | "v5";
-
-interface ResolvedWalletDetails {
-  sdkVersion: SdkVersion;
-  walletDetails: ParsedWalletDetails;
 }
 
 const validateSmartBackendWalletChainSupport = async (chainId: number) => {
@@ -75,13 +82,9 @@ const validateSmartBackendWalletChainSupport = async (chainId: number) => {
   }
 };
 
-/**
- * Transform transaction for Case 1 (V5 Smart Backend Wallet)
- * Type guard ensures walletDetails has required smart wallet properties
- */
 const transformV5SmartBackendWallet = async (
   transaction: QueuedTransaction,
-  walletDetails: SmartBackendWalletDetails, // Note: narrowed type
+  walletDetails: SmartBackendWalletDetails,
 ): Promise<QueuedTransaction> => {
   await validateSmartBackendWalletChainSupport(transaction.chainId);
 
@@ -98,7 +101,7 @@ const transformV5SmartBackendWallet = async (
     isUserOp: true,
     signerAddress: walletDetails.accountSignerAddress,
     from: walletDetails.accountSignerAddress,
-    accountAddress: transaction.from, // Original 'from' becomes the account
+    accountAddress: transaction.from,
     target: transaction.to,
     accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
     entrypointAddress: walletDetails.entrypointAddress ?? undefined,
@@ -106,13 +109,9 @@ const transformV5SmartBackendWallet = async (
   };
 };
 
-/**
- * Transform transaction for Case 2 (V4 Smart Backend Wallet)
- * Type guard ensures walletDetails has required smart wallet properties
- */
 const transformV4SmartBackendWallet = async (
   transaction: QueuedTransaction,
-  walletDetails: SmartBackendWalletDetails, // Note: narrowed type
+  walletDetails: SmartBackendWalletDetails,
 ): Promise<QueuedTransaction> => {
   await validateSmartBackendWalletChainSupport(transaction.chainId);
 
@@ -123,93 +122,6 @@ const transformV4SmartBackendWallet = async (
     walletType: walletDetails.type,
   };
 };
-
-/**
- * Try to resolve wallet details, determining if we're in V4 or V5 case
- * For V5: wallet details should be found from 'from' address (Cases 1 & 3)
- * For V4: wallet details are found from accountAddress (Cases 2 & 4)
- */
-const resolveWalletDetails = async (
-  transaction: QueuedTransaction,
-): Promise<ResolvedWalletDetails> => {
-  // Try V5 path first (Cases 1 & 3)
-  try {
-    const walletDetails = await getWalletDetails({
-      walletAddress: transaction.from,
-    });
-    return { sdkVersion: "v5", walletDetails };
-  } catch {} // Silently handle V5 failure
-
-  // If primary address fails and no accountAddress, we can't proceed
-  if (!transaction.accountAddress) {
-    throw createCustomError(
-      "Account not found",
-      StatusCodes.BAD_REQUEST,
-      "ACCOUNT_NOT_FOUND",
-    );
-  }
-
-  // Try V4 path (Cases 2 & 4)
-  try {
-    const walletDetails = await getWalletDetails({
-      walletAddress: transaction.accountAddress,
-    });
-    return { sdkVersion: "v4", walletDetails };
-  } catch {
-    throw createCustomError(
-      "Account not found",
-      StatusCodes.BAD_REQUEST,
-      "ACCOUNT_NOT_FOUND",
-    );
-  }
-};
-
-/**
- * Handle both transformation cases and add wallet type for non-transformed cases
- * Uses type guard to ensure smart wallet properties are available when needed
- */
-const detectAndTransformTransaction = async (
-  transaction: QueuedTransaction,
-): Promise<TransactionContext> => {
-  const { sdkVersion, walletDetails } = await resolveWalletDetails(transaction);
-
-  // isSmartBackendWallet is a type guard that narrows walletDetails
-  if (!isSmartBackendWallet(walletDetails)) {
-    // Cases 3 & 4: Regular wallet cases just need wallet type
-    return {
-      processedTransaction: {
-        ...transaction,
-        walletType: walletDetails.type,
-      },
-    };
-  }
-
-  // walletDetails is now narrowed to SmartBackendWalletDetails
-  const processedTransaction = await (sdkVersion === "v5"
-    ? transformV5SmartBackendWallet(transaction, walletDetails)
-    : transformV4SmartBackendWallet(transaction, walletDetails));
-
-  return { processedTransaction };
-};
-
-const normalizeAddresses = (
-  transaction: InsertedTransaction,
-): QueuedTransaction => ({
-  ...transaction,
-  status: "queued",
-  queueId: "", // Will be set later
-  queuedAt: new Date(),
-  resendCount: 0,
-  from: getChecksumAddress(transaction.from),
-  to: getChecksumAddress(transaction.to),
-  signerAddress: getChecksumAddress(transaction.signerAddress),
-  accountAddress: getChecksumAddress(transaction.accountAddress),
-  accountSalt: transaction.accountSalt,
-  target: getChecksumAddress(transaction.target),
-  sender: getChecksumAddress(transaction.sender),
-  value: transaction.value ?? 0n,
-  walletType: "local", // Will be set later
-});
 
 /**
  * Enqueue a transaction to be submitted onchain.
@@ -225,14 +137,83 @@ export const insertTransaction = async (
     return queueId;
   }
 
-  // Normalize addresses and create initial transaction
-  let queuedTransaction = normalizeAddresses(insertedTransaction);
-  queuedTransaction.queueId = queueId;
+  // Normalize addresses
+  let queuedTransaction: QueuedTransaction = {
+    ...insertedTransaction,
+    status: "queued",
+    queueId,
+    queuedAt: new Date(),
+    resendCount: 0,
+    from: getChecksumAddress(insertedTransaction.from),
+    to: getChecksumAddress(insertedTransaction.to),
+    signerAddress: getChecksumAddress(insertedTransaction.signerAddress),
+    accountAddress: getChecksumAddress(insertedTransaction.accountAddress),
+    accountSalt: insertedTransaction.accountSalt,
+    target: getChecksumAddress(insertedTransaction.target),
+    sender: getChecksumAddress(insertedTransaction.sender),
+    value: insertedTransaction.value ?? 0n,
+    walletType: "local", // we override this later
+  };
 
-  // Detect case and transform transaction accordingly
-  const { processedTransaction } =
-    await detectAndTransformTransaction(queuedTransaction);
-  queuedTransaction = processedTransaction;
+  // First attempt: try to find wallet by 'from' address
+  let walletDetails: ParsedWalletDetails | undefined;
+  let walletFoundByFrom = false;
+
+  try {
+    walletDetails = await getWalletDetails({
+      walletAddress: queuedTransaction.from,
+    });
+    walletFoundByFrom = true;
+  } catch {}
+
+  // Case 1 & 2: Wallet found by 'from'
+  if (walletFoundByFrom && walletDetails) {
+    if (isSmartBackendWallet(walletDetails)) {
+      // Case 1: V5 Smart Backend Wallet
+      queuedTransaction = await transformV5SmartBackendWallet(
+        queuedTransaction,
+        walletDetails,
+      );
+    } else {
+      // Case 2: Regular wallet (V4 or V5) - just add wallet type
+      queuedTransaction.walletType = walletDetails.type;
+    }
+  } else {
+    // From this point on, we're in Case 3 territory - check for V4 smart backend wallet
+    if (!queuedTransaction.accountAddress) {
+      throw createCustomError(
+        "Account not found",
+        StatusCodes.BAD_REQUEST,
+        "ACCOUNT_NOT_FOUND",
+      );
+    }
+
+    try {
+      walletDetails = await getWalletDetails({
+        walletAddress: queuedTransaction.accountAddress,
+      });
+    } catch {
+      throw createCustomError(
+        "Account not found",
+        StatusCodes.BAD_REQUEST,
+        "ACCOUNT_NOT_FOUND",
+      );
+    }
+
+    // Case 3: Must be a V4 smart backend wallet
+    if (!isSmartBackendWallet(walletDetails)) {
+      throw createCustomError(
+        "Invalid wallet configuration in database - non-smart-backend wallet found via accountAddress",
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        "INVALID_WALLET_CONFIGURATION",
+      );
+    }
+
+    queuedTransaction = await transformV4SmartBackendWallet(
+      queuedTransaction,
+      walletDetails,
+    );
+  }
 
   // Simulate if requested
   if (shouldSimulate) {

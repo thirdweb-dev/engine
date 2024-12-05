@@ -9,7 +9,7 @@ import { getAccount } from "../account";
 import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
 import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
-import type { AnyTransaction } from "./types";
+import type { InsertedTransaction } from "./types";
 
 /**
  * Simulate the queued transaction.
@@ -17,7 +17,7 @@ import type { AnyTransaction } from "./types";
  * @returns string - The simulation error, or null if no error.
  */
 export const doSimulateTransaction = async (
-  transaction: AnyTransaction,
+  transaction: InsertedTransaction,
 ): Promise<string | null> => {
   const {
     chainId,
@@ -70,6 +70,7 @@ export const doSimulateTransaction = async (
       account,
     });
     return null;
+    // biome-ignore lint/suspicious/noExplicitAny: any error
   } catch (e: any) {
     // Error should be of type TransactionError in the thirdweb SDK.
     return `${e.name}: ${e.message}`;
