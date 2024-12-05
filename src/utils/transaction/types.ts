@@ -28,6 +28,7 @@ export type InsertedTransaction = {
   // User-provided overrides.
   overrides?: {
     gas?: bigint;
+    gasPrice?: bigint;
     maxFeePerGas?: bigint;
     maxPriorityFeePerGas?: bigint;
   };

@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import type { ParsedConfig } from "../../schema/config";
+import { getConfig } from "../../utils/cache/getConfig";
 import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
 
 const STANDARD_METHODS = "GET,POST,DELETE,PUT,PATCH,HEAD,PUT,PATCH,POST,DELETE";
@@ -9,7 +9,7 @@ const DEFAULT_ALLOWED_HEADERS = [
   "ngrok-skip-browser-warning",
 ];
 
-export function withCors(server: FastifyInstance, config: ParsedConfig) {
+export function withCors(server: FastifyInstance) {
   server.addHook("onRequest", async (request, reply) => {
     const origin = request.headers.origin;
 
@@ -29,6 +29,7 @@ export function withCors(server: FastifyInstance, config: ParsedConfig) {
       return;
     }
 
+    const config = await getConfig();
     const allowedOrigins = config.accessControlAllowOrigin
       .split(",")
       .map(sanitizeOrigin);
@@ -56,7 +57,7 @@ export function withCors(server: FastifyInstance, config: ParsedConfig) {
         return;
       }
     } else {
-      reply.code(403).send({ error: "Invalid origin" });
+      reply.code(403).send({ error: "Invalid origin." });
       return;
     }
   });

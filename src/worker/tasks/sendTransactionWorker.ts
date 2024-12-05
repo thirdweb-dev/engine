@@ -303,6 +303,7 @@ const _sendTransaction = async (
         // Apply gas setting overrides.
         // Do not set `maxFeePerGas` to estimate the onchain value.
         gas: overrides?.gas,
+        gasPrice: overrides?.gasPrice,
         maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
       },
     });
@@ -386,6 +387,7 @@ const _sendTransaction = async (
   }
 
   await addSentNonce(chainId, from, nonce);
+
   return {
     ...queuedTransaction,
     status: "sent",

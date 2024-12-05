@@ -27,7 +27,7 @@ const requestQuerySchema = Type.Object({
   ),
 });
 
-export const responseBodySchema = Type.Object({
+const responseBodySchema = Type.Object({
   result: Type.Object({
     transactions: Type.Array(TransactionSchema),
     totalCount: Type.Integer(),

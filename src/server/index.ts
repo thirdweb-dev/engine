@@ -3,7 +3,6 @@ import fastify, { type FastifyInstance } from "fastify";
 import * as fs from "node:fs";
 import path from "node:path";
 import { URL } from "node:url";
-import { getConfig } from "../utils/cache/getConfig";
 import { clearCacheCron } from "../utils/cron/clearCacheCron";
 import { env } from "../utils/env";
 import { logger } from "../utils/logger";
@@ -65,19 +64,18 @@ export const initServer = async () => {
 
   // Start the server with middleware.
   const server: FastifyInstance = fastify({
+    maxParamLength: 200,
     connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
     trustProxy,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  const config = await getConfig();
-
   // Configure middleware
   withErrorHandler(server);
   withRequestLogs(server);
   withSecurityHeaders(server);
-  withCors(server, config);
+  withCors(server);
   withRateLimit(server);
   withEnforceEngineMode(server);
   withServerUsageReporting(server);
