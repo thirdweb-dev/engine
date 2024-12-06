@@ -12,20 +12,19 @@ import {
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import { decodeFunctionData, type Abi, type Hash } from "viem";
-import { bulkInsertContractTransactionReceipts } from "../../db/contractTransactionReceipts/createContractTransactionReceipts";
-import { WebhooksEventTypes } from "../../schema/webhooks";
-import { getChain } from "../../utils/chain";
-import { logger } from "../../utils/logger";
-import { normalizeAddress } from "../../utils/primitiveTypes";
-import { redis } from "../../utils/redis/redis";
-import { thirdwebClient } from "../../utils/sdk";
+import { bulkInsertContractTransactionReceipts } from "../../shared/db/contractTransactionReceipts/createContractTransactionReceipts";
+import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
+import { getChain } from "../../shared/utils/chain";
+import { logger } from "../../shared/utils/logger";
+import { normalizeAddress } from "../../shared/utils/primitiveTypes";
+import { redis } from "../../shared/utils/redis/redis";
+import { thirdwebClient } from "../../shared/utils/sdk";
 import {
   ProcessTransactionReceiptsQueue,
   type EnqueueProcessTransactionReceiptsData,
 } from "../queues/processTransactionReceiptsQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import { SendWebhookQueue } from "../queues/sendWebhookQueue";
-import { getContractId } from "../utils/contractId";
 import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
@@ -228,3 +227,6 @@ export const initProcessTransactionReceiptsWorker = () => {
   });
   logWorkerExceptions(_worker);
 };
+
+const getContractId = (chainId: number, contractAddress: string) =>
+  `${chainId}:${contractAddress}`;

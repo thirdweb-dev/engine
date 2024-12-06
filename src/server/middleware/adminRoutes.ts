@@ -5,7 +5,7 @@ import type { Queue } from "bullmq";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { timingSafeEqual } from "node:crypto";
-import { env } from "../../utils/env";
+import { env } from "../../shared/utils/env";
 import { CancelRecycledNoncesQueue } from "../../worker/queues/cancelRecycledNoncesQueue";
 import { MigratePostgresTransactionsQueue } from "../../worker/queues/migratePostgresTransactionsQueue";
 import { MineTransactionQueue } from "../../worker/queues/mineTransactionQueue";

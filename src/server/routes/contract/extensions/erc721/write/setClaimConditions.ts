@@ -1,11 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { queueTx } from "../../../../../../shared/db/transactions/queueTx";
+import { getContract } from "../../../../../../shared/utils/cache/getContract";
 import {
   claimConditionInputSchema,
-  sanitizedClaimConditionInputSchema,
+  type sanitizedClaimConditionInputSchema,
 } from "../../../../../schemas/claimConditions";
 import {
   contractParamSchema,
