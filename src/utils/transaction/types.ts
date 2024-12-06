@@ -58,8 +58,6 @@ export type QueuedTransaction = InsertedTransaction & {
   queuedAt: Date;
   value: bigint;
   data?: Hex;
-
-  manuallyResentAt?: Date;
 };
 
 // SentTransaction has been submitted to RPC successfully.

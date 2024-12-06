@@ -3,17 +3,19 @@ import assert from "node:assert";
 import superjson from "superjson";
 import {
   eth_getBalance,
-  eth_getTransactionByHash,
-  eth_getTransactionReceipt,
   getAddress,
   getRpcClient,
   toTokens,
   type Address,
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
-import { getUserOpReceipt, getUserOpReceiptRaw } from "thirdweb/wallets/smart";
+import { getUserOpReceipt } from "thirdweb/wallets/smart";
 import { TransactionDB } from "../../db/transactions/db";
 import { recycleNonce, removeSentNonce } from "../../db/wallets/walletNonce";
+import {
+  getReceiptForEOATransaction,
+  getReceiptForUserOp,
+} from "../../lib/transaction/get-transaction-receipt";
 import { WebhooksEventTypes } from "../../schema/webhooks";
 import { getBlockNumberish } from "../../utils/block";
 import { getConfig } from "../../utils/cache/getConfig";
@@ -65,7 +67,6 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
   }
 
   if (!resultTransaction) {
-    job.log("Transaction is not mined yet. Check again later...");
     throw new Error("NOT_CONFIRMED_YET");
   }
 
@@ -121,72 +122,61 @@ const _mineTransaction = async (
 ): Promise<MinedTransaction | null> => {
   assert(!sentTransaction.isUserOp);
 
-  const { queueId, chainId, sentTransactionHashes, sentAtBlock, resendCount } =
-    sentTransaction;
+  const receipt = await getReceiptForEOATransaction(sentTransaction);
 
-  // Check all sent transaction hashes since any of them might succeed.
-  const rpcRequest = getRpcClient({
-    client: thirdwebClient,
-    chain: await getChain(chainId),
-  });
-  job.log(`Mining transactionHashes: ${sentTransactionHashes}`);
-  const receiptResults = await Promise.allSettled(
-    sentTransactionHashes.map((hash) =>
-      eth_getTransactionReceipt(rpcRequest, { hash }),
-    ),
-  );
+  if (receipt) {
+    job.log(
+      `Found receipt. transactionHash=${receipt.transactionHash} block=${receipt.blockNumber}`,
+    );
 
-  // This transaction is mined if any receipt is found.
-  for (const result of receiptResults) {
-    if (result.status === "fulfilled") {
-      const receipt = result.value;
-      job.log(`Found receipt on block ${receipt.blockNumber}.`);
+    const removed = await removeSentNonce(
+      sentTransaction.chainId,
+      sentTransaction.from,
+      sentTransaction.nonce,
+    );
+    logger({
+      level: "debug",
+      message: `[mineTransactionWorker] Removed nonce ${sentTransaction.nonce} from nonce-sent set: ${removed}`,
+      service: "worker",
+    });
 
-      const removed = await removeSentNonce(
-        sentTransaction.chainId,
-        sentTransaction.from,
-        sentTransaction.nonce,
-      );
+    // Though the transaction is mined successfully, set an error message if the transaction failed onchain.
+    const errorMessage =
+      receipt.status === "reverted"
+        ? "The transaction failed onchain. See: https://portal.thirdweb.com/engine/troubleshooting"
+        : undefined;
 
-      logger({
-        level: "debug",
-        message: `[mineTransactionWorker] Removed nonce ${sentTransaction.nonce} from nonce-sent set: ${removed}`,
-        service: "worker",
-      });
-
-      const errorMessage =
-        receipt.status === "reverted"
-          ? "The transaction failed onchain. See: https://portal.thirdweb.com/engine/troubleshooting"
-          : undefined;
-
-      return {
-        ...sentTransaction,
-        status: "mined",
-        transactionHash: receipt.transactionHash,
-        minedAt: new Date(),
-        minedAtBlock: receipt.blockNumber,
-        transactionType: receipt.type,
-        onchainStatus: receipt.status,
-        gasUsed: receipt.gasUsed,
-        effectiveGasPrice: receipt.effectiveGasPrice,
-        cumulativeGasUsed: receipt.cumulativeGasUsed,
-        errorMessage,
-      };
-    }
+    return {
+      ...sentTransaction,
+      status: "mined",
+      transactionHash: receipt.transactionHash,
+      minedAt: new Date(),
+      minedAtBlock: receipt.blockNumber,
+      transactionType: receipt.type,
+      onchainStatus: receipt.status,
+      gasUsed: receipt.gasUsed,
+      effectiveGasPrice: receipt.effectiveGasPrice,
+      cumulativeGasUsed: receipt.cumulativeGasUsed,
+      errorMessage,
+    };
   }
+
   // Else the transaction is not mined yet.
+  job.log(
+    `Transaction is not mined yet. Check again later. sentTransactionHashes=${sentTransaction.sentTransactionHashes}`,
+  );
 
   // Resend the transaction (after some initial delay).
   const config = await getConfig();
-  const blockNumber = await getBlockNumberish(chainId);
-  const ellapsedBlocks = blockNumber - sentAtBlock;
+  const blockNumber = await getBlockNumberish(sentTransaction.chainId);
+  const ellapsedBlocks = blockNumber - sentTransaction.sentAtBlock;
   if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
     job.log(
-      `Resending transaction after ${ellapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentAtBlock}`,
+      `Resending transaction after ${ellapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentTransaction.sentAtBlock}`,
     );
     await SendTransactionQueue.add({
-      queueId,
-      resendCount: resendCount + 1,
+      queueId: sentTransaction.queueId,
+      resendCount: sentTransaction.resendCount + 1,
     });
   }
 
@@ -199,47 +189,36 @@ const _mineUserOp = async (
 ): Promise<MinedTransaction | null> => {
   assert(sentTransaction.isUserOp);
 
-  const { chainId, userOpHash } = sentTransaction;
-  const chain = await getChain(chainId);
-
-  job.log(`Mining userOpHash: ${userOpHash}`);
-  const userOpReceiptRaw = await getUserOpReceiptRaw({
-    client: thirdwebClient,
-    chain,
-    userOpHash,
-  });
-
-  if (!userOpReceiptRaw) {
+  const userOpReceipt = await getReceiptForUserOp(sentTransaction);
+  if (!userOpReceipt) {
+    job.log(
+      `UserOp is not mined yet. Check again later. userOpHash=${sentTransaction.userOpHash}`,
+    );
     return null;
   }
+  const { receipt } = userOpReceipt;
 
-  const { transactionHash } = userOpReceiptRaw.receipt;
-  job.log(`Found transactionHash: ${transactionHash}`);
-
-  const rpcRequest = getRpcClient({ client: thirdwebClient, chain });
-  const transaction = await eth_getTransactionByHash(rpcRequest, {
-    hash: transactionHash,
-  });
-  const receipt = await eth_getTransactionReceipt(rpcRequest, {
-    hash: transaction.hash,
-  });
+  job.log(
+    `Found receipt. transactionHash=${receipt.transactionHash} block=${receipt.blockNumber}`,
+  );
 
   let errorMessage: string | undefined;
 
   // if the userOpReceipt is not successful, try to get the parsed userOpReceipt
   // we expect this to fail, but we want the error message if it does
-  if (!userOpReceiptRaw.success) {
+  if (!userOpReceipt.success) {
     try {
+      const chain = await getChain(sentTransaction.chainId);
       const userOpReceipt = await getUserOpReceipt({
         client: thirdwebClient,
         chain,
-        userOpHash,
+        userOpHash: sentTransaction.userOpHash,
       });
-      await job.log(`Found userOpReceipt: ${userOpReceipt}`);
+      job.log(`Found userOpReceipt: ${userOpReceipt}`);
     } catch (e) {
       if (e instanceof Error) {
         errorMessage = e.message;
-        await job.log(`Failed to get userOpReceipt: ${e.message}`);
+        job.log(`Failed to get userOpReceipt: ${e.message}`);
       } else {
         throw e;
       }
@@ -253,13 +232,13 @@ const _mineUserOp = async (
     minedAt: new Date(),
     minedAtBlock: receipt.blockNumber,
     transactionType: receipt.type,
-    onchainStatus: userOpReceiptRaw.success ? "success" : "reverted",
+    onchainStatus: userOpReceipt.success ? "success" : "reverted",
     gasUsed: receipt.gasUsed,
     effectiveGasPrice: receipt.effectiveGasPrice,
     gas: receipt.gasUsed,
     cumulativeGasUsed: receipt.cumulativeGasUsed,
-    sender: userOpReceiptRaw.sender as Address,
-    nonce: userOpReceiptRaw.nonce.toString(),
+    sender: userOpReceipt.sender as Address,
+    nonce: userOpReceipt.nonce.toString(),
     errorMessage,
   };
 };

@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, test } from "bun:test";
 import assert from "node:assert";
-import { type Address, stringToHex } from "thirdweb";
+import { stringToHex, type Address } from "thirdweb";
 import { zeroAddress } from "viem";
 import type { ApiError } from "../../../../sdk/dist/thirdweb-dev-engine.cjs.js";
 import { CONFIG } from "../../config";
@@ -69,7 +69,7 @@ describe("/contract/write route", () => {
     expect(writeTransactionStatus.minedAt).toBeDefined();
   });
 
-  test.only("Write to a contract with untyped args", async () => {
+  test("Write to a contract with untyped args", async () => {
     const res = await engine.deploy.deployNftDrop(
       CONFIG.CHAIN.id.toString(),
       backendWallet,
