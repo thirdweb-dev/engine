@@ -1,4 +1,4 @@
-import { getConfig } from "../../../shared/utils/cache/getConfig";
+import { getConfig } from "../../../utils/cache/getConfig";
 
 export type GcpKmsWalletParams = {
   gcpApplicationCredentialEmail: string;

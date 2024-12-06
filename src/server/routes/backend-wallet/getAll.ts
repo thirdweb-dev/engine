@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllWallets } from "../../../shared/db/wallets/getAllWallets";
+import { getAllWallets } from "../../../db/wallets/getAllWallets";
 import {
   standardResponseSchema,
   walletDetailsSchema,

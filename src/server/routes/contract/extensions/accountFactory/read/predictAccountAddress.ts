@@ -2,7 +2,7 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { predictAddress } from "thirdweb/wallets/smart";
-import { getContractV5 } from "../../../../../../shared/utils/cache/getContractv5";
+import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
 import { AddressSchema } from "../../../../../schemas/address";
 import {
   contractParamSchema,

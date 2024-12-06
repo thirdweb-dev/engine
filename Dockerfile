@@ -64,7 +64,6 @@ COPY --from=build /app/package.json .
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/src/prisma/* ./src/prisma/
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/scripts ./dist/scripts
 
 # Replace the schema path in the package.json file
 RUN sed -i 's_"schema": "./src/prisma/schema.prisma"_"schema": "./dist/prisma/schema.prisma"_g' package.json

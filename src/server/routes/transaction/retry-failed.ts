@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../shared/db/transactions/db";
+import { TransactionDB } from "../../../db/transactions/db";
 import {
   getReceiptForEOATransaction,
   getReceiptForUserOp,
-} from "../../../shared/lib/transaction/get-transaction-receipt";
-import type { QueuedTransaction } from "../../../shared/utils/transaction/types";
+} from "../../../lib/transaction/get-transaction-receipt";
+import type { QueuedTransaction } from "../../../utils/transaction/types";
 import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";

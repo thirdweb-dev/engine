@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { isDatabaseReachable } from "../../../shared/db/client";
-import { env } from "../../../shared/utils/env";
-import { isRedisReachable } from "../../../shared/utils/redis/redis";
-import { thirdwebClientId } from "../../../shared/utils/sdk";
+import { isDatabaseReachable } from "../../../db/client";
+import { env } from "../../../utils/env";
+import { isRedisReachable } from "../../../utils/redis/redis";
+import { thirdwebClientId } from "../../../utils/sdk";
 import { createCustomError } from "../../middleware/error";
 
 type EngineFeature =

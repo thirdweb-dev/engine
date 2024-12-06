@@ -10,34 +10,31 @@ import {
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceipt } from "thirdweb/wallets/smart";
-import { TransactionDB } from "../../shared/db/transactions/db";
-import {
-  recycleNonce,
-  removeSentNonce,
-} from "../../shared/db/wallets/walletNonce";
+import { TransactionDB } from "../../db/transactions/db";
+import { recycleNonce, removeSentNonce } from "../../db/wallets/walletNonce";
 import {
   getReceiptForEOATransaction,
   getReceiptForUserOp,
-} from "../../shared/lib/transaction/get-transaction-receipt";
-import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
-import { getBlockNumberish } from "../../shared/utils/block";
-import { getConfig } from "../../shared/utils/cache/getConfig";
-import { getWebhooksByEventType } from "../../shared/utils/cache/getWebhook";
-import { getChain } from "../../shared/utils/chain";
-import { msSince } from "../../shared/utils/date";
-import { env } from "../../shared/utils/env";
-import { prettifyError } from "../../shared/utils/error";
-import { logger } from "../../shared/utils/logger";
-import { recordMetrics } from "../../shared/utils/prometheus";
-import { redis } from "../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../shared/utils/sdk";
+} from "../../lib/transaction/get-transaction-receipt";
+import { WebhooksEventTypes } from "../../schema/webhooks";
+import { getBlockNumberish } from "../../utils/block";
+import { getConfig } from "../../utils/cache/getConfig";
+import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
+import { getChain } from "../../utils/chain";
+import { msSince } from "../../utils/date";
+import { env } from "../../utils/env";
+import { prettifyError } from "../../utils/error";
+import { logger } from "../../utils/logger";
+import { recordMetrics } from "../../utils/prometheus";
+import { redis } from "../../utils/redis/redis";
+import { thirdwebClient } from "../../utils/sdk";
 import type {
   ErroredTransaction,
   MinedTransaction,
   SentTransaction,
-} from "../../shared/utils/transaction/types";
-import { enqueueTransactionWebhook } from "../../shared/utils/transaction/webhook";
-import { reportUsage } from "../../shared/utils/usage";
+} from "../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
+import { reportUsage } from "../../utils/usage";
 import {
   MineTransactionQueue,
   type MineTransactionData,

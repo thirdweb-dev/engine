@@ -17,7 +17,7 @@ import type {
   TypedDataDefinition,
 } from "viem";
 import { hashTypedData } from "viem";
-import { getChain } from "../../../shared/utils/chain"; // Adjust import path as needed
+import { getChain } from "../../../utils/chain"; // Adjust import path as needed
 
 type SendTransactionResult = {
   transactionHash: Hex;

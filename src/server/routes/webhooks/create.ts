@@ -1,8 +1,8 @@
-import { type Static, Type } from "@sinclair/typebox";
-import type { FastifyInstance } from "fastify";
+import { Static, Type } from "@sinclair/typebox";
+import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { insertWebhook } from "../../../shared/db/webhooks/createWebhook";
-import { WebhooksEventTypes } from "../../../shared/schemas/webhooks";
+import { insertWebhook } from "../../../db/webhooks/createWebhook";
+import { WebhooksEventTypes } from "../../../schema/webhooks";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";

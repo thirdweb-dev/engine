@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import { fetchChains } from "@thirdweb-dev/chains";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfig } from "../../../shared/utils/cache/getConfig";
+import { getConfig } from "../../../utils/cache/getConfig";
 import { chainResponseSchema } from "../../schemas/chain";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 

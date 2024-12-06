@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { redis } from "../../shared/utils/redis/redis";
+import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
 export class CancelRecycledNoncesQueue {

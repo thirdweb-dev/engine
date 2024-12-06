@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import { getConfig } from "../../shared/utils/cache/getConfig";
-import { logger } from "../../shared/utils/logger";
+import { getConfig } from "../../utils/cache/getConfig";
+import { logger } from "../../utils/logger";
 import { manageChainIndexers } from "../tasks/manageChainIndexers";
 
 let processChainIndexerStarted = false;

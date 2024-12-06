@@ -15,16 +15,16 @@ import {
   type ThirdwebContract,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
-import { bulkInsertContractEventLogs } from "../../shared/db/contractEventLogs/createContractEventLogs";
-import { getContractSubscriptionsByChainId } from "../../shared/db/contractSubscriptions/getContractSubscriptions";
-import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
-import { getChain } from "../../shared/utils/chain";
-import { logger } from "../../shared/utils/logger";
-import { normalizeAddress } from "../../shared/utils/primitiveTypes";
-import { redis } from "../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../shared/utils/sdk";
+import { bulkInsertContractEventLogs } from "../../db/contractEventLogs/createContractEventLogs";
+import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
+import { WebhooksEventTypes } from "../../schema/webhooks";
+import { getChain } from "../../utils/chain";
+import { logger } from "../../utils/logger";
+import { normalizeAddress } from "../../utils/primitiveTypes";
+import { redis } from "../../utils/redis/redis";
+import { thirdwebClient } from "../../utils/sdk";
 import {
-  type EnqueueProcessEventLogsData,
+  EnqueueProcessEventLogsData,
   ProcessEventsLogQueue,
 } from "../queues/processEventLogsQueue";
 import { logWorkerExceptions } from "../queues/queues";

@@ -5,13 +5,13 @@ import {
   isSentNonce,
   recycleNonce,
   splitSentNoncesKey,
-} from "../../shared/db/wallets/walletNonce";
-import { getConfig } from "../../shared/utils/cache/getConfig";
-import { getChain } from "../../shared/utils/chain";
-import { prettifyError } from "../../shared/utils/error";
-import { logger } from "../../shared/utils/logger";
-import { redis } from "../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../shared/utils/sdk";
+} from "../../db/wallets/walletNonce";
+import { getConfig } from "../../utils/cache/getConfig";
+import { getChain } from "../../utils/chain";
+import { prettifyError } from "../../utils/error";
+import { logger } from "../../utils/logger";
+import { redis } from "../../utils/redis/redis";
+import { thirdwebClient } from "../../utils/sdk";
 import { NonceResyncQueue } from "../queues/nonceResyncQueue";
 import { logWorkerExceptions } from "../queues/queues";
 

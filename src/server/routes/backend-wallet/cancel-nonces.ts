@@ -3,9 +3,9 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { eth_getTransactionCount, getRpcClient } from "thirdweb";
 import { checksumAddress } from "thirdweb/utils";
-import { getChain } from "../../../shared/utils/chain";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { sendCancellationTransaction } from "../../../shared/utils/transaction/cancelTransaction";
+import { getChain } from "../../../utils/chain";
+import { thirdwebClient } from "../../../utils/sdk";
+import { sendCancellationTransaction } from "../../../utils/transaction/cancelTransaction";
 import {
   requestQuerystringSchema,
   standardResponseSchema,

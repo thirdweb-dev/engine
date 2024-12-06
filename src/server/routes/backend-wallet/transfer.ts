@@ -10,11 +10,11 @@ import {
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
-import { getChain } from "../../../shared/utils/chain";
-import { normalizeAddress } from "../../../shared/utils/primitiveTypes";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { insertTransaction } from "../../../shared/utils/transaction/insertTransaction";
-import type { InsertedTransaction } from "../../../shared/utils/transaction/types";
+import { getChain } from "../../../utils/chain";
+import { normalizeAddress } from "../../../utils/primitiveTypes";
+import { thirdwebClient } from "../../../utils/sdk";
+import { insertTransaction } from "../../../utils/transaction/insertTransaction";
+import type { InsertedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
 import { TokenAmountStringSchema } from "../../schemas/number";

@@ -4,11 +4,11 @@ import { StatusCodes } from "http-status-codes";
 import { getContract, type Address, type Hex } from "thirdweb";
 import type { NFTInput } from "thirdweb/dist/types/utils/nft/parseNft";
 import { generateMintSignature } from "thirdweb/extensions/erc1155";
-import { getAccount } from "../../../../../../shared/utils/account";
-import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/getContract";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { maybeBigInt } from "../../../../../../shared/utils/primitiveTypes";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
+import { getAccount } from "../../../../../../utils/account";
+import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
+import { getChain } from "../../../../../../utils/chain";
+import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
+import { thirdwebClient } from "../../../../../../utils/sdk";
 import { createCustomError } from "../../../../../middleware/error";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {

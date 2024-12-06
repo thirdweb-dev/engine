@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
-import type { AnyTransaction } from "../../../shared/utils/transaction/types";
+import type { AnyTransaction } from "../../../utils/transaction/types";
 import { AddressSchema, TransactionHashSchema } from "../address";
 
 export const TransactionSchema = Type.Object({

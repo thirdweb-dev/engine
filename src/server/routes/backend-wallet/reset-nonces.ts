@@ -6,7 +6,7 @@ import {
   deleteNoncesForBackendWallets,
   getUsedBackendWallets,
   syncLatestNonceFromOnchain,
-} from "../../../shared/db/wallets/walletNonce";
+} from "../../../db/wallets/walletNonce";
 import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 

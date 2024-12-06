@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { getConfig } from "../../shared/utils/cache/getConfig";
+import { getConfig } from "../../utils/cache/getConfig";
 import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
 
 const STANDARD_METHODS = "GET,POST,DELETE,PUT,PATCH,HEAD,PUT,PATCH,POST,DELETE";

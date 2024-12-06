@@ -1,8 +1,8 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../shared/db/transactions/queueTx";
-import { getContract } from "../../../../../../shared/utils/cache/getContract";
+import { queueTx } from "../../../../../../db/transactions/queueTx";
+import { getContract } from "../../../../../../utils/cache/getContract";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,

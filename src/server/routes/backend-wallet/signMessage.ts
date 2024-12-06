@@ -6,9 +6,9 @@ import { arbitrumSepolia } from "thirdweb/chains";
 import {
   getWalletDetails,
   isSmartBackendWallet,
-} from "../../../shared/db/wallets/getWalletDetails";
-import { walletDetailsToAccount } from "../../../shared/utils/account";
-import { getChain } from "../../../shared/utils/chain";
+} from "../../../db/wallets/getWalletDetails";
+import { walletDetailsToAccount } from "../../../utils/account";
+import { getChain } from "../../../utils/chain";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
