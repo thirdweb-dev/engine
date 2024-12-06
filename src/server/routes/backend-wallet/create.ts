@@ -6,8 +6,8 @@ import {
   DEFAULT_ACCOUNT_FACTORY_V0_7,
   ENTRYPOINT_ADDRESS_v0_7,
 } from "thirdweb/wallets/smart";
-import { WalletType } from "../../../schema/wallet";
-import { getConfig } from "../../../utils/cache/getConfig";
+import { WalletType } from "../../../shared/schemas/wallet";
+import { getConfig } from "../../../shared/utils/cache/getConfig";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";

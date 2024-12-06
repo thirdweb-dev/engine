@@ -1,6 +1,6 @@
 import type { Static } from "@sinclair/typebox";
-import { maybeBigInt } from "../../utils/primitiveTypes";
-import type { InsertedTransaction } from "../../utils/transaction/types";
+import { maybeBigInt } from "../../shared/utils/primitiveTypes";
+import type { InsertedTransaction } from "../../shared/utils/transaction/types";
 import type {
   txOverridesSchema,
   txOverridesWithValueSchema,

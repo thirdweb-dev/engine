@@ -17,9 +17,9 @@ import {
 import { decimals } from "thirdweb/extensions/erc20";
 import { upload } from "thirdweb/storage";
 import { checksumAddress } from "thirdweb/utils";
-import { getChain } from "../../../../../../utils/chain";
-import { prettifyError } from "../../../../../../utils/error";
-import { thirdwebClient } from "../../../../../../utils/sdk";
+import { getChain } from "../../../../../../shared/utils/chain";
+import { prettifyError } from "../../../../../../shared/utils/error";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk";
 import { createCustomError } from "../../../../../middleware/error";
 import {
   signature721InputSchemaV5,

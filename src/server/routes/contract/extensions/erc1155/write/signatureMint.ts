@@ -3,8 +3,8 @@ import type { SignedPayload1155 } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { queueTx } from "../../../../../../shared/db/transactions/queueTx";
+import { getContract } from "../../../../../../shared/utils/cache/getContract";
 import { signature1155OutputSchema } from "../../../../../schemas/nft";
 import {
   contractParamSchema,

@@ -3,11 +3,11 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract, type Address, type Hex } from "thirdweb";
 import { generateMintSignature } from "thirdweb/extensions/erc20";
-import { getAccount } from "../../../../../../utils/account";
-import { getContract as getContractV4 } from "../../../../../../utils/cache/getContract";
-import { getChain } from "../../../../../../utils/chain";
-import { maybeBigInt } from "../../../../../../utils/primitiveTypes";
-import { thirdwebClient } from "../../../../../../utils/sdk";
+import { getAccount } from "../../../../../../shared/utils/account";
+import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/getContract";
+import { getChain } from "../../../../../../shared/utils/chain";
+import { maybeBigInt } from "../../../../../../shared/utils/primitiveTypes";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk";
 import { createCustomError } from "../../../../../middleware/error";
 import {
   signature20InputSchema,

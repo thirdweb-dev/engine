@@ -1,10 +1,10 @@
-import { Static, Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc20";
-import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
-import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
+import { getContractV5 } from "../../../../../../shared/utils/cache/getContractv5";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
