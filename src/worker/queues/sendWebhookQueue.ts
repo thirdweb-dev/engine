@@ -8,10 +8,10 @@ import SuperJSON from "superjson";
 import {
   WebhooksEventTypes,
   type BackendWalletBalanceWebhookParams,
-} from "../../shared/schemas/webhooks";
-import { getWebhooksByEventType } from "../../shared/utils/cache/getWebhook";
-import { logger } from "../../shared/utils/logger";
-import { redis } from "../../shared/utils/redis/redis";
+} from "../../schema/webhooks";
+import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
+import { logger } from "../../utils/logger";
+import { redis } from "../../utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
 export type EnqueueContractSubscriptionWebhookData = {

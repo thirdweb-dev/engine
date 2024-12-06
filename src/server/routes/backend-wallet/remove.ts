@@ -1,8 +1,8 @@
-import { type Static, Type } from "@sinclair/typebox";
-import type { FastifyInstance } from "fastify";
+import { Static, Type } from "@sinclair/typebox";
+import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import type { Address } from "thirdweb";
-import { deleteWalletDetails } from "../../../shared/db/wallets/deleteWalletDetails";
+import { Address } from "thirdweb";
+import { deleteWalletDetails } from "../../../db/wallets/deleteWalletDetails";
 import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 

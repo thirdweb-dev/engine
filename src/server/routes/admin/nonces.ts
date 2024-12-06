@@ -1,8 +1,8 @@
-import { type Static, Type } from "@sinclair/typebox";
-import type { FastifyInstance } from "fastify";
+import { Static, Type } from "@sinclair/typebox";
+import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  type Address,
+  Address,
   eth_getTransactionCount,
   getAddress,
   getRpcClient,
@@ -12,10 +12,10 @@ import {
   lastUsedNonceKey,
   recycledNoncesKey,
   sentNoncesKey,
-} from "../../../shared/db/wallets/walletNonce";
-import { getChain } from "../../../shared/utils/chain";
-import { redis } from "../../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../../shared/utils/sdk";
+} from "../../../db/wallets/walletNonce";
+import { getChain } from "../../../utils/chain";
+import { redis } from "../../../utils/redis/redis";
+import { thirdwebClient } from "../../../utils/sdk";
 import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletWithAddressParamSchema } from "../../schemas/wallet";

@@ -2,18 +2,15 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { toSerializableTransaction } from "thirdweb";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { getReceiptForEOATransaction } from "../../../shared/lib/transaction/get-transaction-receipt";
-import { getAccount } from "../../../shared/utils/account";
-import { getBlockNumberish } from "../../../shared/utils/block";
-import { getChain } from "../../../shared/utils/chain";
-import {
-  getChecksumAddress,
-  maybeBigInt,
-} from "../../../shared/utils/primitiveTypes";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import type { SentTransaction } from "../../../shared/utils/transaction/types";
-import { enqueueTransactionWebhook } from "../../../shared/utils/transaction/webhook";
+import { TransactionDB } from "../../../db/transactions/db";
+import { getReceiptForEOATransaction } from "../../../lib/transaction/get-transaction-receipt";
+import { getAccount } from "../../../utils/account";
+import { getBlockNumberish } from "../../../utils/block";
+import { getChain } from "../../../utils/chain";
+import { getChecksumAddress, maybeBigInt } from "../../../utils/primitiveTypes";
+import { thirdwebClient } from "../../../utils/sdk";
+import type { SentTransaction } from "../../../utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../../utils/transaction/webhook";
 import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { createCustomError } from "../../middleware/error";
 import { TransactionHashSchema } from "../../schemas/address";

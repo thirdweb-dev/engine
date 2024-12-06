@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getLastIndexedBlock } from "../../../../shared/db/chainIndexers/getChainIndexer";
+import { getLastIndexedBlock } from "../../../../db/chainIndexers/getChainIndexer";
 import { chainRequestQuerystringSchema } from "../../../schemas/chain";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";

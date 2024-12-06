@@ -9,12 +9,12 @@ import {
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import type { TransactionReceipt } from "viem";
-import { getChain } from "../../../../shared/utils/chain";
+import { getChain } from "../../../../utils/chain";
 import {
   fromTransactionStatus,
   fromTransactionType,
   thirdwebClient,
-} from "../../../../shared/utils/sdk";
+} from "../../../../utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
 import { chainIdOrSlugSchema } from "../../../schemas/chain";

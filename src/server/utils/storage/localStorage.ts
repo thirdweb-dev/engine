@@ -1,8 +1,8 @@
 import type { AsyncStorage } from "@thirdweb-dev/wallets";
 import fs from "node:fs";
-import { prisma } from "../../../shared/db/client";
-import { WalletType } from "../../../shared/schemas/wallet";
-import { logger } from "../../../shared/utils/logger";
+import { prisma } from "../../../db/client";
+import { WalletType } from "../../../schema/wallet";
+import { logger } from "../../../utils/logger";
 
 /**
  * @deprecated
@@ -38,7 +38,7 @@ export class LocalFileStorage implements AsyncStorage {
       logger({
         service: "server",
         level: "error",
-        message: "No local wallet found!",
+        message: `No local wallet found!`,
       });
       return null;
     }

@@ -9,12 +9,12 @@ import {
 } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { getWalletBalance } from "thirdweb/wallets";
-import { getAccount } from "../../../shared/utils/account";
-import { getChain } from "../../../shared/utils/chain";
-import { logger } from "../../../shared/utils/logger";
-import { getChecksumAddress } from "../../../shared/utils/primitiveTypes";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import type { PopulatedTransaction } from "../../../shared/utils/transaction/types";
+import { getAccount } from "../../../utils/account";
+import { getChain } from "../../../utils/chain";
+import { logger } from "../../../utils/logger";
+import { getChecksumAddress } from "../../../utils/primitiveTypes";
+import { thirdwebClient } from "../../../utils/sdk";
+import type { PopulatedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../schemas/address";
 import { TokenAmountStringSchema } from "../../schemas/number";

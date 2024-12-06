@@ -1,9 +1,9 @@
-import { type Static, Type } from "@sinclair/typebox";
-import type { FastifyInstance } from "fastify";
+import { Static, Type } from "@sinclair/typebox";
+import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import type { Address } from "thirdweb";
-import { queueTx } from "../../../../shared/db/transactions/queueTx";
-import { getSdk } from "../../../../shared/utils/cache/getSdk";
+import { Address } from "thirdweb";
+import { queueTx } from "../../../../db/transactions/queueTx";
+import { getSdk } from "../../../../utils/cache/getSdk";
 import { contractDeployBasicSchema } from "../../../schemas/contract";
 import {
   commonContractSchema,

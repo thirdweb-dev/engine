@@ -3,10 +3,10 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract, type Hex } from "thirdweb";
 import { safeTransferFrom } from "thirdweb/extensions/erc1155";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { getChecksumAddress } from "../../../../../../shared/utils/primitiveTypes";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
+import { getChain } from "../../../../../../utils/chain";
+import { getChecksumAddress } from "../../../../../../utils/primitiveTypes";
+import { thirdwebClient } from "../../../../../../utils/sdk";
+import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
 import { AddressSchema, HexSchema } from "../../../../../schemas/address";
 import { NumberStringSchema } from "../../../../../schemas/number";
 import {

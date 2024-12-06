@@ -1,8 +1,8 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/updateConfiguration";
-import { getConfig } from "../../../../shared/utils/cache/getConfig";
+import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
+import { getConfig } from "../../../../utils/cache/getConfig";
 import { WeiAmountStringSchema } from "../../../schemas/number";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { responseBodySchema } from "./get";

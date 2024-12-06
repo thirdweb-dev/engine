@@ -1,9 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { getPercentile } from "../../../shared/utils/math";
-import type { MinedTransaction } from "../../../shared/utils/transaction/types";
+import { TransactionDB } from "../../../db/transactions/db";
+import { getPercentile } from "../../../utils/math";
+import type { MinedTransaction } from "../../../utils/transaction/types";
 import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";

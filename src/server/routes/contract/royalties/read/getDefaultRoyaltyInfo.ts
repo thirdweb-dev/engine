@@ -1,7 +1,7 @@
-import { type Static, Type } from "@sinclair/typebox";
-import type { FastifyInstance } from "fastify";
+import { Static, Type } from "@sinclair/typebox";
+import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../shared/utils/cache/getContract";
+import { getContract } from "../../../../../utils/cache/getContract";
 import { royaltySchema } from "../../../../schemas/contract";
 import {
   contractParamSchema,

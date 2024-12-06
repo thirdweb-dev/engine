@@ -3,10 +3,10 @@ import { getAddress, type Address } from "thirdweb";
 import {
   getUsedBackendWallets,
   inspectNonce,
-} from "../../shared/db/wallets/walletNonce";
+} from "../../db/wallets/walletNonce";
 import { getLastUsedOnchainNonce } from "../../server/routes/admin/nonces";
-import { logger } from "../../shared/utils/logger";
-import { redis } from "../../shared/utils/redis/redis";
+import { logger } from "../../utils/logger";
+import { redis } from "../../utils/redis/redis";
 import { NonceHealthCheckQueue } from "../queues/nonceHealthCheckQueue";
 import { logWorkerExceptions } from "../queues/queues";
 

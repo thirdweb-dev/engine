@@ -1,8 +1,8 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import { getAllDetectedExtensionNames } from "@thirdweb-dev/sdk";
-import type { FastifyInstance } from "fastify";
+import { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../shared/utils/cache/getContract";
+import { getContract } from "../../../../utils/cache/getContract";
 import {
   contractParamSchema,
   standardResponseSchema,

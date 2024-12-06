@@ -4,13 +4,13 @@ import {
   getRpcClient,
   type Address,
 } from "thirdweb";
-import { getBlockForIndexing } from "../../shared/db/chainIndexers/getChainIndexer";
-import { upsertChainIndexer } from "../../shared/db/chainIndexers/upsertChainIndexer";
-import { prisma } from "../../shared/db/client";
-import { getContractSubscriptionsByChainId } from "../../shared/db/contractSubscriptions/getContractSubscriptions";
-import { getChain } from "../../shared/utils/chain";
-import { logger } from "../../shared/utils/logger";
-import { thirdwebClient } from "../../shared/utils/sdk";
+import { getBlockForIndexing } from "../../db/chainIndexers/getChainIndexer";
+import { upsertChainIndexer } from "../../db/chainIndexers/upsertChainIndexer";
+import { prisma } from "../../db/client";
+import { getContractSubscriptionsByChainId } from "../../db/contractSubscriptions/getContractSubscriptions";
+import { getChain } from "../../utils/chain";
+import { logger } from "../../utils/logger";
+import { thirdwebClient } from "../../utils/sdk";
 import { ProcessEventsLogQueue } from "../queues/processEventLogsQueue";
 import { ProcessTransactionReceiptsQueue } from "../queues/processTransactionReceiptsQueue";
 

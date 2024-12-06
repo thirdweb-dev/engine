@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import { getAddress, type Address } from "thirdweb";
-import { env } from "../../../shared/utils/env";
+import { env } from "../../../utils/env";
 import { badAddressError } from "../../middleware/error";
 import { AddressSchema } from "../address";
 import { chainIdOrSlugSchema } from "../chain";

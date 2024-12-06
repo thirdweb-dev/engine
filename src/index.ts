@@ -1,9 +1,8 @@
 import "./polyfill";
-import "./tracer";
-
 import { initServer } from "./server";
-import { env } from "./shared/utils/env";
-import { logger } from "./shared/utils/logger";
+import { env } from "./utils/env";
+import { logger } from "./utils/logger";
+import "./utils/tracer";
 import { initWorker } from "./worker";
 import { CancelRecycledNoncesQueue } from "./worker/queues/cancelRecycledNoncesQueue";
 import { MigratePostgresTransactionsQueue } from "./worker/queues/migratePostgresTransactionsQueue";
