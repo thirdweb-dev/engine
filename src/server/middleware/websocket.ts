@@ -1,6 +1,6 @@
 import WebSocketPlugin from "@fastify/websocket";
 import type { FastifyInstance } from "fastify";
-import { logger } from "../../utils/logger";
+import { logger } from "../../shared/utils/logger";
 
 export async function withWebSocket(server: FastifyInstance) {
   await server.register(WebSocketPlugin, {

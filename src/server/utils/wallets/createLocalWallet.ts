@@ -1,9 +1,9 @@
 import { encryptKeystore } from "@ethersproject/json-wallets";
 import { privateKeyToAccount } from "thirdweb/wallets";
 import { generatePrivateKey } from "viem/accounts";
-import { createWalletDetails } from "../../../db/wallets/createWalletDetails";
-import { env } from "../../../utils/env";
-import { thirdwebClient } from "../../../utils/sdk";
+import { createWalletDetails } from "../../../shared/db/wallets/createWalletDetails";
+import { env } from "../../../shared/utils/env";
+import { thirdwebClient } from "../../../shared/utils/sdk";
 
 interface CreateLocalWallet {
   label?: string;

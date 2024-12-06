@@ -1,4 +1,4 @@
-import { getContractSubscriptionsUniqueChainIds } from "../../db/contractSubscriptions/getContractSubscriptions";
+import { getContractSubscriptionsUniqueChainIds } from "../../shared/db/contractSubscriptions/getContractSubscriptions";
 import {
   INDEXER_REGISTRY,
   addChainIndexer,
