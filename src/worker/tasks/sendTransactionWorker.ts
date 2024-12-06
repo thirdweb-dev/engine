@@ -22,6 +22,7 @@ import { TransactionDB } from "../../db/transactions/db";
 import {
   acquireNonce,
   addSentNonce,
+  deleteNoncesForBackendWallets,
   recycleNonce,
   syncLatestNonceFromOnchainIfHigher,
 } from "../../db/wallets/walletNonce";
@@ -279,10 +280,7 @@ const _sendTransaction = async (
 
   const { queueId, chainId, from, to, overrides } = queuedTransaction;
   const chain = await getChain(chainId);
-  const account = await getAccount({
-    chainId: chainId,
-    from: from,
-  });
+  const account = await getAccount({ chainId, from });
 
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.
@@ -352,35 +350,39 @@ const _sendTransaction = async (
       await account.sendTransaction(populatedTransaction);
     transactionHash = sendTransactionResult.transactionHash;
   } catch (error: unknown) {
-    // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
-    // correct the DB nonce.
-    if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
-      const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
-      job.log(`Re-synced nonce: ${result}`);
-    } else {
-      // Otherwise this nonce is not used yet. Recycle it to be used by a future transaction.
-      job.log(`Recycling nonce: ${nonce}`);
-      await recycleNonce(chainId, from, nonce);
-    }
-
-    // Do not retry errors that are expected to be rejected by RPC again.
     if (isInsufficientFundsError(error)) {
-      const { name, nativeCurrency } = await getChainMetadata(chain);
+      // Insufficient funds. Do not retry
       const { gas, value = 0n } = populatedTransaction;
-      const gasPrice =
-        populatedTransaction.gasPrice ?? populatedTransaction.maxFeePerGas;
+      const { name, nativeCurrency } = await getChainMetadata(chain);
 
-      const minGasTokens = gasPrice
-        ? toTokens(gas * gasPrice + value, 18)
-        : null;
-      const errorMessage = minGasTokens
-        ? `Insufficient funds in ${account.address} on ${name}. Transaction requires > ${minGasTokens} ${nativeCurrency.symbol}.`
-        : `Insufficient funds in ${account.address} on ${name}. Transaction requires more ${nativeCurrency.symbol}.`;
+      // This and other pending transactions will fail.
+      // Reset the nonce state for this wallet. The first transaction after the wallet is funded will resync the nonce.
+      if (value === 0n) {
+        await deleteNoncesForBackendWallets([{ chainId, walletAddress: from }]);
+      }
+
+      const gasPrice =
+        populatedTransaction.gasPrice ??
+        populatedTransaction.maxFeePerGas ??
+        0n;
+      const minGasTokens = toTokens(gas * gasPrice + value, 18);
+      const errorMessage = `Insufficient funds in ${account.address} on ${name}. Transaction requires > ${minGasTokens} ${nativeCurrency.symbol}.`;
+
       return {
         ...queuedTransaction,
         status: "errored",
         errorMessage,
       } satisfies ErroredTransaction;
+    }
+
+    if (isNonceAlreadyUsedError(error) || isReplacementGasFeeTooLow(error)) {
+      // Nonce is already used (onchain or in mempool). Resync to correct the DB nonce.
+      const result = await syncLatestNonceFromOnchainIfHigher(chainId, from);
+      job.log(`Re-synced nonce: ${result}`);
+    } else {
+      // Other error: assume the nonce is not used. Recycle it to be used by a future transaction.
+      job.log(`Recycling nonce: ${nonce}`);
+      await recycleNonce(chainId, from, nonce);
     }
 
     throw wrapError(error, "RPC");
