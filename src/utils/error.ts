@@ -39,10 +39,7 @@ export const isReplacementGasFeeTooLow = (error: unknown) => {
 export const isInsufficientFundsError = (error: unknown) => {
   const message = _parseMessage(error);
   if (message) {
-    return (
-      message.includes("insufficient funds for gas * price + value") ||
-      message.includes("insufficient funds for intrinsic transaction cost")
-    );
+    return message.includes("insufficient funds");
   }
   return isEthersErrorCode(error, ethers.errors.INSUFFICIENT_FUNDS);
 };
