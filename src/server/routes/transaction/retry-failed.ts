@@ -102,6 +102,7 @@ export async function retryFailedTransactionRoute(fastify: FastifyInstance) {
       const queuedTransaction: QueuedTransaction = {
         ...omitted,
         status: "queued",
+        queuedAt: new Date(),
         resendCount: 0,
       };
       await TransactionDB.set(queuedTransaction);
