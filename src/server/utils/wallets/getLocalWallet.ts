@@ -3,11 +3,11 @@ import { Wallet } from "ethers";
 import type { Address } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { privateKeyToAccount, type Account } from "thirdweb/wallets";
-import { getWalletDetails } from "../../../db/wallets/getWalletDetails";
-import { getChain } from "../../../utils/chain";
-import { env } from "../../../utils/env";
-import { logger } from "../../../utils/logger";
-import { thirdwebClient } from "../../../utils/sdk";
+import { getWalletDetails } from "../../../shared/db/wallets/getWalletDetails";
+import { getChain } from "../../../shared/utils/chain";
+import { env } from "../../../shared/utils/env";
+import { logger } from "../../../shared/utils/logger";
+import { thirdwebClient } from "../../../shared/utils/sdk";
 import { badChainError } from "../../middleware/error";
 import { LocalFileStorage } from "../storage/localStorage";
 

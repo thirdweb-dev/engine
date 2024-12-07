@@ -1,6 +1,6 @@
-import { knex } from "../../db/client";
-import { webhookCache } from "../../utils/cache/getWebhook";
-import { logger } from "../../utils/logger";
+import { knex } from "../../shared/db/client";
+import { webhookCache } from "../../shared/utils/cache/getWebhook";
+import { logger } from "../../shared/utils/logger";
 
 export const newWebhooksListener = async (): Promise<void> => {
   logger({

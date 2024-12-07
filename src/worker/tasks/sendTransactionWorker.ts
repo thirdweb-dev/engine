@@ -18,39 +18,39 @@ import {
   type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
-import { TransactionDB } from "../../db/transactions/db";
+import { TransactionDB } from "../../shared/db/transactions/db";
 import {
   acquireNonce,
   addSentNonce,
   recycleNonce,
   syncLatestNonceFromOnchainIfHigher,
-} from "../../db/wallets/walletNonce";
+} from "../../shared/db/wallets/walletNonce";
 import {
   getAccount,
   getSmartBackendWalletAdminAccount,
-} from "../../utils/account";
-import { getBlockNumberish } from "../../utils/block";
-import { getChain } from "../../utils/chain";
-import { msSince } from "../../utils/date";
-import { env } from "../../utils/env";
+} from "../../shared/utils/account";
+import { getBlockNumberish } from "../../shared/utils/block";
+import { getChain } from "../../shared/utils/chain";
+import { msSince } from "../../shared/utils/date";
+import { env } from "../../shared/utils/env";
 import {
   isInsufficientFundsError,
   isNonceAlreadyUsedError,
   isReplacementGasFeeTooLow,
   wrapError,
-} from "../../utils/error";
-import { getChecksumAddress } from "../../utils/primitiveTypes";
-import { recordMetrics } from "../../utils/prometheus";
-import { redis } from "../../utils/redis/redis";
-import { thirdwebClient } from "../../utils/sdk";
+} from "../../shared/utils/error";
+import { getChecksumAddress } from "../../shared/utils/primitiveTypes";
+import { recordMetrics } from "../../shared/utils/prometheus";
+import { redis } from "../../shared/utils/redis/redis";
+import { thirdwebClient } from "../../shared/utils/sdk";
 import type {
   ErroredTransaction,
   PopulatedTransaction,
   QueuedTransaction,
   SentTransaction,
-} from "../../utils/transaction/types";
-import { enqueueTransactionWebhook } from "../../utils/transaction/webhook";
-import { reportUsage } from "../../utils/usage";
+} from "../../shared/utils/transaction/types";
+import { enqueueTransactionWebhook } from "../../shared/utils/transaction/webhook";
+import { reportUsage } from "../../shared/utils/usage";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";
 import {

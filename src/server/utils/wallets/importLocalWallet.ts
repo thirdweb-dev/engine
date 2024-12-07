@@ -1,5 +1,5 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { env } from "../../../utils/env";
+import { env } from "../../../shared/utils/env";
 import { LocalFileStorage } from "../storage/localStorage";
 
 type ImportLocalWalletParams =
