@@ -553,14 +553,14 @@ const _minutesFromNow = (minutes: number) =>
   new Date(Date.now() + minutes * 60_000);
 
 /**
- * Computes the aggressive gas fees to use when resending a transaction.
+ * Computes aggressive gas fees when resending a transaction.
  *
  * For legacy transactions (pre-EIP1559):
- * - Set gas price to 2 * current attempt, capped at 10x.
+ * - Gas price = (2 * attempt) * estimatedGasPrice, capped at 10x.
  *
- * For transactions with maxFeePerGas + maxPriorityFeePerGas:
- * - Set maxPriorityFeePerGas to 2x current attempt, capped at 10x.
- * - Set maxFeePerGas to 2 * current max fee, plus the maxPriorityFeePerGas.
+ * For other transactions:
+ * - maxPriorityFeePerGas = (2 * attempt) * estimatedMaxPriorityFeePerGas, capped at 10x.
+ * - maxFeePerGas = (2 * estimatedMaxFeePerGas) + maxPriorityFeePerGas.
  *
  * @param populatedTransaction The transaction with estimated gas from RPC.
  * @param resendCount The resend attempt #. Example: 2 = the transaction was initially sent, then resent once. This is the second resend attempt.
@@ -577,14 +577,15 @@ export const _updateGasFees = (
   const multiplier = BigInt(Math.min(10, resendCount * 2));
 
   const updated = { ...populatedTransaction };
-  if (updated.gasPrice) {
+
+  // Update gas fees (unless they were explicitly overridden).
+
+  if (updated.gasPrice && !overrides?.gasPrice) {
     updated.gasPrice *= multiplier;
   }
-  // Don't update gas fees that are explicitly overridden.
   if (updated.maxPriorityFeePerGas && !overrides?.maxPriorityFeePerGas) {
     updated.maxPriorityFeePerGas *= multiplier;
   }
-  // Don't update gas fees that are explicitly overridden.
   if (updated.maxFeePerGas && !overrides?.maxFeePerGas) {
     updated.maxFeePerGas =
       updated.maxFeePerGas * 2n + (updated.maxPriorityFeePerGas ?? 0n);
