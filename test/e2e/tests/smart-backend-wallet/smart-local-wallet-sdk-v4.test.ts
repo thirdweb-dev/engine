@@ -1,30 +1,19 @@
 import { describe, expect, test } from "bun:test";
-import { ZERO_ADDRESS } from "thirdweb";
-import { verifyContractWalletSignature } from "thirdweb/auth";
 import { arbitrumSepolia } from "thirdweb/chains";
 import { pollTransactionStatus } from "../../utils/transactions";
 import { setup } from "../setup";
 
 const chain = arbitrumSepolia;
 const chainId = chain.id.toString();
-const message = "test";
 
-describe("smart local wallet", () => {
+describe("smart local wallet (test succesfull deploy with SDKv4)", () => {
   let smartWalletAddress: string | undefined;
-  let tokenAddress: string | undefined;
 
   const getSmartWalletAddress = () => {
     if (!smartWalletAddress) {
       throw new Error("Smart wallet address not set");
     }
     return smartWalletAddress;
-  };
-
-  const getTokenAddress = () => {
-    if (!tokenAddress) {
-      throw new Error("Token address not set");
-    }
-    return tokenAddress;
   };
 
   test("Create a local smart backend wallet", async () => {
@@ -40,50 +29,6 @@ describe("smart local wallet", () => {
     expect(res.result.walletAddress).toBeDefined();
 
     smartWalletAddress = res.result.walletAddress;
-  });
-
-  test("Sign message", async () => {
-    const { engine, thirdwebClient } = await setup();
-
-    const res = await engine.backendWallet.signMessage(
-      getSmartWalletAddress(),
-      {
-        message,
-        isBytes: false,
-        chainId: chain.id,
-      },
-    );
-
-    const signature = res.result;
-
-    const valid = await verifyContractWalletSignature({
-      address: getSmartWalletAddress(),
-      chain,
-      client: thirdwebClient,
-      message,
-      signature: signature,
-    });
-
-    expect(valid).toBeTruthy();
-  });
-
-  test("Send a SDK v5 Transaction (sendTransaction noop)", async () => {
-    const { engine } = await setup();
-    const res = await engine.backendWallet.sendTransaction(
-      chainId,
-      getSmartWalletAddress(),
-      {
-        data: "0x",
-        value: "0",
-        toAddress: ZERO_ADDRESS,
-      },
-    );
-
-    await pollTransactionStatus(engine, res.result.queueId);
-
-    const status = await engine.transaction.status(res.result.queueId);
-    expect(status.result.accountAddress).toEqual(getSmartWalletAddress());
-    expect(status.result.status).toEqual("mined");
   });
 
   test("Send a SDK v4 Transaction (deploy ERC20)", async () => {
@@ -109,7 +54,6 @@ describe("smart local wallet", () => {
       throw new Error("Deploy failed");
     }
 
-    tokenAddress = deployedAddress;
     await pollTransactionStatus(engine, deployQueueId);
 
     const mintRes = await engine.erc20.mintTo(
@@ -133,39 +77,6 @@ describe("smart local wallet", () => {
     );
 
     expect(Number(balance.result.displayValue)).toEqual(1000);
-  });
-
-  test("Send a SDK v5 Transaction (transfer ERC20)", async () => {
-    const { engine, backendWallet } = await setup();
-
-    const res = await engine.erc20.transfer(
-      chainId,
-      getTokenAddress(),
-      getSmartWalletAddress(),
-      {
-        amount: "100",
-        toAddress: backendWallet,
-      },
-    );
-
-    await pollTransactionStatus(engine, res.result.queueId);
-    const status = await engine.transaction.status(res.result.queueId);
-    expect(status.result.accountAddress).toEqual(getSmartWalletAddress());
-
-    const smartWalletBalance = await engine.erc20.balanceOf(
-      getSmartWalletAddress(),
-      chainId,
-      getTokenAddress(),
-    );
-
-    const backendWalletBalance = await engine.erc20.balanceOf(
-      backendWallet,
-      chainId,
-      getTokenAddress(),
-    );
-
-    expect(Number(smartWalletBalance.result.displayValue)).toEqual(900);
-    expect(Number(backendWalletBalance.result.displayValue)).toEqual(100);
   });
 
   test("Delete local smart backend wallet", async () => {

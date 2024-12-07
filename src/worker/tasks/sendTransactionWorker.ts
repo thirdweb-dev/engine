@@ -68,32 +68,10 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     job.data,
   );
 
-  let transaction = await TransactionDB.get(queueId);
+  const transaction = await TransactionDB.get(queueId);
   if (!transaction) {
     job.log(`Invalid transaction state: ${stringify(transaction)}`);
     return;
-  }
-
-  // If the transaction is errored and has not yet been sent,
-  // reset it to a QueuedTransaction to try again.
-  // No transaction hashes means the transaction is not in-flight.
-  if (
-    transaction.status === "errored" &&
-    !transaction.isUserOp &&
-    "sentTransactionHashes" in transaction &&
-    transaction.sentTransactionHashes.length > 0
-  ) {
-    const { errorMessage, ...omitted } = transaction;
-    transaction = {
-      ...omitted,
-      status: "queued",
-      resendCount: 0,
-      queueId: transaction.queueId,
-      queuedAt: transaction.queuedAt,
-      value: transaction.value,
-      data: transaction.data,
-      manuallyResentAt: new Date(),
-    } satisfies QueuedTransaction;
   }
 
   let resultTransaction:
@@ -325,6 +303,7 @@ const _sendTransaction = async (
         // Apply gas setting overrides.
         // Do not set `maxFeePerGas` to estimate the onchain value.
         gas: overrides?.gas,
+        gasPrice: overrides?.gasPrice,
         maxPriorityFeePerGas: overrides?.maxPriorityFeePerGas,
       },
     });
@@ -408,6 +387,7 @@ const _sendTransaction = async (
   }
 
   await addSentNonce(chainId, from, nonce);
+
   return {
     ...queuedTransaction,
     status: "sent",

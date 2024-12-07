@@ -27,7 +27,7 @@ export const toEventLogSchema = (
   });
 
   return {
-    chainId: log.chainId,
+    chainId: Number.parseInt(log.chainId),
     contractAddress: log.contractAddress,
     blockNumber: log.blockNumber,
     transactionHash: log.transactionHash,

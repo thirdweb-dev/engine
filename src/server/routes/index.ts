@@ -11,6 +11,7 @@ import { removePublicKey } from "./auth/keypair/remove";
 import { getAllPermissions } from "./auth/permissions/getAll";
 import { grantPermissions } from "./auth/permissions/grant";
 import { revokePermissions } from "./auth/permissions/revoke";
+import { cancelBackendWalletNoncesRoute } from "./backend-wallet/cancel-nonces";
 import { createBackendWallet } from "./backend-wallet/create";
 import { getAll } from "./backend-wallet/getAll";
 import { getBalance } from "./backend-wallet/getBalance";
@@ -19,7 +20,7 @@ import { getTransactionsForBackendWallet } from "./backend-wallet/getTransaction
 import { getTransactionsForBackendWalletByNonce } from "./backend-wallet/getTransactionsByNonce";
 import { importBackendWallet } from "./backend-wallet/import";
 import { removeBackendWallet } from "./backend-wallet/remove";
-import { resetBackendWalletNonces } from "./backend-wallet/resetNonces";
+import { resetBackendWalletNoncesRoute } from "./backend-wallet/reset-nonces";
 import { sendTransaction } from "./backend-wallet/sendTransaction";
 import { sendTransactionBatch } from "./backend-wallet/sendTransactionBatch";
 import { signMessageRoute } from "./backend-wallet/signMessage";
@@ -102,15 +103,16 @@ import { cancelTransaction } from "./transaction/cancel";
 import { getAllTransactions } from "./transaction/getAll";
 import { getAllDeployedContracts } from "./transaction/getAllDeployedContracts";
 import { retryTransaction } from "./transaction/retry";
-import { retryFailedTransaction } from "./transaction/retry-failed";
+import { retryFailedTransactionRoute } from "./transaction/retry-failed";
 import { checkTxStatus } from "./transaction/status";
-import { syncRetryTransaction } from "./transaction/syncRetry";
+import { syncRetryTransactionRoute } from "./transaction/sync-retry";
 import { createWebhookRoute } from "./webhooks/create";
 import { getWebhooksEventTypes } from "./webhooks/events";
 import { getAllWebhooksData } from "./webhooks/getAll";
 import { revokeWebhook } from "./webhooks/revoke";
+import { testWebhookRoute } from "./webhooks/test";
 
-export const withRoutes = async (fastify: FastifyInstance) => {
+export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
   await fastify.register(createBackendWallet);
   await fastify.register(removeBackendWallet);
@@ -127,7 +129,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(signTypedData);
   await fastify.register(getTransactionsForBackendWallet);
   await fastify.register(getTransactionsForBackendWalletByNonce);
-  await fastify.register(resetBackendWalletNonces);
+  await fastify.register(resetBackendWalletNoncesRoute);
+  await fastify.register(cancelBackendWalletNoncesRoute);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
 
@@ -158,6 +161,7 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(createWebhookRoute);
   await fastify.register(revokeWebhook);
   await fastify.register(getWebhooksEventTypes);
+  await fastify.register(testWebhookRoute);
 
   // Permissions
   await fastify.register(getAllPermissions);
@@ -220,8 +224,8 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(checkTxStatus);
   await fastify.register(getAllDeployedContracts);
   await fastify.register(retryTransaction);
-  await fastify.register(syncRetryTransaction);
-  await fastify.register(retryFailedTransaction);
+  await fastify.register(syncRetryTransactionRoute);
+  await fastify.register(retryFailedTransactionRoute);
   await fastify.register(cancelTransaction);
   await fastify.register(sendSignedTransaction);
   await fastify.register(sendSignedUserOp);
@@ -265,4 +269,4 @@ export const withRoutes = async (fastify: FastifyInstance) => {
   // Admin
   await fastify.register(getTransactionDetails);
   await fastify.register(getNonceDetailsRoute);
-};
+}

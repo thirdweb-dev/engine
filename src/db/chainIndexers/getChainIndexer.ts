@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
@@ -14,7 +15,7 @@ export const getLastIndexedBlock = async ({
 
   const indexedChain = await prisma.chainIndexers.findUnique({
     where: {
-      chainId,
+      chainId: chainId.toString(),
     },
   });
 
@@ -42,7 +43,7 @@ export const getBlockForIndexing = async ({
     FROM
       "chain_indexers"
     WHERE
-      "chainId"=${chainId}
+      "chainId"=${Prisma.sql`${chainId.toString()}`}
     FOR UPDATE NOWAIT
   `;
   return lastIndexedBlock[0].lastIndexedBlock;

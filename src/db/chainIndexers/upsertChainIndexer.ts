@@ -1,4 +1,4 @@
-import { PrismaTransaction } from "../../schema/prisma";
+import type { PrismaTransaction } from "../../schema/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface UpsertChainIndexerParams {
@@ -15,14 +15,14 @@ export const upsertChainIndexer = async ({
   const prisma = getPrismaWithPostgresTx(pgtx);
   return prisma.chainIndexers.upsert({
     where: {
-      chainId,
+      chainId: chainId.toString(),
     },
     update: {
-      chainId,
+      chainId: chainId.toString(),
       lastIndexedBlock: currentBlockNumber,
     },
     create: {
-      chainId,
+      chainId: chainId.toString(),
       lastIndexedBlock: currentBlockNumber,
     },
   });

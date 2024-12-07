@@ -15,9 +15,10 @@ import { withCors } from "./middleware/cors";
 import { withEnforceEngineMode } from "./middleware/engineMode";
 import { withErrorHandler } from "./middleware/error";
 import { withRequestLogs } from "./middleware/logs";
-import { withOpenApi } from "./middleware/open-api";
+import { withOpenApi } from "./middleware/openApi";
 import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rateLimit";
+import { withSecurityHeaders } from "./middleware/securityHeaders";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
@@ -63,25 +64,28 @@ export const initServer = async () => {
 
   // Start the server with middleware.
   const server: FastifyInstance = fastify({
+    maxParamLength: 200,
     connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
     trustProxy,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.decorateRequest("corsPreflightEnabled", false);
+  // Configure middleware
+  withErrorHandler(server);
+  withRequestLogs(server);
+  withSecurityHeaders(server);
+  withCors(server);
+  withRateLimit(server);
+  withEnforceEngineMode(server);
+  withServerUsageReporting(server);
+  withPrometheus(server);
 
-  await withCors(server);
-  await withRequestLogs(server);
-  await withPrometheus(server);
-  await withErrorHandler(server);
-  await withEnforceEngineMode(server);
-  await withRateLimit(server);
+  // Register routes
   await withWebSocket(server);
   await withAuth(server);
   await withOpenApi(server);
   await withRoutes(server);
-  await withServerUsageReporting(server);
   await withAdminRoutes(server);
 
   await server.ready();

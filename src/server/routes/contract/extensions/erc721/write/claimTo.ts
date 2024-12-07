@@ -1,4 +1,4 @@
-import { type Static, Type } from "@sinclair/typebox";
+import { Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
@@ -30,6 +30,11 @@ const requestBodySchema = Type.Object({
   quantity: Type.String({
     description: "Quantity of NFTs to mint",
   }),
+  singlePhaseDrop: Type.Optional(
+    Type.Boolean({
+      description: "Whether the drop is a single phase drop",
+    }),
+  ),
   ...txOverridesWithValueSchema.properties,
 });
 
@@ -66,7 +71,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
-      const { receiver, quantity, txOverrides } = request.body;
+      const { receiver, quantity, singlePhaseDrop, txOverrides } = request.body;
       const {
         "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
@@ -85,6 +90,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
         from: fromAddress as Address,
         to: receiver,
         quantity: BigInt(quantity),
+        singlePhaseDrop,
       });
 
       const queueId = await queueTransaction({

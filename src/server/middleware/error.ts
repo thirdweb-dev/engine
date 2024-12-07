@@ -51,7 +51,7 @@ const isZodError = (err: unknown): boolean => {
   );
 };
 
-export const withErrorHandler = async (server: FastifyInstance) => {
+export function withErrorHandler(server: FastifyInstance) {
   server.setErrorHandler(
     (error: string | Error | CustomError | ZodError, request, reply) => {
       if (typeof error === "string") {
@@ -133,4 +133,4 @@ export const withErrorHandler = async (server: FastifyInstance) => {
       });
     },
   );
-};
+}

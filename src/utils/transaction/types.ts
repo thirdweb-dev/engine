@@ -28,6 +28,7 @@ export type InsertedTransaction = {
   // User-provided overrides.
   overrides?: {
     gas?: bigint;
+    gasPrice?: bigint;
     maxFeePerGas?: bigint;
     maxPriorityFeePerGas?: bigint;
   };
@@ -57,8 +58,6 @@ export type QueuedTransaction = InsertedTransaction & {
   queuedAt: Date;
   value: bigint;
   data?: Hex;
-
-  manuallyResentAt?: Date;
 };
 
 // SentTransaction has been submitted to RPC successfully.

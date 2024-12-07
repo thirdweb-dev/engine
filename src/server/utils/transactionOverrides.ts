@@ -18,6 +18,7 @@ export const parseTransactionOverrides = (
   return {
     overrides: {
       gas: maybeBigInt(overrides.gas),
+      gasPrice: maybeBigInt(overrides.gasPrice),
       maxFeePerGas: maybeBigInt(overrides.maxFeePerGas),
       maxPriorityFeePerGas: maybeBigInt(overrides.maxPriorityFeePerGas),
     },

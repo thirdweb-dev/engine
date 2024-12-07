@@ -12,6 +12,7 @@ export const walletHeaderSchema = Type.Object({
   },
   "x-idempotency-key": Type.Optional(
     Type.String({
+      maxLength: 200,
       description: `Transactions submitted with the same idempotency key will be de-duplicated. Only the last ${env.TRANSACTION_HISTORY_COUNT} transactions are compared.`,
     }),
   ),
@@ -22,11 +23,13 @@ export const walletWithAAHeaderSchema = Type.Object({
   "x-account-address": Type.Optional({
     ...AddressSchema,
     description: "Smart account address",
+    examples: [],
   }),
   "x-account-factory-address": Type.Optional({
     ...AddressSchema,
     description:
       "Smart account factory address. If omitted, Engine will try to resolve it from the contract.",
+    examples: [],
   }),
   "x-account-salt": Type.Optional(
     Type.String({
