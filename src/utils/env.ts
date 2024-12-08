@@ -98,6 +98,14 @@ export const env = createEnv({
     QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(10_000),
     // Sets the number of recent nonces to map to queue IDs.
     NONCE_MAP_COUNT: z.coerce.number().default(10_000),
+
+    /**
+     * Experimental env vars. These may be renamed or removed in future non-major releases.
+     */
+    // Sets how long the mine worker waits for a transaction receipt before considering the transaction dropped (default: 30 minutes).
+    EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS: z.coerce
+      .number()
+      .default(30 * 60),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -134,6 +142,8 @@ export const env = createEnv({
     QUEUE_COMPLETE_HISTORY_COUNT: process.env.QUEUE_COMPLETE_HISTORY_COUNT,
     QUEUE_FAIL_HISTORY_COUNT: process.env.QUEUE_FAIL_HISTORY_COUNT,
     NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
+    EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS:
+      process.env.EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS,
     METRICS_PORT: process.env.METRICS_PORT,
     METRICS_ENABLED: process.env.METRICS_ENABLED,
   },
