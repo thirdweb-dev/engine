@@ -24,7 +24,7 @@
     "lint:fix": "eslint --fix 'src/**/*.ts'",
     "test:unit": "vitest",
     "test:coverage": "vitest run --coverage",
-    "copy-files": "cp -r ./src/prisma ./dist/"
+    "copy-files": "cp -r ./src/prisma ./dist/ && cp -r ./scripts ./dist/"
   },
   "dependencies": {
     "@aws-sdk/client-kms": "^3.679.0",
