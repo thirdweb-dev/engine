@@ -1,8 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAddress } from "thirdweb";
-import { TransactionDB } from "../../../db/transactions/db";
+import { TransactionDB } from "../../../shared/db/transactions/db";
 import { PaginationSchema } from "../../schemas/pagination";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {

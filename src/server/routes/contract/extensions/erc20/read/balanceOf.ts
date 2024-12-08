@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { getContract } from "../../../../../../shared/utils/cache/getContract";
 import { AddressSchema } from "../../../../../schemas/address";
 import { erc20MetadataSchema } from "../../../../../schemas/erc20";
 import {

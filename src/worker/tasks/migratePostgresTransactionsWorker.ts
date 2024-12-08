@@ -2,17 +2,20 @@ import type { Transactions } from "@prisma/client";
 import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
 import type { Hex } from "thirdweb";
-import { getPrismaWithPostgresTx, prisma } from "../../db/client";
-import { TransactionDB } from "../../db/transactions/db";
-import type { PrismaTransaction } from "../../schema/prisma";
-import { getConfig } from "../../utils/cache/getConfig";
-import { logger } from "../../utils/logger";
-import { maybeBigInt, normalizeAddress } from "../../utils/primitiveTypes";
-import { redis } from "../../utils/redis/redis";
+import { getPrismaWithPostgresTx, prisma } from "../../shared/db/client";
+import { TransactionDB } from "../../shared/db/transactions/db";
+import type { PrismaTransaction } from "../../shared/schemas/prisma";
+import { getConfig } from "../../shared/utils/cache/getConfig";
+import { logger } from "../../shared/utils/logger";
+import {
+  maybeBigInt,
+  normalizeAddress,
+} from "../../shared/utils/primitiveTypes";
+import { redis } from "../../shared/utils/redis/redis";
 import type {
   QueuedTransaction,
   SentTransaction,
-} from "../../utils/transaction/types";
+} from "../../shared/utils/transaction/types";
 import { MigratePostgresTransactionsQueue } from "../queues/migratePostgresTransactionsQueue";
 import { MineTransactionQueue } from "../queues/mineTransactionQueue";
 import { logWorkerExceptions } from "../queues/queues";

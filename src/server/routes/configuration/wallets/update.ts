@@ -1,9 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
-import { WalletType } from "../../../../schema/wallet";
-import { getConfig } from "../../../../utils/cache/getConfig";
+import { updateConfiguration } from "../../../../shared/db/configuration/updateConfiguration";
+import { WalletType } from "../../../../shared/schemas/wallet";
+import { getConfig } from "../../../../shared/utils/cache/getConfig";
 import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { responseBodySchema } from "./get";

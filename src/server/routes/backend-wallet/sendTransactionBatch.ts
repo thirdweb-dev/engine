@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address, Hex } from "thirdweb";
-import { insertTransaction } from "../../../utils/transaction/insertTransaction";
+import { insertTransaction } from "../../../shared/utils/transaction/insertTransaction";
 import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../schemas/txOverrides";

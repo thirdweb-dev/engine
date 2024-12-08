@@ -12,10 +12,10 @@ import {
   type Hex,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
-import { TransactionReceipt } from "thirdweb/transaction";
-import { TransactionDB } from "../../../../db/transactions/db";
-import { getChain } from "../../../../utils/chain";
-import { thirdwebClient } from "../../../../utils/sdk";
+import type { TransactionReceipt } from "thirdweb/transaction";
+import { TransactionDB } from "../../../../shared/db/transactions/db";
+import { getChain } from "../../../../shared/utils/chain";
+import { thirdwebClient } from "../../../../shared/utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
 import { chainIdOrSlugSchema } from "../../../schemas/chain";

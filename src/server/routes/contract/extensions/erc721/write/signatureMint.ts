@@ -1,16 +1,16 @@
-import { Static, Type } from "@sinclair/typebox";
-import { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
+import { type Static, Type } from "@sinclair/typebox";
+import type { SignedPayload721WithQuantitySignature } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address, Hex } from "thirdweb";
+import type { Address, Hex } from "thirdweb";
 import { mintWithSignature } from "thirdweb/extensions/erc721";
 import { resolvePromisedValue } from "thirdweb/utils";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
-import { getContractV5 } from "../../../../../../utils/cache/getContractv5";
-import { insertTransaction } from "../../../../../../utils/transaction/insertTransaction";
-import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
+import { queueTx } from "../../../../../../shared/db/transactions/queueTx";
+import { getContract } from "../../../../../../shared/utils/cache/getContract";
+import { getContractV5 } from "../../../../../../shared/utils/cache/getContractv5";
+import { insertTransaction } from "../../../../../../shared/utils/transaction/insertTransaction";
+import type { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import { signature721OutputSchema } from "../../../../../schemas/nft";
 import { signature721OutputSchemaV5 } from "../../../../../schemas/nft/v5";
 import {

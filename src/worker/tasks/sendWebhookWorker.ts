@@ -1,20 +1,23 @@
 import type { Static } from "@sinclair/typebox";
 import { Worker, type Job, type Processor } from "bullmq";
 import superjson from "superjson";
-import { TransactionDB } from "../../db/transactions/db";
+import { TransactionDB } from "../../shared/db/transactions/db";
 import {
   WebhooksEventTypes,
   type BackendWalletBalanceWebhookParams,
-} from "../../schema/webhooks";
+} from "../../shared/schemas/webhooks";
 import { toEventLogSchema } from "../../server/schemas/eventLog";
 import {
   toTransactionSchema,
   type TransactionSchema,
 } from "../../server/schemas/transaction";
 import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
-import { logger } from "../../utils/logger";
-import { redis } from "../../utils/redis/redis";
-import { sendWebhookRequest, type WebhookResponse } from "../../utils/webhook";
+import { logger } from "../../shared/utils/logger";
+import { redis } from "../../shared/utils/redis/redis";
+import {
+  sendWebhookRequest,
+  type WebhookResponse,
+} from "../../shared/utils/webhook";
 import { SendWebhookQueue, type WebhookJob } from "../queues/sendWebhookQueue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {

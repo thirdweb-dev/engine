@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../../utils/env";
-import { redis } from "../../utils/redis/redis";
+import { env } from "../../shared/utils/env";
+import { redis } from "../../shared/utils/redis/redis";
 import { createCustomError } from "./error";
 import { OPENAPI_ROUTES } from "./openApi";
 

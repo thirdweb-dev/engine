@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { env } from "../../utils/env";
+import { env } from "../../shared/utils/env";
 
 export function withEnforceEngineMode(server: FastifyInstance) {
   if (env.ENGINE_MODE === "sandbox") {

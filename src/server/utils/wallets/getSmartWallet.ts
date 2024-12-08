@@ -1,7 +1,7 @@
 import { SmartWallet, type EVMWallet } from "@thirdweb-dev/wallets";
-import { getContract } from "../../../utils/cache/getContract";
-import { env } from "../../../utils/env";
-import { redis } from "../../../utils/redis/redis";
+import { getContract } from "../../../shared/utils/cache/getContract";
+import { env } from "../../../shared/utils/env";
+import { redis } from "../../../shared/utils/redis/redis";
 
 interface GetSmartWalletParams {
   chainId: number;

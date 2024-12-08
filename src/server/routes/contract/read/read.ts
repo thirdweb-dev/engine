@@ -1,8 +1,8 @@
 import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
-import { prettifyError } from "../../../../utils/error";
+import { getContract } from "../../../../shared/utils/cache/getContract";
+import { prettifyError } from "../../../../shared/utils/error";
 import { createCustomError } from "../../../middleware/error";
 import {
   readRequestQuerySchema,

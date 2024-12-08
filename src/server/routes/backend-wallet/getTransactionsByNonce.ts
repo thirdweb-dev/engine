@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../db/transactions/db";
-import { getNonceMap } from "../../../db/wallets/nonceMap";
-import { normalizeAddress } from "../../../utils/primitiveTypes";
-import type { AnyTransaction } from "../../../utils/transaction/types";
+import { TransactionDB } from "../../../shared/db/transactions/db";
+import { getNonceMap } from "../../../shared/db/wallets/nonceMap";
+import { normalizeAddress } from "../../../shared/utils/primitiveTypes";
+import type { AnyTransaction } from "../../../shared/utils/transaction/types";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {
   TransactionSchema,

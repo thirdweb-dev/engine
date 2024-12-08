@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../../../../utils/env";
+import { env } from "../../../../shared/utils/env";
 import { createCustomError } from "../../../middleware/error";
 import { TransactionHashSchema } from "../../../schemas/address";
 import { chainIdOrSlugSchema } from "../../../schemas/chain";

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { stringify } from "thirdweb/utils";
-import { logger } from "../../utils/logger";
+import { logger } from "../../shared/utils/logger";
 import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
 import { OPENAPI_ROUTES } from "./openApi";
 

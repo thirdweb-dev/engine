@@ -1,8 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { listKeypairs } from "../../../../db/keypair/list";
-import { KeypairSchema, toKeypairSchema } from "../../../schemas/keypairs";
+import { listKeypairs } from "../../../../shared/db/keypair/list";
+import {
+  KeypairSchema,
+  toKeypairSchema,
+} from "../../../../shared/schemas/keypair";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const responseBodySchema = Type.Object({

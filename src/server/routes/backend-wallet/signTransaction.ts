@@ -2,13 +2,13 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Hex } from "thirdweb";
-import { getAccount } from "../../../utils/account";
+import { getAccount } from "../../../shared/utils/account";
 import {
   getChecksumAddress,
   maybeBigInt,
   maybeInt,
-} from "../../../utils/primitiveTypes";
-import { toTransactionType } from "../../../utils/sdk";
+} from "../../../shared/utils/primitiveTypes";
+import { toTransactionType } from "../../../shared/utils/sdk";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletHeaderSchema } from "../../schemas/wallet";

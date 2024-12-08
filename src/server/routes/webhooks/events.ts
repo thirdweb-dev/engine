@@ -1,7 +1,7 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { WebhooksEventTypes } from "../../../schema/webhooks";
+import { WebhooksEventTypes } from "../../../shared/schemas/webhooks";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 
 export const responseBodySchema = Type.Object({

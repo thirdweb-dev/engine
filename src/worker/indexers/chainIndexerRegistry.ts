@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import { getBlockTimeSeconds } from "../../utils/indexer/getBlockTime";
-import { logger } from "../../utils/logger";
+import { getBlockTimeSeconds } from "../../shared/utils/indexer/getBlockTime";
+import { logger } from "../../shared/utils/logger";
 import { handleContractSubscriptions } from "../tasks/chainIndexer";
 
 // @TODO: Move all worker logic to Bullmq to better handle multiple hosts.

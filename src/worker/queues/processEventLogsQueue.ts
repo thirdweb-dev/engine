@@ -1,8 +1,8 @@
 import { Queue } from "bullmq";
 import SuperJSON from "superjson";
-import { Address } from "thirdweb";
-import { getConfig } from "../../utils/cache/getConfig";
-import { redis } from "../../utils/redis/redis";
+import type { Address } from "thirdweb";
+import { getConfig } from "../../shared/utils/cache/getConfig";
+import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
 // Each job handles a block range for a given chain, filtered by addresses + events.
