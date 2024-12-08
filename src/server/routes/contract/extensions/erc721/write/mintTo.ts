@@ -1,8 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { getContract } from "thirdweb";
+import { mintTo } from "thirdweb/extensions/erc721";
+import { getChain } from "../../../../../../utils/chain";
+import { thirdwebClient } from "../../../../../../utils/sdk";
+import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
 import { AddressSchema } from "../../../../../schemas/address";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
 import {
@@ -12,7 +15,11 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import {
+  maybeAddress,
+  requiredAddress,
+  walletWithAAHeaderSchema,
+} from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -61,31 +68,45 @@ export async function erc721mintTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain: _chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { receiver, metadata, txOverrides } = request.body;
       const {
-        "x-backend-wallet-address": walletAddress,
+        "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
-      const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
-        contractAddress,
-        walletAddress,
-        accountAddress,
-      });
-      const tx = await contract.erc721.mintTo.prepare(receiver, metadata);
+      const chainId = await getChainIdFromChain(_chain);
+      const chain = await getChain(chainId);
 
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
-        extension: "erc721",
-        idempotencyKey,
+      const contract = getContract({
+        chain,
+        client: thirdwebClient,
+        address: contractAddress,
+      });
+
+      const transaction = mintTo({
+        contract,
+        to: receiver,
+        nft: typeof metadata === "string" ? metadata : { nft: metadata },
+      });
+
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
+        toAddress: maybeAddress(contractAddress, "to"),
+        accountAddress: maybeAddress(accountAddress, "x-account-address"),
+        accountFactoryAddress: maybeAddress(
+          accountFactoryAddress,
+          "x-account-factory-address",
+        ),
+        accountSalt,
         txOverrides,
+        idempotencyKey,
+        shouldSimulate: simulateTx,
       });
 
       reply.status(StatusCodes.OK).send({
