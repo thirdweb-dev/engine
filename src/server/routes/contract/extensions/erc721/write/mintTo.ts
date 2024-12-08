@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
 import { mintTo } from "thirdweb/extensions/erc721";
-import { NFTInput } from "thirdweb/utils";
+import type { NFTInput } from "thirdweb/utils";
 import { getChain } from "../../../../../../utils/chain";
 import { thirdwebClient } from "../../../../../../utils/sdk";
 import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
@@ -94,15 +94,15 @@ export async function erc721mintTo(fastify: FastifyInstance) {
       const nft: NFTInput | string =
         typeof metadata === "string"
           ? metadata
-          : {
-              name: metadata.name,
-              description: metadata.description,
-              image: metadata.image,
-              animation_url: metadata.animation_url,
-              external_url: metadata.external_url,
-              background_color: metadata.background_color,
+          : ({
+              name: metadata.name?.toString() ?? undefined,
+              description: metadata.description ?? undefined,
+              image: metadata.image ?? undefined,
+              animation_url: metadata.animation_url ?? undefined,
+              external_url: metadata.external_url ?? undefined,
+              background_color: metadata.background_color ?? undefined,
               properties: metadata.properties,
-            };
+            } satisfies NFTInput);
       const transaction = mintTo({
         contract,
         to: receiver,
