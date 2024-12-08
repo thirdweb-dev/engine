@@ -198,10 +198,12 @@ const toQueuedTransaction = (row: Transactions): QueuedTransaction => {
     resendCount: 0,
 
     isUserOp: !!row.accountAddress,
-    chainId: parseInt(row.chainId),
+    chainId: Number.parseInt(row.chainId),
     from: normalizeAddress(row.fromAddress),
     to: normalizeAddress(row.toAddress),
     value: row.value ? BigInt(row.value) : 0n,
+
+    walletType: "local", // NOTE: fetching this is async, don't fetch it here because it's not needed.
 
     data: row.data as Hex,
     functionName: row.functionName ?? undefined,

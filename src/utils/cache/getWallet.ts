@@ -44,7 +44,7 @@ export const getWallet = async <TWallet extends EVMWallet>({
   try {
     walletDetails = await getWalletDetails({
       pgtx,
-      address: walletAddress,
+      walletAddress,
     });
   } catch (e) {
     if (e instanceof WalletDetailsError) {

@@ -1,10 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { randomUUID } from "node:crypto";
 import type { Address, Hex } from "thirdweb";
 import { doSimulateTransaction } from "../../../utils/transaction/simulateQueuedTransaction";
-import type { QueuedTransaction } from "../../../utils/transaction/types";
+import type { InsertedTransaction } from "../../../utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
 import {
@@ -86,12 +85,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
 
       const chainId = await getChainIdFromChain(chain);
 
-      let queuedTransaction: QueuedTransaction = {
-        status: "queued",
-        queueId: randomUUID(),
-        queuedAt: new Date(),
-        resendCount: 0,
-
+      const insertedTransaction: InsertedTransaction = {
         chainId,
         from: walletAddress as Address,
         to: toAddress as Address,
@@ -112,7 +106,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
             }),
       };
 
-      const simulateError = await doSimulateTransaction(queuedTransaction);
+      const simulateError = await doSimulateTransaction(insertedTransaction);
       if (simulateError) {
         throw createCustomError(
           simulateError,
