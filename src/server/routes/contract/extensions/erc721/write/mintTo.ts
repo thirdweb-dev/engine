@@ -89,12 +89,11 @@ export async function erc721mintTo(fastify: FastifyInstance) {
         address: contractAddress,
       });
 
-      // Backward compatibility: This endpoint body uses the v4 SDK shape.
-      // Transform to v5 SDK shape to use the v5 endpoint.
+      // Backward compatibility: Transform the request body's v4 shape to v5.
       const nft: NFTInput | string =
         typeof metadata === "string"
           ? metadata
-          : ({
+          : {
               name: metadata.name?.toString() ?? undefined,
               description: metadata.description ?? undefined,
               image: metadata.image ?? undefined,
@@ -102,7 +101,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
               external_url: metadata.external_url ?? undefined,
               background_color: metadata.background_color ?? undefined,
               properties: metadata.properties,
-            } satisfies NFTInput);
+            };
       const transaction = mintTo({
         contract,
         to: receiver,
