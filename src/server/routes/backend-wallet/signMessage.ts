@@ -56,7 +56,7 @@ export async function signMessageRoute(fastify: FastifyInstance) {
       }
 
       const walletDetails = await getWalletDetails({
-        address: walletAddress,
+        walletAddress,
       });
 
       if (isSmartBackendWallet(walletDetails) && !chainId) {
