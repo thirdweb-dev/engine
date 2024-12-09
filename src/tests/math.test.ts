@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPercentile } from "../utils/math";
+import { bigMath, getPercentile } from "../utils/math";
 
 describe("getPercentile", () => {
   it("should correctly calculate the p50 (median) of a sorted array", () => {
@@ -25,5 +25,83 @@ describe("getPercentile", () => {
   it("should handle empty array", () => {
     const numbers: number[] = [];
     expect(getPercentile(numbers, 50)).toBe(0);
+  });
+});
+
+describe("bigMath", () => {
+  describe("min", () => {
+    it("should return the smaller of two positive numbers", () => {
+      const a = 5n;
+      const b = 10n;
+      expect(bigMath.min(a, b)).toBe(5n);
+    });
+
+    it("should return the smaller of two negative numbers", () => {
+      const a = -10n;
+      const b = -5n;
+      expect(bigMath.min(a, b)).toBe(-10n);
+    });
+
+    it("should handle equal numbers", () => {
+      const a = 5n;
+      const b = 5n;
+      expect(bigMath.min(a, b)).toBe(5n);
+    });
+
+    it("should handle zero and positive number", () => {
+      const a = 0n;
+      const b = 5n;
+      expect(bigMath.min(a, b)).toBe(0n);
+    });
+
+    it("should handle zero and negative number", () => {
+      const a = 0n;
+      const b = -5n;
+      expect(bigMath.min(a, b)).toBe(-5n);
+    });
+
+    it("should handle very large numbers", () => {
+      const a = BigInt(Number.MAX_SAFE_INTEGER) * 2n;
+      const b = BigInt(Number.MAX_SAFE_INTEGER);
+      expect(bigMath.min(a, b)).toBe(b);
+    });
+  });
+
+  describe("max", () => {
+    it("should return the larger of two positive numbers", () => {
+      const a = 5n;
+      const b = 10n;
+      expect(bigMath.max(a, b)).toBe(10n);
+    });
+
+    it("should return the larger of two negative numbers", () => {
+      const a = -10n;
+      const b = -5n;
+      expect(bigMath.max(a, b)).toBe(-5n);
+    });
+
+    it("should handle equal numbers", () => {
+      const a = 5n;
+      const b = 5n;
+      expect(bigMath.max(a, b)).toBe(5n);
+    });
+
+    it("should handle zero and positive number", () => {
+      const a = 0n;
+      const b = 5n;
+      expect(bigMath.max(a, b)).toBe(5n);
+    });
+
+    it("should handle zero and negative number", () => {
+      const a = 0n;
+      const b = -5n;
+      expect(bigMath.max(a, b)).toBe(0n);
+    });
+
+    it("should handle very large numbers", () => {
+      const a = BigInt(Number.MAX_SAFE_INTEGER) * 2n;
+      const b = BigInt(Number.MAX_SAFE_INTEGER);
+      expect(bigMath.max(a, b)).toBe(a);
+    });
   });
 });
