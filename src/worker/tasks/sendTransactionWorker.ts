@@ -565,34 +565,39 @@ const _minutesFromNow = (minutes: number) =>
  * @param populatedTransaction The transaction with estimated gas from RPC.
  * @param resendCount The resend attempt #. Example: 2 = the transaction was initially sent, then resent once. This is the second resend attempt.
  */
-export const _updateGasFees = (
+export function _updateGasFees(
   populatedTransaction: PopulatedTransaction,
   resendCount: number,
   overrides: SentTransaction["overrides"],
-): PopulatedTransaction => {
+): PopulatedTransaction {
   if (resendCount === 0) {
     return populatedTransaction;
   }
 
-  const multiplier = BigInt(Math.min(10, resendCount * 2));
-
+  const multiplier = Math.min(10, resendCount * 2);
   const updated = { ...populatedTransaction };
 
   // Update gas fees (unless they were explicitly overridden).
+  // Do not exceed MAX_GAS_PRICE_WEI.
+  const MAX_GAS_PRICE_WEI = env.EXPERIMENTAL__MAX_GAS_PRICE_WEI;
 
-  if (updated.gasPrice && !overrides?.gasPrice) {
-    updated.gasPrice *= multiplier;
+  if (updated.gasPrice) {
+    const newGasPrice = Number(updated.gasPrice) * multiplier;
+    updated.gasPrice = BigInt(Math.min(newGasPrice, MAX_GAS_PRICE_WEI));
   }
   if (updated.maxPriorityFeePerGas && !overrides?.maxPriorityFeePerGas) {
-    updated.maxPriorityFeePerGas *= multiplier;
+    updated.maxPriorityFeePerGas *= BigInt(multiplier);
   }
   if (updated.maxFeePerGas && !overrides?.maxFeePerGas) {
-    updated.maxFeePerGas =
-      updated.maxFeePerGas * 2n + (updated.maxPriorityFeePerGas ?? 0n);
+    const maxPriorityFeePerGas = updated.maxPriorityFeePerGas ?? 0n;
+    const newMaxFeePerGas = Number(
+      updated.maxFeePerGas * 2n + maxPriorityFeePerGas,
+    );
+    updated.maxFeePerGas = BigInt(Math.min(newMaxFeePerGas, MAX_GAS_PRICE_WEI));
   }
 
   return updated;
-};
+}
 
 // Must be explicitly called for the worker to run on this host.
 export const initSendTransactionWorker = () => {

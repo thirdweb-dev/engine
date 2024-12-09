@@ -102,10 +102,12 @@ export const env = createEnv({
     /**
      * Experimental env vars. These may be renamed or removed in future non-major releases.
      */
-    // Sets how long the mine worker waits for a transaction receipt before considering the transaction dropped (default: 30 minutes).
+    // Sets how long the mine worker waits for a transaction receipt before considering the transaction dropped. Default: 30 minutes
     EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS: z.coerce
       .number()
       .default(30 * 60),
+    // Sets the max gas price for a transaction attempt. Most RPCs reject transactions above a certain gas price. Default: 10^18 wei.
+    EXPERIMENTAL__MAX_GAS_PRICE_WEI: z.coerce.number().default(10 ** 18),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -144,6 +146,8 @@ export const env = createEnv({
     NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
     EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS:
       process.env.EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS,
+    EXPERIMENTAL__MAX_GAS_PRICE_WEI:
+      process.env.EXPERIMENTAL__MAX_GAS_PRICE_WEI,
     METRICS_PORT: process.env.METRICS_PORT,
     METRICS_ENABLED: process.env.METRICS_ENABLED,
   },
