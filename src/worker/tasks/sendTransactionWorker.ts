@@ -39,7 +39,7 @@ import {
   isReplacementGasFeeTooLow,
   wrapError,
 } from "../../utils/error";
-import { bigMath } from "../../utils/math";
+import { BigIntMath } from "../../utils/math";
 import { getChecksumAddress } from "../../utils/primitiveTypes";
 import { recordMetrics } from "../../utils/prometheus";
 import { redis } from "../../utils/redis/redis";
@@ -575,7 +575,7 @@ export function _updateGasFees(
     return populatedTransaction;
   }
 
-  const multiplier = bigMath.min(10n, BigInt(resendCount) * 2n);
+  const multiplier = BigIntMath.min(10n, BigInt(resendCount) * 2n);
   const updated = { ...populatedTransaction };
 
   // Update gas fees (unless they were explicitly overridden).
@@ -584,7 +584,7 @@ export function _updateGasFees(
 
   if (updated.gasPrice && !overrides?.gasPrice) {
     const newGasPrice = updated.gasPrice * multiplier;
-    updated.gasPrice = bigMath.min(newGasPrice, MAX_GAS_PRICE_WEI);
+    updated.gasPrice = BigIntMath.min(newGasPrice, MAX_GAS_PRICE_WEI);
   }
   if (updated.maxPriorityFeePerGas && !overrides?.maxPriorityFeePerGas) {
     updated.maxPriorityFeePerGas *= multiplier;
@@ -592,7 +592,7 @@ export function _updateGasFees(
   if (updated.maxFeePerGas && !overrides?.maxFeePerGas) {
     const newMaxFeePerGas =
       updated.maxFeePerGas * 2n + (updated.maxPriorityFeePerGas ?? 0n);
-    updated.maxFeePerGas = bigMath.min(newMaxFeePerGas, MAX_GAS_PRICE_WEI);
+    updated.maxFeePerGas = BigIntMath.min(newMaxFeePerGas, MAX_GAS_PRICE_WEI);
   }
 
   return updated;

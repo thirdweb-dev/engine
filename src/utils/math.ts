@@ -8,7 +8,7 @@ export const getPercentile = (arr: number[], percentile: number): number => {
   return arr[index];
 };
 
-export const bigMath = {
+export const BigIntMath = {
   min: (a: bigint, b: bigint) => (a < b ? a : b),
   max: (a: bigint, b: bigint) => (a > b ? a : b),
 };
