@@ -1,10 +1,10 @@
-import { logger } from "../src/shared/utils/logger";
+import { logger } from "../shared/utils/logger";
 import {
   acquireLock,
   releaseLock,
   waitForLock,
-} from "../src/shared/utils/redis/lock";
-import { redis } from "../src/shared/utils/redis/redis";
+} from "../shared/utils/redis/lock";
+import { redis } from "../shared/utils/redis/redis";
 
 const MIGRATION_LOCK_TTL_SECONDS = 60;
 
