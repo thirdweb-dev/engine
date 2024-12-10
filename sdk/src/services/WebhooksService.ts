@@ -17,13 +17,13 @@ export class WebhooksService {
      */
     public getAll(): CancelablePromise<{
         result: Array<{
+            id: number;
             url: string;
             name: (string | null);
             secret?: string;
             eventType: string;
             active: boolean;
             createdAt: string;
-            id: number;
         }>;
     }> {
         return this.httpRequest.request({
@@ -39,7 +39,7 @@ export class WebhooksService {
 
     /**
      * Create a webhook
-     * Create a webhook to call when certain blockchain events occur.
+     * Create a webhook to call when a specific Engine event occurs.
      * @param requestBody
      * @returns any Default Response
      * @throws ApiError
@@ -47,7 +47,7 @@ export class WebhooksService {
     public create(
         requestBody: {
             /**
-             * Webhook URL
+             * Webhook URL. Non-HTTPS URLs are not supported.
              */
             url: string;
             name?: string;
@@ -55,13 +55,13 @@ export class WebhooksService {
         },
     ): CancelablePromise<{
         result: {
+            id: number;
             url: string;
             name: (string | null);
             secret?: string;
             eventType: string;
             active: boolean;
             createdAt: string;
-            id: number;
         };
     }> {
         return this.httpRequest.request({
@@ -118,6 +118,36 @@ export class WebhooksService {
         return this.httpRequest.request({
             method: 'GET',
             url: '/webhooks/event-types',
+            errors: {
+                400: `Bad Request`,
+                404: `Not Found`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+
+    /**
+     * Test webhook
+     * Send a test payload to a webhook.
+     * @param webhookId
+     * @returns any Default Response
+     * @throws ApiError
+     */
+    public testWebhook(
+        webhookId: string,
+    ): CancelablePromise<{
+        result: {
+            ok: boolean;
+            status: number;
+            body: string;
+        };
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/webhooks/{webhookId}/test',
+            path: {
+                'webhookId': webhookId,
+            },
             errors: {
                 400: `Bad Request`,
                 404: `Not Found`,

@@ -49,6 +49,9 @@ export class RelayerService {
     public create(
         requestBody: {
             name?: string;
+            /**
+             * A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+             */
             chain: string;
             /**
              * The address of the backend wallet to use for relaying transactions.
@@ -115,6 +118,9 @@ export class RelayerService {
         requestBody: {
             id: string;
             name?: string;
+            /**
+             * A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+             */
             chain?: string;
             /**
              * A contract or wallet address
