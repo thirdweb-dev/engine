@@ -15,8 +15,8 @@ import {
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
 } from "../../../schemas/prebuilts/index";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../../schemas/tx-overrides";
 import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 

@@ -8,7 +8,7 @@ import {
   syncLatestNonceFromOnchain,
 } from "../../../shared/db/wallets/wallet-nonce";
 import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   chainId: Type.Optional(

@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { WalletType } from "../../../../shared/schemas/wallet";
 import { getConfig } from "../../../../shared/utils/cache/get-config";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 export const responseBodySchema = Type.Object({
   result: Type.Object({

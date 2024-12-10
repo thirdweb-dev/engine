@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getGcpKmsResourcePath,
   splitGcpKmsResourcePath,
-} from "../../src/server/utils/wallets/gcpKmsResourcePath";
+} from "../../src/server/utils/wallets/gcp-kms-resource-path";
 
 describe("splitGcpKmsResourcePath", () => {
   it("should correctly split a valid GCP KMS resource path", () => {

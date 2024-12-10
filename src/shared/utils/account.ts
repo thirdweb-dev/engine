@@ -7,14 +7,14 @@ import {
   type ParsedWalletDetails,
 } from "../db/wallets/get-wallet-details";
 import { WalletType } from "../schemas/wallet";
-import { splitAwsKmsArn } from "../../server/utils/wallets/awsKmsArn";
-import { getConnectedSmartWallet } from "../../server/utils/wallets/createSmartWallet";
-import { getAwsKmsAccount } from "../../server/utils/wallets/getAwsKmsAccount";
-import { getGcpKmsAccount } from "../../server/utils/wallets/getGcpKmsAccount";
+import { splitAwsKmsArn } from "../../server/utils/wallets/aws-kms-arn";
+import { getConnectedSmartWallet } from "../../server/utils/wallets/create-smart-wallet";
+import { getAwsKmsAccount } from "../../server/utils/wallets/get-aws-kms-account";
+import { getGcpKmsAccount } from "../../server/utils/wallets/get-gcp-kms-account";
 import {
   encryptedJsonToAccount,
   getLocalWalletAccount,
-} from "../../server/utils/wallets/getLocalWallet";
+} from "../../server/utils/wallets/get-local-wallet";
 import { getSmartWalletV5 } from "./cache/get-smart-wallet-v5";
 import { getChain } from "./chain";
 import { thirdwebClient } from "./sdk";

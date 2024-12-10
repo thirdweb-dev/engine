@@ -12,8 +12,8 @@ import {
   contractParamSchema,
   requestQuerystringSchema,
   transactionWritesResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
+} from "../../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../../schemas/tx-overrides";
 import {
   maybeAddress,
   requiredAddress,
@@ -21,7 +21,7 @@ import {
 } from "../../../schemas/wallet";
 import { sanitizeAbi, sanitizeFunctionName } from "../../../utils/abi";
 import { getChainIdFromChain } from "../../../utils/chain";
-import { parseTransactionOverrides } from "../../../utils/transactionOverrides";
+import { parseTransactionOverrides } from "../../../utils/transaction-overrides";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({

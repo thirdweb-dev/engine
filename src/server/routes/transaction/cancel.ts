@@ -13,7 +13,7 @@ import { reportUsage } from "../../../shared/utils/usage";
 import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { createCustomError } from "../../middleware/error";
 import { TransactionHashSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 // INPUT
 const requestBodySchema = Type.Object({

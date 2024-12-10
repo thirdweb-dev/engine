@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { getWebhook } from "../../../shared/db/webhooks/get-webhook";
 import { deleteWebhook } from "../../../shared/db/webhooks/revoke-webhook";
 import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   id: Type.Integer({ minimum: 0 }),

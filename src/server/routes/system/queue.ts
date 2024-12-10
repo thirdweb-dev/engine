@@ -6,7 +6,7 @@ import { getPercentile } from "../../../shared/utils/math";
 import type { MinedTransaction } from "../../../shared/utils/transaction/types";
 import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
 import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const responseBodySchema = Type.Object({
   result: Type.Object({

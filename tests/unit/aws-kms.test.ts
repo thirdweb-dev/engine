@@ -11,7 +11,7 @@ import {
 import { toUnits, toWei } from "thirdweb/utils";
 import { getWalletBalance } from "thirdweb/wallets";
 import { TEST_CLIENT } from "../shared/client.ts";
-import { getAwsKmsAccount } from "../../src/server/utils/wallets/getAwsKmsAccount";
+import { getAwsKmsAccount } from "../../src/server/utils/wallets/get-aws-kms-account";
 import { TEST_AWS_KMS_CONFIG } from "../shared/aws-kms.ts";
 
 let account: Awaited<ReturnType<typeof getAwsKmsAccount>>;

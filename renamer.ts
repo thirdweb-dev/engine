@@ -141,5 +141,5 @@ function getAllFiles(rootDir: string, extensions: RegExp): string[] {
 }
 
 // Run the script
-const projectRoot = path.resolve("./src/worker"); // Change as needed
+const projectRoot = path.resolve("./src/server"); // Change as needed
 processFilesAndFolders(projectRoot);

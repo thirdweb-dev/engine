@@ -5,7 +5,7 @@ import { updateConfiguration } from "../../../../shared/db/configuration/update-
 import { getConfig } from "../../../../shared/utils/cache/get-config";
 import { sdkCache } from "../../../../shared/utils/cache/get-sdk";
 import { chainResponseSchema } from "../../../schemas/chain";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Object({

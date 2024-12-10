@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
 import { getConfig } from "../../../../shared/utils/cache/get-config";
 import { createCustomError } from "../../../middleware/error";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 import { responseBodySchema } from "./get";
 

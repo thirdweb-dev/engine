@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
 import { deleteWalletDetails } from "../../../shared/db/wallets/delete-wallet-details";
 import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestParamSchema = Type.Object({
   walletAddress: AddressSchema,

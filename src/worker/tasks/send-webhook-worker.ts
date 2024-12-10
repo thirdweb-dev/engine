@@ -6,12 +6,12 @@ import {
   WebhooksEventTypes,
   type BackendWalletBalanceWebhookParams,
 } from "../../shared/schemas/webhooks";
-import { toEventLogSchema } from "../../server/schemas/eventLog";
+import { toEventLogSchema } from "../../server/schemas/event-log";
 import {
   toTransactionSchema,
   type TransactionSchema,
 } from "../../server/schemas/transaction";
-import { toTransactionReceiptSchema } from "../../server/schemas/transactionReceipt";
+import { toTransactionReceiptSchema } from "../../server/schemas/transaction-receipt";
 import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";
 import {

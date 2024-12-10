@@ -6,7 +6,7 @@ import { maybeBigInt } from "../../../shared/utils/primitive-types";
 import type { SentTransaction } from "../../../shared/utils/transaction/types";
 import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   queueId: Type.String({

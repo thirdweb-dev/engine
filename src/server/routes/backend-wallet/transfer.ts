@@ -22,14 +22,14 @@ import {
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
+} from "../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../schemas/tx-overrides";
 import {
   walletHeaderSchema,
   walletWithAddressParamSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-import { parseTransactionOverrides } from "../../utils/transactionOverrides";
+import { parseTransactionOverrides } from "../../utils/transaction-overrides";
 
 const requestSchema = Type.Omit(walletWithAddressParamSchema, [
   "walletAddress",

@@ -2,7 +2,7 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfig } from "../../../../shared/utils/cache/get-config";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 
 export const responseBodySchema = Type.Object({

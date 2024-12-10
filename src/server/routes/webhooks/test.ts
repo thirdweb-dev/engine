@@ -5,7 +5,7 @@ import { getWebhook } from "../../../shared/db/webhooks/get-webhook";
 import { sendWebhookRequest } from "../../../shared/utils/webhook";
 import { createCustomError } from "../../middleware/error";
 import { NumberStringSchema } from "../../schemas/number";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import type { TransactionSchema } from "../../schemas/transaction";
 
 const paramsSchema = Type.Object({

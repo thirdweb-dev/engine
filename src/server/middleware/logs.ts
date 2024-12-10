@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { stringify } from "thirdweb/utils";
 import { logger } from "../../shared/utils/logger";
-import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
-import { OPENAPI_ROUTES } from "./openApi";
+import { ADMIN_QUEUES_BASEPATH } from "./admin-routes";
+import { OPENAPI_ROUTES } from "./open-api";
 
 const SKIP_LOG_PATHS = new Set([
   "",

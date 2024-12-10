@@ -24,8 +24,8 @@ import { env } from "../../shared/utils/env";
 import { logger } from "../../shared/utils/logger";
 import { sendWebhookRequest } from "../../shared/utils/webhook";
 import { Permission } from "../../shared/schemas/auth";
-import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
-import { OPENAPI_ROUTES } from "./openApi";
+import { ADMIN_QUEUES_BASEPATH } from "./admin-routes";
+import { OPENAPI_ROUTES } from "./open-api";
 
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };

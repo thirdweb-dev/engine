@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { deleteKeypair } from "../../../../shared/db/keypair/delete";
 import { keypairCache } from "../../../../shared/utils/cache/keypair";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   hash: Type.String(),

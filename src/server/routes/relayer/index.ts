@@ -16,7 +16,7 @@ import { AddressSchema } from "../../schemas/address";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../schemas/sharedApiSchemas";
+} from "../../schemas/shared-api-schemas";
 
 const ParamsSchema = Type.Object({
   relayerId: Type.String(),

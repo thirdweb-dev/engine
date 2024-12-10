@@ -10,7 +10,7 @@ import {
 } from "thirdweb/transaction";
 import { toUnits, toWei } from "thirdweb/utils";
 import { getWalletBalance } from "thirdweb/wallets";
-import { getGcpKmsAccount } from "../../src/server/utils/wallets/getGcpKmsAccount";
+import { getGcpKmsAccount } from "../../src/server/utils/wallets/get-gcp-kms-account";
 import { TEST_GCP_KMS_CONFIG } from "../shared/gcp-kms";
 import { TEST_CLIENT } from "../shared/client";
 
