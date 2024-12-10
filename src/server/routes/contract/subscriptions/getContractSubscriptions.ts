@@ -1,7 +1,7 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllContractSubscriptions } from "../../../../shared/db/contractSubscriptions/get-contract-subscriptions";
+import { getAllContractSubscriptions } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions";
 import {
   contractSubscriptionSchema,
   toContractSubscriptionSchema,

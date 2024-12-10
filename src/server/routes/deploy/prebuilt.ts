@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
 import { queueTx } from "../../../shared/db/transactions/queue-tx";
-import { getSdk } from "../../../shared/utils/cache/getSdk";
+import { getSdk } from "../../../shared/utils/cache/get-sdk";
 import { AddressSchema } from "../../schemas/address";
 import { contractDeployBasicSchema } from "../../schemas/contract";
 import {

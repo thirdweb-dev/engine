@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../../shared/utils/cache/getContract";
+import { getContract } from "../../../../../../../shared/utils/cache/get-contract";
 import { englishAuctionOutputSchema } from "../../../../../../schemas/marketplaceV3/englishAuction";
 import {
   marketplaceV3ContractParamSchema,

@@ -15,12 +15,12 @@ import {
   type ThirdwebContract,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
-import { bulkInsertContractEventLogs } from "../../shared/db/contractEventLogs/create-contract-event-logs";
-import { getContractSubscriptionsByChainId } from "../../shared/db/contractSubscriptions/get-contract-subscriptions";
+import { bulkInsertContractEventLogs } from "../../shared/db/contract-event-logs/create-contract-event-logs";
+import { getContractSubscriptionsByChainId } from "../../shared/db/contract-subscriptions/get-contract-subscriptions";
 import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
 import { getChain } from "../../shared/utils/chain";
 import { logger } from "../../shared/utils/logger";
-import { normalizeAddress } from "../../shared/utils/primitiveTypes";
+import { normalizeAddress } from "../../shared/utils/primitive-types";
 import { redis } from "../../shared/utils/redis/redis";
 import { thirdwebClient } from "../../shared/utils/sdk";
 import {

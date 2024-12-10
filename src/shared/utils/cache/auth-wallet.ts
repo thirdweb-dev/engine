@@ -2,7 +2,7 @@ import { LocalWallet } from "@thirdweb-dev/wallets";
 import { updateConfiguration } from "../../db/configuration/update-configuration";
 import { env } from "../env";
 import { logger } from "../logger";
-import { getConfig } from "./getConfig";
+import { getConfig } from "./get-config";
 
 let authWallet: LocalWallet | undefined;
 

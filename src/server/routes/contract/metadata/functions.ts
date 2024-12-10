@@ -1,7 +1,7 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../shared/utils/cache/getContract";
+import { getContract } from "../../../../shared/utils/cache/get-contract";
 import { abiFunctionSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,

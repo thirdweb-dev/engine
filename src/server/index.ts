@@ -3,7 +3,7 @@ import fastify, { type FastifyInstance } from "fastify";
 import * as fs from "node:fs";
 import path from "node:path";
 import { URL } from "node:url";
-import { clearCacheCron } from "../shared/utils/cron/clearCacheCron";
+import { clearCacheCron } from "../shared/utils/cron/clear-cache-cron";
 import { env } from "../shared/utils/env";
 import { logger } from "../shared/utils/logger";
 import { metricsServer } from "../shared/utils/prometheus";

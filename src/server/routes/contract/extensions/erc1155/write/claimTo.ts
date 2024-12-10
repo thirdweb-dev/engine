@@ -3,8 +3,8 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc1155";
-import { getContractV5 } from "../../../../../../shared/utils/cache/getContractv5";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
+import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
 import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc1155ContractParamSchema,

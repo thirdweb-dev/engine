@@ -1,5 +1,5 @@
 import { SmartWallet, type EVMWallet } from "@thirdweb-dev/wallets";
-import { getContract } from "../../../shared/utils/cache/getContract";
+import { getContract } from "../../../shared/utils/cache/get-contract";
 import { env } from "../../../shared/utils/env";
 import { redis } from "../../../shared/utils/redis/redis";
 

@@ -2,7 +2,7 @@ import { type Static, Type } from "@sinclair/typebox";
 import { getAllDetectedExtensionNames } from "@thirdweb-dev/sdk";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../shared/utils/cache/getContract";
+import { getContract } from "../../../../shared/utils/cache/get-contract";
 import {
   contractParamSchema,
   standardResponseSchema,

@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getEventLogsByBlockTimestamp } from "../../../../shared/db/contractEventLogs/get-contract-event-logs";
+import { getEventLogsByBlockTimestamp } from "../../../../shared/db/contract-event-logs/get-contract-event-logs";
 import { AddressSchema } from "../../../schemas/address";
 import { eventLogSchema } from "../../../schemas/eventLog";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";

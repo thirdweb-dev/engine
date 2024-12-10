@@ -1,7 +1,7 @@
 import { getAddress } from "thirdweb";
 import { z } from "zod";
 import type { PrismaTransaction } from "../../schemas/prisma";
-import { getConfig } from "../../utils/cache/getConfig";
+import { getConfig } from "../../utils/cache/get-config";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { getPrismaWithPostgresTx } from "../client";

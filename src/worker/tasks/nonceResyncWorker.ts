@@ -6,7 +6,7 @@ import {
   recycleNonce,
   splitSentNoncesKey,
 } from "../../shared/db/wallets/wallet-nonce";
-import { getConfig } from "../../shared/utils/cache/getConfig";
+import { getConfig } from "../../shared/utils/cache/get-config";
 import { getChain } from "../../shared/utils/chain";
 import { prettifyError } from "../../shared/utils/error";
 import { logger } from "../../shared/utils/logger";

@@ -1,7 +1,7 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSdk } from "../../../shared/utils/cache/getSdk";
+import { getSdk } from "../../../shared/utils/cache/get-sdk";
 import { AddressSchema } from "../../schemas/address";
 import {
   currencyValueSchema,

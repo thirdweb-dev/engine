@@ -2,7 +2,7 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { queueTx } from "../../../../../../shared/db/transactions/queue-tx";
-import { getContract } from "../../../../../../shared/utils/cache/getContract";
+import { getContract } from "../../../../../../shared/utils/cache/get-contract";
 import {
   claimConditionInputSchema,
   type sanitizedClaimConditionInputSchema,

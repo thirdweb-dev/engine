@@ -5,7 +5,7 @@ import { eth_getTransactionCount, getRpcClient } from "thirdweb";
 import { checksumAddress } from "thirdweb/utils";
 import { getChain } from "../../../shared/utils/chain";
 import { thirdwebClient } from "../../../shared/utils/sdk";
-import { sendCancellationTransaction } from "../../../shared/utils/transaction/cancelTransaction";
+import { sendCancellationTransaction } from "../../../shared/utils/transaction/cancel-transaction";
 import {
   requestQuerystringSchema,
   standardResponseSchema,

@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getConfiguration } from "../../../../shared/db/configuration/get-configuration";
-import { getTransactionReceiptsByCursor } from "../../../../shared/db/contractTransactionReceipts/get-contract-transaction-receipts";
+import { getTransactionReceiptsByCursor } from "../../../../shared/db/contract-transaction-receipts/get-contract-transaction-receipts";
 import { AddressSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import {

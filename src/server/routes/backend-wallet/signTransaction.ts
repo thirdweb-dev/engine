@@ -7,7 +7,7 @@ import {
   getChecksumAddress,
   maybeBigInt,
   maybeInt,
-} from "../../../shared/utils/primitiveTypes";
+} from "../../../shared/utils/primitive-types";
 import { toTransactionType } from "../../../shared/utils/sdk";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";

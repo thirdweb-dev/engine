@@ -10,10 +10,10 @@ import {
   THIRDWEB_DASHBOARD_ISSUER,
   handleSiwe,
 } from "../../src/shared/utils/auth";
-import { getAccessToken } from "../../src/shared/utils/cache/accessToken";
-import { getAuthWallet } from "../../src/shared/utils/cache/authWallet";
-import { getConfig } from "../../src/shared/utils/cache/getConfig";
-import { getWebhooksByEventType } from "../../src/shared/utils/cache/getWebhook";
+import { getAccessToken } from "../../src/shared/utils/cache/access-token";
+import { getAuthWallet } from "../../src/shared/utils/cache/auth-wallet";
+import { getConfig } from "../../src/shared/utils/cache/get-config";
+import { getWebhooksByEventType } from "../../src/shared/utils/cache/get-webhook";
 import { getKeypair } from "../../src/shared/utils/cache/keypair";
 import { sendWebhookRequest } from "../../src/shared/utils/webhook";
 import { Permission } from "../../src/shared/schemas";

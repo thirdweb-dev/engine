@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../shared/utils/cache/getContract";
+import { getContract } from "../../../../shared/utils/cache/get-contract";
 import { prettifyError } from "../../../../shared/utils/error";
 import { createCustomError } from "../../../middleware/error";
 import {

@@ -6,7 +6,7 @@ import {
 } from "thirdweb";
 import { getChain } from "../../utils/chain";
 import { logger } from "../../utils/logger";
-import { normalizeAddress } from "../../utils/primitiveTypes";
+import { normalizeAddress } from "../../utils/primitive-types";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { updateNonceMap } from "./nonce-map";

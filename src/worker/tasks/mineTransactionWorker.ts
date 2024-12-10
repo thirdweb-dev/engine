@@ -21,8 +21,8 @@ import {
 } from "../../shared/lib/transaction/get-transaction-receipt";
 import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
 import { getBlockNumberish } from "../../shared/utils/block";
-import { getConfig } from "../../shared/utils/cache/getConfig";
-import { getWebhooksByEventType } from "../../shared/utils/cache/getWebhook";
+import { getConfig } from "../../shared/utils/cache/get-config";
+import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook";
 import { getChain } from "../../shared/utils/chain";
 import { msSince } from "../../shared/utils/date";
 import { env } from "../../shared/utils/env";

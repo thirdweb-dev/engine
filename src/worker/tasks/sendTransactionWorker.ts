@@ -40,7 +40,7 @@ import {
   wrapError,
 } from "../../shared/utils/error";
 import { BigIntMath } from "../../shared/utils/math";
-import { getChecksumAddress } from "../../shared/utils/primitiveTypes";
+import { getChecksumAddress } from "../../shared/utils/primitive-types";
 import { recordMetrics } from "../../shared/utils/prometheus";
 import { redis } from "../../shared/utils/redis/redis";
 import { thirdwebClient } from "../../shared/utils/sdk";

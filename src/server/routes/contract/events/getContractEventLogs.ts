@@ -1,8 +1,8 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractEventLogsByBlockAndTopics } from "../../../../shared/db/contractEventLogs/get-contract-event-logs";
-import { isContractSubscribed } from "../../../../shared/db/contractSubscriptions/get-contract-subscriptions";
+import { getContractEventLogsByBlockAndTopics } from "../../../../shared/db/contract-event-logs/get-contract-event-logs";
+import { isContractSubscribed } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
 import {

@@ -2,7 +2,7 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../shared/db/transactions/db";
-import { maybeBigInt } from "../../../shared/utils/primitiveTypes";
+import { maybeBigInt } from "../../../shared/utils/primitive-types";
 import type { SentTransaction } from "../../../shared/utils/transaction/types";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
 import { createCustomError } from "../../middleware/error";

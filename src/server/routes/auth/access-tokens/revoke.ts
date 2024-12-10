@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { revokeToken } from "../../../../shared/db/tokens/revoke-token";
-import { accessTokenCache } from "../../../../shared/utils/cache/accessToken";
+import { accessTokenCache } from "../../../../shared/utils/cache/access-token";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const requestBodySchema = Type.Object({

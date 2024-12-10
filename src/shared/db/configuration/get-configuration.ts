@@ -10,7 +10,7 @@ import type {
 } from "../../schemas/config";
 import { WalletType } from "../../schemas/wallet";
 import { mandatoryAllowedCorsUrls } from "../../../server/utils/cors-urls";
-import type { networkResponseSchema } from "../../utils/cache/getSdk";
+import type { networkResponseSchema } from "../../utils/cache/get-sdk";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";

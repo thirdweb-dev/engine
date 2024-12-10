@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
 import { transferFrom } from "thirdweb/extensions/erc721";
 import { getChain } from "../../../../../../shared/utils/chain";
-import { getChecksumAddress } from "../../../../../../shared/utils/primitiveTypes";
+import { getChecksumAddress } from "../../../../../../shared/utils/primitive-types";
 import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
 import { AddressSchema } from "../../../../../schemas/address";
 import { NumberStringSchema } from "../../../../../schemas/number";
 import {

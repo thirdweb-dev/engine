@@ -15,7 +15,7 @@ import {
   encryptedJsonToAccount,
   getLocalWalletAccount,
 } from "../../server/utils/wallets/getLocalWallet";
-import { getSmartWalletV5 } from "./cache/getSmartWalletV5";
+import { getSmartWalletV5 } from "./cache/get-smart-wallet-v5";
 import { getChain } from "./chain";
 import { thirdwebClient } from "./sdk";
 
