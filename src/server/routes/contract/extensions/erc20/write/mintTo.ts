@@ -3,9 +3,9 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
 import { mintTo } from "thirdweb/extensions/erc20";
-import { getChain } from "../../../../../../utils/chain";
-import { thirdwebClient } from "../../../../../../utils/sdk";
-import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
+import { getChain } from "../../../../../../shared/utils/chain";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
 import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc20ContractParamSchema,
