@@ -471,7 +471,10 @@ const _resendTransaction = async (
     resendCount,
     sentAt: new Date(),
     sentAtBlock: await getBlockNumberish(chainId),
-    sentTransactionHashes: [...sentTransactionHashes, transactionHash],
+    // Dedupe transaction hashes.
+    sentTransactionHashes: [
+      ...new Set([...sentTransactionHashes, transactionHash]),
+    ],
     gas: populatedTransaction.gas,
     gasPrice: populatedTransaction.gasPrice,
     maxFeePerGas: populatedTransaction.maxFeePerGas,
