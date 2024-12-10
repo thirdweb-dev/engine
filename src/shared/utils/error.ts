@@ -16,11 +16,10 @@ const _parseMessage = (error: unknown): string | null => {
 
 export const isNonceAlreadyUsedError = (error: unknown) => {
   const message = _parseMessage(error);
-  const errorPhrases = ["nonce too low", "already known"];
 
   if (message) {
-    return errorPhrases.some((phrase) =>
-      message.toLowerCase().includes(phrase),
+    return (
+      message.includes("nonce too low") || message.includes("already known")
     );
   }
 
@@ -41,10 +40,7 @@ export const isReplacementGasFeeTooLow = (error: unknown) => {
 export const isInsufficientFundsError = (error: unknown) => {
   const message = _parseMessage(error);
   if (message) {
-    return (
-      message.includes("insufficient funds for gas * price + value") ||
-      message.includes("insufficient funds for intrinsic transaction cost")
-    );
+    return message.includes("insufficient funds");
   }
   return isEthersErrorCode(error, ethers.errors.INSUFFICIENT_FUNDS);
 };
