@@ -36,7 +36,7 @@ export class ProcessTransactionReceiptsQueue {
     // This backoff attempts at intervals:
     // 30s, 1m, 2m, 4m, 8m, 16m, 32m, ~1h, ~2h, ~4h
     for (let i = 0; i < requeryDelays.length; i++) {
-      const delay = parseInt(requeryDelays[i]) * 1000;
+      const delay = Number.parseInt(requeryDelays[i]) * 1000;
       const attempts = i === requeryDelays.length - 1 ? 10 : 0;
       await this.q.add(jobName, serialized, {
         delay,

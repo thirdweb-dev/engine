@@ -68,7 +68,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
 const fromRecycledNoncesKey = (key: string) => {
   const [_, chainId, walletAddress] = key.split(":");
   return {
-    chainId: parseInt(chainId),
+    chainId: Number.parseInt(chainId),
     walletAddress: walletAddress as Address,
   };
 };
@@ -89,5 +89,5 @@ const getAndDeleteRecycledNonces = async (key: string) => {
     throw new Error(`Error getting members of ${key}: ${error}`);
   }
   // No need to sort here as ZRANGE returns elements in ascending order
-  return (nonces as string[]).map((v) => parseInt(v));
+  return (nonces as string[]).map((v) => Number.parseInt(v));
 };
