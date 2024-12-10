@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
 import { mintTo } from "thirdweb/extensions/erc721";
 import type { NFTInput } from "thirdweb/utils";
-import { getChain } from "../../../../../../utils/chain";
-import { thirdwebClient } from "../../../../../../utils/sdk";
-import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
+import { getChain } from "../../../../../../shared/utils/chain";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
 import { AddressSchema } from "../../../../../schemas/address";
 import { nftOrInputSchema } from "../../../../../schemas/nft";
 import {
@@ -120,6 +120,8 @@ export async function erc721mintTo(fastify: FastifyInstance) {
         accountSalt,
         txOverrides,
         idempotencyKey,
+        extension: "erc721",
+        functionName: "mintTo",
         shouldSimulate: simulateTx,
       });
 

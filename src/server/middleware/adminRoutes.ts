@@ -5,9 +5,8 @@ import type { Queue } from "bullmq";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { timingSafeEqual } from "node:crypto";
-import { env } from "../../utils/env";
+import { env } from "../../shared/utils/env";
 import { CancelRecycledNoncesQueue } from "../../worker/queues/cancelRecycledNoncesQueue";
-import { MigratePostgresTransactionsQueue } from "../../worker/queues/migratePostgresTransactionsQueue";
 import { MineTransactionQueue } from "../../worker/queues/mineTransactionQueue";
 import { NonceHealthCheckQueue } from "../../worker/queues/nonceHealthCheckQueue";
 import { NonceResyncQueue } from "../../worker/queues/nonceResyncQueue";
@@ -30,7 +29,6 @@ const QUEUES: Queue[] = [
   MineTransactionQueue.q,
   CancelRecycledNoncesQueue.q,
   PruneTransactionsQueue.q,
-  MigratePostgresTransactionsQueue.q,
   NonceResyncQueue.q,
   NonceHealthCheckQueue.q,
 ];

@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../db/transactions/db";
+import { TransactionDB } from "../../../shared/db/transactions/db";
 import { PaginationSchema } from "../../schemas/pagination";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import {

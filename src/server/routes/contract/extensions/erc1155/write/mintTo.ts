@@ -1,8 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { getContract } from "thirdweb";
+import { mintTo } from "thirdweb/extensions/erc1155";
+import type { NFTInput } from "thirdweb/utils";
+import { getChain } from "../../../../../../shared/utils/chain";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
 import { AddressSchema } from "../../../../../schemas/address";
 import { nftAndSupplySchema } from "../../../../../schemas/nft";
 import {
@@ -12,10 +16,13 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import {
+  maybeAddress,
+  requiredAddress,
+  walletWithAAHeaderSchema,
+} from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
-// INPUTS
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({
   receiver: {
@@ -66,34 +73,62 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain: _chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { receiver, metadataWithSupply, txOverrides } = request.body;
       const {
-        "x-backend-wallet-address": walletAddress,
+        "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
-      const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
-        contractAddress,
-        walletAddress,
-        accountAddress,
-      });
-      const tx = await contract.erc1155.mintTo.prepare(
-        receiver,
-        metadataWithSupply,
-      );
+      const chainId = await getChainIdFromChain(_chain);
+      const chain = await getChain(chainId);
 
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
-        extension: "erc1155",
-        idempotencyKey,
+      const contract = getContract({
+        chain,
+        client: thirdwebClient,
+        address: contractAddress,
+      });
+
+      // Backward compatibility: Transform the request body's v4 shape to v5.
+      const { metadata, supply } = metadataWithSupply;
+      const nft: NFTInput | string =
+        typeof metadata === "string"
+          ? metadata
+          : {
+              name: metadata.name?.toString() ?? undefined,
+              description: metadata.description ?? undefined,
+              image: metadata.image ?? undefined,
+              animation_url: metadata.animation_url ?? undefined,
+              external_url: metadata.external_url ?? undefined,
+              background_color: metadata.background_color ?? undefined,
+              properties: metadata.properties,
+            };
+      const transaction = mintTo({
+        contract,
+        to: receiver,
+        nft,
+        supply: BigInt(supply),
+      });
+
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
+        toAddress: maybeAddress(contractAddress, "to"),
+        accountAddress: maybeAddress(accountAddress, "x-account-address"),
+        accountFactoryAddress: maybeAddress(
+          accountFactoryAddress,
+          "x-account-factory-address",
+        ),
+        accountSalt,
         txOverrides,
+        idempotencyKey,
+        extension: "erc1155",
+        functionName: "mintTo",
+        shouldSimulate: simulateTx,
       });
 
       reply.status(StatusCodes.OK).send({

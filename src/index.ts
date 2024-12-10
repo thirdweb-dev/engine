@@ -1,11 +1,11 @@
 import "./polyfill";
+import "./tracer";
+
 import { initServer } from "./server";
-import { env } from "./utils/env";
-import { logger } from "./utils/logger";
-import "./utils/tracer";
+import { env } from "./shared/utils/env";
+import { logger } from "./shared/utils/logger";
 import { initWorker } from "./worker";
 import { CancelRecycledNoncesQueue } from "./worker/queues/cancelRecycledNoncesQueue";
-import { MigratePostgresTransactionsQueue } from "./worker/queues/migratePostgresTransactionsQueue";
 import { MineTransactionQueue } from "./worker/queues/mineTransactionQueue";
 import { NonceResyncQueue } from "./worker/queues/nonceResyncQueue";
 import { ProcessEventsLogQueue } from "./worker/queues/processEventLogsQueue";
@@ -69,7 +69,6 @@ const gracefulShutdown = async (signal: NodeJS.Signals) => {
   await MineTransactionQueue.q.close();
   await CancelRecycledNoncesQueue.q.close();
   await PruneTransactionsQueue.q.close();
-  await MigratePostgresTransactionsQueue.q.close();
   await NonceResyncQueue.q.close();
 
   process.exit(0);

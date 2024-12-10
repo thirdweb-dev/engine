@@ -1,5 +1,5 @@
-import { execSync } from "child_process";
-import { prisma } from "../db/client";
+import { execSync } from "node:child_process";
+import { prisma } from "../shared/db/client";
 
 const main = async () => {
   const [{ exists: hasWalletsTable }]: [{ exists: boolean }] =
@@ -14,8 +14,8 @@ const main = async () => {
 
   const schema =
     process.env.NODE_ENV === "production"
-      ? `./dist/prisma/schema.prisma`
-      : `./src/prisma/schema.prisma`;
+      ? "./dist/prisma/schema.prisma"
+      : "./src/prisma/schema.prisma";
 
   if (hasWalletsTable) {
     execSync(`yarn prisma migrate reset --force --schema ${schema}`, {

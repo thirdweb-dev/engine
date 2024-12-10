@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../db/client";
+import { prisma } from "../../../shared/db/client";
 import { AddressSchema } from "../../schemas/address";
 import { chainIdOrSlugSchema } from "../../schemas/chain";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";

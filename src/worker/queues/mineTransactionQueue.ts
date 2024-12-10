@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import superjson from "superjson";
-import { env } from "../../utils/env";
-import { redis } from "../../utils/redis/redis";
+import { env } from "../../shared/utils/env";
+import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
 export type MineTransactionData = {
