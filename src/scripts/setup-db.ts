@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { prisma } from "../src/shared/db/client";
+import { prisma } from "../shared/db/client";
 
 const main = async () => {
   const [{ exists: hasWalletsTable }]: [{ exists: boolean }] =
