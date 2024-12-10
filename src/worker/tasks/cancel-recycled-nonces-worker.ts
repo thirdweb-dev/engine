@@ -1,7 +1,13 @@
 import { type Job, type Processor, Worker } from "bullmq";
 import type { Address } from "thirdweb";
-import { recycleNonce } from "../../shared/db/wallets/wallet-nonce";
-import { isNonceAlreadyUsedError } from "../../shared/utils/error";
+import {
+  deleteNoncesForBackendWallets,
+  recycleNonce,
+} from "../../shared/db/wallets/wallet-nonce";
+import {
+  isInsufficientFundsError,
+  isNonceAlreadyUsedError,
+} from "../../shared/utils/error";
 import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";
 import { sendCancellationTransaction } from "../../shared/utils/transaction/cancel-transaction";
@@ -47,10 +53,18 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
           });
           success.push(nonce);
         } catch (error: unknown) {
-          // Release the nonce if it has not expired.
-          if (isNonceAlreadyUsedError(error)) {
+          if (isInsufficientFundsError(error)) {
+            // Wallet is out of funds. Reset the nonce state.
+            // After funded, the next transaction will resync the nonce.
+            job.log(
+              `Wallet ${chainId}:${walletAddress} out of funds. Resetting nonce.`,
+            );
+            await deleteNoncesForBackendWallets([{ chainId, walletAddress }]);
+          } else if (isNonceAlreadyUsedError(error)) {
+            // Nonce is used. Don't recycle it.
             ignore.push(nonce);
           } else {
+            // Nonce is not used onchain. Recycle it.
             job.log(`Recycling nonce: ${nonce}`);
             await recycleNonce(chainId, walletAddress, nonce);
             fail.push(nonce);
