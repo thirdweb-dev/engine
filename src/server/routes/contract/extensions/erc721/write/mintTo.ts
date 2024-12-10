@@ -120,6 +120,8 @@ export async function erc721mintTo(fastify: FastifyInstance) {
         accountSalt,
         txOverrides,
         idempotencyKey,
+        extension: "erc721",
+        functionName: "mintTo",
         shouldSimulate: simulateTx,
       });
 
