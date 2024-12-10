@@ -14,14 +14,14 @@ import { SendTransactionQueue } from "./worker/queues/sendTransactionQueue";
 import { SendWebhookQueue } from "./worker/queues/sendWebhookQueue";
 
 const main = async () => {
-	if (env.ENGINE_MODE === "server_only") {
-		initServer();
-	} else if (env.ENGINE_MODE === "worker_only") {
-		initWorker();
-	} else {
-		initServer();
-		initWorker();
-	}
+  if (env.ENGINE_MODE === "server_only") {
+    initServer();
+  } else if (env.ENGINE_MODE === "worker_only") {
+    initWorker();
+  } else {
+    initServer();
+    initWorker();
+  }
 };
 
 main();
@@ -32,43 +32,43 @@ main();
 // entire codebase
 
 process.on("uncaughtException", (err) => {
-	logger({
-		message: "Uncaught Exception",
-		service: "server",
-		level: "error",
-		error: err,
-	});
+  logger({
+    message: "Uncaught Exception",
+    service: "server",
+    level: "error",
+    error: err,
+  });
 });
 
 process.on("unhandledRejection", (err) => {
-	logger({
-		message: "Unhandled Rejection",
-		service: "server",
-		level: "error",
-		error: err,
-	});
+  logger({
+    message: "Unhandled Rejection",
+    service: "server",
+    level: "error",
+    error: err,
+  });
 });
 
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
 const gracefulShutdown = async (signal: NodeJS.Signals) => {
-	logger({
-		level: "info",
-		service: "server",
-		message: `Received ${signal}, closing server...`,
-	});
+  logger({
+    level: "info",
+    service: "server",
+    message: `Received ${signal}, closing server...`,
+  });
 
-	// Gracefully close workers to minimize stalled jobs.
-	// Source: https://docs.bullmq.io/guide/going-to-production#gracefully-shut-down-workers
-	await SendWebhookQueue.q.close();
-	await ProcessEventsLogQueue.q.close();
-	await ProcessTransactionReceiptsQueue.q.close();
-	await SendTransactionQueue.q.close();
-	await MineTransactionQueue.q.close();
-	await CancelRecycledNoncesQueue.q.close();
-	await PruneTransactionsQueue.q.close();
-	await NonceResyncQueue.q.close();
+  // Gracefully close workers to minimize stalled jobs.
+  // Source: https://docs.bullmq.io/guide/going-to-production#gracefully-shut-down-workers
+  await SendWebhookQueue.q.close();
+  await ProcessEventsLogQueue.q.close();
+  await ProcessTransactionReceiptsQueue.q.close();
+  await SendTransactionQueue.q.close();
+  await MineTransactionQueue.q.close();
+  await CancelRecycledNoncesQueue.q.close();
+  await PruneTransactionsQueue.q.close();
+  await NonceResyncQueue.q.close();
 
-	process.exit(0);
+  process.exit(0);
 };
