@@ -23,6 +23,7 @@
     "start:docker-force-build": "docker compose --profile engine --env-file ./.env up --remove-orphans --build",
     "test:unit": "vitest",
     "test:coverage": "vitest run --coverage",
+    "lint": "yarn biome lint",
     "copy-files": "cp -r ./src/prisma ./dist/"
   },
   "dependencies": {
