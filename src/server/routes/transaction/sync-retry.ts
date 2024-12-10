@@ -14,10 +14,10 @@ import {
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import type { SentTransaction } from "../../../shared/utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../shared/utils/transaction/webhook";
-import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
 import { createCustomError } from "../../middleware/error";
 import { TransactionHashSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   queueId: Type.String({

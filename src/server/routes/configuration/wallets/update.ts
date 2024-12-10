@@ -5,7 +5,7 @@ import { updateConfiguration } from "../../../../shared/db/configuration/update-
 import { WalletType } from "../../../../shared/schemas/wallet";
 import { getConfig } from "../../../../shared/utils/cache/get-config";
 import { createCustomError } from "../../../middleware/error";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Union([

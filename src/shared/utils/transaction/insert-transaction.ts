@@ -8,7 +8,7 @@ import {
 } from "../../../shared/db/wallets/get-wallet-details";
 import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
 import { createCustomError } from "../../../server/middleware/error";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { getChecksumAddress } from "../primitive-types";
 import { recordMetrics } from "../prometheus";
 import { reportUsage } from "../usage";

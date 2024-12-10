@@ -6,7 +6,7 @@ import { nftSchema } from "../../../../../schemas/nft";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/sharedApiSchemas";
+} from "../../../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT

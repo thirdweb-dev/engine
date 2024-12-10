@@ -7,7 +7,7 @@ import { createCustomError } from "../../../middleware/error";
 import {
   contractSubscriptionConfigurationSchema,
   standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+} from "../../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   maxBlocksToIndex: Type.Optional(Type.Integer({ minimum: 1, maximum: 100 })),

@@ -17,7 +17,7 @@ import { getChain } from "../../../shared/utils/chain";
 import { redis } from "../../../shared/utils/redis/redis";
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import { walletWithAddressParamSchema } from "../../schemas/wallet";
 
 export const responseBodySchema = Type.Object({

@@ -5,7 +5,7 @@ import type { ContractExtension } from "../../schemas/extension";
 import { maybeBigInt, normalizeAddress } from "../../utils/primitive-types";
 import { insertTransaction } from "../../utils/transaction/insert-transaction";
 import type { InsertedTransaction } from "../../utils/transaction/types";
-import { parseTransactionOverrides } from "../../../server/utils/transactionOverrides";
+import { parseTransactionOverrides } from "../../../server/utils/transaction-overrides";
 
 interface QueueTxParams {
   // we should move away from Transaction type (v4 SDK)

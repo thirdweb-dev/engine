@@ -10,7 +10,7 @@ import {
   KeypairSchema,
   toKeypairSchema,
 } from "../../../../shared/schemas/keypair";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   publicKey: Type.String({

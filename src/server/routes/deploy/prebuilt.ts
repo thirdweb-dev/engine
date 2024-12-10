@@ -9,8 +9,8 @@ import { contractDeployBasicSchema } from "../../schemas/contract";
 import {
   prebuiltDeployParamSchema,
   standardResponseSchema,
-} from "../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
+} from "../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../schemas/tx-overrides";
 import { walletWithAAHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 

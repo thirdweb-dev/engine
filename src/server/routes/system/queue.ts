@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../shared/db/transactions/db";
 import { getPercentile } from "../../../shared/utils/math";
 import type { MinedTransaction } from "../../../shared/utils/transaction/types";
-import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const responseBodySchema = Type.Object({
   result: Type.Object({

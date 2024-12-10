@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAwsKmsArn,
   splitAwsKmsArn,
-} from "../../src/server/utils/wallets/awsKmsArn";
+} from "../../src/server/utils/wallets/aws-kms-arn";
 
 describe("splitAwsKmsArn", () => {
   it("should correctly split a valid AWS KMS ARN", () => {

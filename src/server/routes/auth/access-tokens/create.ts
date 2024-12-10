@@ -8,8 +8,8 @@ import { createToken } from "../../../../shared/db/tokens/create-token";
 import { accessTokenCache } from "../../../../shared/utils/cache/access-token";
 import { getConfig } from "../../../../shared/utils/cache/get-config";
 import { env } from "../../../../shared/utils/env";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { AccessTokenSchema } from "./getAll";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { AccessTokenSchema } from "./get-all";
 
 const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),

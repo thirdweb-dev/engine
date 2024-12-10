@@ -5,7 +5,7 @@ import { getConfig } from "../../../../shared/utils/cache/get-config";
 import {
   contractSubscriptionConfigurationSchema,
   standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+} from "../../../schemas/shared-api-schemas";
 
 const responseSchema = Type.Object({
   result: contractSubscriptionConfigurationSchema,

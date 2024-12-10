@@ -10,10 +10,10 @@ import { sendCancellationTransaction } from "../../../shared/utils/transaction/c
 import type { CancelledTransaction } from "../../../shared/utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../shared/utils/transaction/webhook";
 import { reportUsage } from "../../../shared/utils/usage";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { createCustomError } from "../../middleware/error";
 import { TransactionHashSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 // INPUT
 const requestBodySchema = Type.Object({

@@ -1,21 +1,21 @@
-import { chainIndexerListener } from "./listeners/chainIndexerListener";
+import { chainIndexerListener } from "./listeners/chain-indexer-listener";
 import {
   newConfigurationListener,
   updatedConfigurationListener,
-} from "./listeners/configListener";
+} from "./listeners/config-listener";
 import {
   newWebhooksListener,
   updatedWebhooksListener,
-} from "./listeners/webhookListener";
-import { initCancelRecycledNoncesWorker } from "./tasks/cancelRecycledNoncesWorker";
-import { initMineTransactionWorker } from "./tasks/mineTransactionWorker";
-import { initNonceHealthCheckWorker } from "./tasks/nonceHealthCheckWorker";
-import { initNonceResyncWorker } from "./tasks/nonceResyncWorker";
-import { initProcessEventLogsWorker } from "./tasks/processEventLogsWorker";
-import { initProcessTransactionReceiptsWorker } from "./tasks/processTransactionReceiptsWorker";
-import { initPruneTransactionsWorker } from "./tasks/pruneTransactionsWorker";
-import { initSendTransactionWorker } from "./tasks/sendTransactionWorker";
-import { initSendWebhookWorker } from "./tasks/sendWebhookWorker";
+} from "./listeners/webhook-listener";
+import { initCancelRecycledNoncesWorker } from "./tasks/cancel-recycled-nonces-worker";
+import { initMineTransactionWorker } from "./tasks/mine-transaction-worker";
+import { initNonceHealthCheckWorker } from "./tasks/nonce-health-check-worker";
+import { initNonceResyncWorker } from "./tasks/nonce-resync-worker";
+import { initProcessEventLogsWorker } from "./tasks/process-event-logs-worker";
+import { initProcessTransactionReceiptsWorker } from "./tasks/process-transaction-receipts-worker";
+import { initPruneTransactionsWorker } from "./tasks/prune-transactions-worker";
+import { initSendTransactionWorker } from "./tasks/send-transaction-worker";
+import { initSendWebhookWorker } from "./tasks/send-webhook-worker";
 
 export const initWorker = async () => {
   initCancelRecycledNoncesWorker();

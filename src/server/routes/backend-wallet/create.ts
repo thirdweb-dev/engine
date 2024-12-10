@@ -10,21 +10,21 @@ import { WalletType } from "../../../shared/schemas/wallet";
 import { getConfig } from "../../../shared/utils/cache/get-config";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import {
   CreateAwsKmsWalletError,
   createAwsKmsWalletDetails,
-} from "../../utils/wallets/createAwsKmsWallet";
+} from "../../utils/wallets/create-aws-kms-wallet";
 import {
   CreateGcpKmsWalletError,
   createGcpKmsWalletDetails,
-} from "../../utils/wallets/createGcpKmsWallet";
-import { createLocalWalletDetails } from "../../utils/wallets/createLocalWallet";
+} from "../../utils/wallets/create-gcp-kms-wallet";
+import { createLocalWalletDetails } from "../../utils/wallets/create-local-wallet";
 import {
   createSmartAwsWalletDetails,
   createSmartGcpWalletDetails,
   createSmartLocalWalletDetails,
-} from "../../utils/wallets/createSmartWallet";
+} from "../../utils/wallets/create-smart-wallet";
 
 const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),

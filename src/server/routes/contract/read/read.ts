@@ -11,7 +11,7 @@ import {
 import {
   partialRouteSchema,
   standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+} from "../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { bigNumberReplacer } from "../../../utils/convertor";
 

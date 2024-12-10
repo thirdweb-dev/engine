@@ -6,7 +6,7 @@ import { getConfig } from "../../../../shared/utils/cache/get-config";
 import { clearCacheCron } from "../../../../shared/utils/cron/clear-cache-cron";
 import { isValidCron } from "../../../../shared/utils/cron/is-valid-cron";
 import { createCustomError } from "../../../middleware/error";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Object({

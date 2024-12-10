@@ -7,10 +7,10 @@ import { TransactionDB } from "../../../shared/db/transactions/db";
 import { getConfig } from "../../../shared/utils/cache/get-config";
 import { maybeDate } from "../../../shared/utils/primitive-types";
 import { redis } from "../../../shared/utils/redis/redis";
-import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestSchema = Type.Object({
   queueId: Type.String({

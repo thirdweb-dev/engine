@@ -6,7 +6,7 @@ import { getContract } from "../../../../shared/utils/cache/get-contract";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+} from "../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestSchema = contractParamSchema;

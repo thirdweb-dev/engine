@@ -10,10 +10,10 @@ import {
 import type { PrismaTransaction } from "../../schemas/prisma";
 import { WalletType } from "../../schemas/wallet";
 import { createCustomError } from "../../../server/middleware/error";
-import { splitAwsKmsArn } from "../../../server/utils/wallets/awsKmsArn";
-import { splitGcpKmsResourcePath } from "../../../server/utils/wallets/gcpKmsResourcePath";
-import { getLocalWallet } from "../../../server/utils/wallets/getLocalWallet";
-import { getSmartWallet } from "../../../server/utils/wallets/getSmartWallet";
+import { splitAwsKmsArn } from "../../../server/utils/wallets/aws-kms-arn";
+import { splitGcpKmsResourcePath } from "../../../server/utils/wallets/gcp-kms-resource-path";
+import { getLocalWallet } from "../../../server/utils/wallets/get-local-wallet";
+import { getSmartWallet } from "../../../server/utils/wallets/get-smart-wallet";
 
 export const walletsCache = new LRUMap<string, EVMWallet>(2048);
 

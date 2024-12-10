@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../shared/db/transactions/db";
 import { logger } from "../../../shared/utils/logger";
 import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import {
   TransactionSchema,
   toTransactionSchema,

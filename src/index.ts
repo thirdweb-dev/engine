@@ -5,14 +5,14 @@ import { initServer } from "./server";
 import { env } from "./shared/utils/env";
 import { logger } from "./shared/utils/logger";
 import { initWorker } from "./worker";
-import { CancelRecycledNoncesQueue } from "./worker/queues/cancelRecycledNoncesQueue";
-import { MineTransactionQueue } from "./worker/queues/mineTransactionQueue";
-import { NonceResyncQueue } from "./worker/queues/nonceResyncQueue";
-import { ProcessEventsLogQueue } from "./worker/queues/processEventLogsQueue";
-import { ProcessTransactionReceiptsQueue } from "./worker/queues/processTransactionReceiptsQueue";
-import { PruneTransactionsQueue } from "./worker/queues/pruneTransactionsQueue";
-import { SendTransactionQueue } from "./worker/queues/sendTransactionQueue";
-import { SendWebhookQueue } from "./worker/queues/sendWebhookQueue";
+import { CancelRecycledNoncesQueue } from "./worker/queues/cancel-recycled-nonces-queue";
+import { MineTransactionQueue } from "./worker/queues/mine-transaction-queue";
+import { NonceResyncQueue } from "./worker/queues/nonce-resync-queue";
+import { ProcessEventsLogQueue } from "./worker/queues/process-event-logs-queue";
+import { ProcessTransactionReceiptsQueue } from "./worker/queues/process-transaction-receipts-queue";
+import { PruneTransactionsQueue } from "./worker/queues/prune-transactions-queue";
+import { SendTransactionQueue } from "./worker/queues/send-transaction-queue";
+import { SendWebhookQueue } from "./worker/queues/send-webhook-queue";
 
 const main = async () => {
   if (env.ENGINE_MODE === "server_only") {

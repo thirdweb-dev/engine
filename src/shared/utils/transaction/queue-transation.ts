@@ -8,8 +8,8 @@ import {
 } from "thirdweb";
 import { resolvePromisedValue } from "thirdweb/utils";
 import { createCustomError } from "../../../server/middleware/error";
-import type { txOverridesWithValueSchema } from "../../../server/schemas/txOverrides";
-import { parseTransactionOverrides } from "../../../server/utils/transactionOverrides";
+import type { txOverridesWithValueSchema } from "../../../server/schemas/tx-overrides";
+import { parseTransactionOverrides } from "../../../server/utils/transaction-overrides";
 import { prettifyError } from "../error";
 import { insertTransaction } from "./insert-transaction";
 import type { InsertedTransaction } from "./types";

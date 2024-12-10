@@ -9,7 +9,7 @@ import { sendCancellationTransaction } from "../../../shared/utils/transaction/c
 import {
   requestQuerystringSchema,
   standardResponseSchema,
-} from "../../schemas/sharedApiSchemas";
+} from "../../schemas/shared-api-schemas";
 import {
   walletChainParamSchema,
   walletHeaderSchema,
