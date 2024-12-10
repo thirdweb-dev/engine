@@ -12,7 +12,7 @@ import { prettifyError } from "../../shared/utils/error";
 import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";
 import { thirdwebClient } from "../../shared/utils/sdk";
-import { NonceResyncQueue } from "../queues/nonceResyncQueue";
+import { NonceResyncQueue } from "../queues/nonce-resync-queue";
 import { logWorkerExceptions } from "../queues/queues";
 
 // Must be explicitly called for the worker to run on this host.

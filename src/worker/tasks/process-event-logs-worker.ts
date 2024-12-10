@@ -26,9 +26,9 @@ import { thirdwebClient } from "../../shared/utils/sdk";
 import {
   type EnqueueProcessEventLogsData,
   ProcessEventsLogQueue,
-} from "../queues/processEventLogsQueue";
+} from "../queues/process-event-logs-queue";
 import { logWorkerExceptions } from "../queues/queues";
-import { SendWebhookQueue } from "../queues/sendWebhookQueue";
+import { SendWebhookQueue } from "../queues/send-webhook-queue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const {

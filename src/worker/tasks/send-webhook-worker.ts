@@ -18,7 +18,7 @@ import {
   sendWebhookRequest,
   type WebhookResponse,
 } from "../../shared/utils/webhook";
-import { SendWebhookQueue, type WebhookJob } from "../queues/sendWebhookQueue";
+import { SendWebhookQueue, type WebhookJob } from "../queues/send-webhook-queue";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);

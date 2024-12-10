@@ -1,5 +1,5 @@
 import { WebhooksEventTypes } from "../../schemas/webhooks";
-import { SendWebhookQueue } from "../../../worker/queues/sendWebhookQueue";
+import { SendWebhookQueue } from "../../../worker/queues/send-webhook-queue";
 import type { AnyTransaction } from "./types";
 
 export const enqueueTransactionWebhook = async (

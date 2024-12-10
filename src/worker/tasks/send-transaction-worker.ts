@@ -52,12 +52,12 @@ import type {
 } from "../../shared/utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../shared/utils/transaction/webhook";
 import { reportUsage } from "../../shared/utils/usage";
-import { MineTransactionQueue } from "../queues/mineTransactionQueue";
+import { MineTransactionQueue } from "../queues/mine-transaction-queue";
 import { logWorkerExceptions } from "../queues/queues";
 import {
   SendTransactionQueue,
   type SendTransactionData,
-} from "../queues/sendTransactionQueue";
+} from "../queues/send-transaction-queue";
 
 /**
  * Submit a transaction to RPC (EOA transactions) or bundler (userOps).

@@ -5,7 +5,7 @@ import { isNonceAlreadyUsedError } from "../../shared/utils/error";
 import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";
 import { sendCancellationTransaction } from "../../shared/utils/transaction/cancel-transaction";
-import { CancelRecycledNoncesQueue } from "../queues/cancelRecycledNoncesQueue";
+import { CancelRecycledNoncesQueue } from "../queues/cancel-recycled-nonces-queue";
 import { logWorkerExceptions } from "../queues/queues";
 
 // Must be explicitly called for the worker to run on this host.

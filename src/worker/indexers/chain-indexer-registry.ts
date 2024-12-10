@@ -1,7 +1,7 @@
 import cron from "node-cron";
 import { getBlockTimeSeconds } from "../../shared/utils/indexer/get-block-time";
 import { logger } from "../../shared/utils/logger";
-import { handleContractSubscriptions } from "../tasks/chainIndexer";
+import { handleContractSubscriptions } from "../tasks/chain-indexer";
 
 // @TODO: Move all worker logic to Bullmq to better handle multiple hosts.
 export const INDEXER_REGISTRY = {} as Record<number, cron.ScheduledTask>;

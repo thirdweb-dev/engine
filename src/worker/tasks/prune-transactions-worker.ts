@@ -3,7 +3,7 @@ import { TransactionDB } from "../../shared/db/transactions/db";
 import { pruneNonceMaps } from "../../shared/db/wallets/nonce-map";
 import { env } from "../../shared/utils/env";
 import { redis } from "../../shared/utils/redis/redis";
-import { PruneTransactionsQueue } from "../queues/pruneTransactionsQueue";
+import { PruneTransactionsQueue } from "../queues/prune-transactions-queue";
 import { logWorkerExceptions } from "../queues/queues";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {

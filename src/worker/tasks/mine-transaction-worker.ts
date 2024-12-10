@@ -41,9 +41,9 @@ import { reportUsage } from "../../shared/utils/usage";
 import {
   MineTransactionQueue,
   type MineTransactionData,
-} from "../queues/mineTransactionQueue";
-import { SendTransactionQueue } from "../queues/sendTransactionQueue";
-import { SendWebhookQueue } from "../queues/sendWebhookQueue";
+} from "../queues/mine-transaction-queue";
+import { SendTransactionQueue } from "../queues/send-transaction-queue";
+import { SendWebhookQueue } from "../queues/send-webhook-queue";
 
 /**
  * Check if the submitted transaction or userOp is mined onchain.

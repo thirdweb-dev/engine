@@ -2,7 +2,7 @@ import { knex } from "../../shared/db/client";
 import { getConfig } from "../../shared/utils/cache/get-config";
 import { clearCacheCron } from "../../shared/utils/cron/clear-cache-cron";
 import { logger } from "../../shared/utils/logger";
-import { chainIndexerListener } from "./chainIndexerListener";
+import { chainIndexerListener } from "./chain-indexer-listener";
 
 export const newConfigurationListener = async (): Promise<void> => {
   logger({

@@ -7,7 +7,7 @@ import {
 import { getLastUsedOnchainNonce } from "../../server/routes/admin/nonces";
 import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";
-import { NonceHealthCheckQueue } from "../queues/nonceHealthCheckQueue";
+import { NonceHealthCheckQueue } from "../queues/nonce-health-check-queue";
 import { logWorkerExceptions } from "../queues/queues";
 
 // Configuration

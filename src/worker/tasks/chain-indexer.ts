@@ -11,8 +11,8 @@ import { getContractSubscriptionsByChainId } from "../../shared/db/contract-subs
 import { getChain } from "../../shared/utils/chain";
 import { logger } from "../../shared/utils/logger";
 import { thirdwebClient } from "../../shared/utils/sdk";
-import { ProcessEventsLogQueue } from "../queues/processEventLogsQueue";
-import { ProcessTransactionReceiptsQueue } from "../queues/processTransactionReceiptsQueue";
+import { ProcessEventsLogQueue } from "../queues/process-event-logs-queue";
+import { ProcessTransactionReceiptsQueue } from "../queues/process-transaction-receipts-queue";
 
 // A reasonable block range that is within RPC limits.
 // The minimum job time is 1 second, so this value should higher than the # blocks per second

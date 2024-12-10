@@ -7,8 +7,8 @@ import {
   getReceiptForUserOp,
 } from "../../../shared/lib/transaction/get-transaction-receipt";
 import type { QueuedTransaction } from "../../../shared/utils/transaction/types";
-import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 

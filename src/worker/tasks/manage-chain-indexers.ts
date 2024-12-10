@@ -3,7 +3,7 @@ import {
   INDEXER_REGISTRY,
   addChainIndexer,
   removeChainIndexer,
-} from "../indexers/chainIndexerRegistry";
+} from "../indexers/chain-indexer-registry";
 
 export const manageChainIndexers = async () => {
   const chainIdsToIndex = await getContractSubscriptionsUniqueChainIds();

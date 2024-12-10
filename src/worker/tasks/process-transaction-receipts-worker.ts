@@ -22,10 +22,10 @@ import { thirdwebClient } from "../../shared/utils/sdk";
 import {
   ProcessTransactionReceiptsQueue,
   type EnqueueProcessTransactionReceiptsData,
-} from "../queues/processTransactionReceiptsQueue";
+} from "../queues/process-transaction-receipts-queue";
 import { logWorkerExceptions } from "../queues/queues";
-import { SendWebhookQueue } from "../queues/sendWebhookQueue";
-import { getWebhooksByContractAddresses } from "./processEventLogsWorker";
+import { SendWebhookQueue } from "../queues/send-webhook-queue";
+import { getWebhooksByContractAddresses } from "./process-event-logs-worker";
 
 const handler: Processor<any, void, string> = async (job: Job<string>) => {
   const {
