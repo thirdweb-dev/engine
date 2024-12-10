@@ -384,7 +384,7 @@ export class TransactionService {
     /**
      * Send a signed transaction
      * Send a signed transaction
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID
      * @param requestBody
      * @returns any Default Response
      * @throws ApiError
@@ -421,7 +421,7 @@ export class TransactionService {
     /**
      * Send a signed user operation
      * Send a signed user operation
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID
      * @param requestBody
      * @returns any Default Response
      * @throws ApiError
@@ -462,14 +462,14 @@ export class TransactionService {
     /**
      * Get transaction receipt
      * Get the transaction receipt from a transaction hash.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param transactionHash Transaction hash
+     * @param chain Chain ID or name
      * @returns any Default Response
      * @throws ApiError
      */
     public getTransactionReceipt(
-        chain: string,
         transactionHash: string,
+        chain: string,
     ): CancelablePromise<{
         result: ({
             to?: string;
@@ -498,8 +498,8 @@ export class TransactionService {
             method: 'GET',
             url: '/transaction/{chain}/tx-hash/{transactionHash}',
             path: {
-                'chain': chain,
                 'transactionHash': transactionHash,
+                'chain': chain,
             },
             errors: {
                 400: `Bad Request`,
@@ -512,14 +512,14 @@ export class TransactionService {
     /**
      * Get transaction receipt from user-op hash
      * Get the transaction receipt from a user-op hash.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param userOpHash User operation hash
+     * @param chain Chain ID or name
      * @returns any Default Response
      * @throws ApiError
      */
     public useropHashReceipt(
-        chain: string,
         userOpHash: string,
+        chain: string,
     ): CancelablePromise<{
         result: any;
     }> {
@@ -527,8 +527,8 @@ export class TransactionService {
             method: 'GET',
             url: '/transaction/{chain}/userop-hash/{userOpHash}',
             path: {
-                'chain': chain,
                 'userOpHash': userOpHash,
+                'chain': chain,
             },
             errors: {
                 400: `Bad Request`,
@@ -541,7 +541,7 @@ export class TransactionService {
     /**
      * Get transaction logs
      * Get transaction logs for a mined transaction. A tranasction queue ID or hash must be provided. Set `parseLogs` to parse the event logs.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param queueId The queue ID for a mined transaction.
      * @param transactionHash The transaction hash for a mined transaction.
      * @param parseLogs If true, parse the raw logs as events defined in the contract ABI. (Default: true)

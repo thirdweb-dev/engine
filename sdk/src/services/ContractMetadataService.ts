@@ -12,7 +12,7 @@ export class ContractMetadataService {
     /**
      * Get ABI
      * Get the ABI of a contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -67,7 +67,7 @@ export class ContractMetadataService {
     /**
      * Get events
      * Get details of all events implemented by a contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -121,7 +121,7 @@ export class ContractMetadataService {
     /**
      * Get extensions
      * Get all detected extensions for a contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -153,7 +153,7 @@ export class ContractMetadataService {
     /**
      * Get functions
      * Get details of all functions implemented by the contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError

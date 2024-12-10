@@ -12,7 +12,7 @@ export class ContractEventsService {
     /**
      * Get all events
      * Get a list of all blockchain events for this contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param fromBlock
      * @param toBlock
@@ -52,7 +52,7 @@ export class ContractEventsService {
     /**
      * Get events
      * Get a list of specific blockchain events emitted from this contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param requestBody Specify the from and to block numbers to get events for, defaults to all blocks
      * @returns any Default Response

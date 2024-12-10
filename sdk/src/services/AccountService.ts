@@ -12,7 +12,7 @@ export class AccountService {
     /**
      * Get all admins
      * Get all admins for a smart account.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -44,7 +44,7 @@ export class AccountService {
     /**
      * Get all session keys
      * Get all session keys for a smart account.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -82,14 +82,14 @@ export class AccountService {
     /**
      * Grant admin
      * Grant a smart account's admin permission.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -108,10 +108,6 @@ export class AccountService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -173,14 +169,14 @@ export class AccountService {
     /**
      * Revoke admin
      * Revoke a smart account's admin permission.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -199,10 +195,6 @@ export class AccountService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -264,14 +256,14 @@ export class AccountService {
     /**
      * Create session key
      * Create a session key for a smart account.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -294,10 +286,6 @@ export class AccountService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -359,14 +347,14 @@ export class AccountService {
     /**
      * Revoke session key
      * Revoke a session key for a smart account.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -385,10 +373,6 @@ export class AccountService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -450,14 +434,14 @@ export class AccountService {
     /**
      * Update session key
      * Update a session key for a smart account.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -480,10 +464,6 @@ export class AccountService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */

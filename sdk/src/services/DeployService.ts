@@ -12,12 +12,12 @@ export class DeployService {
     /**
      * Deploy Edition
      * Deploy an Edition contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -57,10 +57,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -118,12 +114,12 @@ export class DeployService {
     /**
      * Deploy Edition Drop
      * Deploy an Edition Drop contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -164,10 +160,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -225,12 +217,12 @@ export class DeployService {
     /**
      * Deploy Marketplace
      * Deploy a Marketplace contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -266,10 +258,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -327,12 +315,12 @@ export class DeployService {
     /**
      * Deploy Multiwrap
      * Deploy a Multiwrap contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -369,10 +357,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -430,12 +414,12 @@ export class DeployService {
     /**
      * Deploy NFT Collection
      * Deploy an NFT Collection contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -475,10 +459,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -536,12 +516,12 @@ export class DeployService {
     /**
      * Deploy NFT Drop
      * Deploy an NFT Drop contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -582,10 +562,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -643,12 +619,12 @@ export class DeployService {
     /**
      * Deploy Pack
      * Deploy a Pack contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -687,10 +663,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -748,12 +720,12 @@ export class DeployService {
     /**
      * Deploy Signature Drop
      * Deploy a Signature Drop contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -794,10 +766,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -855,12 +823,12 @@ export class DeployService {
     /**
      * Deploy Split
      * Deploy a Split contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -901,10 +869,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -962,12 +926,12 @@ export class DeployService {
     /**
      * Deploy Token
      * Deploy a Token contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1005,10 +969,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1066,12 +1026,12 @@ export class DeployService {
     /**
      * Deploy Token Drop
      * Deploy a Token Drop contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1110,10 +1070,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1171,12 +1127,12 @@ export class DeployService {
     /**
      * Deploy Vote
      * Deploy a Vote contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1218,10 +1174,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1279,14 +1231,14 @@ export class DeployService {
     /**
      * Deploy published contract
      * Deploy a published contract to the blockchain.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param publisher Address or ENS of the publisher of the contract
      * @param contractName Name of the published contract to deploy
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1317,10 +1269,6 @@ export class DeployService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */

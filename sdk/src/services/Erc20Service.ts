@@ -14,7 +14,7 @@ export class Erc20Service {
      * Get the allowance of a specific wallet for an ERC-20 contract.
      * @param ownerWallet Address of the wallet who owns the funds
      * @param spenderWallet Address of the wallet to check token allowance
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @returns any Default Response
      * @throws ApiError
@@ -62,7 +62,7 @@ export class Erc20Service {
      * Get token balance
      * Get the balance of a specific wallet address for this ERC-20 contract.
      * @param walletAddress Address of the wallet to check token balance
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @returns any Default Response
      * @throws ApiError
@@ -107,7 +107,7 @@ export class Erc20Service {
     /**
      * Get token details
      * Get details for this ERC-20 contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @returns any Default Response
      * @throws ApiError
@@ -140,7 +140,7 @@ export class Erc20Service {
     /**
      * Get total supply
      * Get the total supply in circulation for this ERC-20 contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @returns any Default Response
      * @throws ApiError
@@ -181,12 +181,12 @@ export class Erc20Service {
     /**
      * Generate signature
      * Generate a signature granting access for another wallet to mint tokens from this ERC-20 contract. This method is typically called by the token contract owner.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @param xThirdwebSdkVersion Override the thirdweb sdk version used. Example: "5" for v5 SDK compatibility.
      * @param requestBody
@@ -329,7 +329,7 @@ export class Erc20Service {
      * Check if tokens are available for claiming
      * Check if tokens are currently available for claiming, optionally specifying if a specific wallet address can claim.
      * @param quantity The amount of tokens to claim.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param addressToCheck The wallet address to check if it can claim tokens. This considers all aspects of the active claim phase, including allowlists, previous claims, etc.
      * @returns any Default Response
@@ -365,7 +365,7 @@ export class Erc20Service {
     /**
      * Retrieve the currently active claim phase, if any.
      * Retrieve the currently active claim phase, if any.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param withAllowList Provide a boolean value to include the allowlist in the response.
      * @returns any Default Response
@@ -426,7 +426,7 @@ export class Erc20Service {
     /**
      * Get all the claim phases configured.
      * Get all the claim phases configured on the drop contract.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param withAllowList Provide a boolean value to include the allowlist in the response.
      * @returns any Default Response
@@ -488,7 +488,7 @@ export class Erc20Service {
      * Get claim ineligibility reasons
      * Get an array of reasons why a specific wallet address is not eligible to claim tokens, if any.
      * @param quantity The amount of tokens to claim.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param addressToCheck The wallet address to check if it can claim tokens.
      * @returns any Default Response
@@ -525,7 +525,7 @@ export class Erc20Service {
      * Get claimer proofs
      * Returns allowlist information and merkle proofs for a given wallet address. Returns null if no proof is found for the given wallet address.
      * @param walletAddress The wallet address to get the merkle proofs for.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -570,14 +570,14 @@ export class Erc20Service {
     /**
      * Set allowance
      * Grant a specific wallet address to transfer ERC-20 tokens from the caller wallet.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -600,10 +600,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -665,14 +661,14 @@ export class Erc20Service {
     /**
      * Transfer tokens
      * Transfer ERC-20 tokens from the caller wallet to a specific wallet.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -695,10 +691,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -760,14 +752,14 @@ export class Erc20Service {
     /**
      * Transfer tokens from wallet
      * Transfer ERC-20 tokens from the connected wallet to another wallet. Requires allowance.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -794,10 +786,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -859,14 +847,14 @@ export class Erc20Service {
     /**
      * Burn token
      * Burn ERC-20 tokens in the caller wallet.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -885,10 +873,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -950,14 +934,14 @@ export class Erc20Service {
     /**
      * Burn token from wallet
      * Burn ERC-20 tokens in a specific wallet. Requires allowance.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -980,10 +964,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1045,14 +1025,14 @@ export class Erc20Service {
     /**
      * Claim tokens to wallet
      * Claim ERC-20 tokens to a specific wallet.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1070,19 +1050,11 @@ export class Erc20Service {
              * The amount of tokens to claim.
              */
             amount: string;
-            /**
-             * Whether the drop is a single phase drop
-             */
-            singlePhaseDrop?: boolean;
             txOverrides?: {
                 /**
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1144,14 +1116,14 @@ export class Erc20Service {
     /**
      * Mint tokens (batch)
      * Mint ERC-20 tokens to multiple wallets in one transaction.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1176,10 +1148,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1241,14 +1209,14 @@ export class Erc20Service {
     /**
      * Mint tokens
      * Mint ERC-20 tokens to a specific wallet.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress ERC20 contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1271,10 +1239,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1336,14 +1300,14 @@ export class Erc20Service {
     /**
      * Signature mint
      * Mint ERC-20 tokens from a generated signature.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1396,10 +1360,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1461,14 +1421,14 @@ export class Erc20Service {
     /**
      * Overwrite the claim conditions for the drop.
      * Overwrite the claim conditions for the drop. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1500,10 +1460,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -1565,14 +1521,14 @@ export class Erc20Service {
     /**
      * Update a single claim phase.
      * Update a single claim phase, by providing the index of the claim phase and the new phase configuration. The index is the position of the phase in the list of phases you have made, starting from zero. e.g. if you have two phases, the first phase has an index of 0 and the second phase has an index of 1. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1607,10 +1563,6 @@ export class Erc20Service {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */

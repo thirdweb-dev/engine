@@ -24,13 +24,13 @@ export class ContractSubscriptionsService {
              */
             contractAddress: string;
             webhook?: {
-                id: number;
                 url: string;
                 name: (string | null);
                 secret?: string;
                 eventType: string;
                 active: boolean;
                 createdAt: string;
+                id: number;
             };
             processEventLogs: boolean;
             filterEvents: Array<string>;
@@ -60,7 +60,7 @@ export class ContractSubscriptionsService {
     public addContractSubscription(
         requestBody: {
             /**
-             * A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+             * The chain for the contract.
              */
             chain: string;
             /**
@@ -97,13 +97,13 @@ export class ContractSubscriptionsService {
              */
             contractAddress: string;
             webhook?: {
-                id: number;
                 url: string;
                 name: (string | null);
                 secret?: string;
                 eventType: string;
                 active: boolean;
                 createdAt: string;
+                id: number;
             };
             processEventLogs: boolean;
             filterEvents: Array<string>;
@@ -160,7 +160,7 @@ export class ContractSubscriptionsService {
     /**
      * Get subscribed contract indexed block range
      * Gets the subscribed contract's indexed block range
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -170,9 +170,6 @@ export class ContractSubscriptionsService {
         contractAddress: string,
     ): CancelablePromise<{
         result: {
-            /**
-             * A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
-             */
             chain: string;
             /**
              * A contract or wallet address
@@ -201,7 +198,7 @@ export class ContractSubscriptionsService {
     /**
      * Get last processed block
      * Get the last processed block for a chain.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain name or ID
      * @returns any Default Response
      * @throws ApiError
      */

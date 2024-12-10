@@ -12,7 +12,7 @@ export class AccountFactoryService {
     /**
      * Get all smart accounts
      * Get all the smart accounts for this account factory.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -45,7 +45,7 @@ export class AccountFactoryService {
      * Get associated smart accounts
      * Get all the smart accounts for this account factory associated with the specific admin wallet.
      * @param signerAddress The address of the signer to get associated accounts from
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -82,7 +82,7 @@ export class AccountFactoryService {
      * Check if deployed
      * Check if a smart account has been deployed to the blockchain.
      * @param adminAddress The address of the admin to check if the account address is deployed
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param extraData Extra data to use in predicting the account address
      * @returns any Default Response
@@ -122,7 +122,7 @@ export class AccountFactoryService {
      * Predict smart account address
      * Get the counterfactual address of a smart account.
      * @param adminAddress The address of the admin to predict the account address for
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param extraData Extra data (account salt) to add to use in predicting the account address
      * @returns any Default Response
@@ -161,14 +161,14 @@ export class AccountFactoryService {
     /**
      * Create smart account
      * Create a smart account for this account factory.
-     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param chain Chain ID or name
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param simulateTx Simulate the transaction on-chain without executing
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -191,10 +191,6 @@ export class AccountFactoryService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
-                /**
-                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
-                 */
-                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
