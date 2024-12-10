@@ -91,7 +91,7 @@ export async function getNonceDetailsRoute(fastify: FastifyInstance) {
       const { walletAddress, chain } = request.query;
       const result = await getNonceDetails({
         walletAddress: walletAddress ? getAddress(walletAddress) : undefined,
-        chainId: chain ? parseInt(chain) : undefined,
+        chainId: chain ? Number.parseInt(chain) : undefined,
       });
 
       reply.status(StatusCodes.OK).send({
@@ -144,12 +144,12 @@ export const getNonceDetails = async ({
       walletAddress: key.walletAddress,
       chainId: key.chainId,
       onchainNonce: onchainNonces[index],
-      lastUsedNonce: parseInt(lastUsedNonceResult[1] as string) ?? 0,
+      lastUsedNonce: Number.parseInt(lastUsedNonceResult[1] as string) ?? 0,
       sentNonces: (sentNoncesResult[1] as string[])
-        .map((nonce) => parseInt(nonce))
+        .map((nonce) => Number.parseInt(nonce))
         .sort((a, b) => b - a),
       recycledNonces: (recycledNoncesResult[1] as string[])
-        .map((nonce) => parseInt(nonce))
+        .map((nonce) => Number.parseInt(nonce))
         .sort((a, b) => b - a),
     };
   });

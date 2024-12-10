@@ -17,7 +17,7 @@ export const getRelayerById = async ({ id }: GetRelayerByIdParams) => {
 
   return {
     ...relayer,
-    chainId: parseInt(relayer.chainId),
+    chainId: Number.parseInt(relayer.chainId),
     allowedContracts: relayer.allowedContracts
       ? (JSON.parse(relayer.allowedContracts).map((contractAddress: string) =>
           contractAddress.toLowerCase(),

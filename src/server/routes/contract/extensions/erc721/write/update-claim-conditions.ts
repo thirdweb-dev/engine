@@ -80,10 +80,11 @@ export async function erc721UpdateClaimConditions(fastify: FastifyInstance) {
         ...claimConditionInput,
         startTime: claimConditionInput.startTime
           ? isUnixEpochTimestamp(
-              parseInt(claimConditionInput.startTime.toString()),
+              Number.parseInt(claimConditionInput.startTime.toString()),
             )
             ? new Date(
-                parseInt(claimConditionInput.startTime.toString()) * 1000,
+                Number.parseInt(claimConditionInput.startTime.toString()) *
+                  1000,
               )
             : new Date(claimConditionInput.startTime)
           : undefined,

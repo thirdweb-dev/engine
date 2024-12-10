@@ -78,8 +78,8 @@ export async function erc721SetClaimConditions(fastify: FastifyInstance) {
         return {
           ...item,
           startTime: item.startTime
-            ? isUnixEpochTimestamp(parseInt(item.startTime.toString()))
-              ? new Date(parseInt(item.startTime.toString()) * 1000)
+            ? isUnixEpochTimestamp(Number.parseInt(item.startTime.toString()))
+              ? new Date(Number.parseInt(item.startTime.toString()) * 1000)
               : new Date(item.startTime)
             : undefined,
         };
