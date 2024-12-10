@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import { clearCache } from "../cache/clearCache";
-import { getConfig } from "../cache/getConfig";
+import { clearCache } from "../cache/clear-cache";
+import { getConfig } from "../cache/get-config";
 import { env } from "../env";
 
 let task: cron.ScheduledTask;

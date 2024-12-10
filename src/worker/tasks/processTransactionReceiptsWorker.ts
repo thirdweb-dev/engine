@@ -12,11 +12,11 @@ import {
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import { decodeFunctionData, type Abi, type Hash } from "viem";
-import { bulkInsertContractTransactionReceipts } from "../../shared/db/contractTransactionReceipts/createContractTransactionReceipts";
+import { bulkInsertContractTransactionReceipts } from "../../shared/db/contract-transaction-receipts/create-contract-transaction-receipts";
 import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
 import { getChain } from "../../shared/utils/chain";
 import { logger } from "../../shared/utils/logger";
-import { normalizeAddress } from "../../shared/utils/primitiveTypes";
+import { normalizeAddress } from "../../shared/utils/primitive-types";
 import { redis } from "../../shared/utils/redis/redis";
 import { thirdwebClient } from "../../shared/utils/sdk";
 import {

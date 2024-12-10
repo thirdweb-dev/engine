@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { getConfig } from "../../shared/utils/cache/getConfig";
+import { getConfig } from "../../shared/utils/cache/get-config";
 import { logger } from "../../shared/utils/logger";
 import { manageChainIndexers } from "../tasks/manageChainIndexers";
 

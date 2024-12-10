@@ -1,4 +1,4 @@
-import { getConfig } from "../../../shared/utils/cache/getConfig";
+import { getConfig } from "../../../shared/utils/cache/get-config";
 
 export type AwsKmsWalletParams = {
   awsAccessKeyId: string;

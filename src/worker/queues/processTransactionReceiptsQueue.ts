@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 import superjson from "superjson";
 import type { Address } from "thirdweb";
-import { getConfig } from "../../shared/utils/cache/getConfig";
+import { getConfig } from "../../shared/utils/cache/get-config";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 

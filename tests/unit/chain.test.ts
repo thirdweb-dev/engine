@@ -4,7 +4,7 @@ import {
 } from "@thirdweb-dev/chains";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { getChainIdFromChain } from "../../src/server/utils/chain";
-import { getConfig } from "../../src/shared/utils/cache/getConfig";
+import { getConfig } from "../../src/shared/utils/cache/get-config";
 
 // Mock the external dependencies
 vi.mock("../utils/cache/getConfig");

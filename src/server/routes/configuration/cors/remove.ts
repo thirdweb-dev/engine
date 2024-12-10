@@ -1,8 +1,8 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/updateConfiguration";
-import { getConfig } from "../../../../shared/utils/cache/getConfig";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
 import { createCustomError } from "../../../middleware/error";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";

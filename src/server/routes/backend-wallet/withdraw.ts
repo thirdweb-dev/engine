@@ -12,7 +12,7 @@ import { getWalletBalance } from "thirdweb/wallets";
 import { getAccount } from "../../../shared/utils/account";
 import { getChain } from "../../../shared/utils/chain";
 import { logger } from "../../../shared/utils/logger";
-import { getChecksumAddress } from "../../../shared/utils/primitiveTypes";
+import { getChecksumAddress } from "../../../shared/utils/primitive-types";
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import type { PopulatedTransaction } from "../../../shared/utils/transaction/types";
 import { createCustomError } from "../../middleware/error";

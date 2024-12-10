@@ -11,7 +11,7 @@ import { createCustomError } from "../../../server/middleware/error";
 import type { txOverridesWithValueSchema } from "../../../server/schemas/txOverrides";
 import { parseTransactionOverrides } from "../../../server/utils/transactionOverrides";
 import { prettifyError } from "../error";
-import { insertTransaction } from "./insertTransaction";
+import { insertTransaction } from "./insert-transaction";
 import type { InsertedTransaction } from "./types";
 
 export type QueuedTransactionParams = {

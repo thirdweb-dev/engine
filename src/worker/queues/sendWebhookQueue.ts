@@ -9,7 +9,7 @@ import {
   WebhooksEventTypes,
   type BackendWalletBalanceWebhookParams,
 } from "../../shared/schemas/webhooks";
-import { getWebhooksByEventType } from "../../shared/utils/cache/getWebhook";
+import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook";
 import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";

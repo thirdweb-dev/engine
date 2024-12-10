@@ -3,9 +3,9 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
 import { parseAbiParams, type AbiFunction } from "thirdweb/utils";
-import { getContractV5 } from "../../../../shared/utils/cache/getContractv5";
+import { getContractV5 } from "../../../../shared/utils/cache/get-contractv5";
 import { prettifyError } from "../../../../shared/utils/error";
-import { queueTransaction } from "../../../../shared/utils/transaction/queueTransation";
+import { queueTransaction } from "../../../../shared/utils/transaction/queue-transation";
 import { createCustomError } from "../../../middleware/error";
 import { abiArraySchema } from "../../../schemas/contract";
 import {

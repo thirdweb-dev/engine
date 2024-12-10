@@ -1,9 +1,9 @@
 import type { env } from "../env";
-import { accessTokenCache } from "./accessToken";
-import { invalidateConfig } from "./getConfig";
-import { sdkCache } from "./getSdk";
-import { walletsCache } from "./getWallet";
-import { webhookCache } from "./getWebhook";
+import { accessTokenCache } from "./access-token";
+import { invalidateConfig } from "./get-config";
+import { sdkCache } from "./get-sdk";
+import { walletsCache } from "./get-wallet";
+import { webhookCache } from "./get-webhook";
 import { keypairCache } from "./keypair";
 
 export const clearCache = async (

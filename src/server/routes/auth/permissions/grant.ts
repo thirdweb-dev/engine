@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updatePermissions } from "../../../../shared/db/permissions/updatePermissions";
+import { updatePermissions } from "../../../../shared/db/permissions/update-permissions";
 import { AddressSchema } from "../../../schemas/address";
 import { permissionsSchema } from "../../../../shared/schemas/auth";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";

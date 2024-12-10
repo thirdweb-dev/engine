@@ -6,7 +6,7 @@ import {
 import { stringify } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import { getAccount } from "../account";
-import { getSmartWalletV5 } from "../cache/getSmartWalletV5";
+import { getSmartWalletV5 } from "../cache/get-smart-wallet-v5";
 import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
 import type { AnyTransaction } from "./types";

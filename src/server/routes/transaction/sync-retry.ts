@@ -10,7 +10,7 @@ import { getChain } from "../../../shared/utils/chain";
 import {
   getChecksumAddress,
   maybeBigInt,
-} from "../../../shared/utils/primitiveTypes";
+} from "../../../shared/utils/primitive-types";
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import type { SentTransaction } from "../../../shared/utils/transaction/types";
 import { enqueueTransactionWebhook } from "../../../shared/utils/transaction/webhook";

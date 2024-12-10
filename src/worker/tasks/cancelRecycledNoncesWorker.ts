@@ -1,10 +1,10 @@
 import { type Job, type Processor, Worker } from "bullmq";
 import type { Address } from "thirdweb";
-import { recycleNonce } from "../../shared/db/wallets/walletNonce";
+import { recycleNonce } from "../../shared/db/wallets/wallet-nonce";
 import { isNonceAlreadyUsedError } from "../../shared/utils/error";
 import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";
-import { sendCancellationTransaction } from "../../shared/utils/transaction/cancelTransaction";
+import { sendCancellationTransaction } from "../../shared/utils/transaction/cancel-transaction";
 import { CancelRecycledNoncesQueue } from "../queues/cancelRecycledNoncesQueue";
 import { logWorkerExceptions } from "../queues/queues";
 

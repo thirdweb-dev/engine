@@ -5,7 +5,7 @@ import { getChainMetadata } from "thirdweb/chains";
 import { badChainError } from "../../../server/middleware/error";
 import { getChain } from "../chain";
 import { env } from "../env";
-import { getWallet } from "./getWallet";
+import { getWallet } from "./get-wallet";
 
 export const sdkCache = new LRUMap<string, ThirdwebSDK>(2048);
 

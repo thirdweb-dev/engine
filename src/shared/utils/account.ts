@@ -5,7 +5,7 @@ import {
   getWalletDetails,
   isSmartBackendWallet,
   type ParsedWalletDetails,
-} from "../db/wallets/getWalletDetails";
+} from "../db/wallets/get-wallet-details";
 import { WalletType } from "../schemas/wallet";
 import { splitAwsKmsArn } from "../../server/utils/wallets/awsKmsArn";
 import { getConnectedSmartWallet } from "../../server/utils/wallets/createSmartWallet";
@@ -15,7 +15,7 @@ import {
   encryptedJsonToAccount,
   getLocalWalletAccount,
 } from "../../server/utils/wallets/getLocalWallet";
-import { getSmartWalletV5 } from "./cache/getSmartWalletV5";
+import { getSmartWalletV5 } from "./cache/get-smart-wallet-v5";
 import { getChain } from "./chain";
 import { thirdwebClient } from "./sdk";
 

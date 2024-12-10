@@ -11,9 +11,9 @@ import {
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
 import { getChain } from "../../../shared/utils/chain";
-import { normalizeAddress } from "../../../shared/utils/primitiveTypes";
+import { normalizeAddress } from "../../../shared/utils/primitive-types";
 import { thirdwebClient } from "../../../shared/utils/sdk";
-import { insertTransaction } from "../../../shared/utils/transaction/insertTransaction";
+import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
 import type { InsertedTransaction } from "../../../shared/utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";

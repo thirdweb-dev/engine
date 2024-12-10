@@ -10,12 +10,12 @@ import type {
 } from "../../schemas/config";
 import { WalletType } from "../../schemas/wallet";
 import { mandatoryAllowedCorsUrls } from "../../../server/utils/cors-urls";
-import type { networkResponseSchema } from "../../utils/cache/getSdk";
+import type { networkResponseSchema } from "../../utils/cache/get-sdk";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { prisma } from "../client";
-import { updateConfiguration } from "./updateConfiguration";
+import { updateConfiguration } from "./update-configuration";
 
 const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // We destructure the config to omit wallet related fields to prevent direct access

@@ -6,7 +6,7 @@ import {
   WalletDetailsError,
   getWalletDetails,
   type ParsedWalletDetails,
-} from "../../db/wallets/getWalletDetails";
+} from "../../db/wallets/get-wallet-details";
 import type { PrismaTransaction } from "../../schemas/prisma";
 import { WalletType } from "../../schemas/wallet";
 import { createCustomError } from "../../../server/middleware/error";

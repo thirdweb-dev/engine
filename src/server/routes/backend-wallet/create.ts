@@ -7,7 +7,7 @@ import {
   ENTRYPOINT_ADDRESS_v0_7,
 } from "thirdweb/wallets/smart";
 import { WalletType } from "../../../shared/schemas/wallet";
-import { getConfig } from "../../../shared/utils/cache/getConfig";
+import { getConfig } from "../../../shared/utils/cache/get-config";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";

@@ -5,7 +5,7 @@ import { getContract } from "thirdweb";
 import { mintTo } from "thirdweb/extensions/erc20";
 import { getChain } from "../../../../../../shared/utils/chain";
 import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
 import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc20ContractParamSchema,

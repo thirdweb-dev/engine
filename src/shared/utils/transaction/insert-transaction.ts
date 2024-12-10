@@ -5,14 +5,14 @@ import {
   getWalletDetails,
   isSmartBackendWallet,
   type ParsedWalletDetails,
-} from "../../../shared/db/wallets/getWalletDetails";
+} from "../../../shared/db/wallets/get-wallet-details";
 import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
 import { createCustomError } from "../../../server/middleware/error";
 import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
-import { getChecksumAddress } from "../primitiveTypes";
+import { getChecksumAddress } from "../primitive-types";
 import { recordMetrics } from "../prometheus";
 import { reportUsage } from "../usage";
-import { doSimulateTransaction } from "./simulateQueuedTransaction";
+import { doSimulateTransaction } from "./simulate-queued-transaction";
 import type { InsertedTransaction, QueuedTransaction } from "./types";
 
 interface InsertTransactionData {

@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { getBlockTimeSeconds } from "../../shared/utils/indexer/getBlockTime";
+import { getBlockTimeSeconds } from "../../shared/utils/indexer/get-block-time";
 import { logger } from "../../shared/utils/logger";
 import { handleContractSubscriptions } from "../tasks/chainIndexer";
 

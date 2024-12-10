@@ -1,4 +1,4 @@
-import { createWalletDetails } from "../../../shared/db/wallets/createWalletDetails";
+import { createWalletDetails } from "../../../shared/db/wallets/create-wallet-details";
 import { WalletType } from "../../../shared/schemas/wallet";
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import { splitAwsKmsArn } from "./awsKmsArn";

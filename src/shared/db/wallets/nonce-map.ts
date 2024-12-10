@@ -1,6 +1,6 @@
 import type { Address } from "thirdweb";
 import { env } from "../../utils/env";
-import { normalizeAddress } from "../../utils/primitiveTypes";
+import { normalizeAddress } from "../../utils/primitive-types";
 import { redis } from "../../utils/redis/redis";
 
 /**

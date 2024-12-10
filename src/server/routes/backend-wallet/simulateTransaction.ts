@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { randomUUID } from "node:crypto";
 import type { Address, Hex } from "thirdweb";
-import { doSimulateTransaction } from "../../../shared/utils/transaction/simulateQueuedTransaction";
+import { doSimulateTransaction } from "../../../shared/utils/transaction/simulate-queued-transaction";
 import type { QueuedTransaction } from "../../../shared/utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";

@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import { getContract, type Address, type Hex } from "thirdweb";
 import { generateMintSignature } from "thirdweb/extensions/erc721";
 import { getAccount } from "../../../../../../shared/utils/account";
-import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/getContract";
+import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/get-contract";
 import { getChain } from "../../../../../../shared/utils/chain";
-import { maybeBigInt } from "../../../../../../shared/utils/primitiveTypes";
+import { maybeBigInt } from "../../../../../../shared/utils/primitive-types";
 import { thirdwebClient } from "../../../../../../shared/utils/sdk";
 import { thirdwebSdkVersionSchema } from "../../../../../schemas/httpHeaders/thirdwebSdkVersion";
 import {
