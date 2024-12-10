@@ -165,8 +165,9 @@ const _mineTransaction = async (
   }
 
   // Else the transaction is not mined yet.
+  const ellapsedMs = Date.now() - sentTransaction.queuedAt.getTime();
   job.log(
-    `Transaction is not mined yet. Check again later. sentTransactionHashes=${sentTransaction.sentTransactionHashes}`,
+    `Transaction is not mined yet. Check again later. elapsed=${ellapsedMs / 1000}s`,
   );
 
   // Resend the transaction (after some initial delay).

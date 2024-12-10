@@ -8,7 +8,6 @@ import {
   updatedWebhooksListener,
 } from "./listeners/webhookListener";
 import { initCancelRecycledNoncesWorker } from "./tasks/cancelRecycledNoncesWorker";
-import { initMigratePostgresTransactionsWorker } from "./tasks/migratePostgresTransactionsWorker";
 import { initMineTransactionWorker } from "./tasks/mineTransactionWorker";
 import { initNonceHealthCheckWorker } from "./tasks/nonceHealthCheckWorker";
 import { initNonceResyncWorker } from "./tasks/nonceResyncWorker";
@@ -28,8 +27,6 @@ export const initWorker = async () => {
   initSendWebhookWorker();
 
   initNonceHealthCheckWorker();
-
-  await initMigratePostgresTransactionsWorker();
 
   await initNonceResyncWorker();
 

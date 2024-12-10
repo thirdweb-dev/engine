@@ -1,11 +1,15 @@
 import { Queue } from "bullmq";
 import superjson from "superjson";
+import { env } from "../../shared/utils/env";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
 export type MineTransactionData = {
   queueId: string;
 };
+
+// Attempts are made every ~20 seconds. See backoffStrategy in initMineTransactionWorker().
+const NUM_ATTEMPTS = env.EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS / 20;
 
 export class MineTransactionQueue {
   static q = new Queue<string>("transactions-2-mine", {
@@ -23,7 +27,7 @@ export class MineTransactionQueue {
     const jobId = this.jobId(data);
     await this.q.add(jobId, serialized, {
       jobId,
-      attempts: 100, // > 30 minutes with the backoffStrategy defined on the worker
+      attempts: NUM_ATTEMPTS,
       backoff: { type: "custom" },
     });
   };

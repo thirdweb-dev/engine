@@ -1,8 +1,11 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../shared/db/transactions/queueTx";
-import { getContract } from "../../../../../../shared/utils/cache/getContract";
+import { getContract } from "thirdweb";
+import { mintTo } from "thirdweb/extensions/erc20";
+import { getChain } from "../../../../../../shared/utils/chain";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queueTransation";
 import { AddressSchema } from "../../../../../schemas/address";
 import {
   erc20ContractParamSchema,
@@ -11,7 +14,11 @@ import {
   transactionWritesResponseSchema,
 } from "../../../../../schemas/sharedApiSchemas";
 import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
+import {
+  maybeAddress,
+  requiredAddress,
+  walletWithAAHeaderSchema,
+} from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUTS
@@ -59,31 +66,46 @@ export async function erc20mintTo(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress } = request.params;
+      const { chain: _chain, contractAddress } = request.params;
       const { simulateTx } = request.query;
       const { toAddress, amount, txOverrides } = request.body;
       const {
-        "x-backend-wallet-address": walletAddress,
+        "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
-      const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
-        contractAddress,
-        walletAddress,
-        accountAddress,
-      });
-      const tx = await contract.erc20.mintTo.prepare(toAddress, amount);
+      const chainId = await getChainIdFromChain(_chain);
+      const chain = await getChain(chainId);
 
-      const queueId = await queueTx({
-        tx,
-        chainId,
-        simulateTx,
-        extension: "erc20",
-        idempotencyKey,
+      const contract = getContract({
+        chain,
+        client: thirdwebClient,
+        address: contractAddress,
+      });
+      const transaction = mintTo({
+        contract,
+        to: toAddress,
+        amount,
+      });
+
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
+        toAddress: maybeAddress(contractAddress, "to"),
+        accountAddress: maybeAddress(accountAddress, "x-account-address"),
+        accountFactoryAddress: maybeAddress(
+          accountFactoryAddress,
+          "x-account-factory-address",
+        ),
+        accountSalt,
         txOverrides,
+        idempotencyKey,
+        extension: "erc20",
+        functionName: "mintTo",
+        shouldSimulate: simulateTx,
       });
 
       reply.status(StatusCodes.OK).send({
