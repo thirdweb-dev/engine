@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/updateConfiguration";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
 import { getConfig } from "../../../../shared/utils/cache/getConfig";
 import { sdkCache } from "../../../../shared/utils/cache/getSdk";
 import { chainResponseSchema } from "../../../schemas/chain";

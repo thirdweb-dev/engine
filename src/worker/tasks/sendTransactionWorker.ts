@@ -24,7 +24,7 @@ import {
   addSentNonce,
   recycleNonce,
   syncLatestNonceFromOnchainIfHigher,
-} from "../../shared/db/wallets/walletNonce";
+} from "../../shared/db/wallets/wallet-nonce";
 import {
   getAccount,
   getSmartBackendWalletAdminAccount,

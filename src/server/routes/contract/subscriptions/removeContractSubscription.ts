@@ -1,8 +1,8 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteContractSubscription } from "../../../../shared/db/contractSubscriptions/deleteContractSubscription";
-import { deleteWebhook } from "../../../../shared/db/webhooks/revokeWebhook";
+import { deleteContractSubscription } from "../../../../shared/db/contractSubscriptions/delete-contract-subscription";
+import { deleteWebhook } from "../../../../shared/db/webhooks/revoke-webhook";
 import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 
 const bodySchema = Type.Object({

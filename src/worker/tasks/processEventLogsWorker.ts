@@ -15,8 +15,8 @@ import {
   type ThirdwebContract,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
-import { bulkInsertContractEventLogs } from "../../shared/db/contractEventLogs/createContractEventLogs";
-import { getContractSubscriptionsByChainId } from "../../shared/db/contractSubscriptions/getContractSubscriptions";
+import { bulkInsertContractEventLogs } from "../../shared/db/contractEventLogs/create-contract-event-logs";
+import { getContractSubscriptionsByChainId } from "../../shared/db/contractSubscriptions/get-contract-subscriptions";
 import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
 import { getChain } from "../../shared/utils/chain";
 import { logger } from "../../shared/utils/logger";

@@ -6,7 +6,7 @@ import { StatusCodes } from "http-status-codes";
 import type { Address, Hex } from "thirdweb";
 import { mintWithSignature } from "thirdweb/extensions/erc721";
 import { resolvePromisedValue } from "thirdweb/utils";
-import { queueTx } from "../../../../../../shared/db/transactions/queueTx";
+import { queueTx } from "../../../../../../shared/db/transactions/queue-tx";
 import { getContract } from "../../../../../../shared/utils/cache/getContract";
 import { getContractV5 } from "../../../../../../shared/utils/cache/getContractv5";
 import { insertTransaction } from "../../../../../../shared/utils/transaction/insertTransaction";

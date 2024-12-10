@@ -14,7 +14,7 @@ import { TransactionDB } from "../../shared/db/transactions/db";
 import {
   recycleNonce,
   removeSentNonce,
-} from "../../shared/db/wallets/walletNonce";
+} from "../../shared/db/wallets/wallet-nonce";
 import {
   getReceiptForEOATransaction,
   getReceiptForUserOp,

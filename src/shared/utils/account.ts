@@ -5,7 +5,7 @@ import {
   getWalletDetails,
   isSmartBackendWallet,
   type ParsedWalletDetails,
-} from "../db/wallets/getWalletDetails";
+} from "../db/wallets/get-wallet-details";
 import { WalletType } from "../schemas/wallet";
 import { splitAwsKmsArn } from "../../server/utils/wallets/awsKmsArn";
 import { getConnectedSmartWallet } from "../../server/utils/wallets/createSmartWallet";

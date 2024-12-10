@@ -1,7 +1,7 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/updateConfiguration";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
 import { getConfig } from "../../../../shared/utils/cache/getConfig";
 import { clearCacheCron } from "../../../../shared/utils/cron/clearCacheCron";
 import { isValidCron } from "../../../../shared/utils/cron/isValidCron";

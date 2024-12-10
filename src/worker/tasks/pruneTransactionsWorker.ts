@@ -1,6 +1,6 @@
 import { Worker, type Job, type Processor } from "bullmq";
 import { TransactionDB } from "../../shared/db/transactions/db";
-import { pruneNonceMaps } from "../../shared/db/wallets/nonceMap";
+import { pruneNonceMaps } from "../../shared/db/wallets/nonce-map";
 import { env } from "../../shared/utils/env";
 import { redis } from "../../shared/utils/redis/redis";
 import { PruneTransactionsQueue } from "../queues/pruneTransactionsQueue";

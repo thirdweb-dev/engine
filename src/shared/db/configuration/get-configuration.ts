@@ -15,7 +15,7 @@ import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { prisma } from "../client";
-import { updateConfiguration } from "./updateConfiguration";
+import { updateConfiguration } from "./update-configuration";
 
 const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // We destructure the config to omit wallet related fields to prevent direct access

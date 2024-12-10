@@ -1,5 +1,5 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { updateConfiguration } from "../../db/configuration/updateConfiguration";
+import { updateConfiguration } from "../../db/configuration/update-configuration";
 import { env } from "../env";
 import { logger } from "../logger";
 import { getConfig } from "./getConfig";

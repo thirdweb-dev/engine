@@ -4,10 +4,10 @@ import {
   getRpcClient,
   type Address,
 } from "thirdweb";
-import { getBlockForIndexing } from "../../shared/db/chainIndexers/getChainIndexer";
-import { upsertChainIndexer } from "../../shared/db/chainIndexers/upsertChainIndexer";
+import { getBlockForIndexing } from "../../shared/db/chainIndexers/get-chain-indexer";
+import { upsertChainIndexer } from "../../shared/db/chainIndexers/upsert-chain-indexer";
 import { prisma } from "../../shared/db/client";
-import { getContractSubscriptionsByChainId } from "../../shared/db/contractSubscriptions/getContractSubscriptions";
+import { getContractSubscriptionsByChainId } from "../../shared/db/contractSubscriptions/get-contract-subscriptions";
 import { getChain } from "../../shared/utils/chain";
 import { logger } from "../../shared/utils/logger";
 import { thirdwebClient } from "../../shared/utils/sdk";

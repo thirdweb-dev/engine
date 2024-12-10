@@ -1,6 +1,6 @@
 import type { Tokens } from "@prisma/client";
 import LRUMap from "mnemonist/lru-map";
-import { getToken } from "../../db/tokens/getToken";
+import { getToken } from "../../db/tokens/get-token";
 
 // Cache an access token JWT to the token object, or null if not found.
 export const accessTokenCache = new LRUMap<string, Tokens | null>(2048);

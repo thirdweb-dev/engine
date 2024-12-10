@@ -2,7 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
-import { inspectNonce } from "../../../shared/db/wallets/walletNonce";
+import { inspectNonce } from "../../../shared/db/wallets/wallet-nonce";
 import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
 import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";

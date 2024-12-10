@@ -3,7 +3,7 @@ import { getAddress, type Address } from "thirdweb";
 import {
   getUsedBackendWallets,
   inspectNonce,
-} from "../../shared/db/wallets/walletNonce";
+} from "../../shared/db/wallets/wallet-nonce";
 import { getLastUsedOnchainNonce } from "../../server/routes/admin/nonces";
 import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";

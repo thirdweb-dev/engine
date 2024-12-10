@@ -3,7 +3,7 @@ import { Wallet } from "ethers";
 import type { Address } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { privateKeyToAccount, type Account } from "thirdweb/wallets";
-import { getWalletDetails } from "../../../shared/db/wallets/getWalletDetails";
+import { getWalletDetails } from "../../../shared/db/wallets/get-wallet-details";
 import { getChain } from "../../../shared/utils/chain";
 import { env } from "../../../shared/utils/env";
 import { logger } from "../../../shared/utils/logger";

@@ -12,7 +12,7 @@ import {
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import { decodeFunctionData, type Abi, type Hash } from "viem";
-import { bulkInsertContractTransactionReceipts } from "../../shared/db/contractTransactionReceipts/createContractTransactionReceipts";
+import { bulkInsertContractTransactionReceipts } from "../../shared/db/contractTransactionReceipts/create-contract-transaction-receipts";
 import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
 import { getChain } from "../../shared/utils/chain";
 import { logger } from "../../shared/utils/logger";

@@ -12,7 +12,7 @@ import {
   lastUsedNonceKey,
   recycledNoncesKey,
   sentNoncesKey,
-} from "../../../shared/db/wallets/walletNonce";
+} from "../../../shared/db/wallets/wallet-nonce";
 import { getChain } from "../../../shared/utils/chain";
 import { redis } from "../../../shared/utils/redis/redis";
 import { thirdwebClient } from "../../../shared/utils/sdk";

@@ -3,7 +3,7 @@ import type { SignedPayload20 } from "@thirdweb-dev/sdk";
 import { BigNumber } from "ethers";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../shared/db/transactions/queueTx";
+import { queueTx } from "../../../../../../shared/db/transactions/queue-tx";
 import { getContract } from "../../../../../../shared/utils/cache/getContract";
 import { signature20OutputSchema } from "../../../../../schemas/erc20";
 import {

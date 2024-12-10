@@ -3,7 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import type { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken from "jsonwebtoken";
-import { getPermissions } from "../../src/shared/db/permissions/getPermissions";
+import { getPermissions } from "../../src/shared/db/permissions/get-permissions";
 import { WebhooksEventTypes } from "../../src/shared/schemas/webhooks";
 import { onRequest } from "../../src/server/middleware/auth";
 import {

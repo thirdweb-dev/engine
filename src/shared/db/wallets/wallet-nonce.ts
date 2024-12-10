@@ -9,7 +9,7 @@ import { logger } from "../../utils/logger";
 import { normalizeAddress } from "../../utils/primitiveTypes";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
-import { updateNonceMap } from "./nonceMap";
+import { updateNonceMap } from "./nonce-map";
 
 /**
  * Get all used backend wallets.
