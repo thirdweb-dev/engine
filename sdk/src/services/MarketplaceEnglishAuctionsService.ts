@@ -12,11 +12,11 @@ export class MarketplaceEnglishAuctionsService {
     /**
      * Get all English auctions
      * Get all English auction listings on this marketplace contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param count Number of listings to fetch
      * @param seller Being sold by this Address
-     * @param start Satrt from this index (pagination)
+     * @param start Start from this index (pagination)
      * @param tokenContract Token contract address to show NFTs from
      * @param tokenId Only show NFTs with this ID
      * @returns any Default Response
@@ -115,11 +115,11 @@ export class MarketplaceEnglishAuctionsService {
     /**
      * Get all valid English auctions
      * Get all valid English auction listings on this marketplace contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param count Number of listings to fetch
      * @param seller Being sold by this Address
-     * @param start Satrt from this index (pagination)
+     * @param start Start from this index (pagination)
      * @param tokenContract Token contract address to show NFTs from
      * @param tokenId Only show NFTs with this ID
      * @returns any Default Response
@@ -219,7 +219,7 @@ export class MarketplaceEnglishAuctionsService {
      * Get English auction
      * Get a specific English auction listing on this marketplace contract.
      * @param listingId The id of the listing to retrieve.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -313,7 +313,7 @@ export class MarketplaceEnglishAuctionsService {
      * If there is no current bid, the bid must be at least the minimum bid amount.
      * Returns the value in percentage format, e.g. 100 = 1%.
      * @param listingId The id of the listing to retrieve.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -352,7 +352,7 @@ export class MarketplaceEnglishAuctionsService {
      * If there is no current bid, the bid must be at least the minimum bid amount.
      * If there is a current bid, the bid must be at least the current bid amount + the bid buffer.
      * @param listingId The id of the listing to retrieve.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -395,7 +395,7 @@ export class MarketplaceEnglishAuctionsService {
      * Get winning bid
      * Get the current highest bid of an active auction.
      * @param listingId The ID of the listing to retrieve the winner for.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -455,7 +455,7 @@ export class MarketplaceEnglishAuctionsService {
     /**
      * Get total listings
      * Get the count of English auction listings on this marketplace contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -486,7 +486,7 @@ export class MarketplaceEnglishAuctionsService {
      * Check if a bid is or will be the winning bid for an auction.
      * @param listingId The ID of the listing to retrieve the winner for.
      * @param bidAmount The amount of the bid to check if it is the winning bid.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -522,7 +522,7 @@ export class MarketplaceEnglishAuctionsService {
      * Get winner
      * Get the winner of an English auction. Can only be called after the auction has ended.
      * @param listingId The ID of the listing to retrieve the winner for.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -555,10 +555,10 @@ export class MarketplaceEnglishAuctionsService {
     /**
      * Buyout English auction
      * Buyout the listing for this auction.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -603,10 +603,10 @@ export class MarketplaceEnglishAuctionsService {
     /**
      * Cancel English auction
      * Cancel an existing auction listing. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -651,10 +651,10 @@ export class MarketplaceEnglishAuctionsService {
     /**
      * Create English auction
      * Create an English auction listing on this marketplace contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -738,10 +738,10 @@ export class MarketplaceEnglishAuctionsService {
      * execute the sale for the buyer, meaning the buyer receives the NFT(s).
      * You must also call closeAuctionForSeller to execute the sale for the seller,
      * meaning the seller receives the payment from the highest bid.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -788,10 +788,10 @@ export class MarketplaceEnglishAuctionsService {
      * After an auction has concluded (and a buyout did not occur),
      * execute the sale for the seller, meaning the seller receives the payment from the highest bid.
      * You must also call closeAuctionForBidder to execute the sale for the buyer, meaning the buyer receives the NFT(s).
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -838,10 +838,10 @@ export class MarketplaceEnglishAuctionsService {
      * Close the auction for both buyer and seller.
      * This means the NFT(s) will be transferred to the buyer and the seller will receive the funds.
      * This function can only be called after the auction has ended.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -886,10 +886,10 @@ export class MarketplaceEnglishAuctionsService {
     /**
      * Make bid
      * Place a bid on an English auction listing.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @returns any Default Response
      * @throws ApiError
      */
