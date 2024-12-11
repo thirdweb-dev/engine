@@ -15,6 +15,7 @@ import {
 import { generateLocalWallet } from "./create-local-wallet";
 import { getAwsKmsAccount } from "./get-aws-kms-account";
 import { getGcpKmsAccount } from "./get-gcp-kms-account";
+import { env } from "../../../shared/utils/env";
 
 /**
  * Get a smart wallet address for a given admin account
@@ -47,7 +48,7 @@ export const getConnectedSmartWallet = async ({
   });
 };
 
-export type CreateSmartAwsWalletParams = CreateAwsKmsWalletParams & {
+type CreateSmartAwsWalletParams = CreateAwsKmsWalletParams & {
   accountFactoryAddress?: Address;
   entrypointAddress?: Address;
 };
@@ -95,7 +96,7 @@ export const createSmartAwsWalletDetails = async ({
   });
 };
 
-export type CreateSmartGcpWalletParams = CreateGcpKmsWalletParams & {
+type CreateSmartGcpWalletParams = CreateGcpKmsWalletParams & {
   accountFactoryAddress?: Address;
   entrypointAddress?: Address;
 };
@@ -140,18 +141,21 @@ export const createSmartGcpWalletDetails = async ({
   });
 };
 
-export type CreateSmartLocalWalletParams = {
+type CreateSmartLocalWalletParams = {
   label?: string;
   accountFactoryAddress?: Address;
   entrypointAddress?: Address;
+  encryptionPassword?: string;
 };
 
 export const createSmartLocalWalletDetails = async ({
   label,
   accountFactoryAddress,
   entrypointAddress,
+  encryptionPassword = env.ENCRYPTION_PASSWORD,
 }: CreateSmartLocalWalletParams) => {
-  const { account, encryptedJson } = await generateLocalWallet();
+  const { account, encryptedJson } =
+    await generateLocalWallet(encryptionPassword);
 
   const wallet = await getConnectedSmartWallet({
     adminAccount: account,
