@@ -73,7 +73,7 @@ export const env = createEnv({
     SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
     CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
     ENGINE_MODE: z
-      .enum(["default", "sandbox", "server_only", "worker_only"])
+      .enum(["default", "sandbox", "server_only", "worker_only", "lite"])
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
     DD_TRACER_ACTIVATED: boolEnvSchema(false),

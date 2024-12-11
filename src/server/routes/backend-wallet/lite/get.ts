@@ -7,7 +7,7 @@ import { createBackendWalletLiteAccess } from "../../../../shared/db/wallets/cre
 import { getBackendWalletLiteAccess } from "../../../../shared/db/wallets/get-backend-wallet-lite-access";
 import { AddressSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { createCustomError } from "../../../middleware/error";
+import { assertAuthenticationType } from "../../../utils/auth";
 
 const requestSchema = Type.Object({
   teamId: Type.String({
@@ -33,7 +33,7 @@ responseSchema.example = {
   },
 };
 
-export const listBackendWalletsLiteRoute = async (fastify: FastifyInstance) => {
+export async function listBackendWalletsLiteRoute(fastify: FastifyInstance) {
   fastify.withTypeProvider().route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseSchema>;
@@ -53,20 +53,16 @@ export const listBackendWalletsLiteRoute = async (fastify: FastifyInstance) => {
       hide: true,
     },
     handler: async (req, reply) => {
-      const dashboardUserAddress = checksumAddress(req.user.address);
-      if (!dashboardUserAddress) {
-        throw createCustomError(
-          "This endpoint must be called from the thirdweb dashboard.",
-          StatusCodes.FORBIDDEN,
-          "DASHBOARD_AUTH_REQUIRED",
-        );
-      }
+      assertAuthenticationType(req, ["dashboard"]);
 
       const { teamId } = req.params;
       const liteAccess = await getBackendWalletLiteAccess({ teamId });
+      const dashboardUserAddress = checksumAddress(
+        req.authentication.user.address,
+      );
 
-      // If a wallet exists, return it.
-      if (liteAccess?.accountAddress) {
+      // If a salt exists (even if the wallet isn't created yet), return it.
+      if (liteAccess) {
         return reply.status(StatusCodes.OK).send({
           result: {
             walletAddress: liteAccess.accountAddress,
@@ -91,4 +87,4 @@ export const listBackendWalletsLiteRoute = async (fastify: FastifyInstance) => {
       });
     },
   });
-};
+}

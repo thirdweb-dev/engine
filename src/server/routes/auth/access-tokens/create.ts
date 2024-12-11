@@ -10,6 +10,7 @@ import { getConfig } from "../../../../shared/utils/cache/get-config";
 import { env } from "../../../../shared/utils/env";
 import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { AccessTokenSchema } from "./get-all";
+import { assertAuthenticationType } from "../../../utils/auth";
 
 const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),
@@ -41,8 +42,9 @@ export async function createAccessToken(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { label } = req.body;
+      assertAuthenticationType(req, ["dashboard", "secret-key"]);
 
+      const { label } = req.body;
       const config = await getConfig();
       const wallet = new LocalWallet();
 
@@ -75,13 +77,13 @@ export async function createAccessToken(fastify: FastifyInstance) {
         wallet,
         payload: {
           iss: await wallet.getAddress(),
-          sub: req.user.address,
+          sub: req.authentication.user.address,
           aud: config.authDomain,
           nbf: new Date(),
           // Set to expire in 100 years
           exp: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100),
           iat: new Date(),
-          ctx: req.user.session,
+          ctx: req.authentication.user.session,
         },
       });
 
