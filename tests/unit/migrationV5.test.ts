@@ -6,14 +6,9 @@ import { thirdwebClient } from "../../src/shared/utils/sdk";
 import { getWalletBalance } from "thirdweb/wallets";
 import { getBalance } from "thirdweb/extensions/erc20";
 import { getContractEvents } from "thirdweb";
-import {
-  getContract as getContractV5,
-  GetContractEventsResult,
-} from "thirdweb";
+import { getContract as getContractV5 } from "thirdweb";
 import { getContract as getContractV4 } from "../../src/shared/utils/cache/get-contract";
-
-import superjson from "superjson";
-import { BigNumber } from "ethers";
+import { mapEventsV4ToV5 } from "../../src/server/routes/contract/events/get-all-events";
 
 /**
  * need to pass THIRDWEB_API_SECRET_KEY as env when running test case
@@ -106,6 +101,7 @@ describe("migration from v4 to v5", () => {
       order,
     );
 
+    // check two array ordering is the same
     expect(eventsV4.length).eq(eventsV5.length);
     for (let i = 0; i < eventsV4.length; i++) {
       expect(eventsV4[i].transaction.transactionHash).eq(
@@ -113,44 +109,4 @@ describe("migration from v4 to v5", () => {
       );
     }
   });
-
-  /**
-   * Mapping of events v5 response to v4 for backward compatiblity.
-   * Clients may be using this api and dont want to break things.
-   */
-  const mapEventsV4ToV5 = (eventsV5, order) => {
-    if (!eventsV5?.length) return [];
-
-    return eventsV5
-      .map((event) => {
-        const eventName = event.eventName;
-        const data = {};
-
-        // backwards compatibility of BigInt(v5) to BigNumber (v4)
-        Object.keys(event.args).forEach((key) => {
-          let value = event.args[key];
-          if (typeof value == "bigint") {
-            value = BigNumber.from(value.toString());
-          }
-          data[key] = value;
-        });
-
-        delete event.eventName;
-        delete event.args;
-        const transaction = event;
-        transaction.blockNumber = parseInt(transaction.blockNumber);
-        transaction.event = eventName;
-
-        return {
-          eventName,
-          data,
-          transaction,
-        };
-      })
-      .sort((a, b) => {
-        return order === "desc"
-          ? b.transaction.blockNumber - a.transaction.blockNumber
-          : a.transaction.blockNumber - b.transaction.blockNumber;
-      });
-  };
 });
