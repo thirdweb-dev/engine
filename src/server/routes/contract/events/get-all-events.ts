@@ -1,7 +1,7 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../shared/utils/cache/get-contract";
+import { BigNumber } from "ethers";
 import {
   contractEventSchema,
   eventsQuerystringSchema,
@@ -10,7 +10,10 @@ import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../schemas/shared-api-schemas";
+import { thirdwebClient } from "../../../../shared/utils/sdk";
+import { getChain } from "../../../../shared/utils/chain";
 import { getChainIdFromChain } from "../../../utils/chain";
+import { getContract, getContractEvents } from "thirdweb";
 
 const requestSchema = contractParamSchema;
 
@@ -82,20 +85,67 @@ export async function getAllEvents(fastify: FastifyInstance) {
       const { fromBlock, toBlock, order } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
-        contractAddress,
-      });
 
-      let returnData = await contract.events.getAllEvents({
-        fromBlock,
-        toBlock,
-        order,
+      const contract = getContract({
+        client: thirdwebClient,
+        address: contractAddress,
+        chain: await getChain(chainId),
       });
+      const returnData = mapEventsV4ToV5(
+        await getContractEvents({
+          contract: contract,
+          fromBlock: BigInt(fromBlock),
+          toBlock: BigInt(toBlock),
+        }),
+        order,
+      );
 
       reply.status(StatusCodes.OK).send({
         result: returnData,
       });
     },
   });
+}
+
+/**
+ * Mapping of events v5 response to v4 for backward compatiblity.
+ * Clients may be using this api and dont want to break things.
+ * @param eventsV5 events data returned by v5 sdk
+ * @param order asc or desc
+ * @returns {Type.Array(contractEventSchema)}
+ */
+export function mapEventsV4ToV5(eventsV5 = [], order = "desc") {
+  if (!eventsV5?.length) return [];
+
+  return eventsV5
+    .map((event) => {
+      const eventName = event.eventName;
+      const data = {};
+
+      // backwards compatibility of BigInt(v5) to BigNumber(v4)
+      Object.keys(event.args).forEach((key) => {
+        let value = event.args[key];
+        if (typeof value == "bigint") {
+          value = BigNumber.from(value.toString());
+        }
+        data[key] = value;
+      });
+
+      delete event.eventName;
+      delete event.args;
+      const transaction = event;
+      transaction.blockNumber = parseInt(transaction.blockNumber);
+      transaction.event = eventName;
+
+      return {
+        eventName,
+        data,
+        transaction,
+      };
+    })
+    .sort((a, b) => {
+      return order === "desc"
+        ? b.transaction.blockNumber - a.transaction.blockNumber
+        : a.transaction.blockNumber - b.transaction.blockNumber;
+    });
 }
