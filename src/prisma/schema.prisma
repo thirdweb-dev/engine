@@ -99,7 +99,27 @@ model WalletDetails {
   accountFactoryAddress              String? @map("accountFactoryAddress") /// optional even for smart wallet, if not available default factory will be used
   entrypointAddress                  String? @map("entrypointAddress") /// optional even for smart wallet, if not available SDK will use default entrypoint
 
+  BackendWalletLiteAccess BackendWalletLiteAccess[]
+
   @@map("wallet_details")
+}
+
+model BackendWalletLiteAccess {
+  id                   String  @id @default(uuid())
+  teamId               String
+  dashboardUserAddress String
+  accountAddress       String?
+  signerAddress        String?
+  encryptedJson        String?
+  salt                 String
+
+  createdAt DateTime  @default(now())
+  deletedAt DateTime?
+
+  account WalletDetails? @relation(fields: [accountAddress], references: [address])
+
+  @@index([teamId])
+  @@map("backend_wallet_lite_access")
 }
 
 model WalletNonce {
