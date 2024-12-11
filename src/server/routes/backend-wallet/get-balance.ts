@@ -1,7 +1,6 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getSdk } from "../../../shared/utils/cache/get-sdk";
 import { AddressSchema } from "../../schemas/address";
 import {
   currencyValueSchema,
@@ -9,6 +8,10 @@ import {
 } from "../../schemas/shared-api-schemas";
 import { walletWithAddressParamSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
+
+import { getChain } from "../../../shared/utils/chain";
+import { thirdwebClient } from "../../../shared/utils/sdk";
+import { getWalletBalance } from "thirdweb/wallets";
 
 const responseSchema = Type.Object({
   result: Type.Object({
@@ -49,9 +52,12 @@ export async function getBalance(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { chain, walletAddress } = request.params;
       const chainId = await getChainIdFromChain(chain);
-      const sdk = await getSdk({ chainId });
 
-      let balanceData = await sdk.getBalance(walletAddress);
+      const balanceData = await getWalletBalance({
+        client: thirdwebClient,
+        address: walletAddress,
+        chain: await getChain(chainId),
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
