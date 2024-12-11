@@ -165,18 +165,21 @@ const _mineTransaction = async (
   }
 
   // Else the transaction is not mined yet.
-  const ellapsedMs = Date.now() - sentTransaction.queuedAt.getTime();
+  const elapsedSeconds = msSince(sentTransaction.sentAt) / 1000;
   job.log(
-    `Transaction is not mined yet. Check again later. elapsed=${ellapsedMs / 1000}s`,
+    `Transaction is not mined yet. Check again later. elapsed=${elapsedSeconds}s`,
   );
 
-  // Resend the transaction (after some initial delay).
+  // Resend the transaction if `minEllapsedBlocksBeforeRetry` blocks or 120 seconds have passed since the last send attempt.
   const config = await getConfig();
   const blockNumber = await getBlockNumberish(sentTransaction.chainId);
-  const ellapsedBlocks = blockNumber - sentTransaction.sentAtBlock;
-  if (ellapsedBlocks >= config.minEllapsedBlocksBeforeRetry) {
+  const elapsedBlocks = blockNumber - sentTransaction.sentAtBlock;
+  const shouldResend =
+    elapsedBlocks >= config.minEllapsedBlocksBeforeRetry ||
+    elapsedSeconds > 120;
+  if (shouldResend) {
     job.log(
-      `Resending transaction after ${ellapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentTransaction.sentAtBlock}`,
+      `Resending transaction after ${elapsedBlocks} blocks. blockNumber=${blockNumber} sentAtBlock=${sentTransaction.sentAtBlock}`,
     );
     await SendTransactionQueue.add({
       queueId: sentTransaction.queueId,
