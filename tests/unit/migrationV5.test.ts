@@ -8,12 +8,10 @@ import { getBalance } from "thirdweb/extensions/erc20";
 import { getContractEvents } from "thirdweb";
 import { getContract as getContractV5 } from "thirdweb";
 import { getContract as getContractV4 } from "../../src/shared/utils/cache/get-contract";
-import { mapEventsV4ToV5 } from "../../src/server/routes/contract/events/get-all-events";
+import { maybeBigInt } from "../../src/shared/utils/primitive-types";
+import { toContractEventV4Schema } from "../../src/server/schemas/event";
 
 /**
- * need to pass THIRDWEB_API_SECRET_KEY as env when running test case
- * THIRDWEB_API_SECRET_KEY=<secret> npx vitest run tests/unit/migrationV5.test.ts
- *
  * todo: remove all dependencies including tests after everything is migrated properly.
  */
 describe("migration from v4 to v5", () => {
@@ -75,7 +73,7 @@ describe("migration from v4 to v5", () => {
     const contractAddress = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174";
     const fromBlock = 65334800;
     const toBlock = 65334801;
-    const order = "asc";
+    const order = Math.random() > 0.5 ? "asc" : "desc";
 
     // v4
     const contractV4 = await getContractV4({ chainId, contractAddress });
@@ -84,7 +82,6 @@ describe("migration from v4 to v5", () => {
       toBlock,
       order,
     });
-    // console.log(eventsV4);
 
     // v5.
     const contractV5 = getContractV5({
@@ -92,14 +89,17 @@ describe("migration from v4 to v5", () => {
       address: contractAddress,
       chain: await getChain(chainId),
     });
-    const eventsV5 = mapEventsV4ToV5(
-      await getContractEvents({
-        contract: contractV5,
-        fromBlock: BigInt(fromBlock),
-        toBlock: BigInt(toBlock),
-      }),
-      order,
-    );
+    const eventsV5Raw = await getContractEvents({
+      contract: contractV5,
+      fromBlock: maybeBigInt(fromBlock?.toString()),
+      toBlock: maybeBigInt(toBlock?.toString()),
+    });
+
+    const eventsV5 = eventsV5Raw.map(toContractEventV4Schema).sort((a, b) => {
+      return order === "desc"
+        ? b.transaction.blockNumber - a.transaction.blockNumber
+        : a.transaction.blockNumber - b.transaction.blockNumber;
+    });
 
     // check two array ordering is the same
     expect(eventsV4.length).eq(eventsV5.length);
