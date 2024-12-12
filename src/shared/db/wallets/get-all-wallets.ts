@@ -1,4 +1,4 @@
-import { PrismaTransaction } from "../../schemas/prisma";
+import type { PrismaTransaction } from "../../schemas/prisma";
 import { getPrismaWithPostgresTx } from "../client";
 
 interface GetAllWalletsParams {

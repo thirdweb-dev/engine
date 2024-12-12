@@ -261,7 +261,7 @@ const getBlockTimestamps = async (
       try {
         const block = await eth_getBlockByHash(rpcRequest, { blockHash });
         return new Date(Number(block.timestamp) * 1000);
-      } catch (e) {
+      } catch (_e) {
         return now;
       }
     }),

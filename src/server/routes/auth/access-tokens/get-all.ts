@@ -34,7 +34,7 @@ export async function getAllAccessTokens(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const accessTokens = await getAccessTokens();
       res.status(StatusCodes.OK).send({
         result: accessTokens.map((token) => ({

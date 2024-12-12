@@ -33,10 +33,10 @@ import type { AnyTransaction } from "../../utils/transaction/types";
 export class TransactionDB {
   private static transactionDetailsKey = (queueId: string) =>
     `transaction:${queueId}`;
-  private static queuedTransactionsKey = `transaction:queued`;
-  private static minedTransactionsKey = `transaction:mined`;
-  private static cancelledTransactionsKey = `transaction:cancelled`;
-  private static erroredTransactionsKey = `transaction:errored`;
+  private static queuedTransactionsKey = "transaction:queued";
+  private static minedTransactionsKey = "transaction:mined";
+  private static cancelledTransactionsKey = "transaction:cancelled";
+  private static erroredTransactionsKey = "transaction:errored";
 
   /**
    * Inserts or replaces a transaction details.

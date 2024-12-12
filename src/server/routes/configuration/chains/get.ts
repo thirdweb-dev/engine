@@ -25,7 +25,7 @@ export async function getChainsConfiguration(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const config = await getConfig();
       const result: Static<typeof chainResponseSchema>[] = config.chainOverrides
         ? JSON.parse(config.chainOverrides)

@@ -32,7 +32,7 @@ export async function getAllRelayers(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const relayers = await prisma.relayers.findMany();
 
       return res.status(StatusCodes.OK).send({

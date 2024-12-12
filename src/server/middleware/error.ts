@@ -53,7 +53,7 @@ const isZodError = (err: unknown): boolean => {
 
 export function withErrorHandler(server: FastifyInstance) {
   server.setErrorHandler(
-    (error: string | Error | CustomError | ZodError, request, reply) => {
+    (error: string | Error | CustomError | ZodError, _request, reply) => {
       if (typeof error === "string") {
         return reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
           error: {

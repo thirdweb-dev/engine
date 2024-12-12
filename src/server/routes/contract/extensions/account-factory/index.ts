@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { getAllAccounts } from "./read/get-all-accounts";
 import { getAssociatedAccounts } from "./read/get-associated-accounts";
 import { isAccountDeployed } from "./read/is-account-deployed";

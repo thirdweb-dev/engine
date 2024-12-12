@@ -12,11 +12,11 @@ export const updateTxListener = async (): Promise<void> => {
   logger({
     service: "server",
     level: "info",
-    message: `Listening for updated transactions`,
+    message: "Listening for updated transactions",
   });
 
   const connection = await knex.client.acquireConnection();
-  connection.query(`LISTEN updated_transaction_data`);
+  connection.query("LISTEN updated_transaction_data");
 
   connection.on(
     "notification",
@@ -28,7 +28,7 @@ export const updateTxListener = async (): Promise<void> => {
         (sub) => sub.requestId === parsedPayload.id,
       );
 
-      if (index == -1) {
+      if (index === -1) {
         return;
       }
 
@@ -55,7 +55,7 @@ export const updateTxListener = async (): Promise<void> => {
     logger({
       service: "server",
       level: "info",
-      message: `[updateTxListener] Connection database ended`,
+      message: "[updateTxListener] Connection database ended",
     });
 
     knex.client.releaseConnection(connection);
@@ -64,7 +64,7 @@ export const updateTxListener = async (): Promise<void> => {
     logger({
       service: "server",
       level: "info",
-      message: `[updateTxListener] Released database connection on end`,
+      message: "[updateTxListener] Released database connection on end",
     });
   });
 
@@ -72,7 +72,7 @@ export const updateTxListener = async (): Promise<void> => {
     logger({
       service: "server",
       level: "error",
-      message: `[updateTxListener] Database connection error`,
+      message: "[updateTxListener] Database connection error",
       error: err,
     });
 
@@ -82,7 +82,7 @@ export const updateTxListener = async (): Promise<void> => {
     logger({
       service: "worker",
       level: "info",
-      message: `[updateTxListener] Released database connection on error`,
+      message: "[updateTxListener] Released database connection on error",
     });
   });
 };

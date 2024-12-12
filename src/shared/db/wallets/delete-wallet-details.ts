@@ -1,4 +1,4 @@
-import { Address } from "thirdweb";
+import type { Address } from "thirdweb";
 import { prisma } from "../client";
 
 export const deleteWalletDetails = async (walletAddress: Address) => {

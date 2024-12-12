@@ -1,4 +1,4 @@
-import { Address, toSerializableTransaction } from "thirdweb";
+import { type Address, toSerializableTransaction } from "thirdweb";
 import { getAccount } from "../account";
 import { getChain } from "../chain";
 import { getChecksumAddress } from "../primitive-types";
