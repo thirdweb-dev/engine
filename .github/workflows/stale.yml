@@ -12,13 +12,13 @@ on:
 jobs:
   stale:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       issues: write
       pull-requests: write
 
     steps:
-    - uses: actions/stale@v5
+    - uses: actions/stale@v9
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         stale-pr-message: 'This PR is stale because it has been open for 7 days with no activity. Remove stale label or comment or this PR will be closed in 3 days.'

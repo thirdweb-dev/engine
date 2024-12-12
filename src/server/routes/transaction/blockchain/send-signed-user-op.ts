@@ -1,5 +1,6 @@
 import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
+import { TransformDecodeError } from "@sinclair/typebox/value/transform";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { env } from "../../../../shared/utils/env";
@@ -47,15 +48,15 @@ const responseBodySchema = Type.Union([
 
 type RpcResponse =
   | {
-      result: string;
-      error: undefined;
-    }
+  result: string;
+  error: undefined;
+}
   | {
-      result: undefined;
-      error: {
-        message: string;
-      };
-    };
+  result: undefined;
+  error: {
+    message: string;
+  };
+};
 
 export async function sendSignedUserOp(fastify: FastifyInstance) {
   fastify.route<{
@@ -68,7 +69,7 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
     schema: {
       summary: "Send a signed user operation",
       description: "Send a signed user operation",
-      tags: ["Transaction"],
+      tags: [ "Transaction" ],
       operationId: "sendSignedUserOp",
       params: walletChainParamSchema,
       body: requestBodySchema,
@@ -86,10 +87,11 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
       if (typeof signedUserOp === "string") {
         try {
           userOp = Value.Decode(UserOpString, signedUserOp);
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const msg = err instanceof TransformDecodeError ? err.message : err;
           return res.status(400).send({
             error: {
-              message: `Invalid signed user operation. - ${err.message || err}`,
+              message: `Invalid signed user operation. - ${msg}`,
             },
           });
         }
@@ -109,12 +111,14 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
           id: 1,
           jsonrpc: "2.0",
           method: "eth_sendUserOperation",
-          params: [userOp, entryPointAddress],
+          params: [ userOp, entryPointAddress ],
         }),
       });
 
       const { result: userOpHash, error } =
-        (await userOpRes.json()) as RpcResponse;
+        (
+          await userOpRes.json()
+        ) as RpcResponse;
 
       if (error) {
         return res.status(400).send({

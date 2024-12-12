@@ -16,9 +16,9 @@ async function countLines(file: string) {
     if (!line.trim()) {
       continue;
     }
-
-    if (statements.has(line)) {
-      statements.set(line, statements.get(line)! + 1);
+    const statement = statements.get(line);
+    if (statement !== undefined) {
+      statements.set(line, statement + 1);
     } else {
       statements.set(line, 1);
     }

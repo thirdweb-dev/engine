@@ -68,7 +68,7 @@ export const updateTxListener = async (): Promise<void> => {
     });
   });
 
-  connection.on("error", async (err: any) => {
+  connection.on("error", async (err: unknown) => {
     logger({
       service: "server",
       level: "error",

@@ -117,5 +117,5 @@ export async function getAwsKmsAccount(
     signMessage,
     signTypedData,
     signTransaction,
-  } satisfies Account;
+  } as AwsKmsAccount satisfies Account;
 }

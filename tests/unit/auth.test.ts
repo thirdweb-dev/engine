@@ -278,10 +278,10 @@ describe("Websocket requests", () => {
       session: { permissions: Permission.Admin },
     });
 
-    const mockSocket = {
-      write: vi.fn(),
-      destroy: vi.fn(),
-    };
+    // const mockSocket = {
+    //   write: vi.fn(),
+    //   destroy: vi.fn(),
+    // };
 
     const defaultConfig = await getConfig();
     mockGetConfig.mockResolvedValueOnce({

@@ -79,8 +79,10 @@ describe("Load Test Transactions", () => {
 
     assert(nftContractAddress, "NFT contract address is not defined");
 
+    assert(deployRes.result.queueId, "Queue ID is not defined");
+
     // Wait for the contract to be deployed
-    await pollTransactionStatus(engine, deployRes.result.queueId!);
+    await pollTransactionStatus(engine, deployRes.result.queueId);
 
     const timings = [];
     for (

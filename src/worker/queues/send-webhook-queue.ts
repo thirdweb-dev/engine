@@ -71,7 +71,7 @@ export class SendWebhookQueue {
         logger({
           service: "worker",
           level: "warn",
-          message: `Unexpected webhook type: ${(data as any).type}`,
+          message: `Unexpected webhook type: ${(data as { type: unknown }).type}`,
         });
     }
   };
