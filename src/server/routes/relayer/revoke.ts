@@ -1,8 +1,8 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../db/client";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { prisma } from "../../../shared/db/client";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   id: Type.String(),

@@ -3,10 +3,10 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract, type Hex } from "thirdweb";
 import { safeTransferFrom } from "thirdweb/extensions/erc1155";
-import { getChain } from "../../../../../../utils/chain";
-import { getChecksumAddress } from "../../../../../../utils/primitiveTypes";
-import { thirdwebClient } from "../../../../../../utils/sdk";
-import { queueTransaction } from "../../../../../../utils/transaction/queueTransation";
+import { getChain } from "../../../../../../shared/utils/chain";
+import { getChecksumAddress } from "../../../../../../shared/utils/primitive-types";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
 import { AddressSchema, HexSchema } from "../../../../../schemas/address";
 import { NumberStringSchema } from "../../../../../schemas/number";
 import {
@@ -14,8 +14,8 @@ import {
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+} from "../../../../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
 import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 

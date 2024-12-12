@@ -1,8 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
-  Address,
+  type Address,
   eth_getTransactionCount,
   getAddress,
   getRpcClient,
@@ -12,12 +12,12 @@ import {
   lastUsedNonceKey,
   recycledNoncesKey,
   sentNoncesKey,
-} from "../../../db/wallets/walletNonce";
-import { getChain } from "../../../utils/chain";
-import { redis } from "../../../utils/redis/redis";
-import { thirdwebClient } from "../../../utils/sdk";
+} from "../../../shared/db/wallets/wallet-nonce";
+import { getChain } from "../../../shared/utils/chain";
+import { redis } from "../../../shared/utils/redis/redis";
+import { thirdwebClient } from "../../../shared/utils/sdk";
 import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import { walletWithAddressParamSchema } from "../../schemas/wallet";
 
 export const responseBodySchema = Type.Object({
@@ -91,7 +91,7 @@ export async function getNonceDetailsRoute(fastify: FastifyInstance) {
       const { walletAddress, chain } = request.query;
       const result = await getNonceDetails({
         walletAddress: walletAddress ? getAddress(walletAddress) : undefined,
-        chainId: chain ? parseInt(chain) : undefined,
+        chainId: chain ? Number.parseInt(chain) : undefined,
       });
 
       reply.status(StatusCodes.OK).send({
@@ -144,12 +144,12 @@ export const getNonceDetails = async ({
       walletAddress: key.walletAddress,
       chainId: key.chainId,
       onchainNonce: onchainNonces[index],
-      lastUsedNonce: parseInt(lastUsedNonceResult[1] as string) ?? 0,
+      lastUsedNonce: Number.parseInt(lastUsedNonceResult[1] as string) ?? 0,
       sentNonces: (sentNoncesResult[1] as string[])
-        .map((nonce) => parseInt(nonce))
+        .map((nonce) => Number.parseInt(nonce))
         .sort((a, b) => b - a),
       recycledNonces: (recycledNoncesResult[1] as string[])
-        .map((nonce) => parseInt(nonce))
+        .map((nonce) => Number.parseInt(nonce))
         .sort((a, b) => b - a),
     };
   });

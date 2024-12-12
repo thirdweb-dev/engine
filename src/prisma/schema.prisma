@@ -230,7 +230,7 @@ model ContractSubscriptions {
 }
 
 model ContractEventLogs {
-  chainId          Int
+  chainId          String
   blockNumber      Int
   contractAddress  String
   transactionHash  String
@@ -259,7 +259,7 @@ model ContractEventLogs {
 }
 
 model ContractTransactionReceipts {
-  chainId         Int
+  chainId         String
   blockNumber     Int
   contractAddress String
   contractId      String // ${chainId}:${contractAddress}
@@ -288,7 +288,7 @@ model ContractTransactionReceipts {
 }
 
 model ChainIndexers {
-  chainId          Int @id
+  chainId          String @id
   lastIndexedBlock Int
 
   createdAt DateTime @default(now())

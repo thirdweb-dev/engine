@@ -1,9 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
-import { getConfig } from "../../../../utils/cache/getConfig";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Object({

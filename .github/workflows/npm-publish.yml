@@ -1,0 +1,47 @@
+name: Publish to npm
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Install tsx
+        run: npm install -g tsx
+
+      - name: Install dependencies
+        working-directory: ./sdk
+        run: yarn install
+
+      - name: Get version from package.json
+        id: package_version
+        run: echo "PACKAGE_VERSION=$(jq -r '.version' ./sdk/package.json)" >> $GITHUB_ENV
+
+      - name: Use version
+        run: echo "SDK version is $PACKAGE_VERSION"
+
+      - name: Build
+        run: yarn generate:sdk
+
+      - name: Push to npm
+        working-directory: ./sdk
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

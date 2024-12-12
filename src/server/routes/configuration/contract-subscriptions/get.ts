@@ -1,11 +1,11 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfig } from "../../../../utils/cache/getConfig";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
 import {
   contractSubscriptionConfigurationSchema,
   standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+} from "../../../schemas/shared-api-schemas";
 
 const responseSchema = Type.Object({
   result: contractSubscriptionConfigurationSchema,
@@ -29,7 +29,7 @@ export async function getContractSubscriptionsConfiguration(
         [StatusCodes.OK]: responseSchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const config = await getConfig();
       res.status(StatusCodes.OK).send({
         result: {

@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
-import type { AnyTransaction } from "../../../utils/transaction/types";
+import type { AnyTransaction } from "../../../shared/utils/transaction/types";
 import { AddressSchema, TransactionHashSchema } from "../address";
 
 export const TransactionSchema = Type.Object({
@@ -266,7 +266,7 @@ export const toTransactionSchema = (
     if (transaction.status === "sent") {
       return transaction.gasPrice?.toString() ?? null;
     }
-    return null;
+    return transaction.overrides?.gasPrice?.toString() ?? null;
   };
 
   const resolveMaxFeePerGas = (): string | null => {
@@ -292,7 +292,10 @@ export const toTransactionSchema = (
     toAddress: transaction.to ?? null,
     data: transaction.data ?? null,
     value: transaction.value.toString(),
-    nonce: "nonce" in transaction ? transaction.nonce : null,
+    nonce:
+      "nonce" in transaction && transaction.nonce !== undefined
+        ? transaction.nonce
+        : null,
     deployedContractAddress: transaction.deployedContractAddress ?? null,
     deployedContractType: transaction.deployedContractType ?? null,
     functionName: transaction.functionName ?? null,

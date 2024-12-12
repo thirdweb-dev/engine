@@ -1,15 +1,15 @@
 import WebSocketPlugin from "@fastify/websocket";
-import { FastifyInstance } from "fastify";
-import { logger } from "../../utils/logger";
+import type { FastifyInstance } from "fastify";
+import { logger } from "../../shared/utils/logger";
 
-export const withWebSocket = async (server: FastifyInstance) => {
+export async function withWebSocket(server: FastifyInstance) {
   await server.register(WebSocketPlugin, {
-    errorHandler: function (
+    errorHandler: (
       error,
       conn /* SocketStream */,
-      req /* FastifyRequest */,
-      reply /* FastifyReply */,
-    ) {
+      _req /* FastifyRequest */,
+      _reply /* FastifyReply */,
+    ) => {
       logger({
         service: "websocket",
         level: "error",
@@ -20,4 +20,4 @@ export const withWebSocket = async (server: FastifyInstance) => {
       conn.destroy(error);
     },
   });
-};
+}

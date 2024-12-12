@@ -287,14 +287,12 @@ export class ConfigurationService {
      */
     public updateTransactionConfiguration(
         requestBody?: {
-            minTxsToProcess?: number;
             maxTxsToProcess?: number;
-            minedTxListenerCronSchedule?: (string | null);
             maxTxsToUpdate?: number;
+            minedTxListenerCronSchedule?: (string | null);
             retryTxListenerCronSchedule?: (string | null);
             minEllapsedBlocksBeforeRetry?: number;
             maxFeePerGasForRetries?: string;
-            maxPriorityFeePerGasForRetries?: string;
             maxRetriesPerTx?: number;
         },
     ): CancelablePromise<{
@@ -622,6 +620,9 @@ export class ConfigurationService {
     public updateContractSubscriptionsConfiguration(
         requestBody?: {
             maxBlocksToIndex?: number;
+            /**
+             * Requery after one or more delays. Use comma-separated positive integers. Example: "2,10" means requery after 2s and 10s.
+             */
             contractSubscriptionsRequeryDelaySeconds?: string;
         },
     ): CancelablePromise<{

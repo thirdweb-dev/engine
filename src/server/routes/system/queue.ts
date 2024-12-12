@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../db/transactions/db";
-import { getPercentile } from "../../../utils/math";
-import type { MinedTransaction } from "../../../utils/transaction/types";
-import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { TransactionDB } from "../../../shared/db/transactions/db";
+import { getPercentile } from "../../../shared/utils/math";
+import type { MinedTransaction } from "../../../shared/utils/transaction/types";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
@@ -42,7 +42,7 @@ export async function queueStatus(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       // Get # queued and sent transactions.
       const queued = await SendTransactionQueue.length();
       const pending = await MineTransactionQueue.length();

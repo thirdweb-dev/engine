@@ -1,8 +1,8 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { WebhooksEventTypes } from "../../../schema/webhooks";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { WebhooksEventTypes } from "../../../shared/schemas/webhooks";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 export const responseBodySchema = Type.Object({
   result: Type.Array(Type.Enum(WebhooksEventTypes)),
@@ -24,7 +24,7 @@ export async function getWebhooksEventTypes(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const eventTypesArray = Object.values(WebhooksEventTypes);
       res.status(StatusCodes.OK).send({
         result: eventTypesArray,

@@ -10,11 +10,11 @@ import {
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
-import { getChain } from "../../../utils/chain";
-import { normalizeAddress } from "../../../utils/primitiveTypes";
-import { thirdwebClient } from "../../../utils/sdk";
-import { insertTransaction } from "../../../utils/transaction/insertTransaction";
-import type { InsertedTransaction } from "../../../utils/transaction/types";
+import { getChain } from "../../../shared/utils/chain";
+import { normalizeAddress } from "../../../shared/utils/primitive-types";
+import { thirdwebClient } from "../../../shared/utils/sdk";
+import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
+import type { InsertedTransaction } from "../../../shared/utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
 import { TokenAmountStringSchema } from "../../schemas/number";
@@ -22,14 +22,14 @@ import {
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
+} from "../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../schemas/tx-overrides";
 import {
   walletHeaderSchema,
   walletWithAddressParamSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-import { parseTransactionOverrides } from "../../utils/transactionOverrides";
+import { parseTransactionOverrides } from "../../utils/transaction-overrides";
 
 const requestSchema = Type.Omit(walletWithAddressParamSchema, [
   "walletAddress",

@@ -1,14 +1,14 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfig } from "../../../utils/cache/getConfig";
+import { getConfig } from "../../../shared/utils/cache/get-config";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
-import { getGcpKmsResourcePath } from "../../utils/wallets/gcpKmsResourcePath";
-import { importAwsKmsWallet } from "../../utils/wallets/importAwsKmsWallet";
-import { importGcpKmsWallet } from "../../utils/wallets/importGcpKmsWallet";
-import { importLocalWallet } from "../../utils/wallets/importLocalWallet";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { getGcpKmsResourcePath } from "../../utils/wallets/gcp-kms-resource-path";
+import { importAwsKmsWallet } from "../../utils/wallets/import-aws-kms-wallet";
+import { importGcpKmsWallet } from "../../utils/wallets/import-gcp-kms-wallet";
+import { importLocalWallet } from "../../utils/wallets/import-local-wallet";
 
 const RequestBodySchema = Type.Intersect([
   Type.Object({

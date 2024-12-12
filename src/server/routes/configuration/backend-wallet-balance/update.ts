@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
-import { getConfig } from "../../../../utils/cache/getConfig";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
 import { WeiAmountStringSchema } from "../../../schemas/number";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Partial(

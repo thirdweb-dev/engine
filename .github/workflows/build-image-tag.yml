@@ -1,0 +1,89 @@
+name: Tag Based Image Build
+
+on:
+  release:
+    types: [created] # This listens to release creation events
+
+env:
+  REGISTRY_IMAGE: thirdweb/engine
+
+jobs:
+  build:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            arch: amd64
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm64
+            arch: arm64
+    env:
+      LATEST_TAG: ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' || '' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.target_commitish }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: prod
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: |
+              ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-${{ matrix.arch }}
+              ${{ env.LATEST_TAG != '' && format('thirdweb/engine:latest-{0}', matrix.arch) || '' }}
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,scope=${{ matrix.platform }},mode=max
+          build-args: ENGINE_VERSION=${{ github.event.release.tag_name }}
+
+  merge-manifests:
+    needs: build
+    runs-on: ubuntu-24.04
+    env:
+      LATEST_TAG: ${{ github.event.release.target_commitish == 'main' && 'thirdweb/engine:latest' || '' }}
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Create and Push Multi-arch Manifest (release tag)
+        run: |
+          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }} \
+            ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-amd64 \
+            ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}-arm64
+  
+      - name: Inspect release image
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ github.event.release.tag_name }}
+
+      - name: Create and Push Multi-arch Manifest (latest tag) (if applicable)
+        if: ${{ env.LATEST_TAG != '' }}
+        run: |
+          docker buildx imagetools create -t ${{ env.REGISTRY_IMAGE }}:latest \
+            ${{ env.REGISTRY_IMAGE }}:latest-amd64 \
+            ${{ env.REGISTRY_IMAGE }}:latest-arm64
+      
+      - name: Inspect latest image (if applicable)
+        if: ${{ env.LATEST_TAG != '' }}
+        run: |
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:latest
