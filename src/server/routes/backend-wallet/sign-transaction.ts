@@ -2,6 +2,7 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Hex } from "thirdweb";
+import type { TransactionSerializable } from "viem";
 import { getAccount } from "../../../shared/utils/account";
 import {
   getChecksumAddress,
@@ -70,8 +71,7 @@ export async function signTransaction(fastify: FastifyInstance) {
         );
       }
 
-      // @TODO: Assert type to viem TransactionSerializable.
-      const serializableTransaction: any = {
+      const serializableTransaction = {
         chainId: transaction.chainId,
         to: getChecksumAddress(transaction.to),
         nonce: maybeInt(transaction.nonce),
@@ -86,7 +86,7 @@ export async function signTransaction(fastify: FastifyInstance) {
         maxFeePerGas: maybeBigInt(transaction.maxFeePerGas),
         maxPriorityFeePerGas: maybeBigInt(transaction.maxPriorityFeePerGas),
         ccipReadEnabled: transaction.ccipReadEnabled,
-      };
+      } as TransactionSerializable;
       const signature = await account.signTransaction(serializableTransaction);
 
       reply.status(StatusCodes.OK).send({

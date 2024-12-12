@@ -6,7 +6,7 @@ import { redis } from "../../shared/utils/redis/redis";
 import { PruneTransactionsQueue } from "../queues/prune-transactions-queue";
 import { logWorkerExceptions } from "../queues/queues";
 
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const numTransactionsDeleted =
     await TransactionDB.pruneTransactionDetailsAndLists(
       env.TRANSACTION_HISTORY_COUNT,

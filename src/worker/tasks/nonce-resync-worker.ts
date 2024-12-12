@@ -39,7 +39,7 @@ export const initNonceResyncWorker = async () => {
  *
  * This is to unblock a wallet that has been stuck due to one or more skipped nonces.
  */
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const sentNoncesKeys = await redis.keys("nonce-sent:*");
   if (sentNoncesKeys.length === 0) {
     job.log("No active wallets.");

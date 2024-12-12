@@ -10,7 +10,6 @@ import {
   type BackendWalletBalanceWebhookParams,
 } from "../../shared/schemas/webhooks";
 import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook";
-import { logger } from "../../shared/utils/logger";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
@@ -67,12 +66,6 @@ export class SendWebhookQueue {
         return this._enqueueTransactionWebhook(data);
       case WebhooksEventTypes.BACKEND_WALLET_BALANCE:
         return this._enqueueBackendWalletBalanceWebhook(data);
-      default:
-        logger({
-          service: "worker",
-          level: "warn",
-          message: `Unexpected webhook type: ${(data as any).type}`,
-        });
     }
   };
 

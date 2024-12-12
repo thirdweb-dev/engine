@@ -54,12 +54,12 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData: any = await contract.erc20.get();
+      const returnData = await contract.erc20.get();
       reply.status(StatusCodes.OK).send({
         result: {
           symbol: returnData.symbol,
           name: returnData.name,
-          decimals: returnData.decimals,
+          decimals: returnData.decimals.toString(),
         },
       });
     },

@@ -69,6 +69,7 @@
     "superjson": "^2.2.1",
     "thirdweb": "^5.71.0",
     "uuid": "^9.0.1",
+    "viem": "^2.21.54",
     "winston": "^3.14.1",
     "zod": "^3.23.8"
   },
@@ -94,8 +95,6 @@
   "resolutions": {
     "@thirdweb-dev/auth/**/axios": ">=1.7.8",
     "@thirdweb-dev/auth/**/web3-utils": ">=4.2.1",
-    "ethers-gcp-kms-signer/**/protobufjs": ">=7.2.5",
-    "fastify/**/find-my-way": ">=8.2.2",
     "@grpc/grpc-js": ">=1.8.22",
     "body-parser": ">=1.20.3",
     "cookie": ">=0.7.0",

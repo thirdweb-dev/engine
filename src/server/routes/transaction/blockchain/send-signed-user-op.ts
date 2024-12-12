@@ -8,6 +8,7 @@ import { TransactionHashSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { walletChainParamSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
+import { prettifyError } from "../../../../shared/utils/error";
 
 const UserOp = Type.Object({
   sender: Type.String(),
@@ -86,10 +87,10 @@ export async function sendSignedUserOp(fastify: FastifyInstance) {
       if (typeof signedUserOp === "string") {
         try {
           userOp = Value.Decode(UserOpString, signedUserOp);
-        } catch (err: any) {
+        } catch (err) {
           return res.status(400).send({
             error: {
-              message: `Invalid signed user operation. - ${err.message || err}`,
+              message: `Invalid signed user operation. - ${prettifyError(err)}`,
             },
           });
         }
