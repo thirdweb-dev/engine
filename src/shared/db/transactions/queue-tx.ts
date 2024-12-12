@@ -9,7 +9,7 @@ import { parseTransactionOverrides } from "../../../server/utils/transaction-ove
 
 interface QueueTxParams {
   // we should move away from Transaction type (v4 SDK)
-  tx: Transaction<any> | DeployTransaction;
+  tx: Transaction<unknown> | DeployTransaction;
   chainId: number;
   extension: ContractExtension;
   // TODO: These shouldn't be in here

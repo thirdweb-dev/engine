@@ -67,7 +67,7 @@ export async function erc20AllowanceOf(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData: any = await contract.erc20.allowanceOf(
+      const returnData = await contract.erc20.allowanceOf(
         ownerWallet ? ownerWallet : "",
         spenderWallet ? spenderWallet : "",
       );
