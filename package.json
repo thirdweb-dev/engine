@@ -92,10 +92,6 @@
     "schema": "./src/prisma/schema.prisma"
   },
   "resolutions": {
-    "@thirdweb-dev/auth/**/axios": ">=1.7.8",
-    "@thirdweb-dev/auth/**/web3-utils": ">=4.2.1",
-    "ethers-gcp-kms-signer/**/protobufjs": ">=7.2.5",
-    "fastify/**/find-my-way": ">=8.2.2",
     "@grpc/grpc-js": ">=1.8.22",
     "body-parser": ">=1.20.3",
     "cookie": ">=0.7.0",
@@ -105,5 +101,5 @@
     "ws": ">=8.17.1",
     "cross-spawn": ">=7.0.6"
   },
-  "packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+  "packageManager": "yarn@4.5.3"
 }
