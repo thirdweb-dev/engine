@@ -42,7 +42,7 @@ export async function queueStatus(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       // Get # queued and sent transactions.
       const queued = await SendTransactionQueue.length();
       const pending = await MineTransactionQueue.length();

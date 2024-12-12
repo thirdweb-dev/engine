@@ -136,7 +136,7 @@ export const reportUsage = (usageEvents: ReportUsageParams[]) => {
       logger({
         service: "worker",
         level: "error",
-        message: `Error:`,
+        message: "Error:",
         error: e,
       });
     }

@@ -45,9 +45,8 @@ const filterErrorsAndFatal = format((info) => {
 const colorizeFormat = () => {
   if (env.NODE_ENV === "development") {
     return format.colorize({ colors: customLevels.colors });
-  } else {
-    return format.uncolorize();
   }
+    return format.uncolorize();
 };
 
 const winstonLogger = createLogger({
@@ -104,7 +103,7 @@ export const logger = ({
     prefix += `[Transaction] [${queueId}] `;
   }
 
-  let suffix = ``;
+  let suffix = "";
   if (data) {
     suffix += ` - ${JSON.stringify(data)}`;
   }

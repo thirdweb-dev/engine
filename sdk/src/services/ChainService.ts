@@ -12,7 +12,7 @@ export class ChainService {
     /**
      * Get chain details
      * Get details about a chain.
-     * @param chain Chain name or ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @returns any Default Response
      * @throws ApiError
      */

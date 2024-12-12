@@ -30,7 +30,7 @@ export async function getBackendWalletBalanceConfiguration(
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const config = await getConfig();
       res.status(StatusCodes.OK).send({
         result: {

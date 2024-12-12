@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { getAllAdmins } from "./read/get-all-admins";
 import { getAllSessions } from "./read/get-all-sessions";
 import { grantAdmin } from "./write/grant-admin";

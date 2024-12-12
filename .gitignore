@@ -149,3 +149,6 @@ https
 # Auto generated OpenAPI file
 openapi.json
 .aider*
+
+# Jetbrains IDEs
+.idea

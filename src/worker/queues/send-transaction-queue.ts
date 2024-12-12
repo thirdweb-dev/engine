@@ -32,7 +32,7 @@ export class SendTransactionQueue {
   static remove = async (data: SendTransactionData) => {
     try {
       await this.q.remove(this.jobId(data));
-    } catch (e) {
+    } catch (_e) {
       // Job is currently running.
     }
   };

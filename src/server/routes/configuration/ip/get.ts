@@ -24,7 +24,7 @@ export async function getIpAllowlist(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const config = await getConfig(false);
 
       res.status(StatusCodes.OK).send({
