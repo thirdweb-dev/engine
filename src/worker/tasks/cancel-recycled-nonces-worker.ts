@@ -31,7 +31,7 @@ export const initCancelRecycledNoncesWorker = () => {
 /**
  * Sends a cancel transaction for all recycled nonces.
  */
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const keys = await redis.keys("nonce-recycled:*");
 
   for (const key of keys) {

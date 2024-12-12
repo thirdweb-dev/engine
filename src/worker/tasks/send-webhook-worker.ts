@@ -20,7 +20,7 @@ import {
 } from "../../shared/utils/webhook";
 import { SendWebhookQueue, type WebhookJob } from "../queues/send-webhook-queue";
 
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);
 
   let resp: WebhookResponse | undefined;
@@ -28,7 +28,7 @@ const handler: Processor<any, void, string> = async (job: Job<string>) => {
     case WebhooksEventTypes.CONTRACT_SUBSCRIPTION: {
       let webhookBody: {
         type: "event-log" | "transaction-receipt";
-        data: any;
+        data: unknown;
       };
       if (data.eventLog) {
         webhookBody = {

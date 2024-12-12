@@ -35,7 +35,7 @@ export const newConfigurationListener = async (): Promise<void> => {
     });
   });
 
-  connection.on("error", async (err: any) => {
+  connection.on("error", async (err: unknown) => {
     logger({
       service: "worker",
       level: "error",
@@ -93,7 +93,7 @@ export const updatedConfigurationListener = async (): Promise<void> => {
     });
   });
 
-  connection.on("error", async (err: any) => {
+  connection.on("error", async (err: unknown) => {
     logger({
       service: "worker",
       level: "error",

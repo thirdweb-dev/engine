@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: "18"
           cache: "yarn"
-  
+
       - name: Install dependencies
         run: yarn install
 

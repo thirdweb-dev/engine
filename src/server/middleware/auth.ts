@@ -126,7 +126,7 @@ export async function withAuth(server: FastifyInstance) {
       }if (error) {
         message = error;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger({
         service: "server",
         level: "warn",

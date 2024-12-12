@@ -38,7 +38,7 @@ export const newWebhooksListener = async (): Promise<void> => {
     });
   });
 
-  connection.on("error", async (err: any) => {
+  connection.on("error", async (err: unknown) => {
     logger({
       service: "worker",
       level: "error",
@@ -94,7 +94,7 @@ export const updatedWebhooksListener = async (): Promise<void> => {
     });
   });
 
-  connection.on("error", async (err: any) => {
+  connection.on("error", async (err: unknown) => {
     logger({
       service: "worker",
       level: "error",

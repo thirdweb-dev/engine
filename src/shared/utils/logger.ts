@@ -59,7 +59,7 @@ const winstonLogger = createLogger({
     colorizeFormat(),
     format.printf(({ level, message, timestamp, error }) => {
       if (error) {
-        return `[${timestamp}] ${level}: ${message} - ${error.stack}`;
+        return `[${timestamp}] ${level}: ${message} - ${(error as Error).stack}`;
       }
       return `[${timestamp}] ${level}: ${message}`;
     }),
@@ -82,8 +82,8 @@ interface LoggerParams {
   level: (typeof env)["LOG_LEVEL"];
   message: string;
   queueId?: string | null;
-  error?: any;
-  data?: any;
+  error?: unknown;
+  data?: unknown;
 }
 
 export const logger = ({
