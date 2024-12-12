@@ -84,7 +84,7 @@ export async function getABI(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = contract.abi;
+      const returnData = contract.abi;
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

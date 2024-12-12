@@ -28,7 +28,7 @@ export async function listPublicKeys(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const keypairs = await listKeypairs();
 
       res.status(StatusCodes.OK).send({

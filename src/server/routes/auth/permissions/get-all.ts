@@ -31,7 +31,7 @@ export async function getAllPermissions(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const permissions = await prisma.permissions.findMany();
       res.status(StatusCodes.OK).send({
         result: permissions,

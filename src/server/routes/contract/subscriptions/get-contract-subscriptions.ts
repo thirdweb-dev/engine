@@ -40,7 +40,7 @@ export async function getContractSubscriptions(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseSchema,
       },
     },
-    handler: async (request, reply) => {
+    handler: async (_request, reply) => {
       const contractSubscriptions = await getAllContractSubscriptions();
 
       reply.status(StatusCodes.OK).send({

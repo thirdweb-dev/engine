@@ -25,7 +25,7 @@ export async function getCorsConfiguration(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const config = await getConfig(false);
 
       // Omit required domains.

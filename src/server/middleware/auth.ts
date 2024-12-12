@@ -123,7 +123,7 @@ export async function withAuth(server: FastifyInstance) {
         }
         // Allow this request to proceed.
         return;
-      } else if (error) {
+      }if (error) {
         message = error;
       }
     } catch (err: any) {
@@ -172,11 +172,10 @@ export const onRequest = async ({
         const authWallet = await getAuthWallet();
         if (publicKey === (await authWallet.getAddress())) {
           return await handleAccessToken(jwt, req, getUser);
-        } else if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
+        }if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
           return await handleDashboardAuth(jwt);
-        } else {
-          return await handleKeypairAuth({ jwt, req, publicKey });
         }
+          return await handleKeypairAuth({ jwt, req, publicKey });
       }
 
       // Get the public key hash from the `kid` header.
@@ -383,7 +382,7 @@ const handleAccessToken = async (
 
   try {
     token = await getAccessToken({ jwt });
-  } catch (e) {
+  } catch (_e) {
     // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
     return { isAuthed: false };
   }

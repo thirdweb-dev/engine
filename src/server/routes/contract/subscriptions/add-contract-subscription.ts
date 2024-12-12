@@ -132,7 +132,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
           const provider = sdk.getProvider();
           const currentBlockNumber = await provider.getBlockNumber();
           await upsertChainIndexer({ chainId, currentBlockNumber });
-        } catch (error) {
+        } catch (_error) {
           // this is fine, must be already locked, so don't need to update current block as this will be recent
         }
       }
