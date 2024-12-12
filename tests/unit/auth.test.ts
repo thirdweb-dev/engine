@@ -16,7 +16,7 @@ import { getConfig } from "../../src/shared/utils/cache/get-config";
 import { getWebhooksByEventType } from "../../src/shared/utils/cache/get-webhook";
 import { getKeypair } from "../../src/shared/utils/cache/keypair";
 import { sendWebhookRequest } from "../../src/shared/utils/webhook";
-import { Permission } from "../../src/shared/schemas";
+import { Permission } from "../../src/shared/schemas/auth";
 
 vi.mock("../utils/cache/accessToken");
 const mockGetAccessToken = vi.mocked(getAccessToken);
@@ -277,11 +277,6 @@ describe("Websocket requests", () => {
     mockGetUser.mockReturnValue({
       session: { permissions: Permission.Admin },
     });
-
-    // const mockSocket = {
-    //   write: vi.fn(),
-    //   destroy: vi.fn(),
-    // };
 
     const defaultConfig = await getConfig();
     mockGetConfig.mockResolvedValueOnce({

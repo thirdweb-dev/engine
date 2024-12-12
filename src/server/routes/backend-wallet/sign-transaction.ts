@@ -71,7 +71,6 @@ export async function signTransaction(fastify: FastifyInstance) {
         );
       }
 
-      // @TODO: Assert type to viem TransactionSerializable.
       const serializableTransaction = {
         chainId: transaction.chainId,
         to: getChecksumAddress(transaction.to),

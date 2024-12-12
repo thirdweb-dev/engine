@@ -93,6 +93,8 @@
     "schema": "./src/prisma/schema.prisma"
   },
   "resolutions": {
+    "@thirdweb-dev/auth/**/axios": ">=1.7.8",
+    "@thirdweb-dev/auth/**/web3-utils": ">=4.2.1",
     "@grpc/grpc-js": ">=1.8.22",
     "body-parser": ">=1.20.3",
     "cookie": ">=0.7.0",
