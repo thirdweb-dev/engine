@@ -2,9 +2,11 @@ import { Queue } from "bullmq";
 import superjson from "superjson";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
+import type { TransactionCredentials } from "../../shared/lib/transaction/transaction-credentials";
 
 export type SendTransactionData = {
   queueId: string;
+  credentials: TransactionCredentials;
   resendCount: number;
 };
 
@@ -32,7 +34,7 @@ export class SendTransactionQueue {
   static remove = async (data: SendTransactionData) => {
     try {
       await this.q.remove(this.jobId(data));
-    } catch (e) {
+    } catch {
       // Job is currently running.
     }
   };

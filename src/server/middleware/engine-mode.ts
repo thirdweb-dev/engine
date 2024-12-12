@@ -5,7 +5,8 @@ import { StatusCodes } from "http-status-codes";
 export function withEnforceEngineMode(server: FastifyInstance) {
   switch (env.ENGINE_MODE) {
     case "lite":
-      server.addHook("onRequest", enforceLiteMode);
+      // DEBUG: USED TO DEBUG DASHBOARD. REMOVE WHEN SHIPPING.
+      // server.addHook("onRequest", enforceLiteMode);
       break;
     case "sandbox":
       server.addHook("onRequest", enforceSandboxMode);

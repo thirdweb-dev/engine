@@ -14,11 +14,17 @@ import { recordMetrics } from "../prometheus";
 import { reportUsage } from "../usage";
 import { doSimulateTransaction } from "./simulate-queued-transaction";
 import type { InsertedTransaction, QueuedTransaction } from "./types";
+import { redis } from "../redis/redis";
+import type { WalletTypeUnion } from "../../schemas/wallet";
+import { env } from "../env";
+import { logger } from "../logger";
+import type { TransactionCredentials } from "../../lib/transaction/transaction-credentials";
 
 interface InsertTransactionData {
   insertedTransaction: InsertedTransaction;
   idempotencyKey?: string;
   shouldSimulate?: boolean;
+  credentials: TransactionCredentials;
 }
 
 /**
@@ -30,7 +36,12 @@ interface InsertTransactionData {
 export const insertTransaction = async (
   args: InsertTransactionData,
 ): Promise<string> => {
-  const { insertedTransaction, idempotencyKey, shouldSimulate = false } = args;
+  const {
+    insertedTransaction,
+    idempotencyKey,
+    shouldSimulate = false,
+    credentials,
+  } = args;
 
   // The queueId uniquely represents an enqueued transaction.
   // It's also used as the idempotency key (default = no idempotence).
@@ -149,6 +160,13 @@ export const insertTransaction = async (
     }
   }
 
+  // Assert rate limit for this wallet.
+  await assertWalletRateLimit({
+    chainId: insertedTransaction.chainId,
+    walletAddress: insertedTransaction.from,
+    walletType: walletDetails?.type,
+  });
+
   // Simulate the transaction.
   if (shouldSimulate) {
     const error = await doSimulateTransaction(queuedTransaction);
@@ -164,6 +182,7 @@ export const insertTransaction = async (
   await TransactionDB.set(queuedTransaction);
   await SendTransactionQueue.add({
     queueId: queuedTransaction.queueId,
+    credentials,
     resendCount: 0,
   });
   reportUsage([{ action: "queue_tx", input: queuedTransaction }]);
@@ -178,3 +197,45 @@ export const insertTransaction = async (
 
   return queueId;
 };
+
+async function assertWalletRateLimit(args: {
+  chainId: number;
+  walletAddress: string;
+  walletType?: WalletTypeUnion;
+}) {
+  // Currently rate limits are only enforced for Lite wallets.
+  if (env.ENGINE_MODE !== "lite") {
+    return;
+  }
+
+  const epochTimeInMinutes = Math.floor(new Date().getTime() / (1000 * 60));
+  const key = `rate-limit:backend-wallet:${args.chainId}:${args.walletAddress}:${epochTimeInMinutes}`;
+
+  const result = await redis
+    .multi()
+    .incr(key)
+    .expire(key, 2 * 60)
+    .exec();
+  if (result) {
+    const [[error, count]] = result;
+    if (error) {
+      // Don't assert rate limit if error.
+      logger({
+        service: "server",
+        level: "warn",
+        message: "Failed to increment wallet rate limit.",
+        error,
+      });
+      return;
+    }
+
+    const RATE_LIMIT_PER_MINUTE = 50;
+    if (Number(count) > 50) {
+      throw createCustomError(
+        `Rate limit exceeded (${RATE_LIMIT_PER_MINUTE} transactions/minute). Consider upgrading to Engine Standard for a dedicated Engine with no rate limits.`,
+        StatusCodes.TOO_MANY_REQUESTS,
+        "RATE_LIMIT_EXCEEDED",
+      );
+    }
+  }
+}

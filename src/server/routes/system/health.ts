@@ -28,6 +28,7 @@ const ReplySchemaOk = Type.Object({
     ]),
   ),
   clientId: Type.String(),
+  mode: Type.String(),
 });
 
 const ReplySchemaError = Type.Object({
@@ -76,6 +77,7 @@ export async function healthCheck(fastify: FastifyInstance) {
         engineTier: env.ENGINE_TIER ?? "SELF_HOSTED",
         features: getFeatures(),
         clientId: thirdwebClientId,
+        mode: env.ENGINE_MODE,
       });
     },
   });

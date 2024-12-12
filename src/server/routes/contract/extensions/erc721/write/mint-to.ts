@@ -22,6 +22,7 @@ import {
   walletWithAAHeaderSchema,
 } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
+import { getTransactionCredentials } from "../../../../../../shared/lib/transaction/transaction-credentials";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -79,6 +80,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
         "x-account-factory-address": accountFactoryAddress,
         "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+      const credentials = await getTransactionCredentials(request);
 
       const chainId = await getChainIdFromChain(_chain);
       const chain = await getChain(chainId);
@@ -123,6 +125,7 @@ export async function erc721mintTo(fastify: FastifyInstance) {
         extension: "erc721",
         functionName: "mintTo",
         shouldSimulate: simulateTx,
+        credentials,
       });
 
       reply.status(StatusCodes.OK).send({

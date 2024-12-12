@@ -19,6 +19,7 @@ import {
   walletWithAAHeaderSchema,
 } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
+import { getTransactionCredentials } from "../../../../../../shared/lib/transaction/transaction-credentials";
 
 // INPUTS
 const requestSchema = contractParamSchema;
@@ -79,6 +80,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
         "x-account-factory-address": accountFactoryAddress,
         "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+      const credentials = await getTransactionCredentials(request);
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContractV5({
@@ -106,6 +108,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
         txOverrides,
         idempotencyKey,
         shouldSimulate: simulateTx,
+        credentials,
       });
 
       reply.status(StatusCodes.OK).send({

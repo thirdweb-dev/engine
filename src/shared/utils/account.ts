@@ -11,13 +11,11 @@ import { splitAwsKmsArn } from "../../server/utils/wallets/aws-kms-arn";
 import { getConnectedSmartWallet } from "../../server/utils/wallets/create-smart-wallet";
 import { getAwsKmsAccount } from "../../server/utils/wallets/get-aws-kms-account";
 import { getGcpKmsAccount } from "../../server/utils/wallets/get-gcp-kms-account";
-import {
-  encryptedJsonToAccount,
-  getLocalWalletAccount,
-} from "../../server/utils/wallets/get-local-wallet";
+import { encryptedJsonToAccount } from "../../server/utils/wallets/get-local-wallet";
 import { getSmartWalletV5 } from "./cache/get-smart-wallet-v5";
 import { getChain } from "./chain";
 import { thirdwebClient } from "./sdk";
+import type { TransactionCredentials } from "../lib/transaction/transaction-credentials";
 
 export const _accountsCache = new LRUMap<string, Account>(2048);
 
@@ -25,8 +23,9 @@ export const getAccount = async (args: {
   chainId: number;
   from: Address;
   accountAddress?: Address;
+  credentials: TransactionCredentials;
 }): Promise<Account> => {
-  const { chainId, from, accountAddress } = args;
+  const { chainId, from, accountAddress, credentials } = args;
   const chain = await getChain(chainId);
 
   if (accountAddress) {
@@ -34,7 +33,7 @@ export const getAccount = async (args: {
   }
 
   // Get from cache.
-  const cacheKey = getAccountCacheKey({ chainId, from, accountAddress });
+  const cacheKey = `${chainId}:${from}:${accountAddress ?? "-"}`;
   const cached = _accountsCache.get(cacheKey);
   if (cached) {
     return cached;
@@ -44,7 +43,11 @@ export const getAccount = async (args: {
     address: from,
   });
 
-  const { account } = await walletDetailsToAccount({ walletDetails, chain });
+  const { account } = await walletDetailsToAccount({
+    walletDetails,
+    chain,
+    credentials,
+  });
   _accountsCache.set(cacheKey, account);
   return account;
 };
@@ -52,9 +55,11 @@ export const getAccount = async (args: {
 export const walletDetailsToAccount = async ({
   walletDetails,
   chain,
+  credentials,
 }: {
   walletDetails: ParsedWalletDetails;
   chain: Chain;
+  credentials: TransactionCredentials;
 }) => {
   switch (walletDetails.type) {
     case WalletType.awsKms: {
@@ -88,10 +93,12 @@ export const walletDetailsToAccount = async ({
       return { account };
     }
     case WalletType.local: {
-      const account = await getLocalWalletAccount(
-        getAddress(walletDetails.address),
-      );
-      return { account };
+      return {
+        account: await encryptedJsonToAccount(
+          walletDetails.encryptedJson,
+          credentials.encryptionPassword,
+        ),
+      };
     }
     case WalletType.smartAwsKms: {
       const { keyId, region } = splitAwsKmsArn(walletDetails.awsKmsArn);
@@ -143,6 +150,7 @@ export const walletDetailsToAccount = async ({
     case WalletType.smartLocal: {
       const adminAccount = await encryptedJsonToAccount(
         walletDetails.encryptedJson,
+        credentials.encryptionPassword,
       );
 
       const connectedWallet = await getConnectedSmartWallet({
@@ -168,14 +176,16 @@ export const _adminAccountsCache = new LRUMap<string, Account>(2048);
 export const getSmartBackendWalletAdminAccount = async ({
   chainId,
   accountAddress,
+  credentials,
 }: {
   chainId: number;
   accountAddress: Address;
-}) => {
+  credentials: TransactionCredentials;
+}): Promise<Account> => {
   const chain = await getChain(chainId);
 
   // Get from cache.
-  const cacheKey = getAdminAccountCacheKey({ chainId, accountAddress });
+  const cacheKey = `${chainId}:${accountAddress}`;
   const cached = _adminAccountsCache.get(cacheKey);
   if (cached) {
     return cached;
@@ -184,16 +194,14 @@ export const getSmartBackendWalletAdminAccount = async ({
   const walletDetails = await getWalletDetails({
     address: accountAddress,
   });
-
   if (!isSmartBackendWallet(walletDetails)) {
-    throw new Error(
-      "Wallet is not a smart backend wallet and does not have an admin account",
-    );
+    throw new Error("Cannot get admin account for a non-Smart Backend Wallet.");
   }
 
   const { adminAccount } = await walletDetailsToAccount({
     walletDetails,
     chain,
+    credentials,
   });
 
   if (!adminAccount) {
@@ -204,17 +212,3 @@ export const getSmartBackendWalletAdminAccount = async ({
   _adminAccountsCache.set(cacheKey, adminAccount);
   return adminAccount;
 };
-
-const getAdminAccountCacheKey = (args: {
-  chainId: number;
-  accountAddress: Address;
-}) => `${args.chainId}-${args.accountAddress}`;
-
-const getAccountCacheKey = (args: {
-  chainId: number;
-  from: Address;
-  accountAddress?: Address;
-}) =>
-  args.accountAddress
-    ? `${args.chainId}-${args.from}-${args.accountAddress}`
-    : `${args.chainId}-${args.from}`;
