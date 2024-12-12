@@ -1,5 +1,23 @@
 import { BigNumber } from "ethers";
 
+export type ContractEventV4 = {
+  eventName: string;
+  data: Record<string, any>;
+  transaction: {
+    blockNumber: number;
+    blockHash: string;
+    transactionIndex: number;
+    removed: boolean;
+    address: string;
+    data: string;
+    topic: string[];
+    transactionHash: string;
+    logIndex: number;
+    event: string;
+    eventSignature?: string;
+  };
+};
+
 export type ContractEventV5 = {
   eventName: string;
   args: Record<string, any>;
@@ -14,29 +32,13 @@ export type ContractEventV5 = {
   removed: boolean;
 };
 
-export type ContractEventV4 = {
-  eventName: string;
-  data: Record<string, any>;
-  transaction: {
-    blockNumber: bigint;
-    blockHash: string;
-    transactionIndex: number;
-    removed: boolean;
-    address: string;
-    data: string;
-    topic: string[];
-    transactionHash: string;
-    logIndex: number;
-    event: string;
-    eventSignature: string | undefined;
-  };
-};
-
 /**
  * Mapping of events v5 response to v4 for backward compatiblity.
  * Clients may be using this api and dont want to break things.
  */
-export function toContractEventV4Schema(eventV5: ContractEventV5) {
+export function toContractEventV4Schema(
+  eventV5: ContractEventV5,
+): ContractEventV4 {
   const eventName = eventV5.eventName;
 
   // backwards compatibility of BigInt(v5) to BigNumber(v4)
