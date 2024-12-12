@@ -11,15 +11,16 @@ import type {
 } from "../schemas/nft";
 
 const timestampValidator = (value: number | string | undefined): boolean => {
-  if (value === undefined) {
+  let timestamp = value;
+  if (timestamp === undefined) {
     return true;
   }
 
-  if (!Number.isNaN(Number(value))) {
-    value = Number(value);
+  if (!Number.isNaN(Number(timestamp))) {
+    timestamp = Number(timestamp);
   }
 
-  return new Date(value).getTime() > 0;
+  return new Date(timestamp).getTime() > 0;
 };
 
 export const checkAndReturnERC20SignaturePayload = <

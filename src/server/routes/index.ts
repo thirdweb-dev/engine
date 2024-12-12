@@ -111,8 +111,6 @@ import { getWebhooksEventTypes } from "./webhooks/events";
 import { getAllWebhooksData } from "./webhooks/get-all";
 import { revokeWebhook } from "./webhooks/revoke";
 import { testWebhookRoute } from "./webhooks/test";
-import { createBackendWalletLiteRoute } from "./backend-wallet/lite/create";
-import { listBackendWalletsLiteRoute } from "./backend-wallet/lite/get";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -135,10 +133,6 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(cancelBackendWalletNoncesRoute);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
-
-  // Engine Lite
-  await fastify.register(createBackendWalletLiteRoute);
-  await fastify.register(listBackendWalletsLiteRoute);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);

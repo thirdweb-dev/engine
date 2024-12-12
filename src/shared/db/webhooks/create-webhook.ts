@@ -1,6 +1,6 @@
-import { Webhooks } from "@prisma/client";
+import type { Webhooks } from "@prisma/client";
 import { createHash, randomBytes } from "crypto";
-import { WebhooksEventTypes } from "../../schemas/webhooks";
+import type { WebhooksEventTypes } from "../../schemas/webhooks";
 import { prisma } from "../client";
 
 interface CreateWebhooksParams {

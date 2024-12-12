@@ -31,7 +31,7 @@ export const createWebhookRequestHeaders = async (
     const timestamp = Math.floor(Date.now() / 1000).toString();
     const signature = generateSignature(body, timestamp, webhook.secret);
 
-    headers["Authorization"] = `Bearer ${webhook.secret}`;
+    headers.Authorization = `Bearer ${webhook.secret}`;
     headers["x-engine-signature"] = signature;
     headers["x-engine-timestamp"] = timestamp;
   }

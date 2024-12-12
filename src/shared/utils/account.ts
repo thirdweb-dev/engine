@@ -29,9 +29,7 @@ export const getAccount = async (args: {
   const { chainId, from, accountAddress } = args;
   const chain = await getChain(chainId);
 
-  if (accountAddress) {
-    return getSmartWalletV5({ chain, accountAddress, from });
-  }
+  if (accountAddress) return getSmartWalletV5({ chain, accountAddress, from });
 
   // Get from cache.
   const cacheKey = getAccountCacheKey({ chainId, from, accountAddress });

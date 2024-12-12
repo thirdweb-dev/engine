@@ -24,7 +24,7 @@ export async function getWebhooksEventTypes(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const eventTypesArray = Object.values(WebhooksEventTypes);
       res.status(StatusCodes.OK).send({
         result: eventTypesArray,

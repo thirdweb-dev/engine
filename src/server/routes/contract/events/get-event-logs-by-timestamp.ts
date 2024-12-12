@@ -94,11 +94,11 @@ export async function getEventLogs(fastify: FastifyInstance) {
 
       const logs = resultLogs.map((log) => {
         const topics: string[] = [];
-        [log.topic0, log.topic1, log.topic2, log.topic3].forEach((val) => {
+        for (const val of [ log.topic0, log.topic1, log.topic2, log.topic3 ]) {
           if (val) {
             topics.push(val);
           }
-        });
+        }
 
         return {
           chainId: Number.parseInt(log.chainId),
