@@ -43,13 +43,13 @@ export function toContractEventV4Schema(
 
   // backwards compatibility of BigInt(v5) to BigNumber(v4)
   const data: Record<string, unknown> = {};
-  Object.keys(eventV5.args).forEach((key) => {
+  for (const key of Object.keys(eventV5.args)) {
     let value = eventV5.args[key];
     if (typeof value === "bigint") {
       value = BigNumber.from(value.toString());
     }
     data[key] = value;
-  });
+  }
 
   return {
     eventName,
