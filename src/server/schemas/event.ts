@@ -2,7 +2,7 @@ import { BigNumber } from "ethers";
 
 export type ContractEventV4 = {
   eventName: string;
-  data: Record<string, any>;
+  data: Record<string, unknown>;
   transaction: {
     blockNumber: number;
     blockHash: string;
@@ -20,7 +20,7 @@ export type ContractEventV4 = {
 
 export type ContractEventV5 = {
   eventName: string;
-  args: Record<string, any>;
+  args: Record<string, unknown>;
   address: string;
   topic: string[];
   data: string;
