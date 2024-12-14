@@ -9,15 +9,16 @@ import { prisma } from "../../src/shared/db/client";
 /**
  * todo: remove all dependencies including tests after everything is migrated properly.
  */
-describe("Webhook", () => {
+describe("Address Balance Listener", () => {
   it("test create/get webhook with config property", async () => {
     const data: CreateWebhooksParams = {
       url: "http://localhost:3005/slack/notify",
       name: "PAYMASTER BALANCE LIMIT NOTIFY",
       eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
       config: {
+        address: "0x1234...5678",
         chainId: 137,
-        minBalance: 10,
+        threshold: 10,
       },
     };
     const whWrote = await insertWebhook(data);

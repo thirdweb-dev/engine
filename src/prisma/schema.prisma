@@ -25,6 +25,8 @@ model Configuration {
   maxRetriesPerTx                        Int     @map("maxRetriesPerTx")
   // Contract Indexer Updates
   indexerListenerCronSchedule            String? @map("indexerListenerCronSchedule")
+  // cron to track balance of address 
+  addressBalanceListenerCronSchedule     String? @map("addressBalanceListenerCronSchedule")
   maxBlocksToIndex                       Int     @default(25) @map("maxBlocksToIndex")
   cursorDelaySeconds                     Int     @default(2) @map("cursorDelaySeconds")
   contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
