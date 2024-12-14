@@ -1,4 +1,5 @@
 import {
+  createThirdwebClient,
   prepareTransaction,
   simulateTransaction,
   type PreparedTransaction,
@@ -20,6 +21,7 @@ export const doSimulateTransaction = async (
   transaction: AnyTransaction,
 ): Promise<string | null> => {
   const {
+    credentials,
     chainId,
     to,
     data,
@@ -34,9 +36,10 @@ export const doSimulateTransaction = async (
 
   let preparedTransaction: PreparedTransaction;
   if (data && (to || target)) {
-    // Resolve data.
     preparedTransaction = prepareTransaction({
-      client: thirdwebClient,
+      client: createThirdwebClient({
+        secretKey: credentials.thirdwebSecretKey,
+      }),
       chain,
       to: to ?? target,
       data,
@@ -60,6 +63,7 @@ export const doSimulateTransaction = async (
     account = await getAccount({
       chainId,
       from,
+      credentials,
     });
   }
 

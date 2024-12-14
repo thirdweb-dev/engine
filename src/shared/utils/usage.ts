@@ -8,8 +8,8 @@ import type { contractParamSchema } from "../../server/schemas/shared-api-schema
 import type { walletWithAddressParamSchema } from "../../server/schemas/wallet";
 import { getChainIdFromChain } from "../../server/utils/chain";
 import { env } from "./env";
-import { logger } from "./logger";
 import { thirdwebClientId } from "./sdk";
+import type { TransactionCredentials } from "../lib/transaction/transaction-credentials";
 
 export interface ReportUsageParams {
   action:
@@ -21,6 +21,7 @@ export interface ReportUsageParams {
     | "error_tx"
     | "api_request";
   input: {
+    credentials: TransactionCredentials;
     chainId?: number;
     from?: Address;
     to?: Address;
@@ -107,38 +108,29 @@ export const reportUsage = (usageEvents: ReportUsageParams[]) => {
   }
 
   usageEvents.map(async ({ action, input, error }) => {
-    try {
-      const requestBody: UsageEvent = {
-        source: "engine",
-        action,
-        clientId: thirdwebClientId,
-        chainId: input.chainId,
-        walletAddress: input.from,
-        contractAddress: input.to,
-        transactionValue: input.value?.toString(),
-        transactionHash: input.transactionHash,
-        userOpHash: input.userOpHash,
-        errorCode: input.onChainTxStatus === 0 ? "EXECUTION_REVERTED" : error,
-        functionName: input.functionName,
-        extension: input.extension,
-        retryCount: input.retryCount,
-        provider: input.provider,
-        msSinceQueue: input.msSinceQueue,
-        msSinceSend: input.msSinceSend,
-      };
+    const requestBody: UsageEvent = {
+      source: "engine",
+      action,
+      clientId: input.credentials.clientId,
+      chainId: input.chainId,
+      walletAddress: input.from,
+      contractAddress: input.to,
+      transactionValue: input.value?.toString(),
+      transactionHash: input.transactionHash,
+      userOpHash: input.userOpHash,
+      errorCode: input.onChainTxStatus === 0 ? "EXECUTION_REVERTED" : error,
+      functionName: input.functionName,
+      extension: input.extension,
+      retryCount: input.retryCount,
+      provider: input.provider,
+      msSinceQueue: input.msSinceQueue,
+      msSinceSend: input.msSinceSend,
+    };
 
-      fetch(env.CLIENT_ANALYTICS_URL, {
-        method: "POST",
-        headers: ANALYTICS_DEFAULT_HEADERS,
-        body: JSON.stringify(requestBody),
-      }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
-    } catch (e) {
-      logger({
-        service: "worker",
-        level: "error",
-        message: `Error:`,
-        error: e,
-      });
-    }
+    fetch(env.CLIENT_ANALYTICS_URL, {
+      method: "POST",
+      headers: ANALYTICS_DEFAULT_HEADERS,
+      body: JSON.stringify(requestBody),
+    }).catch(() => {}); // Catch uncaught exceptions since this fetch call is non-blocking.
   });
 };

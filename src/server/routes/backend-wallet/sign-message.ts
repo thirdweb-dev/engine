@@ -12,6 +12,7 @@ import { getChain } from "../../../shared/utils/chain";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
+import { getTransactionCredentials } from "../../../shared/lib/transaction/transaction-credentials";
 
 const requestBodySchema = Type.Object({
   message: Type.String(),
@@ -46,6 +47,7 @@ export async function signMessageRoute(fastify: FastifyInstance) {
       const { message, isBytes, chainId } = request.body;
       const { "x-backend-wallet-address": walletAddress } =
         request.headers as Static<typeof walletHeaderSchema>;
+      const credentials = getTransactionCredentials(request);
 
       if (isBytes && !isHex(message)) {
         throw createCustomError(
@@ -71,6 +73,7 @@ export async function signMessageRoute(fastify: FastifyInstance) {
       const { account } = await walletDetailsToAccount({
         walletDetails,
         chain,
+        credentials,
       });
 
       const messageToSign = isBytes ? { raw: message as Hex } : message;

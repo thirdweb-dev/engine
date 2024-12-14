@@ -22,6 +22,7 @@ import {
 import { sanitizeAbi, sanitizeFunctionName } from "../../../utils/abi";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { parseTransactionOverrides } from "../../../utils/transaction-overrides";
+import { getTransactionCredentials } from "../../../../shared/lib/transaction/transaction-credentials";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({
@@ -78,6 +79,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-account-factory-address": accountFactoryAddress,
         "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+      const credentials = getTransactionCredentials(request);
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContractV5({
@@ -129,6 +131,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         txOverrides,
         idempotencyKey,
         shouldSimulate: simulateTx,
+        credentials,
       });
 
       reply.status(StatusCodes.OK).send({

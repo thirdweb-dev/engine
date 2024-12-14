@@ -6,6 +6,7 @@ import { maybeBigInt, normalizeAddress } from "../../utils/primitive-types";
 import { insertTransaction } from "../../utils/transaction/insert-transaction";
 import type { InsertedTransaction } from "../../utils/transaction/types";
 import { parseTransactionOverrides } from "../../../server/utils/transaction-overrides";
+import type { TransactionCredentials } from "../../lib/transaction/transaction-credentials";
 
 interface QueueTxParams {
   // we should move away from Transaction type (v4 SDK)
@@ -18,6 +19,7 @@ interface QueueTxParams {
   simulateTx?: boolean;
   idempotencyKey?: string;
   accountFactoryAddress?: Address;
+  credentials: TransactionCredentials;
   txOverrides?: {
     gas?: string;
     maxFeePerGas?: string;
@@ -26,6 +28,9 @@ interface QueueTxParams {
   };
 }
 
+/**
+ * This method enqueues a v4 SDK transaction.
+ */
 export const queueTx = async ({
   tx,
   chainId,
@@ -36,6 +41,7 @@ export const queueTx = async ({
   idempotencyKey,
   txOverrides,
   accountFactoryAddress,
+  credentials,
 }: QueueTxParams) => {
   // Transaction Details
   const functionName = tx.getMethod();
@@ -65,6 +71,7 @@ export const queueTx = async ({
       insertedTransaction: {
         ...baseTransaction,
         isUserOp: true,
+        credentials,
         deployedContractAddress,
         deployedContractType,
         from: signerAddress,
@@ -87,6 +94,7 @@ export const queueTx = async ({
     insertedTransaction: {
       ...baseTransaction,
       isUserOp: false,
+      credentials,
       deployedContractAddress,
       deployedContractType,
       from: normalizeAddress(await tx.getSignerAddress()),
