@@ -1,25 +1,32 @@
-import { Address, toSerializableTransaction } from "thirdweb";
+import {
+  type Address,
+  createThirdwebClient,
+  toSerializableTransaction,
+} from "thirdweb";
 import { getAccount } from "../account";
 import { getChain } from "../chain";
 import { getChecksumAddress } from "../primitive-types";
-import { thirdwebClient } from "../sdk";
+import type { TransactionCredentials } from "../../lib/transaction/transaction-credentials";
 
 interface CancellableTransaction {
   chainId: number;
   from: Address;
   nonce: number;
+  credentials: TransactionCredentials;
 }
 
 export const sendCancellationTransaction = async (
   transaction: CancellableTransaction,
 ) => {
-  const { chainId, from, nonce } = transaction;
+  const { chainId, from, nonce, credentials } = transaction;
 
   const chain = await getChain(chainId);
   const populatedTransaction = await toSerializableTransaction({
     from: getChecksumAddress(from),
     transaction: {
-      client: thirdwebClient,
+      client: createThirdwebClient({
+        secretKey: credentials.thirdwebSecretKey,
+      }),
       chain,
       to: from,
       data: "0x",
@@ -40,9 +47,13 @@ export const sendCancellationTransaction = async (
     populatedTransaction.maxFeePerGas *= 2n;
   }
 
-  const account = await getAccount({ chainId, from });
-  const { transactionHash } = await account.sendTransaction(
-    populatedTransaction,
-  );
+  const account = await getAccount({
+    chainId,
+    from,
+    credentials,
+  });
+  const { transactionHash } =
+    await account.sendTransaction(populatedTransaction);
+
   return transactionHash;
 };

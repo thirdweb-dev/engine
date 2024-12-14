@@ -12,6 +12,7 @@ import {
 import { txOverridesWithValueSchema } from "../../schemas/tx-overrides";
 import { walletWithAAHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
+import { getTransactionCredentials } from "../../../shared/lib/transaction/transaction-credentials";
 
 // INPUTS
 const requestSchema = publishedDeployParamSchema;
@@ -78,6 +79,7 @@ export async function deployPublished(fastify: FastifyInstance) {
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+      const credentials = getTransactionCredentials(request);
 
       const sdk = await getSdk({ chainId, walletAddress, accountAddress });
       const tx = await sdk.deployer.deployPublishedContract.prepare(
@@ -104,6 +106,7 @@ export async function deployPublished(fastify: FastifyInstance) {
         deployedContractType: contractName,
         idempotencyKey,
         txOverrides,
+        credentials,
       });
 
       reply.status(StatusCodes.OK).send({

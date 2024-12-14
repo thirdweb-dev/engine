@@ -12,6 +12,7 @@ import {
 } from "thirdweb/wallets/smart";
 import { createSmartLocalWalletDetails } from "../../../utils/wallets/create-smart-wallet";
 import { updateBackendWalletLiteAccess } from "../../../../shared/db/wallets/update-backend-wallet-lite-access";
+import { assertAuthenticationType } from "../../../utils/auth";
 
 const requestSchema = Type.Object({
   teamId: Type.String({
@@ -42,9 +43,7 @@ responseSchema.example = {
   },
 };
 
-export const createBackendWalletLiteRoute = async (
-  fastify: FastifyInstance,
-) => {
+export async function createBackendWalletLiteRoute(fastify: FastifyInstance) {
   fastify.withTypeProvider().route<{
     Params: Static<typeof requestSchema>;
     Body: Static<typeof requestBodySchema>;
@@ -66,17 +65,13 @@ export const createBackendWalletLiteRoute = async (
       hide: true,
     },
     handler: async (req, reply) => {
-      const dashboardUserAddress = checksumAddress(req.user.address);
-      if (!dashboardUserAddress) {
-        throw createCustomError(
-          "This endpoint must be called from the thirdweb dashboard.",
-          StatusCodes.FORBIDDEN,
-          "DASHBOARD_AUTH_REQUIRED",
-        );
-      }
+      assertAuthenticationType(req, ["dashboard"]);
 
       const { teamId } = req.params;
       const { salt, litePassword } = req.body;
+      const dashboardUserAddress = checksumAddress(
+        req.authentication.user.address,
+      );
 
       const liteAccess = await getBackendWalletLiteAccess({ teamId });
       if (
@@ -86,15 +81,22 @@ export const createBackendWalletLiteRoute = async (
         liteAccess.salt !== salt
       ) {
         throw createCustomError(
-          "The salt does not match the authenticated user. Try requesting a backend wallet again.",
+          "The salt does not exist for this user. Try requesting a backend wallet again.",
           StatusCodes.BAD_REQUEST,
           "INVALID_LITE_WALLET_SALT",
+        );
+      }
+      if (liteAccess.accountAddress) {
+        throw createCustomError(
+          "A backend wallet already exists for this team.",
+          StatusCodes.BAD_REQUEST,
+          "LITE_WALLET_ALREADY_EXISTS",
         );
       }
 
       // Generate a signer wallet and store the smart:local wallet, encrypted with `litePassword`.
       const walletDetails = await createSmartLocalWalletDetails({
-        label: `${teamId} (${new Date()})`,
+        label: `${teamId} (${new Date().toISOString()})`,
         accountFactoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_7,
         entrypointAddress: ENTRYPOINT_ADDRESS_v0_7,
         encryptionPassword: litePassword,
@@ -120,4 +122,4 @@ export const createBackendWalletLiteRoute = async (
       });
     },
   });
-};
+}

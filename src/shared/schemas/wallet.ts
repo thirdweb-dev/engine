@@ -8,3 +8,5 @@ export enum WalletType {
   smartGcpKms = "smart:gcp-kms",
   smartLocal = "smart:local",
 }
+
+export type WalletTypeUnion = `${WalletType}`;

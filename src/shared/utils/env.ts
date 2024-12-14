@@ -73,7 +73,7 @@ export const env = createEnv({
     SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
     CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
     ENGINE_MODE: z
-      .enum(["default", "sandbox", "server_only", "worker_only"])
+      .enum(["default", "sandbox", "server_only", "worker_only", "lite"])
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
     DD_TRACER_ACTIVATED: boolEnvSchema(false),
@@ -98,6 +98,11 @@ export const env = createEnv({
     QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(10_000),
     // Sets the number of recent nonces to map to queue IDs.
     NONCE_MAP_COUNT: z.coerce.number().default(10_000),
+
+    /**
+     * Lite mode
+     */
+    LITE_CLIENT_RATE_LIMIT_PER_MIN: z.coerce.number().default(50),
 
     /**
      * Experimental env vars. These may be renamed or removed in future non-major releases.
@@ -141,15 +146,18 @@ export const env = createEnv({
     TRANSACTION_HISTORY_COUNT: process.env.TRANSACTION_HISTORY_COUNT,
     GLOBAL_RATE_LIMIT_PER_MIN: process.env.GLOBAL_RATE_LIMIT_PER_MIN,
     DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
+    METRICS_PORT: process.env.METRICS_PORT,
+    METRICS_ENABLED: process.env.METRICS_ENABLED,
     QUEUE_COMPLETE_HISTORY_COUNT: process.env.QUEUE_COMPLETE_HISTORY_COUNT,
     QUEUE_FAIL_HISTORY_COUNT: process.env.QUEUE_FAIL_HISTORY_COUNT,
     NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
+
+    LITE_CLIENT_RATE_LIMIT_PER_MIN: process.env.LITE_CLIENT_RATE_LIMIT_PER_MIN,
+
     EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS:
       process.env.EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS,
     EXPERIMENTAL__MAX_GAS_PRICE_WEI:
       process.env.EXPERIMENTAL__MAX_GAS_PRICE_WEI,
-    METRICS_PORT: process.env.METRICS_PORT,
-    METRICS_ENABLED: process.env.METRICS_ENABLED,
   },
   onValidationError: (error: ZodError) => {
     console.error(

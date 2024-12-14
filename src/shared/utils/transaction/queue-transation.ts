@@ -13,6 +13,7 @@ import { parseTransactionOverrides } from "../../../server/utils/transaction-ove
 import { prettifyError } from "../error";
 import { insertTransaction } from "./insert-transaction";
 import type { InsertedTransaction } from "./types";
+import type { TransactionCredentials } from "../../lib/transaction/transaction-credentials";
 
 export type QueuedTransactionParams = {
   transaction: PreparedTransaction;
@@ -26,6 +27,7 @@ export type QueuedTransactionParams = {
   >;
   idempotencyKey?: string;
   shouldSimulate?: boolean;
+  credentials: TransactionCredentials;
   /** For display purposes only. */
   functionName?: string;
   /** For display purposes only. */
@@ -52,6 +54,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     shouldSimulate,
     functionName,
     extension,
+    credentials,
   } = args;
 
   let data: Hex;
@@ -90,5 +93,6 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     insertedTransaction,
     shouldSimulate,
     idempotencyKey,
+    credentials,
   });
 }

@@ -14,6 +14,10 @@ import { SendTransactionQueue } from "../../../worker/queues/send-transaction-qu
 import { createCustomError } from "../../middleware/error";
 import { TransactionHashSchema } from "../../schemas/address";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import {
+  getTransactionCredentials,
+  TransactionCredentials,
+} from "../../../shared/lib/transaction/transaction-credentials";
 
 // INPUT
 const requestBodySchema = Type.Object({
@@ -70,6 +74,7 @@ export async function cancelTransaction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { queueId } = request.body;
+      const credentials = getTransactionCredentials(request);
 
       const transaction = await TransactionDB.get(queueId);
       if (!transaction) {
@@ -91,7 +96,11 @@ export async function cancelTransaction(fastify: FastifyInstance) {
             resendCount < config.maxRetriesPerTx;
             resendCount++
           ) {
-            await SendTransactionQueue.remove({ queueId, resendCount });
+            await SendTransactionQueue.remove({
+              queueId,
+              credentials,
+              resendCount,
+            });
           }
 
           cancelledTransaction = {

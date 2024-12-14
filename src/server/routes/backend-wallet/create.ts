@@ -25,6 +25,7 @@ import {
   createSmartGcpWalletDetails,
   createSmartLocalWalletDetails,
 } from "../../utils/wallets/create-smart-wallet";
+import { getTransactionCredentials } from "../../../shared/lib/transaction/transaction-credentials";
 
 const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),
@@ -72,14 +73,14 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
     },
     handler: async (req, reply) => {
       const { label } = req.body;
+      const credentials = await getTransactionCredentials(req);
 
-      let walletAddress: string;
       const config = await getConfig();
-
       const walletType =
         req.body.type ??
         config.walletConfiguration.legacyWalletType_removeInNextBreakingChange;
 
+      let walletAddress: string;
       switch (walletType) {
         case WalletType.local:
           walletAddress = await createLocalWalletDetails({ label });

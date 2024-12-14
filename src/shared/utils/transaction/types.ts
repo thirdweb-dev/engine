@@ -1,5 +1,6 @@
 import type { Address, Hex, toSerializableTransaction } from "thirdweb";
 import type { TransactionType } from "viem";
+import type { TransactionCredentials } from "../../lib/transaction/transaction-credentials";
 
 // TODO: Replace with thirdweb SDK exported type when available.
 export type PopulatedTransaction = Awaited<
@@ -16,6 +17,8 @@ export type AnyTransaction =
 // InsertedTransaction is the raw input from the caller.
 export type InsertedTransaction = {
   isUserOp: boolean;
+  credentials: TransactionCredentials;
+
   chainId: number;
   from: Address;
   to?: Address;

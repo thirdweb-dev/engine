@@ -2,6 +2,7 @@ import { Worker, type Job, type Processor } from "bullmq";
 import assert from "node:assert";
 import superjson from "superjson";
 import {
+  createThirdwebClient,
   getAddress,
   getContract,
   readContract,
@@ -58,6 +59,7 @@ import {
   SendTransactionQueue,
   type SendTransactionData,
 } from "../queues/send-transaction-queue";
+import type { TransactionCredentials } from "../../shared/lib/transaction/transaction-credentials";
 
 /**
  * Submit a transaction to RPC (EOA transactions) or bundler (userOps).
@@ -65,9 +67,8 @@ import {
  * This worker also handles retried EOA transactions.
  */
 const handler: Processor<string, void, string> = async (job: Job<string>) => {
-  const { queueId, resendCount } = superjson.parse<SendTransactionData>(
-    job.data,
-  );
+  const { queueId, credentials, resendCount } =
+    superjson.parse<SendTransactionData>(job.data);
 
   const transaction = await TransactionDB.get(queueId);
   if (!transaction) {
@@ -83,12 +84,25 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
 
   if (transaction.status === "queued") {
     if (transaction.isUserOp) {
-      resultTransaction = await _sendUserOp(job, transaction);
+      resultTransaction = await _sendUserOp({
+        job,
+        queuedTransaction: transaction,
+        credentials,
+      });
     } else {
-      resultTransaction = await _sendTransaction(job, transaction);
+      resultTransaction = await _sendTransaction({
+        job,
+        queuedTransaction: transaction,
+        credentials,
+      });
     }
   } else if (transaction.status === "sent") {
-    resultTransaction = await _resendTransaction(job, transaction, resendCount);
+    resultTransaction = await _resendTransaction({
+      job,
+      sentTransaction: transaction,
+      resendCount,
+      credentials,
+    });
   } else {
     job.log(`Invalid transaction state: ${stringify(transaction)}`);
     return;
@@ -112,11 +126,14 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   }
 };
 
-const _sendUserOp = async (
-  job: Job,
-  queuedTransaction: QueuedTransaction,
-): Promise<SentTransaction | ErroredTransaction | null> => {
+const _sendUserOp = async (args: {
+  job: Job;
+  queuedTransaction: QueuedTransaction;
+  credentials: TransactionCredentials;
+}): Promise<SentTransaction | ErroredTransaction | null> => {
+  const { job, queuedTransaction, credentials } = args;
   assert(queuedTransaction.isUserOp);
+  assert(queuedTransaction.accountAddress);
 
   if (_hasExceededTimeout(queuedTransaction)) {
     // Fail if the transaction is not sent within the specified timeout.
@@ -127,63 +144,44 @@ const _sendUserOp = async (
     };
   }
 
-  const {
-    from,
-    accountAddress,
-    to,
-    target,
-    chainId,
-    accountFactoryAddress: userProvidedAccountFactoryAddress,
-    entrypointAddress: userProvidedEntrypointAddress,
-    accountSalt,
-    overrides,
-  } = queuedTransaction;
-  const chain = await getChain(chainId);
+  const toAddress = getChecksumAddress(
+    queuedTransaction.to ?? queuedTransaction.target,
+  );
+  assert(toAddress);
 
-  assert(accountAddress, "Invalid userOp parameters: accountAddress");
-  const toAddress = to ?? target;
-  assert(toAddress, "Invalid transaction parameters: to");
+  const chain = await getChain(queuedTransaction.chainId);
+  const client = createThirdwebClient({
+    secretKey: credentials.thirdwebSecretKey,
+  });
 
-  // this can either be a regular backend wallet userop or a smart backend wallet userop
+  // This transaction may be a userOp from an EOA backend wallet or a transaction from a Smart Backend Wallet.
   let adminAccount: Account | undefined;
-
   try {
     adminAccount = await getSmartBackendWalletAdminAccount({
-      accountAddress,
-      chainId: chainId,
+      accountAddress: queuedTransaction.accountAddress,
+      chainId: queuedTransaction.chainId,
+      credentials,
     });
   } catch {
-    // do nothing, this might still be a regular backend wallet userop
-  }
-
-  if (!adminAccount) {
     adminAccount = await getAccount({
-      chainId: chainId,
-      from,
+      chainId: queuedTransaction.chainId,
+      from: queuedTransaction.from,
+      credentials,
     });
-  }
-
-  if (!adminAccount) {
-    job.log("Failed to find admin account for userop");
-    return {
-      ...queuedTransaction,
-      status: "errored",
-      errorMessage: "Failed to find admin account for userop",
-    };
   }
 
   let signedUserOp: UserOperation;
   try {
     // Resolve the user factory from the provided address, or from the `factory()` method if found.
-    let accountFactoryAddress = userProvidedAccountFactoryAddress;
+    let accountFactoryAddress = queuedTransaction.accountFactoryAddress;
     if (!accountFactoryAddress) {
       // TODO: this is not a good solution since the assumption that the account has a factory function is not guaranteed
       // instead, we should use default account factory address or throw here.
       try {
         const smartAccountContract = getContract({
-          client: thirdwebClient,
+          client,
           chain,
-          address: accountAddress,
+          address: queuedTransaction.accountAddress,
         });
         const onchainAccountFactoryAddress = await readContract({
           contract: smartAccountContract,
@@ -193,20 +191,20 @@ const _sendUserOp = async (
         accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
       } catch {
         throw new Error(
-          `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
+          `Failed to find factory address for account '${queuedTransaction.accountAddress}' on chain '${queuedTransaction.chainId}'`,
         );
       }
     }
 
     signedUserOp = (await createAndSignUserOp({
-      client: thirdwebClient,
+      client,
       transactions: [
         {
-          client: thirdwebClient,
+          client,
           chain,
           ...queuedTransaction,
-          ...overrides,
-          to: getChecksumAddress(toAddress),
+          ...queuedTransaction.overrides,
+          to: toAddress,
         },
       ],
       adminAccount,
@@ -215,9 +213,9 @@ const _sendUserOp = async (
         sponsorGas: true,
         factoryAddress: accountFactoryAddress,
         overrides: {
-          accountAddress,
-          accountSalt,
-          entrypointAddress: userProvidedEntrypointAddress,
+          accountAddress: queuedTransaction.accountAddress,
+          accountSalt: queuedTransaction.accountSalt,
+          entrypointAddress: queuedTransaction.entrypointAddress,
           // TODO: let user pass entrypoint address for 0.7 support
         },
       },
@@ -243,9 +241,9 @@ const _sendUserOp = async (
   const userOpHash = await bundleUserOp({
     userOp: signedUserOp,
     options: {
-      client: thirdwebClient,
+      client,
       chain,
-      entrypointAddress: userProvidedEntrypointAddress,
+      entrypointAddress: queuedTransaction.entrypointAddress,
     },
   });
 
@@ -263,10 +261,12 @@ const _sendUserOp = async (
   };
 };
 
-const _sendTransaction = async (
-  job: Job,
-  queuedTransaction: QueuedTransaction,
-): Promise<SentTransaction | ErroredTransaction | null> => {
+const _sendTransaction = async (args: {
+  job: Job;
+  queuedTransaction: QueuedTransaction;
+  credentials: TransactionCredentials;
+}): Promise<SentTransaction | ErroredTransaction | null> => {
+  const { job, queuedTransaction, credentials } = args;
   assert(!queuedTransaction.isUserOp);
 
   if (_hasExceededTimeout(queuedTransaction)) {
@@ -409,11 +409,13 @@ const _sendTransaction = async (
   };
 };
 
-const _resendTransaction = async (
-  job: Job,
-  sentTransaction: SentTransaction,
-  resendCount: number,
-): Promise<SentTransaction | null> => {
+const _resendTransaction = async (args: {
+  job: Job;
+  sentTransaction: SentTransaction;
+  resendCount: number;
+  credentials: TransactionCredentials;
+}): Promise<SentTransaction | null> => {
+  const { job, sentTransaction, resendCount, credentials } = args;
   assert(!sentTransaction.isUserOp);
 
   if (_hasExceededTimeout(sentTransaction)) {

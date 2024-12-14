@@ -20,6 +20,7 @@ import {
   walletWithAAHeaderSchema,
 } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
+import { getTransactionCredentials } from "../../../../../../shared/lib/transaction/transaction-credentials";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;
@@ -103,9 +104,10 @@ export async function erc20mintTo(fastify: FastifyInstance) {
         accountSalt,
         txOverrides,
         idempotencyKey,
+        shouldSimulate: simulateTx,
+        credentials: getTransactionCredentials(request),
         extension: "erc20",
         functionName: "mintTo",
-        shouldSimulate: simulateTx,
       });
 
       reply.status(StatusCodes.OK).send({

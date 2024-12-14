@@ -15,7 +15,7 @@ const IGNORE_LOG_PATHS = new Set([
 const SENSITIVE_LOG_PATHS = new Set([
   "/backend-wallet/import",
   "/configuration/wallets",
-  "/backend-wallet/lite",
+  "/backend-wallet/lite/:teamId",
 ]);
 
 function shouldLog(request: FastifyRequest) {

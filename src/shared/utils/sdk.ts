@@ -1,11 +1,7 @@
-import { sha256HexSync } from "@thirdweb-dev/crypto";
 import { createThirdwebClient } from "thirdweb";
 import type { TransactionReceipt } from "thirdweb/transaction";
 import { env } from "./env";
-
-export const thirdwebClientId = sha256HexSync(
-  env.THIRDWEB_API_SECRET_KEY,
-).slice(0, 32);
+import { createHash } from "node:crypto";
 
 export const thirdwebClient = createThirdwebClient({
   secretKey: env.THIRDWEB_API_SECRET_KEY,
@@ -13,6 +9,11 @@ export const thirdwebClient = createThirdwebClient({
     rpc: { maxBatchSize: 50 },
   },
 });
+export const thirdwebClientId = toClientId(env.THIRDWEB_API_SECRET_KEY);
+
+export function toClientId(secretKey: string) {
+  return createHash("sha256").update(secretKey).digest("hex").slice(0, 32);
+}
 
 /**
  * Helper functions to handle v4 -> v5 SDK migration.
