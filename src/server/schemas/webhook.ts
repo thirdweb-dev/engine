@@ -9,6 +9,7 @@ export const WebhookSchema = Type.Object({
   eventType: Type.String(),
   active: Type.Boolean(),
   createdAt: Type.String(),
+  config: Type.Optional(Type.Any()),
 });
 
 export const toWebhookSchema = (
@@ -17,6 +18,7 @@ export const toWebhookSchema = (
   url: webhook.url,
   name: webhook.name,
   eventType: webhook.eventType,
+  config: webhook.config,
   secret: webhook.secret,
   createdAt: webhook.createdAt.toISOString(),
   active: !webhook.revokedAt,

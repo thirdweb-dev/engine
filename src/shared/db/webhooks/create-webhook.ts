@@ -1,18 +1,20 @@
-import type { Webhooks } from "@prisma/client";
+import type { Prisma, Webhooks } from "@prisma/client";
 import { createHash, randomBytes } from "crypto";
 import type { WebhooksEventTypes } from "../../schemas/webhooks";
 import { prisma } from "../client";
 
-interface CreateWebhooksParams {
+export interface CreateWebhooksParams {
   url: string;
   name?: string;
   eventType: WebhooksEventTypes;
+  config?: Prisma.InputJsonValue | undefined;
 }
 
 export const insertWebhook = async ({
   url,
   name,
   eventType,
+  config,
 }: CreateWebhooksParams): Promise<Webhooks> => {
   // generate random bytes
   const bytes = randomBytes(4096);
@@ -25,6 +27,7 @@ export const insertWebhook = async ({
       name,
       eventType,
       secret,
+      config,
     },
   });
 };
