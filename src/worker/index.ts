@@ -7,6 +7,7 @@ import {
   newWebhooksListener,
   updatedWebhooksListener,
 } from "./listeners/webhook-listener";
+import { addressBalanceListener } from "./listeners/address-balance-listener";
 import { initCancelRecycledNoncesWorker } from "./tasks/cancel-recycled-nonces-worker";
 import { initMineTransactionWorker } from "./tasks/mine-transaction-worker";
 import { initNonceHealthCheckWorker } from "./tasks/nonce-health-check-worker";
@@ -40,4 +41,7 @@ export const initWorker = async () => {
 
   // Contract subscriptions.
   await chainIndexerListener();
+
+  // Notify address balance
+  await addressBalanceListener();
 };

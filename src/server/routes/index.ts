@@ -111,6 +111,7 @@ import { getWebhooksEventTypes } from "./webhooks/events";
 import { getAllWebhooksData } from "./webhooks/get-all";
 import { revokeWebhook } from "./webhooks/revoke";
 import { testWebhookRoute } from "./webhooks/test";
+import { testWebhookCallbackRoute } from "./webhooks/test";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -162,6 +163,7 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(revokeWebhook);
   await fastify.register(getWebhooksEventTypes);
   await fastify.register(testWebhookRoute);
+  await fastify.register(testWebhookCallbackRoute);
 
   // Permissions
   await fastify.register(getAllPermissions);

@@ -2,10 +2,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../shared/db/client";
 import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
 import { thirdwebClient } from "../../shared/utils/sdk";
-import { eth_getBalance, getRpcClient, toTokens } from "thirdweb";
 import { getChain } from "../../shared/utils/chain";
 import { SendWebhookQueue } from "../queues/send-webhook-queue";
 import { logger } from "../../shared/utils/logger";
+import { getWalletBalance } from "thirdweb/wallets";
 
 type WebhookDetail = {
   id: number;
@@ -23,13 +23,13 @@ export const trackAddressBalance = async () => {
   const today = Date.now();
   const oneDayAgo = today - 24 * 60 * 60 * 1000;
 
-  // returns new webhooks that have not been notified or at 1 day interval
+  // returns new webhooks that have not been notified at all or was last notified 1 day ago
   const webhookDetails = await prisma.webhooks.findMany({
     where: {
       eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
-      config: { path: ["address"], not: Prisma.JsonNull },
+      config: { path: ["address"], not: Prisma.AnyNull },
       OR: [
-        { config: { path: ["lastNotify"], equals: Prisma.JsonNull } },
+        { config: { path: ["lastNotify"], equals: Prisma.AnyNull } },
         { config: { path: ["lastNotify"], lt: oneDayAgo } },
       ],
     },
@@ -43,7 +43,14 @@ export const trackAddressBalance = async () => {
 
     ids.push(webhookDetail.id);
     promises.push(
-      _checkBalanceAndEnqueueWebhook(webhookDetail).catch((e) => logger({ e })),
+      _checkBalanceAndEnqueueWebhook(webhookDetail).catch((e) =>
+        logger({
+          service: "worker",
+          level: "warn",
+          message: `errored while _checkBalanceAndEnqueueWebhook for ${webhookDetail.id}`,
+          error: e,
+        }),
+      ),
     );
 
     if (ids.length >= 10) {
@@ -63,13 +70,12 @@ const _checkBalanceAndEnqueueWebhook = async (webhookDetail: WebhookDetail) => {
   const { address, chainId, threshold } = webhookDetail.config;
 
   // get native balance of address
-  const currentBalance = await eth_getBalance(
-    getRpcClient({
-      client: thirdwebClient,
-      chain: await getChain(chainId),
-    }),
-    { address },
-  );
+  const balanceData = await getWalletBalance({
+    client: thirdwebClient,
+    address,
+    chain: await getChain(chainId),
+  });
+  const currentBalance = balanceData.displayValue;
 
   // dont do anything if has enough balance
   if (currentBalance > threshold) return;
@@ -80,19 +86,20 @@ const _checkBalanceAndEnqueueWebhook = async (webhookDetail: WebhookDetail) => {
       chainId,
       walletAddress: address,
       minimumBalance: threshold,
-      currentBalance: currentBalance.toString(),
-      message: `LowBalance: The address ${address} on chain ${chainId} has ${toTokens(
+      currentBalance: currentBalance,
+      message: `LowBalance: The address ${address} on chain ${chainId} has ${Number.parseFloat(
         currentBalance,
-        18,
-      )} gas remaining.`,
+      )
+        .toFixed(2)
+        .toString()}/${threshold} gas remaining.`,
     },
   });
 };
 
 const _updateLastNotify = async (webhookIds: number[], time: number) => {
-  // using query as only want to update a single field in config json and not replace the object
+  // using query as only want to update a single field in config json and not replace the entire object
   await prisma.$executeRaw`
-    UPDATE webhooks
-    SET config = jsonb_set(config, '{lastNotify}', ${time}::jsonb, true)
-    WHERE id = ANY(${webhookIds});`;
+    update webhooks 
+    set config=jsonb_set(config, '{lastNotify}', ${time.toString()}::jsonb, true) 
+    where id = any(array[${webhookIds}]);`;
 };

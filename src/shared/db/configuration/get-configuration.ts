@@ -236,7 +236,7 @@ export const getConfiguration = async (): Promise<ParsedConfig> => {
     config = await updateConfiguration({
       indexerListenerCronSchedule: "*/5 * * * * *",
     });
-  }else if (!config.addressBalanceListenerCronSchedule) {
+  } else if (!config.addressBalanceListenerCronSchedule) {
     config = await updateConfiguration({
       addressBalanceListenerCronSchedule: "0 */5 * * * *",
     });
