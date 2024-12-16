@@ -118,38 +118,3 @@ export async function testWebhookRoute(fastify: FastifyInstance) {
     },
   });
 }
-
-const responseBodySchemaWebhookCallback = Type.Object({
-  result: Type.Object({
-    prevState: Type.Boolean(),
-    updatedState: Type.Boolean(),
-  }),
-});
-
-export let webhookCallbackState = false;
-export async function testWebhookCallbackRoute(fastify: FastifyInstance) {
-  fastify.route<{
-    Reply: Static<typeof responseBodySchemaWebhookCallback>;
-  }>({
-    method: "POST",
-    url: "/webhooks/testWebhookCallback",
-    schema: {
-      summary: "Test webhook callback",
-      description:
-        "Updates server state used for testing successful calling of registered webhook.",
-      tags: ["Webhooks"],
-      operationId: "testWebhookCallback",
-      response: {
-        ...standardResponseSchema,
-        [StatusCodes.OK]: responseBodySchemaWebhookCallback,
-      },
-    },
-    handler: async (_, res) => {
-      const prevState = webhookCallbackState;
-      webhookCallbackState = !webhookCallbackState;
-      res.status(StatusCodes.OK).send({
-        result: { prevState, updatedState: webhookCallbackState },
-      });
-    },
-  });
-}

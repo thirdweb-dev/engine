@@ -1,80 +1,161 @@
-import { beforeAll, describe, expect, test } from "bun:test";
-import { setup } from "../setup";
-import { insertWebhook } from "../../../../src/shared/db/webhooks/create-webhook";
-import { WebhooksEventTypes } from "../../../../src/shared/schemas/webhooks";
-import { getWebhook } from "../../../../src/shared/db/webhooks/get-webhook";
-import { prisma } from "../../../../src/shared/db/client";
-import { webhookCallbackState } from "../../../../src/server/routes/webhooks/test";
-
+import { beforeAll, afterAll, describe, expect, test } from "bun:test";
+import Fastify, { type FastifyInstance } from "fastify";
 import type { setupEngine } from "../../utils/engine";
+import { setup } from "../setup";
+import { WebhooksEventTypes } from "../../../../src/shared/schemas/webhooks";
 
-// helper to fetch updated state value after webhook callback
-const checkTestStateChange = async (): Promise<{
-  status: boolean;
-  newValue?: boolean;
-}> => {
-  const originalState = webhookCallbackState;
-  return await new Promise((res, rej) => {
-    // check for test state update
-    const interval = setInterval(() => {
-      if (originalState === webhookCallbackState) return;
-      clearInterval(interval);
-      res({ status: true, newValue: webhookCallbackState });
-    }, 250);
-
-    // reject if its taking too long to update state.
-    setTimeout(() => {
-      rej({ status: false });
-    }, 1000 * 30);
-  });
-};
-
+/**
+ * steps to run
+ * - build sdk: yarn generate:sdk (might need to cd sdk && yarn)
+ * - run local server: yarn dev
+ * - bun test  tests/e2e/tests/workers/address-balance-listener.test.ts
+ */
 describe("Webhook callback Address Balance Listener", () => {
+  let testCallbackServer: FastifyInstance;
   let engine: ReturnType<typeof setupEngine>;
 
   beforeAll(async () => {
-    const setupRes = await setup();
-    engine = setupRes.engine;
+    engine = (await setup()).engine;
+    testCallbackServer = await createTempCallbackServer();
   });
 
+  afterAll(async () => {
+    await testCallbackServer.close();
+  });
+
+  // state to be updated by webhook callback
+  let webhookCallbackState = false;
+  const createTempCallbackServer = async () => {
+    const tempServer = Fastify();
+
+    tempServer.post("/callback", async () => {
+      const prevValue = webhookCallbackState;
+      webhookCallbackState = !webhookCallbackState;
+      return { prevValue, newValue: webhookCallbackState };
+    });
+
+    await tempServer.listen({ port: 3006 });
+
+    return tempServer;
+  };
+
+  // helper to fetch updated state value after webhook callback
+  const checkTestStateChange = async (): Promise<{
+    status: boolean;
+    newValue?: boolean;
+  }> => {
+    const originalState = webhookCallbackState;
+    return await new Promise((res, rej) => {
+      // check for test state update
+      const interval = setInterval(() => {
+        if (originalState === webhookCallbackState) return;
+        clearInterval(interval);
+        res({ status: true, newValue: webhookCallbackState });
+      }, 250);
+
+      // reject if its taking too long to update state.
+      setTimeout(() => {
+        rej({ status: false });
+      }, 1000 * 30);
+    });
+  };
+
   test(
-    "test webhook callback when address balance goes below threshold",
+    "test should throw error as balance > threshold",
     async () => {
       const originalStateValue = webhookCallbackState;
 
-      const whWrote = await insertWebhook({
-        url: "http://localhost:3005/webhooks/testWebhookCallback",
-        name: "PAYMASTER BALANCE LIMIT NOTIFY",
-        eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
-        config: {
-          address: "0xE52772e599b3fa747Af9595266b527A31611cebd",
-          chainId: 137,
-          threshold: 2000, // high number to make sure its tiggered
-        },
-      });
-      const whRead = await getWebhook(whWrote.id);
+      const whWrote = (
+        await engine.webhooks.create({
+          url: "http://localhost:3006/callback",
+          name: "TEST:DELETE LATER:PAYMASTER BALANCE LIMIT NOTIFY",
+          eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
+          config: {
+            address: "0xE52772e599b3fa747Af9595266b527A31611cebd",
+            chainId: 137,
+            threshold: 0.1,
+          },
+        })
+      )?.result;
+
+      const whRead = (await engine.webhooks.getAll()).result.find(
+        (wh) => wh.id === whWrote.id,
+      );
 
       // check if webhook is registered correctly
-      expect(whRead?.id).eq(whWrote.id);
-      expect(whRead?.config?.chainId).eq(whWrote?.config?.chainId);
+      expect(whRead?.id).toEqual(whWrote?.id);
+      expect(whRead?.config?.address).toEqual(whWrote?.config?.address);
+      expect(whRead?.config?.chainId).toEqual(whWrote?.config?.chainId);
+      expect(whRead?.config?.threshold).toEqual(whWrote?.config?.threshold);
 
       let testStatus: string;
       try {
         const response = await checkTestStateChange();
-        expect(response.status).eq(true);
-        expect(response.newValue).not.eq(originalStateValue);
-        expect(response.newValue).eq(webhookCallbackState);
+        expect(response.status).toEqual(true);
+        expect(response.newValue).not.toEqual(originalStateValue);
+        expect(response.newValue).toEqual(webhookCallbackState);
         testStatus = "completed";
       } catch (e) {
         console.error(e);
         testStatus = "webhook not called";
       }
 
-      // removes added test webhook from db
-      await prisma.webhooks.delete({ where: { id: whRead?.id } });
+      // todo: delete api doesn't exist atm so only revoke for now. Dont delete manually.
+      // await prisma.webhooks.delete({ where: { id: whRead?.id } });
+      await engine.webhooks.revoke({ id: whRead.id });
 
       // should not throw error
-      expect(testStatus).eq("completed");
+      expect(testStatus).toEqual("webhook not called");
+    },
+    1000 * 60, // increase timeout
+  );
+
+  test(
+    "test should call webhook as balance < threshold",
+    async () => {
+      const originalStateValue = webhookCallbackState;
+
+      const whWrote = (
+        await engine.webhooks.create({
+          url: "http://localhost:3006/callback",
+          name: "TEST:DELETE LATER:PAYMASTER BALANCE LIMIT NOTIFY",
+          eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
+          config: {
+            address: "0xE52772e599b3fa747Af9595266b527A31611cebd",
+            chainId: 137,
+            threshold: 2000, // high number to make sure its tiggered
+          },
+        })
+      )?.result;
+
+      const whRead = (await engine.webhooks.getAll()).result.find(
+        (wh) => wh.id === whWrote.id,
+      );
+
+      // check if webhook is registered correctly
+      expect(whRead?.id).toEqual(whWrote?.id);
+      expect(whRead?.config?.address).toEqual(whWrote?.config?.address);
+      expect(whRead?.config?.chainId).toEqual(whWrote?.config?.chainId);
+      expect(whRead?.config?.threshold).toEqual(whWrote?.config?.threshold);
+
+      let testStatus: string;
+      try {
+        const response = await checkTestStateChange();
+        expect(response.status).toEqual(true);
+        expect(response.newValue).not.toEqual(originalStateValue);
+        expect(response.newValue).toEqual(webhookCallbackState);
+        testStatus = "completed";
+      } catch (e) {
+        console.error(e);
+        testStatus = "webhook not called";
+      }
+
+      // todo: delete api doesn't exist atm so only revoke for now. Dont delete manually.
+      // await prisma.webhooks.delete({ where: { id: whRead?.id } });
+      await engine.webhooks.revoke({ id: whRead.id });
+
+      // should not throw error
+      expect(testStatus).toEqual("completed");
     },
     1000 * 60, // increase timeout
   );
