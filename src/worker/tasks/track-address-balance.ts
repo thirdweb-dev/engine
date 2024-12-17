@@ -19,6 +19,12 @@ type WebhookDetail = {
   revokedAt: Date | null;
 };
 
+type WebhookConfig = {
+  address: string;
+  chainId: number;
+  threshold: number;
+};
+
 export const trackAddressBalance = async () => {
   const today = Date.now();
   const oneDayAgo = today - 24 * 60 * 60 * 1000;
@@ -38,8 +44,9 @@ export const trackAddressBalance = async () => {
   let promises = [];
   let ids = [];
   for (const webhookDetail of webhookDetails) {
-    if (!webhookDetail.config?.address) continue;
-    if (!webhookDetail.config?.chainId) continue;
+    const config = webhookDetail.config as WebhookConfig | null;
+    if (!config?.address) continue;
+    if (!config?.chainId) continue;
 
     ids.push(webhookDetail.id);
     promises.push(
@@ -67,7 +74,7 @@ export const trackAddressBalance = async () => {
 };
 
 const _checkBalanceAndEnqueueWebhook = async (webhookDetail: WebhookDetail) => {
-  const { address, chainId, threshold } = webhookDetail.config;
+  const { address, chainId, threshold } = webhookDetail.config as WebhookConfig;
 
   // get native balance of address
   const balanceData = await getWalletBalance({
@@ -78,14 +85,14 @@ const _checkBalanceAndEnqueueWebhook = async (webhookDetail: WebhookDetail) => {
   const currentBalance = balanceData.displayValue;
 
   // dont do anything if has enough balance
-  if (currentBalance > threshold) return;
+  if (Number.parseFloat(currentBalance) > threshold) return;
 
   await SendWebhookQueue.enqueueWebhook({
     type: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
     body: {
       chainId,
       walletAddress: address,
-      minimumBalance: threshold,
+      minimumBalance: threshold.toString(),
       currentBalance: currentBalance,
       message: `LowBalance: The address ${address} on chain ${chainId} has ${Number.parseFloat(
         currentBalance,
