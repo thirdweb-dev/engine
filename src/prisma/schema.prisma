@@ -25,6 +25,8 @@ model Configuration {
   maxRetriesPerTx                        Int     @map("maxRetriesPerTx")
   // Contract Indexer Updates
   indexerListenerCronSchedule            String? @map("indexerListenerCronSchedule")
+  // cron to track balance of address 
+  addressBalanceListenerCronSchedule     String? @map("addressBalanceListenerCronSchedule")
   maxBlocksToIndex                       Int     @default(25) @map("maxBlocksToIndex")
   cursorDelaySeconds                     Int     @default(2) @map("cursorDelaySeconds")
   contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
@@ -181,6 +183,7 @@ model Webhooks {
   url                   String                  @map("url")
   secret                String                  @map("secret")
   eventType             String                  @map("evenType")
+  config                Json?                   @map("config")
   createdAt             DateTime                @default(now()) @map("createdAt")
   updatedAt             DateTime                @updatedAt @map("updatedAt")
   revokedAt             DateTime?               @map("revokedAt")
