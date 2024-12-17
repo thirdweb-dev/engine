@@ -13,6 +13,8 @@ import { WebhooksEventTypes } from "../../../../src/shared/schemas/webhooks";
 describe("Webhook callback Address Balance Listener", () => {
   let testCallbackServer: FastifyInstance;
   let engine: ReturnType<typeof setupEngine>;
+  // state to be updated by webhook callback
+  let webhookCallbackState = false;
 
   beforeAll(async () => {
     engine = (await setup()).engine;
@@ -23,8 +25,6 @@ describe("Webhook callback Address Balance Listener", () => {
     await testCallbackServer.close();
   });
 
-  // state to be updated by webhook callback
-  let webhookCallbackState = false;
   const createTempCallbackServer = async () => {
     const tempServer = Fastify();
 
@@ -60,52 +60,59 @@ describe("Webhook callback Address Balance Listener", () => {
     });
   };
 
+  const testWithThreshold = async (
+    thresholdBal: number,
+    expectedOutput: string,
+  ) => {
+    const originalStateValue = webhookCallbackState;
+
+    const whWrote = (
+      await engine.webhooks.create({
+        url: "http://localhost:3006/callback",
+        name: "TEST:DELETE LATER:PAYMASTER BALANCE LIMIT NOTIFY",
+        eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
+        config: {
+          address: "0xE52772e599b3fa747Af9595266b527A31611cebd",
+          chainId: 137,
+          threshold: thresholdBal,
+        },
+      })
+    )?.result;
+
+    const whRead = (await engine.webhooks.getAll()).result.find(
+      (wh) => wh.id === whWrote.id,
+    );
+
+    // check if webhook is registered correctly
+    expect(whRead?.id).toEqual(whWrote?.id);
+    expect(whRead?.config?.address).toEqual(whWrote?.config?.address);
+    expect(whRead?.config?.chainId).toEqual(whWrote?.config?.chainId);
+    expect(whRead?.config?.threshold).toEqual(whWrote?.config?.threshold);
+
+    let testStatus: string;
+    try {
+      const response = await checkTestStateChange();
+      expect(response.status).toEqual(true);
+      expect(response.newValue).not.toEqual(originalStateValue);
+      expect(response.newValue).toEqual(webhookCallbackState);
+      testStatus = "completed";
+    } catch (e) {
+      console.error(e);
+      testStatus = "webhook not called";
+    }
+
+    // todo: delete api doesn't exist atm so only revoke for now. Dont delete manually.
+    // await prisma.webhooks.delete({ where: { id: whRead?.id } });
+    await engine.webhooks.revoke({ id: whRead.id });
+
+    // should not throw error
+    expect(testStatus).toEqual(expectedOutput);
+  };
+
   test(
     "test should throw error as balance > threshold",
     async () => {
-      const originalStateValue = webhookCallbackState;
-
-      const whWrote = (
-        await engine.webhooks.create({
-          url: "http://localhost:3006/callback",
-          name: "TEST:DELETE LATER:PAYMASTER BALANCE LIMIT NOTIFY",
-          eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
-          config: {
-            address: "0xE52772e599b3fa747Af9595266b527A31611cebd",
-            chainId: 137,
-            threshold: 0.1,
-          },
-        })
-      )?.result;
-
-      const whRead = (await engine.webhooks.getAll()).result.find(
-        (wh) => wh.id === whWrote.id,
-      );
-
-      // check if webhook is registered correctly
-      expect(whRead?.id).toEqual(whWrote?.id);
-      expect(whRead?.config?.address).toEqual(whWrote?.config?.address);
-      expect(whRead?.config?.chainId).toEqual(whWrote?.config?.chainId);
-      expect(whRead?.config?.threshold).toEqual(whWrote?.config?.threshold);
-
-      let testStatus: string;
-      try {
-        const response = await checkTestStateChange();
-        expect(response.status).toEqual(true);
-        expect(response.newValue).not.toEqual(originalStateValue);
-        expect(response.newValue).toEqual(webhookCallbackState);
-        testStatus = "completed";
-      } catch (e) {
-        console.error(e);
-        testStatus = "webhook not called";
-      }
-
-      // todo: delete api doesn't exist atm so only revoke for now. Dont delete manually.
-      // await prisma.webhooks.delete({ where: { id: whRead?.id } });
-      await engine.webhooks.revoke({ id: whRead.id });
-
-      // should not throw error
-      expect(testStatus).toEqual("webhook not called");
+      await testWithThreshold(0.1, "webhook not called");
     },
     1000 * 60, // increase timeout
   );
@@ -113,49 +120,7 @@ describe("Webhook callback Address Balance Listener", () => {
   test(
     "test should call webhook as balance < threshold",
     async () => {
-      const originalStateValue = webhookCallbackState;
-
-      const whWrote = (
-        await engine.webhooks.create({
-          url: "http://localhost:3006/callback",
-          name: "TEST:DELETE LATER:PAYMASTER BALANCE LIMIT NOTIFY",
-          eventType: WebhooksEventTypes.BACKEND_WALLET_BALANCE,
-          config: {
-            address: "0xE52772e599b3fa747Af9595266b527A31611cebd",
-            chainId: 137,
-            threshold: 2000, // high number to make sure its tiggered
-          },
-        })
-      )?.result;
-
-      const whRead = (await engine.webhooks.getAll()).result.find(
-        (wh) => wh.id === whWrote.id,
-      );
-
-      // check if webhook is registered correctly
-      expect(whRead?.id).toEqual(whWrote?.id);
-      expect(whRead?.config?.address).toEqual(whWrote?.config?.address);
-      expect(whRead?.config?.chainId).toEqual(whWrote?.config?.chainId);
-      expect(whRead?.config?.threshold).toEqual(whWrote?.config?.threshold);
-
-      let testStatus: string;
-      try {
-        const response = await checkTestStateChange();
-        expect(response.status).toEqual(true);
-        expect(response.newValue).not.toEqual(originalStateValue);
-        expect(response.newValue).toEqual(webhookCallbackState);
-        testStatus = "completed";
-      } catch (e) {
-        console.error(e);
-        testStatus = "webhook not called";
-      }
-
-      // todo: delete api doesn't exist atm so only revoke for now. Dont delete manually.
-      // await prisma.webhooks.delete({ where: { id: whRead?.id } });
-      await engine.webhooks.revoke({ id: whRead.id });
-
-      // should not throw error
-      expect(testStatus).toEqual("completed");
+      await testWithThreshold(2000, "completed");
     },
     1000 * 60, // increase timeout
   );
