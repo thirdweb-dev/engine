@@ -11,14 +11,22 @@ import { getSmartWalletV5 } from "../cache/get-smart-wallet-v5";
 import { getChain } from "../chain";
 import { thirdwebClient } from "../sdk";
 import type { AnyTransaction } from "./types";
+import type { Ecosystem } from "thirdweb/dist/types/wallets/in-app/core/wallet/types";
+
+export type SimulateQueuedTransactionEnclaveParams = {
+  clientId: string;
+  authToken: string;
+  ecosystem?: Ecosystem;
+}
 
 /**
  * Simulate the queued transaction.
  * @param transaction
+ * @param enclave
  * @returns string - The simulation error, or null if no error.
  */
 export const doSimulateTransaction = async (
-  transaction: AnyTransaction,
+  transaction: AnyTransaction, enclave: SimulateQueuedTransactionEnclaveParams | undefined = undefined,
 ): Promise<string | null> => {
   const {
     chainId,
@@ -61,6 +69,11 @@ export const doSimulateTransaction = async (
     account = await getAccount({
       chainId,
       from,
+      ...(enclave ? {
+        ecosystem: enclave.ecosystem,
+        clientId: enclave.clientId,
+        authToken: enclave.authToken,
+      } : {})
     });
   }
 

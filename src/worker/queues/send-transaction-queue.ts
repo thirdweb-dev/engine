@@ -2,10 +2,12 @@ import { Queue } from "bullmq";
 import superjson from "superjson";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
+import type { EnclaveWalletParams } from "../../shared/utils/cache/get-enclave-wallet";
 
 export type SendTransactionData = {
   queueId: string;
   resendCount: number;
+  enclave?: EnclaveWalletParams;
 };
 
 export class SendTransactionQueue {
@@ -19,7 +21,7 @@ export class SendTransactionQueue {
     },
   });
 
-  // Allow enqueing the same queueId for multiple retries.
+  // Allow enqueuing the same queueId for multiple retries.
   static jobId = (data: SendTransactionData) =>
     `${data.queueId}.${data.resendCount}`;
 

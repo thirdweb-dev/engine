@@ -1,11 +1,11 @@
 import { StatusCodes } from "http-status-codes";
 import { randomUUID } from "node:crypto";
-import { TransactionDB } from "../../../shared/db/transactions/db";
+import { TransactionDB } from "../../db/transactions/db";
 import {
   getWalletDetails,
   isSmartBackendWallet,
   type ParsedWalletDetails,
-} from "../../../shared/db/wallets/get-wallet-details";
+} from "../../db/wallets/get-wallet-details";
 import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
 import { createCustomError } from "../../../server/middleware/error";
 import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
@@ -14,11 +14,13 @@ import { recordMetrics } from "../prometheus";
 import { reportUsage } from "../usage";
 import { doSimulateTransaction } from "./simulate-queued-transaction";
 import type { InsertedTransaction, QueuedTransaction } from "./types";
+import type { EnclaveWalletParams } from "../cache/get-enclave-wallet";
 
 interface InsertTransactionData {
   insertedTransaction: InsertedTransaction;
   idempotencyKey?: string;
   shouldSimulate?: boolean;
+  enclave?: EnclaveWalletParams;
 }
 
 /**
@@ -30,13 +32,17 @@ interface InsertTransactionData {
 export const insertTransaction = async (
   args: InsertTransactionData,
 ): Promise<string> => {
-  const { insertedTransaction, idempotencyKey, shouldSimulate = false } = args;
+  const {
+    insertedTransaction,
+    idempotencyKey,
+    shouldSimulate = false,
+    enclave
+  } = args;
 
   // The queueId uniquely represents an enqueued transaction.
   // It's also used as the idempotency key (default = no idempotence).
-  let queueId: string = randomUUID();
-  if (idempotencyKey) {
-    queueId = idempotencyKey;
+  const queueId: string = idempotencyKey ?? randomUUID();
+  if (queueId === idempotencyKey) {
     if (await TransactionDB.exists(queueId)) {
       // No-op. Return the existing queueId.
       return queueId;
@@ -151,7 +157,7 @@ export const insertTransaction = async (
 
   // Simulate the transaction.
   if (shouldSimulate) {
-    const error = await doSimulateTransaction(queuedTransaction);
+    const error = await doSimulateTransaction(queuedTransaction, enclave);
     if (error) {
       throw createCustomError(
         `Simulation failed: ${error.replace(/[\r\n]+/g, " --- ")}`,
@@ -165,6 +171,7 @@ export const insertTransaction = async (
   await SendTransactionQueue.add({
     queueId: queuedTransaction.queueId,
     resendCount: 0,
+    enclave,
   });
   reportUsage([{ action: "queue_tx", input: queuedTransaction }]);
 
