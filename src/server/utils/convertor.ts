@@ -1,4 +1,10 @@
 import { BigNumber } from "ethers";
+import type { FastifyRequest} from "fastify"
+import type { Static } from "@sinclair/typebox";
+import type { enclaveWalletHeaderSchema, } from "../schemas/wallet";
+import type { EnclaveWalletParams } from "../../shared/utils/cache/get-enclave-wallet";
+import type { Ecosystem } from "thirdweb/dist/types/wallets/in-app/core/wallet/types";
+import type { EcosystemWalletId } from "thirdweb/dist/types/wallets/wallet-types";
 
 const isHexBigNumber = (value: unknown) => {
   const isNonNullObject = typeof value === "object" && value !== null;
@@ -17,3 +23,21 @@ export const bigNumberReplacer = (value: unknown): unknown => {
 
   return value;
 };
+
+export const parseEnclaveHeaders = (headers: FastifyRequest['headers']): EnclaveWalletParams => {
+  const {
+    "x-enclave-wallet-auth-token": authToken = "",
+    "x-client-id": clientId = "",
+    "x-ecosystem-id": id,
+    "x-ecosystem-partner-id": partnerId,
+  } = headers as Static<typeof enclaveWalletHeaderSchema>;
+  let ecosystem: Ecosystem | undefined;
+  if (id) {
+    ecosystem = { id: (id as EcosystemWalletId), partnerId }
+  }
+  return {
+    authToken,
+    clientId,
+    ecosystem,
+  }
+}
