@@ -18,17 +18,23 @@ import {
 import { getSmartWalletV5 } from "./cache/get-smart-wallet-v5";
 import { getChain } from "./chain";
 import { thirdwebClient } from "./sdk";
+import { type EnclaveWalletParams, getEnclaveWalletAccount } from "./cache/get-enclave-wallet";
 
 export const _accountsCache = new LRUMap<string, Account>(2048);
 
-export const getAccount = async (args: {
+export type GetAccountArgs = {
   chainId: number;
-  from: Address;
+  from: Address | undefined;
   accountAddress?: Address;
-}): Promise<Account> => {
-  const { chainId, from, accountAddress } = args;
+  enclave?: EnclaveWalletParams
+}
+
+export const getAccount = async (args: GetAccountArgs): Promise<Account> => {
+  const { chainId, from, accountAddress, enclave } = args;
   const chain = await getChain(chainId);
 
+  if (enclave) return getEnclaveWalletAccount(enclave);
+  if (!from) throw new Error("from is required");
   if (accountAddress) return getSmartWalletV5({ chain, accountAddress, from });
 
   // Get from cache.
@@ -48,9 +54,9 @@ export const getAccount = async (args: {
 };
 
 export const walletDetailsToAccount = async ({
-  walletDetails,
-  chain,
-}: {
+                                               walletDetails,
+                                               chain,
+                                             }: {
   walletDetails: ParsedWalletDetails;
   chain: Chain;
 }) => {
@@ -164,9 +170,9 @@ export const _adminAccountsCache = new LRUMap<string, Account>(2048);
  * Will throw if the wallet is not a smart backend wallet
  */
 export const getSmartBackendWalletAdminAccount = async ({
-  chainId,
-  accountAddress,
-}: {
+                                                          chainId,
+                                                          accountAddress,
+                                                        }: {
   chainId: number;
   accountAddress: Address;
 }) => {
