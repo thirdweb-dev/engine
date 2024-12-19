@@ -1,5 +1,6 @@
 import type { Configuration } from "@prisma/client";
 import type { Chain } from "thirdweb";
+import type { CircleCredential } from "../db/configuration/getConfiguration";
 import type { WalletType } from "./wallet";
 
 export type AwsWalletConfiguration = {
@@ -32,11 +33,13 @@ export interface ParsedConfig
     | "gcpKmsKeyRingId"
     | "gcpApplicationCredentialEmail"
     | "gcpApplicationCredentialPrivateKey"
+    | "walletProviderCredentials"
     | "contractSubscriptionsRetryDelaySeconds"
   > {
   walletConfiguration: {
     aws: AwsWalletConfiguration | null;
     gcp: GcpWalletConfiguration | null;
+    circle: CircleCredential | null;
     legacyWalletType_removeInNextBreakingChange: WalletType;
   };
   contractSubscriptionsRequeryDelaySeconds: string;

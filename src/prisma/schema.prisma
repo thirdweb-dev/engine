@@ -30,26 +30,30 @@ model Configuration {
   contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
   // AWS
-  awsAccessKeyId                     String?  @map("awsAccessKeyId") /// global config, precedence goes to WalletDetails
-  awsSecretAccessKey                 String?  @map("awsSecretAccessKey") /// global config, precedence goes to WalletDetails
-  awsRegion                          String?  @map("awsRegion") /// global config, treat as "default", store in WalletDetails.awsKmsArn
+  awsAccessKeyId                     String? @map("awsAccessKeyId") /// global config, precedence goes to WalletDetails
+  awsSecretAccessKey                 String? @map("awsSecretAccessKey") /// global config, precedence goes to WalletDetails
+  awsRegion                          String? @map("awsRegion") /// global config, treat as "default", store in WalletDetails.awsKmsArn
   // GCP
-  gcpApplicationProjectId            String?  @map("gcpApplicationProjectId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
-  gcpKmsLocationId                   String?  @map("gcpKmsLocationId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
-  gcpKmsKeyRingId                    String?  @map("gcpKmsKeyRingId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
-  gcpApplicationCredentialEmail      String?  @map("gcpApplicationCredentialEmail") /// global config, precedence goes to WalletDetails
-  gcpApplicationCredentialPrivateKey String?  @map("gcpApplicationCredentialPrivateKey") /// global config, precedence goes to WalletDetails
+  gcpApplicationProjectId            String? @map("gcpApplicationProjectId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
+  gcpKmsLocationId                   String? @map("gcpKmsLocationId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
+  gcpKmsKeyRingId                    String? @map("gcpKmsKeyRingId") /// global config, treat as "default", store in WalletDetails.gcpKmsResourcePath
+  gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail") /// global config, precedence goes to WalletDetails
+  gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey") /// global config, precedence goes to WalletDetails
+
+  // other wallet provider credentials
+  walletProviderCredentials Json @default("{}") @map("walletProviderCredentials") /// GCP and AWS credentials are stored as rows in WalletDetails, but other providers are stored here
+
   // Auth
-  authDomain                         String   @default("") @map("authDomain") // TODO: Remove defaults on major
-  authWalletEncryptedJson            String   @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
+  authDomain               String   @default("") @map("authDomain") // TODO: Remove defaults on major
+  authWalletEncryptedJson  String   @default("") @map("authWalletEncryptedJson") // TODO: Remove defaults on major
   // Webhook
-  webhookUrl                         String?  @map("webhookUrl")
-  webhookAuthBearerToken             String?  @map("webhookAuthBearerToken")
+  webhookUrl               String?  @map("webhookUrl")
+  webhookAuthBearerToken   String?  @map("webhookAuthBearerToken")
   // Wallet balance
-  minWalletBalance                   String   @default("20000000000000000") @map("minWalletBalance")
-  accessControlAllowOrigin           String   @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
-  ipAllowlist                        String[] @default([]) @map("ipAllowlist")
-  clearCacheCronSchedule             String   @default("*/30 * * * * *") @map("clearCacheCronSchedule")
+  minWalletBalance         String   @default("20000000000000000") @map("minWalletBalance")
+  accessControlAllowOrigin String   @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
+  ipAllowlist              String[] @default([]) @map("ipAllowlist")
+  clearCacheCronSchedule   String   @default("*/30 * * * * *") @map("clearCacheCronSchedule")
 
   @@map("configuration")
 }
@@ -94,10 +98,14 @@ model WalletDetails {
   gcpKmsResourcePath                 String? @map("gcpKmsResourcePath") @db.Text
   gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail") /// if not available, default to: Configuration.gcpApplicationCredentialEmail
   gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey") /// if not available, default to: Configuration.gcpApplicationCredentialPrivateKey
+
+  // other types of credentials
+  credentials Json? @map("credentials")
+
   // Smart Backend Wallet
-  accountSignerAddress               String? @map("accountSignerAddress") /// this, and either local, aws or gcp encryptedJson, are required for smart wallet
-  accountFactoryAddress              String? @map("accountFactoryAddress") /// optional even for smart wallet, if not available default factory will be used
-  entrypointAddress                  String? @map("entrypointAddress") /// optional even for smart wallet, if not available SDK will use default entrypoint
+  accountSignerAddress  String? @map("accountSignerAddress") /// this, and either local, aws or gcp encryptedJson, are required for smart wallet
+  accountFactoryAddress String? @map("accountFactoryAddress") /// optional even for smart wallet, if not available default factory will be used
+  entrypointAddress     String? @map("entrypointAddress") /// optional even for smart wallet, if not available SDK will use default entrypoint
 
   @@map("wallet_details")
 }
