@@ -12,7 +12,8 @@ type EngineFeature =
   | "CONTRACT_SUBSCRIPTIONS"
   | "IP_ALLOWLIST"
   | "HETEROGENEOUS_WALLET_TYPES"
-  | "SMART_BACKEND_WALLETS";
+  | "SMART_BACKEND_WALLETS"
+  | "WEBHOOK_CONFIG";
 
 const ReplySchemaOk = Type.Object({
   status: Type.String(),
@@ -25,6 +26,7 @@ const ReplySchemaOk = Type.Object({
       Type.Literal("IP_ALLOWLIST"),
       Type.Literal("HETEROGENEOUS_WALLET_TYPES"),
       Type.Literal("SMART_BACKEND_WALLETS"),
+      Type.Literal("WEBHOOK_CONFIG")
     ]),
   ),
   clientId: Type.String(),
@@ -89,6 +91,7 @@ const getFeatures = (): EngineFeature[] => {
     "HETEROGENEOUS_WALLET_TYPES",
     "CONTRACT_SUBSCRIPTIONS",
     "SMART_BACKEND_WALLETS",
+    "WEBHOOK_CONFIG",
   ];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
