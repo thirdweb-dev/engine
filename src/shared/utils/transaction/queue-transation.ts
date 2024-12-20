@@ -36,7 +36,7 @@ export type QueuedTransactionParams = {
  * Encodes a transaction to generate data, and inserts it into the transaction queue using the insertTransaction()
  *
  * Note:
- *  - functionName must be be provided to populate the functionName field in the queued transaction
+ *  - functionName must be provided to populate the functionName field in the queued transaction
  *  - value and chain details are resolved from the transaction
  */
 export async function queueTransaction(args: QueuedTransactionParams) {

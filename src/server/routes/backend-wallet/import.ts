@@ -195,7 +195,7 @@ export const importBackendWallet = async (fastify: FastifyInstance) => {
         }
 
         // TODO: with next breaking change, only require GCP KMS resource path
-        // import endoint does not currently have resource path in the request body
+        // import endpoint does not currently have resource path in the request body
         // so we rely on the global configuration for these values
         if (
           !(

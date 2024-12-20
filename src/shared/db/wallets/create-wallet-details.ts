@@ -15,7 +15,7 @@ type CreateWalletDetailsParams = {
     }
   | {
       type: "aws-kms";
-      awsKmsKeyId?: string; // depcrecated and unused, todo: remove with next breaking change
+      awsKmsKeyId?: string; // deprecated and unused, todo: remove with next breaking change
       awsKmsArn: string;
 
       awsKmsSecretAccessKey: string; // will be encrypted and stored, pass plaintext to this function
@@ -24,10 +24,10 @@ type CreateWalletDetailsParams = {
   | {
       type: "gcp-kms";
       gcpKmsResourcePath: string;
-      gcpKmsKeyRingId?: string; // depcrecated and unused, todo: remove with next breaking change
-      gcpKmsKeyId?: string; // depcrecated and unused, todo: remove with next breaking change
-      gcpKmsKeyVersionId?: string; // depcrecated and unused, todo: remove with next breaking change
-      gcpKmsLocationId?: string; // depcrecated and unused, todo: remove with next breaking change
+      gcpKmsKeyRingId?: string; // deprecated and unused, todo: remove with next breaking change
+      gcpKmsKeyId?: string; // deprecated and unused, todo: remove with next breaking change
+      gcpKmsKeyVersionId?: string; // deprecated and unused, todo: remove with next breaking change
+      gcpKmsLocationId?: string; // deprecated and unused, todo: remove with next breaking change
 
       gcpApplicationCredentialPrivateKey: string; // will be encrypted and stored, pass plaintext to this function
       gcpApplicationCredentialEmail: string;
