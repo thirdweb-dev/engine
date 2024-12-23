@@ -1,6 +1,6 @@
 import type { Configuration } from "@prisma/client";
 import type { Chain } from "thirdweb";
-import type { CircleCredential } from "../db/configuration/getConfiguration";
+import type { CircleCredential } from "../db/configuration/get-configuration";
 import type { WalletType } from "./wallet";
 
 export type AwsWalletConfiguration = {

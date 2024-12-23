@@ -26,7 +26,7 @@ const circleCredentialSchema = z.object({
 export type CircleCredential = z.infer<typeof circleCredentialSchema>;
 
 export const walletProviderCredentialsSchema = z.object({
-  cirlce: circleCredentialSchema.optional(),
+  circle: circleCredentialSchema.optional(),
 });
 
 const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
@@ -181,11 +181,11 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
 
   let circleCredentials: CircleCredential | null = null;
 
-  if (otherCredentials.cirlce) {
+  if (otherCredentials.circle) {
     circleCredentials = {
-      apiKey: otherCredentials.cirlce.apiKey,
+      apiKey: otherCredentials.circle.apiKey,
       entitySecret: decrypt(
-        otherCredentials.cirlce.entitySecret,
+        otherCredentials.circle.entitySecret,
         env.ENCRYPTION_PASSWORD,
       ),
     };

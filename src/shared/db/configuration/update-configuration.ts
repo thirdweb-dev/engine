@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import { encrypt } from "../../utils/crypto";
 import { prisma } from "../client";
-import { walletProviderCredentialsSchema } from "./getConfiguration";
+import { walletProviderCredentialsSchema } from "./get-configuration";
 
 export const updateConfiguration = async (
   data: Prisma.ConfigurationUpdateArgs["data"],
@@ -23,9 +23,9 @@ export const updateConfiguration = async (
   );
 
   // Encrypt Circle credential data
-  if (walletProviderCredentials.cirlce) {
-    walletProviderCredentials.cirlce.entitySecret = encrypt(
-      walletProviderCredentials.cirlce.entitySecret,
+  if (walletProviderCredentials.circle) {
+    walletProviderCredentials.circle.entitySecret = encrypt(
+      walletProviderCredentials.circle.entitySecret,
     );
   }
 
