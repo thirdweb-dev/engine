@@ -19,7 +19,7 @@ export class SendTransactionQueue {
     },
   });
 
-  // Allow enqueing the same queueId for multiple retries.
+  // Allow enqueuing the same queueId for multiple retries.
   static jobId = (data: SendTransactionData) =>
     `${data.queueId}.${data.resendCount}`;
 
