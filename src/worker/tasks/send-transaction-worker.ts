@@ -58,6 +58,7 @@ import {
   SendTransactionQueue,
   type SendTransactionData,
 } from "../queues/send-transaction-queue";
+import type { EnclaveWalletParams } from "../../shared/utils/cache/get-enclave-wallet";
 
 /**
  * Submit a transaction to RPC (EOA transactions) or bundler (userOps).
@@ -65,7 +66,7 @@ import {
  * This worker also handles retried EOA transactions.
  */
 const handler: Processor<string, void, string> = async (job: Job<string>) => {
-  const { queueId, resendCount } = superjson.parse<SendTransactionData>(
+  const { queueId, resendCount, enclave } = superjson.parse<SendTransactionData>(
     job.data,
   );
 
@@ -85,7 +86,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     if (transaction.isUserOp) {
       resultTransaction = await _sendUserOp(job, transaction);
     } else {
-      resultTransaction = await _sendTransaction(job, transaction);
+      resultTransaction = await _sendTransaction(job, transaction, enclave);
     }
   } else if (transaction.status === "sent") {
     resultTransaction = await _resendTransaction(job, transaction, resendCount);
@@ -266,6 +267,7 @@ const _sendUserOp = async (
 const _sendTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
+  enclave?: EnclaveWalletParams
 ): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(!queuedTransaction.isUserOp);
 
@@ -283,6 +285,7 @@ const _sendTransaction = async (
   const account = await getAccount({
     chainId: chainId,
     from: from,
+    enclave
   });
 
   // Populate the transaction to resolve gas values.
@@ -413,6 +416,7 @@ const _resendTransaction = async (
   job: Job,
   sentTransaction: SentTransaction,
   resendCount: number,
+  enclave?: EnclaveWalletParams
 ): Promise<SentTransaction | null> => {
   assert(!sentTransaction.isUserOp);
 
@@ -450,7 +454,7 @@ const _resendTransaction = async (
   // This call throws if the RPC rejects the transaction.
   let transactionHash: Hex;
   try {
-    const account = await getAccount({ chainId, from });
+    const account = await getAccount({ chainId, from, enclave });
     const result = await account.sendTransaction(populatedTransaction);
     transactionHash = result.transactionHash;
   } catch (error) {
@@ -568,6 +572,7 @@ const _minutesFromNow = (minutes: number) =>
  *
  * @param populatedTransaction The transaction with estimated gas from RPC.
  * @param resendCount The resend attempt #. Example: 2 = the transaction was initially sent, then resent once. This is the second resend attempt.
+ * @param overrides
  */
 export function _updateGasFees(
   populatedTransaction: PopulatedTransaction,

@@ -1,8 +1,8 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
-import { parseAbiParams, type AbiFunction } from "thirdweb/utils";
+import { type AbiFunction, parseAbiParams } from "thirdweb/utils";
 import { getContractV5 } from "../../../../shared/utils/cache/get-contractv5";
 import { prettifyError } from "../../../../shared/utils/error";
 import { queueTransaction } from "../../../../shared/utils/transaction/queue-transation";
@@ -16,11 +16,12 @@ import {
 import { txOverridesWithValueSchema } from "../../../schemas/tx-overrides";
 import {
   maybeAddress,
-  requiredAddress,
-  walletWithAAHeaderSchema,
+  type walletWithAAHeaderSchema,
+  walletWithAAOrEnclaveHeaderSchema,
 } from "../../../schemas/wallet";
 import { sanitizeAbi, sanitizeFunctionName } from "../../../utils/abi";
 import { getChainIdFromChain } from "../../../utils/chain";
+import { parseEnclaveHeaders } from "../../../utils/convertor";
 import { parseTransactionOverrides } from "../../../utils/transaction-overrides";
 
 // INPUT
@@ -60,7 +61,7 @@ export async function writeToContract(fastify: FastifyInstance) {
       tags: ["Contract"],
       operationId: "write",
       params: contractParamSchema,
-      headers: walletWithAAHeaderSchema,
+      headers: walletWithAAOrEnclaveHeaderSchema,
       querystring: requestQuerystringSchema,
       body: writeRequestBodySchema,
       response: {
@@ -72,12 +73,13 @@ export async function writeToContract(fastify: FastifyInstance) {
       const { simulateTx } = request.query;
       const { functionName, args, txOverrides, abi } = request.body;
       const {
-        "x-backend-wallet-address": fromAddress,
+        "x-backend-wallet-address": backendWalletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
         "x-account-factory-address": accountFactoryAddress,
         "x-account-salt": accountSalt,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
+      const enclave = await parseEnclaveHeaders(request.headers, chain);
 
       const chainId = await getChainIdFromChain(chain);
       const contract = await getContractV5({
@@ -118,7 +120,10 @@ export async function writeToContract(fastify: FastifyInstance) {
       const queueId = await queueTransaction({
         functionName,
         transaction,
-        fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
+        fromAddress: maybeAddress(
+          backendWalletAddress,
+          "x-backend-wallet-address",
+        ),
         toAddress: maybeAddress(contractAddress, "to"),
         accountAddress: maybeAddress(accountAddress, "x-account-address"),
         accountFactoryAddress: maybeAddress(
@@ -126,6 +131,7 @@ export async function writeToContract(fastify: FastifyInstance) {
           "x-account-factory-address",
         ),
         accountSalt,
+        enclave,
         txOverrides,
         idempotencyKey,
         shouldSimulate: simulateTx,

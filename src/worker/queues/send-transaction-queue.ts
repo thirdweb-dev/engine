@@ -2,10 +2,12 @@ import { Queue } from "bullmq";
 import superjson from "superjson";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
+import type { EnclaveWalletParams } from "../../shared/utils/cache/get-enclave-wallet";
 
 export type SendTransactionData = {
   queueId: string;
   resendCount: number;
+  enclave?: EnclaveWalletParams;
 };
 
 export class SendTransactionQueue {
