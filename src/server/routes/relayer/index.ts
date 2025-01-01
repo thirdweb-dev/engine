@@ -157,7 +157,7 @@ export async function relayTransaction(fastify: FastifyInstance) {
           },
         });
         return;
-      } else if (req.body.type === "permit") {
+      }if (req.body.type === "permit") {
         // EIP-2612
         const { request, signature } = req.body;
         const { v, r, s } = utils.splitSignature(signature);

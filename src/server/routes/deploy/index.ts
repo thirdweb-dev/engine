@@ -1,4 +1,4 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { deployPrebuiltEdition } from "./prebuilts/edition";
 import { deployPrebuiltEditionDrop } from "./prebuilts/edition-drop";
 import { deployPrebuiltMarketplaceV3 } from "./prebuilts/marketplace-v3";

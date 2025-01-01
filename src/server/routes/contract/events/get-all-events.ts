@@ -1,7 +1,6 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../shared/utils/cache/get-contract";
 import {
   contractEventSchema,
   eventsQuerystringSchema,
@@ -10,7 +9,12 @@ import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../schemas/shared-api-schemas";
+import { thirdwebClient } from "../../../../shared/utils/sdk";
+import { getChain } from "../../../../shared/utils/chain";
 import { getChainIdFromChain } from "../../../utils/chain";
+import { getContract, getContractEvents } from "thirdweb";
+import { maybeBigInt } from "../../../../shared/utils/primitive-types";
+import { toContractEventV4Schema } from "../../../schemas/event";
 
 const requestSchema = contractParamSchema;
 
@@ -82,19 +86,25 @@ export async function getAllEvents(fastify: FastifyInstance) {
       const { fromBlock, toBlock, order } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
-        chainId,
-        contractAddress,
+
+      const contract = getContract({
+        client: thirdwebClient,
+        address: contractAddress,
+        chain: await getChain(chainId),
       });
 
-      let returnData = await contract.events.getAllEvents({
-        fromBlock,
-        toBlock,
-        order,
+      const eventsV5 = await getContractEvents({
+        contract: contract,
+        fromBlock: maybeBigInt(fromBlock?.toString()),
+        toBlock: maybeBigInt(toBlock?.toString()),
       });
 
       reply.status(StatusCodes.OK).send({
-        result: returnData,
+        result: eventsV5.map(toContractEventV4Schema).sort((a, b) => {
+          return order === "desc"
+            ? b.transaction.blockNumber - a.transaction.blockNumber
+            : a.transaction.blockNumber - b.transaction.blockNumber;
+        }),
       });
     },
   });

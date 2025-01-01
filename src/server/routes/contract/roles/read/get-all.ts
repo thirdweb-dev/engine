@@ -62,7 +62,7 @@ export async function getAllRoles(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = (await contract.roles.getAll()) as Static<
+      const returnData = (await contract.roles.getAll()) as Static<
         typeof responseSchema
       >["result"];
 

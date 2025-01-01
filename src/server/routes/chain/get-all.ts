@@ -63,7 +63,7 @@ export async function getAllChainData(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseSchema,
       },
     },
-    handler: async (request, reply) => {
+    handler: async (_request, reply) => {
       const allChains = (await fetchChains()) ?? [];
       const config = await getConfig();
 

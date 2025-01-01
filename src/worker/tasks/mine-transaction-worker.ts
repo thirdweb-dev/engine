@@ -50,7 +50,7 @@ import { SendWebhookQueue } from "../queues/send-webhook-queue";
  *
  * If an EOA transaction is not mined after some time, resend it.
  */
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const { queueId } = superjson.parse<MineTransactionData>(job.data);
 
   // Assert valid transaction state.

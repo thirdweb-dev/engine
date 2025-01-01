@@ -30,7 +30,7 @@ import {
 import { logWorkerExceptions } from "../queues/queues";
 import { SendWebhookQueue } from "../queues/send-webhook-queue";
 
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const {
     chainId,
     filters = [],
@@ -261,7 +261,7 @@ const getBlockTimestamps = async (
       try {
         const block = await eth_getBlockByHash(rpcRequest, { blockHash });
         return new Date(Number(block.timestamp) * 1000);
-      } catch (e) {
+      } catch (_e) {
         return now;
       }
     }),
@@ -274,7 +274,7 @@ const getBlockTimestamps = async (
   return res;
 };
 
-const logArgToString = (arg: any): string => {
+const logArgToString = (arg: unknown): string => {
   if (arg === null) {
     return "";
   }
@@ -284,7 +284,7 @@ const logArgToString = (arg: any): string => {
   if (Array.isArray(arg)) {
     return arg.map(logArgToString).join(",");
   }
-  return arg.toString();
+  return String(arg);
 };
 
 // Must be explicitly called for the worker to run on this host.

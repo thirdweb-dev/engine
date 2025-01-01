@@ -19,7 +19,7 @@ export class SendTransactionQueue {
     },
   });
 
-  // Allow enqueing the same queueId for multiple retries.
+  // Allow enqueuing the same queueId for multiple retries.
   static jobId = (data: SendTransactionData) =>
     `${data.queueId}.${data.resendCount}`;
 
@@ -32,7 +32,7 @@ export class SendTransactionQueue {
   static remove = async (data: SendTransactionData) => {
     try {
       await this.q.remove(this.jobId(data));
-    } catch (e) {
+    } catch (_e) {
       // Job is currently running.
     }
   };

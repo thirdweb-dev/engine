@@ -1,6 +1,6 @@
-import { Static, Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
@@ -25,7 +25,7 @@ export async function contractTypes(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (request, reply) => {
+    handler: async (_request, reply) => {
       reply.status(StatusCodes.OK).send({
         result: Object.keys(PREBUILT_CONTRACTS_MAP),
       });

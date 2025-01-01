@@ -1,4 +1,4 @@
-import assert from "assert";
+import assert from "node:assert";
 import { anvil, type Chain } from "thirdweb/chains";
 
 assert(process.env.ENGINE_URL, "ENGINE_URL is required");

@@ -45,9 +45,8 @@ const filterErrorsAndFatal = format((info) => {
 const colorizeFormat = () => {
   if (env.NODE_ENV === "development") {
     return format.colorize({ colors: customLevels.colors });
-  } else {
-    return format.uncolorize();
   }
+    return format.uncolorize();
 };
 
 const winstonLogger = createLogger({
@@ -60,7 +59,7 @@ const winstonLogger = createLogger({
     colorizeFormat(),
     format.printf(({ level, message, timestamp, error }) => {
       if (error) {
-        return `[${timestamp}] ${level}: ${message} - ${error.stack}`;
+        return `[${timestamp}] ${level}: ${message} - ${(error as Error).stack}`;
       }
       return `[${timestamp}] ${level}: ${message}`;
     }),
@@ -83,8 +82,8 @@ interface LoggerParams {
   level: (typeof env)["LOG_LEVEL"];
   message: string;
   queueId?: string | null;
-  error?: any;
-  data?: any;
+  error?: unknown;
+  data?: unknown;
 }
 
 export const logger = ({
@@ -104,7 +103,7 @@ export const logger = ({
     prefix += `[Transaction] [${queueId}] `;
   }
 
-  let suffix = ``;
+  let suffix = "";
   if (data) {
     suffix += ` - ${JSON.stringify(data)}`;
   }

@@ -23,7 +23,7 @@ export type InsertedTransaction = {
 
   data?: Hex;
   functionName?: string;
-  functionArgs?: any[];
+  functionArgs?: unknown[];
 
   // User-provided overrides.
   overrides?: {

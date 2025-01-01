@@ -1,5 +1,5 @@
 // types.ts
-import { WebSocket } from "ws";
+import type { WebSocket } from "ws";
 
 export interface UserSubscription {
   socket: WebSocket;

@@ -1,4 +1,4 @@
-import { Keypairs } from "@prisma/client";
+import type { Keypairs } from "@prisma/client";
 import { createHash } from "crypto";
 import { prisma } from "../client";
 

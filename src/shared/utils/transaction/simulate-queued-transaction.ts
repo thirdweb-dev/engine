@@ -1,3 +1,4 @@
+import { TransactionError } from "@thirdweb-dev/sdk";
 import {
   prepareTransaction,
   simulateTransaction,
@@ -70,7 +71,10 @@ export const doSimulateTransaction = async (
       account,
     });
     return null;
-  } catch (e: any) {
+  } catch (e: unknown) {
+    if (!(e instanceof TransactionError)) {
+      throw e;
+    }
     // Error should be of type TransactionError in the thirdweb SDK.
     return `${e.name}: ${e.message}`;
   }

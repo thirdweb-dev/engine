@@ -1,0 +1,24 @@
+diff --git a/node_modules/thirdweb/src/rpc/rpc.ts b/node_modules/thirdweb/src/rpc/rpc.ts
+index a17705ba..f5ea53f6 100644
+--- a/node_modules/thirdweb/src/rpc/rpc.ts
++++ b/node_modules/thirdweb/src/rpc/rpc.ts
+@@ -167,17 +167,15 @@ export function getRpcClient(
+             } else {
+               inflight.resolve(response.result);
+             }
+-            // remove the inflight request from the inflightRequests map
+-            inflightRequests.delete(inflight.requestKey);
+           });
+         })
+         .catch((err) => {
+           // http call failed, reject all inflight requests
+           for (const inflight of activeBatch) {
+             inflight.reject(err);
+-            // remove the inflight request from the inflightRequests map
+-            inflightRequests.delete(inflight.requestKey);
+           }
++        }).finally(() => {
++          inflightRequests.clear();
+         });
+     }
+ 

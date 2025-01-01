@@ -133,5 +133,5 @@ export async function getGcpKmsAccount(
     signMessage,
     signTypedData,
     signTransaction,
-  } satisfies Account;
+  } as GcpKmsAccount satisfies Account;
 }

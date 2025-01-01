@@ -47,11 +47,11 @@ export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
 
       const requiredUrls = mandatoryAllowedCorsUrls;
 
-      requiredUrls.forEach((url) => {
+      for (const url of requiredUrls) {
         if (!urlsToAdd.includes(url)) {
           urlsToAdd.push(url);
         }
-      });
+      }
 
       await updateConfiguration({
         accessControlAllowOrigin: [

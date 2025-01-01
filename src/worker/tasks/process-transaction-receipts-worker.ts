@@ -27,7 +27,7 @@ import { logWorkerExceptions } from "../queues/queues";
 import { SendWebhookQueue } from "../queues/send-webhook-queue";
 import { getWebhooksByContractAddresses } from "./process-event-logs-worker";
 
-const handler: Processor<any, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const {
     chainId,
     filters = [],

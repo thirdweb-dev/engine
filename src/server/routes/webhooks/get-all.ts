@@ -25,7 +25,7 @@ export async function getAllWebhooksData(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const webhooks = await getAllWebhooks();
 
       res.status(StatusCodes.OK).send({

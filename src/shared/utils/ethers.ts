@@ -20,7 +20,7 @@ export interface EthersError extends Error {
    *
    *  This is generally helpful mostly for human-based debugging.
    */
-  info?: Record<string, any>;
+  info?: Record<string, unknown>;
 
   /**
    *  Any related error.
@@ -35,17 +35,14 @@ export const ETHERS_ERROR_CODES = new Set(Object.values(ethers.errors));
  * @param error
  * @returns EthersError | null
  */
-export const parseEthersError = (error: any): EthersError | null => {
-  if (
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    ETHERS_ERROR_CODES.has(error.code)
-  ) {
+export const parseEthersError = (error: unknown): EthersError | null => {
+  const isNonNullObject = error && typeof error === "object";
+  const hasCodeProperty = isNonNullObject && "code" in error;
+  if (hasCodeProperty && ETHERS_ERROR_CODES.has(error.code as ethers.errors)) {
     return error as EthersError;
   }
   return null;
 };
 
-export const isEthersErrorCode = (error: any, code: ethers.errors) =>
+export const isEthersErrorCode = (error: unknown, code: ethers.errors) =>
   parseEthersError(error)?.code === code;

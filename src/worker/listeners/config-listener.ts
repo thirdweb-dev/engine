@@ -8,17 +8,17 @@ export const newConfigurationListener = async (): Promise<void> => {
   logger({
     service: "worker",
     level: "info",
-    message: `Listening for new configuration data`,
+    message: "Listening for new configuration data",
   });
 
   // TODO: This doesn't even need to be a listener
   const connection = await knex.client.acquireConnection();
-  connection.query(`LISTEN new_configuration_data`);
+  connection.query("LISTEN new_configuration_data");
 
   // Whenever we receive a new transaction, process it
   connection.on(
     "notification",
-    async (msg: { channel: string; payload: string }) => {
+    async (_msg: { channel: string; payload: string }) => {
       // Update Configs Data
       await getConfig(false);
     },
@@ -31,15 +31,15 @@ export const newConfigurationListener = async (): Promise<void> => {
     logger({
       service: "worker",
       level: "info",
-      message: `Released database connection on end`,
+      message: "Released database connection on end",
     });
   });
 
-  connection.on("error", async (err: any) => {
+  connection.on("error", async (err: unknown) => {
     logger({
       service: "worker",
       level: "error",
-      message: `Database connection error`,
+      message: "Database connection error",
       error: err,
     });
 
@@ -49,7 +49,7 @@ export const newConfigurationListener = async (): Promise<void> => {
     logger({
       service: "worker",
       level: "info",
-      message: `Released database connection on error`,
+      message: "Released database connection on error",
       error: err,
     });
   });
@@ -59,22 +59,22 @@ export const updatedConfigurationListener = async (): Promise<void> => {
   logger({
     service: "worker",
     level: "info",
-    message: `Listening for updated configuration data`,
+    message: "Listening for updated configuration data",
   });
 
   // TODO: This doesn't even need to be a listener
   const connection = await knex.client.acquireConnection();
-  connection.query(`LISTEN updated_configuration_data`);
+  connection.query("LISTEN updated_configuration_data");
 
   // Whenever we receive a new transaction, process it
   connection.on(
     "notification",
-    async (msg: { channel: string; payload: string }) => {
+    async (_msg: { channel: string; payload: string }) => {
       // Update Configs Data
       logger({
         service: "worker",
         level: "info",
-        message: `Updated configuration data`,
+        message: "Updated configuration data",
       });
       await getConfig(false);
       await clearCacheCron("worker");
@@ -89,15 +89,15 @@ export const updatedConfigurationListener = async (): Promise<void> => {
     logger({
       service: "worker",
       level: "info",
-      message: `Released database connection on end`,
+      message: "Released database connection on end",
     });
   });
 
-  connection.on("error", async (err: any) => {
+  connection.on("error", async (err: unknown) => {
     logger({
       service: "worker",
       level: "error",
-      message: `Database connection error`,
+      message: "Database connection error",
       error: err,
     });
 
@@ -107,7 +107,7 @@ export const updatedConfigurationListener = async (): Promise<void> => {
     logger({
       service: "worker",
       level: "info",
-      message: `Released database connection on error`,
+      message: "Released database connection on error",
       error: err,
     });
   });

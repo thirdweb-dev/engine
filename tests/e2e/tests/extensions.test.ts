@@ -38,8 +38,9 @@ describe("Extensions", () => {
 
     let mined = false;
 
+    assert(res.result.queueId, "Queue ID is not defined");
     while (!mined) {
-      const statusRes = await engine.transaction.status(res.result.queueId!);
+      const statusRes = await engine.transaction.status(res.result.queueId);
       mined = statusRes.result.status === "mined";
       await sleep(1000);
     }
@@ -68,10 +69,11 @@ describe("Extensions", () => {
     );
 
     expect(res.result.queueId).toBeDefined();
+    assert(res.result.queueId, "Queue ID is not defined");
 
     let mined = false;
     while (!mined) {
-      const status = await engine.transaction.status(res.result.queueId!);
+      const status = await engine.transaction.status(res.result.queueId);
       mined = !!status.result.minedAt;
       await sleep(1000);
     }
