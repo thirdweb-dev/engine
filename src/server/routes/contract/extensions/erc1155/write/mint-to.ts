@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
@@ -105,7 +105,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
               animation_url: metadata.animation_url ?? undefined,
               external_url: metadata.external_url ?? undefined,
               background_color: metadata.background_color ?? undefined,
-              properties: metadata.properties,
+              properties: metadata.properties || metadata.attributes,
             };
       const transaction = mintTo({
         contract,
