@@ -2683,10 +2683,10 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
-"@radix-ui/primitive@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/primitive/-/primitive-1.1.0.tgz#42ef83b3b56dccad5d703ae8c42919a68798bbe2"
-  integrity sha512-4Z8dn6Upk0qk4P74xBhZ6Hd/w0mPEzOOLxy4xiPXOXqjF7jZS0VAKk7/x/H6FyY2zCkYJqePf1G5KmkmNJ4RBA==
+"@radix-ui/primitive@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/primitive/-/primitive-1.1.1.tgz#fc169732d755c7fbad33ba8d0cd7fd10c90dc8e3"
+  integrity sha512-SJ31y+Q/zAyShtXJc8x83i9TYdbAfHZ++tUZnvjJJqFjzsdUnKsxPL6IEtBlxKkU7yzer//GQtZSV4GbldL3YA==
 
 "@radix-ui/react-arrow@1.0.3":
   version "1.0.3"
@@ -2696,12 +2696,12 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-primitive" "1.0.3"
 
-"@radix-ui/react-arrow@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-arrow/-/react-arrow-1.1.0.tgz#744f388182d360b86285217e43b6c63633f39e7a"
-  integrity sha512-FmlW1rCg7hBpEBwFbjHwCW6AmWLQM6g/v0Sn8XbP9NvmSZ2San1FpQeyPtufzOMSIx7Y4dzjlHoifhp+7NkZhw==
+"@radix-ui/react-arrow@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-arrow/-/react-arrow-1.1.1.tgz#2103721933a8bfc6e53bbfbdc1aaad5fc8ba0dd7"
+  integrity sha512-NaVpZfmv8SKeZbn4ijN2V3jlHA9ngBG16VnIIm22nUR0Yk8KUALyBxT3KYEUnNuch9sTE8UTsS3whzBgKOL30w==
   dependencies:
-    "@radix-ui/react-primitive" "2.0.0"
+    "@radix-ui/react-primitive" "2.0.1"
 
 "@radix-ui/react-compose-refs@1.0.1":
   version "1.0.1"
@@ -2710,10 +2710,10 @@
   dependencies:
     "@babel/runtime" "^7.13.10"
 
-"@radix-ui/react-compose-refs@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.0.tgz#656432461fc8283d7b591dcf0d79152fae9ecc74"
-  integrity sha512-b4inOtiaOnYf9KWyO3jAeeCG6FeyfY6ldiEPanbUjWd+xIk5wZeHa8yVwmrJ2vderhu/BQvzCrJI0lHd+wIiqw==
+"@radix-ui/react-compose-refs@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.1.tgz#6f766faa975f8738269ebb8a23bad4f5a8d2faec"
+  integrity sha512-Y9VzoRDSJtgFMUCoiZBDVo084VQ5hfpXxVE+NgkdNsjiDBByiImMZKKhxMwCbdHvhlENG6a833CbFkOQvTricw==
 
 "@radix-ui/react-context@1.0.1":
   version "1.0.1"
@@ -2721,11 +2721,6 @@
   integrity sha512-ebbrdFoYTcuZ0v4wG5tedGnp9tzcV8awzsxYph7gXUyvnNLuTIcCk1q17JEbnVhXAKG9oX3KtchwiMIAYp9NLg==
   dependencies:
     "@babel/runtime" "^7.13.10"
-
-"@radix-ui/react-context@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-context/-/react-context-1.1.0.tgz#6df8d983546cfd1999c8512f3a8ad85a6e7fcee8"
-  integrity sha512-OKrckBy+sMEgYM/sMmqmErVn0kZqrHPJze+Ql3DzYsDDp0hl0L62nx/2122/Bvps1qz645jlcu2tD9lrRSdf8A==
 
 "@radix-ui/react-context@1.1.1":
   version "1.1.1"
@@ -2753,22 +2748,22 @@
     aria-hidden "^1.1.1"
     react-remove-scroll "2.5.5"
 
-"@radix-ui/react-dialog@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-dialog/-/react-dialog-1.1.2.tgz#d9345575211d6f2d13e209e84aec9a8584b54d6c"
-  integrity sha512-Yj4dZtqa2o+kG61fzB0H2qUvmwBA2oyQroGLyNtBj1beo1khoQ3q1a2AO8rrQYjd8256CO9+N8L9tvsS+bnIyA==
+"@radix-ui/react-dialog@1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-dialog/-/react-dialog-1.1.3.tgz#87cf49f619a6a0f6219980678be0f7c31978dee1"
+  integrity sha512-ujGvqQNkZ0J7caQyl8XuZRj2/TIrYcOGwqz5TeD1OMcCdfBuEMP0D12ve+8J5F9XuNUth3FAKFWo/wt0E/GJrQ==
   dependencies:
-    "@radix-ui/primitive" "1.1.0"
-    "@radix-ui/react-compose-refs" "1.1.0"
+    "@radix-ui/primitive" "1.1.1"
+    "@radix-ui/react-compose-refs" "1.1.1"
     "@radix-ui/react-context" "1.1.1"
-    "@radix-ui/react-dismissable-layer" "1.1.1"
+    "@radix-ui/react-dismissable-layer" "1.1.2"
     "@radix-ui/react-focus-guards" "1.1.1"
-    "@radix-ui/react-focus-scope" "1.1.0"
+    "@radix-ui/react-focus-scope" "1.1.1"
     "@radix-ui/react-id" "1.1.0"
-    "@radix-ui/react-portal" "1.1.2"
-    "@radix-ui/react-presence" "1.1.1"
-    "@radix-ui/react-primitive" "2.0.0"
-    "@radix-ui/react-slot" "1.1.0"
+    "@radix-ui/react-portal" "1.1.3"
+    "@radix-ui/react-presence" "1.1.2"
+    "@radix-ui/react-primitive" "2.0.1"
+    "@radix-ui/react-slot" "1.1.1"
     "@radix-ui/react-use-controllable-state" "1.1.0"
     aria-hidden "^1.1.1"
     react-remove-scroll "2.6.0"
@@ -2785,14 +2780,14 @@
     "@radix-ui/react-use-callback-ref" "1.0.1"
     "@radix-ui/react-use-escape-keydown" "1.0.3"
 
-"@radix-ui/react-dismissable-layer@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-dismissable-layer/-/react-dismissable-layer-1.1.1.tgz#cbdcb739c5403382bdde5f9243042ba643883396"
-  integrity sha512-QSxg29lfr/xcev6kSz7MAlmDnzbP1eI/Dwn3Tp1ip0KT5CUELsxkekFEMVBEoykI3oV39hKT4TKZzBNMbcTZYQ==
+"@radix-ui/react-dismissable-layer@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-dismissable-layer/-/react-dismissable-layer-1.1.2.tgz#771594b202f32bc8ffeb278c565f10c513814aee"
+  integrity sha512-kEHnlhv7wUggvhuJPkyw4qspXLJOdYoAP4dO2c8ngGuXTq1w/HZp1YeVB+NQ2KbH1iEG+pvOCGYSqh9HZOz6hg==
   dependencies:
-    "@radix-ui/primitive" "1.1.0"
-    "@radix-ui/react-compose-refs" "1.1.0"
-    "@radix-ui/react-primitive" "2.0.0"
+    "@radix-ui/primitive" "1.1.1"
+    "@radix-ui/react-compose-refs" "1.1.1"
+    "@radix-ui/react-primitive" "2.0.1"
     "@radix-ui/react-use-callback-ref" "1.1.0"
     "@radix-ui/react-use-escape-keydown" "1.1.0"
 
@@ -2818,13 +2813,13 @@
     "@radix-ui/react-primitive" "1.0.3"
     "@radix-ui/react-use-callback-ref" "1.0.1"
 
-"@radix-ui/react-focus-scope@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-focus-scope/-/react-focus-scope-1.1.0.tgz#ebe2891a298e0a33ad34daab2aad8dea31caf0b2"
-  integrity sha512-200UD8zylvEyL8Bx+z76RJnASR2gRMuxlgFCPAe/Q/679a/r0eK3MBVYMb7vZODZcffZBdob1EGnky78xmVvcA==
+"@radix-ui/react-focus-scope@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-focus-scope/-/react-focus-scope-1.1.1.tgz#5c602115d1db1c4fcfa0fae4c3b09bb8919853cb"
+  integrity sha512-01omzJAYRxXdG2/he/+xy+c8a8gCydoQ1yOxnWNcRhrrBW5W+RQJ22EK1SaO8tb3WoUsuEw7mJjBozPzihDFjA==
   dependencies:
-    "@radix-ui/react-compose-refs" "1.1.0"
-    "@radix-ui/react-primitive" "2.0.0"
+    "@radix-ui/react-compose-refs" "1.1.1"
+    "@radix-ui/react-primitive" "2.0.1"
     "@radix-ui/react-use-callback-ref" "1.1.0"
 
 "@radix-ui/react-icons@1.3.0":
@@ -2869,16 +2864,16 @@
     "@radix-ui/react-use-size" "1.0.1"
     "@radix-ui/rect" "1.0.1"
 
-"@radix-ui/react-popper@1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-popper/-/react-popper-1.2.0.tgz#a3e500193d144fe2d8f5d5e60e393d64111f2a7a"
-  integrity sha512-ZnRMshKF43aBxVWPWvbj21+7TQCvhuULWJ4gNIKYpRlQt5xGRhLx66tMp8pya2UkGHTSlhpXwmjqltDYHhw7Vg==
+"@radix-ui/react-popper@1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-popper/-/react-popper-1.2.1.tgz#2fc66cfc34f95f00d858924e3bee54beae2dff0a"
+  integrity sha512-3kn5Me69L+jv82EKRuQCXdYyf1DqHwD2U/sxoNgBGCB7K9TRc3bQamQ+5EPM9EvyPdli0W41sROd+ZU1dTCztw==
   dependencies:
     "@floating-ui/react-dom" "^2.0.0"
-    "@radix-ui/react-arrow" "1.1.0"
-    "@radix-ui/react-compose-refs" "1.1.0"
-    "@radix-ui/react-context" "1.1.0"
-    "@radix-ui/react-primitive" "2.0.0"
+    "@radix-ui/react-arrow" "1.1.1"
+    "@radix-ui/react-compose-refs" "1.1.1"
+    "@radix-ui/react-context" "1.1.1"
+    "@radix-ui/react-primitive" "2.0.1"
     "@radix-ui/react-use-callback-ref" "1.1.0"
     "@radix-ui/react-use-layout-effect" "1.1.0"
     "@radix-ui/react-use-rect" "1.1.0"
@@ -2893,12 +2888,12 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-primitive" "1.0.3"
 
-"@radix-ui/react-portal@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-portal/-/react-portal-1.1.2.tgz#51eb46dae7505074b306ebcb985bf65cc547d74e"
-  integrity sha512-WeDYLGPxJb/5EGBoedyJbT0MpoULmwnIPMJMSldkuiMsBAv7N1cRdsTWZWht9vpPOiN3qyiGAtbK2is47/uMFg==
+"@radix-ui/react-portal@1.1.3":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-portal/-/react-portal-1.1.3.tgz#b0ea5141103a1671b715481b13440763d2ac4440"
+  integrity sha512-NciRqhXnGojhT93RPyDaMPfLH3ZSl4jjIFbZQ1b/vxvZEdHsBZ49wP9w8L3HzUQwep01LcWtkUvm0OVB5JAHTw==
   dependencies:
-    "@radix-ui/react-primitive" "2.0.0"
+    "@radix-ui/react-primitive" "2.0.1"
     "@radix-ui/react-use-layout-effect" "1.1.0"
 
 "@radix-ui/react-presence@1.0.1":
@@ -2910,12 +2905,12 @@
     "@radix-ui/react-compose-refs" "1.0.1"
     "@radix-ui/react-use-layout-effect" "1.0.1"
 
-"@radix-ui/react-presence@1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-presence/-/react-presence-1.1.1.tgz#98aba423dba5e0c687a782c0669dcd99de17f9b1"
-  integrity sha512-IeFXVi4YS1K0wVZzXNrbaaUvIJ3qdY+/Ih4eHFhWA9SwGR9UDX7Ck8abvL57C4cv3wwMvUE0OG69Qc3NCcTe/A==
+"@radix-ui/react-presence@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-presence/-/react-presence-1.1.2.tgz#bb764ed8a9118b7ec4512da5ece306ded8703cdc"
+  integrity sha512-18TFr80t5EVgL9x1SwF/YGtfG+l0BS0PRAlCWBDoBEiDQjeKgnNZRVJp/oVBl24sr3Gbfwc/Qpj4OcWTQMsAEg==
   dependencies:
-    "@radix-ui/react-compose-refs" "1.1.0"
+    "@radix-ui/react-compose-refs" "1.1.1"
     "@radix-ui/react-use-layout-effect" "1.1.0"
 
 "@radix-ui/react-primitive@1.0.3":
@@ -2926,12 +2921,12 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-slot" "1.0.2"
 
-"@radix-ui/react-primitive@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-primitive/-/react-primitive-2.0.0.tgz#fe05715faa9203a223ccc0be15dc44b9f9822884"
-  integrity sha512-ZSpFm0/uHa8zTvKBDjLFWLo8dkr4MBsiDLz0g3gMUwqgLHz9rTaRRGYDgvZPtBJgYCBKXkS9fzmoySgr8CO6Cw==
+"@radix-ui/react-primitive@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-primitive/-/react-primitive-2.0.1.tgz#6d9efc550f7520135366f333d1e820cf225fad9e"
+  integrity sha512-sHCWTtxwNn3L3fH8qAfnF3WbUZycW93SM1j3NFDzXBiz8D6F5UTTy8G1+WFEaiCdvCVRJWj6N2R4Xq6HdiHmDg==
   dependencies:
-    "@radix-ui/react-slot" "1.1.0"
+    "@radix-ui/react-slot" "1.1.1"
 
 "@radix-ui/react-slot@1.0.2":
   version "1.0.2"
@@ -2941,12 +2936,12 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-compose-refs" "1.0.1"
 
-"@radix-ui/react-slot@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-1.1.0.tgz#7c5e48c36ef5496d97b08f1357bb26ed7c714b84"
-  integrity sha512-FUCf5XMfmW4dtYl69pdS4DbxKy8nj4M7SafBgPllysxmdachynNflAdp/gCsnYWNDnge6tI9onzMp5ARYc1KNw==
+"@radix-ui/react-slot@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-slot/-/react-slot-1.1.1.tgz#ab9a0ffae4027db7dc2af503c223c978706affc3"
+  integrity sha512-RApLLOcINYJA+dMVbOju7MYv1Mb2EBp2nH4HdDzXTSyaR5optlm6Otrz1euW3HbdOR8UmmFK06TD+A9frYWv+g==
   dependencies:
-    "@radix-ui/react-compose-refs" "1.1.0"
+    "@radix-ui/react-compose-refs" "1.1.1"
 
 "@radix-ui/react-tooltip@1.0.7":
   version "1.0.7"
@@ -2967,23 +2962,23 @@
     "@radix-ui/react-use-controllable-state" "1.0.1"
     "@radix-ui/react-visually-hidden" "1.0.3"
 
-"@radix-ui/react-tooltip@1.1.4":
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-tooltip/-/react-tooltip-1.1.4.tgz#152d8485859b80d395d6b3229f676fef3cec56b3"
-  integrity sha512-QpObUH/ZlpaO4YgHSaYzrLO2VuO+ZBFFgGzjMUPwtiYnAzzNNDPJeEGRrT7qNOrWm/Jr08M1vlp+vTHtnSQ0Uw==
+"@radix-ui/react-tooltip@1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-tooltip/-/react-tooltip-1.1.5.tgz#402f4f7019159bf4a40be3f1fa01978339ea33cc"
+  integrity sha512-IucoQPcK5nwUuztaxBQvudvYwH58wtRcJlv1qvaMSyIbL9dEBfFN0vRf/D8xDbu6HmAJLlNGty4z8Na+vIqe9Q==
   dependencies:
-    "@radix-ui/primitive" "1.1.0"
-    "@radix-ui/react-compose-refs" "1.1.0"
+    "@radix-ui/primitive" "1.1.1"
+    "@radix-ui/react-compose-refs" "1.1.1"
     "@radix-ui/react-context" "1.1.1"
-    "@radix-ui/react-dismissable-layer" "1.1.1"
+    "@radix-ui/react-dismissable-layer" "1.1.2"
     "@radix-ui/react-id" "1.1.0"
-    "@radix-ui/react-popper" "1.2.0"
-    "@radix-ui/react-portal" "1.1.2"
-    "@radix-ui/react-presence" "1.1.1"
-    "@radix-ui/react-primitive" "2.0.0"
-    "@radix-ui/react-slot" "1.1.0"
+    "@radix-ui/react-popper" "1.2.1"
+    "@radix-ui/react-portal" "1.1.3"
+    "@radix-ui/react-presence" "1.1.2"
+    "@radix-ui/react-primitive" "2.0.1"
+    "@radix-ui/react-slot" "1.1.1"
     "@radix-ui/react-use-controllable-state" "1.1.0"
-    "@radix-ui/react-visually-hidden" "1.1.0"
+    "@radix-ui/react-visually-hidden" "1.1.1"
 
 "@radix-ui/react-use-callback-ref@1.0.1":
   version "1.0.1"
@@ -3077,12 +3072,12 @@
     "@babel/runtime" "^7.13.10"
     "@radix-ui/react-primitive" "1.0.3"
 
-"@radix-ui/react-visually-hidden@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@radix-ui/react-visually-hidden/-/react-visually-hidden-1.1.0.tgz#ad47a8572580f7034b3807c8e6740cd41038a5a2"
-  integrity sha512-N8MDZqtgCgG5S3aV60INAB475osJousYpZ4cTJ2cFbMpdHS5Y6loLTH8LPtkj2QN0x93J30HT/M3qJXM0+lyeQ==
+"@radix-ui/react-visually-hidden@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-visually-hidden/-/react-visually-hidden-1.1.1.tgz#f7b48c1af50dfdc366e92726aee6d591996c5752"
+  integrity sha512-vVfA2IZ9q/J+gEamvj761Oq1FpWgCDaNOOIfbPVp2MVPLEomUr5+Vf7kJGwQ24YxZSlQVar7Bes8kyTo5Dshpg==
   dependencies:
-    "@radix-ui/react-primitive" "2.0.0"
+    "@radix-ui/react-primitive" "2.0.1"
 
 "@radix-ui/rect@1.0.1":
   version "1.0.1"
@@ -4402,6 +4397,29 @@
     lodash.isequal "4.5.0"
     uint8arrays "3.1.0"
 
+"@walletconnect/core@2.17.3":
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/@walletconnect/core/-/core-2.17.3.tgz#e59045a666951e9fc2e8420130c4f93221bd2492"
+  integrity sha512-57uv0FW4L6H/tmkb1kS2nG41MDguyDgZbGR58nkDUd1TO/HydyiTByVOhFzIxgN331cnY/1G1rMaKqncgdnOFA==
+  dependencies:
+    "@walletconnect/heartbeat" "1.2.2"
+    "@walletconnect/jsonrpc-provider" "1.0.14"
+    "@walletconnect/jsonrpc-types" "1.0.4"
+    "@walletconnect/jsonrpc-utils" "1.0.8"
+    "@walletconnect/jsonrpc-ws-connection" "1.0.16"
+    "@walletconnect/keyvaluestorage" "1.1.1"
+    "@walletconnect/logger" "2.1.2"
+    "@walletconnect/relay-api" "1.0.11"
+    "@walletconnect/relay-auth" "1.0.4"
+    "@walletconnect/safe-json" "1.0.2"
+    "@walletconnect/time" "1.0.2"
+    "@walletconnect/types" "2.17.3"
+    "@walletconnect/utils" "2.17.3"
+    "@walletconnect/window-getters" "1.0.1"
+    events "3.3.0"
+    lodash.isequal "4.5.0"
+    uint8arrays "3.1.0"
+
 "@walletconnect/environment@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@walletconnect/environment/-/environment-1.0.1.tgz#1d7f82f0009ab821a2ba5ad5e5a7b8ae3b214cd7"
@@ -4425,10 +4443,10 @@
     "@walletconnect/utils" "2.12.2"
     events "^3.3.0"
 
-"@walletconnect/ethereum-provider@2.17.2":
-  version "2.17.2"
-  resolved "https://registry.yarnpkg.com/@walletconnect/ethereum-provider/-/ethereum-provider-2.17.2.tgz#7ac8091daf65f33c9f77cb08f524246c638e9e66"
-  integrity sha512-o4aL4KkUKT+n0iDwGzC6IY4bl+9n8bwOeT2KwifaVHsFw/irhtRPlsAQQH4ezOiPyk8cri1KN9dPk/YeU0pe6w==
+"@walletconnect/ethereum-provider@2.17.3":
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/@walletconnect/ethereum-provider/-/ethereum-provider-2.17.3.tgz#53c546c56cb5033258cf4070677d0ba1208a0d6a"
+  integrity sha512-fgoT+dT9M1P6IIUtBl66ddD+4IJYqdhdAYkW+wa6jbctxKlHYSXf9HsgF/Vvv9lMnxHdAIz0W9VN4D/m20MamA==
   dependencies:
     "@walletconnect/jsonrpc-http-connection" "1.0.8"
     "@walletconnect/jsonrpc-provider" "1.0.14"
@@ -4436,10 +4454,10 @@
     "@walletconnect/jsonrpc-utils" "1.0.8"
     "@walletconnect/keyvaluestorage" "1.1.1"
     "@walletconnect/modal" "2.7.0"
-    "@walletconnect/sign-client" "2.17.2"
-    "@walletconnect/types" "2.17.2"
-    "@walletconnect/universal-provider" "2.17.2"
-    "@walletconnect/utils" "2.17.2"
+    "@walletconnect/sign-client" "2.17.3"
+    "@walletconnect/types" "2.17.3"
+    "@walletconnect/universal-provider" "2.17.3"
+    "@walletconnect/utils" "2.17.3"
     events "3.3.0"
 
 "@walletconnect/events@1.0.1", "@walletconnect/events@^1.0.1":
@@ -4525,6 +4543,16 @@
   version "1.0.14"
   resolved "https://registry.yarnpkg.com/@walletconnect/jsonrpc-ws-connection/-/jsonrpc-ws-connection-1.0.14.tgz#eec700e74766c7887de2bd76c91a0206628732aa"
   integrity sha512-Jsl6fC55AYcbkNVkwNM6Jo+ufsuCQRqViOQ8ZBPH9pRREHH9welbBiszuTLqEJiQcO/6XfFDl6bzCJIkrEi8XA==
+  dependencies:
+    "@walletconnect/jsonrpc-utils" "^1.0.6"
+    "@walletconnect/safe-json" "^1.0.2"
+    events "^3.3.0"
+    ws "^7.5.1"
+
+"@walletconnect/jsonrpc-ws-connection@1.0.16":
+  version "1.0.16"
+  resolved "https://registry.yarnpkg.com/@walletconnect/jsonrpc-ws-connection/-/jsonrpc-ws-connection-1.0.16.tgz#666bb13fbf32a2d4f7912d5b4d0bdef26a1d057b"
+  integrity sha512-G81JmsMqh5nJheE1mPst1W0WfVv0SG3N7JggwLLGnI7iuDZJq8cRJvQwLGKHn5H1WTW7DEPCo00zz5w62AbL3Q==
   dependencies:
     "@walletconnect/jsonrpc-utils" "^1.0.6"
     "@walletconnect/safe-json" "^1.0.2"
@@ -4629,7 +4657,22 @@
     "@walletconnect/utils" "2.17.1"
     events "3.3.0"
 
-"@walletconnect/sign-client@2.17.2", "@walletconnect/sign-client@^2.13.1":
+"@walletconnect/sign-client@2.17.3":
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/@walletconnect/sign-client/-/sign-client-2.17.3.tgz#86c116bc927946bffa8415ca8d92d3ef412082e1"
+  integrity sha512-OzOWxRTfVGCHU3OOF6ibPkgPfDpivFJjuknfcOUt9PYWpTAv6YKOmT4cyfBPhc7llruyHpV44fYbykMcLIvEcg==
+  dependencies:
+    "@walletconnect/core" "2.17.3"
+    "@walletconnect/events" "1.0.1"
+    "@walletconnect/heartbeat" "1.2.2"
+    "@walletconnect/jsonrpc-utils" "1.0.8"
+    "@walletconnect/logger" "2.1.2"
+    "@walletconnect/time" "1.0.2"
+    "@walletconnect/types" "2.17.3"
+    "@walletconnect/utils" "2.17.3"
+    events "3.3.0"
+
+"@walletconnect/sign-client@^2.13.1":
   version "2.17.2"
   resolved "https://registry.yarnpkg.com/@walletconnect/sign-client/-/sign-client-2.17.2.tgz#b8bd125d7c34a67916745ebbdbbc834db5518c8b"
   integrity sha512-/wigdCIQjlBXSWY43Id0IPvZ5biq4HiiQZti8Ljvx408UYjmqcxcBitbj2UJXMYkid7704JWAB2mw32I1HgshQ==
@@ -4687,6 +4730,18 @@
     "@walletconnect/logger" "2.1.2"
     events "3.3.0"
 
+"@walletconnect/types@2.17.3":
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/@walletconnect/types/-/types-2.17.3.tgz#906f25cf0c9691704b9161eaa305262b0e7626d0"
+  integrity sha512-5eFxnbZGJJx0IQyCS99qz+OvozpLJJYfVG96dEHGgbzZMd+C9V1eitYqVClx26uX6V+WQVqVwjpD2Dyzie++Wg==
+  dependencies:
+    "@walletconnect/events" "1.0.1"
+    "@walletconnect/heartbeat" "1.2.2"
+    "@walletconnect/jsonrpc-types" "1.0.4"
+    "@walletconnect/keyvaluestorage" "1.1.1"
+    "@walletconnect/logger" "2.1.2"
+    events "3.3.0"
+
 "@walletconnect/universal-provider@2.12.2":
   version "2.12.2"
   resolved "https://registry.yarnpkg.com/@walletconnect/universal-provider/-/universal-provider-2.12.2.tgz#0c855bbb5584fd11bdf2318344fe6f42fa3e91cb"
@@ -4702,10 +4757,10 @@
     "@walletconnect/utils" "2.12.2"
     events "^3.3.0"
 
-"@walletconnect/universal-provider@2.17.2":
-  version "2.17.2"
-  resolved "https://registry.yarnpkg.com/@walletconnect/universal-provider/-/universal-provider-2.17.2.tgz#f4627dd9b66db3bacc31864584112868be23bf08"
-  integrity sha512-yIWDhBODRa9J349d/i1sObzon0vy4n+7R3MvGQQYaU1EVrV+WfoGSRsu8U7rYsL067/MAUu9t/QrpPblaSbz7g==
+"@walletconnect/universal-provider@2.17.3":
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/@walletconnect/universal-provider/-/universal-provider-2.17.3.tgz#2a1aaabe796d056911c5bf10dbd8fa5dd1395016"
+  integrity sha512-Aen8h+vWTN57sv792i96vaTpN06WnpFUWhACY5gHrpL2XgRKmoXUgW7793p252QdgyofNAOol7wJEs1gX8FjgQ==
   dependencies:
     "@walletconnect/events" "1.0.1"
     "@walletconnect/jsonrpc-http-connection" "1.0.8"
@@ -4714,9 +4769,9 @@
     "@walletconnect/jsonrpc-utils" "1.0.8"
     "@walletconnect/keyvaluestorage" "1.1.1"
     "@walletconnect/logger" "2.1.2"
-    "@walletconnect/sign-client" "2.17.2"
-    "@walletconnect/types" "2.17.2"
-    "@walletconnect/utils" "2.17.2"
+    "@walletconnect/sign-client" "2.17.3"
+    "@walletconnect/types" "2.17.3"
+    "@walletconnect/utils" "2.17.3"
     events "3.3.0"
     lodash "4.17.21"
 
@@ -4789,6 +4844,32 @@
     "@walletconnect/window-metadata" "1.0.1"
     detect-browser "5.3.0"
     elliptic "6.6.0"
+    query-string "7.1.3"
+    uint8arrays "3.1.0"
+
+"@walletconnect/utils@2.17.3":
+  version "2.17.3"
+  resolved "https://registry.yarnpkg.com/@walletconnect/utils/-/utils-2.17.3.tgz#a22938567febc3e3771efae8eb351adf3d499a8d"
+  integrity sha512-tG77UpZNeLYgeOwViwWnifpyBatkPlpKSSayhN0gcjY1lZAUNqtYslpm4AdTxlrA3pL61MnyybXgWYT5eZjarw==
+  dependencies:
+    "@ethersproject/hash" "5.7.0"
+    "@ethersproject/transactions" "5.7.0"
+    "@stablelib/chacha20poly1305" "1.0.1"
+    "@stablelib/hkdf" "1.0.1"
+    "@stablelib/random" "1.0.2"
+    "@stablelib/sha256" "1.0.1"
+    "@stablelib/x25519" "1.0.3"
+    "@walletconnect/jsonrpc-utils" "1.0.8"
+    "@walletconnect/keyvaluestorage" "1.1.1"
+    "@walletconnect/relay-api" "1.0.11"
+    "@walletconnect/relay-auth" "1.0.4"
+    "@walletconnect/safe-json" "1.0.2"
+    "@walletconnect/time" "1.0.2"
+    "@walletconnect/types" "2.17.3"
+    "@walletconnect/window-getters" "1.0.1"
+    "@walletconnect/window-metadata" "1.0.1"
+    detect-browser "5.3.0"
+    elliptic "6.6.1"
     query-string "7.1.3"
     uint8arrays "3.1.0"
 
@@ -5787,7 +5868,7 @@ cross-fetch@^4.0.0:
   dependencies:
     node-fetch "^2.6.12"
 
-cross-spawn@>=7.0.6, cross-spawn@^7.0.0, cross-spawn@^7.0.3:
+cross-spawn@7.0.6, cross-spawn@>=7.0.6, cross-spawn@^7.0.0, cross-spawn@^7.0.3:
   version "7.0.6"
   resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.6.tgz#8a58fe78f00dcd70c370451759dfbfaf03e8ee9f"
   integrity sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==
@@ -6105,7 +6186,7 @@ ejs@^3.1.10:
   dependencies:
     jake "^10.8.5"
 
-elliptic@6.5.4, elliptic@6.5.7, elliptic@6.6.0, elliptic@>=6.6.0, elliptic@^6.4.1, elliptic@^6.5.2, elliptic@^6.5.3, elliptic@^6.5.5, elliptic@^6.5.7:
+elliptic@6.5.4, elliptic@6.5.7, elliptic@6.6.0, elliptic@6.6.1, elliptic@>=6.6.0, elliptic@^6.4.1, elliptic@^6.5.2, elliptic@^6.5.3, elliptic@^6.5.5, elliptic@^6.5.7:
   version "6.6.1"
   resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.6.1.tgz#3b8ffb02670bf69e382c7f65bf524c97c5405c06"
   integrity sha512-RaddvvMatK2LJHqFJ+YA4WysVN5Ita9E35botqIYspQ4TkRAlCicdzKOjlyv/1Za5RyTNn7di//eEV0uTAfe3g==
@@ -8752,10 +8833,10 @@ ox@0.1.2:
     abitype "^1.0.6"
     eventemitter3 "5.0.1"
 
-ox@0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/ox/-/ox-0.4.1.tgz#e646e1956b6fba73208d1f19045092c3ad1a6b79"
-  integrity sha512-N6W5Y9j6d7SjW/5lvQfgGNVYqW0oEb70yP9stkNqYICbxqiQvKJgiVYxn2n+yt+PedgcspFd+EtAAk14P4Impg==
+ox@0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/ox/-/ox-0.4.2.tgz#0ef5b322baec0cbd055dfb27f22795f6af522594"
+  integrity sha512-X3Ho21mTtJiCU2rWmfaheh2b0CG70Adre7Da/XQ0ECy+QppI6pLqdbGAJHiu/cTjumVXfwDGfv48APqePCU+ow==
   dependencies:
     "@adraffy/ens-normalize" "^1.10.1"
     "@noble/curves" "^1.6.0"
@@ -10176,10 +10257,10 @@ thirdweb@5.29.6:
     uqr "0.1.2"
     viem "2.13.7"
 
-thirdweb@^5.78.0:
-  version "5.78.0"
-  resolved "https://registry.yarnpkg.com/thirdweb/-/thirdweb-5.78.0.tgz#24ef3f773b13353797b72149e8e27e0bb3bb2bbf"
-  integrity sha512-S67omjLP0hmqHNEQmIFuliGF9lj0RRpqfPKKRqEMkYolQrCL1l0wtx0jLbzYRPEkopN+51qOXUsyO7AHWokM/Q==
+thirdweb@^5.80.1-nightly-c948e71a16b5e27e10b417cd0ef9cece70179a57-20250104000328:
+  version "5.80.1-nightly-c948e71a16b5e27e10b417cd0ef9cece70179a57-20250104000328"
+  resolved "https://registry.yarnpkg.com/thirdweb/-/thirdweb-5.80.1-nightly-c948e71a16b5e27e10b417cd0ef9cece70179a57-20250104000328.tgz#a94b685022baaade5fa3299fc4ca4df6d310e5df"
+  integrity sha512-etQ7sn2uvjL4DglqcBcER6OFHCAwH2YCUjEoqowhls/gT13yjDwE9TDa++fX+vOs1x96YQJUEtzeDzYBdwC0Mg==
   dependencies:
     "@coinbase/wallet-sdk" "4.2.4"
     "@emotion/react" "11.14.0"
@@ -10188,20 +10269,21 @@ thirdweb@^5.78.0:
     "@noble/curves" "1.7.0"
     "@noble/hashes" "1.6.1"
     "@passwordless-id/webauthn" "^2.1.2"
-    "@radix-ui/react-dialog" "1.1.2"
-    "@radix-ui/react-focus-scope" "1.1.0"
+    "@radix-ui/react-dialog" "1.1.3"
+    "@radix-ui/react-focus-scope" "1.1.1"
     "@radix-ui/react-icons" "1.3.2"
-    "@radix-ui/react-tooltip" "1.1.4"
+    "@radix-ui/react-tooltip" "1.1.5"
     "@tanstack/react-query" "5.62.7"
-    "@walletconnect/ethereum-provider" "2.17.2"
-    "@walletconnect/sign-client" "2.17.2"
+    "@walletconnect/ethereum-provider" "2.17.3"
+    "@walletconnect/sign-client" "2.17.3"
     abitype "1.0.7"
+    cross-spawn "7.0.6"
     fuse.js "7.0.0"
     input-otp "^1.4.1"
     mipd "0.0.7"
-    ox "0.4.1"
+    ox "0.4.2"
     uqr "0.1.2"
-    viem "2.21.54"
+    viem "2.21.55"
 
 thread-stream@^0.15.1:
   version "0.15.2"
@@ -10622,7 +10704,22 @@ viem@2.13.7:
     isows "1.0.4"
     ws "8.13.0"
 
-viem@2.21.54, viem@^2.21.54:
+viem@2.21.55:
+  version "2.21.55"
+  resolved "https://registry.yarnpkg.com/viem/-/viem-2.21.55.tgz#a57ad31fcf2a0f6c011b1909f02c94421ec4f781"
+  integrity sha512-PgXew7C11cAuEtOSgRyQx2kJxEOPUwIwZA9dMglRByqJuFVA7wSGZZOOo/93iylAA8E15bEdqy9xulU3oKZ70Q==
+  dependencies:
+    "@noble/curves" "1.7.0"
+    "@noble/hashes" "1.6.1"
+    "@scure/bip32" "1.6.0"
+    "@scure/bip39" "1.5.0"
+    abitype "1.0.7"
+    isows "1.0.6"
+    ox "0.1.2"
+    webauthn-p256 "0.0.10"
+    ws "8.18.0"
+
+viem@^2.21.54:
   version "2.21.54"
   resolved "https://registry.yarnpkg.com/viem/-/viem-2.21.54.tgz#76d6f86ab8809078f1ac140ac1a2beadbc86b9f6"
   integrity sha512-G9mmtbua3UtnVY9BqAtWdNp+3AO+oWhD0B9KaEsZb6gcrOWgmA4rz02yqEMg+qW9m6KgKGie7q3zcHqJIw6AqA==
