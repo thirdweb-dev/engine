@@ -19,6 +19,7 @@ const requestBodySchema = Type.Object({
     }),
   ),
   eventType: Type.Enum(WebhooksEventTypes),
+  config: Type.Optional(Type.Any()),
 });
 
 requestBodySchema.examples = [
@@ -57,7 +58,7 @@ export async function createWebhookRoute(fastify: FastifyInstance) {
       },
     },
     handler: async (req, res) => {
-      const { url, name, eventType } = req.body;
+      const { url, name, eventType, config } = req.body;
 
       if (!isValidWebhookUrl(url)) {
         throw createCustomError(
@@ -71,6 +72,7 @@ export async function createWebhookRoute(fastify: FastifyInstance) {
         url,
         name,
         eventType,
+        config,
       });
 
       res.status(StatusCodes.OK).send({
