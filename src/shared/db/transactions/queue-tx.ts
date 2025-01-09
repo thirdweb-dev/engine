@@ -72,6 +72,7 @@ export const queueTx = async ({
         accountAddress: normalizeAddress(await tx.getSignerAddress()),
         target: normalizeAddress(tx.getTarget()),
         accountFactoryAddress,
+        transactionMode: undefined,
       },
       idempotencyKey,
       shouldSimulate: simulateTx,
@@ -87,6 +88,8 @@ export const queueTx = async ({
     insertedTransaction: {
       ...baseTransaction,
       isUserOp: false,
+      // NOTE: v4 endpoints that use queueTx cannot use sponsored mode
+      transactionMode: undefined,
       deployedContractAddress,
       deployedContractType,
       from: normalizeAddress(await tx.getSignerAddress()),

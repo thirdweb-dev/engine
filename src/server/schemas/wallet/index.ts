@@ -16,6 +16,19 @@ export const walletHeaderSchema = Type.Object({
       description: `Transactions submitted with the same idempotency key will be de-duplicated. Only the last ${env.TRANSACTION_HISTORY_COUNT} transactions are compared.`,
     }),
   ),
+  "x-transaction-mode": Type.Optional(
+    Type.Union(
+      [
+        Type.Literal("sponsored", {
+          description: "Attmpt to use native AA on ZKSync chains",
+        }),
+      ],
+      {
+        description:
+          "Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.",
+      },
+    ),
+  ),
 });
 
 export const walletWithAAHeaderSchema = Type.Object({

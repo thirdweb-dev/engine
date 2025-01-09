@@ -34,6 +34,10 @@ export type InsertedTransaction = {
   };
   timeoutSeconds?: number;
 
+  // todo: transactionMode should not be specified along with isUserOp: true
+  // data model needs changes to make incorrect states unrepresentable
+  transactionMode: "sponsored" | undefined;
+
   // Offchain metadata
   deployedContractAddress?: Address;
   deployedContractType?: string;

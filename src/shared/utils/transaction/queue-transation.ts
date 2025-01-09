@@ -21,6 +21,7 @@ export type QueuedTransactionParams = {
   accountAddress: Address | undefined;
   accountFactoryAddress: Address | undefined;
   accountSalt: string | undefined;
+  transactionMode: "sponsored" | undefined;
   txOverrides?: Static<
     typeof txOverridesWithValueSchema.properties.txOverrides
   >;
@@ -52,6 +53,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     shouldSimulate,
     functionName,
     extension,
+    transactionMode,
   } = args;
 
   let data: Hex;
@@ -73,6 +75,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     value: await resolvePromisedValue(transaction.value),
     functionName,
     extension,
+    transactionMode,
     ...parseTransactionOverrides(txOverrides),
     ...(accountAddress
       ? {

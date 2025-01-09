@@ -56,8 +56,10 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { "x-backend-wallet-address": fromAddress } =
-        request.headers as Static<typeof walletHeaderSchema>;
+      const {
+        "x-backend-wallet-address": fromAddress,
+        "x-transaction-mode": transactionMode,
+      } = request.headers as Static<typeof walletHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
       const transactionRequests = request.body;
@@ -70,6 +72,7 @@ export async function sendTransactionBatch(fastify: FastifyInstance) {
           insertedTransaction: {
             isUserOp: false,
             chainId,
+            transactionMode,
             from: fromAddress as Address,
             to: toAddress as Address | undefined,
             data: data as Hex,
