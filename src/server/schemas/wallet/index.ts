@@ -20,7 +20,7 @@ export const walletHeaderSchema = Type.Object({
     Type.Union(
       [
         Type.Literal("sponsored", {
-          description: "Attmpt to use native AA on ZKSync chains",
+          description: "Attempt to use native AA on ZKSync chains",
         }),
       ],
       {
