@@ -64,7 +64,7 @@ export const doSimulateTransaction = async (
     });
 
     if (transaction.transactionMode === "sponsored") {
-      if (!isZkSyncChain(chain)) {
+      if (!(await isZkSyncChain(chain))) {
         throw new Error(
           "Sponsored EOA transactions are only supported on zkSync chains.",
         );
