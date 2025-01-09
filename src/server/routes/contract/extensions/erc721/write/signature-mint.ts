@@ -87,6 +87,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
         "x-backend-wallet-address": fromAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const { "x-thirdweb-sdk-version": sdkVersion } =
         request.headers as Static<typeof thirdwebSdkVersionSchema>;
@@ -133,6 +134,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
               accountAddress: accountAddress as Address,
               signerAddress: fromAddress as Address,
               target: contractAddress as Address | undefined,
+              transactionMode: undefined,
             },
             shouldSimulate: simulateTx,
             idempotencyKey,
@@ -142,6 +144,7 @@ export async function erc721SignatureMint(fastify: FastifyInstance) {
             insertedTransaction: {
               ...insertedTransaction,
               isUserOp: false,
+              transactionMode,
             },
             shouldSimulate: simulateTx,
             idempotencyKey,

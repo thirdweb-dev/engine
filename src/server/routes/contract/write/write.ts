@@ -77,6 +77,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         "x-idempotency-key": idempotencyKey,
         "x-account-factory-address": accountFactoryAddress,
         "x-account-salt": accountSalt,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -128,6 +129,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         accountSalt,
         txOverrides,
         idempotencyKey,
+        transactionMode,
         shouldSimulate: simulateTx,
       });
 

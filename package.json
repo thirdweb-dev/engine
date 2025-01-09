@@ -67,7 +67,7 @@
     "prisma": "^5.14.0",
     "prom-client": "^15.1.3",
     "superjson": "^2.2.1",
-    "thirdweb": "^5.80.1-nightly-c948e71a16b5e27e10b417cd0ef9cece70179a57-20250104000328",
+    "thirdweb": "^5.83.0",
     "uuid": "^9.0.1",
     "viem": "^2.21.54",
     "winston": "^3.14.1",

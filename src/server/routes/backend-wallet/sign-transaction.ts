@@ -1,8 +1,6 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import type { Hex } from "thirdweb";
-import type { TransactionSerializable } from "viem";
 import { getAccount } from "../../../shared/utils/account";
 import {
   getChecksumAddress,
@@ -13,6 +11,7 @@ import { toTransactionType } from "../../../shared/utils/sdk";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
+import type { Hex } from "thirdweb";
 
 const requestBodySchema = Type.Object({
   transaction: Type.Object({
@@ -86,7 +85,8 @@ export async function signTransaction(fastify: FastifyInstance) {
         maxFeePerGas: maybeBigInt(transaction.maxFeePerGas),
         maxPriorityFeePerGas: maybeBigInt(transaction.maxPriorityFeePerGas),
         ccipReadEnabled: transaction.ccipReadEnabled,
-      } as TransactionSerializable;
+      };
+
       const signature = await account.signTransaction(serializableTransaction);
 
       reply.status(StatusCodes.OK).send({

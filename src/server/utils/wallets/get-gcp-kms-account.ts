@@ -1,6 +1,6 @@
 import { CloudKmsSigner } from "@cloud-cryptographic-wallet/cloud-kms-signer";
 import { Bytes } from "@cloud-cryptographic-wallet/signer";
-import type { Hex, ThirdwebClient } from "thirdweb";
+import type { Hex, ThirdwebClient, toSerializableTransaction } from "thirdweb";
 import {
   eth_sendRawTransaction,
   getAddress,
@@ -10,12 +10,7 @@ import {
 import { serializeTransaction } from "thirdweb/transaction";
 import { hashMessage } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
-import type {
-  SignableMessage,
-  TransactionSerializable,
-  TypedData,
-  TypedDataDefinition,
-} from "viem";
+import type { SignableMessage, TypedData, TypedDataDefinition } from "viem";
 import { hashTypedData } from "viem";
 import { getChain } from "../../../shared/utils/chain"; // Adjust import path as needed
 
@@ -23,7 +18,11 @@ type SendTransactionResult = {
   transactionHash: Hex;
 };
 
-type SendTransactionOption = TransactionSerializable & {
+type SerializableTransaction = Awaited<
+  ReturnType<typeof toSerializableTransaction>
+>;
+
+type SendTransactionOption = SerializableTransaction & {
   chainId: number;
 };
 
@@ -65,7 +64,7 @@ export async function getGcpKmsAccount(
   const publicKey = await signer.getPublicKey();
   const address = getAddress(publicKey.toAddress().toString());
 
-  async function signTransaction(tx: TransactionSerializable): Promise<Hex> {
+  async function signTransaction(tx: SerializableTransaction): Promise<Hex> {
     const serializedTx = serializeTransaction({ transaction: tx });
     const txHash = keccak256(serializedTx);
     const signature = await signer.sign(Bytes.fromString(txHash.slice(2)));

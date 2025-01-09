@@ -72,6 +72,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
         "x-account-factory-address": accountFactoryAddress,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -89,6 +90,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
             accountAddress: accountAddress as Address,
             signerAddress: fromAddress as Address,
             target: toAddress as Address | undefined,
+            transactionMode: undefined,
             accountFactoryAddress: maybeAddress(
               accountFactoryAddress,
               "x-account-factory-address",
@@ -106,6 +108,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
             from: fromAddress as Address,
             to: toAddress as Address | undefined,
             data: data as Hex,
+            transactionMode: transactionMode,
             value: BigInt(value),
             ...parseTransactionOverrides(txOverrides),
           },

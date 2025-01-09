@@ -88,6 +88,7 @@ export async function transfer(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletHeaderSchema>;
       const { simulateTx: shouldSimulate } = request.query;
 
@@ -109,6 +110,7 @@ export async function transfer(fastify: FastifyInstance) {
           value: toWei(amount),
           extension: "none",
           functionName: "transfer",
+          transactionMode,
           ...parseTransactionOverrides(txOverrides),
         };
       } else {
@@ -143,6 +145,7 @@ export async function transfer(fastify: FastifyInstance) {
           extension: "erc20",
           functionName: "transfer",
           functionArgs: [to, amount, currencyAddress],
+          transactionMode,
           ...parseTransactionOverrides(txOverrides),
         };
       }

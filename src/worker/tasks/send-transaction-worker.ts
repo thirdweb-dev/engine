@@ -10,11 +10,12 @@ import {
   type Hex,
 } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
-import { stringify } from "thirdweb/utils";
+import { isZkSyncChain, stringify } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import {
   bundleUserOp,
   createAndSignUserOp,
+  smartWallet,
   type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
@@ -280,10 +281,36 @@ const _sendTransaction = async (
 
   const { queueId, chainId, from, to, overrides } = queuedTransaction;
   const chain = await getChain(chainId);
-  const account = await getAccount({
+
+  const ownerAccount = await getAccount({
     chainId: chainId,
     from: from,
   });
+
+  let account: Account;
+
+  if (queuedTransaction.transactionMode === "sponsored") {
+    if (!isZkSyncChain(chain)) {
+      job.log(
+        "Sponsored EOA transactions are only supported on zkSync chains.",
+      );
+      const erroredTransaction: ErroredTransaction = {
+        ...queuedTransaction,
+        status: "errored",
+        errorMessage:
+          "Sponsored EOA transactions are only supported on zkSync chains.",
+      };
+      return erroredTransaction;
+    }
+
+    account = await smartWallet({ chain, sponsorGas: true }).connect({
+      personalAccount: ownerAccount,
+      client: thirdwebClient,
+    });
+  }
+
+  // If no account was provided, use the owner account.
+  account ??= ownerAccount;
 
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.

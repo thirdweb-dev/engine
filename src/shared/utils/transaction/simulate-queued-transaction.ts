@@ -4,8 +4,8 @@ import {
   simulateTransaction,
   type PreparedTransaction,
 } from "thirdweb";
-import { stringify } from "thirdweb/utils";
-import type { Account } from "thirdweb/wallets";
+import { isZkSyncChain, stringify } from "thirdweb/utils";
+import { smartWallet, type Account } from "thirdweb/wallets";
 import { getAccount } from "../account";
 import { getSmartWalletV5 } from "../cache/get-smart-wallet-v5";
 import { getChain } from "../chain";
@@ -58,10 +58,26 @@ export const doSimulateTransaction = async (
       accountFactoryAddress,
     });
   } else {
-    account = await getAccount({
+    const ownerAccount = await getAccount({
       chainId,
       from,
     });
+
+    if (transaction.transactionMode === "sponsored") {
+      if (!isZkSyncChain(chain)) {
+        throw new Error(
+          "Sponsored EOA transactions are only supported on zkSync chains.",
+        );
+      }
+
+      account = await smartWallet({ chain, sponsorGas: true }).connect({
+        personalAccount: ownerAccount,
+        client: thirdwebClient,
+      });
+    }
+
+    // If no account was provided, use the owner account.
+    account ??= ownerAccount;
   }
 
   try {
