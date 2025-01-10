@@ -290,7 +290,7 @@ const _sendTransaction = async (
   let account: Account;
 
   if (queuedTransaction.transactionMode === "sponsored") {
-    if (!isZkSyncChain(chain)) {
+    if (!(await isZkSyncChain(chain))) {
       job.log(
         "Sponsored EOA transactions are only supported on zkSync chains.",
       );
