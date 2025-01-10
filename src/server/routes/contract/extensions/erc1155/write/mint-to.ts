@@ -106,7 +106,8 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
               animation_url: metadata.animation_url ?? undefined,
               external_url: metadata.external_url ?? undefined,
               background_color: metadata.background_color ?? undefined,
-              properties: metadata.properties || metadata.attributes,
+              properties: metadata.properties ?? undefined,
+              attributes: metadata.attributes ?? undefined,
             };
       const transaction = mintTo({
         contract,
