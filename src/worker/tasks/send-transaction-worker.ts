@@ -143,7 +143,14 @@ const _sendUserOp = async (
 
   assert(accountAddress, "Invalid userOp parameters: accountAddress");
   const toAddress = to ?? target;
-  assert(toAddress, "Invalid transaction parameters: to");
+
+  if (queuedTransaction.batchOperations) {
+    queuedTransaction.batchOperations.map((op) => {
+      assert(op.to, "Invalid transaction parameters: to");
+    });
+  } else {
+    assert(toAddress, "Invalid transaction parameters: to");
+  }
 
   // this can either be a regular backend wallet userop or a smart backend wallet userop
   let adminAccount: Account | undefined;
@@ -199,17 +206,25 @@ const _sendUserOp = async (
       }
     }
 
+    const transactions = queuedTransaction.batchOperations
+      ? queuedTransaction.batchOperations.map((op) => ({
+          ...op,
+          chain,
+          client: thirdwebClient,
+        }))
+      : [
+          {
+            client: thirdwebClient,
+            chain,
+            ...queuedTransaction,
+            ...overrides,
+            to: getChecksumAddress(toAddress),
+          },
+        ];
+
     signedUserOp = (await createAndSignUserOp({
       client: thirdwebClient,
-      transactions: [
-        {
-          client: thirdwebClient,
-          chain,
-          ...queuedTransaction,
-          ...overrides,
-          to: getChecksumAddress(toAddress),
-        },
-      ],
+      transactions,
       adminAccount,
       smartWalletOptions: {
         chain,

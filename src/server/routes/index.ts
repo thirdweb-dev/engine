@@ -112,6 +112,7 @@ import { getAllWebhooksData } from "./webhooks/get-all";
 import { revokeWebhook } from "./webhooks/revoke";
 import { testWebhookRoute } from "./webhooks/test";
 import { readMulticallRoute } from "./contract/read/read-batch";
+import { sendTransactionsAtomicRoute } from "./backend-wallet/send-transactions-atomic";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -125,6 +126,7 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(withdraw);
   await fastify.register(sendTransaction);
   await fastify.register(sendTransactionBatch);
+  await fastify.register(sendTransactionsAtomicRoute);
   await fastify.register(signTransaction);
   await fastify.register(signMessageRoute);
   await fastify.register(signTypedData);
