@@ -68,7 +68,6 @@ import { extractEvents } from "./contract/metadata/events";
 import { getContractExtensions } from "./contract/metadata/extensions";
 import { extractFunctions } from "./contract/metadata/functions";
 import { readContract } from "./contract/read/read";
-import { readMulticall } from "./contract/read/read-batch";
 import { getRoles } from "./contract/roles/read/get";
 import { getAllRoles } from "./contract/roles/read/get-all";
 import { grantRole } from "./contract/roles/write/grant";
@@ -112,6 +111,7 @@ import { getWebhooksEventTypes } from "./webhooks/events";
 import { getAllWebhooksData } from "./webhooks/get-all";
 import { revokeWebhook } from "./webhooks/revoke";
 import { testWebhookRoute } from "./webhooks/test";
+import { readMulticallRoute } from "./contract/read/read-batch";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -193,7 +193,7 @@ export async function withRoutes(fastify: FastifyInstance) {
 
   // Generic
   await fastify.register(readContract);
-  await fastify.register(readMulticall);
+  await fastify.register(readMulticallRoute);
   await fastify.register(writeToContract);
 
   // Contract Events
