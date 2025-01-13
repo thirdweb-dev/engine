@@ -47,6 +47,50 @@ export class ContractService {
     }
 
     /**
+     * Batch read from multiple contracts
+     * Execute multiple contract read operations in a single call using Multicall
+     * @param chain
+     * @param requestBody
+     * @returns any Default Response
+     * @throws ApiError
+     */
+    public readBatch(
+        chain: string,
+        requestBody: {
+            calls: Array<{
+                contractAddress: string;
+                functionName: string;
+                functionAbi?: string;
+                args?: Array<any>;
+            }>;
+            /**
+             * Address of the multicall contract to use. If omitted, multicall3 contract will be used (0xcA11bde05977b3631167028862bE2a173976CA11).
+             */
+            multicallAddress?: string;
+        },
+    ): CancelablePromise<{
+        results: Array<{
+            success: boolean;
+            result: any;
+        }>;
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/contract/{chain}/read-batch',
+            path: {
+                'chain': chain,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                404: `Not Found`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+
+    /**
      * Write to contract
      * Call a write function on a contract.
      * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.

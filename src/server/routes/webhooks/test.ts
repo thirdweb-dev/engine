@@ -93,6 +93,7 @@ export async function testWebhookRoute(fastify: FastifyInstance) {
         paymasterAndData: null,
         userOpHash: null,
         accountSalt: null,
+        batchOperations: null,
 
         // Off-chain details
         functionName: "transfer",

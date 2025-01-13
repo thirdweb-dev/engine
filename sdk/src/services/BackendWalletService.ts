@@ -630,6 +630,72 @@ export class BackendWalletService {
     }
 
     /**
+     * Send a batch of raw transactions atomically
+     * Send a batch of raw transactions in a single UserOp. Can only be used with smart wallets.
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param xBackendWalletAddress Backend wallet address
+     * @param requestBody
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xAccountAddress Smart account address
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
+     * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
+     * @returns any Default Response
+     * @throws ApiError
+     */
+    public sendTransactionsAtomic(
+        chain: string,
+        xBackendWalletAddress: string,
+        requestBody: {
+            transactions: Array<{
+                /**
+                 * A contract or wallet address
+                 */
+                toAddress?: string;
+                data: string;
+                value: string;
+            }>;
+        },
+        simulateTx: boolean = false,
+        xIdempotencyKey?: string,
+        xAccountAddress?: string,
+        xAccountFactoryAddress?: string,
+        xAccountSalt?: string,
+    ): CancelablePromise<{
+        result: {
+            /**
+             * Queue ID
+             */
+            queueId: string;
+        };
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/backend-wallet/{chain}/send-transactions-atomic',
+            path: {
+                'chain': chain,
+            },
+            headers: {
+                'x-backend-wallet-address': xBackendWalletAddress,
+                'x-idempotency-key': xIdempotencyKey,
+                'x-account-address': xAccountAddress,
+                'x-account-factory-address': xAccountFactoryAddress,
+                'x-account-salt': xAccountSalt,
+            },
+            query: {
+                'simulateTx': simulateTx,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                404: `Not Found`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+
+    /**
      * Sign a transaction
      * Sign a transaction
      * @param xBackendWalletAddress Backend wallet address
@@ -833,6 +899,7 @@ export class BackendWalletService {
                 onchainStatus: ('success' | 'reverted' | null);
                 effectiveGasPrice: (string | null);
                 cumulativeGasUsed: (string | null);
+                batchOperations: null;
             }>;
         };
     }> {
@@ -928,6 +995,7 @@ export class BackendWalletService {
                 onchainStatus: ('success' | 'reverted' | null);
                 effectiveGasPrice: (string | null);
                 cumulativeGasUsed: (string | null);
+                batchOperations: null;
             } | string);
         }>;
     }> {
