@@ -1,8 +1,8 @@
 import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
-import { prettifyError } from "../../../../utils/error";
+import { getContract } from "../../../../shared/utils/cache/get-contract";
+import { prettifyError } from "../../../../shared/utils/error";
 import { createCustomError } from "../../../middleware/error";
 import {
   readRequestQuerySchema,
@@ -11,7 +11,7 @@ import {
 import {
   partialRouteSchema,
   standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+} from "../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { bigNumberReplacer } from "../../../utils/convertor";
 

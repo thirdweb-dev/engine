@@ -1,8 +1,8 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfig } from "../../../../utils/cache/getConfig";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 const responseBodySchema = Type.Object({
   result: Type.Object({
@@ -35,7 +35,7 @@ export async function getTransactionConfiguration(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const config = await getConfig();
       res.status(StatusCodes.OK).send({
         result: {

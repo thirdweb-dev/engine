@@ -1,5 +1,5 @@
-import { Static, Type } from "@sinclair/typebox";
-import { BigNumber } from "ethers";
+import { type Static, Type } from "@sinclair/typebox";
+import type { BigNumber } from "ethers";
 import { AddressSchema } from "../address";
 import { NumberStringSchema } from "../number";
 

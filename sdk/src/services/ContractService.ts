@@ -13,7 +13,7 @@ export class ContractService {
      * Read from contract
      * Call a read function on a contract.
      * @param functionName Name of the function to call on Contract
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param args Arguments for the function. Comma Separated
      * @returns any Default Response
@@ -49,14 +49,15 @@ export class ContractService {
     /**
      * Write to contract
      * Call a write function on a contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -67,11 +68,11 @@ export class ContractService {
         xBackendWalletAddress: string,
         requestBody: {
             /**
-             * The function to call on the contract
+             * The function to call on the contract. It is highly recommended to provide a full function signature, such as "function mintTo(address to, uint256 amount)", to avoid ambiguity and to skip ABI resolution.
              */
             functionName: string;
             /**
-             * The arguments to call on the function
+             * An array of arguments to provide the function. Supports: numbers, strings, arrays, objects. Do not provide: BigNumber, bigint, Date objects
              */
             args: Array<any>;
             txOverrides?: {
@@ -79,6 +80,10 @@ export class ContractService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
+                /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -126,6 +131,7 @@ export class ContractService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         xAccountAddress?: string,
         xAccountFactoryAddress?: string,
         xAccountSalt?: string,
@@ -147,6 +153,7 @@ export class ContractService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
                 'x-account-address': xAccountAddress,
                 'x-account-factory-address': xAccountFactoryAddress,
                 'x-account-salt': xAccountSalt,

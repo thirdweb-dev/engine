@@ -1,9 +1,12 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { listKeypairs } from "../../../../db/keypair/list";
-import { KeypairSchema, toKeypairSchema } from "../../../schemas/keypairs";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { listKeypairs } from "../../../../shared/db/keypair/list";
+import {
+  KeypairSchema,
+  toKeypairSchema,
+} from "../../../../shared/schemas/keypair";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 const responseBodySchema = Type.Object({
   result: Type.Array(KeypairSchema),
@@ -25,7 +28,7 @@ export async function listPublicKeys(fastify: FastifyInstance) {
         [StatusCodes.OK]: responseBodySchema,
       },
     },
-    handler: async (req, res) => {
+    handler: async (_req, res) => {
       const keypairs = await listKeypairs();
 
       res.status(StatusCodes.OK).send({

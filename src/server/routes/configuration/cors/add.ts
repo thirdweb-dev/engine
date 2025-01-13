@@ -1,9 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
-import { getConfig } from "../../../../utils/cache/getConfig";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { mandatoryAllowedCorsUrls } from "../../../utils/cors-urls";
 import { responseBodySchema } from "./get";
 
@@ -47,11 +47,11 @@ export async function addUrlToCorsConfiguration(fastify: FastifyInstance) {
 
       const requiredUrls = mandatoryAllowedCorsUrls;
 
-      requiredUrls.forEach((url) => {
+      for (const url of requiredUrls) {
         if (!urlsToAdd.includes(url)) {
           urlsToAdd.push(url);
         }
-      });
+      }
 
       await updateConfiguration({
         accessControlAllowOrigin: [

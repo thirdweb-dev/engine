@@ -210,7 +210,7 @@ export class BackendWalletService {
     /**
      * Get balance
      * Get the native balance for a backend wallet.
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param walletAddress Backend wallet address
      * @returns any Default Response
      * @throws ApiError
@@ -295,11 +295,12 @@ export class BackendWalletService {
     /**
      * Transfer tokens
      * Transfer native currency or ERC20 tokens to another wallet.
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -325,6 +326,10 @@ export class BackendWalletService {
                  */
                 gas?: string;
                 /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
+                /**
                  * Maximum fee per gas
                  */
                 maxFeePerGas?: string;
@@ -344,6 +349,7 @@ export class BackendWalletService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
     ): CancelablePromise<{
         result: {
             /**
@@ -361,6 +367,7 @@ export class BackendWalletService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
             },
             query: {
                 'simulateTx': simulateTx,
@@ -378,11 +385,12 @@ export class BackendWalletService {
     /**
      * Withdraw funds
      * Withdraw all funds from this wallet to another wallet.
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -400,6 +408,10 @@ export class BackendWalletService {
                  */
                 gas?: string;
                 /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
+                /**
                  * Maximum fee per gas
                  */
                 maxFeePerGas?: string;
@@ -415,6 +427,7 @@ export class BackendWalletService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
     ): CancelablePromise<{
         result: {
             /**
@@ -436,6 +449,7 @@ export class BackendWalletService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
             },
             query: {
                 'simulateTx': simulateTx,
@@ -453,13 +467,14 @@ export class BackendWalletService {
     /**
      * Send a transaction
      * Send a transaction with transaction parameters
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -480,6 +495,10 @@ export class BackendWalletService {
                  */
                 gas?: string;
                 /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
+                /**
                  * Maximum fee per gas
                  */
                 maxFeePerGas?: string;
@@ -495,6 +514,7 @@ export class BackendWalletService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         xAccountAddress?: string,
         xAccountFactoryAddress?: string,
         xAccountSalt?: string,
@@ -515,6 +535,7 @@ export class BackendWalletService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
                 'x-account-address': xAccountAddress,
                 'x-account-factory-address': xAccountFactoryAddress,
                 'x-account-salt': xAccountSalt,
@@ -535,9 +556,10 @@ export class BackendWalletService {
     /**
      * Send a batch of raw transactions
      * Send a batch of raw transactions with transaction parameters
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param xBackendWalletAddress Backend wallet address
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param requestBody
      * @returns any Default Response
      * @throws ApiError
@@ -546,6 +568,7 @@ export class BackendWalletService {
         chain: string,
         xBackendWalletAddress: string,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         requestBody?: Array<{
             /**
              * A contract or wallet address
@@ -558,6 +581,10 @@ export class BackendWalletService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
+                /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -590,6 +617,7 @@ export class BackendWalletService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -607,6 +635,7 @@ export class BackendWalletService {
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -615,7 +644,6 @@ export class BackendWalletService {
         requestBody: {
             transaction: {
                 to?: string;
-                from?: string;
                 nonce?: string;
                 gasLimit?: string;
                 gasPrice?: string;
@@ -626,11 +654,11 @@ export class BackendWalletService {
                 accessList?: any;
                 maxFeePerGas?: string;
                 maxPriorityFeePerGas?: string;
-                customData?: Record<string, any>;
                 ccipReadEnabled?: boolean;
             };
         },
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
     ): CancelablePromise<{
         result: string;
     }> {
@@ -640,6 +668,7 @@ export class BackendWalletService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -657,6 +686,7 @@ export class BackendWalletService {
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -668,6 +698,7 @@ export class BackendWalletService {
             chainId?: number;
         },
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
     ): CancelablePromise<{
         result: string;
     }> {
@@ -677,6 +708,7 @@ export class BackendWalletService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -694,6 +726,7 @@ export class BackendWalletService {
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @returns any Default Response
      * @throws ApiError
      */
@@ -705,6 +738,7 @@ export class BackendWalletService {
             value: Record<string, any>;
         },
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
     ): CancelablePromise<{
         result: string;
     }> {
@@ -714,6 +748,7 @@ export class BackendWalletService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
             },
             body: requestBody,
             mediaType: 'application/json',
@@ -729,7 +764,7 @@ export class BackendWalletService {
      * Get recent transactions
      * Get recent transactions for this backend wallet.
      * @param status The status to query: 'queued', 'mined', 'errored', or 'cancelled'. Default: 'queued'
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param walletAddress Backend wallet address
      * @param page Specify the page number.
      * @param limit Specify the number of results to return per page.
@@ -825,7 +860,7 @@ export class BackendWalletService {
      * Get recent transactions by nonce
      * Get recent transactions for this backend wallet, sorted by descending nonce.
      * @param fromNonce The earliest nonce, inclusive.
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param walletAddress Backend wallet address
      * @param toNonce The latest nonce, inclusive. If omitted, queries up to the latest sent nonce.
      * @returns any Default Response
@@ -918,17 +953,88 @@ export class BackendWalletService {
     /**
      * Reset nonces
      * Reset nonces for all backend wallets. This is for debugging purposes and does not impact held tokens.
+     * @param requestBody
      * @returns any Default Response
      * @throws ApiError
      */
-    public resetNonces(): CancelablePromise<{
+    public resetNonces(
+        requestBody?: {
+            /**
+             * The chain ID to reset nonces for.
+             */
+            chainId?: number;
+            /**
+             * The backend wallet address to reset nonces for. Omit to reset all backend wallets.
+             */
+            walletAddress?: string;
+        },
+    ): CancelablePromise<{
         result: {
             status: string;
+            /**
+             * The number of backend wallets processed.
+             */
+            count: number;
         };
     }> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/backend-wallet/reset-nonces',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bad Request`,
+                404: `Not Found`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+
+    /**
+     * Cancel nonces
+     * Cancel all nonces up to the provided nonce. This is useful to unblock a backend wallet that has transactions waiting for nonces to be mined.
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
+     * @param xBackendWalletAddress Backend wallet address
+     * @param requestBody
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
+     * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
+     * @returns any Default Response
+     * @throws ApiError
+     */
+    public cancelNonces(
+        chain: string,
+        xBackendWalletAddress: string,
+        requestBody: {
+            /**
+             * The nonce to cancel up to, inclusive. Example: If the onchain nonce is 10 and 'toNonce' is 15, this request will cancel nonces: 11, 12, 13, 14, 15
+             */
+            toNonce: number;
+        },
+        simulateTx: boolean = false,
+        xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
+    ): CancelablePromise<{
+        result: {
+            cancelledNonces: Array<number>;
+        };
+    }> {
+        return this.httpRequest.request({
+            method: 'POST',
+            url: '/backend-wallet/{chain}/cancel-nonces',
+            path: {
+                'chain': chain,
+            },
+            headers: {
+                'x-backend-wallet-address': xBackendWalletAddress,
+                'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
+            },
+            query: {
+                'simulateTx': simulateTx,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
                 404: `Not Found`,
@@ -940,7 +1046,7 @@ export class BackendWalletService {
     /**
      * Get nonce
      * Get the last used nonce for this backend wallet. This value managed by Engine may differ from the onchain value. Use `/backend-wallet/reset-nonces` if this value looks incorrect while idle.
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param walletAddress Backend wallet address
      * @returns any Default Response
      * @throws ApiError
@@ -971,12 +1077,13 @@ export class BackendWalletService {
     /**
      * Simulate a transaction
      * Simulate a transaction with transaction parameters
-     * @param chain Chain ID
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -1007,6 +1114,7 @@ export class BackendWalletService {
             data?: string;
         },
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         xAccountAddress?: string,
         xAccountFactoryAddress?: string,
         xAccountSalt?: string,
@@ -1027,6 +1135,7 @@ export class BackendWalletService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
                 'x-account-address': xAccountAddress,
                 'x-account-factory-address': xAccountFactoryAddress,
                 'x-account-salt': xAccountSalt,

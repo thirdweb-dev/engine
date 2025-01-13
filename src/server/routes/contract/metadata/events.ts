@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
+import { getContract } from "../../../../shared/utils/cache/get-contract";
 import { abiEventSchema } from "../../../schemas/contract";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+} from "../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestSchema = contractParamSchema;
@@ -84,7 +84,7 @@ export async function extractEvents(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = await contract.publishedMetadata.extractEvents();
+      const returnData = await contract.publishedMetadata.extractEvents();
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

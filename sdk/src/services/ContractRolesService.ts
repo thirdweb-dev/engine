@@ -13,7 +13,7 @@ export class ContractRolesService {
      * Get wallets for role
      * Get all wallets with a specific role for a contract.
      * @param role The role to list wallet members
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -46,7 +46,7 @@ export class ContractRolesService {
     /**
      * Get wallets for all roles
      * Get all wallets in each role for a contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -85,14 +85,15 @@ export class ContractRolesService {
     /**
      * Grant role
      * Grant a role to a specific wallet.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -116,6 +117,10 @@ export class ContractRolesService {
                  */
                 gas?: string;
                 /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
+                /**
                  * Maximum fee per gas
                  */
                 maxFeePerGas?: string;
@@ -135,6 +140,7 @@ export class ContractRolesService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         xAccountAddress?: string,
         xAccountFactoryAddress?: string,
         xAccountSalt?: string,
@@ -156,6 +162,7 @@ export class ContractRolesService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
                 'x-account-address': xAccountAddress,
                 'x-account-factory-address': xAccountFactoryAddress,
                 'x-account-salt': xAccountSalt,
@@ -176,14 +183,15 @@ export class ContractRolesService {
     /**
      * Revoke role
      * Revoke a role from a specific wallet.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -207,6 +215,10 @@ export class ContractRolesService {
                  */
                 gas?: string;
                 /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
+                /**
                  * Maximum fee per gas
                  */
                 maxFeePerGas?: string;
@@ -226,6 +238,7 @@ export class ContractRolesService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         xAccountAddress?: string,
         xAccountFactoryAddress?: string,
         xAccountSalt?: string,
@@ -247,6 +260,7 @@ export class ContractRolesService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
                 'x-account-address': xAccountAddress,
                 'x-account-factory-address': xAccountFactoryAddress,
                 'x-account-salt': xAccountSalt,

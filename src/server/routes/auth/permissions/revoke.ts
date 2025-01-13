@@ -1,9 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deletePermissions } from "../../../../db/permissions/deletePermissions";
+import { deletePermissions } from "../../../../shared/db/permissions/delete-permissions";
 import { AddressSchema } from "../../../schemas/address";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   walletAddress: AddressSchema,

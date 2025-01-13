@@ -54,9 +54,6 @@ web_modules/
 # Optional npm cache directory
 .npm
 
-# Optional eslint cache
-.eslintcache
-
 # Optional stylelint cache
 .stylelintcache
 
@@ -152,3 +149,6 @@ https
 # Auto generated OpenAPI file
 openapi.json
 .aider*
+
+# Jetbrains IDEs
+.idea

@@ -3,21 +3,22 @@ import fastify, { type FastifyInstance } from "fastify";
 import * as fs from "node:fs";
 import path from "node:path";
 import { URL } from "node:url";
-import { clearCacheCron } from "../utils/cron/clearCacheCron";
-import { env } from "../utils/env";
-import { logger } from "../utils/logger";
-import { metricsServer } from "../utils/prometheus";
-import { withServerUsageReporting } from "../utils/usage";
-import { updateTxListener } from "./listeners/updateTxListener";
-import { withAdminRoutes } from "./middleware/adminRoutes";
+import { clearCacheCron } from "../shared/utils/cron/clear-cache-cron";
+import { env } from "../shared/utils/env";
+import { logger } from "../shared/utils/logger";
+import { metricsServer } from "../shared/utils/prometheus";
+import { withServerUsageReporting } from "../shared/utils/usage";
+import { updateTxListener } from "./listeners/update-tx-listener";
+import { withAdminRoutes } from "./middleware/admin-routes";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
-import { withEnforceEngineMode } from "./middleware/engineMode";
+import { withEnforceEngineMode } from "./middleware/engine-mode";
 import { withErrorHandler } from "./middleware/error";
 import { withRequestLogs } from "./middleware/logs";
 import { withOpenApi } from "./middleware/open-api";
 import { withPrometheus } from "./middleware/prometheus";
-import { withRateLimit } from "./middleware/rateLimit";
+import { withRateLimit } from "./middleware/rate-limit";
+import { withSecurityHeaders } from "./middleware/security-headers";
 import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
@@ -63,25 +64,28 @@ export const initServer = async () => {
 
   // Start the server with middleware.
   const server: FastifyInstance = fastify({
+    maxParamLength: 200,
     connectionTimeout: SERVER_CONNECTION_TIMEOUT,
     disableRequestLogging: true,
     trustProxy,
     ...(env.ENABLE_HTTPS ? httpsObject : {}),
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  server.decorateRequest("corsPreflightEnabled", false);
+  // Configure middleware
+  withErrorHandler(server);
+  withRequestLogs(server);
+  withSecurityHeaders(server);
+  withCors(server);
+  withRateLimit(server);
+  withEnforceEngineMode(server);
+  withServerUsageReporting(server);
+  withPrometheus(server);
 
-  await withCors(server);
-  await withRequestLogs(server);
-  await withPrometheus(server);
-  await withErrorHandler(server);
-  await withEnforceEngineMode(server);
-  await withRateLimit(server);
+  // Register routes
   await withWebSocket(server);
   await withAuth(server);
   await withOpenApi(server);
   await withRoutes(server);
-  await withServerUsageReporting(server);
   await withAdminRoutes(server);
 
   await server.ready();

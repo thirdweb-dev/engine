@@ -1,11 +1,11 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { getContract } from "../../../../../../shared/utils/cache/get-contract";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/sharedApiSchemas";
+} from "../../../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 
 // INPUT
@@ -54,12 +54,12 @@ export async function erc20GetMetadata(fastify: FastifyInstance) {
         chainId,
         contractAddress,
       });
-      const returnData: any = await contract.erc20.get();
+      const returnData = await contract.erc20.get();
       reply.status(StatusCodes.OK).send({
         result: {
           symbol: returnData.symbol,
           name: returnData.name,
-          decimals: returnData.decimals,
+          decimals: returnData.decimals.toString(),
         },
       });
     },

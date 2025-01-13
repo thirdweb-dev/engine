@@ -1,16 +1,16 @@
-import { SocketStream } from "@fastify/websocket";
-import { Static } from "@sinclair/typebox";
-import { FastifyRequest } from "fastify";
-import { logger } from "../../utils/logger";
-import { TransactionSchema } from "../schemas/transaction";
-import { UserSubscription, subscriptionsData } from "../schemas/websocket";
+import type { SocketStream } from "@fastify/websocket";
+import type { Static } from "@sinclair/typebox";
+import type { FastifyRequest } from "fastify";
+import { logger } from "../../shared/utils/logger";
+import type { TransactionSchema } from "../schemas/transaction";
+import { type UserSubscription, subscriptionsData } from "../schemas/websocket";
 
 // websocket timeout, i.e., ws connection closed after 10 seconds
 const timeoutDuration = 10 * 60 * 1000;
 
 export const findWSConnectionInSharedState = async (
   connection: SocketStream,
-  request: FastifyRequest,
+  _request: FastifyRequest,
 ): Promise<number> => {
   const index = subscriptionsData.findIndex(
     (sub) => sub.socket === connection.socket,
@@ -23,7 +23,7 @@ export const removeWSFromSharedState = async (
   request: FastifyRequest,
 ): Promise<number> => {
   const index = await findWSConnectionInSharedState(connection, request);
-  if (index == -1) {
+  if (index === -1) {
     return -1;
   }
   subscriptionsData.splice(index, 1);
@@ -38,12 +38,12 @@ export const onError = async (
   logger({
     service: "server",
     level: "error",
-    message: `Websocket error`,
+    message: "Websocket error",
     error,
   });
 
   const index = await findWSConnectionInSharedState(connection, request);
-  if (index == -1) {
+  if (index === -1) {
     return;
   }
 
@@ -84,7 +84,7 @@ export const onClose = async (
   request: FastifyRequest,
 ): Promise<void> => {
   const index = await findWSConnectionInSharedState(connection, request);
-  if (index == -1) {
+  if (index === -1) {
     return;
   }
   subscriptionsData.splice(index, 1);
@@ -140,7 +140,7 @@ export const getStatusMessageAndConnectionStatus = async (
   let closeConnection = false;
 
   if (!data) {
-    message = `Transaction not found. Make sure the provided ID is correct.`;
+    message = "Transaction not found. Make sure the provided ID is correct.";
     closeConnection = true;
   } else if (data.status === "mined") {
     message = "Transaction mined. Closing connection.";
