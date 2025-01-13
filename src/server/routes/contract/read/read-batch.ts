@@ -3,21 +3,21 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import SuperJSON from "superjson";
 import {
+  encode,
   getContract,
   prepareContractCall,
   readContract,
   resolveMethod,
 } from "thirdweb";
 import { prepareMethod } from "thirdweb/contract";
-import { resolvePromisedValue, type AbiFunction } from "thirdweb/utils";
 import { decodeAbiParameters } from "viem/utils";
-import { getChain } from "../../../../utils/chain";
-import { prettifyError } from "../../../../utils/error";
-import { thirdwebClient } from "../../../../utils/sdk";
+import type { AbiFunction } from "viem";
 import { createCustomError } from "../../../middleware/error";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
 import { getChainIdFromChain } from "../../../utils/chain";
-import { bigNumberReplacer } from "../../../utils/convertor";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { getChain } from "../../../../shared/utils/chain";
+import { thirdwebClient } from "../../../../shared/utils/sdk";
+import { prettifyError } from "../../../../shared/utils/error";
 
 const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
@@ -33,7 +33,11 @@ const readCallRequestItemSchema = Type.Object({
 
 const readMulticallRequestSchema = Type.Object({
   calls: Type.Array(readCallRequestItemSchema),
-  multicallAddress: Type.Optional(Type.String()),
+  multicallAddress: Type.Optional(
+    Type.String({
+      description: `Address of the multicall contract to use. If omitted, multicall3 contract will be used (${MULTICALL3_ADDRESS}).`,
+    }),
+  ),
 });
 
 const responseSchema = Type.Object({
@@ -55,16 +59,16 @@ type RouteGeneric = {
   Reply: Static<typeof responseSchema>;
 };
 
-export async function readMulticall(fastify: FastifyInstance) {
+export async function readMulticallRoute(fastify: FastifyInstance) {
   fastify.route<RouteGeneric>({
     method: "POST",
     url: "/contract/:chain/read-batch",
     schema: {
       summary: "Batch read from multiple contracts",
       description:
-        "Execute multiple contract read operations in a single call using Multicall3",
+        "Execute multiple contract read operations in a single call using Multicall",
       tags: ["Contract"],
-      operationId: "readMulticall",
+      operationId: "readBatch",
       params: paramsSchema,
       body: readMulticallRequestSchema,
       response: {
@@ -83,7 +87,7 @@ export async function readMulticall(fastify: FastifyInstance) {
         // Encode each read call
         const encodedCalls = await Promise.all(
           calls.map(async (call) => {
-            const contract = await getContract({
+            const contract = getContract({
               client: thirdwebClient,
               chain,
               address: call.contractAddress,
@@ -97,13 +101,9 @@ export async function readMulticall(fastify: FastifyInstance) {
               contract,
               method,
               params: call.args || [],
-              // stubbing gas values so that the call can be encoded
-              maxFeePerGas: 30n,
-              maxPriorityFeePerGas: 1n,
-              value: 0n,
             });
 
-            const calldata = await resolvePromisedValue(transaction.data);
+            const calldata = await encode(transaction);
             if (!calldata) {
               throw new Error("Failed to encode call data");
             }
@@ -149,7 +149,7 @@ export async function readMulticall(fastify: FastifyInstance) {
 
           return {
             success,
-            result: success ? bigNumberReplacer(decoded) : null,
+            result: success ? decoded : null,
           };
         });
 
