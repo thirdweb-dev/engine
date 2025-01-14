@@ -1,4 +1,4 @@
-import LruMap from "mnemonist/lru-map";
+import LRUMap from "mnemonist/lru-map";
 import { getAddress } from "thirdweb";
 import { z } from "zod";
 import type { PrismaTransaction } from "../../schemas/prisma";
@@ -131,7 +131,7 @@ export type SmartBackendWalletType = (typeof SmartBackendWalletTypes)[number];
 export type BackendWalletType = (typeof BackendWalletTypes)[number];
 export type ParsedWalletDetails = z.infer<typeof walletDetailsSchema>;
 
-export const walletDetailsCache = new LruMap<string, ParsedWalletDetails>(2048);
+export const walletDetailsCache = new LRUMap<string, ParsedWalletDetails>(2048);
 /**
  * Return the wallet details for the given address.
  *

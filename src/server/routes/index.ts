@@ -111,8 +111,8 @@ import { getWebhooksEventTypes } from "./webhooks/events";
 import { getAllWebhooksData } from "./webhooks/get-all";
 import { revokeWebhook } from "./webhooks/revoke";
 import { testWebhookRoute } from "./webhooks/test";
-import { readMulticallRoute } from "./contract/read/read-batch";
-import { sendTransactionsAtomicRoute } from "./backend-wallet/send-transactions-atomic";
+import { readBatchRoute } from "./contract/read/read-batch";
+import { sendTransactionBatchAtomicRoute } from "./backend-wallet/send-transaction-batch-atomic";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -126,7 +126,7 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(withdraw);
   await fastify.register(sendTransaction);
   await fastify.register(sendTransactionBatch);
-  await fastify.register(sendTransactionsAtomicRoute);
+  await fastify.register(sendTransactionBatchAtomicRoute);
   await fastify.register(signTransaction);
   await fastify.register(signMessageRoute);
   await fastify.register(signTypedData);
@@ -195,7 +195,7 @@ export async function withRoutes(fastify: FastifyInstance) {
 
   // Generic
   await fastify.register(readContract);
-  await fastify.register(readMulticallRoute);
+  await fastify.register(readBatchRoute);
   await fastify.register(writeToContract);
 
   // Contract Events

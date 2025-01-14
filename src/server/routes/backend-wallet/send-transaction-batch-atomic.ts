@@ -3,7 +3,6 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address, Hex } from "thirdweb";
 import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
-import { AddressSchema } from "../../schemas/address";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
@@ -22,22 +21,15 @@ import {
   WalletDetailsError,
 } from "../../../shared/db/wallets/get-wallet-details";
 import { createCustomError } from "../../middleware/error";
+import { RawTransactionParamsSchema } from "../../schemas/transaction/raw-transaction-parms";
 
 const requestBodySchema = Type.Object({
-  transactions: Type.Array(
-    Type.Object({
-      toAddress: Type.Optional(AddressSchema),
-      data: Type.String({
-        examples: ["0x..."],
-      }),
-      value: Type.String({
-        examples: ["10000000"],
-      }),
-    }),
-  ),
+  transactions: Type.Array(RawTransactionParamsSchema, {
+    minItems: 1,
+  }),
 });
 
-export async function sendTransactionsAtomicRoute(fastify: FastifyInstance) {
+export async function sendTransactionBatchAtomicRoute(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof walletChainParamSchema>;
     Body: Static<typeof requestBodySchema>;
@@ -45,13 +37,13 @@ export async function sendTransactionsAtomicRoute(fastify: FastifyInstance) {
     Querystring: Static<typeof requestQuerystringSchema>;
   }>({
     method: "POST",
-    url: "/backend-wallet/:chain/send-transactions-atomic",
+    url: "/backend-wallet/:chain/send-transaction-batch-atomic",
     schema: {
       summary: "Send a batch of raw transactions atomically",
       description:
-        "Send a batch of raw transactions in a single UserOp. Can only be used with smart wallets.",
+        "Send a batch of raw transactions in a single UserOp. Transactions will be sent in-order and atomically. Can only be used with smart wallets.",
       tags: ["Backend Wallet"],
-      operationId: "sendTransactionsAtomic",
+      operationId: "sendTransactionBatchAtomic",
       params: walletChainParamSchema,
       body: requestBodySchema,
       headers: Type.Omit(walletWithAAHeaderSchema, ["x-transaction-mode"]),

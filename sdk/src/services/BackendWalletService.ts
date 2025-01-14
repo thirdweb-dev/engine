@@ -631,7 +631,7 @@ export class BackendWalletService {
 
     /**
      * Send a batch of raw transactions atomically
-     * Send a batch of raw transactions in a single UserOp. Can only be used with smart wallets.
+     * Send a batch of raw transactions in a single UserOp. Transactions will be sent in-order and atomically. Can only be used with smart wallets.
      * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
@@ -643,7 +643,7 @@ export class BackendWalletService {
      * @returns any Default Response
      * @throws ApiError
      */
-    public sendTransactionsAtomic(
+    public sendTransactionBatchAtomic(
         chain: string,
         xBackendWalletAddress: string,
         requestBody: {
@@ -652,7 +652,13 @@ export class BackendWalletService {
                  * A contract or wallet address
                  */
                 toAddress?: string;
+                /**
+                 * A valid hex string
+                 */
                 data: string;
+                /**
+                 * An amount in wei (no decimals). Example: "50000000000"
+                 */
                 value: string;
             }>;
         },
@@ -671,7 +677,7 @@ export class BackendWalletService {
     }> {
         return this.httpRequest.request({
             method: 'POST',
-            url: '/backend-wallet/{chain}/send-transactions-atomic',
+            url: '/backend-wallet/{chain}/send-transaction-batch-atomic',
             path: {
                 'chain': chain,
             },

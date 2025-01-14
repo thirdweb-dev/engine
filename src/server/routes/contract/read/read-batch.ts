@@ -59,7 +59,7 @@ type RouteGeneric = {
   Reply: Static<typeof responseSchema>;
 };
 
-export async function readMulticallRoute(fastify: FastifyInstance) {
+export async function readBatchRoute(fastify: FastifyInstance) {
   fastify.route<RouteGeneric>({
     method: "POST",
     url: "/contract/:chain/read-batch",
