@@ -78,6 +78,7 @@ export class TransactionService {
                 onchainStatus: ('success' | 'reverted' | null);
                 effectiveGasPrice: (string | null);
                 cumulativeGasUsed: (string | null);
+                batchOperations: null;
             }>;
             totalCount: number;
         };
@@ -162,6 +163,7 @@ export class TransactionService {
             onchainStatus: ('success' | 'reverted' | null);
             effectiveGasPrice: (string | null);
             cumulativeGasUsed: (string | null);
+            batchOperations: null;
         };
     }> {
         return this.httpRequest.request({
@@ -245,6 +247,7 @@ export class TransactionService {
                 onchainStatus: ('success' | 'reverted' | null);
                 effectiveGasPrice: (string | null);
                 cumulativeGasUsed: (string | null);
+                batchOperations: null;
             }>;
             totalCount: number;
         };

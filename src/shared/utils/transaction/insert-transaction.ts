@@ -4,6 +4,7 @@ import { TransactionDB } from "../../../shared/db/transactions/db";
 import {
   getWalletDetails,
   isSmartBackendWallet,
+  WalletDetailsError,
   type ParsedWalletDetails,
 } from "../../../shared/db/wallets/get-wallet-details";
 import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
@@ -105,8 +106,12 @@ export const insertTransaction = async (
         entrypointAddress: walletDetails.entrypointAddress ?? undefined,
       };
     }
-  } catch {
-    // if wallet details are not found, this is a smart backend wallet using a v4 endpoint
+  } catch (e) {
+    if (e instanceof WalletDetailsError) {
+      // do nothing. The this is a smart backend wallet using a v4 endpoint
+    }
+    // if other type of error, rethrow
+    throw e;
   }
 
   if (!walletDetails && queuedTransaction.accountAddress) {
@@ -139,13 +144,16 @@ export const insertTransaction = async (
             walletDetails.accountFactoryAddress ?? undefined,
         };
       }
-    } catch {
+    } catch (e: unknown) {
       // if wallet details are not found for this either, this backend wallet does not exist at all
-      throw createCustomError(
-        "Account not found",
-        StatusCodes.BAD_REQUEST,
-        "ACCOUNT_NOT_FOUND",
-      );
+      if (e instanceof WalletDetailsError) {
+        throw createCustomError(
+          "Account not found",
+          StatusCodes.BAD_REQUEST,
+          "ACCOUNT_NOT_FOUND",
+        );
+      }
+      throw e;
     }
   }
 

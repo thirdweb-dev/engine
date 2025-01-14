@@ -13,6 +13,14 @@ export type AnyTransaction =
   | CancelledTransaction
   | ErroredTransaction;
 
+export type BatchOperation = {
+  to?: Address;
+  value: bigint;
+  data?: Hex;
+  functionName?: string;
+  functionArgs?: unknown[];
+};
+
 // InsertedTransaction is the raw input from the caller.
 export type InsertedTransaction = {
   isUserOp: boolean;
@@ -49,6 +57,7 @@ export type InsertedTransaction = {
   accountSalt?: string;
   accountFactoryAddress?: Address;
   entrypointAddress?: Address;
+  batchOperations?: BatchOperation[];
   target?: Address;
   sender?: Address;
 };
