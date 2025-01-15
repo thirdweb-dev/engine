@@ -12,11 +12,11 @@ export class MarketplaceOffersService {
     /**
      * Get all offers
      * Get all offers on this marketplace contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param count Number of listings to fetch
      * @param offeror has offers from this Address
-     * @param start Satrt from this index (pagination)
+     * @param start Start from this index (pagination)
      * @param tokenContract Token contract address to show NFTs from
      * @param tokenId Only show NFTs with this ID
      * @returns any Default Response
@@ -103,11 +103,11 @@ export class MarketplaceOffersService {
     /**
      * Get all valid offers
      * Get all valid offers on this marketplace contract. Valid offers are offers that have not expired, been canceled, or been accepted.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param count Number of listings to fetch
      * @param offeror has offers from this Address
-     * @param start Satrt from this index (pagination)
+     * @param start Start from this index (pagination)
      * @param tokenContract Token contract address to show NFTs from
      * @param tokenId Only show NFTs with this ID
      * @returns any Default Response
@@ -195,7 +195,7 @@ export class MarketplaceOffersService {
      * Get offer
      * Get details about an offer.
      * @param offerId The ID of the offer to get information about.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -273,7 +273,7 @@ export class MarketplaceOffersService {
     /**
      * Get total count
      * Get the total number of offers on this marketplace contract.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @returns any Default Response
      * @throws ApiError
@@ -302,14 +302,15 @@ export class MarketplaceOffersService {
     /**
      * Make offer
      * Make an offer on a token. A valid listing is not required.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -349,6 +350,10 @@ export class MarketplaceOffersService {
                  */
                 gas?: string;
                 /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
+                /**
                  * Maximum fee per gas
                  */
                 maxFeePerGas?: string;
@@ -368,6 +373,7 @@ export class MarketplaceOffersService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         xAccountAddress?: string,
         xAccountFactoryAddress?: string,
         xAccountSalt?: string,
@@ -389,6 +395,7 @@ export class MarketplaceOffersService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
                 'x-account-address': xAccountAddress,
                 'x-account-factory-address': xAccountFactoryAddress,
                 'x-account-salt': xAccountSalt,
@@ -409,14 +416,15 @@ export class MarketplaceOffersService {
     /**
      * Cancel offer
      * Cancel a valid offer made by the caller wallet.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -435,6 +443,10 @@ export class MarketplaceOffersService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
+                /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -455,6 +467,7 @@ export class MarketplaceOffersService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         xAccountAddress?: string,
         xAccountFactoryAddress?: string,
         xAccountSalt?: string,
@@ -476,6 +489,7 @@ export class MarketplaceOffersService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
                 'x-account-address': xAccountAddress,
                 'x-account-factory-address': xAccountFactoryAddress,
                 'x-account-salt': xAccountSalt,
@@ -496,14 +510,15 @@ export class MarketplaceOffersService {
     /**
      * Accept offer
      * Accept a valid offer.
-     * @param chain Chain ID or name
+     * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param xBackendWalletAddress Backend wallet address
      * @param requestBody
-     * @param simulateTx Simulate the transaction on-chain without executing
+     * @param simulateTx Simulates the transaction before adding it to the queue, returning an error if it fails simulation. Note: This step is less performant and recommended only for debugging purposes.
      * @param xIdempotencyKey Transactions submitted with the same idempotency key will be de-duplicated. Only the last 100000 transactions are compared.
+     * @param xTransactionMode Transaction mode to use for EOA transactions. Will be ignored if using a smart wallet. If omitted, defaults to regular EOA transactions.
      * @param xAccountAddress Smart account address
-     * @param xAccountFactoryAddress Smart account factory address. If omitted, engine will try to resolve it from the chain.
+     * @param xAccountFactoryAddress Smart account factory address. If omitted, Engine will try to resolve it from the contract.
      * @param xAccountSalt Smart account salt as string or hex. This is used to predict the smart account address. Useful when creating multiple accounts with the same admin and only needed when deploying the account as part of a userop.
      * @returns any Default Response
      * @throws ApiError
@@ -522,6 +537,10 @@ export class MarketplaceOffersService {
                  * Gas limit for the transaction
                  */
                 gas?: string;
+                /**
+                 * Gas price for the transaction. Do not use this if maxFeePerGas is set or if you want to use EIP-1559 type transactions. Only use this if you want to use legacy transactions.
+                 */
+                gasPrice?: string;
                 /**
                  * Maximum fee per gas
                  */
@@ -542,6 +561,7 @@ export class MarketplaceOffersService {
         },
         simulateTx: boolean = false,
         xIdempotencyKey?: string,
+        xTransactionMode?: 'sponsored',
         xAccountAddress?: string,
         xAccountFactoryAddress?: string,
         xAccountSalt?: string,
@@ -563,6 +583,7 @@ export class MarketplaceOffersService {
             headers: {
                 'x-backend-wallet-address': xBackendWalletAddress,
                 'x-idempotency-key': xIdempotencyKey,
+                'x-transaction-mode': xTransactionMode,
                 'x-account-address': xAccountAddress,
                 'x-account-factory-address': xAccountFactoryAddress,
                 'x-account-salt': xAccountSalt,

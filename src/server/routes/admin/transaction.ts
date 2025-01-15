@@ -1,16 +1,16 @@
-import { Static, Type } from "@sinclair/typebox";
-import { Queue } from "bullmq";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { Queue } from "bullmq";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { stringify } from "thirdweb/utils";
-import { TransactionDB } from "../../../db/transactions/db";
-import { getConfig } from "../../../utils/cache/getConfig";
-import { maybeDate } from "../../../utils/primitiveTypes";
-import { redis } from "../../../utils/redis/redis";
-import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
+import { TransactionDB } from "../../../shared/db/transactions/db";
+import { getConfig } from "../../../shared/utils/cache/get-config";
+import { maybeDate } from "../../../shared/utils/primitive-types";
+import { redis } from "../../../shared/utils/redis/redis";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestSchema = Type.Object({
   queueId: Type.String({

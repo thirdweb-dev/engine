@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
-import { env } from "../../utils/env";
-import { parseEthersError } from "../../utils/ethers";
+import { env } from "../../shared/utils/env";
+import { parseEthersError } from "../../shared/utils/ethers";
 
 export type CustomError = {
   message: string;
@@ -42,7 +42,7 @@ export const badChainError = (chain: string | number): CustomError =>
     "INVALID_CHAIN",
   );
 
-const flipObject = (data: any) =>
+const flipObject = (data: object) =>
   Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
 
 const isZodError = (err: unknown): boolean => {
@@ -51,9 +51,9 @@ const isZodError = (err: unknown): boolean => {
   );
 };
 
-export const withErrorHandler = async (server: FastifyInstance) => {
+export function withErrorHandler(server: FastifyInstance) {
   server.setErrorHandler(
-    (error: string | Error | CustomError | ZodError, request, reply) => {
+    (error: string | Error | CustomError | ZodError, _request, reply) => {
       if (typeof error === "string") {
         return reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
           error: {
@@ -72,7 +72,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
             message: "code" in error ? error.code : error.message,
             reason: error.message,
             statusCode: 400,
-            stack: env.NODE_ENV !== "production" ? error.stack : undefined,
+            stack: env.NODE_ENV === "production" ? undefined : error.stack,
           },
         });
       }
@@ -80,7 +80,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
       // Zod Typings Errors
       if (isZodError(error)) {
         const _error = error as ZodError;
-        let parsedMessage: any[] = [];
+        let parsedMessage: unknown;
 
         try {
           parsedMessage = JSON.parse(_error.message);
@@ -98,7 +98,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
             message: errorObject.message ?? "Invalid Request",
             reason: errorObject ?? undefined,
             statusCode: 400,
-            stack: env.NODE_ENV !== "production" ? _error.stack : undefined,
+            stack: env.NODE_ENV === "production" ? undefined : _error.stack,
           },
         });
       }
@@ -118,7 +118,7 @@ export const withErrorHandler = async (server: FastifyInstance) => {
             code,
             message,
             statusCode,
-            stack: env.NODE_ENV !== "production" ? error.stack : undefined,
+            stack: env.NODE_ENV === "production" ? undefined : error.stack,
           },
         });
       }
@@ -128,9 +128,9 @@ export const withErrorHandler = async (server: FastifyInstance) => {
           statusCode: 500,
           code: "INTERNAL_SERVER_ERROR",
           message: error.message || ReasonPhrases.INTERNAL_SERVER_ERROR,
-          stack: env.NODE_ENV !== "production" ? error.stack : undefined,
+          stack: env.NODE_ENV === "production" ? undefined : error.stack,
         },
       });
     },
   );
-};
+}

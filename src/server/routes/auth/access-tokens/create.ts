@@ -3,13 +3,13 @@ import { buildJWT } from "@thirdweb-dev/auth";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
-import { createToken } from "../../../../db/tokens/createToken";
-import { accessTokenCache } from "../../../../utils/cache/accessToken";
-import { getConfig } from "../../../../utils/cache/getConfig";
-import { env } from "../../../../utils/env";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { AccessTokenSchema } from "./getAll";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
+import { createToken } from "../../../../shared/db/tokens/create-token";
+import { accessTokenCache } from "../../../../shared/utils/cache/access-token";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
+import { env } from "../../../../shared/utils/env";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { AccessTokenSchema } from "./get-all";
 
 const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),

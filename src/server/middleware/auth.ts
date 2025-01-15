@@ -10,21 +10,21 @@ import type { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken, { type JwtPayload } from "jsonwebtoken";
 import { createHash } from "node:crypto";
 import { validate as uuidValidate } from "uuid";
-import { getPermissions } from "../../db/permissions/getPermissions";
-import { createToken } from "../../db/tokens/createToken";
-import { revokeToken } from "../../db/tokens/revokeToken";
-import { WebhooksEventTypes } from "../../schema/webhooks";
-import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../../utils/auth";
-import { getAccessToken } from "../../utils/cache/accessToken";
-import { getAuthWallet } from "../../utils/cache/authWallet";
-import { getConfig } from "../../utils/cache/getConfig";
-import { getWebhooksByEventType } from "../../utils/cache/getWebhook";
-import { getKeypair } from "../../utils/cache/keypair";
-import { env } from "../../utils/env";
-import { logger } from "../../utils/logger";
-import { sendWebhookRequest } from "../../utils/webhook";
-import { Permission } from "../schemas/auth";
-import { ADMIN_QUEUES_BASEPATH } from "./adminRoutes";
+import { getPermissions } from "../../shared/db/permissions/get-permissions";
+import { createToken } from "../../shared/db/tokens/create-token";
+import { revokeToken } from "../../shared/db/tokens/revoke-token";
+import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
+import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../../shared/utils/auth";
+import { getAccessToken } from "../../shared/utils/cache/access-token";
+import { getAuthWallet } from "../../shared/utils/cache/auth-wallet";
+import { getConfig } from "../../shared/utils/cache/get-config";
+import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook";
+import { getKeypair } from "../../shared/utils/cache/keypair";
+import { env } from "../../shared/utils/env";
+import { logger } from "../../shared/utils/logger";
+import { sendWebhookRequest } from "../../shared/utils/webhook";
+import { Permission } from "../../shared/schemas/auth";
+import { ADMIN_QUEUES_BASEPATH } from "./admin-routes";
 import { OPENAPI_ROUTES } from "./open-api";
 
 export type TAuthData = never;
@@ -43,7 +43,7 @@ declare module "fastify" {
   }
 }
 
-export const withAuth = async (server: FastifyInstance) => {
+export async function withAuth(server: FastifyInstance) {
   const config = await getConfig();
 
   // Configure the ThirdwebAuth fastify plugin
@@ -123,10 +123,11 @@ export const withAuth = async (server: FastifyInstance) => {
         }
         // Allow this request to proceed.
         return;
-      } else if (error) {
+      }
+      if (error) {
         message = error;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger({
         service: "server",
         level: "warn",
@@ -140,7 +141,7 @@ export const withAuth = async (server: FastifyInstance) => {
       message,
     });
   });
-};
+}
 
 export const onRequest = async ({
   req,
@@ -172,11 +173,11 @@ export const onRequest = async ({
         const authWallet = await getAuthWallet();
         if (publicKey === (await authWallet.getAddress())) {
           return await handleAccessToken(jwt, req, getUser);
-        } else if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
-          return await handleDashboardAuth(jwt);
-        } else {
-          return await handleKeypairAuth({ jwt, req, publicKey });
         }
+        if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
+          return await handleDashboardAuth(jwt);
+        }
+        return await handleKeypairAuth({ jwt, req, publicKey });
       }
 
       // Get the public key hash from the `kid` header.
@@ -383,7 +384,7 @@ const handleAccessToken = async (
 
   try {
     token = await getAccessToken({ jwt });
-  } catch (e) {
+  } catch (_e) {
     // Missing or invalid signature. This will occur if the JWT not intended for this auth pattern.
     return { isAuthed: false };
   }

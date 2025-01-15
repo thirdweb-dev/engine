@@ -1,14 +1,16 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { Type, type Static } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { eth_getTransactionReceipt, getRpcClient } from "thirdweb";
-import { TransactionDB } from "../../../db/transactions/db";
-import { getChain } from "../../../utils/chain";
-import { thirdwebClient } from "../../../utils/sdk";
-import { MineTransactionQueue } from "../../../worker/queues/mineTransactionQueue";
-import { SendTransactionQueue } from "../../../worker/queues/sendTransactionQueue";
+import { TransactionDB } from "../../../shared/db/transactions/db";
+import {
+  getReceiptForEOATransaction,
+  getReceiptForUserOp,
+} from "../../../shared/lib/transaction/get-transaction-receipt";
+import type { QueuedTransaction } from "../../../shared/utils/transaction/types";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
 const requestBodySchema = Type.Object({
   queueId: Type.String({
@@ -26,13 +28,12 @@ export const responseBodySchema = Type.Object({
 
 responseBodySchema.example = {
   result: {
-    message:
-      "Transaction queued for retry with queueId: a20ed4ce-301d-4251-a7af-86bd88f6c015",
+    message: "Sent transaction to be retried.",
     status: "success",
   },
 };
 
-export async function retryFailedTransaction(fastify: FastifyInstance) {
+export async function retryFailedTransactionRoute(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseBodySchema>;
@@ -63,69 +64,48 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
       }
       if (transaction.status !== "errored") {
         throw createCustomError(
-          `Transaction cannot be retried because status: ${transaction.status}`,
+          `Cannot retry a transaction with status ${transaction.status}.`,
           StatusCodes.BAD_REQUEST,
           "TRANSACTION_CANNOT_BE_RETRIED",
         );
       }
 
-      if (transaction.isUserOp) {
+      const receipt = transaction.isUserOp
+        ? await getReceiptForUserOp(transaction)
+        : await getReceiptForEOATransaction(transaction);
+      if (receipt) {
         throw createCustomError(
-          "Transaction cannot be retried because it is a userop",
+          "Cannot retry a transaction that is already mined.",
           StatusCodes.BAD_REQUEST,
           "TRANSACTION_CANNOT_BE_RETRIED",
         );
       }
 
-      const rpcRequest = getRpcClient({
-        client: thirdwebClient,
-        chain: await getChain(transaction.chainId),
-      });
-
-      // if transaction has sentTransactionHashes, we need to check if any of them are mined
-      if ("sentTransactionHashes" in transaction) {
-        const receiptPromises = transaction.sentTransactionHashes.map(
-          (hash) => {
-            // if receipt is not found, it will throw an error
-            // so we catch it and return null
-            return eth_getTransactionReceipt(rpcRequest, {
-              hash,
-            }).catch(() => null);
-          },
-        );
-
-        const receipts = await Promise.all(receiptPromises);
-
-        // If any of the transactions are mined, we should not retry.
-        const minedReceipt = receipts.find((receipt) => !!receipt);
-
-        if (minedReceipt) {
-          throw createCustomError(
-            `Transaction cannot be retried because it has already been mined with hash: ${minedReceipt.transactionHash}`,
-            StatusCodes.BAD_REQUEST,
-            "TRANSACTION_CANNOT_BE_RETRIED",
-          );
-        }
-      }
-
+      // Remove existing jobs.
       const sendJob = await SendTransactionQueue.q.getJob(
         SendTransactionQueue.jobId({
           queueId: transaction.queueId,
           resendCount: 0,
         }),
       );
-      if (sendJob) {
-        await sendJob.remove();
-      }
+      await sendJob?.remove();
 
       const mineJob = await MineTransactionQueue.q.getJob(
         MineTransactionQueue.jobId({
           queueId: transaction.queueId,
         }),
       );
-      if (mineJob) {
-        await mineJob.remove();
-      }
+      await mineJob?.remove();
+
+      // Reset the failed job as "queued" and re-enqueue it.
+      const { errorMessage, ...omitted } = transaction;
+      const queuedTransaction: QueuedTransaction = {
+        ...omitted,
+        status: "queued",
+        queuedAt: new Date(),
+        resendCount: 0,
+      };
+      await TransactionDB.set(queuedTransaction);
 
       await SendTransactionQueue.add({
         queueId: transaction.queueId,
@@ -134,7 +114,7 @@ export async function retryFailedTransaction(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: {
-          message: `Transaction queued for retry with queueId: ${queueId}`,
+          message: "Sent transaction to be retried.",
           status: "success",
         },
       });

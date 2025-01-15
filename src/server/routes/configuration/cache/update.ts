@@ -1,12 +1,12 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../db/configuration/updateConfiguration";
-import { getConfig } from "../../../../utils/cache/getConfig";
-import { clearCacheCron } from "../../../../utils/cron/clearCacheCron";
-import { isValidCron } from "../../../../utils/cron/isValidCron";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
+import { clearCacheCron } from "../../../../shared/utils/cron/clear-cache-cron";
+import { isValidCron } from "../../../../shared/utils/cron/is-valid-cron";
 import { createCustomError } from "../../../middleware/error";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { responseBodySchema } from "./get";
 
 const requestBodySchema = Type.Object({

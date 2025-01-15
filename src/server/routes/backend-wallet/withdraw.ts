@@ -9,26 +9,26 @@ import {
 } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { getWalletBalance } from "thirdweb/wallets";
-import { getAccount } from "../../../utils/account";
-import { getChain } from "../../../utils/chain";
-import { logger } from "../../../utils/logger";
-import { getChecksumAddress } from "../../../utils/primitiveTypes";
-import { thirdwebClient } from "../../../utils/sdk";
-import type { PopulatedTransaction } from "../../../utils/transaction/types";
+import { getAccount } from "../../../shared/utils/account";
+import { getChain } from "../../../shared/utils/chain";
+import { logger } from "../../../shared/utils/logger";
+import { getChecksumAddress } from "../../../shared/utils/primitive-types";
+import { thirdwebClient } from "../../../shared/utils/sdk";
+import type { PopulatedTransaction } from "../../../shared/utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../schemas/address";
 import { TokenAmountStringSchema } from "../../schemas/number";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
-} from "../../schemas/sharedApiSchemas";
-import { txOverridesSchema } from "../../schemas/txOverrides";
+} from "../../schemas/shared-api-schemas";
+import { txOverridesSchema } from "../../schemas/tx-overrides";
 import {
   walletHeaderSchema,
   walletWithAddressParamSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
-import { parseTransactionOverrides } from "../../utils/transactionOverrides";
+import { parseTransactionOverrides } from "../../utils/transaction-overrides";
 
 const ParamsSchema = Type.Omit(walletWithAddressParamSchema, ["walletAddress"]);
 

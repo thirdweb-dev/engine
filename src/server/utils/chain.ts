@@ -1,5 +1,5 @@
 import { getChainBySlugAsync } from "@thirdweb-dev/chains";
-import { getChain } from "../../utils/chain";
+import { getChain } from "../../shared/utils/chain";
 import { badChainError } from "../middleware/error";
 
 /**

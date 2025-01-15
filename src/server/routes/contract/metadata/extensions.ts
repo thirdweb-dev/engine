@@ -1,12 +1,12 @@
-import { Static, Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { getAllDetectedExtensionNames } from "@thirdweb-dev/sdk";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../utils/cache/getContract";
+import { getContract } from "../../../../shared/utils/cache/get-contract";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../schemas/sharedApiSchemas";
+} from "../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 
 const requestSchema = contractParamSchema;
@@ -64,7 +64,7 @@ export async function getContractExtensions(fastify: FastifyInstance) {
         contractAddress,
       });
 
-      let returnData = getAllDetectedExtensionNames(contract.abi);
+      const returnData = getAllDetectedExtensionNames(contract.abi);
 
       reply.status(StatusCodes.OK).send({
         result: returnData,

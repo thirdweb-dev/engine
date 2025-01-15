@@ -1,4 +1,4 @@
-import { Static, Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { AddressSchema } from "../address";
 
 export const erc20MetadataSchema = Type.Object({

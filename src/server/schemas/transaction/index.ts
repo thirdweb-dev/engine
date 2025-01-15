@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
-import type { AnyTransaction } from "../../../utils/transaction/types";
+import type { AnyTransaction } from "../../../shared/utils/transaction/types";
 import { AddressSchema, TransactionHashSchema } from "../address";
 
 export const TransactionSchema = Type.Object({
@@ -210,6 +210,16 @@ export const TransactionSchema = Type.Object({
     }),
     Type.Null(),
   ]),
+  batchOperations: Type.Union([
+    Type.Array(
+      Type.Object({
+        to: Type.Union([Type.String(), Type.Null()]),
+        data: Type.Union([Type.String(), Type.Null()]),
+        value: Type.String(),
+      }),
+    ),
+    Type.Null(),
+  ]),
 });
 
 export const toTransactionSchema = (
@@ -255,6 +265,17 @@ export const toTransactionSchema = (
     return null;
   };
 
+  const resolveBatchOperations = (): Static<
+    typeof TransactionSchema
+  >["batchOperations"] => {
+    if (!transaction.batchOperations) return null;
+    return transaction.batchOperations.map((op) => ({
+      to: op.to ?? null,
+      data: op.data ?? null,
+      value: op.value.toString(),
+    }));
+  };
+
   const resolveGas = (): string | null => {
     if (transaction.status === "sent") {
       return transaction.gas.toString();
@@ -266,7 +287,7 @@ export const toTransactionSchema = (
     if (transaction.status === "sent") {
       return transaction.gasPrice?.toString() ?? null;
     }
-    return null;
+    return transaction.overrides?.gasPrice?.toString() ?? null;
   };
 
   const resolveMaxFeePerGas = (): string | null => {
@@ -350,6 +371,8 @@ export const toTransactionSchema = (
     paymasterAndData: null,
     userOpHash:
       "userOpHash" in transaction ? (transaction.userOpHash as Hex) : null,
+
+    batchOperations: resolveBatchOperations(),
 
     // Deprecated
     retryGasValues: null,

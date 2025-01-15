@@ -1,5 +1,6 @@
-import * as crypto from "crypto";
+import * as crypto from "node:crypto";
 
 if (typeof globalThis.crypto === "undefined") {
-  (globalThis as any).crypto = crypto;
+  // @ts-expect-error
+  globalThis.crypto = crypto;
 }

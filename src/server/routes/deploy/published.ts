@@ -1,15 +1,15 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { isAddress } from "thirdweb";
-import { queueTx } from "../../../db/transactions/queueTx";
-import { getSdk } from "../../../utils/cache/getSdk";
+import { queueTx } from "../../../shared/db/transactions/queue-tx";
+import { getSdk } from "../../../shared/utils/cache/get-sdk";
 import { contractDeployBasicSchema } from "../../schemas/contract";
 import {
   publishedDeployParamSchema,
   standardResponseSchema,
-} from "../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../schemas/txOverrides";
+} from "../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../schemas/tx-overrides";
 import { walletWithAAHeaderSchema } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 

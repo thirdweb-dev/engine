@@ -1,9 +1,9 @@
-import { Static, Type } from "@sinclair/typebox";
-import { FastifyInstance } from "fastify";
+import { type Static, Type } from "@sinclair/typebox";
+import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { Address } from "thirdweb";
-import { queueTx } from "../../../../db/transactions/queueTx";
-import { getSdk } from "../../../../utils/cache/getSdk";
+import type { Address } from "thirdweb";
+import { queueTx } from "../../../../shared/db/transactions/queue-tx";
+import { getSdk } from "../../../../shared/utils/cache/get-sdk";
 import { contractDeployBasicSchema } from "../../../schemas/contract";
 import {
   commonContractSchema,
@@ -12,8 +12,8 @@ import {
   prebuiltDeployResponseSchema,
   splitRecipientInputSchema,
 } from "../../../schemas/prebuilts";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../../schemas/txOverrides";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../../schemas/tx-overrides";
 import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
 

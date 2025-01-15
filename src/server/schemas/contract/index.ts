@@ -1,6 +1,6 @@
 import { Type, type Static } from "@sinclair/typebox";
 import { AddressSchema } from "../address";
-import type { contractSchemaTypes } from "../sharedApiSchemas";
+import type { contractSchemaTypes } from "../shared-api-schemas";
 
 /**
  * Basic schema for all Request Query String

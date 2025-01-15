@@ -1,9 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { WalletType } from "../../../../schema/wallet";
-import { getConfig } from "../../../../utils/cache/getConfig";
-import { standardResponseSchema } from "../../../schemas/sharedApiSchemas";
+import { WalletType } from "../../../../shared/schemas/wallet";
+import { getConfig } from "../../../../shared/utils/cache/get-config";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 export const responseBodySchema = Type.Object({
   result: Type.Object({

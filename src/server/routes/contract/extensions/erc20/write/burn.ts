@@ -1,15 +1,15 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../db/transactions/queueTx";
-import { getContract } from "../../../../../../utils/cache/getContract";
+import { queueTx } from "../../../../../../shared/db/transactions/queue-tx";
+import { getContract } from "../../../../../../shared/utils/cache/get-contract";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../schemas/sharedApiSchemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/txOverrides";
+} from "../../../../../schemas/shared-api-schemas";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
 import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../../../utils/chain";
 

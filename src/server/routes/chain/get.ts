@@ -2,12 +2,12 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getChainMetadata } from "thirdweb/chains";
-import { getChain } from "../../../utils/chain";
+import { getChain } from "../../../shared/utils/chain";
 import {
   chainRequestQuerystringSchema,
   chainResponseSchema,
 } from "../../schemas/chain";
-import { standardResponseSchema } from "../../schemas/sharedApiSchemas";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
 // OUTPUT

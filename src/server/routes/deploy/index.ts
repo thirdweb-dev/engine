@@ -1,19 +1,19 @@
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { deployPrebuiltEdition } from "./prebuilts/edition";
-import { deployPrebuiltEditionDrop } from "./prebuilts/editionDrop";
-import { deployPrebuiltMarketplaceV3 } from "./prebuilts/marketplaceV3";
+import { deployPrebuiltEditionDrop } from "./prebuilts/edition-drop";
+import { deployPrebuiltMarketplaceV3 } from "./prebuilts/marketplace-v3";
 import { deployPrebuiltMultiwrap } from "./prebuilts/multiwrap";
-import { deployPrebuiltNFTCollection } from "./prebuilts/nftCollection";
-import { deployPrebuiltNFTDrop } from "./prebuilts/nftDrop";
+import { deployPrebuiltNFTCollection } from "./prebuilts/nft-collection";
+import { deployPrebuiltNFTDrop } from "./prebuilts/nft-drop";
 import { deployPrebuiltPack } from "./prebuilts/pack";
-import { deployPrebuiltSignatureDrop } from "./prebuilts/signatureDrop";
+import { deployPrebuiltSignatureDrop } from "./prebuilts/signature-drop";
 import { deployPrebuiltSplit } from "./prebuilts/split";
 import { deployPrebuiltToken } from "./prebuilts/token";
-import { deployPrebuiltTokenDrop } from "./prebuilts/tokenDrop";
+import { deployPrebuiltTokenDrop } from "./prebuilts/token-drop";
 import { deployPrebuiltVote } from "./prebuilts/vote";
 import { deployPrebuilt } from "./prebuilt";
 import { deployPublished } from "./published";
-import { contractTypes } from "./contractTypes";
+import { contractTypes } from "./contract-types";
 
 export const prebuiltsRoutes = async (fastify: FastifyInstance) => {
   await fastify.register(deployPrebuiltEdition);
