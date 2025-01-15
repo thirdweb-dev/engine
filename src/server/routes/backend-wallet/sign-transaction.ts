@@ -5,6 +5,7 @@ import { getAccount } from "../../../shared/utils/account";
 import {
   getChecksumAddress,
   maybeBigInt,
+  maybeInt,
 } from "../../../shared/utils/primitive-types";
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import { createCustomError } from "../../middleware/error";
@@ -82,7 +83,7 @@ export async function signTransaction(fastify: FastifyInstance) {
         ...transaction,
         data: transaction.data as Hex | undefined,
         client: thirdwebClient,
-        nonce: nonce ? Number.parseInt(nonce) : undefined,
+        nonce: maybeInt(nonce),
         chain,
         value: maybeBigInt(transaction.value),
         gas: maybeBigInt(transaction.gasLimit),
