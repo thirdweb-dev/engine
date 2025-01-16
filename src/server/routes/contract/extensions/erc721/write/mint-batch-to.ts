@@ -76,6 +76,7 @@ export async function erc721mintBatchTo(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -93,6 +94,7 @@ export async function erc721mintBatchTo(fastify: FastifyInstance) {
         extension: "erc721",
         idempotencyKey,
         txOverrides,
+        transactionMode,
       });
 
       reply.status(StatusCodes.OK).send({
