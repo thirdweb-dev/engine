@@ -24,6 +24,7 @@ const generateAuthorization = (args: {
   body: Record<string, unknown>;
 }): string => {
   const { webhook, timestamp, body } = args;
+
   if (env.ENABLE_CUSTOM_HMAC_AUTH) {
     assert(
       env.CUSTOM_HMAC_AUTH_CLIENT_ID,
@@ -43,6 +44,7 @@ const generateAuthorization = (args: {
       clientSecret: env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
     });
   }
+
   return `Bearer ${webhook.secret}`;
 };
 
@@ -53,21 +55,16 @@ export const generateRequestHeaders = (args: {
 }): HeadersInit => {
   const { webhook, body, timestamp } = args;
 
-  const headers: HeadersInit = {
+  const timestampSeconds = Math.floor(timestamp.getTime() / 1000);
+  const signature = generateSignature(body, timestampSeconds, webhook.secret);
+  const authorization = generateAuthorization({ webhook, timestamp, body });
+  return {
     Accept: "application/json",
     "Content-Type": "application/json",
+    Authorization: authorization,
+    "x-engine-signature": signature,
+    "x-engine-timestamp": timestampSeconds.toString(),
   };
-
-  if (webhook.secret) {
-    const timestampSeconds = Math.floor(timestamp.getTime() / 1000);
-    const signature = generateSignature(body, timestampSeconds, webhook.secret);
-
-    headers.Authorization = `Bearer ${webhook.secret}`;
-    headers["x-engine-signature"] = signature;
-    headers["x-engine-timestamp"] = timestampSeconds.toString();
-  }
-
-  return headers;
 };
 
 export interface WebhookResponse {
@@ -88,8 +85,8 @@ export const sendWebhookRequest = async (
       config.mtlsCertificate && config.mtlsPrivateKey
         ? new Agent({
             connect: {
-              cert: decrypt(config.mtlsCertificate),
-              key: decrypt(config.mtlsPrivateKey),
+              cert: config.mtlsCertificate,
+              key: config.mtlsPrivateKey,
               // Validate the server's certificate.
               rejectUnauthorized: true,
             },
@@ -101,6 +98,7 @@ export const sendWebhookRequest = async (
       body,
       timestamp: new Date(),
     });
+
     const resp = await fetch(webhook.url, {
       method: "POST",
       headers: headers,

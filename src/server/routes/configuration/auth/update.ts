@@ -43,10 +43,8 @@ export async function updateAuthConfiguration(fastify: FastifyInstance) {
 
       if (mtlsCertificate) {
         if (
-          !(
-            mtlsCertificate.startsWith("-----BEGIN CERTIFICATE-----\n") &&
-            mtlsCertificate.endsWith("\n-----END CERTIFICATE-----")
-          )
+          !mtlsCertificate.startsWith("-----BEGIN CERTIFICATE-----\n") ||
+          !mtlsCertificate.endsWith("\n-----END CERTIFICATE-----")
         ) {
           throw createCustomError(
             "Invalid mtlsCertificate.",
@@ -57,10 +55,8 @@ export async function updateAuthConfiguration(fastify: FastifyInstance) {
       }
       if (mtlsPrivateKey) {
         if (
-          !(
-            mtlsPrivateKey.startsWith("-----BEGIN PRIVATE KEY-----\n") &&
-            mtlsPrivateKey.endsWith("\n-----END PRIVATE KEY-----")
-          )
+          !mtlsPrivateKey.startsWith("-----BEGIN PRIVATE KEY-----\n") ||
+          !mtlsPrivateKey.endsWith("\n-----END PRIVATE KEY-----")
         ) {
           throw createCustomError(
             "Invalid mtlsPrivateKey.",

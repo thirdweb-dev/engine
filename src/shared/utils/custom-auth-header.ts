@@ -48,6 +48,7 @@ export const generateSecretHmac256 = (args: {
     bodyHash,
     "", // to insert a newline at the end
   ].join("\n");
+
   const signatureHash = createHmac("sha256", clientSecret)
     .update(signature, "utf8")
     .digest("base64");
@@ -58,5 +59,5 @@ export const generateSecretHmac256 = (args: {
     `nonce="${nonce}"`,
     `bodyhash="${bodyHash}"`,
     `mac="${signatureHash}"`,
-  ].join(" ");
+  ].join(",");
 };
