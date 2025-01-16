@@ -4,7 +4,7 @@ import { ZERO_ADDRESS, type Address } from "thirdweb";
 import type { ContractExtension } from "../../schemas/extension";
 import { maybeBigInt, normalizeAddress } from "../../utils/primitive-types";
 import { insertTransaction } from "../../utils/transaction/insert-transaction";
-import type { InsertedTransaction } from "../../utils/transaction/types";
+import type { AnyTransaction, InsertedTransaction } from "../../utils/transaction/types";
 import { parseTransactionOverrides } from "../../../server/utils/transaction-overrides";
 
 interface QueueTxParams {
@@ -18,6 +18,7 @@ interface QueueTxParams {
   simulateTx?: boolean;
   idempotencyKey?: string;
   accountFactoryAddress?: Address;
+  transactionMode?: AnyTransaction["transactionMode"];
   txOverrides?: {
     gas?: string;
     maxFeePerGas?: string;
@@ -36,6 +37,7 @@ export const queueTx = async ({
   idempotencyKey,
   txOverrides,
   accountFactoryAddress,
+  transactionMode
 }: QueueTxParams) => {
   // Transaction Details
   const functionName = tx.getMethod();
@@ -88,8 +90,8 @@ export const queueTx = async ({
     insertedTransaction: {
       ...baseTransaction,
       isUserOp: false,
-      // NOTE: v4 endpoints that use queueTx cannot use sponsored mode
-      transactionMode: undefined,
+      // NOTE: v4 endpoints don't all support sponsored mode
+      transactionMode,
       deployedContractAddress,
       deployedContractType,
       from: normalizeAddress(await tx.getSignerAddress()),
