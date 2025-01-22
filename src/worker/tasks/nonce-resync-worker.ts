@@ -75,7 +75,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
         }
       }
 
-      const message = `wallet=${chainId}:${walletAddress} lastUsedNonceOnchain=${lastUsedNonceOnchain} lastUsedNonceDb=${lastUsedNonceDb}, recycled=${recycled.join(",")}`;
+      const message = `wallet=${chainId}:${walletAddress} lastUsedNonceOnchain=${lastUsedNonceOnchain} lastUsedNonceDb=${lastUsedNonceDb} numRecycled=${recycled.length} (min=${recycled.at(0) ?? "N/A"} max=${recycled.at(-1) ?? "N/A"})`;
       job.log(message);
       logger({ level: "debug", service: "worker", message });
     } catch (error) {

@@ -78,6 +78,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
         "x-idempotency-key": idempotencyKey,
         "x-account-factory-address": accountFactoryAddress,
         "x-account-salt": accountSalt,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -106,6 +107,7 @@ export async function erc721claimTo(fastify: FastifyInstance) {
         txOverrides,
         idempotencyKey,
         shouldSimulate: simulateTx,
+        transactionMode,
       });
 
       reply.status(StatusCodes.OK).send({

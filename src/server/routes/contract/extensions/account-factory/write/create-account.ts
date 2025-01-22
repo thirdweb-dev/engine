@@ -74,6 +74,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
         "x-account-factory-address": accountFactoryAddress,
         "x-account-salt": accountSalt,
         "x-idempotency-key": idempotencyKey,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const chainId = await getChainIdFromChain(chain);
 
@@ -116,6 +117,7 @@ export const createAccount = async (fastify: FastifyInstance) => {
         txOverrides,
         idempotencyKey,
         shouldSimulate: simulateTx,
+        transactionMode,
       });
 
       // Note: This is a temporary solution to cache the deployed address's factory for 7 days.

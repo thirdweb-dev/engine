@@ -10,11 +10,12 @@ import {
   type Hex,
 } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
-import { stringify } from "thirdweb/utils";
+import { isZkSyncChain, stringify } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import {
   bundleUserOp,
   createAndSignUserOp,
+  smartWallet,
   type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
@@ -142,7 +143,14 @@ const _sendUserOp = async (
 
   assert(accountAddress, "Invalid userOp parameters: accountAddress");
   const toAddress = to ?? target;
-  assert(toAddress, "Invalid transaction parameters: to");
+
+  if (queuedTransaction.batchOperations) {
+    queuedTransaction.batchOperations.map((op) => {
+      assert(op.to, "Invalid transaction parameters: to");
+    });
+  } else {
+    assert(toAddress, "Invalid transaction parameters: to");
+  }
 
   // this can either be a regular backend wallet userop or a smart backend wallet userop
   let adminAccount: Account | undefined;
@@ -198,17 +206,25 @@ const _sendUserOp = async (
       }
     }
 
+    const transactions = queuedTransaction.batchOperations
+      ? queuedTransaction.batchOperations.map((op) => ({
+          ...op,
+          chain,
+          client: thirdwebClient,
+        }))
+      : [
+          {
+            client: thirdwebClient,
+            chain,
+            ...queuedTransaction,
+            ...overrides,
+            to: getChecksumAddress(toAddress),
+          },
+        ];
+
     signedUserOp = (await createAndSignUserOp({
       client: thirdwebClient,
-      transactions: [
-        {
-          client: thirdwebClient,
-          chain,
-          ...queuedTransaction,
-          ...overrides,
-          to: getChecksumAddress(toAddress),
-        },
-      ],
+      transactions,
       adminAccount,
       smartWalletOptions: {
         chain,
@@ -280,10 +296,36 @@ const _sendTransaction = async (
 
   const { queueId, chainId, from, to, overrides } = queuedTransaction;
   const chain = await getChain(chainId);
-  const account = await getAccount({
+
+  const ownerAccount = await getAccount({
     chainId: chainId,
     from: from,
   });
+
+  let account: Account;
+
+  if (queuedTransaction.transactionMode === "sponsored") {
+    if (!(await isZkSyncChain(chain))) {
+      job.log(
+        "Sponsored EOA transactions are only supported on zkSync chains.",
+      );
+      const erroredTransaction: ErroredTransaction = {
+        ...queuedTransaction,
+        status: "errored",
+        errorMessage:
+          "Sponsored EOA transactions are only supported on zkSync chains.",
+      };
+      return erroredTransaction;
+    }
+
+    account = await smartWallet({ chain, sponsorGas: true }).connect({
+      personalAccount: ownerAccount,
+      client: thirdwebClient,
+    });
+  }
+
+  // If no account was provided, use the owner account.
+  account ??= ownerAccount;
 
   // Populate the transaction to resolve gas values.
   // This call throws if the execution would be reverted.

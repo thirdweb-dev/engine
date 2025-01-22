@@ -1,3 +1,4 @@
+import LRUMap from "mnemonist/lru-map";
 import { z } from "zod";
 import type { PrismaTransaction } from "../../schemas/prisma";
 import { getConfig } from "../../utils/cache/get-config";
@@ -114,6 +115,7 @@ export type SmartBackendWalletType = (typeof SmartBackendWalletTypes)[number];
 export type BackendWalletType = (typeof BackendWalletTypes)[number];
 export type ParsedWalletDetails = z.infer<typeof walletDetailsSchema>;
 
+export const walletDetailsCache = new LRUMap<string, ParsedWalletDetails>(2048);
 /**
  * Return the wallet details for the given address.
  *
@@ -127,20 +129,26 @@ export type ParsedWalletDetails = z.infer<typeof walletDetailsSchema>;
  */
 export const getWalletDetails = async ({
   pgtx,
-  address,
+  address: _walletAddress,
 }: GetWalletDetailsParams) => {
+  const walletAddress = _walletAddress.toLowerCase();
+  const cachedDetails = walletDetailsCache.get(walletAddress);
+  if (cachedDetails) {
+    return cachedDetails;
+  }
+
   const prisma = getPrismaWithPostgresTx(pgtx);
   const config = await getConfig();
 
   const walletDetails = await prisma.walletDetails.findUnique({
     where: {
-      address: address.toLowerCase(),
+      address: walletAddress.toLowerCase(),
     },
   });
 
   if (!walletDetails) {
     throw new WalletDetailsError(
-      `No wallet details found for address ${address}`,
+      `No wallet details found for address ${walletAddress}`,
     );
   }
 
@@ -151,7 +159,7 @@ export const getWalletDetails = async ({
   ) {
     if (!walletDetails.awsKmsArn) {
       throw new WalletDetailsError(
-        `AWS KMS ARN is missing for the wallet with address ${address}`,
+        `AWS KMS ARN is missing for the wallet with address ${walletAddress}`,
       );
     }
 
@@ -172,7 +180,7 @@ export const getWalletDetails = async ({
   ) {
     if (!walletDetails.gcpKmsResourcePath) {
       throw new WalletDetailsError(
-        `GCP KMS resource path is missing for the wallet with address ${address}`,
+        `GCP KMS resource path is missing for the wallet with address ${walletAddress}`,
       );
     }
 
@@ -193,14 +201,16 @@ export const getWalletDetails = async ({
 
   // zod schema can validate all necessary fields are populated after decryption
   try {
-    return walletDetailsSchema.parse(walletDetails, {
+    const result = walletDetailsSchema.parse(walletDetails, {
       errorMap: (issue) => {
         const fieldName = issue.path.join(".");
         return {
-          message: `${fieldName} is necessary for wallet ${address} of type ${walletDetails.type}, but not found in wallet details or configuration`,
+          message: `${fieldName} is necessary for wallet ${walletAddress} of type ${walletDetails.type}, but not found in wallet details or configuration`,
         };
       },
     });
+    walletDetailsCache.set(walletAddress, result);
+    return result;
   } catch (e) {
     if (e instanceof z.ZodError) {
       throw new WalletDetailsError(

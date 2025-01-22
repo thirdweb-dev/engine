@@ -62,6 +62,7 @@ export async function erc20UpdateClaimConditions(fastify: FastifyInstance) {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -101,6 +102,7 @@ export async function erc20UpdateClaimConditions(fastify: FastifyInstance) {
         extension: "erc20",
         idempotencyKey,
         txOverrides,
+        transactionMode,
       });
 
       reply.status(StatusCodes.OK).send({

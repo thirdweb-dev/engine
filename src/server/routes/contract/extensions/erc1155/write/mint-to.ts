@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
@@ -82,6 +82,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
         "x-idempotency-key": idempotencyKey,
         "x-account-factory-address": accountFactoryAddress,
         "x-account-salt": accountSalt,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(_chain);
@@ -105,7 +106,8 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
               animation_url: metadata.animation_url ?? undefined,
               external_url: metadata.external_url ?? undefined,
               background_color: metadata.background_color ?? undefined,
-              properties: metadata.properties,
+              properties: metadata.properties ?? undefined,
+              attributes: metadata.attributes ?? undefined,
             };
       const transaction = mintTo({
         contract,
@@ -129,6 +131,7 @@ export async function erc1155mintTo(fastify: FastifyInstance) {
         extension: "erc1155",
         functionName: "mintTo",
         shouldSimulate: simulateTx,
+        transactionMode,
       });
 
       reply.status(StatusCodes.OK).send({

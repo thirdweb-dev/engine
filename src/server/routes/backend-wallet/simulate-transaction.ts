@@ -82,6 +82,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": walletAddress,
         "x-account-address": accountAddress,
+        "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
@@ -99,6 +100,7 @@ export async function simulateTransaction(fastify: FastifyInstance) {
         functionArgs: args,
         data: data as Hex | undefined,
         value: value ? BigInt(value) : 0n,
+        transactionMode: transactionMode,
 
         ...(accountAddress
           ? {

@@ -21,6 +21,7 @@ export type QueuedTransactionParams = {
   accountAddress: Address | undefined;
   accountFactoryAddress: Address | undefined;
   accountSalt: string | undefined;
+  transactionMode: "sponsored" | undefined;
   txOverrides?: Static<
     typeof txOverridesWithValueSchema.properties.txOverrides
   >;
@@ -36,7 +37,7 @@ export type QueuedTransactionParams = {
  * Encodes a transaction to generate data, and inserts it into the transaction queue using the insertTransaction()
  *
  * Note:
- *  - functionName must be be provided to populate the functionName field in the queued transaction
+ *  - functionName must be provided to populate the functionName field in the queued transaction
  *  - value and chain details are resolved from the transaction
  */
 export async function queueTransaction(args: QueuedTransactionParams) {
@@ -52,6 +53,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     shouldSimulate,
     functionName,
     extension,
+    transactionMode,
   } = args;
 
   let data: Hex;
@@ -73,6 +75,7 @@ export async function queueTransaction(args: QueuedTransactionParams) {
     value: await resolvePromisedValue(transaction.value),
     functionName,
     extension,
+    transactionMode,
     ...parseTransactionOverrides(txOverrides),
     ...(accountAddress
       ? {
