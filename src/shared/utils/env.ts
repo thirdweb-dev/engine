@@ -2,6 +2,7 @@ import { createEnv } from "@t3-oss/env-core";
 import * as dotenv from "dotenv";
 import type { ZodError } from "zod";
 import { z } from "zod";
+import { LOGGER_SERVICES } from "./logger";
 
 const path = process.env.NODE_ENV === "test" ? ".env.test" : ".env";
 dotenv.config({ path });
@@ -42,12 +43,8 @@ export const env = createEnv({
       .default("info"),
     LOG_SERVICES: z
       .string()
-      .default("server,worker,cache,websocket")
-      .transform((s) =>
-        z
-          .array(z.enum(["server", "worker", "cache", "websocket"]))
-          .parse(s.split(",")),
-      ),
+      .default(LOGGER_SERVICES.join(","))
+      .transform((s) => z.array(z.enum(LOGGER_SERVICES)).parse(s.split(","))),
     ENGINE_VERSION: z.string().optional(),
     ENGINE_TIER: z.string().optional(),
     THIRDWEB_API_SECRET_KEY: z.string().min(1),

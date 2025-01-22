@@ -12,7 +12,7 @@ import type {
 import { WalletType } from "../../schemas/wallet";
 import { mandatoryAllowedCorsUrls } from "../../../server/utils/cors-urls";
 import type { networkResponseSchema } from "../../utils/cache/get-sdk";
-import { decrypt } from "../../utils/crypto";
+import { decryptWithCustomPassword } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { prisma } from "../client";
@@ -85,14 +85,14 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // TODO: Remove backwards compatibility with next breaking change
   if (awsAccessKeyId && awsSecretAccessKey && awsRegion) {
     // First try to load the aws secret using the encryption password
-    let decryptedSecretAccessKey = decrypt(
+    let decryptedSecretAccessKey = decryptWithCustomPassword(
       awsSecretAccessKey,
       env.ENCRYPTION_PASSWORD,
     );
 
     // If that fails, try to load the aws secret using the thirdweb api secret key
     if (!awsSecretAccessKey) {
-      decryptedSecretAccessKey = decrypt(
+      decryptedSecretAccessKey = decryptWithCustomPassword(
         awsSecretAccessKey,
         env.THIRDWEB_API_SECRET_KEY,
       );
@@ -128,14 +128,14 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // TODO: Remove backwards compatibility with next breaking change
   if (gcpApplicationCredentialEmail && gcpApplicationCredentialPrivateKey) {
     // First try to load the gcp secret using the encryption password
-    let decryptedGcpKey = decrypt(
+    let decryptedGcpKey = decryptWithCustomPassword(
       gcpApplicationCredentialPrivateKey,
       env.ENCRYPTION_PASSWORD,
     );
 
     // If that fails, try to load the gcp secret using the thirdweb api secret key
     if (!gcpApplicationCredentialPrivateKey) {
-      decryptedGcpKey = decrypt(
+      decryptedGcpKey = decryptWithCustomPassword(
         gcpApplicationCredentialPrivateKey,
         env.THIRDWEB_API_SECRET_KEY,
       );
@@ -184,7 +184,7 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   if (otherCredentials.circle) {
     circleCredentials = {
       apiKey: otherCredentials.circle.apiKey,
-      entitySecret: decrypt(
+      entitySecret: decryptWithCustomPassword(
         otherCredentials.circle.entitySecret,
         env.ENCRYPTION_PASSWORD,
       ),

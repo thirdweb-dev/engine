@@ -2,7 +2,7 @@ import { createWalletDetails } from "../../../shared/db/wallets/create-wallet-de
 import { WalletType } from "../../../shared/schemas/wallet";
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import { splitAwsKmsArn } from "./aws-kms-arn";
-import { getAwsKmsAccount } from "./get-aws-kms-account";
+import { getAwsKmsAccount } from "../../../shared/lib/accounts/aws-kms/get-aws-kms-account";
 
 interface ImportAwsKmsWalletParams {
   awsKmsArn: string;

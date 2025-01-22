@@ -36,12 +36,6 @@ export interface ParsedConfig
     | "walletProviderCredentials"
     | "contractSubscriptionsRetryDelaySeconds"
   > {
-  walletConfiguration: {
-    aws: AwsWalletConfiguration | null;
-    gcp: GcpWalletConfiguration | null;
-    circle: CircleCredential | null;
-    legacyWalletType_removeInNextBreakingChange: WalletType;
-  };
   contractSubscriptionsRequeryDelaySeconds: string;
   chainOverridesParsed: Chain[];
 }

@@ -1,6 +1,6 @@
 import type { KMSClientConfig } from "@aws-sdk/client-kms";
 import { KmsSigner } from "aws-kms-signer";
-import type { Hex, ThirdwebClient } from "thirdweb";
+import type { Hex, ThirdwebClient, toSerializableTransaction } from "thirdweb";
 import {
   eth_sendRawTransaction,
   getRpcClient,
@@ -10,20 +10,19 @@ import {
 import { serializeTransaction } from "thirdweb/transaction";
 import { hashMessage } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
-import type {
-  SignableMessage,
-  TransactionSerializable,
-  TypedData,
-  TypedDataDefinition,
-} from "viem";
+import type { SignableMessage, TypedData, TypedDataDefinition } from "viem";
 import { hashTypedData } from "viem";
-import { getChain } from "../../../shared/utils/chain";
+import { getChain } from "../../../../utils/chain";
 
 type SendTransactionResult = {
   transactionHash: Hex;
 };
 
-type SendTransactionOption = TransactionSerializable & {
+type SerializableTransaction = Awaited<
+  ReturnType<typeof toSerializableTransaction>
+>;
+
+type SendTransactionOption = SerializableTransaction & {
   chainId: number;
 };
 
@@ -45,7 +44,7 @@ export async function getAwsKmsAccount(
   const addressUnprefixed = await signer.getAddress();
   const address = `0x${addressUnprefixed}` as Address;
 
-  async function signTransaction(tx: TransactionSerializable): Promise<Hex> {
+  async function signTransaction(tx: SerializableTransaction): Promise<Hex> {
     const serializedTx = serializeTransaction({ transaction: tx });
     const txHash = keccak256(serializedTx);
     const signature = await signer.sign(Buffer.from(txHash.slice(2), "hex"));

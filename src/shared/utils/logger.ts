@@ -46,7 +46,7 @@ const colorizeFormat = () => {
   if (env.NODE_ENV === "development") {
     return format.colorize({ colors: customLevels.colors });
   }
-    return format.uncolorize();
+  return format.uncolorize();
 };
 
 const winstonLogger = createLogger({
@@ -76,6 +76,14 @@ const winstonLogger = createLogger({
     }),
   ],
 });
+
+export const LOGGER_SERVICES = [
+  "server",
+  "worker",
+  "cache",
+  "websocket",
+  "account",
+] as const;
 
 interface LoggerParams {
   service: (typeof env)["LOG_SERVICES"][0];

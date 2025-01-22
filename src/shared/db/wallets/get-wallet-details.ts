@@ -1,10 +1,10 @@
-import { getAddress } from "thirdweb";
 import { z } from "zod";
 import type { PrismaTransaction } from "../../schemas/prisma";
 import { getConfig } from "../../utils/cache/get-config";
-import { decrypt } from "../../utils/crypto";
+import { decryptWithCustomPassword } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { getPrismaWithPostgresTx } from "../client";
+import { evmAddressSchema } from "../../schemas/address";
 
 interface GetWalletDetailsParams {
   pgtx?: PrismaTransaction;
@@ -19,14 +19,14 @@ export class WalletDetailsError extends Error {
 }
 
 const baseWalletPartialSchema = z.object({
-  address: zodEvmAddressSchema,
+  address: evmAddressSchema,
   label: z.string().nullable(),
 });
 
 const smartWalletPartialSchema = z.object({
-  accountSignerAddress: zodEvmAddressSchema,
-  accountFactoryAddress: zodEvmAddressSchema.nullable(),
-  entrypointAddress: zodEvmAddressSchema.nullable(),
+  accountSignerAddress: evmAddressSchema,
+  accountFactoryAddress: evmAddressSchema.nullable(),
+  entrypointAddress: evmAddressSchema.nullable(),
 });
 
 const localWalletSchema = z
@@ -156,7 +156,7 @@ export const getWalletDetails = async ({
     }
 
     walletDetails.awsKmsSecretAccessKey = walletDetails.awsKmsSecretAccessKey
-      ? decrypt(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
+      ? decryptWithCustomPassword(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
       : (config.walletConfiguration.aws?.awsSecretAccessKey ?? null);
 
     walletDetails.awsKmsAccessKeyId =
@@ -178,7 +178,7 @@ export const getWalletDetails = async ({
 
     walletDetails.gcpApplicationCredentialPrivateKey =
       walletDetails.gcpApplicationCredentialPrivateKey
-        ? decrypt(
+        ? decryptWithCustomPassword(
             walletDetails.gcpApplicationCredentialPrivateKey,
             env.ENCRYPTION_PASSWORD,
           )

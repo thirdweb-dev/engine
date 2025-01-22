@@ -13,7 +13,7 @@ import {
   type CreateGcpKmsWalletParams,
 } from "./create-gcp-kms-wallet";
 import { generateLocalWallet } from "./create-local-wallet";
-import { getAwsKmsAccount } from "./get-aws-kms-account";
+import { getAwsKmsAccount } from "../../../shared/lib/accounts/aws-kms/get-aws-kms-account";
 import { getGcpKmsAccount } from "./get-gcp-kms-account";
 
 /**

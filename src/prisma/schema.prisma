@@ -29,6 +29,8 @@ model Configuration {
   cursorDelaySeconds                     Int     @default(2) @map("cursorDelaySeconds")
   contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
+  // Legacy wallet provider credentials
+  // Use default credentials instead, and store non-credential wallet provider configuration in walletProviderConfig
   // AWS
   awsAccessKeyId                     String? @map("awsAccessKeyId") /// global config, precedence goes to WalletDetails
   awsSecretAccessKey                 String? @map("awsSecretAccessKey") /// global config, precedence goes to WalletDetails
@@ -40,8 +42,8 @@ model Configuration {
   gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail") /// global config, precedence goes to WalletDetails
   gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey") /// global config, precedence goes to WalletDetails
 
-  // other wallet provider credentials
-  walletProviderCredentials Json @default("{}") @map("walletProviderCredentials") /// GCP and AWS credentials are stored as rows in WalletDetails, but other providers are stored here
+  // Wallet provider specific configurations, non-credential
+  walletProviderConfigs Json @default("{}") @map("walletProviderConfigs") /// Eg: { "aws": { "defaultAwsRegion": "us-east-1" }, "gcp": { "defaultGcpKmsLocationId": "us-east1-b" } }
 
   // Auth
   authDomain               String   @default("") @map("authDomain") // TODO: Remove defaults on major
@@ -80,17 +82,24 @@ model Tokens {
 }
 
 model WalletDetails {
-  address                            String  @id @map("address")
-  type                               String  @map("type")
-  label                              String? @map("label")
+  address       String  @id @map("address")
+  type          String  @map("type")
+  label         String? @map("label")
   // Local
-  encryptedJson                      String? @map("encryptedJson")
-  // KMS
-  awsKmsKeyId                        String? @map("awsKmsKeyId") /// deprecated and unused, todo: remove with next breaking change. Use awsKmsArn
-  awsKmsArn                          String? @map("awsKmsArn")
-  awsKmsSecretAccessKey              String? @map("awsKmsSecretAccessKey") /// if not available, default to: Configuration.awsSecretAccessKey
-  awsKmsAccessKeyId                  String? @map("awsKmsAccessKeyId") /// if not available, default to: Configuration.awsAccessKeyId
-  // GCP
+  encryptedJson String? @map("encryptedJson")
+
+  // New approach: platform identifiers + wallet credentials
+  platformIdentifiers Json?              @map("platformIdentifiers") /// Eg: { "awsKmsArn": "..." } or { "gcpKmsResourcePath": "..." }
+  credentialId        String?            @map("credentialId")
+  credential          WalletCredentials? @relation(fields: [credentialId], references: [id])
+
+  // Legacy AWS KMS fields - use platformIdentifiers + WalletCredentials for new wallets
+  awsKmsKeyId           String? @map("awsKmsKeyId") /// deprecated and unused, todo: remove with next breaking change. Use awsKmsArn
+  awsKmsArn             String? @map("awsKmsArn")
+  awsKmsSecretAccessKey String? @map("awsKmsSecretAccessKey") /// if not available, default to: Configuration.awsSecretAccessKey
+  awsKmsAccessKeyId     String? @map("awsKmsAccessKeyId") /// if not available, default to: Configuration.awsAccessKeyId
+
+  // Legacy GCP KMS fields - use platformIdentifiers + WalletCredentials for new wallets
   gcpKmsKeyRingId                    String? @map("gcpKmsKeyRingId") @db.VarChar(50) /// deprecated and unused. Use gcpKmsResourcePath instead, todo: remove with next breaking change
   gcpKmsKeyId                        String? @map("gcpKmsKeyId") @db.VarChar(50) /// deprecated and unused. Use gcpKmsResourcePath instead, todo: remove with next breaking change
   gcpKmsKeyVersionId                 String? @map("gcpKmsKeyVersionId") @db.VarChar(20) /// deprecated and unused. Use gcpKmsResourcePath instead, todo: remove with next breaking change
@@ -99,15 +108,31 @@ model WalletDetails {
   gcpApplicationCredentialEmail      String? @map("gcpApplicationCredentialEmail") /// if not available, default to: Configuration.gcpApplicationCredentialEmail
   gcpApplicationCredentialPrivateKey String? @map("gcpApplicationCredentialPrivateKey") /// if not available, default to: Configuration.gcpApplicationCredentialPrivateKey
 
-  // other types of credentials
-  credentials Json? @map("credentials")
-
   // Smart Backend Wallet
   accountSignerAddress  String? @map("accountSignerAddress") /// this, and either local, aws or gcp encryptedJson, are required for smart wallet
   accountFactoryAddress String? @map("accountFactoryAddress") /// optional even for smart wallet, if not available default factory will be used
   entrypointAddress     String? @map("entrypointAddress") /// optional even for smart wallet, if not available SDK will use default entrypoint
 
   @@map("wallet_details")
+}
+
+model WalletCredentials {
+  id        String  @id @default(uuid()) @map("id")
+  type      String  @map("type")
+  label     String? @map("label")
+  data      Json    @map("data")
+  isDefault Boolean @default(false) @map("isDefault")
+
+  createdAt DateTime  @default(now()) @map("createdAt")
+  updatedAt DateTime  @updatedAt @map("updatedAt")
+  deletedAt DateTime? @map("deletedAt")
+
+  wallets WalletDetails[]
+
+  // A maximum of one default credential per type
+  @@unique([type, isDefault], name: "unique_default_per_type", map: "wallet_credentials_type_is_default_key")
+  @@index([type])
+  @@map("wallet_credentials")
 }
 
 model WalletNonce {
