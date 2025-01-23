@@ -2,19 +2,19 @@ import CryptoJS from "crypto-js";
 import crypto from "node:crypto";
 import { env } from "./env";
 
-export const encrypt = (data: string): string => {
+export function encrypt(data: string): string {
   return CryptoJS.AES.encrypt(data, env.ENCRYPTION_PASSWORD).toString();
-};
+}
 
-export const decrypt = (data: string, password = env.ENCRYPTION_PASSWORD) => {
+export function decrypt(data: string, password: string) {
   return CryptoJS.AES.decrypt(data, password).toString(CryptoJS.enc.Utf8);
-};
+}
 
-export const isWellFormedPublicKey = (key: string) => {
+export function isWellFormedPublicKey(key: string) {
   try {
     crypto.createPublicKey(key);
     return true;
   } catch (_e) {
     return false;
   }
-};
+}

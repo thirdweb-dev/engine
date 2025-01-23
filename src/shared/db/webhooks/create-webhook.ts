@@ -1,17 +1,29 @@
-import type { Prisma, Webhooks } from "@prisma/client";
+import type { Webhooks } from "@prisma/client";
 import { createHash, randomBytes } from "node:crypto";
+import type { WebhooksEventTypes } from "../../schemas/webhooks";
 import { prisma } from "../client";
 
-export const insertWebhook = async (
-  args: Omit<Prisma.WebhooksCreateInput, "secret">,
-): Promise<Webhooks> => {
-  // Generate a webhook secret.
+interface CreateWebhooksParams {
+  url: string;
+  name?: string;
+  eventType: WebhooksEventTypes;
+}
+
+export const insertWebhook = async ({
+  url,
+  name,
+  eventType,
+}: CreateWebhooksParams): Promise<Webhooks> => {
+  // generate random bytes
   const bytes = randomBytes(4096);
+  // hash the bytes to create the secret (this will not be stored by itself)
   const secret = createHash("sha512").update(bytes).digest("base64url");
 
   return prisma.webhooks.create({
     data: {
-      ...args,
+      url,
+      name,
+      eventType,
       secret,
     },
   });

@@ -12,7 +12,8 @@ export const requestBodySchema = Type.Partial(
   Type.Object({
     authDomain: Type.String(),
     mtlsCertificate: Type.String({
-      description: "Engine certificate used for outbound mTLS requests.",
+      description:
+        "Engine certificate used for outbound mTLS requests. Must provide the full certificate chain.",
     }),
     mtlsPrivateKey: Type.String({
       description: "Engine private key used for outbound mTLS requests.",

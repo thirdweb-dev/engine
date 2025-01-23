@@ -7,21 +7,21 @@ import { env } from "./env";
 import { prettifyError } from "./error";
 import { generateSecretHmac256 } from "./custom-auth-header";
 
-const generateSignature = (
+function generateSignature(
   body: Record<string, unknown>,
   timestampSeconds: number,
   secret: string,
-): string => {
+): string {
   const _body = JSON.stringify(body);
   const payload = `${timestampSeconds}.${_body}`;
   return crypto.createHmac("sha256", secret).update(payload).digest("hex");
-};
+}
 
-const generateAuthorization = (args: {
+function generateAuthorization(args: {
   webhook: Webhooks;
   timestamp: Date;
   body: Record<string, unknown>;
-}): string => {
+}): string {
   const { webhook, timestamp, body } = args;
 
   if (env.ENABLE_CUSTOM_HMAC_AUTH) {
@@ -45,7 +45,7 @@ const generateAuthorization = (args: {
   }
 
   return `Bearer ${webhook.secret}`;
-};
+}
 
 export function generateRequestHeaders(args: {
   webhook: Webhooks;

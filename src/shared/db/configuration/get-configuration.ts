@@ -72,7 +72,10 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // TODO: Remove backwards compatibility with next breaking change
   if (awsAccessKeyId && awsSecretAccessKey && awsRegion) {
     // First try to load the aws secret using the encryption password
-    let decryptedSecretAccessKey = decrypt(awsSecretAccessKey);
+    let decryptedSecretAccessKey = decrypt(
+      awsSecretAccessKey,
+      env.ENCRYPTION_PASSWORD,
+    );
 
     // If that fails, try to load the aws secret using the thirdweb api secret key
     if (!awsSecretAccessKey) {
@@ -112,7 +115,10 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // TODO: Remove backwards compatibility with next breaking change
   if (gcpApplicationCredentialEmail && gcpApplicationCredentialPrivateKey) {
     // First try to load the gcp secret using the encryption password
-    let decryptedGcpKey = decrypt(gcpApplicationCredentialPrivateKey);
+    let decryptedGcpKey = decrypt(
+      gcpApplicationCredentialPrivateKey,
+      env.ENCRYPTION_PASSWORD,
+    );
 
     // If that fails, try to load the gcp secret using the thirdweb api secret key
     if (!gcpApplicationCredentialPrivateKey) {
@@ -167,10 +173,10 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
       legacyWalletType_removeInNextBreakingChange,
     },
     mtlsCertificate: config.mtlsCertificateEncrypted
-      ? decrypt(config.mtlsCertificateEncrypted)
+      ? decrypt(config.mtlsCertificateEncrypted, env.ENCRYPTION_PASSWORD)
       : null,
     mtlsPrivateKey: config.mtlsPrivateKeyEncrypted
-      ? decrypt(config.mtlsPrivateKeyEncrypted)
+      ? decrypt(config.mtlsPrivateKeyEncrypted, env.ENCRYPTION_PASSWORD)
       : null,
   };
 };
