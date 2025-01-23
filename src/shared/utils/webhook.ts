@@ -3,7 +3,6 @@ import assert from "node:assert";
 import crypto, { randomUUID } from "node:crypto";
 import { Agent, fetch } from "undici";
 import { getConfig } from "./cache/get-config";
-import { decrypt } from "./crypto";
 import { env } from "./env";
 import { prettifyError } from "./error";
 import { generateSecretHmac256 } from "./custom-auth-header";
@@ -48,11 +47,11 @@ const generateAuthorization = (args: {
   return `Bearer ${webhook.secret}`;
 };
 
-export const generateRequestHeaders = (args: {
+export function generateRequestHeaders(args: {
   webhook: Webhooks;
   body: Record<string, unknown>;
   timestamp: Date;
-}): HeadersInit => {
+}): HeadersInit {
   const { webhook, body, timestamp } = args;
 
   const timestampSeconds = Math.floor(timestamp.getTime() / 1000);
@@ -65,7 +64,7 @@ export const generateRequestHeaders = (args: {
     "x-engine-signature": signature,
     "x-engine-timestamp": timestampSeconds.toString(),
   };
-};
+}
 
 export interface WebhookResponse {
   ok: boolean;
@@ -93,7 +92,7 @@ export const sendWebhookRequest = async (
           })
         : undefined;
 
-    const headers = await generateRequestHeaders({
+    const headers = generateRequestHeaders({
       webhook,
       body,
       timestamp: new Date(),

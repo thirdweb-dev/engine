@@ -43,8 +43,8 @@ export async function updateAuthConfiguration(fastify: FastifyInstance) {
 
       if (mtlsCertificate) {
         if (
-          !mtlsCertificate.startsWith("-----BEGIN CERTIFICATE-----\n") ||
-          !mtlsCertificate.endsWith("\n-----END CERTIFICATE-----")
+          !mtlsCertificate.includes("-----BEGIN CERTIFICATE-----\n") ||
+          !mtlsCertificate.includes("\n-----END CERTIFICATE-----")
         ) {
           throw createCustomError(
             "Invalid mtlsCertificate.",
