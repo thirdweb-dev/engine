@@ -21,6 +21,10 @@ const requestBodySchema = Type.Object({
     description:
       "The backend wallet address to reset nonces for. Omit to reset all backend wallets.",
   }),
+  resetOnchainNonce: Type.Boolean({
+    description: "Resets the nonce to the onchain value. (Default: true)",
+    default: true,
+  }),
 });
 
 const responseSchema = Type.Object({
@@ -61,7 +65,11 @@ export const resetBackendWalletNoncesRoute = async (
       },
     },
     handler: async (req, reply) => {
-      const { chainId, walletAddress: _walletAddress } = req.body;
+      const {
+        chainId,
+        walletAddress: _walletAddress,
+        resetOnchainNonce,
+      } = req.body;
 
       // If chain+wallet are provided, only process that wallet.
       // Otherwise process all used wallets that has nonce state.
@@ -70,19 +78,21 @@ export const resetBackendWalletNoncesRoute = async (
           ? [{ chainId, walletAddress: getAddress(_walletAddress) }]
           : await getUsedBackendWallets();
 
-      const RESYNC_BATCH_SIZE = 50;
-      for (let i = 0; i < backendWallets.length; i += RESYNC_BATCH_SIZE) {
-        const batch = backendWallets.slice(i, i + RESYNC_BATCH_SIZE);
+      const BATCH_SIZE = 50;
+      for (let i = 0; i < backendWallets.length; i += BATCH_SIZE) {
+        const batch = backendWallets.slice(i, i + BATCH_SIZE);
 
         // Delete nonce state for these backend wallets.
         await deleteNoncesForBackendWallets(backendWallets);
 
-        // Resync nonces for these backend wallets.
-        await Promise.allSettled(
-          batch.map(({ chainId, walletAddress }) =>
-            syncLatestNonceFromOnchain(chainId, walletAddress),
-          ),
-        );
+        if (resetOnchainNonce) {
+          // Resync nonces for these backend wallets.
+          await Promise.allSettled(
+            batch.map(({ chainId, walletAddress }) =>
+              syncLatestNonceFromOnchain(chainId, walletAddress),
+            ),
+          );
+        }
       }
 
       reply.status(StatusCodes.OK).send({
