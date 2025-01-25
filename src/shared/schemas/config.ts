@@ -33,6 +33,8 @@ export interface ParsedConfig
     | "gcpApplicationCredentialEmail"
     | "gcpApplicationCredentialPrivateKey"
     | "contractSubscriptionsRetryDelaySeconds"
+    | "mtlsCertificateEncrypted"
+    | "mtlsPrivateKeyEncrypted"
   > {
   walletConfiguration: {
     aws: AwsWalletConfiguration | null;
@@ -41,4 +43,6 @@ export interface ParsedConfig
   };
   contractSubscriptionsRequeryDelaySeconds: string;
   chainOverridesParsed: Chain[];
+  mtlsCertificate: string | null;
+  mtlsPrivateKey: string | null;
 }

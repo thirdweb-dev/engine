@@ -5,10 +5,10 @@ import {
   type ThirdwebAuthUser,
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
-import { createHash } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import type { FastifyRequest } from "fastify/types/request";
 import jsonwebtoken, { type JwtPayload } from "jsonwebtoken";
+import { createHash } from "node:crypto";
 import { validate as uuidValidate } from "uuid";
 import { getPermissions } from "../../shared/db/permissions/get-permissions";
 import { createToken } from "../../shared/db/tokens/create-token";
@@ -123,7 +123,8 @@ export async function withAuth(server: FastifyInstance) {
         }
         // Allow this request to proceed.
         return;
-      }if (error) {
+      }
+      if (error) {
         message = error;
       }
     } catch (err: unknown) {
@@ -172,10 +173,11 @@ export const onRequest = async ({
         const authWallet = await getAuthWallet();
         if (publicKey === (await authWallet.getAddress())) {
           return await handleAccessToken(jwt, req, getUser);
-        }if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
+        }
+        if (publicKey === THIRDWEB_DASHBOARD_ISSUER) {
           return await handleDashboardAuth(jwt);
         }
-          return await handleKeypairAuth({ jwt, req, publicKey });
+        return await handleKeypairAuth({ jwt, req, publicKey });
       }
 
       // Get the public key hash from the `kid` header.

@@ -50,6 +50,9 @@ model Configuration {
   accessControlAllowOrigin           String   @default("https://thirdweb.com,https://embed.ipfscdn.io") @map("accessControlAllowOrigin")
   ipAllowlist                        String[] @default([]) @map("ipAllowlist")
   clearCacheCronSchedule             String   @default("*/30 * * * * *") @map("clearCacheCronSchedule")
+  // mTLS support
+  mtlsCertificateEncrypted           String?
+  mtlsPrivateKeyEncrypted            String?
 
   @@map("configuration")
 }

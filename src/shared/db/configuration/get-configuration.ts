@@ -172,6 +172,12 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
       gcp: gcpWalletConfiguration,
       legacyWalletType_removeInNextBreakingChange,
     },
+    mtlsCertificate: config.mtlsCertificateEncrypted
+      ? decrypt(config.mtlsCertificateEncrypted, env.ENCRYPTION_PASSWORD)
+      : null,
+    mtlsPrivateKey: config.mtlsPrivateKeyEncrypted
+      ? decrypt(config.mtlsPrivateKeyEncrypted, env.ENCRYPTION_PASSWORD)
+      : null,
   };
 };
 

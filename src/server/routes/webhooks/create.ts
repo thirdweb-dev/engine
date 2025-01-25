@@ -45,7 +45,7 @@ export async function createWebhookRoute(fastify: FastifyInstance) {
     method: "POST",
     url: "/webhooks/create",
     schema: {
-      summary: "Create a webhook",
+      summary: "Create webhook",
       description:
         "Create a webhook to call when a specific Engine event occurs.",
       tags: ["Webhooks"],

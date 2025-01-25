@@ -1,43 +1,70 @@
 import type { Webhooks } from "@prisma/client";
-import crypto from "node:crypto";
+import assert from "node:assert";
+import crypto, { randomUUID } from "node:crypto";
+import { Agent, fetch } from "undici";
+import { getConfig } from "./cache/get-config";
+import { env } from "./env";
 import { prettifyError } from "./error";
+import { generateSecretHmac256 } from "./custom-auth-header";
 
-export const generateSignature = (
+function generateSignature(
   body: Record<string, unknown>,
-  timestamp: string,
+  timestampSeconds: number,
   secret: string,
-): string => {
+): string {
   const _body = JSON.stringify(body);
-  const payload = `${timestamp}.${_body}`;
+  const payload = `${timestampSeconds}.${_body}`;
   return crypto.createHmac("sha256", secret).update(payload).digest("hex");
-};
+}
 
-export const createWebhookRequestHeaders = async (
-  webhook: Webhooks,
-  body: Record<string, unknown>,
-): Promise<HeadersInit> => {
-  const headers: {
-    Accept: string;
-    "Content-Type": string;
-    Authorization?: string;
-    "x-engine-signature"?: string;
-    "x-engine-timestamp"?: string;
-  } = {
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  };
+function generateAuthorization(args: {
+  webhook: Webhooks;
+  timestamp: Date;
+  body: Record<string, unknown>;
+}): string {
+  const { webhook, timestamp, body } = args;
 
-  if (webhook.secret) {
-    const timestamp = Math.floor(Date.now() / 1000).toString();
-    const signature = generateSignature(body, timestamp, webhook.secret);
+  if (env.ENABLE_CUSTOM_HMAC_AUTH) {
+    assert(
+      env.CUSTOM_HMAC_AUTH_CLIENT_ID,
+      'Missing "CUSTOM_HMAC_AUTH_CLIENT_ID".',
+    );
+    assert(
+      env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
+      'Missing "CUSTOM_HMAC_AUTH_CLIENT_SECRET"',
+    );
 
-    headers.Authorization = `Bearer ${webhook.secret}`;
-    headers["x-engine-signature"] = signature;
-    headers["x-engine-timestamp"] = timestamp;
+    return generateSecretHmac256({
+      webhookUrl: webhook.url,
+      body,
+      timestamp,
+      nonce: randomUUID(),
+      clientId: env.CUSTOM_HMAC_AUTH_CLIENT_ID,
+      clientSecret: env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
+    });
   }
 
-  return headers;
-};
+  return `Bearer ${webhook.secret}`;
+}
+
+export function generateRequestHeaders(args: {
+  webhook: Webhooks;
+  body: Record<string, unknown>;
+  timestamp: Date;
+}): HeadersInit {
+  const { webhook, body, timestamp } = args;
+
+  const timestampSeconds = Math.floor(timestamp.getTime() / 1000);
+  const signature = generateSignature(body, timestampSeconds, webhook.secret);
+  const authorization = generateAuthorization({ webhook, timestamp, body });
+  return {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    Authorization: authorization,
+    "x-engine-signature": signature,
+    "x-engine-timestamp": timestampSeconds.toString(),
+  };
+}
 
 export interface WebhookResponse {
   ok: boolean;
@@ -50,11 +77,32 @@ export const sendWebhookRequest = async (
   body: Record<string, unknown>,
 ): Promise<WebhookResponse> => {
   try {
-    const headers = await createWebhookRequestHeaders(webhook, body);
+    const config = await getConfig();
+
+    // If mTLS is enabled, provide the certificate with this request.
+    const dispatcher =
+      config.mtlsCertificate && config.mtlsPrivateKey
+        ? new Agent({
+            connect: {
+              cert: config.mtlsCertificate,
+              key: config.mtlsPrivateKey,
+              // Validate the server's certificate.
+              rejectUnauthorized: true,
+            },
+          })
+        : undefined;
+
+    const headers = generateRequestHeaders({
+      webhook,
+      body,
+      timestamp: new Date(),
+    });
+
     const resp = await fetch(webhook.url, {
       method: "POST",
       headers: headers,
       body: JSON.stringify(body),
+      dispatcher,
     });
 
     return {
