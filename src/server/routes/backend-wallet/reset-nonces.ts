@@ -21,8 +21,9 @@ const requestBodySchema = Type.Object({
     description:
       "The backend wallet address to reset nonces for. Omit to reset all backend wallets.",
   }),
-  resetOnchainNonce: Type.Boolean({
-    description: "Resets the nonce to the onchain value. (Default: true)",
+  syncOnchainNonces: Type.Boolean({
+    description:
+      "Resync nonces to match the onchain transaction count for your backend wallets. (Default: true)",
     default: true,
   }),
 });
@@ -68,7 +69,7 @@ export const resetBackendWalletNoncesRoute = async (
       const {
         chainId,
         walletAddress: _walletAddress,
-        resetOnchainNonce,
+        syncOnchainNonces,
       } = req.body;
 
       // If chain+wallet are provided, only process that wallet.
@@ -85,7 +86,7 @@ export const resetBackendWalletNoncesRoute = async (
         // Delete nonce state for these backend wallets.
         await deleteNoncesForBackendWallets(backendWallets);
 
-        if (resetOnchainNonce) {
+        if (syncOnchainNonces) {
           // Resync nonces for these backend wallets.
           await Promise.allSettled(
             batch.map(({ chainId, walletAddress }) =>
