@@ -16,17 +16,22 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "yarn"
+          cache: "pnpm"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
 
       - name: Install dependencies
-        run: yarn install
+        run: pnpm install
 
       - name: Install tsx
         run: npm install -g tsx
 
       - name: Install dependencies
         working-directory: ./sdk
-        run: yarn install
+        run: pnpm install
 
       - name: Get version from package.json
         id: package_version
@@ -36,7 +41,7 @@ jobs:
         run: echo "SDK version is $PACKAGE_VERSION"
 
       - name: Build
-        run: yarn generate:sdk
+        run: pnpm generate:sdk
 
       - name: Push to npm
         working-directory: ./sdk

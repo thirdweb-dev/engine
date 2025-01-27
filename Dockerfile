@@ -2,10 +2,11 @@ FROM node:18.20-slim AS base
 
 WORKDIR /app
 
-# Upgrade packages
+# Upgrade packages and install pnpm
 RUN apt-get -y update && \
     apt-get -y upgrade && \
-    apt-get -y install libssl-dev
+    apt-get -y install libssl-dev && \
+    npm install -g pnpm
 
 ##############################
 ##############################
@@ -40,10 +41,10 @@ COPY . .
 # Install dependencies for both development and production (May need devDependencies to build)
 # Build the project
 # Prune dev dependencies from the packages
-RUN yarn install --frozen-lockfile --production=false --network-timeout 1000000 && \
-    yarn build && \
-    yarn copy-files && \
-    yarn install --frozen-lockfile --production=true --network-timeout 1000000
+RUN pnpm install --frozen-lockfile && \
+    pnpm build && \
+    pnpm copy-files && \
+    pnpm install --frozen-lockfile --prod
 
 ##############################
 ##############################
