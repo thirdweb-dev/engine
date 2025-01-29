@@ -14,7 +14,7 @@ import {
 } from "./create-gcp-kms-wallet";
 import { generateLocalWallet } from "./create-local-wallet";
 import { getAwsKmsAccount } from "../../../shared/lib/accounts/aws-kms/get-aws-kms-account";
-import { getGcpKmsAccount } from "./get-gcp-kms-account";
+import { getGcpKmsAccount } from "../../../shared/lib/accounts/plugins/gcp-kms/get-gcp-kms-account";
 
 /**
  * Get a smart wallet address for a given admin account

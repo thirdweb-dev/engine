@@ -10,7 +10,7 @@ import { WalletType } from "../schemas/wallet";
 import { splitAwsKmsArn } from "../../server/utils/wallets/aws-kms-arn";
 import { getConnectedSmartWallet } from "../../server/utils/wallets/create-smart-wallet";
 import { getAwsKmsAccount } from "../lib/accounts/aws-kms/get-aws-kms-account";
-import { getGcpKmsAccount } from "../../server/utils/wallets/get-gcp-kms-account";
+import { getGcpKmsAccount } from "../lib/accounts/plugins/gcp-kms/get-gcp-kms-account";
 import {
   encryptedJsonToAccount,
   getLocalWalletAccount,

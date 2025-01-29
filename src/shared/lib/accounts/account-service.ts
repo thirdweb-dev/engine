@@ -9,6 +9,7 @@ import {
 } from "thirdweb/wallets/smart";
 import { prisma } from "../../db/client";
 import { decrypt, encrypt } from "../../utils/crypto";
+import { gcpKmsPlugin } from "./plugins/gcp-kms";
 
 type LegacyWalletDetailFields = {
   awsKmsKeyId: string | null;
@@ -87,8 +88,8 @@ export function defineAccountPlugin<
       legacyConfig: TLegacyConfig extends z.ZodType
         ? z.infer<TLegacyConfig>
         : undefined;
-      platformIdentifiers?: z.infer<typeof schemas.platformIdentifiers>;
-      credential?: z.infer<typeof schemas.credentialData.schema>;
+      platformIdentifiers: z.infer<TPlatformIdentifiers> | undefined;
+      credential: z.infer<TCredentialData["schema"]> | undefined;
       legacyFields: LegacyWalletDetailFields;
       client: ThirdwebClient;
     }) => Promise<Account>;
@@ -109,7 +110,7 @@ export function defineAccountPlugin<
   } as const;
 }
 
-const ACCOUNT_PLUGINS = [awsKmsPlugin] as const;
+const ACCOUNT_PLUGINS = [awsKmsPlugin, gcpKmsPlugin] as const;
 
 // need to slice and spread because z.union wants to be sure of atleast 2 array members
 const createAccountSchema = z.discriminatedUnion("type", [
@@ -143,13 +144,15 @@ const createCredentialSchema = z.discriminatedUnion("type", [
   ),
 ]);
 
-// type WalletType =
-//   | (typeof ACCOUNT_PLUGINS)[number]["type"]
-//   | `smart:${(typeof ACCOUNT_PLUGINS)[number]["type"]}`;
-
 type PluginTuple = typeof ACCOUNT_PLUGINS;
 type Plugin = PluginTuple[number];
 type WalletType = Plugin["type"] | `smart:${Plugin["type"]}`;
+
+type GetPluginFromType<T extends WalletType> = T extends Plugin["type"]
+  ? Extract<Plugin, { type: T }>
+  : T extends `smart:${infer U extends Plugin["type"]}`
+    ? Extract<Plugin, { type: U }>
+    : never;
 
 type PluginConfigMap<P extends Plugin> = {
   plugin: P;
@@ -160,7 +163,7 @@ type PluginConfigMap<P extends Plugin> = {
 };
 
 type PluginRegistry = {
-  [P in Plugin as P["type"] | `smart:${P["type"]}`]: PluginConfigMap<P>;
+  [T in WalletType]: PluginConfigMap<GetPluginFromType<T>>;
 };
 
 class AccountService {
@@ -170,7 +173,7 @@ class AccountService {
   constructor(globalConfig: Record<string, unknown>, client: ThirdwebClient) {
     this.client = client;
 
-    this.plugins = ACCOUNT_PLUGINS.reduce<PluginRegistry>((acc, plugin) => {
+    this.plugins = ACCOUNT_PLUGINS.reduce((acc, plugin) => {
       const entry = {
         plugin,
         config: plugin.schemas.config.parse(
@@ -180,16 +183,19 @@ class AccountService {
       } satisfies PluginConfigMap<typeof plugin>;
 
       return {
-        // biome-ignore lint/performance/noAccumulatingSpread: need to spread for typesafety
         ...acc,
-        [plugin.type]: entry,
-        [plugin.smartType]: entry,
+        [plugin.type]: entry as PluginRegistry[typeof plugin.type],
+        [plugin.smartType]:
+          entry as PluginRegistry[`smart:${typeof plugin.type}`],
       };
     }, {} as PluginRegistry);
   }
 
-  async create(input: z.infer<typeof createAccountSchema>) {
-    const { plugin, config, legacyConfig } = this.plugins[input.type];
+  async create<T extends WalletType>(
+    input: z.infer<typeof createAccountSchema> & { type: T },
+  ) {
+    const pluginEntry = this.plugins[input.type];
+    const { plugin, config, legacyConfig } = pluginEntry;
 
     let credential:
       | z.infer<typeof plugin.schemas.credentialData.schema>
@@ -202,6 +208,7 @@ class AccountService {
       );
     }
 
+    // This will now have proper types
     const { account, platformIdentifiers } =
       await plugin.implementation.provisionAccount({
         config,

@@ -26,11 +26,7 @@ export const awsKmsPlugin = defineAccountPlugin({
     config: z.object({
       region: z.string().nullable(),
     }),
-    legacyConfig: z.object({
-      awsAccessKeyId: z.string().nullable(),
-      awsSecretAccessKey: z.string().nullable(),
-      awsRegion: z.string().nullable(),
-    }),
+    legacyConfig: awsKmsLegacyConfigSchema,
     platformIdentifiers: z.object({
       awsKmsArn: z.string(),
     }),
