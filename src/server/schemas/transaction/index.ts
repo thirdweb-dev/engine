@@ -3,6 +3,7 @@ import type { Hex } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import type { AnyTransaction } from "../../../shared/utils/transaction/types";
 import { AddressSchema, TransactionHashSchema } from "../address";
+import { TransactionDelaySchema } from "./delay";
 
 export const TransactionSchema = Type.Object({
   queueId: Type.Union([
@@ -220,6 +221,10 @@ export const TransactionSchema = Type.Object({
     ),
     Type.Null(),
   ]),
+  delays: Type.Array(TransactionDelaySchema, {
+    description:
+      "Array of deliberate transaction processing delays delays initiated by the worker due to user specified conditions",
+  }),
 });
 
 export const toTransactionSchema = (
@@ -304,6 +309,20 @@ export const toTransactionSchema = (
     return transaction.overrides?.maxPriorityFeePerGas?.toString() ?? null;
   };
 
+  const resolveDelays = (): Static<typeof TransactionDelaySchema>[] => {
+    return transaction.delays.map((delay) => {
+      switch (delay.reason) {
+        case "max_fee_per_gas_too_low":
+          return {
+            reason: "max_fee_per_gas_too_low",
+            timestamp: delay.timestamp.toISOString(),
+            requestedMaxFeePerGas: delay.requestedMaxFeePerGas.toString(),
+            currentMaxFeePerGas: delay.currentMaxFeePerGas.toString(),
+          };
+      }
+    });
+  };
+
   return {
     queueId: transaction.queueId,
     status: transaction.status,
@@ -338,7 +357,7 @@ export const toTransactionSchema = (
         ? transaction.cancelledAt.toISOString()
         : null,
     errorMessage:
-      "errorMessage" in transaction ? (transaction.errorMessage ?? null) : null,
+      "errorMessage" in transaction ? transaction.errorMessage ?? null : null,
     sentAtBlockNumber:
       "sentAtBlock" in transaction ? Number(transaction.sentAtBlock) : null,
     blockNumber:
@@ -373,6 +392,7 @@ export const toTransactionSchema = (
       "userOpHash" in transaction ? (transaction.userOpHash as Hex) : null,
 
     batchOperations: resolveBatchOperations(),
+    delays: resolveDelays(),
 
     // Deprecated
     retryGasValues: null,

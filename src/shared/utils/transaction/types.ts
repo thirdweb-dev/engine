@@ -21,6 +21,15 @@ export type BatchOperation = {
   functionArgs?: unknown[];
 };
 
+// we want to support more reasons for delays in the future, this will become a discriminated union type
+export type TransactionDelay = {
+  reason: "max_fee_per_gas_too_low";
+  timestamp: Date;
+
+  requestedMaxFeePerGas: bigint;
+  currentMaxFeePerGas: bigint;
+};
+
 // InsertedTransaction is the raw input from the caller.
 export type InsertedTransaction = {
   isUserOp: boolean;
@@ -66,6 +75,7 @@ export type InsertedTransaction = {
 export type QueuedTransaction = InsertedTransaction & {
   status: "queued";
 
+  delays: TransactionDelay[];
   resendCount: number;
   queueId: string;
   queuedAt: Date;

@@ -77,6 +77,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   }
 
   let resultTransaction:
+    | QueuedTransaction // Transaction delayed and will be retried.
     | SentTransaction // Transaction sent successfully.
     | ErroredTransaction // Transaction failed and will not be retried.
     | null; // No attempt to send is made.
@@ -282,7 +283,7 @@ const _sendUserOp = async (
 const _sendTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
-): Promise<SentTransaction | ErroredTransaction | null> => {
+): Promise<QueuedTransaction | SentTransaction | ErroredTransaction | null> => {
   assert(!queuedTransaction.isUserOp);
 
   if (_hasExceededTimeout(queuedTransaction)) {
@@ -372,7 +373,15 @@ const _sendTransaction = async (
         `Override gas fee (${overrides.maxFeePerGas}) is lower than onchain fee (${populatedTransaction.maxFeePerGas}). Delaying job until ${retryAt}.`,
       );
       await job.moveToDelayed(retryAt.getTime());
-      return null;
+
+      queuedTransaction.delays.push({
+        reason: "max_fee_per_gas_too_low",
+        currentMaxFeePerGas: populatedTransaction.maxFeePerGas,
+        requestedMaxFeePerGas: overrides.maxFeePerGas,
+        timestamp: new Date(),
+      });
+
+      return queuedTransaction;
     }
   }
 
@@ -384,15 +393,18 @@ const _sendTransaction = async (
   });
   populatedTransaction.nonce = nonce;
   job.log(
-    `Populated transaction (isRecycledNonce=${isRecycledNonce}): ${stringify(populatedTransaction)}`,
+    `Populated transaction (isRecycledNonce=${isRecycledNonce}): ${stringify(
+      populatedTransaction,
+    )}`,
   );
 
   // Send transaction to RPC.
   // This call throws if the RPC rejects the transaction.
   let transactionHash: Hex;
   try {
-    const sendTransactionResult =
-      await account.sendTransaction(populatedTransaction);
+    const sendTransactionResult = await account.sendTransaction(
+      populatedTransaction,
+    );
     transactionHash = sendTransactionResult.transactionHash;
   } catch (error: unknown) {
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),

@@ -7,7 +7,6 @@ import {
   WalletDetailsError,
   type ParsedWalletDetails,
 } from "../../../shared/db/wallets/get-wallet-details";
-import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
 import { createCustomError } from "../../../server/middleware/error";
 import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { getChecksumAddress } from "../primitive-types";
@@ -50,6 +49,7 @@ export const insertTransaction = async (
     queueId,
     queuedAt: new Date(),
     resendCount: 0,
+    delays: [],
 
     from: getChecksumAddress(insertedTransaction.from),
     to: getChecksumAddress(insertedTransaction.to),
