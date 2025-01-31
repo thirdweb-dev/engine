@@ -14,7 +14,12 @@ import { getChain } from "../../../../shared/utils/chain";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { getContract, getContractEvents } from "thirdweb";
 import { maybeBigInt } from "../../../../shared/utils/primitive-types";
-import { toContractEventV4Schema } from "../../../schemas/event";
+import {
+  ContractEventV5,
+  toContractEventV4Schema,
+} from "../../../schemas/event";
+import { createCustomError } from "../../../middleware/error";
+import { prettifyError } from "../../../../shared/utils/error";
 
 const requestSchema = contractParamSchema;
 
@@ -93,11 +98,21 @@ export async function getAllEvents(fastify: FastifyInstance) {
         chain: await getChain(chainId),
       });
 
-      const eventsV5 = await getContractEvents({
-        contract: contract,
-        fromBlock: maybeBigInt(fromBlock?.toString()),
-        toBlock: maybeBigInt(toBlock?.toString()),
-      });
+      let eventsV5: ContractEventV5[];
+      try {
+        eventsV5 = await getContractEvents({
+          contract: contract,
+          fromBlock:
+            typeof fromBlock === "number" ? BigInt(fromBlock) : fromBlock,
+          toBlock: typeof toBlock === "number" ? BigInt(toBlock) : toBlock,
+        });
+      } catch (e) {
+        throw createCustomError(
+          `Failed to get events: ${prettifyError(e)}`,
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
+      }
 
       reply.status(StatusCodes.OK).send({
         result: eventsV5.map(toContractEventV4Schema).sort((a, b) => {
