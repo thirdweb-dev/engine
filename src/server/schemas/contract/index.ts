@@ -79,18 +79,25 @@ export const rolesResponseSchema = Type.Object({
   signer: Type.Array(Type.String()),
 });
 
+export const blockNumberOrTagSchema = Type.Union([
+  Type.Integer({ minimum: 0 }),
+  Type.Literal("latest"),
+  Type.Literal("earliest"),
+  Type.Literal("pending"),
+  Type.Literal("safe"),
+  Type.Literal("finalized"),
+]);
+
 export const eventsQuerystringSchema = Type.Object(
   {
-    fromBlock: Type.Optional(
-      Type.Union([Type.Integer({ minimum: 0 }), Type.String()], {
-        default: "0",
-      }),
-    ),
-    toBlock: Type.Optional(
-      Type.Union([Type.Integer({ minimum: 0 }), Type.String()], {
-        default: "latest",
-      }),
-    ),
+    fromBlock: Type.Optional({
+      ...blockNumberOrTagSchema,
+      default: "0",
+    }),
+    toBlock: Type.Optional({
+      ...blockNumberOrTagSchema,
+      default: "latest",
+    }),
     order: Type.Optional(
       Type.Union([Type.Literal("asc"), Type.Literal("desc")], {
         default: "desc",
