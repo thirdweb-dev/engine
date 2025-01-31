@@ -13,9 +13,8 @@ import { thirdwebClient } from "../../../../shared/utils/sdk";
 import { getChain } from "../../../../shared/utils/chain";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { getContract, getContractEvents } from "thirdweb";
-import { maybeBigInt } from "../../../../shared/utils/primitive-types";
 import {
-  ContractEventV5,
+  type ContractEventV5,
   toContractEventV4Schema,
 } from "../../../schemas/event";
 import { createCustomError } from "../../../middleware/error";
