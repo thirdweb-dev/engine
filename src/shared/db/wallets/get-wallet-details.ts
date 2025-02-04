@@ -92,6 +92,24 @@ const smartGcpKmsWalletSchema = gcpKmsWalletSchema
   .merge(smartWalletPartialSchema)
   .merge(baseWalletPartialSchema);
 
+const circleWalletSchema = z
+  .object({
+    type: z.literal("circle"),
+    platformIdentifiers: z.object({
+      circleWalletId: z.string(),
+      walletSetId: z.string(),
+    }),
+    credentialId: z.string(),
+  })
+  .merge(baseWalletPartialSchema);
+
+const smartCircleWalletSchema = circleWalletSchema
+  .extend({
+    type: z.literal("smart:circle"),
+  })
+  .merge(smartWalletPartialSchema)
+  .merge(baseWalletPartialSchema);
+
 const walletDetailsSchema = z.discriminatedUnion("type", [
   localWalletSchema,
   smartLocalWalletSchema,
@@ -99,6 +117,8 @@ const walletDetailsSchema = z.discriminatedUnion("type", [
   smartAwsKmsWalletSchema,
   gcpKmsWalletSchema,
   smartGcpKmsWalletSchema,
+  circleWalletSchema,
+  smartCircleWalletSchema,
 ]);
 
 export type SmartBackendWalletDetails =
@@ -118,12 +138,14 @@ export const SmartBackendWalletTypes = [
   "smart:local",
   "smart:aws-kms",
   "smart:gcp-kms",
+  "smart:circle",
 ] as const;
 
 export const BackendWalletTypes = [
   "local",
   "aws-kms",
   "gcp-kms",
+  "circle",
   ...SmartBackendWalletTypes,
 ] as const;
 
@@ -181,7 +203,7 @@ export const getWalletDetails = async ({
 
     walletDetails.awsKmsSecretAccessKey = walletDetails.awsKmsSecretAccessKey
       ? decrypt(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
-      : (config.walletConfiguration.aws?.awsSecretAccessKey ?? null);
+      : config.walletConfiguration.aws?.awsSecretAccessKey ?? null;
 
     walletDetails.awsKmsAccessKeyId =
       walletDetails.awsKmsAccessKeyId ??
@@ -206,8 +228,8 @@ export const getWalletDetails = async ({
             walletDetails.gcpApplicationCredentialPrivateKey,
             env.ENCRYPTION_PASSWORD,
           )
-        : (config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey ??
-          null);
+        : config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey ??
+          null;
 
     walletDetails.gcpApplicationCredentialEmail =
       walletDetails.gcpApplicationCredentialEmail ??

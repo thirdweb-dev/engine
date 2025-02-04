@@ -35,7 +35,7 @@ responseSchema.example = {
   },
 };
 
-export async function getWalletCredentialEndpoint(fastify: FastifyInstance) {
+export async function getWalletCredentialRoute(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof ParamsSchema>;
     Reply: Static<typeof responseSchema>;

@@ -21,6 +21,14 @@ const requestBodySchema = Type.Union([
     gcpApplicationCredentialEmail: Type.String(),
     gcpApplicationCredentialPrivateKey: Type.String(),
   }),
+  Type.Object({
+    awsAccessKeyId: Type.String(),
+    awsSecretAccessKey: Type.String(),
+    awsRegion: Type.String(),
+  }),
+  Type.Object({
+    circleApiKey: Type.String(),
+  }),
 ]);
 
 requestBodySchema.examples = [
@@ -104,6 +112,16 @@ export async function updateWalletsConfiguration(fastify: FastifyInstance) {
           gcpApplicationCredentialEmail: req.body.gcpApplicationCredentialEmail,
           gcpApplicationCredentialPrivateKey:
             req.body.gcpApplicationCredentialPrivateKey,
+        });
+      }
+
+      if ("circleApiKey" in req.body) {
+        await updateConfiguration({
+          walletProviderConfigs: {
+            circle: {
+              apiKey: req.body.circleApiKey,
+            },
+          },
         });
       }
 

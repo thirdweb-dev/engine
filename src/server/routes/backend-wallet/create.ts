@@ -6,7 +6,11 @@ import {
   DEFAULT_ACCOUNT_FACTORY_V0_7,
   ENTRYPOINT_ADDRESS_v0_7,
 } from "thirdweb/wallets/smart";
-import { WalletType } from "../../../shared/schemas/wallet";
+import {
+  LegacyWalletType,
+  WalletType,
+  CircleWalletType,
+} from "../../../shared/schemas/wallet";
 import { getConfig } from "../../../shared/utils/cache/get-config";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
@@ -25,16 +29,26 @@ import {
   createSmartGcpWalletDetails,
   createSmartLocalWalletDetails,
 } from "../../utils/wallets/create-smart-wallet";
+import {
+  CircleWalletError,
+  createCircleWalletDetails,
+} from "../../utils/wallets/circle";
 
-const requestBodySchema = Type.Object({
-  label: Type.Optional(Type.String()),
-  type: Type.Optional(
-    Type.Enum(WalletType, {
-      description:
-        "Type of new wallet to create. It is recommended to always provide this value. If not provided, the default wallet type will be used.",
-    }),
-  ),
-});
+const requestBodySchema = Type.Union([
+  // Base schema for non-circle wallet types
+  Type.Object({
+    label: Type.Optional(Type.String()),
+    type: Type.Optional(Type.Union([Type.Enum(LegacyWalletType)])),
+  }),
+
+  // Schema for circle and smart:circle wallet types
+  Type.Object({
+    label: Type.Optional(Type.String()),
+    type: Type.Union([Type.Enum(CircleWalletType)]),
+    credentialId: Type.String(),
+    walletSetId: Type.Optional(Type.String()),
+  }),
+]);
 
 const responseSchema = Type.Object({
   result: Type.Object({
@@ -73,7 +87,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
     handler: async (req, reply) => {
       const { label } = req.body;
 
-      let walletAddress: string;
+      let walletAddress: string | undefined = undefined;
       const config = await getConfig();
 
       const walletType =
@@ -112,6 +126,66 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
             throw e;
           }
           break;
+        case CircleWalletType.circle:
+          {
+            // we need this if here for typescript to statically type the credentialId and walletSetId
+            if (req.body.type !== "circle")
+              throw new Error("Invalid Circle wallet type"); // invariant
+
+            const { credentialId, walletSetId } = req.body;
+
+            try {
+              const wallet = await createCircleWalletDetails({
+                label,
+                isSmart: false,
+                credentialId,
+                walletSetId,
+              });
+
+              walletAddress = getAddress(wallet.address);
+            } catch (e) {
+              if (e instanceof CircleWalletError) {
+                throw createCustomError(
+                  e.message,
+                  StatusCodes.BAD_REQUEST,
+                  "CREATE_CIRCLE_WALLET_ERROR",
+                );
+              }
+              throw e;
+            }
+          }
+          break;
+
+        case CircleWalletType.smartCircle:
+          {
+            // we need this if here for typescript to statically type the credentialId and walletSetId
+            if (req.body.type !== "smart:circle")
+              throw new Error("Invalid Circle wallet type"); // invariant
+
+            const { credentialId, walletSetId } = req.body;
+
+            try {
+              const wallet = await createCircleWalletDetails({
+                label,
+                isSmart: true,
+                credentialId,
+                walletSetId,
+              });
+
+              walletAddress = getAddress(wallet.address);
+            } catch (e) {
+              if (e instanceof CircleWalletError) {
+                throw createCustomError(
+                  e.message,
+                  StatusCodes.BAD_REQUEST,
+                  "CREATE_CIRCLE_WALLET_ERROR",
+                );
+              }
+              throw e;
+            }
+          }
+          break;
+
         case WalletType.smartAwsKms:
           try {
             const smartAwsWallet = await createSmartAwsWalletDetails({
@@ -163,10 +237,14 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
           break;
       }
 
+      if (!walletAddress) {
+        throw new Error("Invalid state"); // invariant, typescript cannot exhaustive check because enums
+      }
+
       reply.status(StatusCodes.OK).send({
         result: {
           walletAddress,
-          type: walletType,
+          type: walletType as WalletType,
           status: "success",
         },
       });

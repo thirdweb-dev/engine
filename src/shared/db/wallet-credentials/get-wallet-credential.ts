@@ -3,7 +3,6 @@ import { z } from "zod";
 import { decrypt } from "../../utils/crypto";
 import { env } from "../../utils/env";
 import { prisma } from "../client";
-import { entitySecretSchema } from "./create-wallet-credential";
 
 export class WalletCredentialsError extends Error {
   constructor(message: string) {
@@ -17,7 +16,7 @@ const walletCredentialsSchema = z.object({
   type: z.literal("circle"),
   label: z.string().nullable(),
   data: z.object({
-    entitySecret: entitySecretSchema,
+    entitySecret: z.string(),
   }),
   isDefault: z.boolean(),
   createdAt: z.date(),
