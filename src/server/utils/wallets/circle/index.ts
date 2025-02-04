@@ -51,9 +51,17 @@ export async function provisionCircleWallet({
   });
 
   if (!walletSetId) {
-    const walletSet = await circleDeveloperSdk.createWalletSet({
-      name: `Engine WalletSet ${new Date().toISOString()}`,
-    });
+    const walletSet = await circleDeveloperSdk
+      .createWalletSet({
+        name: `Engine WalletSet ${new Date().toISOString()}`,
+      })
+      .catch((e) => {
+        throw new CircleWalletError(
+          `[Circle] Could not create walletset:\n${JSON.stringify(
+            e?.response?.data,
+          )}`,
+        );
+      });
 
     walletSetId = walletSet.data?.walletSet.id;
   }
@@ -63,12 +71,20 @@ export async function provisionCircleWallet({
       "Did not receive walletSetId, and failed to create one automatically",
     );
 
-  const provisionWalletResponse = await circleDeveloperSdk.createWallets({
-    accountType: "EOA",
-    blockchains: ["EVM"],
-    count: 1,
-    walletSetId: walletSetId,
-  });
+  const provisionWalletResponse = await circleDeveloperSdk
+    .createWallets({
+      accountType: "EOA",
+      blockchains: ["EVM"],
+      count: 1,
+      walletSetId: walletSetId,
+    })
+    .catch((e) => {
+      throw new CircleWalletError(
+        `[Circle] Could not provision wallet:\n${JSON.stringify(
+          e?.response?.data,
+        )}`,
+      );
+    });
 
   const provisionedWallet = provisionWalletResponse.data?.wallets?.[0];
 
@@ -119,7 +135,16 @@ export async function getCircleAccount({
     entitySecret,
   });
 
-  const walletResponse = await circleDeveloperSdk.getWallet({ id: walletId });
+  const walletResponse = await circleDeveloperSdk
+    .getWallet({ id: walletId })
+    .catch((e) => {
+      throw new CircleWalletError(
+        `[Circle] Could not get wallet with id:${walletId}:\n${JSON.stringify(
+          e?.response?.data,
+        )}`,
+      );
+    });
+
   if (!walletResponse) {
     throw new CircleWalletError(
       `Unable to get circle wallet with id:${walletId}`,
@@ -138,10 +163,18 @@ export async function getCircleAccount({
   }
 
   async function signTransaction(tx: SerializableTransaction) {
-    const signature = await circleDeveloperSdk.signTransaction({
-      walletId,
-      transaction: stringify(tx),
-    });
+    const signature = await circleDeveloperSdk
+      .signTransaction({
+        walletId,
+        transaction: stringify(tx),
+      })
+      .catch((e) => {
+        throw new CircleWalletError(
+          `[Circle] Could not get transaction signature:\n${JSON.stringify(
+            e?.response?.data,
+          )}`,
+        );
+      });
 
     if (!signature.data?.signature) {
       throw new CircleWalletError("Unable to sign transaction");
@@ -177,10 +210,18 @@ export async function getCircleAccount({
     const typedData extends TypedData | Record<string, unknown>,
     primaryType extends keyof typedData | "EIP712Domain" = keyof typedData,
   >(_typedData: TypedDataDefinition<typedData, primaryType>): Promise<Hex> {
-    const signatureResponse = await circleDeveloperSdk.signTypedData({
-      data: stringify(_typedData),
-      walletId,
-    });
+    const signatureResponse = await circleDeveloperSdk
+      .signTypedData({
+        data: stringify(_typedData),
+        walletId,
+      })
+      .catch((e) => {
+        throw new CircleWalletError(
+          `[Circle] Could not get signature:\n${JSON.stringify(
+            e?.response?.data,
+          )}`,
+        );
+      });
 
     if (!signatureResponse.data?.signature) {
       throw new CircleWalletError("Could not sign typed data");
@@ -201,11 +242,19 @@ export async function getCircleAccount({
       messageToSign = toHex(messageToSign);
     }
 
-    const signatureResponse = await circleDeveloperSdk.signMessage({
-      walletId,
-      message: messageToSign,
-      encodedByHex: isRawMessage,
-    });
+    const signatureResponse = await circleDeveloperSdk
+      .signMessage({
+        walletId,
+        message: messageToSign,
+        encodedByHex: isRawMessage,
+      })
+      .catch((e) => {
+        throw new CircleWalletError(
+          `[Circle] Could not get signature:\n${JSON.stringify(
+            e?.response?.data,
+          )}`,
+        );
+      });
 
     if (!signatureResponse.data?.signature)
       throw new CircleWalletError("Could not get signature");
