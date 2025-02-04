@@ -122,7 +122,7 @@ model WalletDetails {
 model WalletCredentials {
   id        String  @id @default(uuid()) @map("id")
   type      String  @map("type")
-  label     String? @map("label")
+  label     String  @map("label")
   data      Json    @map("data")
   isDefault Boolean @default(false) @map("isDefault")
 

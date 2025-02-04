@@ -29,6 +29,7 @@
   "dependencies": {
     "@aws-sdk/client-kms": "^3.679.0",
     "@bull-board/fastify": "^5.23.0",
+    "@circle-fin/developer-controlled-wallets": "^7.0.0",
     "@cloud-cryptographic-wallet/cloud-kms-signer": "^0.1.2",
     "@cloud-cryptographic-wallet/signer": "^0.0.5",
     "@ethersproject/json-wallets": "^5.7.0",
