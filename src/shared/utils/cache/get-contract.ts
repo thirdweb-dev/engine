@@ -3,6 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../server/middleware/error";
 import { abiSchema } from "../../../server/schemas/contract";
 import { getSdk } from "./get-sdk";
+import { ThirdwebSDK } from "@thirdweb-dev/sdk";
 
 const abiArraySchema = Type.Array(abiSchema);
 
@@ -21,7 +22,17 @@ export const getContract = async ({
   accountAddress,
   abi,
 }: GetContractParams) => {
-  const sdk = await getSdk({ chainId, walletAddress, accountAddress });
+  let sdk: ThirdwebSDK;
+
+  try {
+    sdk = await getSdk({ chainId, walletAddress, accountAddress });
+  } catch (e) {
+    throw createCustomError(
+      `Could not get SDK: ${e}`,
+      StatusCodes.BAD_REQUEST,
+      "INVALID_CHAIN_OR_WALLET_TYPE_FOR_ROUTE",
+    );
+  }
 
   try {
     if (abi) {
