@@ -46,7 +46,7 @@ export const createWalletCredential = async ({
         data: {
           type,
           label,
-          isDefault: isDefault ?? false,
+          isDefault: isDefault ?? null,
           data: {
             entitySecret: encrypt(finalEntitySecret),
           },
