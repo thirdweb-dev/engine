@@ -658,6 +658,13 @@
   dependencies:
     "@bull-board/api" "5.23.0"
 
+"@circle-fin/developer-controlled-wallets@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@circle-fin/developer-controlled-wallets/-/developer-controlled-wallets-7.0.0.tgz#520bbe54e050dbf9585b54bc61d372887d0dc149"
+  integrity sha512-GbouORrWpec27DIOVuWfdyP25inrGQUNj2Vwgp7pJm15Z09E9OQBQjB334rGCIM4MT4NVuKKDkbOHTIphoi7zg==
+  dependencies:
+    axios "^1.6.2"
+
 "@cloud-cryptographic-wallet/asn1-parser@^0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@cloud-cryptographic-wallet/asn1-parser/-/asn1-parser-0.0.4.tgz#4494a8f46d2b3974731d6cc2f3f34cb8afeb0c78"
@@ -5158,7 +5165,7 @@ aws4fetch@1.0.20:
   resolved "https://registry.yarnpkg.com/aws4fetch/-/aws4fetch-1.0.20.tgz#090d6c65e32c6df645dd5e5acf04cc56da575cbe"
   integrity sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==
 
-axios@>=1.7.8, axios@^0.21.0, axios@^0.27.2:
+axios@>=1.7.8, axios@^0.21.0, axios@^0.27.2, axios@^1.6.2:
   version "1.7.9"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.9.tgz#d7d071380c132a24accda1b2cfc1535b79ec650a"
   integrity sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==
@@ -8848,6 +8855,19 @@ ox@0.4.2:
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/ox/-/ox-0.4.2.tgz#0ef5b322baec0cbd055dfb27f22795f6af522594"
   integrity sha512-X3Ho21mTtJiCU2rWmfaheh2b0CG70Adre7Da/XQ0ECy+QppI6pLqdbGAJHiu/cTjumVXfwDGfv48APqePCU+ow==
+  dependencies:
+    "@adraffy/ens-normalize" "^1.10.1"
+    "@noble/curves" "^1.6.0"
+    "@noble/hashes" "^1.5.0"
+    "@scure/bip32" "^1.5.0"
+    "@scure/bip39" "^1.4.0"
+    abitype "^1.0.6"
+    eventemitter3 "5.0.1"
+
+ox@^0.6.9:
+  version "0.6.9"
+  resolved "https://registry.yarnpkg.com/ox/-/ox-0.6.9.tgz#da1ee04fa10de30c8d04c15bfb80fe58b1f554bd"
+  integrity sha512-wi5ShvzE4eOcTwQVsIPdFr+8ycyX+5le/96iAJutaZAvCes1J0+RvpEPg5QDPDiaR0XQQAvZVl7AwqQcINuUug==
   dependencies:
     "@adraffy/ens-normalize" "^1.10.1"
     "@noble/curves" "^1.6.0"

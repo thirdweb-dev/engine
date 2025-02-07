@@ -171,7 +171,7 @@ export const getWallet = async <TWallet extends EVMWallet>({
 
     default:
       throw new Error(
-        `Wallet with address ${walletAddress} was configured with unknown wallet type ${walletDetails.type}`,
+        `Wallet with address ${walletAddress} of type ${walletDetails.type} is not supported for these routes yet`,
       );
   }
 

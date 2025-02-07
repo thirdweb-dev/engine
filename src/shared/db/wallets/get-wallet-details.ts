@@ -57,8 +57,7 @@ const smartLocalWalletSchema = localWalletSchema
   .extend({
     type: z.literal("smart:local"),
   })
-  .merge(smartWalletPartialSchema)
-  .merge(baseWalletPartialSchema);
+  .merge(smartWalletPartialSchema);
 
 const awsKmsWalletSchema = z
   .object({
@@ -73,8 +72,7 @@ const smartAwsKmsWalletSchema = awsKmsWalletSchema
   .extend({
     type: z.literal("smart:aws-kms"),
   })
-  .merge(smartWalletPartialSchema)
-  .merge(baseWalletPartialSchema);
+  .merge(smartWalletPartialSchema);
 
 const gcpKmsWalletSchema = z
   .object({
@@ -89,8 +87,25 @@ const smartGcpKmsWalletSchema = gcpKmsWalletSchema
   .extend({
     type: z.literal("smart:gcp-kms"),
   })
-  .merge(smartWalletPartialSchema)
+  .merge(smartWalletPartialSchema);
+
+const circleWalletSchema = z
+  .object({
+    type: z.literal("circle"),
+    platformIdentifiers: z.object({
+      circleWalletId: z.string(),
+      walletSetId: z.string(),
+      isTestnet: z.boolean(),
+    }),
+    credentialId: z.string(),
+  })
   .merge(baseWalletPartialSchema);
+
+const smartCircleWalletSchema = circleWalletSchema
+  .extend({
+    type: z.literal("smart:circle"),
+  })
+  .merge(smartWalletPartialSchema);
 
 const walletDetailsSchema = z.discriminatedUnion("type", [
   localWalletSchema,
@@ -99,12 +114,15 @@ const walletDetailsSchema = z.discriminatedUnion("type", [
   smartAwsKmsWalletSchema,
   gcpKmsWalletSchema,
   smartGcpKmsWalletSchema,
+  circleWalletSchema,
+  smartCircleWalletSchema,
 ]);
 
 export type SmartBackendWalletDetails =
   | z.infer<typeof smartLocalWalletSchema>
   | z.infer<typeof smartAwsKmsWalletSchema>
-  | z.infer<typeof smartGcpKmsWalletSchema>;
+  | z.infer<typeof smartGcpKmsWalletSchema>
+  | z.infer<typeof smartCircleWalletSchema>;
 
 export function isSmartBackendWallet(
   wallet: ParsedWalletDetails,
@@ -118,12 +136,14 @@ export const SmartBackendWalletTypes = [
   "smart:local",
   "smart:aws-kms",
   "smart:gcp-kms",
+  "smart:circle",
 ] as const;
 
 export const BackendWalletTypes = [
   "local",
   "aws-kms",
   "gcp-kms",
+  "circle",
   ...SmartBackendWalletTypes,
 ] as const;
 
@@ -181,7 +201,7 @@ export const getWalletDetails = async ({
 
     walletDetails.awsKmsSecretAccessKey = walletDetails.awsKmsSecretAccessKey
       ? decrypt(walletDetails.awsKmsSecretAccessKey, env.ENCRYPTION_PASSWORD)
-      : (config.walletConfiguration.aws?.awsSecretAccessKey ?? null);
+      : config.walletConfiguration.aws?.awsSecretAccessKey ?? null;
 
     walletDetails.awsKmsAccessKeyId =
       walletDetails.awsKmsAccessKeyId ??
@@ -206,8 +226,8 @@ export const getWalletDetails = async ({
             walletDetails.gcpApplicationCredentialPrivateKey,
             env.ENCRYPTION_PASSWORD,
           )
-        : (config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey ??
-          null);
+        : config.walletConfiguration.gcp?.gcpApplicationCredentialPrivateKey ??
+          null;
 
     walletDetails.gcpApplicationCredentialEmail =
       walletDetails.gcpApplicationCredentialEmail ??

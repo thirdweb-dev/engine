@@ -21,6 +21,10 @@ export type GcpWalletConfiguration = {
   defaultGcpApplicationProjectId: string;
 };
 
+export type CircleWalletConfiguration = {
+  apiKey: string;
+};
+
 export interface ParsedConfig
   extends Omit<
     Configuration,
@@ -35,10 +39,12 @@ export interface ParsedConfig
     | "contractSubscriptionsRetryDelaySeconds"
     | "mtlsCertificateEncrypted"
     | "mtlsPrivateKeyEncrypted"
+    | "walletProviderConfigs"
   > {
   walletConfiguration: {
     aws: AwsWalletConfiguration | null;
     gcp: GcpWalletConfiguration | null;
+    circle: CircleWalletConfiguration | null;
     legacyWalletType_removeInNextBreakingChange: WalletType;
   };
   contractSubscriptionsRequeryDelaySeconds: string;

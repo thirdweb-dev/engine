@@ -113,6 +113,9 @@ import { revokeWebhook } from "./webhooks/revoke";
 import { testWebhookRoute } from "./webhooks/test";
 import { readBatchRoute } from "./contract/read/read-batch";
 import { sendTransactionBatchAtomicRoute } from "./backend-wallet/send-transaction-batch-atomic";
+import { createWalletCredentialRoute } from "./wallet-credentials/create";
+import { getWalletCredentialRoute } from "./wallet-credentials/get";
+import { getAllWalletCredentialsRoute } from "./wallet-credentials/get-all";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -136,6 +139,11 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(cancelBackendWalletNoncesRoute);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
+
+  // Credentials
+  await fastify.register(createWalletCredentialRoute);
+  await fastify.register(getWalletCredentialRoute);
+  await fastify.register(getAllWalletCredentialsRoute);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);

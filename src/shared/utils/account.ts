@@ -18,6 +18,9 @@ import {
 import { getSmartWalletV5 } from "./cache/get-smart-wallet-v5";
 import { getChain } from "./chain";
 import { thirdwebClient } from "./sdk";
+import { getWalletCredential } from "../db/wallet-credentials/get-wallet-credential";
+import { getCircleAccount } from "../../server/utils/wallets/circle";
+import { getConfig } from "./cache/get-config";
 
 export const _accountsCache = new LRUMap<string, Account>(2048);
 
@@ -152,6 +155,58 @@ export const walletDetailsToAccount = async ({
 
       return { account: connectedWallet, adminAccount };
     }
+
+    case WalletType.circle: {
+      const {
+        walletConfiguration: { circle },
+      } = await getConfig();
+
+      if (!circle)
+        throw new Error("No configuration found for circle wallet type");
+
+      const credentials = await getWalletCredential({
+        id: walletDetails.credentialId,
+      });
+
+      const account = await getCircleAccount({
+        apiKey: circle.apiKey,
+        client: thirdwebClient,
+        entitySecret: credentials.data.entitySecret,
+        walletId: walletDetails.platformIdentifiers.circleWalletId,
+      });
+
+      return { account };
+    }
+
+    case WalletType.smartCircle: {
+      const {
+        walletConfiguration: { circle },
+      } = await getConfig();
+
+      if (!circle)
+        throw new Error("No configuration found for circle wallet type");
+
+      const credentials = await getWalletCredential({
+        id: walletDetails.credentialId,
+      });
+
+      const adminAccount = await getCircleAccount({
+        apiKey: circle.apiKey,
+        client: thirdwebClient,
+        entitySecret: credentials.data.entitySecret,
+        walletId: walletDetails.platformIdentifiers.circleWalletId,
+      });
+
+      const connectedWallet = await getConnectedSmartWallet({
+        adminAccount: adminAccount,
+        accountFactoryAddress: walletDetails.accountFactoryAddress ?? undefined,
+        entrypointAddress: walletDetails.entrypointAddress ?? undefined,
+        chain: chain,
+      });
+
+      return { account: connectedWallet, adminAccount };
+    }
+
     default:
       throw new Error(`Wallet type not supported: ${walletDetails.type}`);
   }
