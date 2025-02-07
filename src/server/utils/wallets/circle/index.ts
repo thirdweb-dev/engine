@@ -40,11 +40,13 @@ export async function provisionCircleWallet({
   apiKey,
   walletSetId,
   client,
+  isTestnet,
 }: {
   entitySecret: string;
   apiKey: string;
   walletSetId?: string;
   client: ThirdwebClient;
+  isTestnet?: boolean;
 }) {
   const circleDeveloperSdk = initiateDeveloperControlledWalletsClient({
     apiKey: apiKey,
@@ -74,7 +76,7 @@ export async function provisionCircleWallet({
   const provisionWalletResponse = await circleDeveloperSdk
     .createWallets({
       accountType: "EOA",
-      blockchains: ["EVM"],
+      blockchains: [isTestnet ? "EVM-TESTNET" : "EVM"],
       count: 1,
       walletSetId: walletSetId,
     })
@@ -266,11 +268,13 @@ export async function createCircleWalletDetails({
   walletSetId,
   label,
   isSmart,
+  isTestnet,
 }: {
   credentialId: string;
   walletSetId?: string;
   label?: string;
   isSmart: boolean;
+  isTestnet?: boolean;
 }) {
   const {
     walletConfiguration: { circle },
@@ -297,6 +301,7 @@ export async function createCircleWalletDetails({
     apiKey: circle.apiKey,
     client: thirdwebClient,
     walletSetId,
+    isTestnet,
   });
 
   let address = provisionedDetails.account.address;
@@ -325,6 +330,7 @@ export async function createCircleWalletDetails({
       platformIdentifiers: {
         circleWalletId: provisionedDetails.provisionedWallet.id,
         walletSetId: provisionedDetails.walletSetId,
+        isTestnet: isTestnet ?? false,
       },
       ...(isSmart ? sbwDetails : {}),
     },

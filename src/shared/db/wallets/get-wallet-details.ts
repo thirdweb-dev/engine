@@ -57,7 +57,7 @@ const smartLocalWalletSchema = localWalletSchema
   .extend({
     type: z.literal("smart:local"),
   })
-  .merge(smartWalletPartialSchema)
+  .merge(smartWalletPartialSchema);
 
 const awsKmsWalletSchema = z
   .object({
@@ -72,7 +72,7 @@ const smartAwsKmsWalletSchema = awsKmsWalletSchema
   .extend({
     type: z.literal("smart:aws-kms"),
   })
-  .merge(smartWalletPartialSchema)
+  .merge(smartWalletPartialSchema);
 
 const gcpKmsWalletSchema = z
   .object({
@@ -87,7 +87,7 @@ const smartGcpKmsWalletSchema = gcpKmsWalletSchema
   .extend({
     type: z.literal("smart:gcp-kms"),
   })
-  .merge(smartWalletPartialSchema)
+  .merge(smartWalletPartialSchema);
 
 const circleWalletSchema = z
   .object({
@@ -95,6 +95,7 @@ const circleWalletSchema = z
     platformIdentifiers: z.object({
       circleWalletId: z.string(),
       walletSetId: z.string(),
+      isTestnet: z.boolean(),
     }),
     credentialId: z.string(),
   })
@@ -104,7 +105,7 @@ const smartCircleWalletSchema = circleWalletSchema
   .extend({
     type: z.literal("smart:circle"),
   })
-  .merge(smartWalletPartialSchema)
+  .merge(smartWalletPartialSchema);
 
 const walletDetailsSchema = z.discriminatedUnion("type", [
   localWalletSchema,
