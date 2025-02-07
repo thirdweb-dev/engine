@@ -33,6 +33,7 @@ import {
   CircleWalletError,
   createCircleWalletDetails,
 } from "../../utils/wallets/circle";
+import assert from "node:assert";
 
 const requestBodySchema = Type.Union([
   // Base schema for non-circle wallet types
@@ -87,7 +88,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
     handler: async (req, reply) => {
       const { label } = req.body;
 
-      let walletAddress: string | undefined = undefined;
+      let walletAddress: string;
       const config = await getConfig();
 
       const walletType =
@@ -129,9 +130,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
         case CircleWalletType.circle:
           {
             // we need this if here for typescript to statically type the credentialId and walletSetId
-            if (req.body.type !== "circle")
-              throw new Error("Invalid Circle wallet type"); // invariant
-
+            assert(req.body.type === "circle", "Expected circle wallet type");
             const { credentialId, walletSetId } = req.body;
 
             try {
@@ -159,9 +158,7 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
         case CircleWalletType.smartCircle:
           {
             // we need this if here for typescript to statically type the credentialId and walletSetId
-            if (req.body.type !== "smart:circle")
-              throw new Error("Invalid Circle wallet type"); // invariant
-
+            assert(req.body.type === "circle", "Expected circle wallet type");
             const { credentialId, walletSetId } = req.body;
 
             try {
@@ -235,10 +232,12 @@ export const createBackendWallet = async (fastify: FastifyInstance) => {
             walletAddress = getAddress(smartLocalWallet.address);
           }
           break;
-      }
-
-      if (!walletAddress) {
-        throw new Error("Invalid state"); // invariant, typescript cannot exhaustive check because enums
+        default:
+          throw createCustomError(
+            "Unkown wallet type",
+            StatusCodes.BAD_REQUEST,
+            "CREATE_WALLET_ERROR",
+          );
       }
 
       reply.status(StatusCodes.OK).send({

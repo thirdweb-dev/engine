@@ -3,21 +3,9 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAllWalletCredentials } from "../../../shared/db/wallet-credentials/get-all-wallet-credentials";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { PaginationSchema } from "../../schemas/pagination";
 
-const QuerySchema = Type.Object({
-  page: Type.Integer({
-    description: "The page of credentials to get.",
-    examples: ["1"],
-    default: "1",
-    minimum: 1,
-  }),
-  limit: Type.Integer({
-    description: "The number of credentials to get per page.",
-    examples: ["10"],
-    default: "10",
-    minimum: 1,
-  }),
-});
+const QuerySchema = PaginationSchema;
 
 const responseSchema = Type.Object({
   result: Type.Array(
@@ -25,10 +13,9 @@ const responseSchema = Type.Object({
       id: Type.String(),
       type: Type.String(),
       label: Type.Union([Type.String(), Type.Null()]),
-      isDefault: Type.Boolean(),
+      isDefault: Type.Union([Type.Boolean(), Type.Null()]),
       createdAt: Type.String(),
       updatedAt: Type.String(),
-      deletedAt: Type.Union([Type.String(), Type.Null()]),
     }),
   ),
 });
@@ -76,9 +63,8 @@ export async function getAllWalletCredentialsRoute(fastify: FastifyInstance) {
           ...cred,
           createdAt: cred.createdAt.toISOString(),
           updatedAt: cred.updatedAt.toISOString(),
-          deletedAt: cred.deletedAt?.toISOString() || null,
         })),
       });
     },
   });
-} 
+}

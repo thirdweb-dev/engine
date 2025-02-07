@@ -30,7 +30,7 @@ const responseSchema = Type.Object({
     id: Type.String(),
     type: Type.String(),
     label: Type.String(),
-    isDefault: Type.Boolean(),
+    isDefault: Type.Union([Type.Boolean(), Type.Null()]),
     createdAt: Type.String(),
     updatedAt: Type.String(),
   }),
@@ -47,9 +47,7 @@ responseSchema.example = {
   },
 };
 
-export const createWalletCredentialRoute = async (
-  fastify: FastifyInstance,
-) => {
+export const createWalletCredentialRoute = async (fastify: FastifyInstance) => {
   fastify.withTypeProvider().route<{
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseSchema>;

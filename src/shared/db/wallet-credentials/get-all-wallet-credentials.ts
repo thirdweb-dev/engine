@@ -8,7 +8,6 @@ interface GetAllWalletCredentialsParams {
 }
 
 export const getAllWalletCredentials = async ({
-  pgtx,
   page = 1,
   limit = 10,
 }: GetAllWalletCredentialsParams) => {
@@ -27,7 +26,6 @@ export const getAllWalletCredentials = async ({
       isDefault: true,
       createdAt: true,
       updatedAt: true,
-      deletedAt: true,
     },
     orderBy: {
       createdAt: "desc",

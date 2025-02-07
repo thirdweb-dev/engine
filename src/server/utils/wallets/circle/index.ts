@@ -26,6 +26,7 @@ import {
   DEFAULT_ACCOUNT_FACTORY_V0_7,
   ENTRYPOINT_ADDRESS_v0_7,
 } from "thirdweb/wallets/smart";
+import { stringify } from "thirdweb/utils";
 
 export class CircleWalletError extends Error {
   constructor(message: string) {
@@ -64,12 +65,11 @@ export async function provisionCircleWallet({
       });
 
     walletSetId = walletSet.data?.walletSet.id;
+    if (!walletSetId)
+      throw new CircleWalletError(
+        "Did not receive walletSetId, and failed to create one automatically",
+      );
   }
-
-  if (!walletSetId)
-    throw new CircleWalletError(
-      "Did not receive walletSetId, and failed to create one automatically",
-    );
 
   const provisionWalletResponse = await circleDeveloperSdk
     .createWallets({
@@ -152,15 +152,6 @@ export async function getCircleAccount({
   }
   const wallet = walletResponse.data?.wallet;
   const address = wallet?.address as Address;
-
-  function stringify(data: unknown) {
-    return JSON.stringify(data, (_, value) => {
-      if (typeof value === "bigint") {
-        return value.toString();
-      }
-      return value;
-    });
-  }
 
   async function signTransaction(tx: SerializableTransaction) {
     const signature = await circleDeveloperSdk

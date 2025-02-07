@@ -120,15 +120,15 @@ model WalletDetails {
 }
 
 model WalletCredentials {
-  id        String  @id @default(uuid()) @map("id")
-  type      String  @map("type")
-  label     String  @map("label")
-  data      Json    @map("data")
-  isDefault Boolean @default(false) @map("isDefault")
+  id        String   @id @default(uuid())
+  type      String
+  label     String
+  data      Json
+  isDefault Boolean? @default(false)
 
-  createdAt DateTime  @default(now()) @map("createdAt")
-  updatedAt DateTime  @updatedAt @map("updatedAt")
-  deletedAt DateTime? @map("deletedAt")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   wallets WalletDetails[]
 

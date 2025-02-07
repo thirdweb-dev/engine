@@ -58,7 +58,6 @@ const smartLocalWalletSchema = localWalletSchema
     type: z.literal("smart:local"),
   })
   .merge(smartWalletPartialSchema)
-  .merge(baseWalletPartialSchema);
 
 const awsKmsWalletSchema = z
   .object({
@@ -74,7 +73,6 @@ const smartAwsKmsWalletSchema = awsKmsWalletSchema
     type: z.literal("smart:aws-kms"),
   })
   .merge(smartWalletPartialSchema)
-  .merge(baseWalletPartialSchema);
 
 const gcpKmsWalletSchema = z
   .object({
@@ -90,7 +88,6 @@ const smartGcpKmsWalletSchema = gcpKmsWalletSchema
     type: z.literal("smart:gcp-kms"),
   })
   .merge(smartWalletPartialSchema)
-  .merge(baseWalletPartialSchema);
 
 const circleWalletSchema = z
   .object({
@@ -108,7 +105,6 @@ const smartCircleWalletSchema = circleWalletSchema
     type: z.literal("smart:circle"),
   })
   .merge(smartWalletPartialSchema)
-  .merge(baseWalletPartialSchema);
 
 const walletDetailsSchema = z.discriminatedUnion("type", [
   localWalletSchema,
@@ -124,7 +120,8 @@ const walletDetailsSchema = z.discriminatedUnion("type", [
 export type SmartBackendWalletDetails =
   | z.infer<typeof smartLocalWalletSchema>
   | z.infer<typeof smartAwsKmsWalletSchema>
-  | z.infer<typeof smartGcpKmsWalletSchema>;
+  | z.infer<typeof smartGcpKmsWalletSchema>
+  | z.infer<typeof smartCircleWalletSchema>;
 
 export function isSmartBackendWallet(
   wallet: ParsedWalletDetails,

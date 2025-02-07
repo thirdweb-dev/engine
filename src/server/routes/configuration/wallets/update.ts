@@ -22,11 +22,6 @@ const requestBodySchema = Type.Union([
     gcpApplicationCredentialPrivateKey: Type.String(),
   }),
   Type.Object({
-    awsAccessKeyId: Type.String(),
-    awsSecretAccessKey: Type.String(),
-    awsRegion: Type.String(),
-  }),
-  Type.Object({
     circleApiKey: Type.String(),
   }),
 ]);
