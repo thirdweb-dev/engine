@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { createCustomError } from "../../../server/middleware/error";
 import { abiSchema } from "../../../server/schemas/contract";
 import { getSdk } from "./get-sdk";
-import { ThirdwebSDK } from "@thirdweb-dev/sdk";
+import type { ThirdwebSDK } from "@thirdweb-dev/sdk";
 
 const abiArraySchema = Type.Array(abiSchema);
 
