@@ -1,4 +1,4 @@
-import { getPrismaWithPostgresTx } from "../client";
+import { prisma } from "../client";
 import type { PrismaTransaction } from "../../schemas/prisma";
 
 interface GetAllWalletCredentialsParams {
@@ -11,8 +11,6 @@ export const getAllWalletCredentials = async ({
   page = 1,
   limit = 10,
 }: GetAllWalletCredentialsParams) => {
-  const prisma = getPrismaWithPostgresTx(pgtx);
-
   const credentials = await prisma.walletCredentials.findMany({
     where: {
       deletedAt: null,
@@ -33,4 +31,4 @@ export const getAllWalletCredentials = async ({
   });
 
   return credentials;
-}; 
+};
