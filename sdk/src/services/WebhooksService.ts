@@ -38,7 +38,7 @@ export class WebhooksService {
     }
 
     /**
-     * Create a webhook
+     * Create webhook
      * Create a webhook to call when a specific Engine event occurs.
      * @param requestBody
      * @returns any Default Response

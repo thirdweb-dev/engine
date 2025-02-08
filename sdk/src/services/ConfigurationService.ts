@@ -17,7 +17,7 @@ export class ConfigurationService {
      */
     public getWalletsConfiguration(): CancelablePromise<{
         result: {
-            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
+            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local' | 'circle' | 'smart:circle');
             awsAccessKeyId: (string | null);
             awsRegion: (string | null);
             gcpApplicationProjectId: (string | null);
@@ -55,10 +55,12 @@ export class ConfigurationService {
             gcpKmsKeyRingId: string;
             gcpApplicationCredentialEmail: string;
             gcpApplicationCredentialPrivateKey: string;
+        } | {
+            circleApiKey: string;
         }),
     ): CancelablePromise<{
         result: {
-            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
+            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local' | 'circle' | 'smart:circle');
             awsAccessKeyId: (string | null);
             awsRegion: (string | null);
             gcpApplicationProjectId: (string | null);
@@ -329,7 +331,8 @@ export class ConfigurationService {
      */
     public getAuthConfiguration(): CancelablePromise<{
         result: {
-            domain: string;
+            authDomain: string;
+            mtlsCertificate: (string | null);
         };
     }> {
         return this.httpRequest.request({
@@ -351,12 +354,21 @@ export class ConfigurationService {
      * @throws ApiError
      */
     public updateAuthConfiguration(
-        requestBody: {
-            domain: string;
+        requestBody?: {
+            authDomain?: string;
+            /**
+             * Engine certificate used for outbound mTLS requests. Must provide the full certificate chain.
+             */
+            mtlsCertificate?: string;
+            /**
+             * Engine private key used for outbound mTLS requests.
+             */
+            mtlsPrivateKey?: string;
         },
     ): CancelablePromise<{
         result: {
-            domain: string;
+            authDomain: string;
+            mtlsCertificate: (string | null);
         };
     }> {
         return this.httpRequest.request({

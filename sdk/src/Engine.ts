@@ -30,6 +30,7 @@ import { MarketplaceOffersService } from './services/MarketplaceOffersService';
 import { PermissionsService } from './services/PermissionsService';
 import { RelayerService } from './services/RelayerService';
 import { TransactionService } from './services/TransactionService';
+import { WalletCredentialsService } from './services/WalletCredentialsService';
 import { WebhooksService } from './services/WebhooksService';
 
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
@@ -60,6 +61,7 @@ class EngineLogic {
     public readonly permissions: PermissionsService;
     public readonly relayer: RelayerService;
     public readonly transaction: TransactionService;
+    public readonly walletCredentials: WalletCredentialsService;
     public readonly webhooks: WebhooksService;
 
     public readonly request: BaseHttpRequest;
@@ -101,6 +103,7 @@ class EngineLogic {
         this.permissions = new PermissionsService(this.request);
         this.relayer = new RelayerService(this.request);
         this.transaction = new TransactionService(this.request);
+        this.walletCredentials = new WalletCredentialsService(this.request);
         this.webhooks = new WebhooksService(this.request);
     }
 }

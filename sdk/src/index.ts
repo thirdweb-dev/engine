@@ -34,4 +34,5 @@ export { MarketplaceOffersService } from './services/MarketplaceOffersService';
 export { PermissionsService } from './services/PermissionsService';
 export { RelayerService } from './services/RelayerService';
 export { TransactionService } from './services/TransactionService';
+export { WalletCredentialsService } from './services/WalletCredentialsService';
 export { WebhooksService } from './services/WebhooksService';
