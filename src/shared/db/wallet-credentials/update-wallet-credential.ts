@@ -1,11 +1,7 @@
 import { getWalletCredential } from "./get-wallet-credential";
 import { encrypt } from "../../utils/crypto";
-import { z } from "zod";
 import { prisma } from "../client";
-
-const entitySecretSchema = z.string().regex(/^[0-9a-fA-F]{64}$/, {
-  message: "entitySecret must be a 32-byte hex string",
-});
+import { cirlceEntitySecretZodSchema } from "../../schemas/wallet";
 
 interface UpdateWalletCredentialParams {
   id: string;
@@ -39,7 +35,7 @@ export const updateWalletCredential = async ({
 
   if (entitySecret) {
     // Validate the entity secret
-    entitySecretSchema.parse(entitySecret);
+    cirlceEntitySecretZodSchema.parse(entitySecret);
 
     // Only update data field if entitySecret is provided
     data.data = {
