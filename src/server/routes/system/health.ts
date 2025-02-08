@@ -13,7 +13,7 @@ type EngineFeature =
   | "HETEROGENEOUS_WALLET_TYPES"
   | "SMART_BACKEND_WALLETS";
 
-const ReplySchemaOk = Type.Object({
+const ReplySchema = Type.Object({
   db: Type.Boolean(),
   redis: Type.Boolean(),
   auth: Type.Boolean(),
@@ -31,15 +31,9 @@ const ReplySchemaOk = Type.Object({
   clientId: Type.String(),
 });
 
-const ReplySchemaError = Type.Object({
-  error: Type.String(),
-});
-
-const responseBodySchema = Type.Union([ReplySchemaOk, ReplySchemaError]);
-
 export async function healthCheck(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof responseBodySchema>;
+    Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
     url: "/system/health",
@@ -50,8 +44,8 @@ export async function healthCheck(fastify: FastifyInstance) {
       tags: ["System"],
       operationId: "checkHealth",
       response: {
-        [StatusCodes.OK]: ReplySchemaOk,
-        [StatusCodes.SERVICE_UNAVAILABLE]: ReplySchemaError,
+        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.SERVICE_UNAVAILABLE]: ReplySchema,
       },
     },
     handler: async (_, res) => {
