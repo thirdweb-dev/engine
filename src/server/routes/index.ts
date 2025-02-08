@@ -116,6 +116,7 @@ import { sendTransactionBatchAtomicRoute } from "./backend-wallet/send-transacti
 import { createWalletCredentialRoute } from "./wallet-credentials/create";
 import { getWalletCredentialRoute } from "./wallet-credentials/get";
 import { getAllWalletCredentialsRoute } from "./wallet-credentials/get-all";
+import { updateWalletCredentialRoute } from "./wallet-credentials/update";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -144,6 +145,7 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(createWalletCredentialRoute);
   await fastify.register(getWalletCredentialRoute);
   await fastify.register(getAllWalletCredentialsRoute);
+  await fastify.register(updateWalletCredentialRoute);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);

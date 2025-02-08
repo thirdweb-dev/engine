@@ -23,21 +23,19 @@ export const createWalletCredential = async ({
       const circleApiKey = walletConfiguration.circle?.apiKey;
       if (!circleApiKey) {
         throw new WalletCredentialsError("No Circle API Key Configured");
-      }     
+      }
       // Create the wallet credentials
       const walletCredentials = await prisma.walletCredentials.create({
         data: {
           type,
           label,
-          isDefault: isDefault ? true : null,
+          isDefault: isDefault || null,
           data: {
             entitySecret: encrypt(entitySecret),
           },
         },
       });
-        return walletCredentials;
-      }
-
+      return walletCredentials;
     }
   }
 };
