@@ -9,13 +9,11 @@ import { createCustomError } from "../../middleware/error";
 const requestBodySchema = Type.Object({
   label: Type.String(),
   type: Type.Literal("circle"),
-  entitySecret: Type.Optional(
-    Type.String({
-      description:
-        "32-byte hex string. If not provided, a random one will be generated.",
-      pattern: "^[0-9a-fA-F]{64}$",
-    }),
-  ),
+  entitySecret: Type.String({
+    description:
+      "32-byte hex string. Consult https://developers.circle.com/w3s/entity-secret-management to create and register an entity secret.",
+    pattern: "^[0-9a-fA-F]{64}$",
+  }),
   isDefault: Type.Optional(
     Type.Boolean({
       description:
@@ -98,6 +96,7 @@ export const createWalletCredentialRoute = async (fastify: FastifyInstance) => {
             "WALLET_CREDENTIAL_ERROR",
           );
         }
+        throw e;
       }
     },
   });

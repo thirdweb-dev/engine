@@ -18,7 +18,7 @@ const walletCredentialsSchema = z.object({
   data: z.object({
     entitySecret: z.string(),
   }),
-  isDefault: z.boolean(),
+  isDefault: z.boolean().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   deletedAt: z.date().nullable(),
