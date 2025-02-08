@@ -10,7 +10,7 @@ export function sanitizeAbi(abi: AbiSchemaType | undefined): Abi | undefined {
     if (item.type === "function") {
       return {
         ...item,
-        // older versions of engine allowed passing in empty inputs/outputs, but necesasry for abi validation
+        // older versions of engine allowed passing in empty inputs/outputs, but necessary for abi validation
         inputs: item.inputs || [],
         outputs: item.outputs || [],
       };
