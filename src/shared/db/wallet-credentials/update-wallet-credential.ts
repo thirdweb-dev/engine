@@ -1,4 +1,3 @@
-import type { PrismaTransaction } from "../../schemas/prisma";
 import { getWalletCredential } from "./get-wallet-credential";
 import { encrypt } from "../../utils/crypto";
 import { z } from "zod";
@@ -9,7 +8,6 @@ const entitySecretSchema = z.string().regex(/^[0-9a-fA-F]{64}$/, {
 });
 
 interface UpdateWalletCredentialParams {
-  pgtx?: PrismaTransaction;
   id: string;
   label?: string;
   isDefault?: boolean;
