@@ -3983,13 +3983,15 @@
     yaml "^2.4.1"
     zod "^3.22.4"
 
-"@thirdweb-dev/service-utils@^0.4.28":
-  version "0.4.52"
-  resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.4.52.tgz#6473ab0fabf7e9ee138776855c5bb4729f88efdb"
-  integrity sha512-24g+juzurNBRQ4llwQBbfQE/msQplFTbnDsp2ihxkb9KThTwI5+d/jWvEoXumFDWm3Ji+FDBJIbNaY9H2Fz6AQ==
+"@thirdweb-dev/service-utils@^0.8.8-nightly-cad9c74befe33bef2cc6a12a8ade8d9c996ffe41-20250209100117":
+  version "0.8.8-nightly-cad9c74befe33bef2cc6a12a8ade8d9c996ffe41-20250209100117"
+  resolved "https://registry.yarnpkg.com/@thirdweb-dev/service-utils/-/service-utils-0.8.8-nightly-cad9c74befe33bef2cc6a12a8ade8d9c996ffe41-20250209100117.tgz#b109e191e2e685977809447e7a6d80ca99594526"
+  integrity sha512-NZHxg/lBipF3dLl3P8HMA4FASdOLjmyAXQFlsFFaWpP9LgawPwauwzLOD79Ym+MnpHVbIFn30pZbus9Ob5WTqg==
   dependencies:
     aws4fetch "1.0.20"
-    zod "3.23.8"
+    kafkajs "2.2.4"
+    lz4js "0.2.0"
+    zod "3.24.1"
 
 "@thirdweb-dev/storage@2.0.15":
   version "2.0.15"
@@ -7972,6 +7974,11 @@ jws@^4.0.0:
     jwa "^2.0.0"
     safe-buffer "^5.0.1"
 
+kafkajs@2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/kafkajs/-/kafkajs-2.2.4.tgz#59e6e16459d87fdf8b64be73970ed5aa42370a5b"
+  integrity sha512-j/YeapB1vfPT2iOIUn/vxdyKEuhuY2PxMBvf5JWux6iSaukAccrMtXEY/Lb7OvavDhOWME589bpLrEdnVHjfjA==
+
 keccak@^3.0.0, keccak@^3.0.2, keccak@^3.0.3:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/keccak/-/keccak-3.0.4.tgz#edc09b89e633c0549da444432ecf062ffadee86d"
@@ -8259,6 +8266,11 @@ luxon@^3.2.1:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.5.0.tgz#6b6f65c5cd1d61d1fd19dbf07ee87a50bf4b8e20"
   integrity sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==
+
+lz4js@0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/lz4js/-/lz4js-0.2.0.tgz#09f1a397cb2158f675146c3351dde85058cb322f"
+  integrity sha512-gY2Ia9Lm7Ep8qMiuGRhvUq0Q7qUereeldZPP1PMEJxPtEWHJLqw9pgX68oHajBH0nzJK4MaZEA/YNV3jT8u8Bg==
 
 magic-sdk@^13.6.2:
   version "13.6.2"
@@ -11357,12 +11369,7 @@ zod-to-json-schema@^3.23.0:
   resolved "https://registry.yarnpkg.com/zod-to-json-schema/-/zod-to-json-schema-3.24.1.tgz#f08c6725091aadabffa820ba8d50c7ab527f227a"
   integrity sha512-3h08nf3Vw3Wl3PK+q3ow/lIil81IT2Oa7YpQyUUDsEWbXveMesdfK1xBd2RhCkynwZndAxixji/7SYJJowr62w==
 
-zod@3.23.8:
-  version "3.23.8"
-  resolved "https://registry.yarnpkg.com/zod/-/zod-3.23.8.tgz#e37b957b5d52079769fb8097099b592f0ef4067d"
-  integrity sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==
-
-zod@^3.21.4, zod@^3.22.4, zod@^3.23.8:
+zod@3.24.1, zod@^3.21.4, zod@^3.22.4, zod@^3.23.8:
   version "3.24.1"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.24.1.tgz#27445c912738c8ad1e9de1bea0359fa44d9d35ee"
   integrity sha512-muH7gBL9sI1nciMZV67X5fTKKBLtwpZ5VBp1vsOQzj1MhrBZ4wlVCm3gedKZWLp0Oyel8sIGfeiz54Su+OVT+A==
