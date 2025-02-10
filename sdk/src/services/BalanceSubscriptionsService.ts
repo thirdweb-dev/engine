@@ -68,7 +68,7 @@ export class BalanceSubscriptionsService {
      * @throws ApiError
      */
     public addBalanceSubscription(
-        requestBody: {
+        requestBody?: ({
             /**
              * A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
              */
@@ -93,11 +93,21 @@ export class BalanceSubscriptionsService {
                     max?: string;
                 };
             };
+        } & ({
             /**
-             * Webhook URL
+             * Webhook URL to create a new webhook
              */
-            webhookUrl?: string;
-        },
+            webhookUrl: string;
+            /**
+             * Optional label for the webhook when creating a new one
+             */
+            webhookLabel?: string;
+        } | {
+            /**
+             * ID of an existing webhook to use
+             */
+            webhookId: number;
+        })),
     ): CancelablePromise<{
         result: {
             id: string;
