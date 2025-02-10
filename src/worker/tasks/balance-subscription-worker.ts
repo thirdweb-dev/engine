@@ -12,10 +12,9 @@ import {
 } from "../../shared/schemas/webhooks";
 import { parseBalanceSubscriptionConfig } from "../../shared/schemas/balance-subscription-config";
 import { getChain } from "../../shared/utils/chain";
-import { eth_getBalance, getContract, getRpcClient } from "thirdweb";
 import { thirdwebClient } from "../../shared/utils/sdk";
-import { balanceOf } from "thirdweb/extensions/erc20";
 import { maxUint256 } from "thirdweb/utils";
+import { getWalletBalance } from "thirdweb/wallets";
 
 // Split array into chunks of specified size
 function chunk<T>(arr: T[], size: number): T[][] {
@@ -67,26 +66,15 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
           // Get the current balance
           let currentBalance: bigint;
           const chain = await getChain(Number.parseInt(subscription.chainId));
-          if (subscription.contractAddress) {
-            const contract = getContract({
-              address: subscription.contractAddress,
-              chain: chain,
-              client: thirdwebClient,
-            });
 
-            currentBalance = await balanceOf({
-              contract,
-              address: subscription.walletAddress,
-            });
-          } else {
-            const rpcRequest = getRpcClient({
-              chain,
-              client: thirdwebClient,
-            });
-            currentBalance = await eth_getBalance(rpcRequest, {
-              address: subscription.walletAddress,
-            });
-          }
+          const currentBalanceResponse = await getWalletBalance({
+            address: subscription.walletAddress,
+            client: thirdwebClient,
+            tokenAddress: subscription.contractAddress ?? undefined, // get ERC20 balance if contract address is provided
+            chain,
+          });
+
+          currentBalance = currentBalanceResponse.value;
 
           const max = subscription.config.threshold?.max
             ? BigInt(subscription.config.threshold.max)
