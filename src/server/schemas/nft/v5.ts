@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
-import { nftInputSchema } from ".";
-import { AddressSchema } from "../address";
+import { nftInputSchema } from "./index.js";
+import { AddressSchema } from "../address.js";
 
 /**
  * ERC721

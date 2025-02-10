@@ -1,12 +1,12 @@
-import { knex } from "../../shared/db/client";
-import { TransactionDB } from "../../shared/db/transactions/db";
-import { logger } from "../../shared/utils/logger";
-import { toTransactionSchema } from "../schemas/transaction";
-import { subscriptionsData } from "../schemas/websocket";
+import { knex } from "../../shared/db/client.js";
+import { TransactionDB } from "../../shared/db/transactions/db.js";
+import { logger } from "../../shared/utils/logger.js";
+import { toTransactionSchema } from "../schemas/transaction/index.js";
+import { subscriptionsData } from "../schemas/websocket/index.js";
 import {
   formatSocketMessage,
   getStatusMessageAndConnectionStatus,
-} from "../utils/websocket";
+} from "../utils/websocket.js";
 
 export const updateTxListener = async (): Promise<void> => {
   logger({
@@ -33,6 +33,15 @@ export const updateTxListener = async (): Promise<void> => {
       }
 
       const userSubscription = subscriptionsData[index];
+      if (!userSubscription) {
+        logger({
+          service: "server",
+          level: "error",
+          message: `[updateTxListener] User subscription not found for queueId: ${parsedPayload.id}`,
+        });
+        return;
+      }
+
       const transaction = await TransactionDB.get(parsedPayload.id);
       const returnData = transaction ? toTransactionSchema(transaction) : null;
 

@@ -10,40 +10,40 @@ import {
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import { getUserOpReceipt } from "thirdweb/wallets/smart";
-import { TransactionDB } from "../../shared/db/transactions/db";
+import { TransactionDB } from "../../shared/db/transactions/db.js";
 import {
   recycleNonce,
   removeSentNonce,
-} from "../../shared/db/wallets/wallet-nonce";
+} from "../../shared/db/wallets/wallet-nonce.js";
 import {
   getReceiptForEOATransaction,
   getReceiptForUserOp,
-} from "../../shared/lib/transaction/get-transaction-receipt";
-import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
-import { getBlockNumberish } from "../../shared/utils/block";
-import { getConfig } from "../../shared/utils/cache/get-config";
-import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook";
-import { getChain } from "../../shared/utils/chain";
-import { msSince } from "../../shared/utils/date";
-import { env } from "../../shared/utils/env";
-import { prettifyError } from "../../shared/utils/error";
-import { logger } from "../../shared/utils/logger";
-import { recordMetrics } from "../../shared/utils/prometheus";
-import { redis } from "../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../shared/utils/sdk";
+} from "../../shared/lib/transaction/get-transaction-receipt.js";
+import { WebhooksEventTypes } from "../../shared/schemas/webhooks.js";
+import { getBlockNumberish } from "../../shared/utils/block.js";
+import { getConfig } from "../../shared/utils/cache/get-config.js";
+import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook.js";
+import { getChain } from "../../shared/utils/chain.js";
+import { msSince } from "../../shared/utils/date.js";
+import { env } from "../../shared/utils/env.js";
+import { prettifyError } from "../../shared/utils/error.js";
+import { logger } from "../../shared/utils/logger.js";
+import { recordMetrics } from "../../shared/utils/prometheus.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { thirdwebClient } from "../../shared/utils/sdk.js";
 import type {
   ErroredTransaction,
   MinedTransaction,
   SentTransaction,
-} from "../../shared/utils/transaction/types";
-import { enqueueTransactionWebhook } from "../../shared/utils/transaction/webhook";
-import { reportUsage } from "../../shared/utils/usage";
+} from "../../shared/utils/transaction/types.js";
+import { enqueueTransactionWebhook } from "../../shared/utils/transaction/webhook.js";
+import { reportUsage } from "../../shared/utils/usage.js";
 import {
   MineTransactionQueue,
   type MineTransactionData,
-} from "../queues/mine-transaction-queue";
-import { SendTransactionQueue } from "../queues/send-transaction-queue";
-import { SendWebhookQueue } from "../queues/send-webhook-queue";
+} from "../queues/mine-transaction-queue.js";
+import { SendTransactionQueue } from "../queues/send-transaction-queue.js";
+import { SendWebhookQueue } from "../queues/send-webhook-queue.js";
 
 /**
  * Check if the submitted transaction or userOp is mined onchain.

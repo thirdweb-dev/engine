@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.js";
 
 export const deleteWebhook = async (id: number) => {
   const now = new Date();

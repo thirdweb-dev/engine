@@ -1,15 +1,33 @@
-import type { TypedDataSigner } from "@ethersproject/abstract-signer";
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getWallet } from "../../../shared/utils/cache/get-wallet";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { walletHeaderSchema } from "../../schemas/wallet";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import {
+  requiredAddress,
+  walletHeaderSchema,
+} from "../../schemas/wallet/index.js";
+import { getAccount } from "../../../shared/utils/account.js";
 
 const requestBodySchema = Type.Object({
   domain: Type.Object({}, { additionalProperties: true }),
   types: Type.Object({}, { additionalProperties: true }),
   value: Type.Object({}, { additionalProperties: true }),
+  message: Type.Optional(
+    Type.Object(
+      {},
+      {
+        additionalProperties: true,
+        description:
+          "The message to sign. Left optional for backwards compatibility, but recommended instead of value.",
+      },
+    ),
+  ),
+  primaryType: Type.Optional(
+    Type.String({
+      description:
+        "The primary type of the message. Falls-back to the first type in the types object. Left optional for backwards compatibility, but highly recommended.",
+    }),
+  ),
 });
 
 const responseBodySchema = Type.Object({
@@ -36,14 +54,31 @@ export async function signTypedData(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { domain, value, types } = request.body;
+      const { domain, value, types, message, primaryType } = request.body;
       const { "x-backend-wallet-address": walletAddress } =
         request.headers as Static<typeof walletHeaderSchema>;
 
-      const wallet = await getWallet({ chainId: 1, walletAddress });
+      const accountAddress = requiredAddress(
+        walletAddress,
+        "x-backend-wallet-address",
+      );
 
-      const signer = (await wallet.getSigner()) as unknown as TypedDataSigner;
-      const result = await signer._signTypedData(domain, types, value);
+      const account = await getAccount({ from: accountAddress, chainId: 1 });
+
+      // @ts-ignore
+      const result = await account.signTypedData({
+        domain: domain,
+        types: types,
+        // @ts-ignore
+        message: message ?? value,
+        // @ts-ignore
+        primaryType:
+          primaryType ??
+          Object.keys(types as Record<string, unknown>).find(
+            (k) => k !== "EIP712Domain",
+          ) ??
+          Object.keys(types)[0],
+      });
 
       reply.status(StatusCodes.OK).send({
         result: result,

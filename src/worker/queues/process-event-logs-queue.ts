@@ -1,9 +1,9 @@
 import { Queue } from "bullmq";
 import SuperJSON from "superjson";
 import type { Address } from "thirdweb";
-import { getConfig } from "../../shared/utils/cache/get-config";
-import { redis } from "../../shared/utils/redis/redis";
-import { defaultJobOptions } from "./queues";
+import { getConfig } from "../../shared/utils/cache/get-config.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { defaultJobOptions } from "./queues.js";
 
 // Each job handles a block range for a given chain, filtered by addresses + events.
 export type EnqueueProcessEventLogsData = {
@@ -35,12 +35,11 @@ export class ProcessEventsLogQueue {
     // The last attempt should attempt repeatedly to handle extended RPC issues.
     // This backoff attempts at intervals:
     // 30s, 1m, 2m, 4m, 8m, 16m, 32m, ~1h, ~2h, ~4h
-    for (let i = 0; i < requeryDelays.length; i++) {
-      const delay = Number.parseInt(requeryDelays[i]) * 1000;
-      const attempts = i === requeryDelays.length - 1 ? 10 : 0;
+    for (const [i, delay] of requeryDelays.entries()) {
+      const isLastAttempt = i === requeryDelays.length - 1;
       await this.q.add(jobName, serialized, {
-        delay,
-        attempts,
+        delay: Number.parseInt(delay) * 1000,
+        attempts: isLastAttempt ? 10 : 0,
         backoff: { type: "exponential", delay: 30_000 },
       });
     }

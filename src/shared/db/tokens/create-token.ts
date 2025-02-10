@@ -1,5 +1,5 @@
 import { parseJWT } from "@thirdweb-dev/auth";
-import { prisma } from "../client";
+import { prisma } from "../client.js";
 
 interface CreateTokenParams {
   jwt: string;

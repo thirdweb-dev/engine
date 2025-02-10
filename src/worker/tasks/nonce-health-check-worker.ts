@@ -3,12 +3,12 @@ import { getAddress, type Address } from "thirdweb";
 import {
   getUsedBackendWallets,
   inspectNonce,
-} from "../../shared/db/wallets/wallet-nonce";
-import { getLastUsedOnchainNonce } from "../../server/routes/admin/nonces";
-import { logger } from "../../shared/utils/logger";
-import { redis } from "../../shared/utils/redis/redis";
-import { NonceHealthCheckQueue } from "../queues/nonce-health-check-queue";
-import { logWorkerExceptions } from "../queues/queues";
+} from "../../shared/db/wallets/wallet-nonce.js";
+import { getLastUsedOnchainNonce } from "../../server/routes/admin/nonces.js";
+import { logger } from "../../shared/utils/logger.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { NonceHealthCheckQueue } from "../queues/nonce-health-check-queue.js";
+import { logWorkerExceptions } from "../queues/queues.js";
 
 // Configuration
 
@@ -94,6 +94,11 @@ async function isQueueStuck(
     if (index === historicalStates.length - 1) return true;
 
     const previousState = historicalStates[index + 1];
+
+    if (!previousState) {
+      return false;
+    }
+
     return state.largestSentNonce > previousState.largestSentNonce;
   });
 

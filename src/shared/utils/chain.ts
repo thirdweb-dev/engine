@@ -1,5 +1,5 @@
 import { defineChain, type Chain } from "thirdweb";
-import { getConfig } from "./cache/get-config";
+import { getConfig } from "./cache/get-config.js";
 
 /**
  * Get the chain for thirdweb v5 SDK. Supports chain overrides.

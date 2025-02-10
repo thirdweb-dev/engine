@@ -6,11 +6,11 @@ import {
 } from "thirdweb";
 import { isZkSyncChain, stringify } from "thirdweb/utils";
 import { smartWallet, type Account } from "thirdweb/wallets";
-import { getAccount } from "../account";
-import { getSmartWalletV5 } from "../cache/get-smart-wallet-v5";
-import { getChain } from "../chain";
-import { thirdwebClient } from "../sdk";
-import type { AnyTransaction } from "./types";
+import { getAccount } from "../account.js";
+import { getSmartWalletV5 } from "../cache/get-smart-wallet-v5.js";
+import { getChain } from "../chain.js";
+import { thirdwebClient } from "../sdk.js";
+import type { AnyTransaction } from "./types.js";
 
 /**
  * Simulate the queued transaction.

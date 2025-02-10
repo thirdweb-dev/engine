@@ -1,21 +1,21 @@
 import type { EVMWallet } from "@thirdweb-dev/wallets";
 import { AwsKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/aws-kms";
 import { GcpKmsWallet } from "@thirdweb-dev/wallets/evm/wallets/gcp-kms";
-import LRUMap from "mnemonist/lru-map";
 import {
   WalletDetailsError,
   getWalletDetails,
   type ParsedWalletDetails,
-} from "../../db/wallets/get-wallet-details";
-import type { PrismaTransaction } from "../../schemas/prisma";
-import { WalletType } from "../../schemas/wallet";
-import { createCustomError } from "../../../server/middleware/error";
-import { splitAwsKmsArn } from "../../../server/utils/wallets/aws-kms-arn";
-import { splitGcpKmsResourcePath } from "../../../server/utils/wallets/gcp-kms-resource-path";
-import { getLocalWallet } from "../../../server/utils/wallets/get-local-wallet";
-import { getSmartWallet } from "../../../server/utils/wallets/get-smart-wallet";
+} from "../../db/wallets/get-wallet-details.js";
+import type { PrismaTransaction } from "../../schemas/prisma.js";
+import { WalletType } from "../../schemas/wallet.js";
+import { createCustomError } from "../../../server/middleware/error.js";
+import { splitAwsKmsArn } from "../../../server/utils/wallets/aws-kms-arn.js";
+import { splitGcpKmsResourcePath } from "../../../server/utils/wallets/gcp-kms-resource-path.js";
+import { getLocalWallet } from "../../../server/utils/wallets/get-local-wallet.js";
+import { getSmartWallet } from "../../../server/utils/wallets/get-smart-wallet.js";
+import { LRUCache } from "lru-cache";
 
-export const walletsCache = new LRUMap<string, EVMWallet>(2048);
+export const walletsCache = new LRUCache<string, EVMWallet>({ max: 2048 });
 
 interface GetWalletParams {
   pgtx?: PrismaTransaction;

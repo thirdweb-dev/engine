@@ -3,14 +3,14 @@ import type { Queue } from "bullmq";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { stringify } from "thirdweb/utils";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { getConfig } from "../../../shared/utils/cache/get-config";
-import { maybeDate } from "../../../shared/utils/primitive-types";
-import { redis } from "../../../shared/utils/redis/redis";
-import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
-import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { TransactionDB } from "../../../shared/db/transactions/db.js";
+import { getConfig } from "../../../shared/utils/cache/get-config.js";
+import { maybeDate } from "../../../shared/utils/primitive-types.js";
+import { redis } from "../../../shared/utils/redis/redis.js";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue.js";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const requestSchema = Type.Object({
   queueId: Type.String({

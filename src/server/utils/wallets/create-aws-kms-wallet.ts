@@ -3,8 +3,8 @@ import {
   FetchAwsKmsWalletParamsError,
   fetchAwsKmsWalletParams,
   type AwsKmsWalletParams,
-} from "./fetch-aws-kms-wallet-params";
-import { importAwsKmsWallet } from "./import-aws-kms-wallet";
+} from "./fetch-aws-kms-wallet-params.js";
+import { importAwsKmsWallet } from "./import-aws-kms-wallet.js";
 
 export type CreateAwsKmsWalletParams = {
   label?: string;

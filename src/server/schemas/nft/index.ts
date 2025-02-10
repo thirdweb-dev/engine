@@ -1,7 +1,7 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { BigNumber } from "ethers";
-import { AddressSchema } from "../address";
-import { NumberStringSchema } from "../number";
+import { AddressSchema } from "../address.js";
+import { NumberStringSchema } from "../number.js";
 
 // NFTInput format compatible with v5 SDK
 export const nftInputSchema = Type.Partial(

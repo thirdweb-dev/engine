@@ -1,11 +1,11 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { prisma } from "../../../shared/db/client";
-import { AddressSchema } from "../../schemas/address";
-import { chainIdOrSlugSchema } from "../../schemas/chain";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../utils/chain";
+import { prisma } from "../../../shared/db/client.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { chainIdOrSlugSchema } from "../../schemas/chain/index.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
 
 const requestBodySchema = Type.Object({
   name: Type.Optional(Type.String()),

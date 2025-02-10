@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import pg, { type Knex } from "knex";
-import type { PrismaTransaction } from "../schemas/prisma";
-import { env } from "../utils/env";
+import type { PrismaTransaction } from "../schemas/prisma.js";
+import { env } from "../utils/env.js";
 
 export const prisma = new PrismaClient({
   log: ["info"],

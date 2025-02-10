@@ -1,7 +1,7 @@
 import cron from "node-cron";
-import { clearCache } from "../cache/clear-cache";
-import { getConfig } from "../cache/get-config";
-import type { env } from "../env";
+import { clearCache } from "../cache/clear-cache.js";
+import { getConfig } from "../cache/get-config.js";
+import type { env } from "../env.js";
 
 let task: cron.ScheduledTask;
 export const clearCacheCron = async (

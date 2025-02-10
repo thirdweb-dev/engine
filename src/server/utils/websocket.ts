@@ -1,9 +1,12 @@
 import type { SocketStream } from "@fastify/websocket";
 import type { Static } from "@sinclair/typebox";
 import type { FastifyRequest } from "fastify";
-import { logger } from "../../shared/utils/logger";
-import type { TransactionSchema } from "../schemas/transaction";
-import { type UserSubscription, subscriptionsData } from "../schemas/websocket";
+import { logger } from "../../shared/utils/logger.js";
+import type { TransactionSchema } from "../schemas/transaction/index.js";
+import {
+  type UserSubscription,
+  subscriptionsData,
+} from "../schemas/websocket/index.js";
 
 // websocket timeout, i.e., ws connection closed after 10 seconds
 const timeoutDuration = 10 * 60 * 1000;
@@ -48,6 +51,16 @@ export const onError = async (
   }
 
   const userSubscription = subscriptionsData[index];
+
+  if (!userSubscription) {
+    logger({
+      service: "server",
+      level: "error",
+      message: "[onError] User subscription not found",
+    });
+    return;
+  }
+
   subscriptionsData.splice(index, 1);
   userSubscription.socket.send(
     JSON.stringify({
@@ -67,6 +80,16 @@ export const onMessage = async (
 ): Promise<void> => {
   const index = await findWSConnectionInSharedState(connection, request);
   const userSubscription = subscriptionsData[index];
+
+  if (!userSubscription) {
+    logger({
+      service: "server",
+      level: "error",
+      message: "[onMessage] User subscription not found",
+    });
+    return;
+  }
+
   subscriptionsData.splice(index, 1);
   userSubscription.socket.send(
     JSON.stringify({

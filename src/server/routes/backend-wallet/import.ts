@@ -1,14 +1,14 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfig } from "../../../shared/utils/cache/get-config";
-import { createCustomError } from "../../middleware/error";
-import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { getGcpKmsResourcePath } from "../../utils/wallets/gcp-kms-resource-path";
-import { importAwsKmsWallet } from "../../utils/wallets/import-aws-kms-wallet";
-import { importGcpKmsWallet } from "../../utils/wallets/import-gcp-kms-wallet";
-import { importLocalWallet } from "../../utils/wallets/import-local-wallet";
+import { getConfig } from "../../../shared/utils/cache/get-config.js";
+import { createCustomError } from "../../middleware/error.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { getGcpKmsResourcePath } from "../../utils/wallets/gcp-kms-resource-path.js";
+import { importAwsKmsWallet } from "../../utils/wallets/import-aws-kms-wallet.js";
+import { importGcpKmsWallet } from "../../utils/wallets/import-gcp-kms-wallet.js";
+import { importLocalWallet } from "../../utils/wallets/import-local-wallet.js";
 
 const RequestBodySchema = Type.Intersect([
   Type.Object({

@@ -1,7 +1,7 @@
 import type { Address } from "thirdweb";
-import { env } from "../../utils/env";
-import { normalizeAddress } from "../../utils/primitive-types";
-import { redis } from "../../utils/redis/redis";
+import { env } from "../../utils/env.js";
+import { normalizeAddress } from "../../utils/primitive-types.js";
+import { redis } from "../../utils/redis/redis.js";
 
 /**
  * The "nonce map" sorted set stores the queue ID that acquired each nonce.
@@ -51,9 +51,15 @@ export const getNonceMap = async (args: {
 
   const result: { nonce: number; queueId: string }[] = [];
   for (let i = 0; i < elementsWithScores.length; i += 2) {
+    const queueId = elementsWithScores[i];
+    const rawNonce = elementsWithScores[i + 1];
+
+    if (typeof rawNonce !== "string" || !queueId) {
+      continue;
+    }
     result.push({
-      queueId: elementsWithScores[i],
-      nonce: Number.parseInt(elementsWithScores[i + 1]),
+      queueId,
+      nonce: Number.parseInt(rawNonce),
     });
   }
   return result;

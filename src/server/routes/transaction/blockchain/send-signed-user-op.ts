@@ -2,13 +2,13 @@ import { Type, type Static } from "@sinclair/typebox";
 import { Value } from "@sinclair/typebox/value";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../../../../shared/utils/env";
-import { thirdwebClientId } from "../../../../shared/utils/sdk";
-import { TransactionHashSchema } from "../../../schemas/address";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { walletChainParamSchema } from "../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../utils/chain";
-import { prettifyError } from "../../../../shared/utils/error";
+import { env } from "../../../../shared/utils/env.js";
+import { thirdwebClientId } from "../../../../shared/utils/sdk.js";
+import { TransactionHashSchema } from "../../../schemas/address.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { walletChainParamSchema } from "../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
+import { prettifyError } from "../../../../shared/utils/error.js";
 
 const UserOp = Type.Object({
   sender: Type.String(),

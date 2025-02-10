@@ -1,6 +1,6 @@
 import { authenticateJWT } from "@thirdweb-dev/auth";
 import { utils } from "ethers";
-import { env } from "./env";
+import { env } from "./env.js";
 
 export const THIRDWEB_DASHBOARD_ISSUER =
   "0x016757dDf2Ab6a998a4729A80a091308d9059E17";

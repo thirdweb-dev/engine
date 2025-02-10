@@ -1,11 +1,11 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfig } from "../../../../shared/utils/cache/get-config";
+import { getConfig } from "../../../../shared/utils/cache/get-config.js";
 import {
   contractSubscriptionConfigurationSchema,
   standardResponseSchema,
-} from "../../../schemas/shared-api-schemas";
+} from "../../../schemas/shared-api-schemas.js";
 
 const responseSchema = Type.Object({
   result: contractSubscriptionConfigurationSchema,

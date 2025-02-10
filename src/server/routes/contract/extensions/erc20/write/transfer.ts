@@ -3,21 +3,21 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { getChecksumAddress } from "../../../../../../shared/utils/primitive-types";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
-import { AddressSchema } from "../../../../../schemas/address";
-import { TokenAmountStringSchema } from "../../../../../schemas/number";
+import { getChain } from "../../../../../../shared/utils/chain.js";
+import { getChecksumAddress } from "../../../../../../shared/utils/primitive-types.js";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk.js";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation.js";
+import { AddressSchema } from "../../../../../schemas/address.js";
+import { TokenAmountStringSchema } from "../../../../../schemas/number.js";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides.js";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 const requestSchema = erc20ContractParamSchema;
 const requestBodySchema = Type.Object({

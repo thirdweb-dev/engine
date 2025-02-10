@@ -1,14 +1,14 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfiguration } from "../../../../shared/db/configuration/get-configuration";
-import { getTransactionReceiptsByCursor } from "../../../../shared/db/contract-transaction-receipts/get-contract-transaction-receipts";
-import { AddressSchema } from "../../../schemas/address";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { getConfiguration } from "../../../../shared/db/configuration/get-configuration.js";
+import { getTransactionReceiptsByCursor } from "../../../../shared/db/contract-transaction-receipts/get-contract-transaction-receipts.js";
+import { AddressSchema } from "../../../schemas/address.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
 import {
   toTransactionReceiptSchema,
   transactionReceiptSchema,
-} from "../../../schemas/transaction-receipt";
+} from "../../../schemas/transaction-receipt.js";
 
 /* Consider moving all cursor logic inside db file */
 

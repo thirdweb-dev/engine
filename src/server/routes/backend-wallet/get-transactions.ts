@@ -2,15 +2,15 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getAddress } from "thirdweb";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { PaginationSchema } from "../../schemas/pagination";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { TransactionDB } from "../../../shared/db/transactions/db.js";
+import { PaginationSchema } from "../../schemas/pagination.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 import {
   TransactionSchema,
   toTransactionSchema,
-} from "../../schemas/transaction";
-import { walletWithAddressParamSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
+} from "../../schemas/transaction/index.js";
+import { walletWithAddressParamSchema } from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
 
 const requestParamsSchema = walletWithAddressParamSchema;
 

@@ -3,13 +3,13 @@ import { Wallet } from "ethers";
 import type { Address } from "thirdweb";
 import { getChainMetadata } from "thirdweb/chains";
 import { privateKeyToAccount, type Account } from "thirdweb/wallets";
-import { getWalletDetails } from "../../../shared/db/wallets/get-wallet-details";
-import { getChain } from "../../../shared/utils/chain";
-import { env } from "../../../shared/utils/env";
-import { logger } from "../../../shared/utils/logger";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { badChainError } from "../../middleware/error";
-import { LocalFileStorage } from "../storage/local-storage";
+import { getWalletDetails } from "../../../shared/db/wallets/get-wallet-details.js";
+import { getChain } from "../../../shared/utils/chain.js";
+import { env } from "../../../shared/utils/env.js";
+import { logger } from "../../../shared/utils/logger.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
+import { badChainError } from "../../middleware/error.js";
+import { LocalFileStorage } from "../storage/local-storage.js";
 
 interface GetLocalWalletParams {
   chainId: number;

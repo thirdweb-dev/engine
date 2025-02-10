@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getWebhook } from "../../../shared/db/webhooks/get-webhook";
-import { sendWebhookRequest } from "../../../shared/utils/webhook";
-import { createCustomError } from "../../middleware/error";
-import { NumberStringSchema } from "../../schemas/number";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import type { TransactionSchema } from "../../schemas/transaction";
+import { getWebhook } from "../../../shared/db/webhooks/get-webhook.js";
+import { sendWebhookRequest } from "../../../shared/utils/webhook.js";
+import { createCustomError } from "../../middleware/error.js";
+import { NumberStringSchema } from "../../schemas/number.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import type { TransactionSchema } from "../../schemas/transaction/index.js";
 
 const paramsSchema = Type.Object({
   webhookId: NumberStringSchema,

@@ -8,15 +8,27 @@ export function splitAwsKmsArn(arn: string) {
     throw new Error("Invalid AWS KMS ARN");
   }
 
-  const keyId = parts[5].split("/")[1];
+  const keyIdPart = parts[5];
+  if (!keyIdPart) {
+    throw new Error("Invalid AWS KMS ARN");
+  }
+
+  const keyId = keyIdPart.split("/")[1];
   if (!keyId) {
     throw new Error("Invalid AWS KMS ARN");
   }
   const keyIdExtension = parts.slice(6).join(":");
 
+  const region = parts[3];
+  const accountId = parts[4];
+
+  if (!region || !accountId) {
+    throw new Error("Invalid AWS KMS ARN");
+  }
+
   return {
-    region: parts[3],
-    accountId: parts[4],
+    region,
+    accountId,
     keyId: `${keyId}${keyIdExtension ? `:${keyIdExtension}` : ""}`,
   };
 }

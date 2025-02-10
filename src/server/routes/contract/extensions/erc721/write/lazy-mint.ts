@@ -1,18 +1,18 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../shared/db/transactions/queue-tx";
-import { getContract } from "../../../../../../shared/utils/cache/get-contract";
-import { nftOrInputSchema } from "../../../../../schemas/nft";
+import { queueTx } from "../../../../../../shared/db/transactions/queue-tx.js";
+import { getContract } from "../../../../../../shared/utils/cache/get-contract.js";
+import { nftOrInputSchema } from "../../../../../schemas/nft/index.js";
 import {
   contractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides.js";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 // INPUTS
 const requestSchema = contractParamSchema;

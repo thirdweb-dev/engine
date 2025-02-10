@@ -1,11 +1,11 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllWallets } from "../../../shared/db/wallets/get-all-wallets";
+import { getAllWallets } from "../../../shared/db/wallets/get-all-wallets.js";
 import {
   standardResponseSchema,
   walletDetailsSchema,
-} from "../../schemas/shared-api-schemas";
+} from "../../schemas/shared-api-schemas.js";
 
 const QuerySchema = Type.Object({
   page: Type.Integer({

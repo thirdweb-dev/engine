@@ -1,9 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAccessTokens } from "../../../../shared/db/tokens/get-access-tokens";
-import { AddressSchema } from "../../../schemas/address";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { getAccessTokens } from "../../../../shared/db/tokens/get-access-tokens.js";
+import { AddressSchema } from "../../../schemas/address.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
 
 export const AccessTokenSchema = Type.Object({
   id: Type.String(),

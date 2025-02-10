@@ -8,12 +8,22 @@ export function splitGcpKmsResourcePath(resourcePath: string) {
     throw new Error("Invalid GCP KMS resource path");
   }
 
+  const projectId = parts[1];
+  const locationId = parts[3];
+  const keyRingId = parts[5];
+  const cryptoKeyId = parts[7];
+  const versionId = parts[9];
+
+  if (!projectId || !locationId || !keyRingId || !cryptoKeyId || !versionId) {
+    throw new Error("Invalid GCP KMS resource path");
+  }
+
   return {
-    projectId: parts[1],
-    locationId: parts[3],
-    keyRingId: parts[5],
-    cryptoKeyId: parts[7],
-    versionId: parts[9],
+    projectId,
+    locationId,
+    keyRingId,
+    cryptoKeyId,
+    versionId,
   };
 }
 

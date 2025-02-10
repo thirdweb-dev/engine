@@ -1,8 +1,8 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { WebhooksEventTypes } from "../../../shared/schemas/webhooks";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { WebhooksEventTypes } from "../../../shared/schemas/webhooks.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 export const responseBodySchema = Type.Object({
   result: Type.Array(Type.Enum(WebhooksEventTypes)),

@@ -10,29 +10,29 @@ import {
   LegacyWalletType,
   WalletType,
   CircleWalletType,
-} from "../../../shared/schemas/wallet";
-import { getConfig } from "../../../shared/utils/cache/get-config";
-import { createCustomError } from "../../middleware/error";
-import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+} from "../../../shared/schemas/wallet.js";
+import { getConfig } from "../../../shared/utils/cache/get-config.js";
+import { createCustomError } from "../../middleware/error.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 import {
   CreateAwsKmsWalletError,
   createAwsKmsWalletDetails,
-} from "../../utils/wallets/create-aws-kms-wallet";
+} from "../../utils/wallets/create-aws-kms-wallet.js";
 import {
   CreateGcpKmsWalletError,
   createGcpKmsWalletDetails,
-} from "../../utils/wallets/create-gcp-kms-wallet";
-import { createLocalWalletDetails } from "../../utils/wallets/create-local-wallet";
+} from "../../utils/wallets/create-gcp-kms-wallet.js";
+import { createLocalWalletDetails } from "../../utils/wallets/create-local-wallet.js";
 import {
   createSmartAwsWalletDetails,
   createSmartGcpWalletDetails,
   createSmartLocalWalletDetails,
-} from "../../utils/wallets/create-smart-wallet";
+} from "../../utils/wallets/create-smart-wallet.js";
 import {
   CircleWalletError,
   createCircleWalletDetails,
-} from "../../utils/wallets/circle";
+} from "../../utils/wallets/circle/index.js";
 import assert from "node:assert";
 
 const requestBodySchema = Type.Union([

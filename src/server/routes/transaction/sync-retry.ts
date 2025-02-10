@@ -2,22 +2,22 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { toSerializableTransaction } from "thirdweb";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { getReceiptForEOATransaction } from "../../../shared/lib/transaction/get-transaction-receipt";
-import { getAccount } from "../../../shared/utils/account";
-import { getBlockNumberish } from "../../../shared/utils/block";
-import { getChain } from "../../../shared/utils/chain";
+import { TransactionDB } from "../../../shared/db/transactions/db.js";
+import { getReceiptForEOATransaction } from "../../../shared/lib/transaction/get-transaction-receipt.js";
+import { getAccount } from "../../../shared/utils/account.js";
+import { getBlockNumberish } from "../../../shared/utils/block.js";
+import { getChain } from "../../../shared/utils/chain.js";
 import {
   getChecksumAddress,
   maybeBigInt,
-} from "../../../shared/utils/primitive-types";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import type { SentTransaction } from "../../../shared/utils/transaction/types";
-import { enqueueTransactionWebhook } from "../../../shared/utils/transaction/webhook";
-import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
-import { createCustomError } from "../../middleware/error";
-import { TransactionHashSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+} from "../../../shared/utils/primitive-types.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
+import type { SentTransaction } from "../../../shared/utils/transaction/types.js";
+import { enqueueTransactionWebhook } from "../../../shared/utils/transaction/webhook.js";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue.js";
+import { createCustomError } from "../../middleware/error.js";
+import { TransactionHashSchema } from "../../schemas/address.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   queueId: Type.String({

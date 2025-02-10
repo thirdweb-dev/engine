@@ -1,20 +1,20 @@
 import { defineChain, type Address, type Chain } from "thirdweb";
 import { smartWallet, type Account } from "thirdweb/wallets";
-import { createWalletDetails } from "../../../shared/db/wallets/create-wallet-details";
-import { WalletType } from "../../../shared/schemas/wallet";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { splitAwsKmsArn } from "./aws-kms-arn";
+import { createWalletDetails } from "../../../shared/db/wallets/create-wallet-details.js";
+import { WalletType } from "../../../shared/schemas/wallet.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
+import { splitAwsKmsArn } from "./aws-kms-arn.js";
 import {
   createAwsKmsKey,
   type CreateAwsKmsWalletParams,
-} from "./create-aws-kms-wallet";
+} from "./create-aws-kms-wallet.js";
 import {
   createGcpKmsKey,
   type CreateGcpKmsWalletParams,
-} from "./create-gcp-kms-wallet";
-import { generateLocalWallet } from "./create-local-wallet";
-import { getAwsKmsAccount } from "./get-aws-kms-account";
-import { getGcpKmsAccount } from "./get-gcp-kms-account";
+} from "./create-gcp-kms-wallet.js";
+import { generateLocalWallet } from "./create-local-wallet.js";
+import { getAwsKmsAccount } from "./get-aws-kms-account.js";
+import { getGcpKmsAccount } from "./get-gcp-kms-account.js";
 
 /**
  * Get a smart wallet address for a given admin account

@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
-import { getConfig } from "../../../../shared/utils/cache/get-config";
-import { sdkCache } from "../../../../shared/utils/cache/get-sdk";
-import { chainResponseSchema } from "../../../schemas/chain";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { responseBodySchema } from "./get";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration.js";
+import { getConfig } from "../../../../shared/utils/cache/get-config.js";
+import { sdkCache } from "../../../../shared/utils/cache/get-sdk.js";
+import { chainResponseSchema } from "../../../schemas/chain/index.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { responseBodySchema } from "./get.js";
 
 const requestBodySchema = Type.Object({
   chainOverrides: Type.Array(chainResponseSchema),

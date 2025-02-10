@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
-import { WalletType } from "../../../../shared/schemas/wallet";
-import { getConfig } from "../../../../shared/utils/cache/get-config";
-import { createCustomError } from "../../../middleware/error";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { responseBodySchema } from "./get";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration.js";
+import { WalletType } from "../../../../shared/schemas/wallet.js";
+import { getConfig } from "../../../../shared/utils/cache/get-config.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { responseBodySchema } from "./get.js";
 
 const requestBodySchema = Type.Union([
   Type.Object({

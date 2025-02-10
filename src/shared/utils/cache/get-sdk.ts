@@ -1,13 +1,13 @@
 import { Type } from "@sinclair/typebox";
 import { ThirdwebSDK } from "@thirdweb-dev/sdk";
-import LRUMap from "mnemonist/lru-map";
 import { getChainMetadata } from "thirdweb/chains";
-import { badChainError } from "../../../server/middleware/error";
-import { getChain } from "../chain";
-import { env } from "../env";
-import { getWallet } from "./get-wallet";
+import { badChainError } from "../../../server/middleware/error.js";
+import { getChain } from "../chain.js";
+import { env } from "../env.js";
+import { getWallet } from "./get-wallet.js";
+import { LRUCache } from "lru-cache";
 
-export const sdkCache = new LRUMap<string, ThirdwebSDK>(2048);
+export const sdkCache = new LRUCache<string, ThirdwebSDK>({ max: 2048 });
 
 export const networkResponseSchema = Type.Object({
   name: Type.String({

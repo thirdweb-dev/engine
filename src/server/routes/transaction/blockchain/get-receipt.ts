@@ -9,17 +9,17 @@ import {
 } from "thirdweb";
 import { stringify } from "thirdweb/utils";
 import type { TransactionReceipt } from "viem";
-import { getChain } from "../../../../shared/utils/chain";
+import { getChain } from "../../../../shared/utils/chain.js";
 import {
   fromTransactionStatus,
   fromTransactionType,
   thirdwebClient,
-} from "../../../../shared/utils/sdk";
-import { createCustomError } from "../../../middleware/error";
-import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
-import { chainIdOrSlugSchema } from "../../../schemas/chain";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../utils/chain";
+} from "../../../../shared/utils/sdk.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { AddressSchema, TransactionHashSchema } from "../../../schemas/address.js";
+import { chainIdOrSlugSchema } from "../../../schemas/chain/index.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 // INPUT
 const requestSchema = Type.Object({

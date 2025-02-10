@@ -1,6 +1,6 @@
 import type { Configuration } from "@prisma/client";
 import type { Chain } from "thirdweb";
-import type { WalletType } from "./wallet";
+import type { WalletType } from "./wallet.js";
 
 export type AwsWalletConfiguration = {
   awsAccessKeyId: string;

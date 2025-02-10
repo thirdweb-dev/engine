@@ -1,7 +1,7 @@
-import { createWalletDetails } from "../../../shared/db/wallets/create-wallet-details";
-import { WalletType } from "../../../shared/schemas/wallet";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { getGcpKmsAccount } from "./get-gcp-kms-account";
+import { createWalletDetails } from "../../../shared/db/wallets/create-wallet-details.js";
+import { WalletType } from "../../../shared/schemas/wallet.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
+import { getGcpKmsAccount } from "./get-gcp-kms-account.js";
 
 interface ImportGcpKmsWalletParams {
   gcpKmsResourcePath: string;

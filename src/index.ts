@@ -1,18 +1,18 @@
-import "./polyfill";
-import "./tracer";
+import "./polyfill.js";
+import "./tracer.js";
 
-import { initServer } from "./server";
-import { env } from "./shared/utils/env";
-import { logger } from "./shared/utils/logger";
-import { initWorker } from "./worker";
-import { CancelRecycledNoncesQueue } from "./worker/queues/cancel-recycled-nonces-queue";
-import { MineTransactionQueue } from "./worker/queues/mine-transaction-queue";
-import { NonceResyncQueue } from "./worker/queues/nonce-resync-queue";
-import { ProcessEventsLogQueue } from "./worker/queues/process-event-logs-queue";
-import { ProcessTransactionReceiptsQueue } from "./worker/queues/process-transaction-receipts-queue";
-import { PruneTransactionsQueue } from "./worker/queues/prune-transactions-queue";
-import { SendTransactionQueue } from "./worker/queues/send-transaction-queue";
-import { SendWebhookQueue } from "./worker/queues/send-webhook-queue";
+import { initServer } from "./server/index.js";
+import { env } from "./shared/utils/env.js";
+import { logger } from "./shared/utils/logger.js";
+import { initWorker } from "./worker/index.js";
+import { CancelRecycledNoncesQueue } from "./worker/queues/cancel-recycled-nonces-queue.js";
+import { MineTransactionQueue } from "./worker/queues/mine-transaction-queue.js";
+import { NonceResyncQueue } from "./worker/queues/nonce-resync-queue.js";
+import { ProcessEventsLogQueue } from "./worker/queues/process-event-logs-queue.js";
+import { ProcessTransactionReceiptsQueue } from "./worker/queues/process-transaction-receipts-queue.js";
+import { PruneTransactionsQueue } from "./worker/queues/prune-transactions-queue.js";
+import { SendTransactionQueue } from "./worker/queues/send-transaction-queue.js";
+import { SendWebhookQueue } from "./worker/queues/send-webhook-queue.js";
 
 const main = async () => {
   if (env.ENGINE_MODE === "server_only") {

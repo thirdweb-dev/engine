@@ -1,15 +1,15 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { isContractSubscribed } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions";
-import { getContractTransactionReceiptsByBlock } from "../../../../shared/db/contract-transaction-receipts/get-contract-transaction-receipts";
-import { createCustomError } from "../../../middleware/error";
+import { isContractSubscribed } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions.js";
+import { getContractTransactionReceiptsByBlock } from "../../../../shared/db/contract-transaction-receipts/get-contract-transaction-receipts.js";
+import { createCustomError } from "../../../middleware/error.js";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../schemas/shared-api-schemas";
-import { transactionReceiptSchema } from "../../../schemas/transaction-receipt";
-import { getChainIdFromChain } from "../../../utils/chain";
+} from "../../../schemas/shared-api-schemas.js";
+import { transactionReceiptSchema } from "../../../schemas/transaction-receipt.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 const requestQuerySchema = Type.Object({
   fromBlock: Type.Integer({ minimum: 0 }),

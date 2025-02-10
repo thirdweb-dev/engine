@@ -1,9 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { revokeToken } from "../../../../shared/db/tokens/revoke-token";
-import { accessTokenCache } from "../../../../shared/utils/cache/access-token";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { revokeToken } from "../../../../shared/db/tokens/revoke-token.js";
+import { accessTokenCache } from "../../../../shared/utils/cache/access-token.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   id: Type.String(),

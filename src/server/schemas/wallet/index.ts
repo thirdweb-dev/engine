@@ -1,9 +1,9 @@
 import { Type } from "@sinclair/typebox";
 import { getAddress, type Address } from "thirdweb";
-import { env } from "../../../shared/utils/env";
-import { badAddressError } from "../../middleware/error";
-import { AddressSchema } from "../address";
-import { chainIdOrSlugSchema } from "../chain";
+import { env } from "../../../shared/utils/env.js";
+import { badAddressError } from "../../middleware/error.js";
+import { AddressSchema } from "../address.js";
+import { chainIdOrSlugSchema } from "../chain/index.js";
 
 export const walletHeaderSchema = Type.Object({
   "x-backend-wallet-address": {

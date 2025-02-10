@@ -1,28 +1,28 @@
-import LRUMap from "mnemonist/lru-map";
 import { getAddress, type Address, type Chain } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
 import {
   getWalletDetails,
   isSmartBackendWallet,
   type ParsedWalletDetails,
-} from "../db/wallets/get-wallet-details";
-import { WalletType } from "../schemas/wallet";
-import { splitAwsKmsArn } from "../../server/utils/wallets/aws-kms-arn";
-import { getConnectedSmartWallet } from "../../server/utils/wallets/create-smart-wallet";
-import { getAwsKmsAccount } from "../../server/utils/wallets/get-aws-kms-account";
-import { getGcpKmsAccount } from "../../server/utils/wallets/get-gcp-kms-account";
+} from "../db/wallets/get-wallet-details.js";
+import { WalletType } from "../schemas/wallet.js";
+import { splitAwsKmsArn } from "../../server/utils/wallets/aws-kms-arn.js";
+import { getConnectedSmartWallet } from "../../server/utils/wallets/create-smart-wallet.js";
+import { getAwsKmsAccount } from "../../server/utils/wallets/get-aws-kms-account.js";
+import { getGcpKmsAccount } from "../../server/utils/wallets/get-gcp-kms-account.js";
 import {
   encryptedJsonToAccount,
   getLocalWalletAccount,
-} from "../../server/utils/wallets/get-local-wallet";
-import { getSmartWalletV5 } from "./cache/get-smart-wallet-v5";
-import { getChain } from "./chain";
-import { thirdwebClient } from "./sdk";
-import { getWalletCredential } from "../db/wallet-credentials/get-wallet-credential";
-import { getCircleAccount } from "../../server/utils/wallets/circle";
-import { getConfig } from "./cache/get-config";
+} from "../../server/utils/wallets/get-local-wallet.js";
+import { getSmartWalletV5 } from "./cache/get-smart-wallet-v5.js";
+import { getChain } from "./chain.js";
+import { thirdwebClient } from "./sdk.js";
+import { getWalletCredential } from "../db/wallet-credentials/get-wallet-credential.js";
+import { getCircleAccount } from "../../server/utils/wallets/circle/index.js";
+import { getConfig } from "./cache/get-config.js";
+import { LRUCache } from "lru-cache";
 
-export const _accountsCache = new LRUMap<string, Account>(2048);
+export const _accountsCache = new LRUCache<string, Account>({ max: 2048 });
 
 export const getAccount = async (args: {
   chainId: number;
@@ -212,7 +212,7 @@ export const walletDetailsToAccount = async ({
   }
 };
 
-export const _adminAccountsCache = new LRUMap<string, Account>(2048);
+export const _adminAccountsCache = new LRUCache<string, Account>({ max: 2048 });
 
 /**
  * Get the admin account for a smart backend wallet (cached)

@@ -2,21 +2,21 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address, Hex } from "thirdweb";
-import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
-import { AddressSchema } from "../../schemas/address";
+import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction.js";
+import { AddressSchema } from "../../schemas/address.js";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../schemas/shared-api-schemas";
-import { txOverridesSchema } from "../../schemas/tx-overrides";
+} from "../../schemas/shared-api-schemas.js";
+import { txOverridesSchema } from "../../schemas/tx-overrides.js";
 import {
   maybeAddress,
   walletChainParamSchema,
   walletWithAAHeaderSchema,
-} from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
-import { parseTransactionOverrides } from "../../utils/transaction-overrides";
+} from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
+import { parseTransactionOverrides } from "../../utils/transaction-overrides.js";
 
 const requestBodySchema = Type.Object({
   toAddress: Type.Optional(AddressSchema),

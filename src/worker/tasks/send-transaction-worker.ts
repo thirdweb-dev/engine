@@ -19,46 +19,46 @@ import {
   type UserOperation,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
-import { TransactionDB } from "../../shared/db/transactions/db";
+import { TransactionDB } from "../../shared/db/transactions/db.js";
 import {
   acquireNonce,
   addSentNonce,
   recycleNonce,
   syncLatestNonceFromOnchainIfHigher,
-} from "../../shared/db/wallets/wallet-nonce";
+} from "../../shared/db/wallets/wallet-nonce.js";
 import {
   getAccount,
   getSmartBackendWalletAdminAccount,
-} from "../../shared/utils/account";
-import { getBlockNumberish } from "../../shared/utils/block";
-import { getChain } from "../../shared/utils/chain";
-import { msSince } from "../../shared/utils/date";
-import { env } from "../../shared/utils/env";
+} from "../../shared/utils/account.js";
+import { getBlockNumberish } from "../../shared/utils/block.js";
+import { getChain } from "../../shared/utils/chain.js";
+import { msSince } from "../../shared/utils/date.js";
+import { env } from "../../shared/utils/env.js";
 import {
   isInsufficientFundsError,
   isNonceAlreadyUsedError,
   isReplacementGasFeeTooLow,
   wrapError,
-} from "../../shared/utils/error";
-import { BigIntMath } from "../../shared/utils/math";
-import { getChecksumAddress } from "../../shared/utils/primitive-types";
-import { recordMetrics } from "../../shared/utils/prometheus";
-import { redis } from "../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../shared/utils/sdk";
+} from "../../shared/utils/error.js";
+import { BigIntMath } from "../../shared/utils/math.js";
+import { getChecksumAddress } from "../../shared/utils/primitive-types.js";
+import { recordMetrics } from "../../shared/utils/prometheus.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { thirdwebClient } from "../../shared/utils/sdk.js";
 import type {
   ErroredTransaction,
   PopulatedTransaction,
   QueuedTransaction,
   SentTransaction,
-} from "../../shared/utils/transaction/types";
-import { enqueueTransactionWebhook } from "../../shared/utils/transaction/webhook";
-import { reportUsage } from "../../shared/utils/usage";
-import { MineTransactionQueue } from "../queues/mine-transaction-queue";
-import { logWorkerExceptions } from "../queues/queues";
+} from "../../shared/utils/transaction/types.js";
+import { enqueueTransactionWebhook } from "../../shared/utils/transaction/webhook.js";
+import { reportUsage } from "../../shared/utils/usage.js";
+import { MineTransactionQueue } from "../queues/mine-transaction-queue.js";
+import { logWorkerExceptions } from "../queues/queues.js";
 import {
   SendTransactionQueue,
   type SendTransactionData,
-} from "../queues/send-transaction-queue";
+} from "../queues/send-transaction-queue.js";
 
 /**
  * Submit a transaction to RPC (EOA transactions) or bundler (userOps).

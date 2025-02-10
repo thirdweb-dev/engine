@@ -1,11 +1,11 @@
 import type { FastifyInstance } from "fastify";
-import { getAllAdmins } from "./read/get-all-admins";
-import { getAllSessions } from "./read/get-all-sessions";
-import { grantAdmin } from "./write/grant-admin";
-import { grantSession } from "./write/grant-session";
-import { revokeAdmin } from "./write/revoke-admin";
-import { revokeSession } from "./write/revoke-session";
-import { updateSession } from "./write/update-session";
+import { getAllAdmins } from "./read/get-all-admins.js";
+import { getAllSessions } from "./read/get-all-sessions.js";
+import { grantAdmin } from "./write/grant-admin.js";
+import { grantSession } from "./write/grant-session.js";
+import { revokeAdmin } from "./write/revoke-admin.js";
+import { revokeSession } from "./write/revoke-session.js";
+import { updateSession } from "./write/update-session.js";
 
 export const accountRoutes = async (fastify: FastifyInstance) => {
   // GET

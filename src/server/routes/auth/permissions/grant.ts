@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updatePermissions } from "../../../../shared/db/permissions/update-permissions";
-import { AddressSchema } from "../../../schemas/address";
-import { permissionsSchema } from "../../../../shared/schemas/auth";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { updatePermissions } from "../../../../shared/db/permissions/update-permissions.js";
+import { AddressSchema } from "../../../schemas/address.js";
+import { permissionsSchema } from "../../../../shared/schemas/auth.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   walletAddress: AddressSchema,

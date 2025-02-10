@@ -6,12 +6,12 @@ import { arbitrumSepolia } from "thirdweb/chains";
 import {
   getWalletDetails,
   isSmartBackendWallet,
-} from "../../../shared/db/wallets/get-wallet-details";
-import { walletDetailsToAccount } from "../../../shared/utils/account";
-import { getChain } from "../../../shared/utils/chain";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { walletHeaderSchema } from "../../schemas/wallet";
+} from "../../../shared/db/wallets/get-wallet-details.js";
+import { walletDetailsToAccount } from "../../../shared/utils/account.js";
+import { getChain } from "../../../shared/utils/chain.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { walletHeaderSchema } from "../../schemas/wallet/index.js";
 
 const requestBodySchema = Type.Object({
   message: Type.String(),

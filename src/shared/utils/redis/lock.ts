@@ -1,4 +1,4 @@
-import { redis } from "./redis";
+import { redis } from "./redis.js";
 
 // Add more locks here.
 type LockType = "lock:apply-migrations";

@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
-import type { PrismaTransaction } from "../../schemas/prisma";
-import { getPrismaWithPostgresTx } from "../client";
+import type { PrismaTransaction } from "../../schemas/prisma.js";
+import { getPrismaWithPostgresTx } from "../client.js";
 
 interface GetLastIndexedBlockParams {
   chainId: number;
@@ -35,7 +35,7 @@ export const getBlockForIndexing = async ({
 }: GetBlockForIndexingParams) => {
   const prisma = getPrismaWithPostgresTx(pgtx);
 
-  const lastIndexedBlock = await prisma.$queryRaw<
+  const [lastIndexedBlock] = await prisma.$queryRaw<
     { lastIndexedBlock: number }[]
   >`
     SELECT
@@ -46,5 +46,10 @@ export const getBlockForIndexing = async ({
       "chainId"=${Prisma.sql`${chainId.toString()}`}
     FOR UPDATE NOWAIT
   `;
-  return lastIndexedBlock[0].lastIndexedBlock;
+
+  if (!lastIndexedBlock) {
+    return 0;
+  }
+
+  return lastIndexedBlock.lastIndexedBlock;
 };

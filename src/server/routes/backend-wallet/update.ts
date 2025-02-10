@@ -1,9 +1,9 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateWalletDetails } from "../../../shared/db/wallets/update-wallet-details";
-import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { updateWalletDetails } from "../../../shared/db/wallets/update-wallet-details.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   walletAddress: AddressSchema,

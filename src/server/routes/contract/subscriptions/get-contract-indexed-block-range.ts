@@ -1,15 +1,15 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractEventLogsIndexedBlockRange } from "../../../../shared/db/contract-event-logs/get-contract-event-logs";
-import { createCustomError } from "../../../middleware/error";
-import { AddressSchema } from "../../../schemas/address";
-import { chainIdOrSlugSchema } from "../../../schemas/chain";
+import { getContractEventLogsIndexedBlockRange } from "../../../../shared/db/contract-event-logs/get-contract-event-logs.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { AddressSchema } from "../../../schemas/address.js";
+import { chainIdOrSlugSchema } from "../../../schemas/chain/index.js";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../utils/chain";
+} from "../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 const responseSchema = Type.Object({
   result: Type.Object({

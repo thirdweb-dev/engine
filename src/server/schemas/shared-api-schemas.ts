@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import { PREBUILT_CONTRACTS_MAP } from "@thirdweb-dev/sdk";
 import type { RouteGenericInterface } from "fastify";
-import type { FastifySchema } from "fastify/types/schema";
+import type { FastifySchema } from "fastify/types/schema.d.ts";
 import { StatusCodes } from "http-status-codes";
-import { AddressSchema } from "./address";
-import { chainIdOrSlugSchema } from "./chain";
+import { AddressSchema } from "./address.js";
+import { chainIdOrSlugSchema } from "./chain/index.js";
 
 export const baseReplyErrorSchema = Type.Object({
   message: Type.Optional(Type.String()),

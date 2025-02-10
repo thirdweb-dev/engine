@@ -1,17 +1,17 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { getNonceMap } from "../../../shared/db/wallets/nonce-map";
-import { normalizeAddress } from "../../../shared/utils/primitive-types";
-import type { AnyTransaction } from "../../../shared/utils/transaction/types";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { TransactionDB } from "../../../shared/db/transactions/db.js";
+import { getNonceMap } from "../../../shared/db/wallets/nonce-map.js";
+import { normalizeAddress } from "../../../shared/utils/primitive-types.js";
+import type { AnyTransaction } from "../../../shared/utils/transaction/types.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 import {
   TransactionSchema,
   toTransactionSchema,
-} from "../../schemas/transaction";
-import { walletWithAddressParamSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
+} from "../../schemas/transaction/index.js";
+import { walletWithAddressParamSchema } from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
 
 const requestParamsSchema = walletWithAddressParamSchema;
 

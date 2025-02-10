@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getTransactionReceiptsByBlockTimestamp } from "../../../../shared/db/contract-transaction-receipts/get-contract-transaction-receipts";
-import { AddressSchema } from "../../../schemas/address";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { transactionReceiptSchema } from "../../../schemas/transaction-receipt";
+import { getTransactionReceiptsByBlockTimestamp } from "../../../../shared/db/contract-transaction-receipts/get-contract-transaction-receipts.js";
+import { AddressSchema } from "../../../schemas/address.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { transactionReceiptSchema } from "../../../schemas/transaction-receipt.js";
 
 const requestQuerySchema = Type.Object({
   contractAddresses: Type.Optional(Type.Array(AddressSchema)),

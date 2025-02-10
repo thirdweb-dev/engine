@@ -2,10 +2,10 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
-import { inspectNonce } from "../../../shared/db/wallets/wallet-nonce";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { walletWithAddressParamSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
+import { inspectNonce } from "../../../shared/db/wallets/wallet-nonce.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { walletWithAddressParamSchema } from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
 
 const requestSchema = walletWithAddressParamSchema;
 

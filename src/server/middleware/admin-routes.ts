@@ -1,20 +1,20 @@
 import { createBullBoard } from "@bull-board/api";
-import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter.js";
 import { FastifyAdapter } from "@bull-board/fastify";
 import type { Queue } from "bullmq";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { timingSafeEqual } from "node:crypto";
-import { env } from "../../shared/utils/env";
-import { CancelRecycledNoncesQueue } from "../../worker/queues/cancel-recycled-nonces-queue";
-import { MineTransactionQueue } from "../../worker/queues/mine-transaction-queue";
-import { NonceHealthCheckQueue } from "../../worker/queues/nonce-health-check-queue";
-import { NonceResyncQueue } from "../../worker/queues/nonce-resync-queue";
-import { ProcessEventsLogQueue } from "../../worker/queues/process-event-logs-queue";
-import { ProcessTransactionReceiptsQueue } from "../../worker/queues/process-transaction-receipts-queue";
-import { PruneTransactionsQueue } from "../../worker/queues/prune-transactions-queue";
-import { SendTransactionQueue } from "../../worker/queues/send-transaction-queue";
-import { SendWebhookQueue } from "../../worker/queues/send-webhook-queue";
+import { env } from "../../shared/utils/env.js";
+import { CancelRecycledNoncesQueue } from "../../worker/queues/cancel-recycled-nonces-queue.js";
+import { MineTransactionQueue } from "../../worker/queues/mine-transaction-queue.js";
+import { NonceHealthCheckQueue } from "../../worker/queues/nonce-health-check-queue.js";
+import { NonceResyncQueue } from "../../worker/queues/nonce-resync-queue.js";
+import { ProcessEventsLogQueue } from "../../worker/queues/process-event-logs-queue.js";
+import { ProcessTransactionReceiptsQueue } from "../../worker/queues/process-transaction-receipts-queue.js";
+import { PruneTransactionsQueue } from "../../worker/queues/prune-transactions-queue.js";
+import { SendTransactionQueue } from "../../worker/queues/send-transaction-queue.js";
+import { SendWebhookQueue } from "../../worker/queues/send-webhook-queue.js";
 
 export const ADMIN_QUEUES_BASEPATH = "/admin/queues";
 const ADMIN_ROUTES_USERNAME = "admin";
@@ -63,10 +63,25 @@ export const withAdminRoutes = async (fastify: FastifyInstance) => {
 
         // Parse the basic auth credentials (`Basic <base64 of username:password>`).
         const base64Credentials = authHeader.split(" ")[1];
+        if (!base64Credentials) {
+          reply
+            .status(StatusCodes.UNAUTHORIZED)
+            .header("WWW-Authenticate", 'Basic realm="Admin Routes"')
+            .send({ error: "Unauthorized" });
+          return;
+        }
+
         const credentials = Buffer.from(base64Credentials, "base64").toString(
           "utf8",
         );
         const [username, password] = credentials.split(":");
+        if (!username || !password) {
+          reply
+            .status(StatusCodes.UNAUTHORIZED)
+            .header("WWW-Authenticate", 'Basic realm="Admin Routes"')
+            .send({ error: "Unauthorized" });
+          return;
+        }
 
         if (!assertAdminBasicAuth(username, password)) {
           reply

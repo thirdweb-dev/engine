@@ -5,15 +5,15 @@ import {
   isSentNonce,
   recycleNonce,
   splitSentNoncesKey,
-} from "../../shared/db/wallets/wallet-nonce";
-import { getConfig } from "../../shared/utils/cache/get-config";
-import { getChain } from "../../shared/utils/chain";
-import { prettifyError } from "../../shared/utils/error";
-import { logger } from "../../shared/utils/logger";
-import { redis } from "../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../shared/utils/sdk";
-import { NonceResyncQueue } from "../queues/nonce-resync-queue";
-import { logWorkerExceptions } from "../queues/queues";
+} from "../../shared/db/wallets/wallet-nonce.js";
+import { getConfig } from "../../shared/utils/cache/get-config.js";
+import { getChain } from "../../shared/utils/chain.js";
+import { prettifyError } from "../../shared/utils/error.js";
+import { logger } from "../../shared/utils/logger.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { thirdwebClient } from "../../shared/utils/sdk.js";
+import { NonceResyncQueue } from "../queues/nonce-resync-queue.js";
+import { logWorkerExceptions } from "../queues/queues.js";
 
 // Must be explicitly called for the worker to run on this host.
 export const initNonceResyncWorker = async () => {

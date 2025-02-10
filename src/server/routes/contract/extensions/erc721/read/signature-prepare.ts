@@ -17,19 +17,19 @@ import {
 import { decimals } from "thirdweb/extensions/erc20";
 import { upload } from "thirdweb/storage";
 import { checksumAddress } from "thirdweb/utils";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { prettifyError } from "../../../../../../shared/utils/error";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { createCustomError } from "../../../../../middleware/error";
+import { getChain } from "../../../../../../shared/utils/chain.js";
+import { prettifyError } from "../../../../../../shared/utils/error.js";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk.js";
+import { createCustomError } from "../../../../../middleware/error.js";
 import {
   signature721InputSchemaV5,
   signature721OutputSchemaV5,
-} from "../../../../../schemas/nft/v5";
+} from "../../../../../schemas/nft/v5.js";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 const requestSchema = erc721ContractParamSchema;
 const requestBodySchema = signature721InputSchemaV5;

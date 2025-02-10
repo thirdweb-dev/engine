@@ -3,24 +3,24 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
 import { isContractDeployed } from "thirdweb/utils";
-import { upsertChainIndexer } from "../../../../shared/db/chain-indexers/upsert-chain-indexer";
-import { createContractSubscription } from "../../../../shared/db/contract-subscriptions/create-contract-subscription";
-import { getContractSubscriptionsUniqueChainIds } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions";
-import { insertWebhook } from "../../../../shared/db/webhooks/create-webhook";
-import { WebhooksEventTypes } from "../../../../shared/schemas/webhooks";
-import { getSdk } from "../../../../shared/utils/cache/get-sdk";
-import { getChain } from "../../../../shared/utils/chain";
-import { thirdwebClient } from "../../../../shared/utils/sdk";
-import { createCustomError } from "../../../middleware/error";
-import { AddressSchema } from "../../../schemas/address";
-import { chainIdOrSlugSchema } from "../../../schemas/chain";
+import { upsertChainIndexer } from "../../../../shared/db/chain-indexers/upsert-chain-indexer.js";
+import { createContractSubscription } from "../../../../shared/db/contract-subscriptions/create-contract-subscription.js";
+import { getContractSubscriptionsUniqueChainIds } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions.js";
+import { insertWebhook } from "../../../../shared/db/webhooks/create-webhook.js";
+import { WebhooksEventTypes } from "../../../../shared/schemas/webhooks.js";
+import { getSdk } from "../../../../shared/utils/cache/get-sdk.js";
+import { getChain } from "../../../../shared/utils/chain.js";
+import { thirdwebClient } from "../../../../shared/utils/sdk.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { AddressSchema } from "../../../schemas/address.js";
+import { chainIdOrSlugSchema } from "../../../schemas/chain/index.js";
 import {
   contractSubscriptionSchema,
   toContractSubscriptionSchema,
-} from "../../../schemas/contract-subscription";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../utils/chain";
-import { isValidWebhookUrl } from "../../../utils/validator";
+} from "../../../schemas/contract-subscription.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
+import { isValidWebhookUrl } from "../../../utils/validator.js";
 
 const bodySchema = Type.Object({
   chain: chainIdOrSlugSchema,

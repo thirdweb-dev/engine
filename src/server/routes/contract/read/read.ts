@@ -1,19 +1,19 @@
 import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../shared/utils/cache/get-contract";
-import { prettifyError } from "../../../../shared/utils/error";
-import { createCustomError } from "../../../middleware/error";
+import { getContract } from "../../../../shared/utils/cache/get-contract.js";
+import { prettifyError } from "../../../../shared/utils/error.js";
+import { createCustomError } from "../../../middleware/error.js";
 import {
   readRequestQuerySchema,
   type readSchema,
-} from "../../../schemas/contract";
+} from "../../../schemas/contract/index.js";
 import {
   partialRouteSchema,
   standardResponseSchema,
-} from "../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../utils/chain";
-import { bigNumberReplacer } from "../../../utils/convertor";
+} from "../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
+import { bigNumberReplacer } from "../../../utils/convertor.js";
 
 const responseSchema = Type.Object({
   result: Type.Any(),

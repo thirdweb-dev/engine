@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getLastIndexedBlock } from "../../../../shared/db/chain-indexers/get-chain-indexer";
-import { chainRequestQuerystringSchema } from "../../../schemas/chain";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../utils/chain";
+import { getLastIndexedBlock } from "../../../../shared/db/chain-indexers/get-chain-indexer.js";
+import { chainRequestQuerystringSchema } from "../../../schemas/chain/index.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 const responseSchema = Type.Object({
   result: Type.Object({

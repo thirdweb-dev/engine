@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { AddressSchema } from "../address";
+import { AddressSchema } from "../address.js";
 
 export const sessionSchema = Type.Object({
   signerAddress: AddressSchema,

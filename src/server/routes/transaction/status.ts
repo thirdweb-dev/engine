@@ -2,14 +2,14 @@ import type { SocketStream } from "@fastify/websocket";
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { logger } from "../../../shared/utils/logger";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { TransactionDB } from "../../../shared/db/transactions/db.js";
+import { logger } from "../../../shared/utils/logger.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 import {
   TransactionSchema,
   toTransactionSchema,
-} from "../../schemas/transaction";
+} from "../../schemas/transaction/index.js";
 import {
   findOrAddWSConnectionInSharedState,
   formatSocketMessage,
@@ -17,7 +17,7 @@ import {
   onClose,
   onError,
   onMessage,
-} from "../../utils/websocket";
+} from "../../utils/websocket.js";
 
 // INPUT
 const requestSchema = Type.Object({

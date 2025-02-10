@@ -3,22 +3,22 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
 import { claimTo } from "thirdweb/extensions/erc721";
-import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
-import { AddressSchema } from "../../../../../schemas/address";
+import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5.js";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation.js";
+import { AddressSchema } from "../../../../../schemas/address.js";
 import {
   contractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides.js";
 import {
   maybeAddress,
   requiredAddress,
   walletWithAAHeaderSchema,
-} from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 // INPUTS
 const requestSchema = contractParamSchema;

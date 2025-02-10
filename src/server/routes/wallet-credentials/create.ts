@@ -1,10 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { createWalletCredential } from "../../../shared/db/wallet-credentials/create-wallet-credential";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { createWalletCredential } from "../../../shared/db/wallet-credentials/create-wallet-credential.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 import { type Static, Type } from "@sinclair/typebox";
-import { WalletCredentialsError } from "../../../shared/db/wallet-credentials/get-wallet-credential";
-import { createCustomError } from "../../middleware/error";
+import { WalletCredentialsError } from "../../../shared/db/wallet-credentials/get-wallet-credential.js";
+import { createCustomError } from "../../middleware/error.js";
 
 const requestBodySchema = Type.Object({
   label: Type.String(),

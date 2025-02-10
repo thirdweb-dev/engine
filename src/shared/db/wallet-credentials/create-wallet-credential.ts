@@ -1,7 +1,7 @@
-import { encrypt } from "../../utils/crypto";
-import { prisma } from "../client";
-import { getConfig } from "../../utils/cache/get-config";
-import { WalletCredentialsError } from "./get-wallet-credential";
+import { encrypt } from "../../utils/crypto.js";
+import { prisma } from "../client.js";
+import { getConfig } from "../../utils/cache/get-config.js";
+import { WalletCredentialsError } from "./get-wallet-credential.js";
 
 // will be expanded to be a discriminated union of all supported wallet types
 export type CreateWalletCredentialsParams = {

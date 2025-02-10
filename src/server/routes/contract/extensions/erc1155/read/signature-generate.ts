@@ -2,32 +2,33 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract, type Address, type Hex } from "thirdweb";
-import type { NFTInput } from "thirdweb/dist/types/utils/nft/parseNft";
-import { generateMintSignature } from "thirdweb/extensions/erc1155";
-import { getAccount } from "../../../../../../shared/utils/account";
-import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/get-contract";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { maybeBigInt } from "../../../../../../shared/utils/primitive-types";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { createCustomError } from "../../../../../middleware/error";
-import { thirdwebSdkVersionSchema } from "../../../../../schemas/http-headers/thirdweb-sdk-version";
+// import type { NFTInput } from "thirdweb/dist/types/utils/nft/parseNft.d.ts";
+import { getAccount } from "../../../../../../shared/utils/account.js";
+import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/get-contract.js";
+import { getChain } from "../../../../../../shared/utils/chain.js";
+import { maybeBigInt } from "../../../../../../shared/utils/primitive-types.js";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk.js";
+import { createCustomError } from "../../../../../middleware/error.js";
+import { thirdwebSdkVersionSchema } from "../../../../../schemas/http-headers/thirdweb-sdk-version.js";
 import {
   nftInputSchema,
   signature1155InputSchema,
   signature1155OutputSchema,
   type ercNFTResponseType,
-} from "../../../../../schemas/nft";
+} from "../../../../../schemas/nft/index.js";
 import {
   TokenAmountStringSchema,
   WeiAmountStringSchema,
-} from "../../../../../schemas/number";
+} from "../../../../../schemas/number.js";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
-import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
+import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator.js";
+import type { NFTInput } from "thirdweb/utils";
+import { generateMintSignature } from "thirdweb/extensions/erc1155";
 
 // v4 sdk
 const requestBodySchemaV4 = signature1155InputSchema;

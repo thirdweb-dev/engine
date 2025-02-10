@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { isDatabaseReachable } from "../../../shared/db/client";
-import { env } from "../../../shared/utils/env";
-import { isRedisReachable } from "../../../shared/utils/redis/redis";
-import { thirdwebClientId } from "../../../shared/utils/sdk";
+import { isDatabaseReachable } from "../../../shared/db/client.js";
+import { env } from "../../../shared/utils/env.js";
+import { isRedisReachable } from "../../../shared/utils/redis/redis.js";
+import { thirdwebClientId } from "../../../shared/utils/sdk.js";
 
 type EngineFeature =
   | "KEYPAIR_AUTH"

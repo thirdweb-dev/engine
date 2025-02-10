@@ -1,6 +1,6 @@
 import type { Job, JobsOptions, Worker } from "bullmq";
-import { env } from "../../shared/utils/env";
-import { logger } from "../../shared/utils/logger";
+import { env } from "../../shared/utils/env.js";
+import { logger } from "../../shared/utils/logger.js";
 
 export const defaultJobOptions: JobsOptions = {
   // Does not retry by default. Queues must explicitly define their own retry count and backoff behavior.

@@ -1,4 +1,4 @@
-import { createSWRCache } from "../cache/swr";
+import { createSWRCache } from "../cache/swr.js";
 
 const Services = [
   "contracts",

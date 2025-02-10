@@ -2,9 +2,9 @@ import { Type, type Static } from "@sinclair/typebox";
 import { fetchChains } from "@thirdweb-dev/chains";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getConfig } from "../../../shared/utils/cache/get-config";
-import { chainResponseSchema } from "../../schemas/chain";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { getConfig } from "../../../shared/utils/cache/get-config.js";
+import { chainResponseSchema } from "../../schemas/chain/index.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 // OUTPUT
 const responseSchema = Type.Object({

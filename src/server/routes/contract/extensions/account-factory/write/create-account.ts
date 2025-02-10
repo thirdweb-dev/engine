@@ -4,23 +4,23 @@ import { StatusCodes } from "http-status-codes";
 import { createAccount as factoryCreateAccount } from "thirdweb/extensions/erc4337";
 import { isHex, stringToHex } from "thirdweb/utils";
 import { predictAddress } from "thirdweb/wallets/smart";
-import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5";
-import { redis } from "../../../../../../shared/utils/redis/redis";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
-import { AddressSchema } from "../../../../../schemas/address";
-import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts";
+import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5.js";
+import { redis } from "../../../../../../shared/utils/redis/redis.js";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation.js";
+import { AddressSchema } from "../../../../../schemas/address.js";
+import { prebuiltDeployResponseSchema } from "../../../../../schemas/prebuilts/index.js";
 import {
   contractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides.js";
 import {
   maybeAddress,
   requiredAddress,
   walletWithAAHeaderSchema,
-} from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 const requestBodySchema = Type.Object({
   adminAddress: {

@@ -1,6 +1,6 @@
-import Redis from "ioredis";
-import { env } from "../env";
-import { logger } from "../logger";
+import { Redis } from "ioredis";
+import { env } from "../env.js";
+import { logger } from "../logger.js";
 
 // ioredis has issues with batches over 100k+ (source: https://github.com/redis/ioredis/issues/801).
 export const MAX_REDIS_BATCH_SIZE = 50_000;

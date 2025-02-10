@@ -1,7 +1,7 @@
 import { type ThirdwebContract, getContract } from "thirdweb";
 import type { Abi } from "thirdweb/utils";
-import { thirdwebClient } from "../../utils/sdk";
-import { getChain } from "../chain";
+import { thirdwebClient } from "../sdk.js";
+import { getChain } from "../chain.js";
 
 interface GetContractParams {
   chainId: number;

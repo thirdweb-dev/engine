@@ -1,29 +1,34 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "ES2022",
-    "moduleResolution": "node",
-    "outDir": "dist",
-    "strict": true,
+    /* Base Options: */
+    "target": "es2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "skipLibCheck": true,
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "moduleDetection": "force",
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    /* Strictness */
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+
+    /* Output */
+    "outDir": "dist",
+    "sourceMap": true,
+
+    /* Decorators */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
   },
-  "include": [
-    "src/server/**/*.ts",
-    "src/server/**/*.d.ts",
-    "src/server/**/*.js",
-    "src/utils/env.ts",
-    "src/**/*.ts",
-    "src/**/*.js",
-    "src/**/*.d.ts"
-  ],
-  "exclude": ["node_modules", "tests/tests/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["node_modules", "dist", "tests/tests/**/*.ts"]
 }

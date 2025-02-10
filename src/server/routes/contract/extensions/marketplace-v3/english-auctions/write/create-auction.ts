@@ -1,16 +1,16 @@
 import type { Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { queueTx } from "../../../../../../../shared/db/transactions/queue-tx";
-import { getContract } from "../../../../../../../shared/utils/cache/get-contract";
-import { englishAuctionInputSchema } from "../../../../../../schemas/marketplace-v3/english-auction";
+import { queueTx } from "../../../../../../../shared/db/transactions/queue-tx.js";
+import { getContract } from "../../../../../../../shared/utils/cache/get-contract.js";
+import { englishAuctionInputSchema } from "../../../../../../schemas/marketplace-v3/english-auction/index.js";
 import {
   marketplaceV3ContractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../../../../utils/chain";
+} from "../../../../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../../../../utils/chain.js";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;

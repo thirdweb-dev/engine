@@ -1,14 +1,14 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../shared/utils/cache/get-contract";
-import { AddressSchema } from "../../../../../schemas/address";
-import { nftSchema } from "../../../../../schemas/nft";
+import { getContract } from "../../../../../../shared/utils/cache/get-contract.js";
+import { AddressSchema } from "../../../../../schemas/address.js";
+import { nftSchema } from "../../../../../schemas/nft/index.js";
 import {
   erc1155ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 // INPUT
 const requestSchema = erc1155ContractParamSchema;

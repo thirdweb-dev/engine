@@ -1,6 +1,6 @@
-import { Permission } from "../../schemas/auth";
-import { env } from "../../utils/env";
-import { prisma } from "../client";
+import { Permission } from "../../schemas/auth.js";
+import { env } from "../../utils/env.js";
+import { prisma } from "../client.js";
 
 interface GetPermissionsParams {
   walletAddress: string;

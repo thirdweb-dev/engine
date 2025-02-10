@@ -7,12 +7,12 @@ import {
   type PreparedTransaction,
 } from "thirdweb";
 import { resolvePromisedValue } from "thirdweb/utils";
-import { createCustomError } from "../../../server/middleware/error";
-import type { txOverridesWithValueSchema } from "../../../server/schemas/tx-overrides";
-import { parseTransactionOverrides } from "../../../server/utils/transaction-overrides";
-import { prettifyError } from "../error";
-import { insertTransaction } from "./insert-transaction";
-import type { InsertedTransaction } from "./types";
+import { createCustomError } from "../../../server/middleware/error.js";
+import type { txOverridesWithValueSchema } from "../../../server/schemas/tx-overrides.js";
+import { parseTransactionOverrides } from "../../../server/utils/transaction-overrides.js";
+import { prettifyError } from "../error.js";
+import { insertTransaction } from "./insert-transaction.js";
+import type { InsertedTransaction } from "./types.js";
 
 export type QueuedTransactionParams = {
   transaction: PreparedTransaction;

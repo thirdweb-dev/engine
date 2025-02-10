@@ -1,5 +1,5 @@
 import { parseJWT } from "@thirdweb-dev/auth";
-import { prisma } from "../client";
+import { prisma } from "../client.js";
 
 export const getToken = async (jwt: string) => {
   const { payload } = parseJWT(jwt);

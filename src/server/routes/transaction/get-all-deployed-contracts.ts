@@ -1,12 +1,12 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { TransactionDB } from "../../../shared/db/transactions/db.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 import {
   TransactionSchema,
   toTransactionSchema,
-} from "../../schemas/transaction";
+} from "../../schemas/transaction/index.js";
 
 const requestQuerySchema = Type.Object({
   page: Type.Integer({
