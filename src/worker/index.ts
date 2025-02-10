@@ -7,6 +7,7 @@ import {
   newWebhooksListener,
   updatedWebhooksListener,
 } from "./listeners/webhook-listener";
+import { initBalanceSubscriptionWorker } from "./tasks/balance-subscription-worker";
 import { initCancelRecycledNoncesWorker } from "./tasks/cancel-recycled-nonces-worker";
 import { initMineTransactionWorker } from "./tasks/mine-transaction-worker";
 import { initNonceHealthCheckWorker } from "./tasks/nonce-health-check-worker";
@@ -29,6 +30,7 @@ export const initWorker = async () => {
   initNonceHealthCheckWorker();
 
   await initNonceResyncWorker();
+  await initBalanceSubscriptionWorker();
 
   // Listen for new & updated configuration data.
   await newConfigurationListener();

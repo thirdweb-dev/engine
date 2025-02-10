@@ -14,6 +14,7 @@ export { AccessTokensService } from './services/AccessTokensService';
 export { AccountService } from './services/AccountService';
 export { AccountFactoryService } from './services/AccountFactoryService';
 export { BackendWalletService } from './services/BackendWalletService';
+export { BalanceSubscriptionsService } from './services/BalanceSubscriptionsService';
 export { ChainService } from './services/ChainService';
 export { ConfigurationService } from './services/ConfigurationService';
 export { ContractService } from './services/ContractService';

@@ -51,7 +51,7 @@ export class WebhooksService {
              */
             url: string;
             name?: string;
-            eventType: ('queued_transaction' | 'sent_transaction' | 'mined_transaction' | 'errored_transaction' | 'cancelled_transaction' | 'all_transactions' | 'backend_wallet_balance' | 'auth' | 'contract_subscription');
+            eventType: ('queued_transaction' | 'sent_transaction' | 'mined_transaction' | 'errored_transaction' | 'cancelled_transaction' | 'all_transactions' | 'backend_wallet_balance' | 'auth' | 'contract_subscription' | 'balance_subscription');
         },
     ): CancelablePromise<{
         result: {
@@ -113,7 +113,7 @@ export class WebhooksService {
      * @throws ApiError
      */
     public getEventTypes(): CancelablePromise<{
-        result: Array<('queued_transaction' | 'sent_transaction' | 'mined_transaction' | 'errored_transaction' | 'cancelled_transaction' | 'all_transactions' | 'backend_wallet_balance' | 'auth' | 'contract_subscription')>;
+        result: Array<('queued_transaction' | 'sent_transaction' | 'mined_transaction' | 'errored_transaction' | 'cancelled_transaction' | 'all_transactions' | 'backend_wallet_balance' | 'auth' | 'contract_subscription' | 'balance_subscription')>;
     }> {
         return this.httpRequest.request({
             method: 'GET',

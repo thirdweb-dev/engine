@@ -117,6 +117,10 @@ import { createWalletCredentialRoute } from "./wallet-credentials/create";
 import { getWalletCredentialRoute } from "./wallet-credentials/get";
 import { getAllWalletCredentialsRoute } from "./wallet-credentials/get-all";
 import { updateWalletCredentialRoute } from "./wallet-credentials/update";
+import { addBalanceSubscriptionRoute } from "./balance-subscriptions/add";
+import { getAllBalanceSubscriptionsRoute } from "./balance-subscriptions/get-all";
+import { removeBalanceSubscriptionRoute } from "./balance-subscriptions/remove";
+import { updateBalanceSubscriptionRoute } from "./balance-subscriptions/update";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -267,6 +271,12 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(removeContractSubscription);
   await fastify.register(getContractIndexedBlockRange);
   await fastify.register(getLatestBlock);
+
+  // Balance Subscriptions
+  await fastify.register(getAllBalanceSubscriptionsRoute);
+  await fastify.register(addBalanceSubscriptionRoute);
+  await fastify.register(updateBalanceSubscriptionRoute);
+  await fastify.register(removeBalanceSubscriptionRoute);
 
   // Contract Transactions
   // @deprecated

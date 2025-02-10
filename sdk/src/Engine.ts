@@ -10,6 +10,7 @@ import { AccessTokensService } from './services/AccessTokensService';
 import { AccountService } from './services/AccountService';
 import { AccountFactoryService } from './services/AccountFactoryService';
 import { BackendWalletService } from './services/BackendWalletService';
+import { BalanceSubscriptionsService } from './services/BalanceSubscriptionsService';
 import { ChainService } from './services/ChainService';
 import { ConfigurationService } from './services/ConfigurationService';
 import { ContractService } from './services/ContractService';
@@ -41,6 +42,7 @@ class EngineLogic {
     public readonly account: AccountService;
     public readonly accountFactory: AccountFactoryService;
     public readonly backendWallet: BackendWalletService;
+    public readonly balanceSubscriptions: BalanceSubscriptionsService;
     public readonly chain: ChainService;
     public readonly configuration: ConfigurationService;
     public readonly contract: ContractService;
@@ -83,6 +85,7 @@ class EngineLogic {
         this.account = new AccountService(this.request);
         this.accountFactory = new AccountFactoryService(this.request);
         this.backendWallet = new BackendWalletService(this.request);
+        this.balanceSubscriptions = new BalanceSubscriptionsService(this.request);
         this.chain = new ChainService(this.request);
         this.configuration = new ConfigurationService(this.request);
         this.contract = new ContractService(this.request);

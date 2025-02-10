@@ -5,6 +5,7 @@ import { TransactionDB } from "../../shared/db/transactions/db";
 import {
   WebhooksEventTypes,
   type BackendWalletBalanceWebhookParams,
+  type BalanceSubscriptionWebhookParams,
 } from "../../shared/schemas/webhooks";
 import { toEventLogSchema } from "../../server/schemas/event-log";
 import {
@@ -18,7 +19,10 @@ import {
   sendWebhookRequest,
   type WebhookResponse,
 } from "../../shared/utils/webhook";
-import { SendWebhookQueue, type WebhookJob } from "../queues/send-webhook-queue";
+import {
+  SendWebhookQueue,
+  type WebhookJob,
+} from "../queues/send-webhook-queue";
 
 const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);
@@ -67,6 +71,15 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     case WebhooksEventTypes.BACKEND_WALLET_BALANCE: {
       const webhookBody: BackendWalletBalanceWebhookParams = data.body;
       resp = await sendWebhookRequest(webhook, webhookBody);
+      break;
+    }
+
+    case WebhooksEventTypes.BALANCE_SUBSCRIPTION: {
+      const webhookBody: BalanceSubscriptionWebhookParams = data.body;
+      resp = await sendWebhookRequest(
+        webhook,
+        webhookBody as unknown as Record<string, unknown>,
+      );
       break;
     }
   }
