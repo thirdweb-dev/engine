@@ -37,7 +37,7 @@ const webhookIdSchema = Type.Object({
 const requestBodySchema = Type.Intersect([
   Type.Object({
     chain: chainIdOrSlugSchema,
-    contractAddress: Type.Optional(AddressSchema),
+    tokenAddress: Type.Optional(AddressSchema),
     walletAddress: AddressSchema,
     config: balanceSubscriptionConfigSchema,
   }),
@@ -67,7 +67,7 @@ export async function addBalanceSubscriptionRoute(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, contractAddress, walletAddress, config } = request.body;
+      const { chain, tokenAddress, walletAddress, config } = request.body;
       const chainId = await getChainIdFromChain(chain);
 
       let finalWebhookId: number | undefined;
@@ -121,7 +121,7 @@ export async function addBalanceSubscriptionRoute(fastify: FastifyInstance) {
       // Create the balance subscription
       const balanceSubscription = await createBalanceSubscription({
         chainId: chainId.toString(),
-        contractAddress: contractAddress?.toLowerCase(),
+        tokenAddress: tokenAddress?.toLowerCase(),
         walletAddress: walletAddress.toLowerCase(),
         config,
         webhookId: finalWebhookId,

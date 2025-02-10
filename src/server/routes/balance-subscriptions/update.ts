@@ -17,7 +17,7 @@ const requestBodySchema = Type.Object({
     description: "The ID of the balance subscription to update.",
   }),
   chain: Type.Optional(chainIdOrSlugSchema),
-  contractAddress: Type.Optional(Type.Union([AddressSchema, Type.Null()])),
+  tokenAddress: Type.Optional(Type.Union([AddressSchema, Type.Null()])),
   walletAddress: Type.Optional(AddressSchema),
   config: Type.Optional(balanceSubscriptionConfigSchema),
   webhookId: Type.Optional(
@@ -56,7 +56,7 @@ export async function updateBalanceSubscriptionRoute(fastify: FastifyInstance) {
       const {
         balanceSubscriptionId,
         chain,
-        contractAddress,
+        tokenAddress,
         walletAddress,
         config,
         webhookId,
@@ -69,7 +69,7 @@ export async function updateBalanceSubscriptionRoute(fastify: FastifyInstance) {
       const balanceSubscription = await updateBalanceSubscription({
         id: balanceSubscriptionId,
         chainId: chainId?.toString(),
-        contractAddress,
+        tokenAddress,
         walletAddress,
         config,
         webhookId,

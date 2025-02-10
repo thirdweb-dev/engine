@@ -25,7 +25,7 @@ export class BalanceSubscriptionsService {
             /**
              * A contract or wallet address
              */
-            contractAddress?: string;
+            tokenAddress?: string;
             /**
              * A contract or wallet address
              */
@@ -76,7 +76,7 @@ export class BalanceSubscriptionsService {
             /**
              * A contract or wallet address
              */
-            contractAddress?: string;
+            tokenAddress?: string;
             /**
              * A contract or wallet address
              */
@@ -118,7 +118,7 @@ export class BalanceSubscriptionsService {
             /**
              * A contract or wallet address
              */
-            contractAddress?: string;
+            tokenAddress?: string;
             /**
              * A contract or wallet address
              */
@@ -172,7 +172,7 @@ export class BalanceSubscriptionsService {
              * A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
              */
             chain?: string;
-            contractAddress?: (string | null);
+            tokenAddress?: (string | null);
             /**
              * A contract or wallet address
              */
@@ -201,7 +201,7 @@ export class BalanceSubscriptionsService {
             /**
              * A contract or wallet address
              */
-            contractAddress?: string;
+            tokenAddress?: string;
             /**
              * A contract or wallet address
              */

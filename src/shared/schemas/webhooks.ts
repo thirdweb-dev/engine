@@ -25,7 +25,7 @@ export type BackendWalletBalanceWebhookParams = {
 export interface BalanceSubscriptionWebhookParams {
   subscriptionId: string;
   chainId: string;
-  contractAddress: string | null;
+  tokenAddress: string | null;
   walletAddress: string;
   balance: string;
   config: z.infer<typeof balanceSubscriptionConfigZodSchema>;

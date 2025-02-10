@@ -5,7 +5,7 @@ import type { BalanceSubscriptionConfig } from "../../schemas/balance-subscripti
 interface UpdateBalanceSubscriptionParams {
   id: string;
   chainId?: string;
-  contractAddress?: string | null;
+  tokenAddress?: string | null;
   walletAddress?: string;
   config?: BalanceSubscriptionConfig;
   webhookId?: number | null;
@@ -14,7 +14,7 @@ interface UpdateBalanceSubscriptionParams {
 export async function updateBalanceSubscription({
   id,
   chainId,
-  contractAddress,
+  tokenAddress,
   walletAddress,
   config,
   webhookId,
@@ -26,7 +26,7 @@ export async function updateBalanceSubscription({
     },
     data: {
       ...(chainId && { chainId }),
-      ...(contractAddress !== undefined && { contractAddress }),
+      ...(tokenAddress !== undefined && { tokenAddress }),
       ...(walletAddress && { walletAddress: walletAddress.toLowerCase() }),
       ...(config && { config: config as Prisma.InputJsonValue }),
       ...(webhookId !== undefined && { webhookId }),

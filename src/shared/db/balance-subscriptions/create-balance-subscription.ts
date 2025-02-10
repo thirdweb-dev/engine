@@ -4,7 +4,7 @@ import type { BalanceSubscriptionConfig } from "../../schemas/balance-subscripti
 
 interface CreateBalanceSubscriptionParams {
   chainId: string;
-  contractAddress?: string;
+  tokenAddress?: string;
   walletAddress: string;
   config: BalanceSubscriptionConfig;
   webhookId?: number;
@@ -12,7 +12,7 @@ interface CreateBalanceSubscriptionParams {
 
 export async function createBalanceSubscription({
   chainId,
-  contractAddress,
+  tokenAddress,
   walletAddress,
   config,
   webhookId,
@@ -21,7 +21,7 @@ export async function createBalanceSubscription({
   const existingSubscription = await prisma.balanceSubscriptions.findFirst({
     where: {
       chainId,
-      contractAddress,
+      tokenAddress,
       walletAddress,
       deletedAt: null,
     },
@@ -47,7 +47,7 @@ export async function createBalanceSubscription({
   return await prisma.balanceSubscriptions.create({
     data: {
       chainId,
-      contractAddress,
+      tokenAddress,
       walletAddress,
       config: config as Prisma.InputJsonValue,
       webhookId,

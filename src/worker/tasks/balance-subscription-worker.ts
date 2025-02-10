@@ -70,7 +70,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
           const currentBalanceResponse = await getWalletBalance({
             address: subscription.walletAddress,
             client: thirdwebClient,
-            tokenAddress: subscription.contractAddress ?? undefined, // get ERC20 balance if contract address is provided
+            tokenAddress: subscription.tokenAddress ?? undefined, // get ERC20 balance if token address is provided
             chain,
           });
 
@@ -92,7 +92,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
             const webhookBody: BalanceSubscriptionWebhookParams = {
               subscriptionId: subscription.id,
               chainId: subscription.chainId,
-              contractAddress: subscription.contractAddress,
+              tokenAddress: subscription.tokenAddress,
               walletAddress: subscription.walletAddress,
               balance: currentBalance.toString(),
               config: parseBalanceSubscriptionConfig(subscription.config),

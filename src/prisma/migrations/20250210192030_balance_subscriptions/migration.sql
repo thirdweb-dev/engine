@@ -5,7 +5,7 @@ ALTER TABLE "configuration" ADD COLUMN     "balanceSubscriptionsCronSchedule" TE
 CREATE TABLE "balance_subscriptions" (
     "id" TEXT NOT NULL,
     "chainId" TEXT NOT NULL,
-    "contractAddress" TEXT,
+    "tokenAddress" TEXT,
     "walletAddress" TEXT NOT NULL,
     "config" JSONB NOT NULL,
     "webhookId" INTEGER,
@@ -20,7 +20,7 @@ CREATE TABLE "balance_subscriptions" (
 CREATE INDEX "balance_subscriptions_chainId_idx" ON "balance_subscriptions"("chainId");
 
 -- CreateIndex
-CREATE INDEX "balance_subscriptions_contractAddress_idx" ON "balance_subscriptions"("contractAddress");
+CREATE INDEX "balance_subscriptions_tokenAddress_idx" ON "balance_subscriptions"("tokenAddress");
 
 -- CreateIndex
 CREATE INDEX "balance_subscriptions_walletAddress_idx" ON "balance_subscriptions"("walletAddress");

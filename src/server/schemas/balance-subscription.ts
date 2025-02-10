@@ -7,19 +7,20 @@ import { balanceSubscriptionConfigSchema, balanceSubscriptionConfigZodSchema } f
 interface BalanceSubscriptionWithWebhook {
   id: string;
   chainId: string;
-  contractAddress: string | null;
+  tokenAddress: string | null;
   walletAddress: string;
   config: Prisma.JsonValue;
   webhookId: number | null;
   webhook: Webhooks | null;
   createdAt: Date;
   updatedAt: Date;
+  deletedAt: Date | null;
 }
 
 export const balanceSubscriptionSchema = Type.Object({
   id: Type.String(),
   chain: chainIdOrSlugSchema,
-  contractAddress: Type.Optional(AddressSchema),
+  tokenAddress: Type.Optional(AddressSchema),
   walletAddress: AddressSchema,
   config: balanceSubscriptionConfigSchema,
   webhook: Type.Optional(
@@ -37,7 +38,7 @@ export function toBalanceSubscriptionSchema(subscription: BalanceSubscriptionWit
   return {
     id: subscription.id,
     chain: subscription.chainId,
-    contractAddress: subscription.contractAddress ?? undefined,
+    tokenAddress: subscription.tokenAddress ?? undefined,
     walletAddress: subscription.walletAddress,
     config: balanceSubscriptionConfigZodSchema.parse(subscription.config),
     webhook: subscription.webhookId && subscription.webhook

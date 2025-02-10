@@ -290,10 +290,10 @@ model ContractEventLogs {
 }
 
 model BalanceSubscriptions {
-  id              String  @id @default(uuid())
-  chainId         String
-  contractAddress String? /// optional for ERC20 balances, if null then native balance
-  walletAddress   String
+  id            String  @id @default(uuid())
+  chainId       String
+  tokenAddress  String? /// optional for ERC20 balances, if null then native balance
+  walletAddress String
 
   config Json
 
@@ -305,7 +305,7 @@ model BalanceSubscriptions {
   deletedAt DateTime?
 
   @@index([chainId])
-  @@index([contractAddress])
+  @@index([tokenAddress])
   @@index([walletAddress])
   @@map("balance_subscriptions")
 }
