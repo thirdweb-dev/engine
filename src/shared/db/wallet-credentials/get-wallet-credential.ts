@@ -1,8 +1,8 @@
-import LRUMap from "mnemonist/lru-map";
 import { z } from "zod";
-import { decrypt } from "../../utils/crypto";
-import { env } from "../../utils/env";
-import { prisma } from "../client";
+import { decrypt } from "../../utils/crypto.js";
+import { env } from "../../utils/env.js";
+import { prisma } from "../client.js";
+import { LRUCache } from "lru-cache";
 
 export class WalletCredentialsError extends Error {
   constructor(message: string) {
@@ -26,10 +26,10 @@ const walletCredentialsSchema = z.object({
 
 export type ParsedWalletCredential = z.infer<typeof walletCredentialsSchema>;
 
-export const walletCredentialsCache = new LRUMap<
+export const walletCredentialsCache = new LRUCache<
   string,
   ParsedWalletCredential
->(2048);
+>({ max: 2048 });
 
 interface GetWalletCredentialParams {
   id: string;

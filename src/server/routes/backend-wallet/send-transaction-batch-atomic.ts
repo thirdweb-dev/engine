@@ -2,26 +2,26 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address, Hex } from "thirdweb";
-import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
+import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction.js";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../schemas/shared-api-schemas";
+} from "../../schemas/shared-api-schemas.js";
 import {
   maybeAddress,
   walletChainParamSchema,
   walletWithAAHeaderSchema,
-} from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
+} from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
 import {
   getWalletDetails,
   isSmartBackendWallet,
   type ParsedWalletDetails,
   WalletDetailsError,
-} from "../../../shared/db/wallets/get-wallet-details";
-import { createCustomError } from "../../middleware/error";
-import { RawTransactionParamsSchema } from "../../schemas/transaction/raw-transaction-parms";
+} from "../../../shared/db/wallets/get-wallet-details.js";
+import { createCustomError } from "../../middleware/error.js";
+import { RawTransactionParamsSchema } from "../../schemas/transaction/raw-transaction-parms.js";
 
 const requestBodySchema = Type.Object({
   transactions: Type.Array(RawTransactionParamsSchema, {

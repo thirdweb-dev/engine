@@ -2,10 +2,10 @@ import type { Webhooks } from "@prisma/client";
 import assert from "node:assert";
 import crypto, { randomUUID } from "node:crypto";
 import { Agent, fetch } from "undici";
-import { getConfig } from "./cache/get-config";
-import { env } from "./env";
-import { prettifyError } from "./error";
-import { generateSecretHmac256 } from "./custom-auth-header";
+import { getConfig } from "./cache/get-config.js";
+import { env } from "./env.js";
+import { prettifyError } from "./error.js";
+import { generateSecretHmac256 } from "./custom-auth-header.js";
 
 function generateSignature(
   body: Record<string, unknown>,

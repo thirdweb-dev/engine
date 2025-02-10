@@ -1,10 +1,10 @@
-import LRUMap from "mnemonist/lru-map";
 import { getContract, readContract, type Address, type Chain } from "thirdweb";
 import { smartWallet, type Account } from "thirdweb/wallets";
-import { getAccount } from "../account";
-import { thirdwebClient } from "../sdk";
+import { getAccount } from "../account.js";
+import { thirdwebClient } from "../sdk.js";
+import { LRUCache } from "lru-cache";
 
-export const smartWalletsCache = new LRUMap<string, Account>(2048);
+export const smartWalletsCache = new LRUCache<string, Account>({ max: 2048 });
 
 interface SmartWalletParams {
   chain: Chain;

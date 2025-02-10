@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../shared/utils/cache/get-contract";
+import { getContract } from "../../../../../../shared/utils/cache/get-contract.js";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 // INPUT
 const requestSchema = contractParamSchema;

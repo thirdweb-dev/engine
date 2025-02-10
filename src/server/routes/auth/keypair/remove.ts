@@ -1,9 +1,9 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { deleteKeypair } from "../../../../shared/db/keypair/delete";
-import { keypairCache } from "../../../../shared/utils/cache/keypair";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { deleteKeypair } from "../../../../shared/db/keypair/delete.js";
+import { keypairCache } from "../../../../shared/utils/cache/keypair.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   hash: Type.String(),

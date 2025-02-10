@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
-import { AddressSchema } from "../address";
-import { currencyValueSchema } from "../shared-api-schemas";
+import { AddressSchema } from "../address.js";
+import { currencyValueSchema } from "../shared-api-schemas.js";
 
 export const claimConditionInputSchema = Type.Object({
   maxClaimableSupply: Type.Optional(

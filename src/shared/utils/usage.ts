@@ -2,14 +2,14 @@ import type { Static } from "@sinclair/typebox";
 import type { UsageEvent } from "@thirdweb-dev/service-utils/cf-worker";
 import type { FastifyInstance } from "fastify";
 import type { Address, Hex } from "thirdweb";
-import { ADMIN_QUEUES_BASEPATH } from "../../server/middleware/admin-routes";
-import { OPENAPI_ROUTES } from "../../server/middleware/open-api";
-import type { contractParamSchema } from "../../server/schemas/shared-api-schemas";
-import type { walletWithAddressParamSchema } from "../../server/schemas/wallet";
-import { getChainIdFromChain } from "../../server/utils/chain";
-import { env } from "./env";
-import { logger } from "./logger";
-import { thirdwebClientId } from "./sdk";
+import { ADMIN_QUEUES_BASEPATH } from "../../server/middleware/admin-routes.js";
+import { OPENAPI_ROUTES } from "../../server/middleware/open-api.js";
+import type { contractParamSchema } from "../../server/schemas/shared-api-schemas.js";
+import type { walletWithAddressParamSchema } from "../../server/schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../server/utils/chain.js";
+import { env } from "./env.js";
+import { logger } from "./logger.js";
+import { thirdwebClientId } from "./sdk.js";
 
 export interface ReportUsageParams {
   action:

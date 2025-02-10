@@ -1,12 +1,12 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { insertWebhook } from "../../../shared/db/webhooks/create-webhook";
-import { WebhooksEventTypes } from "../../../shared/schemas/webhooks";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
-import { isValidWebhookUrl } from "../../utils/validator";
+import { insertWebhook } from "../../../shared/db/webhooks/create-webhook.js";
+import { WebhooksEventTypes } from "../../../shared/schemas/webhooks.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook.js";
+import { isValidWebhookUrl } from "../../utils/validator.js";
 
 const requestBodySchema = Type.Object({
   url: Type.String({

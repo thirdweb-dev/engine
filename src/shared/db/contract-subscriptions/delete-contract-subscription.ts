@@ -1,4 +1,4 @@
-import { prisma } from "../client";
+import { prisma } from "../client.js";
 
 export const deleteContractSubscription = async (id: string) => {
   return prisma.contractSubscriptions.update({

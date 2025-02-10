@@ -1,11 +1,17 @@
 import type { DeployTransaction, Transaction } from "@thirdweb-dev/sdk";
-import type { ERC4337EthersSigner } from "@thirdweb-dev/wallets/dist/declarations/src/evm/connectors/smart-wallet/lib/erc4337-signer";
+import type { SmartWalletConnector } from "@thirdweb-dev/wallets/evm/connectors/smart-wallet";
+type ERC4337EthersSigner = Awaited<
+  ReturnType<SmartWalletConnector["getSigner"]>
+>;
 import { ZERO_ADDRESS, type Address } from "thirdweb";
-import type { ContractExtension } from "../../schemas/extension";
-import { maybeBigInt, normalizeAddress } from "../../utils/primitive-types";
-import { insertTransaction } from "../../utils/transaction/insert-transaction";
-import type { AnyTransaction, InsertedTransaction } from "../../utils/transaction/types";
-import { parseTransactionOverrides } from "../../../server/utils/transaction-overrides";
+import type { ContractExtension } from "../../schemas/extension.js";
+import { maybeBigInt, normalizeAddress } from "../../utils/primitive-types.js";
+import { insertTransaction } from "../../utils/transaction/insert-transaction.js";
+import type {
+  AnyTransaction,
+  InsertedTransaction,
+} from "../../utils/transaction/types.js";
+import { parseTransactionOverrides } from "../../../server/utils/transaction-overrides.js";
 
 interface QueueTxParams {
   // we should move away from Transaction type (v4 SDK)
@@ -37,7 +43,7 @@ export const queueTx = async ({
   idempotencyKey,
   txOverrides,
   accountFactoryAddress,
-  transactionMode
+  transactionMode,
 }: QueueTxParams) => {
   // Transaction Details
   const functionName = tx.getMethod();

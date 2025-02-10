@@ -1,22 +1,22 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAccount } from "../../../shared/utils/account";
+import { getAccount } from "../../../shared/utils/account.js";
 import {
   getChecksumAddress,
   maybeBigInt,
   maybeInt,
-} from "../../../shared/utils/primitive-types";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { walletHeaderSchema } from "../../schemas/wallet";
+} from "../../../shared/utils/primitive-types.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { walletHeaderSchema } from "../../schemas/wallet/index.js";
 import {
   prepareTransaction,
   toSerializableTransaction,
   type Hex,
 } from "thirdweb";
-import { getChain } from "../../../shared/utils/chain";
+import { getChain } from "../../../shared/utils/chain.js";
 
 const requestBodySchema = Type.Object({
   transaction: Type.Object({

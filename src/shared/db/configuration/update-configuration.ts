@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
-import { encrypt } from "../../utils/crypto";
-import { prisma } from "../client";
-import { walletProviderConfigsSchema } from "./get-configuration";
-import { logger } from "../../utils/logger";
+import { encrypt } from "../../utils/crypto.js";
+import { prisma } from "../client.js";
+import { walletProviderConfigsSchema } from "./get-configuration.js";
+import { logger } from "../../utils/logger.js";
 
 export const updateConfiguration = async (
   data: Prisma.ConfigurationUpdateInput,

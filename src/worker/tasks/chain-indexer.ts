@@ -4,15 +4,15 @@ import {
   getRpcClient,
   type Address,
 } from "thirdweb";
-import { getBlockForIndexing } from "../../shared/db/chain-indexers/get-chain-indexer";
-import { upsertChainIndexer } from "../../shared/db/chain-indexers/upsert-chain-indexer";
-import { prisma } from "../../shared/db/client";
-import { getContractSubscriptionsByChainId } from "../../shared/db/contract-subscriptions/get-contract-subscriptions";
-import { getChain } from "../../shared/utils/chain";
-import { logger } from "../../shared/utils/logger";
-import { thirdwebClient } from "../../shared/utils/sdk";
-import { ProcessEventsLogQueue } from "../queues/process-event-logs-queue";
-import { ProcessTransactionReceiptsQueue } from "../queues/process-transaction-receipts-queue";
+import { getBlockForIndexing } from "../../shared/db/chain-indexers/get-chain-indexer.js";
+import { upsertChainIndexer } from "../../shared/db/chain-indexers/upsert-chain-indexer.js";
+import { prisma } from "../../shared/db/client.js";
+import { getContractSubscriptionsByChainId } from "../../shared/db/contract-subscriptions/get-contract-subscriptions.js";
+import { getChain } from "../../shared/utils/chain.js";
+import { logger } from "../../shared/utils/logger.js";
+import { thirdwebClient } from "../../shared/utils/sdk.js";
+import { ProcessEventsLogQueue } from "../queues/process-event-logs-queue.js";
+import { ProcessTransactionReceiptsQueue } from "../queues/process-transaction-receipts-queue.js";
 
 // A reasonable block range that is within RPC limits.
 // The minimum job time is 1 second, so this value should higher than the # blocks per second

@@ -1,5 +1,5 @@
-import { prisma } from "../client";
-import type { PrismaTransaction } from "../../schemas/prisma";
+import { prisma } from "../client.js";
+import type { PrismaTransaction } from "../../schemas/prisma.js";
 
 interface GetAllWalletCredentialsParams {
   pgtx?: PrismaTransaction;

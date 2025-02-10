@@ -15,20 +15,20 @@ import {
   type ThirdwebContract,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
-import { bulkInsertContractEventLogs } from "../../shared/db/contract-event-logs/create-contract-event-logs";
-import { getContractSubscriptionsByChainId } from "../../shared/db/contract-subscriptions/get-contract-subscriptions";
-import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
-import { getChain } from "../../shared/utils/chain";
-import { logger } from "../../shared/utils/logger";
-import { normalizeAddress } from "../../shared/utils/primitive-types";
-import { redis } from "../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../shared/utils/sdk";
+import { bulkInsertContractEventLogs } from "../../shared/db/contract-event-logs/create-contract-event-logs.js";
+import { getContractSubscriptionsByChainId } from "../../shared/db/contract-subscriptions/get-contract-subscriptions.js";
+import { WebhooksEventTypes } from "../../shared/schemas/webhooks.js";
+import { getChain } from "../../shared/utils/chain.js";
+import { logger } from "../../shared/utils/logger.js";
+import { normalizeAddress } from "../../shared/utils/primitive-types.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { thirdwebClient } from "../../shared/utils/sdk.js";
 import {
   type EnqueueProcessEventLogsData,
   ProcessEventsLogQueue,
-} from "../queues/process-event-logs-queue";
-import { logWorkerExceptions } from "../queues/queues";
-import { SendWebhookQueue } from "../queues/send-webhook-queue";
+} from "../queues/process-event-logs-queue.js";
+import { logWorkerExceptions } from "../queues/queues.js";
+import { SendWebhookQueue } from "../queues/send-webhook-queue.js";
 
 const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const {
@@ -56,8 +56,9 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   job.log(`Inserted ${insertedLogs.length} events.`);
 
   // Enqueue webhooks.
-  const webhooksByContractAddress =
-    await getWebhooksByContractAddresses(chainId);
+  const webhooksByContractAddress = await getWebhooksByContractAddresses(
+    chainId,
+  );
   for (const eventLog of insertedLogs) {
     const webhooks = webhooksByContractAddress[eventLog.contractAddress] ?? [];
     for (const webhook of webhooks) {
@@ -140,7 +141,12 @@ const getLogs = async ({
 
   // Get events for each contract address. Apply any filters.
   const promises = filters.map(async (f) => {
-    const { contract } = addressConfig[f.address];
+    const addressConfigAddress = addressConfig[f.address];
+    if (!addressConfigAddress) {
+      return [];
+    }
+
+    const contract = addressConfigAddress.contract;
 
     // Get events to filter by, if any.
     // Resolve the event name, "Transfer", to event signature, "Transfer(address to, uint256 quantity)".
@@ -171,8 +177,19 @@ const getLogs = async ({
 
   // Transform logs into the DB schema.
   return await Promise.all(
-    allLogs.map(
-      async (log): Promise<Prisma.ContractEventLogsCreateInput> => ({
+    allLogs.map(async (log): Promise<Prisma.ContractEventLogsCreateInput> => {
+      const timestamp = blockTimestamps[log.blockHash];
+      if (!timestamp) {
+        throw new Error(`Missing timestamp for block hash ${log.blockHash}`);
+      }
+
+      const addressConfigAddress = addressConfig[normalizeAddress(log.address)];
+
+      if (!addressConfigAddress) {
+        throw new Error(`Missing address config for address ${log.address}`);
+      }
+
+      return {
         chainId: chainId.toString(),
         blockNumber: Number(log.blockNumber),
         contractAddress: normalizeAddress(log.address),
@@ -184,15 +201,15 @@ const getLogs = async ({
         data: log.data,
         eventName: log.eventName,
         decodedLog: await formatDecodedLog({
-          contract: addressConfig[normalizeAddress(log.address)].contract,
+          contract: addressConfigAddress.contract,
           eventName: log.eventName,
           logArgs: log.args as Record<string, unknown>,
         }),
-        timestamp: blockTimestamps[log.blockHash],
+        timestamp,
         transactionIndex: log.transactionIndex,
         logIndex: log.logIndex,
-      }),
-    ),
+      };
+    }),
   );
 };
 
@@ -268,9 +285,16 @@ const getBlockTimestamps = async (
   );
 
   const res: Record<Hex, Date> = {};
-  for (let i = 0; i < dedupe.length; i++) {
-    res[dedupe[i]] = blocks[i];
+
+  for (const [dedupedHashIndex, dedupedHash] of dedupe.entries()) {
+    const timestamp = blocks[dedupedHashIndex];
+    if (!timestamp) {
+      continue;
+    }
+
+    res[dedupedHash] = timestamp;
   }
+
   return res;
 };
 

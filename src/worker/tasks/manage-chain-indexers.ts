@@ -1,9 +1,9 @@
-import { getContractSubscriptionsUniqueChainIds } from "../../shared/db/contract-subscriptions/get-contract-subscriptions";
+import { getContractSubscriptionsUniqueChainIds } from "../../shared/db/contract-subscriptions/get-contract-subscriptions.js";
 import {
   INDEXER_REGISTRY,
   addChainIndexer,
   removeChainIndexer,
-} from "../indexers/chain-indexer-registry";
+} from "../indexers/chain-indexer-registry.js";
 
 export const manageChainIndexers = async () => {
   const chainIdsToIndex = await getContractSubscriptionsUniqueChainIds();

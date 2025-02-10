@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { stringify } from "thirdweb/utils";
-import { isEthersErrorCode } from "./ethers";
+import { isEthersErrorCode } from "./ethers.js";
 
 export const wrapError = (error: unknown, prefix: "RPC" | "Bundler") =>
   new Error(`[${prefix}] ${prettifyError(error)}`);

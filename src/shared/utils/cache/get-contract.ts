@@ -1,8 +1,8 @@
 import { type Static, Type } from "@sinclair/typebox";
 import { StatusCodes } from "http-status-codes";
-import { createCustomError } from "../../../server/middleware/error";
-import { abiSchema } from "../../../server/schemas/contract";
-import { getSdk } from "./get-sdk";
+import { createCustomError } from "../../../server/middleware/error.js";
+import { abiSchema } from "../../../server/schemas/contract/index.js";
+import { getSdk } from "./get-sdk.js";
 import type { ThirdwebSDK } from "@thirdweb-dev/sdk";
 
 const abiArraySchema = Type.Array(abiSchema);

@@ -5,7 +5,12 @@ export const getPercentile = (arr: number[], percentile: number): number => {
 
   arr.sort((a, b) => a - b);
   const index = Math.floor((percentile / 100) * (arr.length - 1));
-  return arr[index];
+
+  const result = arr[index];
+  if (result === undefined) {
+    throw new Error("Percentile out of range");
+  }
+  return result;
 };
 
 export const BigIntMath = {

@@ -1,10 +1,10 @@
-import { logger } from "../shared/utils/logger";
+import { logger } from "../shared/utils/logger.js";
 import {
   acquireLock,
   releaseLock,
   waitForLock,
-} from "../shared/utils/redis/lock";
-import { redis } from "../shared/utils/redis/redis";
+} from "../shared/utils/redis/lock.js";
+import { redis } from "../shared/utils/redis/redis.js";
 
 const MIGRATION_LOCK_TTL_SECONDS = 60;
 
@@ -61,7 +61,7 @@ const migrateRecycledNonces = async () => {
     const members = await redis.smembers(key);
     await redis.del(key);
     if (members.length > 0) {
-      const args = members.flatMap((member) => {
+      const args = members.flatMap((member: string) => {
         const score = Number.parseInt(member);
         return Number.isNaN(score) ? [] : [score, member];
       });

@@ -3,28 +3,28 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract, type Address, type Hex } from "thirdweb";
 import { generateMintSignature } from "thirdweb/extensions/erc721";
-import { getAccount } from "../../../../../../shared/utils/account";
-import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/get-contract";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { maybeBigInt } from "../../../../../../shared/utils/primitive-types";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { thirdwebSdkVersionSchema } from "../../../../../schemas/http-headers/thirdweb-sdk-version";
+import { getAccount } from "../../../../../../shared/utils/account.js";
+import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/get-contract.js";
+import { getChain } from "../../../../../../shared/utils/chain.js";
+import { maybeBigInt } from "../../../../../../shared/utils/primitive-types.js";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk.js";
+import { thirdwebSdkVersionSchema } from "../../../../../schemas/http-headers/thirdweb-sdk-version.js";
 import {
   signature721InputSchema,
   signature721OutputSchema,
   type ercNFTResponseType,
-} from "../../../../../schemas/nft";
+} from "../../../../../schemas/nft/index.js";
 import {
   signature721InputSchemaV5,
   signature721OutputSchemaV5,
-} from "../../../../../schemas/nft/v5";
+} from "../../../../../schemas/nft/v5.js";
 import {
   erc721ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
-import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
+import { checkAndReturnNFTSignaturePayload } from "../../../../../utils/validator.js";
 
 // v4 sdk
 const requestBodySchemaV4 = signature721InputSchema;

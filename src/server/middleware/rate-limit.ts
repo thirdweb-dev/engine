@@ -1,9 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../../shared/utils/env";
-import { redis } from "../../shared/utils/redis/redis";
-import { createCustomError } from "./error";
-import { OPENAPI_ROUTES } from "./open-api";
+import { env } from "../../shared/utils/env.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { createCustomError } from "./error.js";
+import { OPENAPI_ROUTES } from "./open-api.js";
 
 const SKIP_RATELIMIT_PATHS = ["/", ...OPENAPI_ROUTES];
 

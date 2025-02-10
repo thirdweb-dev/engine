@@ -10,26 +10,26 @@ import {
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
-import { getChain } from "../../../shared/utils/chain";
-import { normalizeAddress } from "../../../shared/utils/primitive-types";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
-import type { InsertedTransaction } from "../../../shared/utils/transaction/types";
-import { createCustomError } from "../../middleware/error";
-import { AddressSchema } from "../../schemas/address";
-import { TokenAmountStringSchema } from "../../schemas/number";
+import { getChain } from "../../../shared/utils/chain.js";
+import { normalizeAddress } from "../../../shared/utils/primitive-types.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
+import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction.js";
+import type { InsertedTransaction } from "../../../shared/utils/transaction/types.js";
+import { createCustomError } from "../../middleware/error.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { TokenAmountStringSchema } from "../../schemas/number.js";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../schemas/tx-overrides";
+} from "../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../schemas/tx-overrides.js";
 import {
   walletHeaderSchema,
   walletWithAddressParamSchema,
-} from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
-import { parseTransactionOverrides } from "../../utils/transaction-overrides";
+} from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
+import { parseTransactionOverrides } from "../../utils/transaction-overrides.js";
 
 const requestSchema = Type.Omit(walletWithAddressParamSchema, [
   "walletAddress",

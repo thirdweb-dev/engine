@@ -1,10 +1,10 @@
 import { Worker, type Job, type Processor } from "bullmq";
-import { TransactionDB } from "../../shared/db/transactions/db";
-import { pruneNonceMaps } from "../../shared/db/wallets/nonce-map";
-import { env } from "../../shared/utils/env";
-import { redis } from "../../shared/utils/redis/redis";
-import { PruneTransactionsQueue } from "../queues/prune-transactions-queue";
-import { logWorkerExceptions } from "../queues/queues";
+import { TransactionDB } from "../../shared/db/transactions/db.js";
+import { pruneNonceMaps } from "../../shared/db/wallets/nonce-map.js";
+import { env } from "../../shared/utils/env.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { PruneTransactionsQueue } from "../queues/prune-transactions-queue.js";
+import { logWorkerExceptions } from "../queues/queues.js";
 
 const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const numTransactionsDeleted =

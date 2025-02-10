@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateWalletCredential } from "../../../shared/db/wallet-credentials/update-wallet-credential";
-import { WalletCredentialsError } from "../../../shared/db/wallet-credentials/get-wallet-credential";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { updateWalletCredential } from "../../../shared/db/wallet-credentials/update-wallet-credential.js";
+import { WalletCredentialsError } from "../../../shared/db/wallet-credentials/get-wallet-credential.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const ParamsSchema = Type.Object({
   id: Type.String({

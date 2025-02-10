@@ -2,16 +2,16 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address, Hex } from "thirdweb";
-import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
-import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../schemas/tx-overrides";
+import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../schemas/tx-overrides.js";
 import {
   walletChainParamSchema,
   walletHeaderSchema,
-} from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
-import { parseTransactionOverrides } from "../../utils/transaction-overrides";
+} from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
+import { parseTransactionOverrides } from "../../utils/transaction-overrides.js";
 
 const requestBodySchema = Type.Array(
   Type.Object({

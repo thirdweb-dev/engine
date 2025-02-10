@@ -2,15 +2,15 @@ import { type Keypairs, Prisma } from "@prisma/client";
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { insertKeypair } from "../../../../shared/db/keypair/insert";
-import { isWellFormedPublicKey } from "../../../../shared/utils/crypto";
-import { createCustomError } from "../../../middleware/error";
+import { insertKeypair } from "../../../../shared/db/keypair/insert.js";
+import { isWellFormedPublicKey } from "../../../../shared/utils/crypto.js";
+import { createCustomError } from "../../../middleware/error.js";
 import {
   KeypairAlgorithmSchema,
   KeypairSchema,
   toKeypairSchema,
-} from "../../../../shared/schemas/keypair";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+} from "../../../../shared/schemas/keypair.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   publicKey: Type.String({

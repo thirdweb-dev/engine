@@ -2,13 +2,13 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { predictAddress } from "thirdweb/wallets/smart";
-import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5";
-import { AddressSchema } from "../../../../../schemas/address";
+import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5.js";
+import { AddressSchema } from "../../../../../schemas/address.js";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 const responseBodySchema = Type.Object({
   result: Type.String({

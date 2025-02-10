@@ -1,14 +1,14 @@
 import type { Static } from "@sinclair/typebox";
-import { customDateTimestampError } from "../middleware/error";
+import { customDateTimestampError } from "../middleware/error.js";
 import type {
   erc20ResponseType,
   signature20InputSchema,
-} from "../schemas/erc20";
+} from "../schemas/erc20/index.js";
 import type {
   ercNFTResponseType,
   signature1155InputSchema,
   signature721InputSchema,
-} from "../schemas/nft";
+} from "../schemas/nft/index.js";
 
 const timestampValidator = (value: number | string | undefined): boolean => {
   let timestamp = value;

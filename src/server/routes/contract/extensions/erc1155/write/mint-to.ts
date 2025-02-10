@@ -4,24 +4,24 @@ import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
 import { mintTo } from "thirdweb/extensions/erc1155";
 import type { NFTInput } from "thirdweb/utils";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
-import { AddressSchema } from "../../../../../schemas/address";
-import { nftAndSupplySchema } from "../../../../../schemas/nft";
+import { getChain } from "../../../../../../shared/utils/chain.js";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk.js";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation.js";
+import { AddressSchema } from "../../../../../schemas/address.js";
+import { nftAndSupplySchema } from "../../../../../schemas/nft/index.js";
 import {
   erc1155ContractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides.js";
 import {
   maybeAddress,
   requiredAddress,
   walletWithAAHeaderSchema,
-} from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 const requestSchema = erc1155ContractParamSchema;
 const requestBodySchema = Type.Object({

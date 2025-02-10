@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox";
-import { AddressSchema } from "../../address";
-import { nftMetadataSchema } from "../../nft";
-import { Status, currencyValueSchema } from "../../shared-api-schemas";
+import { AddressSchema } from "../../address.js";
+import { nftMetadataSchema } from "../../nft/index.js";
+import { Status, currencyValueSchema } from "../../shared-api-schemas.js";
 
 export const OfferV3InputSchema = Type.Object({
   assetContractAddress: {

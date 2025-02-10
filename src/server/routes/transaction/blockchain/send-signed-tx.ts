@@ -2,13 +2,13 @@ import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { eth_sendRawTransaction, getRpcClient, isHex } from "thirdweb";
-import { getChain } from "../../../../shared/utils/chain";
-import { thirdwebClient } from "../../../../shared/utils/sdk";
-import { createCustomError } from "../../../middleware/error";
-import { TransactionHashSchema } from "../../../schemas/address";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { walletChainParamSchema } from "../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../utils/chain";
+import { getChain } from "../../../../shared/utils/chain.js";
+import { thirdwebClient } from "../../../../shared/utils/sdk.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { TransactionHashSchema } from "../../../schemas/address.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { walletChainParamSchema } from "../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 const requestBodySchema = Type.Object({
   signedTransaction: Type.String(),

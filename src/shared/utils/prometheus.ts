@@ -1,7 +1,7 @@
 import fastify from "fastify";
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
-import { getUsedBackendWallets, inspectNonce } from "../db/wallets/wallet-nonce";
-import { getLastUsedOnchainNonce } from "../../server/routes/admin/nonces";
+import { getUsedBackendWallets, inspectNonce } from "../db/wallets/wallet-nonce.js";
+import { getLastUsedOnchainNonce } from "../../server/routes/admin/nonces.js";
 
 const nonceMetrics = new Gauge({
   name: "engine_nonces",

@@ -6,23 +6,23 @@ import { StatusCodes } from "http-status-codes";
 import type { Address, Hex } from "thirdweb";
 import { mintWithSignature } from "thirdweb/extensions/erc721";
 import { resolvePromisedValue } from "thirdweb/utils";
-import { queueTx } from "../../../../../../shared/db/transactions/queue-tx";
-import { getContract } from "../../../../../../shared/utils/cache/get-contract";
-import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5";
-import { insertTransaction } from "../../../../../../shared/utils/transaction/insert-transaction";
-import type { thirdwebSdkVersionSchema } from "../../../../../schemas/http-headers/thirdweb-sdk-version";
-import { signature721OutputSchema } from "../../../../../schemas/nft";
-import { signature721OutputSchemaV5 } from "../../../../../schemas/nft/v5";
+import { queueTx } from "../../../../../../shared/db/transactions/queue-tx.js";
+import { getContract } from "../../../../../../shared/utils/cache/get-contract.js";
+import { getContractV5 } from "../../../../../../shared/utils/cache/get-contractv5.js";
+import { insertTransaction } from "../../../../../../shared/utils/transaction/insert-transaction.js";
+import type { thirdwebSdkVersionSchema } from "../../../../../schemas/http-headers/thirdweb-sdk-version.js";
+import { signature721OutputSchema } from "../../../../../schemas/nft/index.js";
+import { signature721OutputSchemaV5 } from "../../../../../schemas/nft/v5.js";
 import {
   contractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
-import { parseTransactionOverrides } from "../../../../../utils/transaction-overrides";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides.js";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
+import { parseTransactionOverrides } from "../../../../../utils/transaction-overrides.js";
 
 // INPUTS
 const requestSchema = contractParamSchema;

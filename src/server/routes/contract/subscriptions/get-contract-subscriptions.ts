@@ -1,12 +1,12 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllContractSubscriptions } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions";
+import { getAllContractSubscriptions } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions.js";
 import {
   contractSubscriptionSchema,
   toContractSubscriptionSchema,
-} from "../../../schemas/contract-subscription";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+} from "../../../schemas/contract-subscription.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
 
 const responseSchema = Type.Object({
   result: Type.Array(contractSubscriptionSchema),

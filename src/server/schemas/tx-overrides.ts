@@ -1,5 +1,5 @@
 import { Type } from "@sinclair/typebox";
-import { NumberStringSchema, WeiAmountStringSchema } from "./number";
+import { NumberStringSchema, WeiAmountStringSchema } from "./number.js";
 
 export const txOverridesSchema = Type.Object({
   txOverrides: Type.Optional(

@@ -4,9 +4,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   getWalletCredential,
   WalletCredentialsError,
-} from "../../../shared/db/wallet-credentials/get-wallet-credential";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+} from "../../../shared/db/wallet-credentials/get-wallet-credential.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const ParamsSchema = Type.Object({
   id: Type.String({

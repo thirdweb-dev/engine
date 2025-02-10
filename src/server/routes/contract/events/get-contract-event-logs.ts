@@ -1,15 +1,15 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContractEventLogsByBlockAndTopics } from "../../../../shared/db/contract-event-logs/get-contract-event-logs";
-import { isContractSubscribed } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions";
-import { createCustomError } from "../../../middleware/error";
-import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
+import { getContractEventLogsByBlockAndTopics } from "../../../../shared/db/contract-event-logs/get-contract-event-logs.js";
+import { isContractSubscribed } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { AddressSchema, TransactionHashSchema } from "../../../schemas/address.js";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../utils/chain";
+} from "../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 const requestQuerySchema = Type.Object({
   fromBlock: Type.Integer({ minimum: 0 }),

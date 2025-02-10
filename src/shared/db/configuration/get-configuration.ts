@@ -8,15 +8,15 @@ import type {
   CircleWalletConfiguration,
   GcpWalletConfiguration,
   ParsedConfig,
-} from "../../schemas/config";
-import { WalletType } from "../../schemas/wallet";
-import { mandatoryAllowedCorsUrls } from "../../../server/utils/cors-urls";
-import type { networkResponseSchema } from "../../utils/cache/get-sdk";
-import { decrypt } from "../../utils/crypto";
-import { env } from "../../utils/env";
-import { logger } from "../../utils/logger";
-import { prisma } from "../client";
-import { updateConfiguration } from "./update-configuration";
+} from "../../schemas/config.js";
+import { WalletType } from "../../schemas/wallet.js";
+import { mandatoryAllowedCorsUrls } from "../../../server/utils/cors-urls.js";
+import type { networkResponseSchema } from "../../utils/cache/get-sdk.js";
+import { decrypt } from "../../utils/crypto.js";
+import { env } from "../../utils/env.js";
+import { logger } from "../../utils/logger.js";
+import { prisma } from "../client.js";
+import { updateConfiguration } from "./update-configuration.js";
 import * as z from "zod";
 
 export const walletProviderConfigsSchema = z.object({
@@ -50,15 +50,24 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
       const parsed: Static<typeof networkResponseSchema>[] = JSON.parse(
         config.chainOverrides,
       );
-      chainOverridesParsed = parsed.map(
-        (chain): Chain => ({
+
+      chainOverridesParsed = parsed.map((chain): Chain => {
+        const specifiedRpc = chain.rpc?.[0];
+
+        if (!specifiedRpc) {
+          throw new Error(
+            `Chain ${chain.name} has no RPC specified. Please add a valid RPC URL to the chain configuration.`,
+          );
+        }
+
+        return {
           id: chain.chainId,
           name: chain.name,
-          rpc: chain.rpc[0],
+          rpc: specifiedRpc,
           nativeCurrency: chain.nativeCurrency,
           testnet: chain.testnet ? true : undefined,
-        }),
-      );
+        };
+      });
     } catch (e) {
       logger({
         service: "server",

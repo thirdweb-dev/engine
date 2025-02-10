@@ -1,6 +1,6 @@
 import base64 from "base-64";
 import { z } from "zod";
-import { prisma } from "../client";
+import { prisma } from "../client.js";
 
 interface GetContractLogsParams {
   chainId: number;
@@ -215,6 +215,11 @@ export const getEventLogsByCursor = async ({
   let newCursor = cursor;
   if (logs.length > 0) {
     const lastLog = logs[logs.length - 1];
+
+    if (!lastLog) {
+      throw new Error("No logs found");
+    }
+
     const cursorString = `${lastLog.createdAt.getTime()}-${lastLog.chainId}-${
       lastLog.blockNumber
     }-${lastLog.transactionIndex}-${lastLog.logIndex}`;

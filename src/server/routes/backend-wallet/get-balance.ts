@@ -1,16 +1,16 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { AddressSchema } from "../../schemas/address";
+import { AddressSchema } from "../../schemas/address.js";
 import {
   currencyValueSchema,
   standardResponseSchema,
-} from "../../schemas/shared-api-schemas";
-import { walletWithAddressParamSchema } from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
+} from "../../schemas/shared-api-schemas.js";
+import { walletWithAddressParamSchema } from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
 
-import { getChain } from "../../../shared/utils/chain";
-import { thirdwebClient } from "../../../shared/utils/sdk";
+import { getChain } from "../../../shared/utils/chain.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
 import { getWalletBalance } from "thirdweb/wallets";
 
 const responseSchema = Type.Object({

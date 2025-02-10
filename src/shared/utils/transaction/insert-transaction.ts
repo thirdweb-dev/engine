@@ -1,19 +1,19 @@
 import { StatusCodes } from "http-status-codes";
 import { randomUUID } from "node:crypto";
-import { TransactionDB } from "../../../shared/db/transactions/db";
+import { TransactionDB } from "../../db/transactions/db.js";
 import {
   getWalletDetails,
   isSmartBackendWallet,
   WalletDetailsError,
   type ParsedWalletDetails,
-} from "../../../shared/db/wallets/get-wallet-details";
-import { createCustomError } from "../../../server/middleware/error";
-import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
-import { getChecksumAddress } from "../primitive-types";
-import { recordMetrics } from "../prometheus";
-import { reportUsage } from "../usage";
-import { doSimulateTransaction } from "./simulate-queued-transaction";
-import type { InsertedTransaction, QueuedTransaction } from "./types";
+} from "../../db/wallets/get-wallet-details.js";
+import { createCustomError } from "../../../server/middleware/error.js";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue.js";
+import { getChecksumAddress } from "../primitive-types.js";
+import { recordMetrics } from "../prometheus.js";
+import { reportUsage } from "../usage.js";
+import { doSimulateTransaction } from "./simulate-queued-transaction.js";
+import type { InsertedTransaction, QueuedTransaction } from "./types.js";
 
 interface InsertTransactionData {
   insertedTransaction: InsertedTransaction;

@@ -2,9 +2,9 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
-import { deleteWalletDetails } from "../../../shared/db/wallets/delete-wallet-details";
-import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { deleteWalletDetails } from "../../../shared/db/wallets/delete-wallet-details.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const requestParamSchema = Type.Object({
   walletAddress: AddressSchema,

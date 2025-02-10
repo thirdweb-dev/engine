@@ -12,7 +12,7 @@ import { hashMessage } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import type { SignableMessage, TypedData, TypedDataDefinition } from "viem";
 import { hashTypedData } from "viem";
-import { getChain } from "../../../shared/utils/chain";
+import { getChain } from "../../../shared/utils/chain.js";
 
 type SendTransactionResult = {
   transactionHash: Hex;

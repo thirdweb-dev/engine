@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { env } from "../../../../shared/utils/env";
-import { createCustomError } from "../../../middleware/error";
-import { TransactionHashSchema } from "../../../schemas/address";
-import { chainIdOrSlugSchema } from "../../../schemas/chain";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../utils/chain";
+import { env } from "../../../../shared/utils/env.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { TransactionHashSchema } from "../../../schemas/address.js";
+import { chainIdOrSlugSchema } from "../../../schemas/chain/index.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 // INPUT
 const requestSchema = Type.Object({

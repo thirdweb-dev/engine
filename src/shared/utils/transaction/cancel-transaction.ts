@@ -1,8 +1,8 @@
 import { type Address, toSerializableTransaction } from "thirdweb";
-import { getAccount } from "../account";
-import { getChain } from "../chain";
-import { getChecksumAddress } from "../primitive-types";
-import { thirdwebClient } from "../sdk";
+import { getAccount } from "../account.js";
+import { getChain } from "../chain.js";
+import { getChecksumAddress } from "../primitive-types.js";
+import { thirdwebClient } from "../sdk.js";
 
 interface CancellableTransaction {
   chainId: number;

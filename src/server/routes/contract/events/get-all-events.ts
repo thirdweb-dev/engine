@@ -4,21 +4,21 @@ import { StatusCodes } from "http-status-codes";
 import {
   contractEventSchema,
   eventsQuerystringSchema,
-} from "../../../schemas/contract";
+} from "../../../schemas/contract/index.js";
 import {
   contractParamSchema,
   standardResponseSchema,
-} from "../../../schemas/shared-api-schemas";
-import { thirdwebClient } from "../../../../shared/utils/sdk";
-import { getChain } from "../../../../shared/utils/chain";
-import { getChainIdFromChain } from "../../../utils/chain";
+} from "../../../schemas/shared-api-schemas.js";
+import { thirdwebClient } from "../../../../shared/utils/sdk.js";
+import { getChain } from "../../../../shared/utils/chain.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 import { getContract, getContractEvents } from "thirdweb";
 import {
   type ContractEventV5,
   toContractEventV4Schema,
-} from "../../../schemas/event";
-import { createCustomError } from "../../../middleware/error";
-import { prettifyError } from "../../../../shared/utils/error";
+} from "../../../schemas/event.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { prettifyError } from "../../../../shared/utils/error.js";
 
 const requestSchema = contractParamSchema;
 

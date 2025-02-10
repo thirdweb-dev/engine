@@ -1,6 +1,6 @@
 import superjson from "superjson";
-import { MAX_REDIS_BATCH_SIZE, redis } from "../../utils/redis/redis";
-import type { AnyTransaction } from "../../utils/transaction/types";
+import { MAX_REDIS_BATCH_SIZE, redis } from "../../utils/redis/redis.js";
+import type { AnyTransaction } from "../../utils/transaction/types.js";
 
 /**
  * Schemas

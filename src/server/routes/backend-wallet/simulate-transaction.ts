@@ -3,19 +3,19 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { randomUUID } from "node:crypto";
 import type { Address, Hex } from "thirdweb";
-import { doSimulateTransaction } from "../../../shared/utils/transaction/simulate-queued-transaction";
-import type { QueuedTransaction } from "../../../shared/utils/transaction/types";
-import { createCustomError } from "../../middleware/error";
-import { AddressSchema } from "../../schemas/address";
+import { doSimulateTransaction } from "../../../shared/utils/transaction/simulate-queued-transaction.js";
+import type { QueuedTransaction } from "../../../shared/utils/transaction/types.js";
+import { createCustomError } from "../../middleware/error.js";
+import { AddressSchema } from "../../schemas/address.js";
 import {
   simulateResponseSchema,
   standardResponseSchema,
-} from "../../schemas/shared-api-schemas";
+} from "../../schemas/shared-api-schemas.js";
 import {
   walletChainParamSchema,
   walletWithAAHeaderSchema,
-} from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
+} from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
 
 const FunctionArgumentSchema = Type.Union([
   Type.String({ description: "String argument" }),

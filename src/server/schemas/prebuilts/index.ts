@@ -1,7 +1,7 @@
 import { Type } from "@sinclair/typebox";
 import { constants } from "ethers";
-import { AddressSchema } from "../address";
-import { chainIdOrSlugSchema } from "../chain";
+import { AddressSchema } from "../address.js";
+import { chainIdOrSlugSchema } from "../chain/index.js";
 
 export const commonContractSchema = Type.Object({
   name: Type.String(),

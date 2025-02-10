@@ -1,6 +1,6 @@
 import { getChainBySlugAsync } from "@thirdweb-dev/chains";
-import { getChain } from "../../shared/utils/chain";
-import { badChainError } from "../middleware/error";
+import { getChain } from "../../shared/utils/chain.js";
+import { badChainError } from "../middleware/error.js";
 
 /**
  * Given a valid chain name ('Polygon') or ID ('137'), return the numeric chain ID.

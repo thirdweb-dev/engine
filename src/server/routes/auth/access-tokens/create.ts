@@ -3,13 +3,13 @@ import { buildJWT } from "@thirdweb-dev/auth";
 import { LocalWallet } from "@thirdweb-dev/wallets";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
-import { createToken } from "../../../../shared/db/tokens/create-token";
-import { accessTokenCache } from "../../../../shared/utils/cache/access-token";
-import { getConfig } from "../../../../shared/utils/cache/get-config";
-import { env } from "../../../../shared/utils/env";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { AccessTokenSchema } from "./get-all";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration.js";
+import { createToken } from "../../../../shared/db/tokens/create-token.js";
+import { accessTokenCache } from "../../../../shared/utils/cache/access-token.js";
+import { getConfig } from "../../../../shared/utils/cache/get-config.js";
+import { env } from "../../../../shared/utils/env.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { AccessTokenSchema } from "./get-all.js";
 
 const requestBodySchema = Type.Object({
   label: Type.Optional(Type.String()),

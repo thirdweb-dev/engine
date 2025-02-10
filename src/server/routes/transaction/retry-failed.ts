@@ -1,16 +1,16 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../shared/db/transactions/db";
+import { TransactionDB } from "../../../shared/db/transactions/db.js";
 import {
   getReceiptForEOATransaction,
   getReceiptForUserOp,
-} from "../../../shared/lib/transaction/get-transaction-receipt";
-import type { QueuedTransaction } from "../../../shared/utils/transaction/types";
-import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
-import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+} from "../../../shared/lib/transaction/get-transaction-receipt.js";
+import type { QueuedTransaction } from "../../../shared/utils/transaction/types.js";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue.js";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   queueId: Type.String({

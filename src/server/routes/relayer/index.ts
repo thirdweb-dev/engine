@@ -8,15 +8,15 @@ import {
   ForwarderAbi,
   ForwarderAbiEIP712ChainlessDomain,
   NativeMetaTransaction,
-} from "../../../shared/schemas/relayer";
-import { getRelayerById } from "../../../shared/db/relayer/get-relayer-by-id";
-import { queueTx } from "../../../shared/db/transactions/queue-tx";
-import { getSdk } from "../../../shared/utils/cache/get-sdk";
-import { AddressSchema } from "../../schemas/address";
+} from "../../../shared/schemas/relayer.js";
+import { getRelayerById } from "../../../shared/db/relayer/get-relayer-by-id.js";
+import { queueTx } from "../../../shared/db/transactions/queue-tx.js";
+import { getSdk } from "../../../shared/utils/cache/get-sdk.js";
+import { AddressSchema } from "../../schemas/address.js";
 import {
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../schemas/shared-api-schemas";
+} from "../../schemas/shared-api-schemas.js";
 
 const ParamsSchema = Type.Object({
   relayerId: Type.String(),

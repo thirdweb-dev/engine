@@ -1,11 +1,11 @@
-import LRUMap from "mnemonist/lru-map";
 import { getAddress } from "thirdweb";
 import { z } from "zod";
-import type { PrismaTransaction } from "../../schemas/prisma";
-import { getConfig } from "../../utils/cache/get-config";
-import { decrypt } from "../../utils/crypto";
-import { env } from "../../utils/env";
-import { getPrismaWithPostgresTx } from "../client";
+import type { PrismaTransaction } from "../../schemas/prisma.js";
+import { getConfig } from "../../utils/cache/get-config.js";
+import { decrypt } from "../../utils/crypto.js";
+import { env } from "../../utils/env.js";
+import { getPrismaWithPostgresTx } from "../client.js";
+import { LRUCache } from "lru-cache";
 
 interface GetWalletDetailsParams {
   pgtx?: PrismaTransaction;
@@ -151,7 +151,10 @@ export type SmartBackendWalletType = (typeof SmartBackendWalletTypes)[number];
 export type BackendWalletType = (typeof BackendWalletTypes)[number];
 export type ParsedWalletDetails = z.infer<typeof walletDetailsSchema>;
 
-export const walletDetailsCache = new LRUMap<string, ParsedWalletDetails>(2048);
+export const walletDetailsCache = new LRUCache<string, ParsedWalletDetails>({
+  max: 2048,
+});
+
 /**
  * Return the wallet details for the given address.
  *

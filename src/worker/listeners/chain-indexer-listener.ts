@@ -1,7 +1,7 @@
 import cron from "node-cron";
-import { getConfig } from "../../shared/utils/cache/get-config";
-import { logger } from "../../shared/utils/logger";
-import { manageChainIndexers } from "../tasks/manage-chain-indexers";
+import { getConfig } from "../../shared/utils/cache/get-config.js";
+import { logger } from "../../shared/utils/logger.js";
+import { manageChainIndexers } from "../tasks/manage-chain-indexers.js";
 
 let processChainIndexerStarted = false;
 let task: cron.ScheduledTask;

@@ -1,6 +1,6 @@
 import { eth_getBlockByNumber, getRpcClient } from "thirdweb";
-import { getChain } from "../chain";
-import { thirdwebClient } from "../sdk";
+import { getChain } from "../chain.js";
+import { thirdwebClient } from "../sdk.js";
 
 export const getBlockTimeSeconds = async (
   chainId: number,

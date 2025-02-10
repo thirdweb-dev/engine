@@ -3,16 +3,16 @@ import type { Address } from "thirdweb";
 import {
   deleteNoncesForBackendWallets,
   recycleNonce,
-} from "../../shared/db/wallets/wallet-nonce";
+} from "../../shared/db/wallets/wallet-nonce.js";
 import {
   isInsufficientFundsError,
   isNonceAlreadyUsedError,
-} from "../../shared/utils/error";
-import { logger } from "../../shared/utils/logger";
-import { redis } from "../../shared/utils/redis/redis";
-import { sendCancellationTransaction } from "../../shared/utils/transaction/cancel-transaction";
-import { CancelRecycledNoncesQueue } from "../queues/cancel-recycled-nonces-queue";
-import { logWorkerExceptions } from "../queues/queues";
+} from "../../shared/utils/error.js";
+import { logger } from "../../shared/utils/logger.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { sendCancellationTransaction } from "../../shared/utils/transaction/cancel-transaction.js";
+import { CancelRecycledNoncesQueue } from "../queues/cancel-recycled-nonces-queue.js";
+import { logWorkerExceptions } from "../queues/queues.js";
 
 // Must be explicitly called for the worker to run on this host.
 export const initCancelRecycledNoncesWorker = () => {
@@ -81,6 +81,11 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
 
 const fromRecycledNoncesKey = (key: string) => {
   const [_, chainId, walletAddress] = key.split(":");
+
+  if (!chainId || !walletAddress) {
+    throw new Error(`Invalid key: ${key}`);
+  }
+
   return {
     chainId: Number.parseInt(chainId),
     walletAddress: walletAddress as Address,
@@ -98,7 +103,14 @@ const getAndDeleteRecycledNonces = async (key: string) => {
   if (!multiResult) {
     throw new Error(`Error getting members of ${key}.`);
   }
-  const [error, nonces] = multiResult[0];
+
+  const result = multiResult[0];
+
+  if (!result) {
+    throw new Error(`Error getting members of ${key}.`);
+  }
+
+  const [error, nonces] = result;
   if (error) {
     throw new Error(`Error getting members of ${key}: ${error}`);
   }

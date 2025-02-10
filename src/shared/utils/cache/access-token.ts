@@ -1,9 +1,15 @@
 import type { Tokens } from "@prisma/client";
-import LRUMap from "mnemonist/lru-map";
-import { getToken } from "../../db/tokens/get-token";
+import { getToken } from "../../db/tokens/get-token.js";
+import { LRUCache } from "lru-cache";
 
-// Cache an access token JWT to the token object, or null if not found.
-export const accessTokenCache = new LRUMap<string, Tokens | null>(2048);
+const undefinedValue = Symbol("undefined");
+// Cache an access token JWT to the token object, or undefinedValue if not found.
+export const accessTokenCache = new LRUCache<
+  string,
+  Tokens | typeof undefinedValue
+>({
+  max: 1024,
+});
 
 interface GetAccessTokenParams {
   jwt: string;
@@ -14,10 +20,10 @@ export const getAccessToken = async ({
 }: GetAccessTokenParams): Promise<Tokens | null> => {
   const cached = accessTokenCache.get(jwt);
   if (cached) {
-    return cached;
+    return cached === undefinedValue ? null : cached;
   }
 
   const accessToken = await getToken(jwt);
-  accessTokenCache.set(jwt, accessToken);
+  accessTokenCache.set(jwt, accessToken ?? undefinedValue);
   return accessToken;
 };

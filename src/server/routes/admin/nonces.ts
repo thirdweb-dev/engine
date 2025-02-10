@@ -12,13 +12,13 @@ import {
   lastUsedNonceKey,
   recycledNoncesKey,
   sentNoncesKey,
-} from "../../../shared/db/wallets/wallet-nonce";
-import { getChain } from "../../../shared/utils/chain";
-import { redis } from "../../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { walletWithAddressParamSchema } from "../../schemas/wallet";
+} from "../../../shared/db/wallets/wallet-nonce.js";
+import { getChain } from "../../../shared/utils/chain.js";
+import { redis } from "../../../shared/utils/redis/redis.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { walletWithAddressParamSchema } from "../../schemas/wallet/index.js";
 
 export const responseBodySchema = Type.Object({
   result: Type.Array(
@@ -31,7 +31,7 @@ export const responseBodySchema = Type.Object({
         description: "Chain ID",
         examples: [80002],
       }),
-      onchainNonce: Type.Integer({
+      onchainNonce: Type.Union([Type.Null(), Type.Integer()], {
         description: "Last mined nonce",
         examples: [0],
       }),
@@ -135,24 +135,26 @@ export const getNonceDetails = async ({
     throw new Error("Failed to execute Redis pipeline");
   }
 
-  return keyMap.map((key, index) => {
-    const pipelineOffset = index * 3;
-    const [lastUsedNonceResult, sentNoncesResult, recycledNoncesResult] =
-      pipelineResults.slice(pipelineOffset, pipelineOffset + 3);
+  return keyMap
+    .map((key, index) => {
+      const pipelineOffset = index * 3;
+      const [lastUsedNonceResult, sentNoncesResult, recycledNoncesResult] =
+        pipelineResults.slice(pipelineOffset, pipelineOffset + 3);
 
-    return {
-      walletAddress: key.walletAddress,
-      chainId: key.chainId,
-      onchainNonce: onchainNonces[index],
-      lastUsedNonce: Number.parseInt(lastUsedNonceResult[1] as string) ?? 0,
-      sentNonces: (sentNoncesResult[1] as string[])
-        .map((nonce) => Number.parseInt(nonce))
-        .sort((a, b) => b - a),
-      recycledNonces: (recycledNoncesResult[1] as string[])
-        .map((nonce) => Number.parseInt(nonce))
-        .sort((a, b) => b - a),
-    };
-  });
+      return {
+        walletAddress: key.walletAddress,
+        chainId: key.chainId,
+        onchainNonce: onchainNonces[index] ?? null,
+        lastUsedNonce: Number.parseInt(lastUsedNonceResult?.[1] as string) ?? 0,
+        sentNonces: (sentNoncesResult?.[1] as string[])
+          .map((nonce) => Number.parseInt(nonce))
+          .sort((a, b) => b - a),
+        recycledNonces: (recycledNoncesResult?.[1] as string[])
+          .map((nonce) => Number.parseInt(nonce))
+          .sort((a, b) => b - a),
+      };
+    })
+    .filter((x) => x !== null);
 };
 
 /*

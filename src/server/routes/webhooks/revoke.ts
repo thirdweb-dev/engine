@@ -1,10 +1,10 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getWebhook } from "../../../shared/db/webhooks/get-webhook";
-import { deleteWebhook } from "../../../shared/db/webhooks/revoke-webhook";
-import { createCustomError } from "../../middleware/error";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { getWebhook } from "../../../shared/db/webhooks/get-webhook.js";
+import { deleteWebhook } from "../../../shared/db/webhooks/revoke-webhook.js";
+import { createCustomError } from "../../middleware/error.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   id: Type.Integer({ minimum: 0 }),

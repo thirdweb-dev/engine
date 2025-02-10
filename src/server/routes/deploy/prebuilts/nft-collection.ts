@@ -2,9 +2,9 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { Address } from "thirdweb";
-import { queueTx } from "../../../../shared/db/transactions/queue-tx";
-import { getSdk } from "../../../../shared/utils/cache/get-sdk";
-import { contractDeployBasicSchema } from "../../../schemas/contract";
+import { queueTx } from "../../../../shared/db/transactions/queue-tx.js";
+import { getSdk } from "../../../../shared/utils/cache/get-sdk.js";
+import { contractDeployBasicSchema } from "../../../schemas/contract/index.js";
 import {
   commonContractSchema,
   commonPlatformFeeSchema,
@@ -14,11 +14,11 @@ import {
   commonTrustedForwarderSchema,
   prebuiltDeployContractParamSchema,
   prebuiltDeployResponseSchema,
-} from "../../../schemas/prebuilts";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../schemas/tx-overrides";
-import { walletWithAAHeaderSchema } from "../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../utils/chain";
+} from "../../../schemas/prebuilts/index.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../schemas/tx-overrides.js";
+import { walletWithAAHeaderSchema } from "../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 // INPUTS
 const requestSchema = prebuiltDeployContractParamSchema;

@@ -1,6 +1,6 @@
 import base64 from "base-64";
 import { z } from "zod";
-import { prisma } from "../client";
+import { prisma } from "../client.js";
 
 interface GetContractTransactionReceiptsParams {
   chainId: number;
@@ -169,6 +169,11 @@ export const getTransactionReceiptsByCursor = async ({
   let newCursor = cursor;
   if (transactionReceipts.length > 0) {
     const lastReceipt = transactionReceipts[transactionReceipts.length - 1];
+
+    if (!lastReceipt) {
+      throw new Error("No transaction receipts found");
+    }
+
     const cursorString = `${lastReceipt.createdAt.getTime()}-${
       lastReceipt.chainId
     }-${lastReceipt.blockNumber}-${lastReceipt.transactionIndex}`;

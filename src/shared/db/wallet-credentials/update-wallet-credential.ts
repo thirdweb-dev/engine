@@ -1,7 +1,7 @@
-import { getWalletCredential } from "./get-wallet-credential";
-import { encrypt } from "../../utils/crypto";
-import { prisma } from "../client";
-import { cirlceEntitySecretZodSchema } from "../../schemas/wallet";
+import { getWalletCredential } from "./get-wallet-credential.js";
+import { encrypt } from "../../utils/crypto.js";
+import { prisma } from "../client.js";
+import { cirlceEntitySecretZodSchema } from "../../schemas/wallet.js";
 
 interface UpdateWalletCredentialParams {
   id: string;

@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { env } from "../../shared/utils/env";
-import { recordMetrics } from "../../shared/utils/prometheus";
+import { env } from "../../shared/utils/env.js";
+import { recordMetrics } from "../../shared/utils/prometheus.js";
 
 export function withPrometheus(server: FastifyInstance) {
   if (!env.METRICS_ENABLED) {

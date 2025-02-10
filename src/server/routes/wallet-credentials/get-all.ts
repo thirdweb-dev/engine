@@ -1,9 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllWalletCredentials } from "../../../shared/db/wallet-credentials/get-all-wallet-credentials";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { PaginationSchema } from "../../schemas/pagination";
+import { getAllWalletCredentials } from "../../../shared/db/wallet-credentials/get-all-wallet-credentials.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { PaginationSchema } from "../../schemas/pagination.js";
 
 const QuerySchema = PaginationSchema;
 

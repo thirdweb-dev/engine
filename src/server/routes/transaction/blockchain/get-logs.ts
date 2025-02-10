@@ -13,14 +13,14 @@ import {
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import type { TransactionReceipt } from "thirdweb/transaction";
-import { TransactionDB } from "../../../../shared/db/transactions/db";
-import { getChain } from "../../../../shared/utils/chain";
-import { thirdwebClient } from "../../../../shared/utils/sdk";
-import { createCustomError } from "../../../middleware/error";
-import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
-import { chainIdOrSlugSchema } from "../../../schemas/chain";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../utils/chain";
+import { TransactionDB } from "../../../../shared/db/transactions/db.js";
+import { getChain } from "../../../../shared/utils/chain.js";
+import { thirdwebClient } from "../../../../shared/utils/sdk.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { AddressSchema, TransactionHashSchema } from "../../../schemas/address.js";
+import { chainIdOrSlugSchema } from "../../../schemas/chain/index.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
 
 // INPUT
 const requestQuerystringSchema = Type.Object({

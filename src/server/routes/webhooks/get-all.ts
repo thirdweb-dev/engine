@@ -1,9 +1,9 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getAllWebhooks } from "../../../shared/db/webhooks/get-all-webhooks";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
-import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook";
+import { getAllWebhooks } from "../../../shared/db/webhooks/get-all-webhooks.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { WebhookSchema, toWebhookSchema } from "../../schemas/webhook.js";
 
 const responseBodySchema = Type.Object({
   result: Type.Array(WebhookSchema),

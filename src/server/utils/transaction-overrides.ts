@@ -1,10 +1,10 @@
 import type { Static } from "@sinclair/typebox";
-import { maybeBigInt } from "../../shared/utils/primitive-types";
-import type { InsertedTransaction } from "../../shared/utils/transaction/types";
+import { maybeBigInt } from "../../shared/utils/primitive-types.js";
+import type { InsertedTransaction } from "../../shared/utils/transaction/types.js";
 import type {
   txOverridesSchema,
   txOverridesWithValueSchema,
-} from "../schemas/tx-overrides";
+} from "../schemas/tx-overrides.js";
 
 export const parseTransactionOverrides = (
   overrides:

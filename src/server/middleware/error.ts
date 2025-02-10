@@ -1,8 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { ZodError } from "zod";
-import { env } from "../../shared/utils/env";
-import { parseEthersError } from "../../shared/utils/ethers";
+import { env } from "../../shared/utils/env.js";
+import { parseEthersError } from "../../shared/utils/ethers.js";
 
 export type CustomError = {
   message: string;

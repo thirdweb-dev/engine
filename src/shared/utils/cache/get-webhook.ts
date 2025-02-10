@@ -1,9 +1,9 @@
 import type { Webhooks } from "@prisma/client";
-import LRUMap from "mnemonist/lru-map";
-import { getAllWebhooks } from "../../db/webhooks/get-all-webhooks";
-import type { WebhooksEventTypes } from "../../schemas/webhooks";
+import { getAllWebhooks } from "../../db/webhooks/get-all-webhooks.js";
+import type { WebhooksEventTypes } from "../../schemas/webhooks.js";
+import { LRUCache } from "lru-cache";
 
-export const webhookCache = new LRUMap<string, Webhooks[]>(2048);
+export const webhookCache = new LRUCache<string, Webhooks[]>({ max: 2048 });
 
 export const getWebhooksByEventType = async (
   eventType: WebhooksEventTypes,

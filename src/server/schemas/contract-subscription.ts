@@ -1,7 +1,7 @@
 import type { ContractSubscriptions, Webhooks } from "@prisma/client";
 import { Type, type Static } from "@sinclair/typebox";
-import { AddressSchema } from "./address";
-import { WebhookSchema, toWebhookSchema } from "./webhook";
+import { AddressSchema } from "./address.js";
+import { WebhookSchema, toWebhookSchema } from "./webhook.js";
 
 export const contractSubscriptionSchema = Type.Object({
   id: Type.String(),

@@ -6,26 +6,29 @@ import {
 } from "@thirdweb-dev/auth/fastify";
 import { AsyncWallet } from "@thirdweb-dev/wallets/evm/wallets/async";
 import type { FastifyInstance } from "fastify";
-import type { FastifyRequest } from "fastify/types/request";
+import type { FastifyRequest } from "fastify/types/request.d.ts";
 import jsonwebtoken, { type JwtPayload } from "jsonwebtoken";
 import { createHash } from "node:crypto";
 import { validate as uuidValidate } from "uuid";
-import { getPermissions } from "../../shared/db/permissions/get-permissions";
-import { createToken } from "../../shared/db/tokens/create-token";
-import { revokeToken } from "../../shared/db/tokens/revoke-token";
-import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
-import { THIRDWEB_DASHBOARD_ISSUER, handleSiwe } from "../../shared/utils/auth";
-import { getAccessToken } from "../../shared/utils/cache/access-token";
-import { getAuthWallet } from "../../shared/utils/cache/auth-wallet";
-import { getConfig } from "../../shared/utils/cache/get-config";
-import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook";
-import { getKeypair } from "../../shared/utils/cache/keypair";
-import { env } from "../../shared/utils/env";
-import { logger } from "../../shared/utils/logger";
-import { sendWebhookRequest } from "../../shared/utils/webhook";
-import { Permission } from "../../shared/schemas/auth";
-import { ADMIN_QUEUES_BASEPATH } from "./admin-routes";
-import { OPENAPI_ROUTES } from "./open-api";
+import { getPermissions } from "../../shared/db/permissions/get-permissions.js";
+import { createToken } from "../../shared/db/tokens/create-token.js";
+import { revokeToken } from "../../shared/db/tokens/revoke-token.js";
+import { WebhooksEventTypes } from "../../shared/schemas/webhooks.js";
+import {
+  THIRDWEB_DASHBOARD_ISSUER,
+  handleSiwe,
+} from "../../shared/utils/auth.js";
+import { getAccessToken } from "../../shared/utils/cache/access-token.js";
+import { getAuthWallet } from "../../shared/utils/cache/auth-wallet.js";
+import { getConfig } from "../../shared/utils/cache/get-config.js";
+import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook.js";
+import { getKeypair } from "../../shared/utils/cache/keypair.js";
+import { env } from "../../shared/utils/env.js";
+import { logger } from "../../shared/utils/logger.js";
+import { sendWebhookRequest } from "../../shared/utils/webhook.js";
+import { Permission } from "../../shared/schemas/auth.js";
+import { ADMIN_QUEUES_BASEPATH } from "./admin-routes.js";
+import { OPENAPI_ROUTES } from "./open-api.js";
 
 export type TAuthData = never;
 export type TAuthSession = { permissions: string };

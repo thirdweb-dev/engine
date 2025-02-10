@@ -1,12 +1,12 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { TransactionDB } from "../../../shared/db/transactions/db";
-import { getPercentile } from "../../../shared/utils/math";
-import type { MinedTransaction } from "../../../shared/utils/transaction/types";
-import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue";
-import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+import { TransactionDB } from "../../../shared/db/transactions/db.js";
+import { getPercentile } from "../../../shared/utils/math.js";
+import type { MinedTransaction } from "../../../shared/utils/transaction/types.js";
+import { MineTransactionQueue } from "../../../worker/queues/mine-transaction-queue.js";
+import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const responseBodySchema = Type.Object({
   result: Type.Object({

@@ -6,9 +6,9 @@ import {
   deleteNoncesForBackendWallets,
   getUsedBackendWallets,
   syncLatestNonceFromOnchain,
-} from "../../../shared/db/wallets/wallet-nonce";
-import { AddressSchema } from "../../schemas/address";
-import { standardResponseSchema } from "../../schemas/shared-api-schemas";
+} from "../../../shared/db/wallets/wallet-nonce.js";
+import { AddressSchema } from "../../schemas/address.js";
+import { standardResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   chainId: Type.Optional(

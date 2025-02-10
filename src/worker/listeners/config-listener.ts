@@ -1,8 +1,8 @@
-import { knex } from "../../shared/db/client";
-import { getConfig } from "../../shared/utils/cache/get-config";
-import { clearCacheCron } from "../../shared/utils/cron/clear-cache-cron";
-import { logger } from "../../shared/utils/logger";
-import { chainIndexerListener } from "./chain-indexer-listener";
+import { knex } from "../../shared/db/client.js";
+import { getConfig } from "../../shared/utils/cache/get-config.js";
+import { clearCacheCron } from "../../shared/utils/cron/clear-cache-cron.js";
+import { logger } from "../../shared/utils/logger.js";
+import { chainIndexerListener } from "./chain-indexer-listener.js";
 
 export const newConfigurationListener = async (): Promise<void> => {
   logger({

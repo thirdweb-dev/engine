@@ -3,23 +3,23 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
 import { mintTo } from "thirdweb/extensions/erc20";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation";
-import { AddressSchema } from "../../../../../schemas/address";
+import { getChain } from "../../../../../../shared/utils/chain.js";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk.js";
+import { queueTransaction } from "../../../../../../shared/utils/transaction/queue-transation.js";
+import { AddressSchema } from "../../../../../schemas/address.js";
 import {
   erc20ContractParamSchema,
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../../../schemas/tx-overrides.js";
 import {
   maybeAddress,
   requiredAddress,
   walletWithAAHeaderSchema,
-} from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
+} from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
 
 // INPUTS
 const requestSchema = erc20ContractParamSchema;

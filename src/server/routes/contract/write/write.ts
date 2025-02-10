@@ -3,25 +3,25 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { prepareContractCall, resolveMethod } from "thirdweb";
 import { parseAbiParams, type AbiFunction } from "thirdweb/utils";
-import { getContractV5 } from "../../../../shared/utils/cache/get-contractv5";
-import { prettifyError } from "../../../../shared/utils/error";
-import { queueTransaction } from "../../../../shared/utils/transaction/queue-transation";
-import { createCustomError } from "../../../middleware/error";
-import { abiArraySchema } from "../../../schemas/contract";
+import { getContractV5 } from "../../../../shared/utils/cache/get-contractv5.js";
+import { prettifyError } from "../../../../shared/utils/error.js";
+import { queueTransaction } from "../../../../shared/utils/transaction/queue-transation.js";
+import { createCustomError } from "../../../middleware/error.js";
+import { abiArraySchema } from "../../../schemas/contract/index.js";
 import {
   contractParamSchema,
   requestQuerystringSchema,
   transactionWritesResponseSchema,
-} from "../../../schemas/shared-api-schemas";
-import { txOverridesWithValueSchema } from "../../../schemas/tx-overrides";
+} from "../../../schemas/shared-api-schemas.js";
+import { txOverridesWithValueSchema } from "../../../schemas/tx-overrides.js";
 import {
   maybeAddress,
   requiredAddress,
   walletWithAAHeaderSchema,
-} from "../../../schemas/wallet";
-import { sanitizeAbi, sanitizeFunctionName } from "../../../utils/abi";
-import { getChainIdFromChain } from "../../../utils/chain";
-import { parseTransactionOverrides } from "../../../utils/transaction-overrides";
+} from "../../../schemas/wallet/index.js";
+import { sanitizeAbi, sanitizeFunctionName } from "../../../utils/abi.js";
+import { getChainIdFromChain } from "../../../utils/chain.js";
+import { parseTransactionOverrides } from "../../../utils/transaction-overrides.js";
 
 // INPUT
 const writeRequestBodySchema = Type.Object({

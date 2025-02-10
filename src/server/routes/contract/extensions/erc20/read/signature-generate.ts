@@ -3,25 +3,25 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract, type Address, type Hex } from "thirdweb";
 import { generateMintSignature } from "thirdweb/extensions/erc20";
-import { getAccount } from "../../../../../../shared/utils/account";
-import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/get-contract";
-import { getChain } from "../../../../../../shared/utils/chain";
-import { maybeBigInt } from "../../../../../../shared/utils/primitive-types";
-import { thirdwebClient } from "../../../../../../shared/utils/sdk";
-import { createCustomError } from "../../../../../middleware/error";
+import { getAccount } from "../../../../../../shared/utils/account.js";
+import { getContract as getContractV4 } from "../../../../../../shared/utils/cache/get-contract.js";
+import { getChain } from "../../../../../../shared/utils/chain.js";
+import { maybeBigInt } from "../../../../../../shared/utils/primitive-types.js";
+import { thirdwebClient } from "../../../../../../shared/utils/sdk.js";
+import { createCustomError } from "../../../../../middleware/error.js";
 import {
   signature20InputSchema,
   signature20OutputSchema,
   type erc20ResponseType,
-} from "../../../../../schemas/erc20";
-import { thirdwebSdkVersionSchema } from "../../../../../schemas/http-headers/thirdweb-sdk-version";
+} from "../../../../../schemas/erc20/index.js";
+import { thirdwebSdkVersionSchema } from "../../../../../schemas/http-headers/thirdweb-sdk-version.js";
 import {
   erc20ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../schemas/shared-api-schemas";
-import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet";
-import { getChainIdFromChain } from "../../../../../utils/chain";
-import { checkAndReturnERC20SignaturePayload } from "../../../../../utils/validator";
+} from "../../../../../schemas/shared-api-schemas.js";
+import { walletWithAAHeaderSchema } from "../../../../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../../../../utils/chain.js";
+import { checkAndReturnERC20SignaturePayload } from "../../../../../utils/validator.js";
 
 // v4 sdk
 const requestBodySchemaV4 = signature20InputSchema;

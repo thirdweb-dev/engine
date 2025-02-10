@@ -12,20 +12,20 @@ import {
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import { decodeFunctionData, type Abi, type Hash } from "viem";
-import { bulkInsertContractTransactionReceipts } from "../../shared/db/contract-transaction-receipts/create-contract-transaction-receipts";
-import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
-import { getChain } from "../../shared/utils/chain";
-import { logger } from "../../shared/utils/logger";
-import { normalizeAddress } from "../../shared/utils/primitive-types";
-import { redis } from "../../shared/utils/redis/redis";
-import { thirdwebClient } from "../../shared/utils/sdk";
+import { bulkInsertContractTransactionReceipts } from "../../shared/db/contract-transaction-receipts/create-contract-transaction-receipts.js";
+import { WebhooksEventTypes } from "../../shared/schemas/webhooks.js";
+import { getChain } from "../../shared/utils/chain.js";
+import { logger } from "../../shared/utils/logger.js";
+import { normalizeAddress } from "../../shared/utils/primitive-types.js";
+import { redis } from "../../shared/utils/redis/redis.js";
+import { thirdwebClient } from "../../shared/utils/sdk.js";
 import {
   ProcessTransactionReceiptsQueue,
   type EnqueueProcessTransactionReceiptsData,
-} from "../queues/process-transaction-receipts-queue";
-import { logWorkerExceptions } from "../queues/queues";
-import { SendWebhookQueue } from "../queues/send-webhook-queue";
-import { getWebhooksByContractAddresses } from "./process-event-logs-worker";
+} from "../queues/process-transaction-receipts-queue.js";
+import { logWorkerExceptions } from "../queues/queues.js";
+import { SendWebhookQueue } from "../queues/send-webhook-queue.js";
+import { getWebhooksByContractAddresses } from "./process-event-logs-worker.js";
 
 const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const {
@@ -55,8 +55,9 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
   job.log(`Inserted ${insertedReceipts.length} events.`);
 
   // Enqueue webhooks.
-  const webhooksByContractAddress =
-    await getWebhooksByContractAddresses(chainId);
+  const webhooksByContractAddress = await getWebhooksByContractAddresses(
+    chainId,
+  );
   for (const transactionReceipt of insertedReceipts) {
     const webhooks =
       webhooksByContractAddress[transactionReceipt.contractAddress] ?? [];
@@ -118,9 +119,8 @@ const getFormattedTransactionReceipts = async ({
   > = {};
   for (const filter of filters) {
     // Merge multiple filters for the same address.
-    if (filter.address in addressConfig) {
-      addressConfig[filter.address].functions.push(...filter.functions);
-    }
+    const addressConfigAddress = addressConfig[filter.address];
+    addressConfigAddress?.functions.push(...filter.functions);
 
     addressConfig[filter.address] = {
       functions: filter.functions,

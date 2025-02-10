@@ -4,13 +4,13 @@ import {
   getRpcClient,
   type Address,
 } from "thirdweb";
-import { getChain } from "../../utils/chain";
-import { logger } from "../../utils/logger";
-import { normalizeAddress } from "../../utils/primitive-types";
-import { redis } from "../../utils/redis/redis";
-import { thirdwebClient } from "../../utils/sdk";
-import { updateNonceMap } from "./nonce-map";
-import { nonceHistoryKey } from "../../../worker/tasks/nonce-health-check-worker";
+import { getChain } from "../../utils/chain.js";
+import { logger } from "../../utils/logger.js";
+import { normalizeAddress } from "../../utils/primitive-types.js";
+import { redis } from "../../utils/redis/redis.js";
+import { thirdwebClient } from "../../utils/sdk.js";
+import { updateNonceMap } from "./nonce-map.js";
+import { nonceHistoryKey } from "../../../worker/tasks/nonce-health-check-worker.js";
 
 /**
  * Get all used backend wallets.
@@ -35,13 +35,30 @@ export const getUsedBackendWallets = async (
       walletAddress ? normalizeAddress(walletAddress) : "*"
     }`,
   );
-  return keys.map((key) => {
-    const tokens = key.split(":");
-    return {
-      chainId: Number.parseInt(tokens[1]),
-      walletAddress: getAddress(tokens[2]),
-    };
-  });
+
+  if (!keys) {
+    return [];
+  }
+
+  return keys
+    .map((key: unknown) => {
+      if (!key || typeof key !== "string") {
+        return null;
+      }
+
+      const tokens = key.split(":");
+      const [_nonceKw, chainId, walletAddress] = tokens;
+
+      if (!chainId || !walletAddress) {
+        return null;
+      }
+
+      return {
+        chainId: Number.parseInt(chainId),
+        walletAddress: getAddress(walletAddress),
+      };
+    })
+    .filter((x) => x !== null);
 };
 
 /**
@@ -61,9 +78,16 @@ export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
  */
 export const splitLastUsedNonceKey = (key: string) => {
   const _splittedKeys = key.split(":");
-  const walletAddress = normalizeAddress(_splittedKeys[2]);
-  const chainId = Number.parseInt(_splittedKeys[1]);
-  return { walletAddress, chainId };
+
+  const [_nonceKw, chainId, walletAddress] = _splittedKeys;
+
+  if (!chainId || !walletAddress) {
+    return null;
+  }
+
+  const parsedWalletAddress = normalizeAddress(walletAddress);
+  const parsedChainId = Number.parseInt(chainId);
+  return { walletAddress: parsedWalletAddress, chainId: parsedChainId };
 };
 
 /**
@@ -88,7 +112,12 @@ export const sentNoncesKey = (chainId: number, walletAddress: Address) =>
 export const splitSentNoncesKey = (key: string) => {
   const _splittedKeys = key.split(":");
   const walletAddress = normalizeAddress(_splittedKeys[2]);
-  const chainId = Number.parseInt(_splittedKeys[1]);
+  if (!walletAddress) throw new Error("Invalid wallet address.");
+
+  const unparsedChainId = _splittedKeys[1];
+  if (!unparsedChainId) throw new Error("Invalid chain ID.");
+
+  const chainId = Number.parseInt(unparsedChainId);
   return { walletAddress, chainId };
 };
 
@@ -161,6 +190,10 @@ export const acquireNonce = async (args: {
     }
   }
 
+  if (!nonce) {
+    throw new Error("Invalid nonce");
+  }
+
   await updateNonceMap({
     chainId,
     walletAddress,
@@ -207,10 +240,13 @@ const _acquireRecycledNonce = async (
 ): Promise<number | null> => {
   const key = recycledNoncesKey(chainId, walletAddress);
   const result = await redis.zpopmin(key);
-  if (result.length === 0) {
+  const stringResult = result?.[0];
+
+  if (!stringResult) {
     return null;
   }
-  return Number.parseInt(result[0]);
+
+  return Number.parseInt(stringResult);
 };
 
 /**

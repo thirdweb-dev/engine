@@ -1,14 +1,14 @@
 import { KeyManagementServiceClient } from "@google-cloud/kms";
-import { createWalletDetails } from "../../../shared/db/wallets/create-wallet-details";
-import { WalletType } from "../../../shared/schemas/wallet";
-import { thirdwebClient } from "../../../shared/utils/sdk";
+import { createWalletDetails } from "../../../shared/db/wallets/create-wallet-details.js";
+import { WalletType } from "../../../shared/schemas/wallet.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
 import {
   FetchGcpKmsWalletParamsError,
   fetchGcpKmsWalletParams,
   type GcpKmsWalletParams,
-} from "./fetch-gcp-kms-wallet-params";
-import { getGcpKmsResourcePath } from "./gcp-kms-resource-path";
-import { getGcpKmsAccount } from "./get-gcp-kms-account";
+} from "./fetch-gcp-kms-wallet-params.js";
+import { getGcpKmsResourcePath } from "./gcp-kms-resource-path.js";
+import { getGcpKmsAccount } from "./get-gcp-kms-account.js";
 
 export type CreateGcpKmsWalletParams = {
   label?: string;

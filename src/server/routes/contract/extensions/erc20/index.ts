@@ -1,25 +1,25 @@
 import type { FastifyInstance } from "fastify";
-import { erc20AllowanceOf } from "./read/allowance-of";
-import { erc20BalanceOf } from "./read/balance-of";
-import { erc20CanClaim } from "./read/can-claim";
-import { erc20GetMetadata } from "./read/get";
-import { erc20GetActiveClaimConditions } from "./read/get-active-claim-conditions";
-import { erc20GetAllClaimConditions } from "./read/get-all-claim-conditions";
-import { erc20GetClaimIneligibilityReasons } from "./read/get-claim-ineligibility-reasons";
-import { erc20GetClaimerProofs } from "./read/get-claimer-proofs";
-import { erc20SignatureGenerate } from "./read/signature-generate";
-import { erc20TotalSupply } from "./read/total-supply";
-import { erc20burn } from "./write/burn";
-import { erc20burnFrom } from "./write/burn-from";
-import { erc20claimTo } from "./write/claim-to";
-import { erc20mintBatchTo } from "./write/mint-batch-to";
-import { erc20mintTo } from "./write/mint-to";
-import { erc20SetAlowance } from "./write/set-allowance";
-import { erc20SetClaimConditions } from "./write/set-claim-conditions";
-import { erc20SignatureMint } from "./write/signature-mint";
-import { erc20Transfer } from "./write/transfer";
-import { erc20TransferFrom } from "./write/transfer-from";
-import { erc20UpdateClaimConditions } from "./write/update-claim-conditions";
+import { erc20AllowanceOf } from "./read/allowance-of.js";
+import { erc20BalanceOf } from "./read/balance-of.js";
+import { erc20CanClaim } from "./read/can-claim.js";
+import { erc20GetMetadata } from "./read/get.js";
+import { erc20GetActiveClaimConditions } from "./read/get-active-claim-conditions.js";
+import { erc20GetAllClaimConditions } from "./read/get-all-claim-conditions.js";
+import { erc20GetClaimIneligibilityReasons } from "./read/get-claim-ineligibility-reasons.js";
+import { erc20GetClaimerProofs } from "./read/get-claimer-proofs.js";
+import { erc20SignatureGenerate } from "./read/signature-generate.js";
+import { erc20TotalSupply } from "./read/total-supply.js";
+import { erc20burn } from "./write/burn.js";
+import { erc20burnFrom } from "./write/burn-from.js";
+import { erc20claimTo } from "./write/claim-to.js";
+import { erc20mintBatchTo } from "./write/mint-batch-to.js";
+import { erc20mintTo } from "./write/mint-to.js";
+import { erc20SetAlowance } from "./write/set-allowance.js";
+import { erc20SetClaimConditions } from "./write/set-claim-conditions.js";
+import { erc20SignatureMint } from "./write/signature-mint.js";
+import { erc20Transfer } from "./write/transfer.js";
+import { erc20TransferFrom } from "./write/transfer-from.js";
+import { erc20UpdateClaimConditions } from "./write/update-claim-conditions.js";
 
 export const erc20Routes = async (fastify: FastifyInstance) => {
   // GET

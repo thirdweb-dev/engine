@@ -1,7 +1,7 @@
 import type { Keypairs } from "@prisma/client";
 import { createHash } from "node:crypto";
-import type { KeypairAlgorithm } from "../../schemas/keypair";
-import { prisma } from "../client";
+import type { KeypairAlgorithm } from "../../schemas/keypair.js";
+import { prisma } from "../client.js";
 
 export const insertKeypair = async ({
   publicKey,

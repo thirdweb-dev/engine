@@ -1,15 +1,15 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../../../../shared/utils/cache/get-contract";
-import { OfferV3OutputSchema } from "../../../../../../schemas/marketplace-v3/offer";
+import { getContract } from "../../../../../../../shared/utils/cache/get-contract.js";
+import { OfferV3OutputSchema } from "../../../../../../schemas/marketplace-v3/offer/index.js";
 import {
   marketplaceFilterSchema,
   marketplaceV3ContractParamSchema,
   standardResponseSchema,
-} from "../../../../../../schemas/shared-api-schemas";
-import { getChainIdFromChain } from "../../../../../../utils/chain";
-import { formatOffersV3Result } from "../../../../../../utils/marketplace-v3";
+} from "../../../../../../schemas/shared-api-schemas.js";
+import { getChainIdFromChain } from "../../../../../../utils/chain.js";
+import { formatOffersV3Result } from "../../../../../../utils/marketplace-v3.js";
 
 // INPUT
 const requestSchema = marketplaceV3ContractParamSchema;

@@ -1,6 +1,6 @@
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { getConfig } from "../../../../shared/utils/cache/get-config";
-import { getWalletCredential } from "../../../../shared/db/wallet-credentials/get-wallet-credential";
+import { getConfig } from "../../../../shared/utils/cache/get-config.js";
+import { getWalletCredential } from "../../../../shared/db/wallet-credentials/get-wallet-credential.js";
 import {
   type Address,
   eth_sendRawTransaction,
@@ -11,7 +11,7 @@ import {
   toHex,
   type toSerializableTransaction,
 } from "thirdweb";
-import { getChain } from "../../../../shared/utils/chain";
+import { getChain } from "../../../../shared/utils/chain.js";
 import {
   parseSignature,
   type SignableMessage,
@@ -19,9 +19,9 @@ import {
   type TypedDataDefinition,
 } from "viem";
 import type { Account } from "thirdweb/wallets";
-import { thirdwebClient } from "../../../../shared/utils/sdk";
-import { prisma } from "../../../../shared/db/client";
-import { getConnectedSmartWallet } from "../create-smart-wallet";
+import { thirdwebClient } from "../../../../shared/utils/sdk.js";
+import { prisma } from "../../../../shared/db/client.js";
+import { getConnectedSmartWallet } from "../create-smart-wallet.js";
 import {
   DEFAULT_ACCOUNT_FACTORY_V0_7,
   ENTRYPOINT_ADDRESS_v0_7,

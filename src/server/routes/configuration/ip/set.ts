@@ -1,10 +1,10 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
-import { getConfig } from "../../../../shared/utils/cache/get-config";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
-import { responseBodySchema } from "./get";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration.js";
+import { getConfig } from "../../../../shared/utils/cache/get-config.js";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas.js";
+import { responseBodySchema } from "./get.js";
 
 const requestBodySchema = Type.Object({
   ips: Type.Array(

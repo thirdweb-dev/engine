@@ -1,8 +1,8 @@
 import type { AsyncStorage } from "@thirdweb-dev/wallets";
 import fs from "node:fs";
-import { prisma } from "../../../shared/db/client";
-import { WalletType } from "../../../shared/schemas/wallet";
-import { logger } from "../../../shared/utils/logger";
+import { prisma } from "../../../shared/db/client.js";
+import { WalletType } from "../../../shared/schemas/wallet.js";
+import { logger } from "../../../shared/utils/logger.js";
 
 /**
  * @deprecated

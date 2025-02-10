@@ -1,5 +1,5 @@
-import type { PrismaTransaction } from "../../schemas/prisma";
-import { getPrismaWithPostgresTx } from "../client";
+import type { PrismaTransaction } from "../../schemas/prisma.js";
+import { getPrismaWithPostgresTx } from "../client.js";
 
 interface UpsertChainIndexerParams {
   chainId: number;

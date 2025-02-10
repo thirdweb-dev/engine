@@ -1,7 +1,7 @@
 import type { Address } from "thirdweb";
-import type { PrismaTransaction } from "../../schemas/prisma";
-import { encrypt } from "../../utils/crypto";
-import { getPrismaWithPostgresTx } from "../client";
+import type { PrismaTransaction } from "../../schemas/prisma.js";
+import { encrypt } from "../../utils/crypto.js";
+import { getPrismaWithPostgresTx } from "../client.js";
 
 // TODO: Case on types by wallet type
 type CreateWalletDetailsParams = {

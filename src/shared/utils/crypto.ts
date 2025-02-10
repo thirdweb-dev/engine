@@ -1,6 +1,6 @@
 import CryptoJS from "crypto-js";
 import crypto from "node:crypto";
-import { env } from "./env";
+import { env } from "./env.js";
 
 export function encrypt(data: string): string {
   return CryptoJS.AES.encrypt(data, env.ENCRYPTION_PASSWORD).toString();

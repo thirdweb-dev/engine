@@ -1,13 +1,13 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration";
-import { getConfig } from "../../../../shared/utils/cache/get-config";
-import { createCustomError } from "../../../middleware/error";
+import { updateConfiguration } from "../../../../shared/db/configuration/update-configuration.js";
+import { getConfig } from "../../../../shared/utils/cache/get-config.js";
+import { createCustomError } from "../../../middleware/error.js";
 import {
   contractSubscriptionConfigurationSchema,
   standardResponseSchema,
-} from "../../../schemas/shared-api-schemas";
+} from "../../../schemas/shared-api-schemas.js";
 
 const requestBodySchema = Type.Object({
   maxBlocksToIndex: Type.Optional(Type.Integer({ minimum: 1, maximum: 100 })),

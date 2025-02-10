@@ -1,8 +1,8 @@
 import { LocalWallet } from "@thirdweb-dev/wallets";
-import { updateConfiguration } from "../../db/configuration/update-configuration";
-import { env } from "../env";
-import { logger } from "../logger";
-import { getConfig } from "./get-config";
+import { updateConfiguration } from "../../db/configuration/update-configuration.js";
+import { env } from "../env.js";
+import { logger } from "../logger.js";
+import { getConfig } from "./get-config.js";
 
 let authWallet: LocalWallet | undefined;
 

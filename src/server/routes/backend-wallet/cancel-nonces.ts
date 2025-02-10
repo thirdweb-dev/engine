@@ -3,18 +3,18 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { eth_getTransactionCount, getRpcClient } from "thirdweb";
 import { checksumAddress } from "thirdweb/utils";
-import { getChain } from "../../../shared/utils/chain";
-import { thirdwebClient } from "../../../shared/utils/sdk";
-import { sendCancellationTransaction } from "../../../shared/utils/transaction/cancel-transaction";
+import { getChain } from "../../../shared/utils/chain.js";
+import { thirdwebClient } from "../../../shared/utils/sdk.js";
+import { sendCancellationTransaction } from "../../../shared/utils/transaction/cancel-transaction.js";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
-} from "../../schemas/shared-api-schemas";
+} from "../../schemas/shared-api-schemas.js";
 import {
   walletChainParamSchema,
   walletHeaderSchema,
-} from "../../schemas/wallet";
-import { getChainIdFromChain } from "../../utils/chain";
+} from "../../schemas/wallet/index.js";
+import { getChainIdFromChain } from "../../utils/chain.js";
 
 const requestSchema = walletChainParamSchema;
 

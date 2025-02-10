@@ -1,5 +1,5 @@
 import type { Abi } from "thirdweb/utils";
-import type { AbiSchemaType } from "../schemas/contract";
+import type { AbiSchemaType } from "../schemas/contract/index.js";
 
 export function sanitizeAbi(abi: AbiSchemaType | undefined): Abi | undefined {
   if (!abi) {
