@@ -64,7 +64,6 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     await Promise.all(
       batch.map(async (subscription) => {
         try {
-          console.log(`processing subscription ${subscription.id}`);
           // Get the current balance
           let currentBalance: bigint;
           const chain = await getChain(Number.parseInt(subscription.chainId));
@@ -89,7 +88,6 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
             });
           }
 
-          job.log(`Current balance: ${currentBalance}`);
           const max = subscription.config.threshold?.max
             ? BigInt(subscription.config.threshold.max)
             : 0n; // If no max set, use 0 (always below current)
