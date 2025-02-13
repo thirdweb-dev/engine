@@ -7,7 +7,6 @@ import {
   newWebhooksListener,
   updatedWebhooksListener,
 } from "./listeners/webhook-listener";
-import { initBalanceSubscriptionWorker } from "./tasks/balance-subscription-worker";
 import { initCancelRecycledNoncesWorker } from "./tasks/cancel-recycled-nonces-worker";
 import { initMineTransactionWorker } from "./tasks/mine-transaction-worker";
 import { initNonceHealthCheckWorker } from "./tasks/nonce-health-check-worker";
@@ -17,6 +16,7 @@ import { initProcessTransactionReceiptsWorker } from "./tasks/process-transactio
 import { initPruneTransactionsWorker } from "./tasks/prune-transactions-worker";
 import { initSendTransactionWorker } from "./tasks/send-transaction-worker";
 import { initSendWebhookWorker } from "./tasks/send-webhook-worker";
+import { initWalletSubscriptionWorker } from "./tasks/wallet-subscription-worker";
 
 export const initWorker = async () => {
   initCancelRecycledNoncesWorker();
@@ -26,11 +26,10 @@ export const initWorker = async () => {
   initSendTransactionWorker();
   initMineTransactionWorker();
   initSendWebhookWorker();
-
   initNonceHealthCheckWorker();
 
   await initNonceResyncWorker();
-  await initBalanceSubscriptionWorker();
+  await initWalletSubscriptionWorker();
 
   // Listen for new & updated configuration data.
   await newConfigurationListener();

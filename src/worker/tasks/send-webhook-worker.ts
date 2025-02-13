@@ -5,7 +5,7 @@ import { TransactionDB } from "../../shared/db/transactions/db";
 import {
   WebhooksEventTypes,
   type BackendWalletBalanceWebhookParams,
-  type BalanceSubscriptionWebhookParams,
+  type WalletSubscriptionWebhookParams,
 } from "../../shared/schemas/webhooks";
 import { toEventLogSchema } from "../../server/schemas/event-log";
 import {
@@ -74,8 +74,8 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
       break;
     }
 
-    case WebhooksEventTypes.BALANCE_SUBSCRIPTION: {
-      const webhookBody: BalanceSubscriptionWebhookParams = data.body;
+    case WebhooksEventTypes.WALLET_SUBSCRIPTION: {
+      const webhookBody: WalletSubscriptionWebhookParams = data.body;
       resp = await sendWebhookRequest(
         webhook,
         webhookBody as unknown as Record<string, unknown>,

@@ -1,10 +1,9 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { createBalanceSubscription } from "../../../shared/db/balance-subscriptions/create-balance-subscription";
+import { createWalletSubscription } from "../../../shared/db/wallet-subscriptions/create-wallet-subscription";
 import { insertWebhook } from "../../../shared/db/webhooks/create-webhook";
 import { getWebhook } from "../../../shared/db/webhooks/get-webhook";
-import { balanceSubscriptionConfigSchema } from "../../../shared/schemas/balance-subscription-config";
 import { WebhooksEventTypes } from "../../../shared/schemas/webhooks";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
@@ -12,7 +11,11 @@ import { chainIdOrSlugSchema } from "../../schemas/chain";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../utils/chain";
 import { isValidWebhookUrl } from "../../utils/validator";
-import { balanceSubscriptionSchema, toBalanceSubscriptionSchema } from "../../schemas/balance-subscription";
+import {
+  walletSubscriptionSchema,
+  toWalletSubscriptionSchema,
+} from "../../schemas/wallet-subscription";
+import { WalletConditionsSchema } from "../../../shared/schemas/wallet-subscription-conditions";
 
 const webhookUrlSchema = Type.Object({
   webhookUrl: Type.String({
@@ -22,7 +25,7 @@ const webhookUrlSchema = Type.Object({
   webhookLabel: Type.Optional(
     Type.String({
       description: "Optional label for the webhook when creating a new one",
-      examples: ["My Balance Subscription Webhook"],
+      examples: ["My Wallet Subscription Webhook"],
       minLength: 3,
     }),
   ),
@@ -37,29 +40,28 @@ const webhookIdSchema = Type.Object({
 const requestBodySchema = Type.Intersect([
   Type.Object({
     chain: chainIdOrSlugSchema,
-    tokenAddress: Type.Optional(AddressSchema),
     walletAddress: AddressSchema,
-    config: balanceSubscriptionConfigSchema,
+    conditions: WalletConditionsSchema,
   }),
-  Type.Union([webhookUrlSchema, webhookIdSchema]),
+  Type.Optional(Type.Union([webhookUrlSchema, webhookIdSchema])),
 ]);
 
 const responseSchema = Type.Object({
-  result: balanceSubscriptionSchema,
+  result: walletSubscriptionSchema,
 });
 
-export async function addBalanceSubscriptionRoute(fastify: FastifyInstance) {
+export async function addWalletSubscriptionRoute(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseSchema>;
   }>({
     method: "POST",
-    url: "/balance-subscriptions/add",
+    url: "/wallet-subscriptions",
     schema: {
-      summary: "Add balance subscription",
-      description: "Subscribe to balance changes for a wallet.",
-      tags: ["Balance-Subscriptions"],
-      operationId: "addBalanceSubscription",
+      summary: "Add wallet subscription",
+      description: "Subscribe to wallet conditions.",
+      tags: ["Wallet-Subscriptions"],
+      operationId: "addWalletSubscription",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -67,15 +69,14 @@ export async function addBalanceSubscriptionRoute(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const { chain, tokenAddress, walletAddress, config } = request.body;
+      const { chain, walletAddress, conditions } = request.body;
       const chainId = await getChainIdFromChain(chain);
 
       let finalWebhookId: number | undefined;
 
-      // Handle webhook creation or validation
       if ("webhookUrl" in request.body) {
-        // Create new webhook
         const { webhookUrl, webhookLabel } = request.body;
+
         if (!isValidWebhookUrl(webhookUrl)) {
           throw createCustomError(
             "Invalid webhook URL. Make sure it starts with 'https://'.",
@@ -85,51 +86,37 @@ export async function addBalanceSubscriptionRoute(fastify: FastifyInstance) {
         }
 
         const webhook = await insertWebhook({
-          eventType: WebhooksEventTypes.BALANCE_SUBSCRIPTION,
-          name: webhookLabel || "(Auto-generated)",
           url: webhookUrl,
+          name: webhookLabel,
+          eventType: WebhooksEventTypes.WALLET_SUBSCRIPTION,
         });
+
         finalWebhookId = webhook.id;
       } else {
-        // Validate existing webhook
         const { webhookId } = request.body;
         const webhook = await getWebhook(webhookId);
-        if (!webhook) {
+
+        if (!webhook || webhook.revokedAt) {
           throw createCustomError(
-            `Webhook with ID ${webhookId} not found.`,
-            StatusCodes.NOT_FOUND,
-            "NOT_FOUND",
-          );
-        }
-        if (webhook.eventType !== WebhooksEventTypes.BALANCE_SUBSCRIPTION) {
-          throw createCustomError(
-            `Webhook with ID ${webhookId} has incorrect event type. Expected '${WebhooksEventTypes.BALANCE_SUBSCRIPTION}' but got '${webhook.eventType}'.`,
+            "Invalid webhook ID or webhook has been revoked.",
             StatusCodes.BAD_REQUEST,
             "BAD_REQUEST",
           );
         }
-        if (webhook.revokedAt) {
-          throw createCustomError(
-            `Webhook with ID ${webhookId} has been revoked.`,
-            StatusCodes.BAD_REQUEST,
-            "BAD_REQUEST",
-          );
-        }
+
         finalWebhookId = webhookId;
       }
 
-      // Create the balance subscription
-      const balanceSubscription = await createBalanceSubscription({
+      const subscription = await createWalletSubscription({
         chainId: chainId.toString(),
-        tokenAddress: tokenAddress?.toLowerCase(),
-        walletAddress: walletAddress.toLowerCase(),
-        config,
+        walletAddress,
+        conditions,
         webhookId: finalWebhookId,
       });
 
       reply.status(StatusCodes.OK).send({
-        result: toBalanceSubscriptionSchema(balanceSubscription),
+        result: toWalletSubscriptionSchema(subscription),
       });
     },
   });
-} 
+}

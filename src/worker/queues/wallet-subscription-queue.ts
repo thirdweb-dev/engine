@@ -2,13 +2,13 @@ import { Queue } from "bullmq";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
 
-export class BalanceSubscriptionQueue {
-  static q = new Queue<string>("balance-subscription", {
+export class WalletSubscriptionQueue {
+  static q = new Queue<string>("wallet-subscription", {
     connection: redis,
     defaultJobOptions,
   });
 
   constructor() {
-    BalanceSubscriptionQueue.q.setGlobalConcurrency(1);
+    WalletSubscriptionQueue.q.setGlobalConcurrency(1);
   }
 } 

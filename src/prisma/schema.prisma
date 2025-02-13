@@ -29,7 +29,7 @@ model Configuration {
   cursorDelaySeconds                     Int     @default(2) @map("cursorDelaySeconds")
   contractSubscriptionsRetryDelaySeconds String  @default("10") @map("contractSubscriptionsRetryDelaySeconds")
 
-  balanceSubscriptionsCronSchedule String? @map("balanceSubscriptionsCronSchedule")
+  walletSubscriptionsCronSchedule String? @map("walletSubscriptionsCronSchedule")
 
   // Wallet provider specific configurations, non-credential
   walletProviderConfigs Json @default("{}") @map("walletProviderConfigs") /// Eg: { "aws": { "defaultAwsRegion": "us-east-1" }, "gcp": { "defaultGcpKmsLocationId": "us-east1-b" } }
@@ -223,7 +223,7 @@ model Webhooks {
   updatedAt             DateTime                @updatedAt @map("updatedAt")
   revokedAt             DateTime?               @map("revokedAt")
   ContractSubscriptions ContractSubscriptions[]
-  BalanceSubscriptions  BalanceSubscriptions[]
+  WalletSubscriptions   WalletSubscriptions[]
 
   @@map("webhooks")
 }
@@ -289,13 +289,12 @@ model ContractEventLogs {
   @@map("contract_event_logs")
 }
 
-model BalanceSubscriptions {
-  id            String  @id @default(uuid())
+model WalletSubscriptions {
+  id            String @id @default(uuid())
   chainId       String
-  tokenAddress  String? /// optional for ERC20 balances, if null then native balance
   walletAddress String
 
-  config Json
+  conditions Json[] // Array of condition objects with discriminated union type
 
   webhookId Int?
   webhook   Webhooks? @relation(fields: [webhookId], references: [id], onDelete: SetNull)
@@ -305,9 +304,8 @@ model BalanceSubscriptions {
   deletedAt DateTime?
 
   @@index([chainId])
-  @@index([tokenAddress])
   @@index([walletAddress])
-  @@map("balance_subscriptions")
+  @@map("wallet_subscriptions")
 }
 
 model ContractTransactionReceipts {

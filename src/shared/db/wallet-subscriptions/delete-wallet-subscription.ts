@@ -1,7 +1,7 @@
 import { prisma } from "../client";
 
-export async function deleteBalanceSubscription(id: string) {
-  return await prisma.balanceSubscriptions.update({
+export async function deleteWalletSubscription(id: string) {
+  return await prisma.walletSubscriptions.update({
     where: {
       id,
       deletedAt: null,

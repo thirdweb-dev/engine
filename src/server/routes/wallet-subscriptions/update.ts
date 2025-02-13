@@ -1,25 +1,21 @@
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { updateBalanceSubscription } from "../../../shared/db/balance-subscriptions/update-balance-subscription";
-import { balanceSubscriptionConfigSchema } from "../../../shared/schemas/balance-subscription-config";
+import { updateWalletSubscription } from "../../../shared/db/wallet-subscriptions/update-wallet-subscription";
+import { WalletConditionsSchema } from "../../../shared/schemas/wallet-subscription-conditions";
 import { AddressSchema } from "../../schemas/address";
 import { chainIdOrSlugSchema } from "../../schemas/chain";
 import {
-  balanceSubscriptionSchema,
-  toBalanceSubscriptionSchema,
-} from "../../schemas/balance-subscription";
+  walletSubscriptionSchema,
+  toWalletSubscriptionSchema,
+} from "../../schemas/wallet-subscription";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../utils/chain";
 
 const requestBodySchema = Type.Object({
-  balanceSubscriptionId: Type.String({
-    description: "The ID of the balance subscription to update.",
-  }),
   chain: Type.Optional(chainIdOrSlugSchema),
-  tokenAddress: Type.Optional(Type.Union([AddressSchema, Type.Null()])),
   walletAddress: Type.Optional(AddressSchema),
-  config: Type.Optional(balanceSubscriptionConfigSchema),
+  conditions: Type.Optional(WalletConditionsSchema),
   webhookId: Type.Optional(
     Type.Union([
       Type.Integer({
@@ -30,22 +26,30 @@ const requestBodySchema = Type.Object({
   ),
 });
 
-const responseSchema = Type.Object({
-  result: balanceSubscriptionSchema,
+const paramsSchema = Type.Object({
+  subscriptionId: Type.String({
+    description: "The ID of the wallet subscription to update.",
+  }),
 });
 
-export async function updateBalanceSubscriptionRoute(fastify: FastifyInstance) {
+const responseSchema = Type.Object({
+  result: walletSubscriptionSchema,
+});
+
+export async function updateWalletSubscriptionRoute(fastify: FastifyInstance) {
   fastify.route<{
     Body: Static<typeof requestBodySchema>;
     Reply: Static<typeof responseSchema>;
+    Params: Static<typeof paramsSchema>;
   }>({
     method: "POST",
-    url: "/balance-subscriptions/update",
+    url: "/wallet-subscriptions/:subscriptionId",
     schema: {
-      summary: "Update balance subscription",
-      description: "Update an existing balance subscription.",
-      tags: ["Balance-Subscriptions"],
-      operationId: "updateBalanceSubscription",
+      params: paramsSchema,
+      summary: "Update wallet subscription",
+      description: "Update an existing wallet subscription.",
+      tags: ["Wallet-Subscriptions"],
+      operationId: "updateWalletSubscription",
       body: requestBodySchema,
       response: {
         ...standardResponseSchema,
@@ -53,30 +57,24 @@ export async function updateBalanceSubscriptionRoute(fastify: FastifyInstance) {
       },
     },
     handler: async (request, reply) => {
-      const {
-        balanceSubscriptionId,
-        chain,
-        tokenAddress,
-        walletAddress,
-        config,
-        webhookId,
-      } = request.body;
+      const { subscriptionId } = request.params;
+
+      const { chain, walletAddress, conditions, webhookId } = request.body;
 
       // Get chainId if chain is provided
       const chainId = chain ? await getChainIdFromChain(chain) : undefined;
 
       // Update the subscription
-      const balanceSubscription = await updateBalanceSubscription({
-        id: balanceSubscriptionId,
+      const subscription = await updateWalletSubscription({
+        id: subscriptionId,
         chainId: chainId?.toString(),
-        tokenAddress,
         walletAddress,
-        config,
+        conditions,
         webhookId,
       });
 
       reply.status(StatusCodes.OK).send({
-        result: toBalanceSubscriptionSchema(balanceSubscription),
+        result: toWalletSubscriptionSchema(subscription),
       });
     },
   });

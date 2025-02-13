@@ -10,7 +10,6 @@ import { AccessTokensService } from './services/AccessTokensService';
 import { AccountService } from './services/AccountService';
 import { AccountFactoryService } from './services/AccountFactoryService';
 import { BackendWalletService } from './services/BackendWalletService';
-import { BalanceSubscriptionsService } from './services/BalanceSubscriptionsService';
 import { ChainService } from './services/ChainService';
 import { ConfigurationService } from './services/ConfigurationService';
 import { ContractService } from './services/ContractService';
@@ -32,6 +31,7 @@ import { PermissionsService } from './services/PermissionsService';
 import { RelayerService } from './services/RelayerService';
 import { TransactionService } from './services/TransactionService';
 import { WalletCredentialsService } from './services/WalletCredentialsService';
+import { WalletSubscriptionsService } from './services/WalletSubscriptionsService';
 import { WebhooksService } from './services/WebhooksService';
 
 type HttpRequestConstructor = new (config: OpenAPIConfig) => BaseHttpRequest;
@@ -42,7 +42,6 @@ class EngineLogic {
     public readonly account: AccountService;
     public readonly accountFactory: AccountFactoryService;
     public readonly backendWallet: BackendWalletService;
-    public readonly balanceSubscriptions: BalanceSubscriptionsService;
     public readonly chain: ChainService;
     public readonly configuration: ConfigurationService;
     public readonly contract: ContractService;
@@ -64,6 +63,7 @@ class EngineLogic {
     public readonly relayer: RelayerService;
     public readonly transaction: TransactionService;
     public readonly walletCredentials: WalletCredentialsService;
+    public readonly walletSubscriptions: WalletSubscriptionsService;
     public readonly webhooks: WebhooksService;
 
     public readonly request: BaseHttpRequest;
@@ -85,7 +85,6 @@ class EngineLogic {
         this.account = new AccountService(this.request);
         this.accountFactory = new AccountFactoryService(this.request);
         this.backendWallet = new BackendWalletService(this.request);
-        this.balanceSubscriptions = new BalanceSubscriptionsService(this.request);
         this.chain = new ChainService(this.request);
         this.configuration = new ConfigurationService(this.request);
         this.contract = new ContractService(this.request);
@@ -107,6 +106,7 @@ class EngineLogic {
         this.relayer = new RelayerService(this.request);
         this.transaction = new TransactionService(this.request);
         this.walletCredentials = new WalletCredentialsService(this.request);
+        this.walletSubscriptions = new WalletSubscriptionsService(this.request);
         this.webhooks = new WebhooksService(this.request);
     }
 }
