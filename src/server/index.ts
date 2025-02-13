@@ -126,7 +126,7 @@ export const initServer = async () => {
     level: "info",
     message: `Engine server is listening on port ${
       env.PORT
-    }. Add to your dashboard: https://thirdweb.com/dashboard/engine?importUrl=${encodeURIComponent(
+    }. Add to your dashboard: https://thirdweb.com/team/~/~/engine/import?importUrl=${encodeURIComponent(
       url,
     )}.`,
   });
