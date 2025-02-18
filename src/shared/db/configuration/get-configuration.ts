@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 import type { Chain } from "thirdweb";
 import type {
   AwsWalletConfiguration,
+  CircleWalletConfiguration,
   GcpWalletConfiguration,
   ParsedConfig,
 } from "../../schemas/config";
@@ -16,6 +17,15 @@ import { env } from "../../utils/env";
 import { logger } from "../../utils/logger";
 import { prisma } from "../client";
 import { updateConfiguration } from "./update-configuration";
+import * as z from "zod";
+
+export const walletProviderConfigsSchema = z.object({
+  circle: z
+    .object({
+      apiKey: z.string(),
+    })
+    .optional(),
+});
 
 const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
   // We destructure the config to omit wallet related fields to prevent direct access
@@ -29,6 +39,7 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
     gcpApplicationCredentialEmail,
     gcpApplicationCredentialPrivateKey,
     contractSubscriptionsRetryDelaySeconds,
+    walletProviderConfigs,
     ...restConfig
   } = config;
 
@@ -162,6 +173,33 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
     legacyWalletType_removeInNextBreakingChange = WalletType.gcpKms;
   }
 
+  let circleWalletConfiguration: CircleWalletConfiguration | null = null;
+
+  const {
+    data: parsedWalletProviderConfigs,
+    success,
+    error: walletProviderConfigsParseError,
+  } = walletProviderConfigsSchema.safeParse(walletProviderConfigs?.valueOf());
+
+  // TODO: fail loudly if walletProviderConfigs is not valid
+  if (!success) {
+    logger({
+      level: "error",
+      message: "Invalid wallet provider configs",
+      service: "server",
+      error: walletProviderConfigsParseError,
+    });
+  }
+
+  if (parsedWalletProviderConfigs?.circle) {
+    circleWalletConfiguration = {
+      apiKey: decrypt(
+        parsedWalletProviderConfigs.circle.apiKey,
+        env.ENCRYPTION_PASSWORD,
+      ),
+    };
+  }
+
   return {
     ...restConfig,
     contractSubscriptionsRequeryDelaySeconds:
@@ -170,8 +208,15 @@ const toParsedConfig = async (config: Configuration): Promise<ParsedConfig> => {
     walletConfiguration: {
       aws: awsWalletConfiguration,
       gcp: gcpWalletConfiguration,
+      circle: circleWalletConfiguration,
       legacyWalletType_removeInNextBreakingChange,
     },
+    mtlsCertificate: config.mtlsCertificateEncrypted
+      ? decrypt(config.mtlsCertificateEncrypted, env.ENCRYPTION_PASSWORD)
+      : null,
+    mtlsPrivateKey: config.mtlsPrivateKeyEncrypted
+      ? decrypt(config.mtlsPrivateKeyEncrypted, env.ENCRYPTION_PASSWORD)
+      : null,
   };
 };
 

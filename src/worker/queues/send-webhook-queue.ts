@@ -8,6 +8,7 @@ import SuperJSON from "superjson";
 import {
   WebhooksEventTypes,
   type BackendWalletBalanceWebhookParams,
+  type WalletSubscriptionWebhookParams,
 } from "../../shared/schemas/webhooks";
 import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook";
 import { redis } from "../../shared/utils/redis/redis";
@@ -34,11 +35,18 @@ export type EnqueueLowBalanceWebhookData = {
   body: BackendWalletBalanceWebhookParams;
 };
 
+export type EnqueueWalletSubscriptionWebhookData = {
+  type: WebhooksEventTypes.WALLET_SUBSCRIPTION;
+  webhook: Webhooks;
+  body: WalletSubscriptionWebhookParams;
+};
+
 // Add other webhook event types here.
 type EnqueueWebhookData =
   | EnqueueContractSubscriptionWebhookData
   | EnqueueTransactionWebhookData
-  | EnqueueLowBalanceWebhookData;
+  | EnqueueLowBalanceWebhookData
+  | EnqueueWalletSubscriptionWebhookData;
 
 export interface WebhookJob {
   data: EnqueueWebhookData;
@@ -66,6 +74,8 @@ export class SendWebhookQueue {
         return this._enqueueTransactionWebhook(data);
       case WebhooksEventTypes.BACKEND_WALLET_BALANCE:
         return this._enqueueBackendWalletBalanceWebhook(data);
+      case WebhooksEventTypes.WALLET_SUBSCRIPTION:
+        return this._enqueueWalletSubscriptionWebhook(data);
     }
   };
 
@@ -157,6 +167,20 @@ export class SendWebhookQueue {
       const serialized = SuperJSON.stringify(job);
       await this.q.add(
         `${data.type}:${data.body.chainId}:${data.body.walletAddress}`,
+        serialized,
+      );
+    }
+  };
+
+  private static _enqueueWalletSubscriptionWebhook = async (
+    data: EnqueueWalletSubscriptionWebhookData,
+  ) => {
+    const { type, webhook, body } = data;
+    if (!webhook.revokedAt && type === webhook.eventType) {
+      const job: WebhookJob = { data, webhook };
+      const serialized = SuperJSON.stringify(job);
+      await this.q.add(
+        `${type}:${body.chainId}:${body.walletAddress}:${body.subscriptionId}`,
         serialized,
       );
     }

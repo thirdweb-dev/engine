@@ -5,17 +5,20 @@ import { isDatabaseReachable } from "../../../shared/db/client";
 import { env } from "../../../shared/utils/env";
 import { isRedisReachable } from "../../../shared/utils/redis/redis";
 import { thirdwebClientId } from "../../../shared/utils/sdk";
-import { createCustomError } from "../../middleware/error";
 
 type EngineFeature =
   | "KEYPAIR_AUTH"
   | "CONTRACT_SUBSCRIPTIONS"
   | "IP_ALLOWLIST"
   | "HETEROGENEOUS_WALLET_TYPES"
-  | "SMART_BACKEND_WALLETS";
+  | "SMART_BACKEND_WALLETS"
+  | "WALLET_CREDENTIALS"
+  | "BALANCE_SUBSCRIPTIONS";
 
-const ReplySchemaOk = Type.Object({
-  status: Type.String(),
+const ReplySchema = Type.Object({
+  db: Type.Boolean(),
+  redis: Type.Boolean(),
+  auth: Type.Boolean(),
   engineVersion: Type.Optional(Type.String()),
   engineTier: Type.Optional(Type.String()),
   features: Type.Array(
@@ -25,20 +28,16 @@ const ReplySchemaOk = Type.Object({
       Type.Literal("IP_ALLOWLIST"),
       Type.Literal("HETEROGENEOUS_WALLET_TYPES"),
       Type.Literal("SMART_BACKEND_WALLETS"),
+      Type.Literal("WALLET_CREDENTIALS"),
+      Type.Literal("BALANCE_SUBSCRIPTIONS"),
     ]),
   ),
   clientId: Type.String(),
 });
 
-const ReplySchemaError = Type.Object({
-  error: Type.String(),
-});
-
-const responseBodySchema = Type.Union([ReplySchemaOk, ReplySchemaError]);
-
 export async function healthCheck(fastify: FastifyInstance) {
   fastify.route<{
-    Reply: Static<typeof responseBodySchema>;
+    Reply: Static<typeof ReplySchema>;
   }>({
     method: "GET",
     url: "/system/health",
@@ -49,34 +48,27 @@ export async function healthCheck(fastify: FastifyInstance) {
       tags: ["System"],
       operationId: "checkHealth",
       response: {
-        [StatusCodes.OK]: ReplySchemaOk,
-        [StatusCodes.SERVICE_UNAVAILABLE]: ReplySchemaError,
+        [StatusCodes.OK]: ReplySchema,
+        [StatusCodes.SERVICE_UNAVAILABLE]: ReplySchema,
       },
     },
     handler: async (_, res) => {
-      if (!(await isDatabaseReachable())) {
-        throw createCustomError(
-          "The database is unreachable.",
-          StatusCodes.SERVICE_UNAVAILABLE,
-          "FAILED_HEALTHCHECK",
-        );
-      }
+      const db = await isDatabaseReachable();
+      const redis = await isRedisReachable();
+      const auth = await isAuthValid();
+      const isHealthy = db && redis && auth;
 
-      if (!(await isRedisReachable())) {
-        throw createCustomError(
-          "Redis is unreachable.",
-          StatusCodes.SERVICE_UNAVAILABLE,
-          "FAILED_HEALTHCHECK",
-        );
-      }
-
-      res.status(StatusCodes.OK).send({
-        status: "OK",
-        engineVersion: env.ENGINE_VERSION,
-        engineTier: env.ENGINE_TIER ?? "SELF_HOSTED",
-        features: getFeatures(),
-        clientId: thirdwebClientId,
-      });
+      res
+        .status(isHealthy ? StatusCodes.OK : StatusCodes.SERVICE_UNAVAILABLE)
+        .send({
+          db,
+          redis,
+          auth,
+          engineVersion: env.ENGINE_VERSION,
+          engineTier: env.ENGINE_TIER ?? "SELF_HOSTED",
+          features: getFeatures(),
+          clientId: thirdwebClientId,
+        });
     },
   });
 }
@@ -89,9 +81,24 @@ const getFeatures = (): EngineFeature[] => {
     "HETEROGENEOUS_WALLET_TYPES",
     "CONTRACT_SUBSCRIPTIONS",
     "SMART_BACKEND_WALLETS",
+    "WALLET_CREDENTIALS",
+    "BALANCE_SUBSCRIPTIONS",
   ];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");
 
   return features;
 };
+
+async function isAuthValid() {
+  try {
+    const resp = await fetch("https://api.thirdweb.com/v2/keys/use", {
+      headers: {
+        "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
+      },
+    });
+    return resp.ok;
+  } catch {
+    return false;
+  }
+}

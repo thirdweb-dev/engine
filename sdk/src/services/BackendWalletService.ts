@@ -17,13 +17,19 @@ export class BackendWalletService {
      * @throws ApiError
      */
     public create(
-        requestBody?: {
+        requestBody?: ({
             label?: string;
-            /**
-             * Type of new wallet to create. It is recommended to always provide this value. If not provided, the default wallet type will be used.
-             */
             type?: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
-        },
+        } | {
+            label?: string;
+            type: ('circle' | 'smart:circle');
+            /**
+             * If your engine is configured with a testnet API Key for Circle, you can only create testnet wallets and send testnet transactions. Enable this field for testnet wallets. NOTE: A production API Key cannot be used for testnet transactions, and a testnet API Key cannot be used for production transactions. See: https://developers.circle.com/w3s/sandbox-vs-production
+             */
+            isTestnet?: boolean;
+            credentialId: string;
+            walletSetId?: string;
+        }),
     ): CancelablePromise<{
         result: {
             /**
@@ -31,7 +37,7 @@ export class BackendWalletService {
              */
             walletAddress: string;
             status: string;
-            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local');
+            type: ('local' | 'aws-kms' | 'gcp-kms' | 'smart:aws-kms' | 'smart:gcp-kms' | 'smart:local' | 'circle' | 'smart:circle');
         };
     }> {
         return this.httpRequest.request({
@@ -721,7 +727,7 @@ export class BackendWalletService {
                 gasPrice?: string;
                 data?: string;
                 value?: string;
-                chainId?: number;
+                chainId: number;
                 type?: number;
                 accessList?: any;
                 maxFeePerGas?: string;
@@ -1032,7 +1038,7 @@ export class BackendWalletService {
      * @throws ApiError
      */
     public resetNonces(
-        requestBody?: {
+        requestBody: {
             /**
              * The chain ID to reset nonces for.
              */
@@ -1041,6 +1047,10 @@ export class BackendWalletService {
              * The backend wallet address to reset nonces for. Omit to reset all backend wallets.
              */
             walletAddress?: string;
+            /**
+             * Resync nonces to match the onchain transaction count for your backend wallets. (Default: true)
+             */
+            syncOnchainNonces: boolean;
         },
     ): CancelablePromise<{
         result: {

@@ -7,7 +7,6 @@ import {
   WalletDetailsError,
   type ParsedWalletDetails,
 } from "../../../shared/db/wallets/get-wallet-details";
-import { doesChainSupportService } from "../../lib/chain/chain-capabilities";
 import { createCustomError } from "../../../server/middleware/error";
 import { SendTransactionQueue } from "../../../worker/queues/send-transaction-queue";
 import { getChecksumAddress } from "../primitive-types";
@@ -82,19 +81,6 @@ export const insertTransaction = async (
         );
       }
 
-      if (
-        !(await doesChainSupportService(
-          queuedTransaction.chainId,
-          "account-abstraction",
-        ))
-      ) {
-        throw createCustomError(
-          "Chain does not support smart backend wallets",
-          StatusCodes.BAD_REQUEST,
-          "SBW_CHAIN_NOT_SUPPORTED",
-        );
-      }
-
       queuedTransaction = {
         ...queuedTransaction,
         isUserOp: true,
@@ -124,19 +110,6 @@ export const insertTransaction = async (
       // entrypointAddress is not set
       // accountFactoryAddress is not set
       if (walletDetails && isSmartBackendWallet(walletDetails)) {
-        if (
-          !(await doesChainSupportService(
-            queuedTransaction.chainId,
-            "account-abstraction",
-          ))
-        ) {
-          throw createCustomError(
-            "Chain does not support smart backend wallets",
-            StatusCodes.BAD_REQUEST,
-            "SBW_CHAIN_NOT_SUPPORTED",
-          );
-        }
-
         queuedTransaction = {
           ...queuedTransaction,
           entrypointAddress: walletDetails.entrypointAddress ?? undefined,

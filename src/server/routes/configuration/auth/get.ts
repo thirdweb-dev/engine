@@ -6,7 +6,9 @@ import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 export const responseBodySchema = Type.Object({
   result: Type.Object({
-    domain: Type.String(),
+    authDomain: Type.String(),
+    mtlsCertificate: Type.Union([Type.String(), Type.Null()]),
+    // Do not return mtlsPrivateKey.
   }),
 });
 
@@ -27,10 +29,12 @@ export async function getAuthConfiguration(fastify: FastifyInstance) {
       },
     },
     handler: async (_req, res) => {
-      const config = await getConfig();
+      const { authDomain, mtlsCertificate } = await getConfig();
+
       res.status(StatusCodes.OK).send({
         result: {
-          domain: config.authDomain,
+          authDomain,
+          mtlsCertificate,
         },
       });
     },

@@ -113,6 +113,14 @@ import { revokeWebhook } from "./webhooks/revoke";
 import { testWebhookRoute } from "./webhooks/test";
 import { readBatchRoute } from "./contract/read/read-batch";
 import { sendTransactionBatchAtomicRoute } from "./backend-wallet/send-transaction-batch-atomic";
+import { createWalletCredentialRoute } from "./wallet-credentials/create";
+import { getWalletCredentialRoute } from "./wallet-credentials/get";
+import { getAllWalletCredentialsRoute } from "./wallet-credentials/get-all";
+import { updateWalletCredentialRoute } from "./wallet-credentials/update";
+import { getAllWalletSubscriptionsRoute } from "./wallet-subscriptions/get-all";
+import { addWalletSubscriptionRoute } from "./wallet-subscriptions/add";
+import { updateWalletSubscriptionRoute } from "./wallet-subscriptions/update";
+import { deleteWalletSubscriptionRoute } from "./wallet-subscriptions/delete";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -136,6 +144,12 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(cancelBackendWalletNoncesRoute);
   await fastify.register(getBackendWalletNonce);
   await fastify.register(simulateTransaction);
+
+  // Credentials
+  await fastify.register(createWalletCredentialRoute);
+  await fastify.register(getWalletCredentialRoute);
+  await fastify.register(getAllWalletCredentialsRoute);
+  await fastify.register(updateWalletCredentialRoute);
 
   // Configuration
   await fastify.register(getWalletsConfiguration);
@@ -257,6 +271,12 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(removeContractSubscription);
   await fastify.register(getContractIndexedBlockRange);
   await fastify.register(getLatestBlock);
+
+  // Wallet Subscriptions
+  await fastify.register(getAllWalletSubscriptionsRoute);
+  await fastify.register(addWalletSubscriptionRoute);
+  await fastify.register(updateWalletSubscriptionRoute);
+  await fastify.register(deleteWalletSubscriptionRoute);
 
   // Contract Transactions
   // @deprecated

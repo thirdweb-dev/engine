@@ -23,8 +23,8 @@ export class ContractEventsService {
     public getAllEvents(
         chain: string,
         contractAddress: string,
-        fromBlock?: (number | string),
-        toBlock?: (number | string),
+        fromBlock?: (number | 'latest' | 'earliest' | 'pending' | 'safe' | 'finalized'),
+        toBlock?: (number | 'latest' | 'earliest' | 'pending' | 'safe' | 'finalized'),
         order?: ('asc' | 'desc'),
     ): CancelablePromise<{
         result: Array<Record<string, any>>;
@@ -63,8 +63,8 @@ export class ContractEventsService {
         contractAddress: string,
         requestBody: {
             eventName: string;
-            fromBlock?: (number | string);
-            toBlock?: (number | string);
+            fromBlock?: (number | 'latest' | 'earliest' | 'pending' | 'safe' | 'finalized');
+            toBlock?: (number | 'latest' | 'earliest' | 'pending' | 'safe' | 'finalized');
             order?: ('asc' | 'desc');
             filters?: any;
         },

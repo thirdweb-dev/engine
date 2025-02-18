@@ -116,7 +116,10 @@ async function getCurrentNonceState(
   };
 }
 
-function nonceHistoryKey(walletAddress: Address, chainId: number) {
+/**
+ * Stores a list of onchain vs sent nonces to check if the nonce is stuck over time.
+ */
+export function nonceHistoryKey(chainId: number, walletAddress: Address) {
   return `nonce-history:${chainId}:${getAddress(walletAddress)}`;
 }
 
@@ -128,7 +131,7 @@ async function getHistoricalNonceStates(
   chainId: number,
   periods: number,
 ): Promise<NonceState[]> {
-  const key = nonceHistoryKey(walletAddress, chainId);
+  const key = nonceHistoryKey(chainId, walletAddress);
   const historicalStates = await redis.lrange(key, 0, periods - 1);
   return historicalStates.map((state) => JSON.parse(state));
 }
@@ -136,7 +139,7 @@ async function getHistoricalNonceStates(
 // Update nonce history
 async function updateNonceHistory(walletAddress: Address, chainId: number) {
   const currentState = await getCurrentNonceState(walletAddress, chainId);
-  const key = nonceHistoryKey(walletAddress, chainId);
+  const key = nonceHistoryKey(chainId, walletAddress);
 
   await redis
     .multi()

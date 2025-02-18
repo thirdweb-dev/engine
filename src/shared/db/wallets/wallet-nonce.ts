@@ -10,6 +10,7 @@ import { normalizeAddress } from "../../utils/primitive-types";
 import { redis } from "../../utils/redis/redis";
 import { thirdwebClient } from "../../utils/sdk";
 import { updateNonceMap } from "./nonce-map";
+import { nonceHistoryKey } from "../../../worker/tasks/nonce-health-check-worker";
 
 /**
  * Get all used backend wallets.
@@ -45,7 +46,7 @@ export const getUsedBackendWallets = async (
 
 /**
  * The "last used nonce" stores the last nonce submitted onchain.
- * Example: "25"
+ * Example: 25 -> nonce 25 is onchain, nonce 26 is unused or inflight.
  */
 export const lastUsedNonceKey = (chainId: number, walletAddress: Address) =>
   `nonce:${chainId}:${normalizeAddress(walletAddress)}`;
@@ -260,6 +261,7 @@ export async function deleteNoncesForBackendWallets(
     lastUsedNonceKey(chainId, walletAddress),
     recycledNoncesKey(chainId, walletAddress),
     sentNoncesKey(chainId, walletAddress),
+    nonceHistoryKey(chainId, walletAddress),
   ]);
   await redis.del(keys);
 }

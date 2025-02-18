@@ -658,6 +658,13 @@
   dependencies:
     "@bull-board/api" "5.23.0"
 
+"@circle-fin/developer-controlled-wallets@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@circle-fin/developer-controlled-wallets/-/developer-controlled-wallets-7.0.0.tgz#520bbe54e050dbf9585b54bc61d372887d0dc149"
+  integrity sha512-GbouORrWpec27DIOVuWfdyP25inrGQUNj2Vwgp7pJm15Z09E9OQBQjB334rGCIM4MT4NVuKKDkbOHTIphoi7zg==
+  dependencies:
+    axios "^1.6.2"
+
 "@cloud-cryptographic-wallet/asn1-parser@^0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@cloud-cryptographic-wallet/asn1-parser/-/asn1-parser-0.0.4.tgz#4494a8f46d2b3974731d6cc2f3f34cb8afeb0c78"
@@ -5158,7 +5165,7 @@ aws4fetch@1.0.20:
   resolved "https://registry.yarnpkg.com/aws4fetch/-/aws4fetch-1.0.20.tgz#090d6c65e32c6df645dd5e5acf04cc56da575cbe"
   integrity sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==
 
-axios@>=1.7.8, axios@^0.21.0, axios@^0.27.2:
+axios@>=1.7.8, axios@^0.21.0, axios@^0.27.2, axios@^1.6.2:
   version "1.7.9"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.9.tgz#d7d071380c132a24accda1b2cfc1535b79ec650a"
   integrity sha512-LhLcE7Hbiryz8oMDdDptSrWowmB4Bl6RCt6sIJKpRB4XtVf0iEgewX3au/pJqm+Py1kCASkb/FFKjxQaLtxJvw==
@@ -8857,6 +8864,19 @@ ox@0.4.2:
     abitype "^1.0.6"
     eventemitter3 "5.0.1"
 
+ox@^0.6.9:
+  version "0.6.9"
+  resolved "https://registry.yarnpkg.com/ox/-/ox-0.6.9.tgz#da1ee04fa10de30c8d04c15bfb80fe58b1f554bd"
+  integrity sha512-wi5ShvzE4eOcTwQVsIPdFr+8ycyX+5le/96iAJutaZAvCes1J0+RvpEPg5QDPDiaR0XQQAvZVl7AwqQcINuUug==
+  dependencies:
+    "@adraffy/ens-normalize" "^1.10.1"
+    "@noble/curves" "^1.6.0"
+    "@noble/hashes" "^1.5.0"
+    "@scure/bip32" "^1.5.0"
+    "@scure/bip39" "^1.4.0"
+    abitype "^1.0.6"
+    eventemitter3 "5.0.1"
+
 p-limit@^2.2.0:
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/p-limit/-/p-limit-2.3.0.tgz#3dd33c647a214fdfffd835933eb086da0dc21db1"
@@ -10537,6 +10557,11 @@ undici-types@~6.20.0:
   version "6.20.0"
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-6.20.0.tgz#8171bf22c1f588d1554d55bf204bc624af388433"
   integrity sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==
+
+undici@^6.20.1:
+  version "6.20.1"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-6.20.1.tgz#fbb87b1e2b69d963ff2d5410a40ffb4c9e81b621"
+  integrity sha512-AjQF1QsmqfJys+LXfGTNum+qw4S88CojRInG/6t31W/1fk6G59s92bnAvGz5Cmur+kQv2SURXEvvudLmbrE8QA==
 
 unenv@^1.10.0:
   version "1.10.0"
