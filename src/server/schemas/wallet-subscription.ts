@@ -1,22 +1,14 @@
 import { Type } from "@sinclair/typebox";
-import type { Prisma, Webhooks } from "@prisma/client";
+import type { WalletSubscriptions, Webhooks } from "@prisma/client";
 import { AddressSchema } from "./address";
 import {
   WalletConditionsSchema,
   validateConditions,
 } from "../../shared/schemas/wallet-subscription-conditions";
 
-interface WalletSubscriptionWithWebhook {
-  id: string;
-  chainId: string;
-  walletAddress: string;
-  conditions: Prisma.JsonValue[];
-  webhookId: number | null;
+type WalletSubscriptionWithWebhook = WalletSubscriptions & {
   webhook: Webhooks | null;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-}
+};
 
 export const walletSubscriptionSchema = Type.Object({
   id: Type.String(),

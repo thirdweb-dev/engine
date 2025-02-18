@@ -34,6 +34,12 @@ export async function createWalletSubscription({
     }
   }
 
+  const existingSubscriptionsCount = await prisma.walletSubscriptions.count({});
+
+  if (existingSubscriptionsCount >= 1000) {
+    throw new Error("Maximum number of wallet subscriptions reached");
+  }
+
   // Create a new subscription
   return await prisma.walletSubscriptions.create({
     data: {

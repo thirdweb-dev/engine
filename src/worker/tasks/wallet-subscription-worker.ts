@@ -12,19 +12,13 @@ import { thirdwebClient } from "../../shared/utils/sdk";
 import { getWalletBalance } from "thirdweb/wallets";
 import type { Chain } from "thirdweb/chains";
 import type { WalletCondition } from "../../shared/schemas/wallet-subscription-conditions";
-import type { Webhooks } from "@prisma/client";
+import type { WalletSubscriptions, Webhooks } from "@prisma/client";
+import { prettifyError } from "../../shared/utils/error";
 
-interface WalletSubscriptionWithWebhook {
-  id: string;
-  chainId: string;
-  walletAddress: string;
+type WalletSubscriptionWithWebhook = WalletSubscriptions & {
   conditions: WalletCondition[];
-  webhookId: number | null;
   webhook: Webhooks | null;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-}
+};
 
 // Split array into chunks of specified size
 function chunk<T>(arr: T[], size: number): T[][] {
@@ -45,7 +39,7 @@ async function verifyCondition({
   condition: WalletCondition;
   walletAddress: string;
   chain: Chain;
-}): Promise<string | undefined> {
+}): Promise<string | null> {
   switch (condition.type) {
     case "token_balance_lt":
     case "token_balance_gt": {
@@ -67,12 +61,7 @@ async function verifyCondition({
           ? currentBalance < threshold
           : currentBalance > threshold;
 
-      return isConditionMet ? currentBalance.toString() : undefined;
-    }
-    default: {
-      // For TypeScript exhaustiveness check
-      const _exhaustiveCheck: never = condition;
-      return undefined;
+      return isConditionMet ? currentBalance.toString() : null;
     }
   }
 }
@@ -112,7 +101,7 @@ async function processSubscriptions(
         }
       } catch (error) {
         // Log error but continue processing other subscriptions
-        const message = error instanceof Error ? error.message : String(error);
+        const message = prettifyError(error);
         logger({
           service: "worker",
           level: "error",
@@ -127,7 +116,8 @@ async function processSubscriptions(
 // Must be explicitly called for the worker to run on this host.
 export const initWalletSubscriptionWorker = async () => {
   const config = await getConfig();
-  const cronPattern = config.walletSubscriptionsCronSchedule || "*/30 * * * * *"; // Default to every 30 seconds
+  const cronPattern =
+    config.walletSubscriptionsCronSchedule || "*/30 * * * * *"; // Default to every 30 seconds
 
   logger({
     service: "worker",
@@ -152,10 +142,7 @@ export const initWalletSubscriptionWorker = async () => {
  */
 const handler: Processor<string, void, string> = async (_job: Job<string>) => {
   // Get all active wallet subscriptions
-  const subscriptions = await getAllWalletSubscriptions({
-    page: 1,
-    limit: 1000, // Process 1000 subscriptions at a time
-  });
+  const subscriptions = await getAllWalletSubscriptions();
   if (subscriptions.length === 0) {
     return;
   }
