@@ -12,7 +12,8 @@ type EngineFeature =
   | "IP_ALLOWLIST"
   | "HETEROGENEOUS_WALLET_TYPES"
   | "SMART_BACKEND_WALLETS"
-  | "WALLET_CREDENTIALS";
+  | "WALLET_CREDENTIALS"
+  | "BALANCE_SUBSCRIPTIONS";
 
 const ReplySchema = Type.Object({
   db: Type.Boolean(),
@@ -28,6 +29,7 @@ const ReplySchema = Type.Object({
       Type.Literal("HETEROGENEOUS_WALLET_TYPES"),
       Type.Literal("SMART_BACKEND_WALLETS"),
       Type.Literal("WALLET_CREDENTIALS"),
+      Type.Literal("BALANCE_SUBSCRIPTIONS"),
     ]),
   ),
   clientId: Type.String(),
@@ -80,6 +82,7 @@ const getFeatures = (): EngineFeature[] => {
     "CONTRACT_SUBSCRIPTIONS",
     "SMART_BACKEND_WALLETS",
     "WALLET_CREDENTIALS",
+    "BALANCE_SUBSCRIPTIONS",
   ];
 
   if (env.ENABLE_KEYPAIR_AUTH) features.push("KEYPAIR_AUTH");

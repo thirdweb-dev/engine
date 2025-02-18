@@ -15,6 +15,7 @@ import { ProcessTransactionReceiptsQueue } from "../../worker/queues/process-tra
 import { PruneTransactionsQueue } from "../../worker/queues/prune-transactions-queue";
 import { SendTransactionQueue } from "../../worker/queues/send-transaction-queue";
 import { SendWebhookQueue } from "../../worker/queues/send-webhook-queue";
+import { WalletSubscriptionQueue } from "../../worker/queues/wallet-subscription-queue";
 
 export const ADMIN_QUEUES_BASEPATH = "/admin/queues";
 const ADMIN_ROUTES_USERNAME = "admin";
@@ -31,6 +32,7 @@ const QUEUES: Queue[] = [
   PruneTransactionsQueue.q,
   NonceResyncQueue.q,
   NonceHealthCheckQueue.q,
+  WalletSubscriptionQueue.q,
 ];
 
 export const withAdminRoutes = async (fastify: FastifyInstance) => {

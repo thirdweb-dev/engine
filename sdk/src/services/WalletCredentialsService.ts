@@ -21,9 +21,9 @@ export class WalletCredentialsService {
             label: string;
             type: 'circle';
             /**
-             * 32-byte hex string. If not provided, a random one will be generated.
+             * 32-byte hex string. Consult https://developers.circle.com/w3s/entity-secret-management to create and register an entity secret.
              */
-            entitySecret?: string;
+            entitySecret: string;
             /**
              * Whether this credential should be set as the default for its type. Only one credential can be default per type.
              */
@@ -102,7 +102,7 @@ export class WalletCredentialsService {
             id: string;
             type: string;
             label: (string | null);
-            isDefault: boolean;
+            isDefault: (boolean | null);
             createdAt: string;
             updatedAt: string;
             deletedAt: (string | null);
@@ -114,6 +114,53 @@ export class WalletCredentialsService {
             path: {
                 'id': id,
             },
+            errors: {
+                400: `Bad Request`,
+                404: `Not Found`,
+                500: `Internal Server Error`,
+            },
+        });
+    }
+
+    /**
+     * Update wallet credential
+     * Update a wallet credential's label, default status, and entity secret.
+     * @param id The ID of the wallet credential to update.
+     * @param requestBody
+     * @returns any Default Response
+     * @throws ApiError
+     */
+    public updateWalletCredential(
+        id: string,
+        requestBody?: {
+            label?: string;
+            /**
+             * Whether this credential should be set as the default for its type. Only one credential can be default per type.
+             */
+            isDefault?: boolean;
+            /**
+             * 32-byte hex string. Consult https://developers.circle.com/w3s/entity-secret-management to create and register an entity secret.
+             */
+            entitySecret?: string;
+        },
+    ): CancelablePromise<{
+        result: {
+            id: string;
+            type: string;
+            label: (string | null);
+            isDefault: (boolean | null);
+            createdAt: string;
+            updatedAt: string;
+        };
+    }> {
+        return this.httpRequest.request({
+            method: 'PUT',
+            url: '/wallet-credentials/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 400: `Bad Request`,
                 404: `Not Found`,
