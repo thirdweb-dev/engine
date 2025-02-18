@@ -102,9 +102,9 @@ export async function getContractTransactionReceipts(fastify: FastifyInstance) {
       });
 
       if (!isSubscribed) {
-        const subcriptionUrl = `/contract/${chain}/${contractAddress}/subscribe`;
+        const subscriptionUrl = `/contract/${chain}/${contractAddress}/subscribe`;
         throw createCustomError(
-          `Contract is not subscribed to! To subscribe, please use ${subcriptionUrl}`,
+          `Contract is not subscribed to! To subscribe, please use ${subscriptionUrl}`,
           StatusCodes.NOT_FOUND,
           "NOT_FOUND",
         );
