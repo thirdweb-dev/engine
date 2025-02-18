@@ -54,6 +54,7 @@ export const env = createEnv({
     CLIENT_ANALYTICS_URL: z
       .union([UrlSchema, z.literal("")])
       .default("https://c.thirdweb.com/event"),
+    ENABLE_USAGE_V2_ANALYTICS: boolEnvSchema(true),
     SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
     SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
     REDIS_URL: z.string(),
@@ -120,6 +121,7 @@ export const env = createEnv({
     HTTPS_PASSPHRASE: process.env.HTTPS_PASSPHRASE,
     TRUST_PROXY: process.env.TRUST_PROXY,
     CLIENT_ANALYTICS_URL: process.env.CLIENT_ANALYTICS_URL,
+    ENABLE_USAGE_V2_ANALYTICS: process.env.ENABLE_USAGE_V2_ANALYTICS,
     SDK_BATCH_TIME_LIMIT: process.env.SDK_BATCH_TIME_LIMIT,
     SDK_BATCH_SIZE_LIMIT: process.env.SDK_BATCH_SIZE_LIMIT,
     REDIS_URL: process.env.REDIS_URL,

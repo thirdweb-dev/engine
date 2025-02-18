@@ -43,7 +43,7 @@
     "@thirdweb-dev/auth": "^4.1.87",
     "@thirdweb-dev/chains": "^0.1.77",
     "@thirdweb-dev/sdk": "^4.0.89",
-    "@thirdweb-dev/service-utils": "^0.4.28",
+    "@thirdweb-dev/service-utils": "^0.8.8-nightly-cad9c74befe33bef2cc6a12a8ade8d9c996ffe41-20250209100117",
     "@types/base-64": "^1.0.2",
     "aws-kms-signer": "^0.5.3",
     "base-64": "^1.0.0",
