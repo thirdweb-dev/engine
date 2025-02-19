@@ -22,7 +22,6 @@
     // Some stricter flags
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noPropertyAccessFromIndexSignature": true,
 
     /* Base Options: */
     "esModuleInterop": true,
@@ -31,6 +30,7 @@
 
     /* Strictness */
     "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+    "noErrorTruncation": true
   }
 }

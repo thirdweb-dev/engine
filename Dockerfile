@@ -4,6 +4,7 @@ WORKDIR /usr/src/app
 # Generate cert for local https
 FROM base AS certs
 WORKDIR /usr/src/app/src/https
+RUN apt-get update && apt-get install -y openssl
 RUN openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=localhost" \
     -passout pass:thirdweb-engine && \

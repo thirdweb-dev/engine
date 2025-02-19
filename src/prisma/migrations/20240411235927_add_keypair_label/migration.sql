@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "keypairs" ADD COLUMN     "label" TEXT,
-ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;

@@ -1,29 +1,29 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { env } from "../../shared/utils/env.js";
-import { recordMetrics } from "../../shared/utils/prometheus.js";
+import { createMiddleware } from "hono/factory";
+import { env } from "../../lib/env";
+import { recordMetrics } from "../../lib/prometheus";
 
-export function withPrometheus(server: FastifyInstance) {
+export const prometheusMiddleware = createMiddleware(async (c, next) => {
   if (!env.METRICS_ENABLED) {
+    await next();
     return;
   }
 
-  server.addHook(
-    "onResponse",
-    async (req: FastifyRequest, res: FastifyReply) => {
-      const { method } = req;
-      const url = req.routeOptions.url;
-      const { statusCode } = res;
-      const duration = res.elapsedTime;
+  const startTime = performance.now();
 
-      recordMetrics({
-        event: "response_sent",
-        params: {
-          endpoint: url ?? "",
-          statusCode: statusCode.toString(),
-          duration: duration,
-          method: method,
-        },
-      });
+  await next();
+
+  const duration = performance.now() - startTime;
+  const method = c.req.method;
+  const url = new URL(c.req.url).pathname;
+  const status = c.res.status;
+
+  recordMetrics({
+    event: "response_sent",
+    params: {
+      endpoint: url,
+      statusCode: status.toString(),
+      duration,
+      method,
     },
-  );
-}
+  });
+});

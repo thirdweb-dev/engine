@@ -1,29 +1,20 @@
-import type { FastifyInstance } from "fastify";
-import { StatusCodes } from "http-status-codes";
-import { env } from "../../shared/utils/env.js";
-import { redis } from "../../shared/utils/redis/redis.js";
-import { createCustomError } from "./error.js";
-import { OPENAPI_ROUTES } from "./open-api.js";
+import { createMiddleware } from "hono/factory";
+import { HTTPException } from "hono/http-exception";
+import { redis } from "../../lib/redis";
+import { env } from "../../lib/env";
 
-const SKIP_RATELIMIT_PATHS = ["/", ...OPENAPI_ROUTES];
+export const rateLimitMiddleware = createMiddleware(async (_c, next) => {
+  const epochTimeInMinutes = Math.floor(Date.now() / (1000 * 60));
+  const key = `rate-limit:global:${epochTimeInMinutes}`;
 
-export function withRateLimit(server: FastifyInstance) {
-  server.addHook("onRequest", async (request, _reply) => {
-    if (SKIP_RATELIMIT_PATHS.includes(request.url)) {
-      return;
-    }
+  const count = await redis.incr(key);
+  redis.expire(key, 2 * 60);
 
-    const epochTimeInMinutes = Math.floor(new Date().getTime() / (1000 * 60));
-    const key = `rate-limit:global:${epochTimeInMinutes}`;
-    const count = await redis.incr(key);
-    redis.expire(key, 2 * 60);
+  if (count > env.GLOBAL_RATE_LIMIT_PER_MIN) {
+    throw new HTTPException(429, {
+      message: `Too many requests. Please reduce your calls to ${env.GLOBAL_RATE_LIMIT_PER_MIN} requests/minute or update the "GLOBAL_RATE_LIMIT_PER_MIN" env var.`,
+    });
+  }
 
-    if (count > env.GLOBAL_RATE_LIMIT_PER_MIN) {
-      throw createCustomError(
-        `Too many requests. Please reduce your calls to ${env.GLOBAL_RATE_LIMIT_PER_MIN} requests/minute or update the "GLOBAL_RATE_LIMIT_PER_MIN" env var.`,
-        StatusCodes.TOO_MANY_REQUESTS,
-        "TOO_MANY_REQUESTS",
-      );
-    }
-  });
-}
+  await next();
+});
