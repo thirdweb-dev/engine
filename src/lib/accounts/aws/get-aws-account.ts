@@ -23,21 +23,20 @@ import { hashMessage } from "thirdweb/utils";
 
 export function getAwsKmsAccount({
   keyId,
-  config,
+  credentials,
   client,
 }: {
   keyId: string;
-  config: {
-    region: string;
-    credentials: {
-      accessKeyId: string;
-      secretAccessKey: string;
-    };
+  credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
   };
   client: ThirdwebClient;
 }): ResultAsync<Account, AwsKmsErr> {
   return safeTry(async function* () {
-    const signer = new KmsSigner(keyId, config);
+    const signer = new KmsSigner(keyId, {
+      credentials,
+    });
 
     // Get address
     const addressResult = yield* ResultAsync.fromPromise(

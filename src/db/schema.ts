@@ -8,14 +8,24 @@ import {
   boolean,
   uuid,
   json,
+  primaryKey,
+  integer,
 } from "drizzle-orm/pg-core";
 import { relations, sql } from "drizzle-orm";
-import type { Address, Chain } from "thirdweb";
-import type { Permission, WebhookEventType } from "./types.js";
+import type { Address, Chain, Hex } from "thirdweb";
+import {
+  ENGINE_EOA_TYPES,
+  type ExecutionParamsSerialized,
+  type ExecutionResultSerialized,
+  type Permission,
+  type TransactionParamsSerialized,
+  type WebhookEventType,
+} from "./types";
 import type {
   EoaCredential,
+  EoaPlatformIdentifiers,
   WalletProviderConfigMap,
-} from "../lib/accounts/accounts.js";
+} from "../lib/accounts/accounts";
 
 export const configuration = pgTable("configuration", {
   id: text().default("default").primaryKey().notNull(),
@@ -45,27 +55,29 @@ export const configuration = pgTable("configuration", {
 export const transactions = pgTable(
   "transactions",
   {
-    id: uuid().defaultRandom().primaryKey(),
+    // id is idempotency key
+    id: text().notNull(),
+    // batch index is to identify and deduplicate transactions in the same batch
+    batchIndex: integer().notNull(),
+
     chainId: text().notNull(),
 
-    fromAddress: text(), /// this is high-level, not the from address of the EOA transaction. for AA, this will be the Smart Account
-    toAddress: text(),
+    from: text().$type<Address>(), /// this is high-level, not the from address of the EOA transaction. for AA, this will be the Smart Account
 
-    data: text(),
-    value: text(),
+    transactionParams: jsonb().$type<TransactionParamsSerialized[]>().notNull(),
 
-    transactionHash: text(),
+    transactionHash: text().$type<Hex>(),
     confirmedAt: timestamp(),
     confirmedAtBlockNumber: text(),
 
-    enrichedData: jsonb().default({}).notNull(), // store transaction enriched data if available
+    enrichedData: jsonb().default([]).notNull(), // store transaction enriched data if available
 
-    executionParams: jsonb().default({}).notNull(), // store executor specific parameters
+    executionParams: jsonb().$type<ExecutionParamsSerialized>().notNull(), // store executor specific parameters
     // eg:
     // - for erc4337, store signerAddress
     // can store overrides like gas, nonce etc
 
-    executionResult: jsonb().default({}).notNull(), // store executor specific result
+    executionResult: jsonb().$type<ExecutionResultSerialized>(), // store executor specific result
     // for eg eoa will contain the receipt
     // external 4337 will contain the receipt, userophash, gasdata etc
 
@@ -83,13 +95,13 @@ export const transactions = pgTable(
     // minedAt: timestamp(),
 
     createdAt: timestamp().defaultNow().notNull(),
-
     errorMessage: text(),
     cancelledAt: timestamp(),
   },
   (table) => [
+    primaryKey({ columns: [table.id, table.batchIndex] }),
     index("transaction_hash_idx").on(table.transactionHash),
-    index("from_address_idx").on(table.fromAddress),
+    index("from_idx").on(table.from),
   ],
 );
 
@@ -132,7 +144,7 @@ export const webhooks = pgTable("webhooks", {
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp()
     .notNull()
-    .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+    .$onUpdate(() => new Date()),
   revokedAt: timestamp(),
 });
 
@@ -149,7 +161,7 @@ export const eoaCredentials = pgTable(
       .notNull(),
     updatedAt: timestamp()
       .notNull()
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+      .$onUpdate(() => new Date()),
     deletedAt: timestamp(),
   },
   (table) => [
@@ -157,46 +169,68 @@ export const eoaCredentials = pgTable(
     uniqueIndex("eoa_credentials_type_is_default_key")
       .on(table.type)
       .where(sql`${table.isDefault} IS TRUE`),
+    index("eoa_credentials_deleted_at_not_null_idx")
+      .on(table.deletedAt)
+      .where(sql`${table.deletedAt} IS NOT NULL`),
   ],
 );
 
-export const eoas = pgTable("eoas", {
-  address: text().$type<Address>().primaryKey(),
-  type: text().notNull(),
-  encryptedJson: text(),
-  label: text().notNull(),
+export const eoas = pgTable(
+  "eoas",
+  {
+    address: text().$type<Address>().primaryKey(),
+    type: text({ enum: ENGINE_EOA_TYPES }).notNull(),
+    encryptedJson: text(),
+    label: text().notNull(),
 
-  credentialId: uuid().references(() => eoaCredentials.id, {
-    onDelete: "set null",
-    onUpdate: "cascade",
-  }),
+    credentialId: uuid().references(() => eoaCredentials.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
 
-  platformIdentifiers: jsonb(),
+    platformIdentifiers: jsonb().$type<EoaPlatformIdentifiers>(),
 
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp()
-    .notNull()
-    .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
-  deletedAt: timestamp(),
-});
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
+      .$onUpdate(() => new Date())
+      .notNull(),
+    deletedAt: timestamp(),
+  },
+  (table) => [
+    index("eoas_deleted_at_not_null_idx")
+      .on(table.deletedAt)
+      .where(sql`${table.deletedAt} IS NOT NULL`),
+  ],
+);
 
-export const smartAccounts = pgTable("smart_accounts", {
-  address: text().$type<Address>().primaryKey(),
-  signerAddress: text()
-    .$type<Address>()
-    .references(() => eoas.address)
-    .notNull(),
+export const smartAccounts = pgTable(
+  "smart_accounts",
+  {
+    address: text().$type<Address>().notNull(),
+    signerAddress: text()
+      .$type<Address>()
+      .references(() => eoas.address)
+      .notNull(),
 
-  factoryAddress: text().$type<Address>(),
-  entrypointAddress: text().$type<Address>(),
-  accountSalt: text(),
+    label: text().notNull(),
+    factoryAddress: text().$type<Address>().notNull(),
+    entrypointAddress: text().$type<Address>().notNull(),
+    accountSalt: text(),
 
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp()
-    .notNull()
-    .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
-  deletedAt: timestamp(),
-});
+    createdAt: timestamp().defaultNow().notNull(),
+    updatedAt: timestamp()
+      .notNull()
+      .$onUpdate(() => new Date()),
+    deletedAt: timestamp(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.address, table.signerAddress] }),
+    index("smart_accounts_signer_address_idx").on(table.signerAddress),
+    index("smart_accounts_deleted_at_not_null_idx")
+      .on(table.deletedAt)
+      .where(sql`${table.deletedAt} IS NOT NULL`),
+  ],
+);
 
 export const addressSubscriptions = pgTable(
   "address_subscriptions",
@@ -210,11 +244,15 @@ export const addressSubscriptions = pgTable(
     createdAt: timestamp().defaultNow().notNull(),
     updatedAt: timestamp()
       .notNull()
-      .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+      .$onUpdate(() => new Date()),
 
     deletedAt: timestamp(),
   },
   (table) => [
+    index("address_subscriptions_deleted_at_not_null_idx")
+      .on(table.deletedAt)
+      .where(sql`${table.deletedAt} IS NOT NULL`),
+    index("address_subscriptions_webhook_id_idx").on(table.webhookId),
     index("address_subscriptions_chainId_idx").on(table.chainId),
     index("address_subscriptions_address_idx").on(table.address),
   ],
@@ -228,7 +266,7 @@ export const keypairs = pgTable("keypairs", {
   createdAt: timestamp().defaultNow().notNull(),
   updatedAt: timestamp()
     .notNull()
-    .$onUpdate(() => sql`CURRENT_TIMESTAMP`),
+    .$onUpdate(() => new Date()),
   deletedAt: timestamp(),
 });
 

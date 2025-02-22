@@ -24,11 +24,11 @@ import { hashMessage } from "thirdweb/utils";
 import type { TypedData } from "ox";
 
 export function getGcpKmsAccount({
-  name: unprocessedName,
+  respourcePath: unprocessedName,
   clientOptions,
   client,
 }: {
-  name: string;
+  respourcePath: string;
   clientOptions: {
     credentials: {
       client_email: string;
@@ -38,16 +38,14 @@ export function getGcpKmsAccount({
   client: ThirdwebClient;
 }): ResultAsync<Account, GcpKmsErr> {
   return safeTry(async function* () {
-    if (clientOptions?.credentials?.private_key) {
-      clientOptions.credentials.private_key =
-        clientOptions.credentials.private_key.split(String.raw`\n`).join("\n");
-    }
+    clientOptions.credentials.private_key =
+      clientOptions.credentials.private_key.split(String.raw`\n`).join("\n");
 
-    const name = unprocessedName.includes("cryptoKeyVersions")
+    const resourcePath = unprocessedName.includes("cryptoKeyVersions")
       ? unprocessedName
       : unprocessedName.replace("cryptoKeysVersion", "cryptoKeyVersions");
 
-    const signer = new CloudKmsSigner(name, clientOptions);
+    const signer = new CloudKmsSigner(resourcePath, clientOptions);
 
     // Get address
     const publicKey = yield* ResultAsync.fromPromise(

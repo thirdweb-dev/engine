@@ -5,17 +5,18 @@ import { err, ok, ResultAsync, safeTry } from "neverthrow";
 import type { Account } from "thirdweb/wallets";
 import { KeyManagementServiceClient } from "@google-cloud/kms";
 import { getGcpKmsAccount } from "./get-gcp-account";
-import { baseAccountCreateSchema, baseCredentialIdSchema } from "../base-schemas";
+import {
+  baseAccountCreateSchema,
+  baseCredentialIdSchema,
+} from "../base-schemas";
 
 const type = z.literal("gcp-kms");
 
 export const gcpPlatformIdentifiersSchema = z.object({
-  platformIdentifiers: z.object({
-    gcpKmsResourcePath: z.string().openapi({
-      description: "The resource path of the GCP KMS key",
-      example:
-        "projects/123456789012/locations/global/keyRings/keyring-123456789012/cryptoKeys/key-123456789012",
-    }),
+  gcpKmsResourcePath: z.string().openapi({
+    description: "The resource path of the GCP KMS key",
+    example:
+      "projects/123456789012/locations/global/keyRings/keyring-123456789012/cryptoKeys/key-123456789012",
   }),
   type,
 });
@@ -117,9 +118,7 @@ export function provisionGcpKmsAccount({
 }): ResultAsync<
   {
     account: Account;
-    platformIdentifiers: z.infer<
-      typeof gcpPlatformIdentifiersSchema
-    >["platformIdentifiers"];
+    platformIdentifiers: z.infer<typeof gcpPlatformIdentifiersSchema>;
   },
   GcpKmsErr
 > {
@@ -182,7 +181,7 @@ export function provisionGcpKmsAccount({
 
     const account = yield* getGcpKmsAccount({
       client: thirdwebClient,
-      name: resourcePath,
+      respourcePath: resourcePath,
       clientOptions: {
         credentials: {
           client_email: credentials.email,
@@ -194,6 +193,7 @@ export function provisionGcpKmsAccount({
     return ok({
       account,
       platformIdentifiers: {
+        type: "gcp-kms" as const,
         gcpKmsResourcePath: resourcePath,
       },
     });

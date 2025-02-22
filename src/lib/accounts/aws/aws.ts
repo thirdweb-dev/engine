@@ -13,12 +13,10 @@ import {
 const type = z.literal("aws-kms");
 
 export const awsPlatformIdentifiersSchema = z.object({
-  platformIdentifiers: z.object({
-    awsKmsArn: z.string().openapi({
-      description: "The ARN of the AWS KMS key",
-      example:
-        "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
-    }),
+  awsKmsArn: z.string().openapi({
+    description: "The ARN of the AWS KMS key",
+    example:
+      "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
   }),
   type,
 });
@@ -114,9 +112,7 @@ export function provisionAwsKmsAccount({
 }): ResultAsync<
   {
     account: Account;
-    platformIdentifiers: z.infer<
-      typeof awsPlatformIdentifiersSchema
-    >["platformIdentifiers"];
+    platformIdentifiers: z.infer<typeof awsPlatformIdentifiersSchema>;
   },
   AwsKmsErr
 > {
@@ -161,18 +157,18 @@ export function provisionAwsKmsAccount({
     const account = yield* getAwsKmsAccount({
       client: thirdwebClient,
       keyId,
-      config: {
-        region: config.region,
-        credentials: {
-          accessKeyId: credentials.accessKeyId,
-          secretAccessKey: credentials.secretAccessKey,
-        },
+      credentials: {
+        accessKeyId: credentials.accessKeyId,
+        secretAccessKey: credentials.secretAccessKey,
       },
     });
 
     return ok({
       account,
-      platformIdentifiers: { awsKmsArn },
+      platformIdentifiers: {
+        type: "aws-kms" as const,
+        awsKmsArn,
+      },
     });
   });
 }

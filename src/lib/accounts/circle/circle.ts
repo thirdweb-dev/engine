@@ -5,26 +5,27 @@ import type { Account } from "thirdweb/wallets";
 import type { ThirdwebClient } from "thirdweb";
 import type { CircleErr } from "../../errors";
 import { getCircleAccount } from "./get-circle-account";
-import { baseAccountCreateSchema, baseCredentialIdSchema } from "../base-schemas";
+import {
+  baseAccountCreateSchema,
+  baseCredentialIdSchema,
+} from "../base-schemas";
 
 const type = z.literal("circle");
 
 export const circlePlatformIdentifiersSchema = z.object({
-  platformIdentifiers: z.object({
-    circleWalletId: z.string().openapi({
-      description: "The ID of the Circle wallet",
-      example: "12345678-1234-1234-1234-123456789012",
-    }),
-    walletSetId: z.string().openapi({
-      description: "The ID of the wallet set",
-      example: "12345678-1234-1234-1234-123456789012",
-    }),
-    isTestnet: z.boolean().openapi({
-      description: "Whether the Circle wallet is on testnet",
-      example: true,
-    }),
+  circleWalletId: z.string().openapi({
+    description: "The ID of the Circle wallet",
+    example: "12345678-1234-1234-1234-123456789012",
   }),
-  type: z.literal("circle"),
+  walletSetId: z.string().openapi({
+    description: "The ID of the wallet set",
+    example: "12345678-1234-1234-1234-123456789012",
+  }),
+  isTestnet: z.boolean().openapi({
+    description: "Whether the Circle wallet is on testnet",
+    example: true,
+  }),
+  type,
 });
 
 export const circleAccountCreateParamsSchema = z
@@ -127,9 +128,7 @@ export function provisionCircleAccount({
 }): ResultAsync<
   {
     account: Account;
-    platformIdentifiers: z.infer<
-      typeof circlePlatformIdentifiersSchema
-    >["platformIdentifiers"];
+    platformIdentifiers: z.infer<typeof circlePlatformIdentifiersSchema>;
   },
   CircleErr
 > {
@@ -203,6 +202,7 @@ export function provisionCircleAccount({
     return ok({
       account,
       platformIdentifiers: {
+        type: "circle" as const,
         circleWalletId: provisionedWallet.id,
         walletSetId: walletSetId,
         isTestnet: !!params.isTestnet,

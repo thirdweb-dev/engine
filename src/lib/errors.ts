@@ -1,6 +1,12 @@
+import type { Hook } from "@hono/zod-validator";
+import type { Env } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { ZodError } from "zod";
-export type HttpErrStatusCode = 400 | 401 | 403 | 404 | 500;
+import type {
+  ExecutionParamsSerialized,
+  ExecutionResultSerialized,
+} from "../db/types";
+export type HttpErrStatusCode = 400 | 401 | 403 | 404 | 500 | 501;
 
 type BaseErr = {
   message?: string;
@@ -37,10 +43,41 @@ export type PermissionsErr = BaseErr & {
   code: "insufficient_permissions" | "no_permissions";
 };
 
-export type DbErr = BaseErr & {
-  kind: "database";
-  code: "query_failed";
-};
+export type DbErr = BaseErr &
+  (
+    | {
+        kind: "database";
+        code: "query_failed" | "invalid_id_format";
+      }
+    | {
+        kind: "database";
+        code: "transaction_db_entry_failed";
+        status: 500;
+        executionParams: ExecutionParamsSerialized;
+        executionResult: ExecutionResultSerialized;
+      }
+  );
+
+export function buildTransactionDbEntryErr({
+  error,
+  executionParams,
+  executionResult,
+}: {
+  error: DbErr;
+  executionParams: ExecutionParamsSerialized;
+  executionResult: ExecutionResultSerialized;
+}) {
+  return {
+    kind: "database",
+    code: "transaction_db_entry_failed",
+    message:
+      "Your transaction was sent sucessfully but engine was unable to store transaction details. Please do not resend this transaction to prevent double spending.",
+    status: 500,
+    source: error.source,
+    executionParams,
+    executionResult,
+  } as DbErr;
+}
 
 export type ValidationErr = BaseErr & {
   kind: "validation";
@@ -74,12 +111,27 @@ export type CryptoErr = {
 
 export type RpcErr = {
   kind: "rpc";
-  code: "smart_account_determination_failed" | "send_transaction_failed";
+  code:
+    | "smart_account_determination_failed"
+    | "send_transaction_failed"
+    | "sign_transaction_failed"
+    | "sign_userop_failed"
+    | "bundle_userop_failed"
+    | "get_userop_receipt_failed";
 } & BaseErr;
 
 export type SmartAccountErr = {
   kind: "smart_account";
   code: "smart_account_validation_failed";
+} & BaseErr;
+
+export type AccountErr = {
+  kind: "account";
+  code:
+    | "account_not_found"
+    | "account_deletion_failed"
+    | "could_not_disambiguate"
+    | "invalid_platform_identifiers";
 } & BaseErr;
 
 export type CircleErr = BaseErr & {
@@ -149,7 +201,8 @@ export type EngineErr =
   | AwsKmsErr
   | GcpKmsErr
   | WalletProviderConfigErr
-  | EoaCredentialErr;
+  | EoaCredentialErr
+  | AccountErr;
 
 export function isEngineErr(err: unknown): err is EngineErr {
   return "kind" in (err as EngineErr) && "code" in (err as EngineErr);
@@ -190,6 +243,9 @@ export function getDefaultErrorMessage(error: EngineErr): string {
     case "database": {
       const messages: Record<DbErr["code"], string> = {
         query_failed: "Database operation failed",
+        invalid_id_format: "Invalid ID format",
+        transaction_db_entry_failed:
+          "Your transaction was sent sucessfully but engine was unable to store transaction details. Please do not resend this transaction to prevent double spending.",
       };
       return messages[error.code];
     }
@@ -250,6 +306,10 @@ export function getDefaultErrorMessage(error: EngineErr): string {
         smart_account_determination_failed:
           "Unable to auto create smart account for newly created account",
         send_transaction_failed: "Failed to send transaction to RPC",
+        sign_transaction_failed: "Failed to sign transaction",
+        sign_userop_failed: "Failed to sign user operation",
+        bundle_userop_failed: "Failed to bundle user operation",
+        get_userop_receipt_failed: "Failed to get user operation receipt",
       };
       return messages[error.code];
     }
@@ -296,7 +356,7 @@ export function getDefaultErrorMessage(error: EngineErr): string {
       return messages[error.code];
     }
     case "wallet_provider_config": {
-      const messages = {
+      const messages: Record<WalletProviderConfigErr["code"], string> = {
         missing_aws_kms_config: "Missing AWS KMS config",
         missing_gcp_kms_config: "Missing GCP KMS config",
         missing_circle_config: "Missing Circle config",
@@ -304,8 +364,19 @@ export function getDefaultErrorMessage(error: EngineErr): string {
       return messages[error.code];
     }
     case "eoa_credential": {
-      const messages = {
+      const messages: Record<EoaCredentialErr["code"], string> = {
         credential_not_found: "Credential not found",
+      };
+      return messages[error.code];
+    }
+    case "account": {
+      const messages: Record<AccountErr["code"], string> = {
+        account_not_found: "Account not found",
+        account_deletion_failed: "Account deletion failed",
+        could_not_disambiguate:
+          "Multiple signers have been found for this smart account. Please specify signer address to use this smart account",
+        invalid_platform_identifiers:
+          "Invalid platform identifiers. Platform identifiers for this EOA do not match the type of the account",
       };
       return messages[error.code];
     }
@@ -326,6 +397,17 @@ export function unwrapError(originalError: unknown) {
 }
 
 export function mapDbError(error: unknown): DbErr {
+  if (error instanceof Error) {
+    if (error.message.includes("invalid input syntax for type uuid")) {
+      return {
+        kind: "database",
+        code: "invalid_id_format",
+        status: 400,
+        source: error,
+      };
+    }
+  }
+
   return {
     kind: "database",
     code: "query_failed",
@@ -350,7 +432,6 @@ export function mapZodError(error: unknown): ValidationErr {
       code: "parse_error",
       status: 400,
       message: getZodErrorMessage(error),
-      source: error,
     } as const;
   }
 
@@ -363,3 +444,42 @@ export function mapZodError(error: unknown): ValidationErr {
     source: error instanceof Error ? error : undefined,
   } as const;
 }
+
+export const zErrorMapper: Hook<unknown, Env, string> = (result) => {
+  if (!result.success) {
+    throw engineErrToHttpException(mapZodError(result.error));
+  }
+};
+
+type RpcErrorOptions = {
+  code?: RpcErr["code"];
+  status?: number;
+  defaultMessage?: string;
+};
+
+const DEFAULT_RPC_OPTIONS: Required<RpcErrorOptions> = {
+  code: "send_transaction_failed",
+  status: 500,
+  defaultMessage: "RPC request failed",
+};
+
+export const accountActionErrorMapper = (options: RpcErrorOptions = {}) => {
+  const { code, status, defaultMessage } = {
+    ...DEFAULT_RPC_OPTIONS,
+    ...options,
+  };
+
+  return (error: unknown): EngineErr => {
+    if (isEngineErr(error)) {
+      return error;
+    }
+
+    return {
+      kind: "rpc",
+      code,
+      status,
+      message: error instanceof Error ? error.message : defaultMessage,
+      source: error instanceof Error ? error : undefined,
+    } as RpcErr;
+  };
+};

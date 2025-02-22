@@ -1,6 +1,8 @@
 # Generated SDK
 sdk/replacement_log.txt
 
+.cursor
+
 # Logs
 logs
 *.log

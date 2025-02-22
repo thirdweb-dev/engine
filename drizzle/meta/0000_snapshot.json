@@ -1,5 +1,5 @@
 {
-  "id": "3fbdb2e8-9d81-4525-9d4a-e8db9b946a20",
+  "id": "10922fc4-5afc-4508-a4ac-7759d26ba7a8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -60,6 +60,37 @@
         }
       },
       "indexes": {
+        "address_subscriptions_deleted_at_not_null_idx": {
+          "name": "address_subscriptions_deleted_at_not_null_idx",
+          "columns": [
+            {
+              "expression": "deletedAt",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"address_subscriptions\".\"deletedAt\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "address_subscriptions_webhook_id_idx": {
+          "name": "address_subscriptions_webhook_id_idx",
+          "columns": [
+            {
+              "expression": "webhookId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
         "address_subscriptions_chainId_idx": {
           "name": "address_subscriptions_chainId_idx",
           "columns": [
@@ -176,10 +207,10 @@
         },
         "walletProviderConfigs": {
           "name": "walletProviderConfigs",
-          "type": "jsonb",
+          "type": "json",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{}'::jsonb"
+          "default": "'{}'::json"
         }
       },
       "indexes": {},
@@ -215,7 +246,7 @@
         },
         "data": {
           "name": "data",
-          "type": "jsonb",
+          "type": "json",
           "primaryKey": false,
           "notNull": true
         },
@@ -277,6 +308,22 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "eoa_credentials_deleted_at_not_null_idx": {
+          "name": "eoa_credentials_deleted_at_not_null_idx",
+          "columns": [
+            {
+              "expression": "deletedAt",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"eoa_credentials\".\"deletedAt\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {},
@@ -312,7 +359,7 @@
           "name": "label",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "credentialId": {
           "name": "credentialId",
@@ -346,7 +393,24 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "eoas_deleted_at_not_null_idx": {
+          "name": "eoas_deleted_at_not_null_idx",
+          "columns": [
+            {
+              "expression": "deletedAt",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"eoas\".\"deletedAt\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "eoas_credentialId_eoa_credentials_id_fk": {
           "name": "eoas_credentialId_eoa_credentials_id_fk",
@@ -514,7 +578,7 @@
         "address": {
           "name": "address",
           "type": "text",
-          "primaryKey": true,
+          "primaryKey": false,
           "notNull": true
         },
         "signerAddress": {
@@ -523,17 +587,23 @@
           "primaryKey": false,
           "notNull": true
         },
+        "label": {
+          "name": "label",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
         "factoryAddress": {
           "name": "factoryAddress",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "entrypointAddress": {
           "name": "entrypointAddress",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "accountSalt": {
           "name": "accountSalt",
@@ -561,7 +631,39 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "smart_accounts_signer_address_idx": {
+          "name": "smart_accounts_signer_address_idx",
+          "columns": [
+            {
+              "expression": "signerAddress",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "smart_accounts_deleted_at_not_null_idx": {
+          "name": "smart_accounts_deleted_at_not_null_idx",
+          "columns": [
+            {
+              "expression": "deletedAt",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "where": "\"smart_accounts\".\"deletedAt\" IS NOT NULL",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "smart_accounts_signerAddress_eoas_address_fk": {
           "name": "smart_accounts_signerAddress_eoas_address_fk",
@@ -577,7 +679,15 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "smart_accounts_address_signerAddress_pk": {
+          "name": "smart_accounts_address_signerAddress_pk",
+          "columns": [
+            "address",
+            "signerAddress"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -651,10 +761,15 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "batchIndex": {
+          "name": "batchIndex",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
         },
         "chainId": {
           "name": "chainId",
@@ -662,29 +777,17 @@
           "primaryKey": false,
           "notNull": true
         },
-        "fromAddress": {
-          "name": "fromAddress",
+        "from": {
+          "name": "from",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "toAddress": {
-          "name": "toAddress",
-          "type": "text",
+        "transactionParams": {
+          "name": "transactionParams",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": false
-        },
-        "data": {
-          "name": "data",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value": {
-          "name": "value",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "transactionHash": {
           "name": "transactionHash",
@@ -709,21 +812,19 @@
           "type": "jsonb",
           "primaryKey": false,
           "notNull": true,
-          "default": "'{}'::jsonb"
+          "default": "'[]'::jsonb"
         },
         "executionParams": {
           "name": "executionParams",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
+          "notNull": true
         },
         "executionResult": {
           "name": "executionResult",
           "type": "jsonb",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'{}'::jsonb"
+          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -761,11 +862,11 @@
           "method": "btree",
           "with": {}
         },
-        "from_address_idx": {
-          "name": "from_address_idx",
+        "from_idx": {
+          "name": "from_idx",
           "columns": [
             {
-              "expression": "fromAddress",
+              "expression": "from",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -778,7 +879,15 @@
         }
       },
       "foreignKeys": {},
-      "compositePrimaryKeys": {},
+      "compositePrimaryKeys": {
+        "transactions_id_batchIndex_pk": {
+          "name": "transactions_id_batchIndex_pk",
+          "columns": [
+            "id",
+            "batchIndex"
+          ]
+        }
+      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},

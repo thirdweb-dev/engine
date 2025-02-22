@@ -25,6 +25,9 @@ import { apiReference } from "@scalar/hono-api-reference";
 // For extending the Zod schema with OpenAPI properties
 import { accountsRoutes } from "./routes/accounts/accounts";
 import { openAPISpecs } from "hono-openapi";
+import { accountRouter } from "./account";
+import { setupQueuesUiRoutes } from "./routes/queues";
+import { transactionsRoutes } from "./routes/transactions";
 
 const engineServer = new Hono();
 const publicRoutes = new Hono();
@@ -81,6 +84,8 @@ publicRoutes.get(
   }),
 );
 
+setupQueuesUiRoutes(publicRoutes, "/admin/queues");
+
 engineServer.route("/", publicRoutes);
 
 const apiCorsMiddleware = createApiCorsMiddleware({
@@ -117,6 +122,8 @@ engineServer.use(
 );
 
 engineServer.route("/accounts", accountsRoutes);
+engineServer.route("/transactions", transactionsRoutes);
+engineServer.route("/account", accountRouter);
 
 engineServer.onError((err, c) => {
   if (err instanceof HTTPException) {
@@ -133,11 +140,11 @@ engineServer.onError((err, c) => {
         engineErr.status,
       );
     }
-
-    return err.getResponse();
+    const response = err.getResponse();
+    return response;
   }
 
-  console.error(err);
+  defaultLogger.error("unhandled error", err);
 
   return c.json(
     {
