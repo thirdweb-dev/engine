@@ -22,12 +22,12 @@ import { secretKeyAuth } from "./middleware/auth/secret-key";
 import { healthCheckRoute } from "./routes/health";
 import { apiReference } from "@scalar/hono-api-reference";
 
-// For extending the Zod schema with OpenAPI properties
 import { accountsRoutes } from "./routes/accounts/accounts";
 import { openAPISpecs } from "hono-openapi";
 import { accountRouter } from "./account";
 import { setupQueuesUiRoutes } from "./routes/queues";
 import { transactionsRoutes } from "./routes/transactions";
+import { correlationId } from "./middleware/correlation-id";
 
 const engineServer = new Hono();
 const publicRoutes = new Hono();
@@ -71,7 +71,7 @@ publicRoutes.get(
         },
       ],
     },
-  }),
+  })
 );
 
 publicRoutes.get(
@@ -81,12 +81,13 @@ publicRoutes.get(
     spec: {
       url: "/openapi",
     },
-  }),
+  })
 );
 
 setupQueuesUiRoutes(publicRoutes, "/admin/queues");
-
 engineServer.route("/", publicRoutes);
+
+engineServer.use(correlationId);
 
 const apiCorsMiddleware = createApiCorsMiddleware({
   allowedOrigins: config.accessControlAllowOrigin,
@@ -109,7 +110,7 @@ engineServer.use(
       camera: [],
       microphone: [],
     },
-  }),
+  })
 );
 
 engineServer.use(prometheusMiddleware);
@@ -118,7 +119,7 @@ engineServer.use(apiCorsMiddleware);
 engineServer.use(rateLimitMiddleware);
 
 engineServer.use(
-  some(secretKeyAuth, webhookAuth, dashboardAuth, accessTokenAuth),
+  some(secretKeyAuth, webhookAuth, dashboardAuth, accessTokenAuth)
 );
 
 engineServer.route("/accounts", accountsRoutes);
@@ -137,7 +138,7 @@ engineServer.onError((err, c) => {
             source: unwrapError(engineErr.source),
           },
         },
-        engineErr.status,
+        engineErr.status
       );
     }
     const response = err.getResponse();
@@ -153,7 +154,7 @@ engineServer.onError((err, c) => {
         source: err,
       },
     },
-    500,
+    500
   );
 });
 
