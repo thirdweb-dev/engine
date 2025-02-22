@@ -4,8 +4,8 @@ import {
   createDecipheriv,
   scryptSync,
   timingSafeEqual,
-} from "crypto";
-import { v4 as uuidv4 } from "uuid";
+  randomUUID,
+} from "node:crypto";
 import { keccak256 } from "ox/Hash";
 import { Hex } from "ox";
 
@@ -42,7 +42,7 @@ function normalizeHexString(hex: string): Buffer {
 
 function ensureBuffer(
   value: Buffer | string,
-  encoding: BufferEncoding = "hex",
+  encoding: BufferEncoding = "hex"
 ): Buffer {
   if (Buffer.isBuffer(value)) return value;
   return Buffer.from(value, encoding);
@@ -81,7 +81,7 @@ function generateKeystore(privateKey: string, password: string): Keystore {
     // Create keystore object with proper hex encoding
     const keystore: Keystore = {
       version: 3,
-      id: uuidv4(),
+      id: randomUUID().toString(),
       crypto: {
         cipher: "aes-128-ctr",
         ciphertext: ciphertext.toString("hex"),
@@ -110,7 +110,7 @@ function generateKeystore(privateKey: string, password: string): Keystore {
 
 function decryptKeystore(
   keystoreData: string | Keystore,
-  password: string,
+  password: string
 ): string {
   if (!password || typeof password !== "string") {
     throw new Error("Password must be a non-empty string");
@@ -155,7 +155,7 @@ function decryptKeystore(
     const decipher = createDecipheriv(
       "aes-128-ctr",
       derivedKey.slice(0, 16),
-      ivBuffer,
+      ivBuffer
     );
 
     const privateKey = Buffer.concat([
