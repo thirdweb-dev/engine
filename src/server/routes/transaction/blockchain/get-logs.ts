@@ -118,7 +118,7 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
     schema: {
       summary: "Get transaction logs",
       description:
-        "Get transaction logs for a mined transaction. A tranasction queue ID or hash must be provided. Set `parseLogs` to parse the event logs.",
+        "Get transaction logs for a mined transaction. A transaction queue ID or hash must be provided. Set `parseLogs` to parse the event logs.",
       tags: ["Transaction"],
       operationId: "getTransactionLogs",
       querystring: requestQuerystringSchema,
