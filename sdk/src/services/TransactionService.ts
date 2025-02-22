@@ -543,7 +543,7 @@ export class TransactionService {
 
     /**
      * Get transaction logs
-     * Get transaction logs for a mined transaction. A tranasction queue ID or hash must be provided. Set `parseLogs` to parse the event logs.
+     * Get transaction logs for a mined transaction. A transaction queue ID or hash must be provided. Set `parseLogs` to parse the event logs.
      * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param queueId The queue ID for a mined transaction.
      * @param transactionHash The transaction hash for a mined transaction.
