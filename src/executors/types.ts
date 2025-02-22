@@ -3,6 +3,35 @@ import { hexSchema, evmAddressSchema } from "../lib/zod";
 import { wrapResponseSchema } from "../server/schemas/shared-api-schemas";
 import { transactionDbEntrySchema } from "../db/derived-schemas";
 
+// Example BigInt value for OpenAPI documentation
+const exampleBigInt = "123456789012345678901234567890";
+
+export const bigIntSchema = z
+  .string()
+  .refine(
+    (value) => {
+      try {
+        // Check if the string is a valid integer (no decimals, letters, etc.)
+        // and can be converted to a BigInt
+        BigInt(value);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    {
+      message: "Input must be a valid integer string convertible to BigInt",
+    }
+  )
+  .transform((value) => BigInt(value)) // Transform the string to BigInt
+  .openapi({
+    description:
+      "A string representing an integer that is transformed into a BigInt",
+    example: exampleBigInt,
+    type: "string", // OpenAPI type (input is still a string)
+    format: "bigint", // Custom format to indicate it's a BigInt
+  });
+
 export const transactionBodySchema = z.object({
   to: evmAddressSchema.optional().openapi({
     description: "The address of the contract to send the transaction to",
@@ -12,7 +41,7 @@ export const transactionBodySchema = z.object({
       description: "The data of the transaction",
     })
     .optional(),
-  value: z.coerce.bigint().optional().openapi({
+  value: bigIntSchema.optional().openapi({
     description: "The value of the transaction",
   }),
 });
@@ -94,7 +123,7 @@ const vagueExecutionRequestSchema = z.object({
  * @returns A schema for an execution request.
  */
 export function buildExecutionRequestSchema<T extends z.ZodSchema>(
-  transactionParamsSchema: T,
+  transactionParamsSchema: T
 ): // sorry for this nasty generic, but it's a necessary evil to get the type inference to work
 z.ZodUnion<
   [
@@ -115,7 +144,7 @@ z.ZodUnion<
         >,
         (typeof baseExecutionRequestSchema)["shape"]
       >
-    >,
+    >
   ]
 > {
   return z.union([
@@ -123,21 +152,21 @@ z.ZodUnion<
       .merge(
         z.object({
           transactionParams: transactionParamsSchema,
-        }),
+        })
       )
       .merge(baseExecutionRequestSchema),
     vagueExecutionRequestSchema
       .merge(
         z.object({
           transactionParams: transactionParamsSchema,
-        }),
+        })
       )
       .merge(baseExecutionRequestSchema),
   ]);
 }
 
 export const encodedExecutionRequestSchema = buildExecutionRequestSchema(
-  z.array(transactionBodySchema),
+  z.array(transactionBodySchema)
 );
 
 export type EncodedExecutionRequest = z.infer<
@@ -147,5 +176,5 @@ export type EncodedExecutionRequest = z.infer<
 export const transactionResponseSchema = wrapResponseSchema(
   z.object({
     transactions: z.array(transactionDbEntrySchema),
-  }),
+  })
 );

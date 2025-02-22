@@ -102,7 +102,9 @@ export const transactions = pgTable(
     primaryKey({ columns: [table.id, table.batchIndex] }),
     index("transaction_hash_idx").on(table.transactionHash),
     index("from_idx").on(table.from),
-  ],
+    index("execution_params_idx").using("gin", table.executionParams),
+    index("execution_result_idx").using("gin", table.executionResult),
+  ]
 );
 
 export const permissions = pgTable("permissions", {
@@ -172,7 +174,7 @@ export const eoaCredentials = pgTable(
     index("eoa_credentials_deleted_at_not_null_idx")
       .on(table.deletedAt)
       .where(sql`${table.deletedAt} IS NOT NULL`),
-  ],
+  ]
 );
 
 export const eoas = pgTable(
@@ -200,7 +202,7 @@ export const eoas = pgTable(
     index("eoas_deleted_at_not_null_idx")
       .on(table.deletedAt)
       .where(sql`${table.deletedAt} IS NOT NULL`),
-  ],
+  ]
 );
 
 export const smartAccounts = pgTable(
@@ -229,7 +231,7 @@ export const smartAccounts = pgTable(
     index("smart_accounts_deleted_at_not_null_idx")
       .on(table.deletedAt)
       .where(sql`${table.deletedAt} IS NOT NULL`),
-  ],
+  ]
 );
 
 export const addressSubscriptions = pgTable(
@@ -255,7 +257,7 @@ export const addressSubscriptions = pgTable(
     index("address_subscriptions_webhook_id_idx").on(table.webhookId),
     index("address_subscriptions_chainId_idx").on(table.chainId),
     index("address_subscriptions_address_idx").on(table.address),
-  ],
+  ]
 );
 
 export const keypairs = pgTable("keypairs", {
@@ -289,7 +291,7 @@ export const eoaCredentialsRelations = relations(
   eoaCredentials,
   ({ many }) => ({
     eoas: many(eoas),
-  }),
+  })
 );
 
 export const addressSubscriptionsRelations = relations(
@@ -299,7 +301,7 @@ export const addressSubscriptionsRelations = relations(
       fields: [addressSubscriptions.webhookId],
       references: [webhooks.id],
     }),
-  }),
+  })
 );
 
 export const webhooksRelations = relations(webhooks, ({ many }) => ({
