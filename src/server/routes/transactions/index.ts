@@ -5,26 +5,53 @@ import { ResultAsync } from "neverthrow";
 import { z } from "zod";
 import { db } from "../../../db/connection";
 import { mapDbError } from "../../../lib/errors";
-import { wrapResponseSchema } from "../../schemas/shared-api-schemas";
+import {
+  wrapResponseSchema,
+  requestPaginationSchema,
+} from "../../schemas/shared-api-schemas";
 import { transactionDbEntrySchema } from "../../../db/derived-schemas";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { transactions as transactionsTable } from "../../../db/schema";
+import { evmAddressSchema } from "../../../lib/zod";
 
 export const transactionsRoutes = new Hono();
 
+const searchTransactionsSchema = requestPaginationSchema.extend({
+  // Search criteria
+  id: z.string().optional(),
+  batchIndex: z.number().optional(),
+  from: evmAddressSchema.optional(),
+  signerAddress: evmAddressSchema.optional(),
+
+  // Sorting
+  sortBy: z.enum(["createdAt", "confirmedAt"]).default("createdAt"),
+  sortDirection: z.enum(["asc", "desc"]).default("desc"),
+});
+
 transactionsRoutes.get(
-  "/:id",
-  zValidator("param", z.object({ id: z.string() })),
+  "/search",
+  zValidator("query", searchTransactionsSchema),
   describeRoute({
-    summary: "Get Transaction by ID",
-    description: "Retrieve a transaction by its ID",
+    summary: "Get Transactions",
+    description: "Search transactions with various filters and pagination",
     tags: ["Transactions"],
-    operationId: "getTransactionById",
+    operationId: "getTransactions",
     responses: {
       200: {
-        description: "Transaction found",
+        description: "Transactions",
         content: {
           "application/json": {
             schema: resolver(
-              wrapResponseSchema(z.array(transactionDbEntrySchema)),
+              wrapResponseSchema(
+                z.object({
+                  transactions: z.array(transactionDbEntrySchema),
+                  pagination: z.object({
+                    totalCount: z.number(),
+                    page: z.number(),
+                    limit: z.number(),
+                  }),
+                })
+              )
             ),
           },
         },
@@ -32,23 +59,78 @@ transactionsRoutes.get(
     },
   }),
   async (c) => {
-    const { id } = c.req.valid("param");
+    const params = c.req.valid("query");
+    const skip = (params.page - 1) * params.limit;
 
-    const result = await ResultAsync.fromPromise(
-      db.query.transactions.findMany({
-        where: (transactions, { eq }) => eq(transactions.id, id),
-      }),
-      mapDbError,
-    );
+    // Build where conditions
+    const whereConditions = [];
 
-    if (result.isErr()) {
-      throw result.error;
+    if (params.id) {
+      whereConditions.push(eq(transactionsTable.id, params.id));
     }
+
+    if (params.batchIndex !== undefined) {
+      whereConditions.push(eq(transactionsTable.batchIndex, params.batchIndex));
+    }
+
+    if (params.from) {
+      whereConditions.push(eq(transactionsTable.from, params.from));
+    }
+
+    if (params.signerAddress) {
+      // Search in executionParams JSON for signerAddress
+      whereConditions.push(
+        sql`${transactionsTable.executionParams}->>'signerAddress' = ${params.signerAddress}`
+      );
+    }
+
+    const baseQuery = {
+      where: whereConditions.length > 0 ? and(...whereConditions) : undefined,
+      orderBy: [
+        params.sortBy === "createdAt"
+          ? params.sortDirection === "asc"
+            ? asc(transactionsTable.createdAt)
+            : desc(transactionsTable.createdAt)
+          : params.sortDirection === "asc"
+          ? asc(transactionsTable.confirmedAt)
+          : desc(transactionsTable.confirmedAt),
+      ],
+    };
+
+    const combined = await ResultAsync.combine([
+      ResultAsync.fromPromise(
+        db.query.transactions.findMany({
+          ...baseQuery,
+          offset: skip,
+          limit: params.limit,
+        }),
+        mapDbError
+      ),
+      ResultAsync.fromPromise(
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(transactionsTable)
+          .where(baseQuery.where || undefined)
+          .then((rows) => rows[0]?.count || 0),
+        mapDbError
+      ),
+    ]);
+
+    if (combined.isErr()) {
+      throw combined.error;
+    }
+
+    const [txns, totalCount] = combined.value;
 
     return c.json({
       result: {
-        transactions: result.value,
+        transactions: txns,
+        pagination: {
+          totalCount,
+          page: params.page,
+          limit: params.limit,
+        },
       },
     });
-  },
+  }
 );

@@ -100,7 +100,7 @@ export type ConfirmationResult =
 const callbacks: ((result: ConfirmationResult) => void)[] = [];
 
 export function registerCallback(
-  callback: (result: ConfirmationResult) => void,
+  callback: (result: ConfirmationResult) => void
 ) {
   confirmLogger.info(`Registered callback ${callback.name}`);
   callbacks.push(callback);
@@ -127,13 +127,11 @@ export const externalBundlerConfirmQueue = new Queue<ExecutionResult>(
       },
     },
     connection: redis,
-  },
+  }
 );
 
 export function execute(request: ExecutionRequest) {
   const { executionOptions, transactionParams, client, chain } = request;
-
-  performance.mark("sign-userop-start");
 
   return ResultAsync.fromPromise(
     createAndSignUserOp({
@@ -161,21 +159,10 @@ export function execute(request: ExecutionRequest) {
     }),
     accountActionErrorMapper({
       code: "sign_userop_failed",
-    }),
+    })
   )
-    .andThen((signedUserOp) => {
-      performance.mark("sign-userop-end");
-      const signUserOpDuration = performance.measure(
-        "sign-userop",
-        "sign-userop-start",
-        "sign-userop-end",
-      );
-
-      console.log(`sign-userop took ${signUserOpDuration.duration}ms`);
-
-      performance.mark("bundle-user-op-start");
-
-      return ResultAsync.fromPromise(
+    .andThen((signedUserOp) =>
+      ResultAsync.fromPromise(
         bundleUserOp({
           userOp: signedUserOp,
           options: {
@@ -186,20 +173,11 @@ export function execute(request: ExecutionRequest) {
         }),
         accountActionErrorMapper({
           code: "bundle_userop_failed",
-        }),
-      );
-    })
-    .andThen((userOpHash) => {
-      performance.mark("bundle-user-op-end");
-      const bundleUserOpDuration = performance.measure(
-        "bundle-user-op",
-        "bundle-user-op-start",
-        "bundle-user-op-end",
-      );
-
-      console.log(`bundle-user-op took ${bundleUserOpDuration.duration}ms`);
-
-      return ResultAsync.fromPromise(
+        })
+      )
+    )
+    .andThen((userOpHash) =>
+      ResultAsync.fromPromise(
         externalBundlerConfirmQueue.add(
           userOpHash,
           {
@@ -209,7 +187,7 @@ export function execute(request: ExecutionRequest) {
           },
           {
             jobId: request.id,
-          },
+          }
         ),
         (err) =>
           ({
@@ -218,9 +196,9 @@ export function execute(request: ExecutionRequest) {
             executionOptions,
             source: err,
             userOpHash,
-          } as QueueingErr),
-      );
-    });
+          } as QueueingErr)
+      )
+    );
 }
 
 type ConfirmationError = {
@@ -258,8 +236,8 @@ export function confirm(options: ExecutionResult) {
                 ? e.message
                 : "Failed to get user operation receipt in EXTERNAL_BUNDLER:CONFIRM",
             source: e,
-          } as RpcErr),
-      ),
+          } as RpcErr)
+      )
     )
     .andThen((res) => {
       if (!res) {
@@ -304,7 +282,7 @@ export function confirm(options: ExecutionResult) {
           const namedArgs: Record<string, unknown> =
             "inputs" in abiItem && abiItem.inputs.length === args.length
               ? Object.fromEntries(
-                  abiItem.inputs.map((input, i) => [input.name, args[i]]),
+                  abiItem.inputs.map((input, i) => [input.name, args[i]])
                 )
               : Object.fromEntries(args.map((arg, i) => [`arg${i}`, arg]));
 
@@ -354,19 +332,19 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
       });
 
       job.log(
-        `[${new Date().toISOString()}] Unexpected RPC error confirming user operation`,
+        `[${new Date().toISOString()}] Unexpected RPC error confirming user operation`
       );
 
       throw new Error("Failed to confirm user operation");
     }
     if (!result.value) {
       job.log(
-        `[${new Date().toISOString()}] Did not get receipt yet. Will retry`,
+        `[${new Date().toISOString()}] Did not get receipt yet. Will retry`
       );
 
       if (job.attemptsMade === 60) {
         job.log(
-          `[${new Date().toISOString()}] Unable to confirm user operation after 60 attempts. Will not retry.`,
+          `[${new Date().toISOString()}] Unable to confirm user operation after 60 attempts. Will not retry.`
         );
 
         confirmLogger.error(
@@ -374,7 +352,7 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
           {
             chainId,
             userOpHash,
-          },
+          }
         );
       }
       throw new Error("Failed to confirm user operation");
@@ -383,7 +361,7 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
     job.log(
       `[${new Date().toISOString()}] Confirmed user operation with transaction hash ${
         result.value.transactionHash
-      }`,
+      }`
     );
 
     const res = {
@@ -410,7 +388,7 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
         return 60000; // Every 1min thereafter
       },
     },
-  },
+  }
 );
 
 confirmWorker.on("ready", () => {

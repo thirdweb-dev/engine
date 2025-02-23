@@ -240,22 +240,8 @@ export function execute({
   return safeTry(async function* () {
     const chain = await getChain(Number.parseInt(request.chainId));
 
-    performance.mark("startGetExecutionAccountFromRequest");
-
     const engineAccountResponse = yield* getExecutionAccountFromRequest(
       request,
-    );
-
-    performance.mark("endGetExecutionAccountFromRequest");
-
-    const getExecutionAccountFromRequestDuration = performance.measure(
-      "getExecutionAccountFromRequest",
-      "startGetExecutionAccountFromRequest",
-      "endGetExecutionAccountFromRequest",
-    );
-
-    console.log(
-      `getExecutionAccountFromRequest took ${getExecutionAccountFromRequestDuration.duration}ms`,
     );
 
     if ("account" in engineAccountResponse) {
@@ -292,8 +278,6 @@ export function execute({
 
     const idempotencyKey = request.idempotencyKey ?? randomUUID().toString();
 
-    performance.mark("startExecuteExternalBundler");
-
     const executionResult = await executeExternalBundler({
       id: idempotencyKey,
       chain,
@@ -301,18 +285,6 @@ export function execute({
       executionOptions,
       transactionParams: resolvedTransactionParams,
     });
-
-    performance.mark("endExecuteExternalBundler");
-
-    const executeExternalBundlerDuration = performance.measure(
-      "executeExternalBundler",
-      "startExecuteExternalBundler",
-      "endExecuteExternalBundler",
-    );
-
-    console.log(
-      `executeExternalBundler took ${executeExternalBundlerDuration.duration}ms`,
-    );
 
     let userOpHash: Hex;
     let didConfirmationQueueJobError = false;
@@ -328,11 +300,12 @@ export function execute({
       userOpHash = executionResult.value.data.userOpHash;
     }
 
-    const executionParams = {
+    const executionParams: ExecutionParamsSerialized = {
+      type: "AA" as const,
       entrypointAddress: executionOptions.entrypointAddress,
       smartAccountAddress: executionOptions.smartAccountAddress,
       signerAddress: executionOptions.signer.address,
-    } as ExecutionParamsSerialized;
+    };
 
     const executionResultSerialized = {
       status: "SUBMITTED" as const,

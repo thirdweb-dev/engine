@@ -19,6 +19,7 @@ export type WebhookEventType = "AUTH" | "TRANSACTION";
 export type WebhookDbEntry = typeof webhooks.$inferSelect;
 
 export type ExecutionParams4337Serialized = {
+  type: "AA";
   entrypointAddress: string;
   smartAccountAddress: string;
   signerAddress: string;
