@@ -142,7 +142,9 @@ export class Engine extends EngineLogic {
     const ercServices: string[] = ["erc20", "erc721", "erc1155"];
 
     for (const tag of ercServices) {
-      const fileName = `${tag.charAt(0).toUpperCase() + tag.slice(1)}Service.ts`;
+      const fileName = `${
+        tag.charAt(0).toUpperCase() + tag.slice(1)
+      }Service.ts`;
       const filePath = path.join(servicesDir, fileName);
       const originalCode = fs.readFileSync(filePath, "utf-8");
 

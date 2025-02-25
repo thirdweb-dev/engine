@@ -35,4 +35,5 @@ export { PermissionsService } from './services/PermissionsService';
 export { RelayerService } from './services/RelayerService';
 export { TransactionService } from './services/TransactionService';
 export { WalletCredentialsService } from './services/WalletCredentialsService';
+export { WalletSubscriptionsService } from './services/WalletSubscriptionsService';
 export { WebhooksService } from './services/WebhooksService';

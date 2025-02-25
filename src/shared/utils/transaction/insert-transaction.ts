@@ -95,9 +95,10 @@ export const insertTransaction = async (
   } catch (e) {
     if (e instanceof WalletDetailsError) {
       // do nothing. The this is a smart backend wallet using a v4 endpoint
+    } else {
+      // if other type of error, rethrow
+      throw e;
     }
-    // if other type of error, rethrow
-    throw e;
   }
 
   if (!walletDetails && queuedTransaction.accountAddress) {
