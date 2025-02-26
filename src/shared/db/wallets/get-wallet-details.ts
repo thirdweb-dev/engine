@@ -151,7 +151,7 @@ export type SmartBackendWalletType = (typeof SmartBackendWalletTypes)[number];
 export type BackendWalletType = (typeof BackendWalletTypes)[number];
 export type ParsedWalletDetails = z.infer<typeof walletDetailsSchema>;
 
-export const walletDetailsCache = new LRUMap<string, ParsedWalletDetails>(2048);
+export const walletDetailsCache = new LRUMap<string, ParsedWalletDetails>(env.ACCOUNT_CACHE_SIZE);
 /**
  * Return the wallet details for the given address.
  *

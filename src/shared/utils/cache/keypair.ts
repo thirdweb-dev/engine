@@ -1,9 +1,10 @@
 import type { Keypairs } from "@prisma/client";
 import LRUMap from "mnemonist/lru-map";
 import { getKeypairByHash, getKeypairByPublicKey } from "../../db/keypair/get";
+import { env } from "../env";
 
 // Cache a public key to the Keypair object, or null if not found.
-export const keypairCache = new LRUMap<string, Keypairs | null>(2048);
+export const keypairCache = new LRUMap<string, Keypairs | null>(env.ACCOUNT_CACHE_SIZE);
 
 /**
  * Get a keypair by public key or hash.
