@@ -16,7 +16,7 @@ import { getLocalWallet } from "../../../server/utils/wallets/get-local-wallet";
 import { getSmartWallet } from "../../../server/utils/wallets/get-smart-wallet";
 import { env } from "../env";
 
-export const walletsCache = new LRUMap<string, EVMWallet>(env.ACCOUNT_CAHCE_SIZE);
+export const walletsCache = new LRUMap<string, EVMWallet>(env.ACCOUNT_CACHE_SIZE);
 
 interface GetWalletParams {
   pgtx?: PrismaTransaction;

@@ -4,7 +4,7 @@ import { getToken } from "../../db/tokens/get-token";
 import { env } from "../env";
 
 // Cache an access token JWT to the token object, or null if not found.
-export const accessTokenCache = new LRUMap<string, Tokens | null>(env.ACCOUNT_CAHCE_SIZE);
+export const accessTokenCache = new LRUMap<string, Tokens | null>(env.ACCOUNT_CACHE_SIZE);
 
 interface GetAccessTokenParams {
   jwt: string;

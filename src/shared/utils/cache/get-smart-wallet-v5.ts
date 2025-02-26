@@ -5,7 +5,7 @@ import { getAccount } from "../account";
 import { thirdwebClient } from "../sdk";
 import { env } from "../env";
 
-export const smartWalletsCache = new LRUMap<string, Account>(env.ACCOUNT_CAHCE_SIZE);
+export const smartWalletsCache = new LRUMap<string, Account>(env.ACCOUNT_CACHE_SIZE);
 
 interface SmartWalletParams {
   chain: Chain;

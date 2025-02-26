@@ -7,7 +7,7 @@ import { getChain } from "../chain";
 import { env } from "../env";
 import { getWallet } from "./get-wallet";
 
-export const sdkCache = new LRUMap<string, ThirdwebSDK>(env.ACCOUNT_CAHCE_SIZE);
+export const sdkCache = new LRUMap<string, ThirdwebSDK>(env.ACCOUNT_CACHE_SIZE);
 
 export const networkResponseSchema = Type.Object({
   name: Type.String({
