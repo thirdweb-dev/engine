@@ -1,4 +1,10 @@
-import type { Address, Hex, toSerializableTransaction } from "thirdweb";
+import {
+  signAuthorization,
+  SignedAuthorization,
+  type Address,
+  type Hex,
+  type toSerializableTransaction,
+} from "thirdweb";
 import type { TransactionType } from "viem";
 
 // TODO: Replace with thirdweb SDK exported type when available.
@@ -30,6 +36,7 @@ export type InsertedTransaction = {
   value?: bigint;
 
   data?: Hex;
+  authorizationList?: SignedAuthorization[];
   functionName?: string;
   functionArgs?: unknown[];
 

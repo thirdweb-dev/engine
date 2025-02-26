@@ -17,6 +17,10 @@ import {
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 import { parseTransactionOverrides } from "../../utils/transaction-overrides";
+import {
+  authorizationListSchema,
+  toParsedAuthorization,
+} from "../../schemas/transaction/authorization";
 
 const requestBodySchema = Type.Object({
   toAddress: Type.Optional(AddressSchema),
@@ -26,6 +30,7 @@ const requestBodySchema = Type.Object({
   value: Type.String({
     examples: ["10000000"],
   }),
+  authorizationList: authorizationListSchema,
   ...txOverridesSchema.properties,
 });
 
@@ -65,7 +70,8 @@ export async function sendTransaction(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain } = request.params;
-      const { toAddress, data, value, txOverrides } = request.body;
+      const { toAddress, data, value, txOverrides, authorizationList } =
+        request.body;
       const { simulateTx } = request.query;
       const {
         "x-backend-wallet-address": fromAddress,
@@ -110,6 +116,7 @@ export async function sendTransaction(fastify: FastifyInstance) {
             data: data as Hex,
             transactionMode: transactionMode,
             value: BigInt(value),
+            authorizationList: authorizationList?.map(toParsedAuthorization),
             ...parseTransactionOverrides(txOverrides),
           },
           shouldSimulate: simulateTx,

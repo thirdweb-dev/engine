@@ -42,6 +42,13 @@ export const badChainError = (chain: string | number): CustomError =>
     "INVALID_CHAIN",
   );
 
+export const badBigIntError = (variableName: string): CustomError =>
+  createCustomError(
+    `Invalid BigInt: ${variableName}`,
+    StatusCodes.BAD_REQUEST,
+    "INVALID_BIGINT",
+  );
+
 const flipObject = (data: object) =>
   Object.fromEntries(Object.entries(data).map(([key, value]) => [value, key]));
 
