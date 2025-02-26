@@ -1,8 +1,9 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import type { AbiParameters } from "ox";
 import { prepareContractCall, resolveMethod } from "thirdweb";
-import { parseAbiParams, type AbiFunction } from "thirdweb/utils";
+import { type AbiFunction, parseAbiParams } from "thirdweb/utils";
 import { getContractV5 } from "../../../../shared/utils/cache/get-contractv5";
 import { prettifyError } from "../../../../shared/utils/error";
 import { queueTransaction } from "../../../../shared/utils/transaction/queue-transation";
@@ -98,7 +99,7 @@ export async function writeToContract(fastify: FastifyInstance) {
         const functionNameOrSignature = sanitizeFunctionName(functionName);
         method = await resolveMethod(functionNameOrSignature)(contract);
         params = parseAbiParams(
-          method.inputs.map((i) => i.type),
+          method.inputs.map((i: AbiParameters.Parameter) => i.type),
           args,
         );
       } catch (e) {

@@ -1,17 +1,17 @@
 import type { Prisma } from "@prisma/client";
-import type { AbiEvent } from "abitype";
-import { Worker, type Job, type Processor } from "bullmq";
+import { type Job, type Processor, Worker } from "bullmq";
+import type { AbiEvent } from "ox";
 import superjson from "superjson";
 import {
+  type Address,
+  type ThirdwebContract,
   eth_getBlockByNumber,
   eth_getTransactionReceipt,
   getContract,
   getRpcClient,
-  type Address,
-  type ThirdwebContract,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
-import { decodeFunctionData, type Abi, type Hash } from "viem";
+import { type Abi, type Hash, decodeFunctionData } from "viem";
 import { bulkInsertContractTransactionReceipts } from "../../shared/db/contract-transaction-receipts/create-contract-transaction-receipts";
 import { WebhooksEventTypes } from "../../shared/schemas/webhooks";
 import { getChain } from "../../shared/utils/chain";
@@ -20,8 +20,8 @@ import { normalizeAddress } from "../../shared/utils/primitive-types";
 import { redis } from "../../shared/utils/redis/redis";
 import { thirdwebClient } from "../../shared/utils/sdk";
 import {
-  ProcessTransactionReceiptsQueue,
   type EnqueueProcessTransactionReceiptsData,
+  ProcessTransactionReceiptsQueue,
 } from "../queues/process-transaction-receipts-queue";
 import { logWorkerExceptions } from "../queues/queues";
 import { SendWebhookQueue } from "../queues/send-webhook-queue";
@@ -211,7 +211,7 @@ const getFunctionName = async (args: {
   contract: ThirdwebContract;
   data: Hash;
 }) => {
-  const abi = await resolveContractAbi<AbiEvent[]>(args.contract);
+  const abi = await resolveContractAbi<AbiEvent.AbiEvent[]>(args.contract);
   const decoded = decodeFunctionData<Abi>({
     abi,
     data: args.data,
