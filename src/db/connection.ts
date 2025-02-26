@@ -7,7 +7,7 @@ const primaryDb = drizzle(
   new pg.Pool({
     connectionString: env.POSTGRES_CONNECTION_URL,
   }),
-  { schema },
+  { schema }
 );
 
 export const db = primaryDb;

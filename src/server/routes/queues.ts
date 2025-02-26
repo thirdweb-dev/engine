@@ -6,10 +6,13 @@ import { externalBundlerConfirmQueue } from "../../executors/external-bundler";
 import { Hono } from "hono";
 import { basicAuth } from "hono/basic-auth";
 import { env } from "../../lib/env";
+import { testQueue } from "../../executors/test";
+
+import "../../executors/test/worker";
 
 const serverAdapter = new HonoAdapter(serveStatic);
 
-const queues = [externalBundlerConfirmQueue];
+const queues = [externalBundlerConfirmQueue, testQueue];
 const bullBoardQueues = queues.map((queue) => new BullMQAdapter(queue));
 
 export function setupQueuesUiRoutes(app: Hono, basePath: string) {
@@ -30,7 +33,7 @@ export function setupQueuesUiRoutes(app: Hono, basePath: string) {
       password: env.THIRDWEB_API_SECRET_KEY,
       invalidUserMessage: "Invalid username or password",
       realm,
-    }),
+    })
   );
 
   bullmqRoutes.route("", serverAdapter.registerPlugin());

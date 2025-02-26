@@ -11,7 +11,7 @@ export const UrlSchema = z
   .string()
   .refine(
     (value) => value.startsWith("http://") || value.startsWith("https://"),
-    { message: "Invalid URL" },
+    { message: "Invalid URL" }
   );
 
 const envSchema = z.object({
@@ -27,7 +27,7 @@ const envSchema = z.object({
     .transform((s) =>
       z
         .array(z.enum(["server", "worker", "cache", "websocket"]))
-        .parse(s.split(",")),
+        .parse(s.split(","))
     ),
   ENGINE_VERSION: z.string().optional(),
   ENGINE_TIER: z.string().optional(),
@@ -37,7 +37,7 @@ const envSchema = z.object({
   POSTGRES_CONNECTION_URL: z
     .string()
     .default(
-      "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable",
+      "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
     ),
   PORT: z.coerce.number().default(3005),
   HOST: z.string().default("0.0.0.0"),
@@ -98,7 +98,7 @@ const { data: parsedEnv, error } = envSchema.safeParse(process.env);
 if (error) {
   console.error(
     "❌ Invalid environment variables:",
-    error.flatten().fieldErrors,
+    error.flatten().fieldErrors
   );
   throw new Error("Invalid environment variables");
 }

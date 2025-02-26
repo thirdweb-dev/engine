@@ -4,9 +4,9 @@ CREATE TABLE "address_subscriptions" (
 	"address" text NOT NULL,
 	"conditions" jsonb[],
 	"webhookId" uuid,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"updatedAt" timestamp NOT NULL,
-	"deletedAt" timestamp
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone NOT NULL,
+	"deletedAt" timestamp with time zone
 );
 --> statement-breakpoint
 CREATE TABLE "configuration" (
@@ -28,9 +28,9 @@ CREATE TABLE "eoa_credentials" (
 	"label" text NOT NULL,
 	"data" json NOT NULL,
 	"isDefault" boolean DEFAULT false NOT NULL,
-	"createdAt" timestamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"updatedAt" timestamp NOT NULL,
-	"deletedAt" timestamp
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone NOT NULL,
+	"deletedAt" timestamp with time zone
 );
 --> statement-breakpoint
 CREATE TABLE "eoas" (
@@ -40,9 +40,9 @@ CREATE TABLE "eoas" (
 	"label" text NOT NULL,
 	"credentialId" uuid,
 	"platformIdentifiers" jsonb,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"updatedAt" timestamp NOT NULL,
-	"deletedAt" timestamp
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone NOT NULL,
+	"deletedAt" timestamp with time zone
 );
 --> statement-breakpoint
 CREATE TABLE "keypairs" (
@@ -50,9 +50,9 @@ CREATE TABLE "keypairs" (
 	"publicKey" text NOT NULL,
 	"algorithm" text NOT NULL,
 	"label" text,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"updatedAt" timestamp NOT NULL,
-	"deletedAt" timestamp
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone NOT NULL,
+	"deletedAt" timestamp with time zone
 );
 --> statement-breakpoint
 CREATE TABLE "permissions" (
@@ -77,9 +77,9 @@ CREATE TABLE "smart_accounts" (
 	"factoryAddress" text NOT NULL,
 	"entrypointAddress" text NOT NULL,
 	"accountSalt" text,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"updatedAt" timestamp NOT NULL,
-	"deletedAt" timestamp,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone NOT NULL,
+	"deletedAt" timestamp with time zone,
 	CONSTRAINT "smart_accounts_address_signerAddress_pk" PRIMARY KEY("address","signerAddress")
 );
 --> statement-breakpoint
@@ -89,9 +89,9 @@ CREATE TABLE "tokens" (
 	"accountAddress" text NOT NULL,
 	"isAccessToken" boolean NOT NULL,
 	"label" text,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"expiresAt" timestamp NOT NULL,
-	"revokedAt" timestamp
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"expiresAt" timestamp with time zone NOT NULL,
+	"revokedAt" timestamp with time zone
 );
 --> statement-breakpoint
 CREATE TABLE "transactions" (
@@ -101,14 +101,14 @@ CREATE TABLE "transactions" (
 	"from" text,
 	"transactionParams" jsonb NOT NULL,
 	"transactionHash" text,
-	"confirmedAt" timestamp,
+	"confirmedAt" timestamp with time zone,
 	"confirmedAtBlockNumber" text,
 	"enrichedData" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"executionParams" jsonb NOT NULL,
 	"executionResult" jsonb,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
 	"errorMessage" text,
-	"cancelledAt" timestamp,
+	"cancelledAt" timestamp with time zone,
 	CONSTRAINT "transactions_id_batchIndex_pk" PRIMARY KEY("id","batchIndex")
 );
 --> statement-breakpoint
@@ -118,9 +118,9 @@ CREATE TABLE "webhooks" (
 	"url" text NOT NULL,
 	"secret" text NOT NULL,
 	"eventType" text NOT NULL,
-	"createdAt" timestamp DEFAULT now() NOT NULL,
-	"updatedAt" timestamp NOT NULL,
-	"revokedAt" timestamp
+	"createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+	"updatedAt" timestamp with time zone NOT NULL,
+	"revokedAt" timestamp with time zone
 );
 --> statement-breakpoint
 ALTER TABLE "address_subscriptions" ADD CONSTRAINT "address_subscriptions_webhookId_webhooks_id_fk" FOREIGN KEY ("webhookId") REFERENCES "public"."webhooks"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -137,4 +137,6 @@ CREATE INDEX "eoas_deleted_at_not_null_idx" ON "eoas" USING btree ("deletedAt") 
 CREATE INDEX "smart_accounts_signer_address_idx" ON "smart_accounts" USING btree ("signerAddress");--> statement-breakpoint
 CREATE INDEX "smart_accounts_deleted_at_not_null_idx" ON "smart_accounts" USING btree ("deletedAt") WHERE "smart_accounts"."deletedAt" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX "transaction_hash_idx" ON "transactions" USING btree ("transactionHash");--> statement-breakpoint
-CREATE INDEX "from_idx" ON "transactions" USING btree ("from");
+CREATE INDEX "from_idx" ON "transactions" USING btree ("from");--> statement-breakpoint
+CREATE INDEX "execution_params_idx" ON "transactions" USING gin ("executionParams");--> statement-breakpoint
+CREATE INDEX "execution_result_idx" ON "transactions" USING gin ("executionResult");

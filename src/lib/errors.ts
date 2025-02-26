@@ -111,13 +111,19 @@ export type CryptoErr = {
 
 export type RpcErr = {
   kind: "rpc";
+  chainId?: string;
+  address?: string;
   code:
     | "smart_account_determination_failed"
     | "send_transaction_failed"
     | "sign_transaction_failed"
     | "sign_userop_failed"
     | "bundle_userop_failed"
-    | "get_userop_receipt_failed";
+    | "get_transaction_count_failed"
+    | "get_userop_receipt_failed"
+    | "serialize_transaction_failed"
+    | "get_transaction_receipt_failed"
+    | "get_balance_failed";
 } & BaseErr;
 
 export type SmartAccountErr = {
@@ -127,6 +133,7 @@ export type SmartAccountErr = {
 
 export type AccountErr = {
   kind: "account";
+  address?: string;
   code:
     | "account_not_found"
     | "account_deletion_failed"
@@ -310,6 +317,11 @@ export function getDefaultErrorMessage(error: EngineErr): string {
         sign_userop_failed: "Failed to sign user operation",
         bundle_userop_failed: "Failed to bundle user operation",
         get_userop_receipt_failed: "Failed to get user operation receipt",
+        get_transaction_count_failed: "Failed to get transaction count",
+        serialize_transaction_failed:
+          "Failed to serialize transaction. This usually means we were unable to simulate the transaction, because simulation failed.",
+        get_transaction_receipt_failed: "Failed to get transaction receipt",
+        get_balance_failed: "Failed to get balance",
       };
       return messages[error.code];
     }
@@ -455,16 +467,52 @@ type RpcErrorOptions = {
   code?: RpcErr["code"];
   status?: number;
   defaultMessage?: string;
+  chainId?: string;
+  address?: string;
 };
 
-const DEFAULT_RPC_OPTIONS: Required<RpcErrorOptions> = {
+const DEFAULT_RPC_OPTIONS: RpcErrorOptions = {
   code: "send_transaction_failed",
   status: 500,
   defaultMessage: "RPC request failed",
 };
 
+export type AccountActionErr = GcpKmsErr | AwsKmsErr | CircleErr;
+
+/**
+ * Checks if the error is an account action error.
+ * An account action error happens at the "account" level.
+ * If you were to send a transaction with a gcp kms account, it can fail at 2 levels.
+ *
+ * `account.sendTransaction` internally calls `signTransaction`.
+ * If signing a transacation failed because we couldn't access the KMS account itself,
+ * this error would be an `AccountActionErr`.
+ *
+ * If instead, the send call to RPC errored, then you will receive an RpcErr
+ * You can use the `accountActionErrorMapper` along with any method to an Account type.
+ * This will accurately map to an AccountErr or an RpcErr based on what went wrong.
+ *
+ * @param error - The error to check.
+ * @returns True if the error is an account action error, false otherwise.
+ */
+export function isAccountActionErr(error: unknown): error is AccountActionErr {
+  return (
+    isEngineErr(error) &&
+    (error.kind === "gcp_kms" ||
+      error.kind === "aws_kms" ||
+      error.kind === "circle")
+  );
+}
+
+/**
+ * Maps an account action error to an EngineErr.
+ * This will accurately map to an AccountErr or an RpcErr based on what went wrong.
+ *
+ * @param options - The options to pass to the mapper.
+ * @returns The mapped error.
+ */
 export const accountActionErrorMapper = (options: RpcErrorOptions = {}) => {
-  const { code, status, defaultMessage } = {
+  const { code, status, defaultMessage, address, chainId } = {
     ...DEFAULT_RPC_OPTIONS,
     ...options,
   };
@@ -478,6 +526,8 @@ export const accountActionErrorMapper = (options: RpcErrorOptions = {}) => {
       kind: "rpc",
       code,
       status,
+      chainId,
+      address,
       message: error instanceof Error ? error.message : defaultMessage,
       source: error instanceof Error ? error : undefined,
     } as RpcErr;

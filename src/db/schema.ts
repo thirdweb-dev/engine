@@ -67,7 +67,7 @@ export const transactions = pgTable(
     transactionParams: jsonb().$type<TransactionParamsSerialized[]>().notNull(),
 
     transactionHash: text().$type<Hex>(),
-    confirmedAt: timestamp(),
+    confirmedAt: timestamp({ withTimezone: true }),
     confirmedAtBlockNumber: text(),
 
     enrichedData: jsonb().default([]).notNull(), // store transaction enriched data if available
@@ -94,9 +94,9 @@ export const transactions = pgTable(
     // sentAt: timestamp(),
     // minedAt: timestamp(),
 
-    createdAt: timestamp().defaultNow().notNull(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     errorMessage: text(),
-    cancelledAt: timestamp(),
+    cancelledAt: timestamp({ withTimezone: true }),
   },
   (table) => [
     primaryKey({ columns: [table.id, table.batchIndex] }),
@@ -122,9 +122,9 @@ export const tokens = pgTable("tokens", {
   isAccessToken: boolean().notNull(),
   label: text(),
 
-  createdAt: timestamp().defaultNow().notNull(),
-  expiresAt: timestamp().notNull(),
-  revokedAt: timestamp(),
+  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp({ withTimezone: true }).notNull(),
+  revokedAt: timestamp({ withTimezone: true }),
 });
 
 export const relayers = pgTable("relayers", {
@@ -143,11 +143,11 @@ export const webhooks = pgTable("webhooks", {
   url: text().notNull(),
   secret: text().notNull(),
   eventType: text().$type<WebhookEventType>().notNull(),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp()
+  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp({ withTimezone: true })
     .notNull()
     .$onUpdate(() => new Date()),
-  revokedAt: timestamp(),
+  revokedAt: timestamp({ withTimezone: true }),
 });
 
 export const eoaCredentials = pgTable(
@@ -158,13 +158,11 @@ export const eoaCredentials = pgTable(
     label: text().notNull(),
     data: json().$type<EoaCredential>().notNull(),
     isDefault: boolean().notNull().default(false),
-    createdAt: timestamp()
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: timestamp()
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp({ withTimezone: true })
       .notNull()
       .$onUpdate(() => new Date()),
-    deletedAt: timestamp(),
+    deletedAt: timestamp({ withTimezone: true }),
   },
   (table) => [
     index("eoa_credentials_type_idx").on(table.type),
@@ -192,11 +190,11 @@ export const eoas = pgTable(
 
     platformIdentifiers: jsonb().$type<EoaPlatformIdentifiers>(),
 
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp()
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp({ withTimezone: true })
       .$onUpdate(() => new Date())
       .notNull(),
-    deletedAt: timestamp(),
+    deletedAt: timestamp({ withTimezone: true }),
   },
   (table) => [
     index("eoas_deleted_at_not_null_idx")
@@ -219,11 +217,11 @@ export const smartAccounts = pgTable(
     entrypointAddress: text().$type<Address>().notNull(),
     accountSalt: text(),
 
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp()
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp({ withTimezone: true })
       .notNull()
       .$onUpdate(() => new Date()),
-    deletedAt: timestamp(),
+    deletedAt: timestamp({ withTimezone: true }),
   },
   (table) => [
     primaryKey({ columns: [table.address, table.signerAddress] }),
@@ -243,12 +241,12 @@ export const addressSubscriptions = pgTable(
     conditions: jsonb().array(),
     webhookId: uuid().references(() => webhooks.id),
 
-    createdAt: timestamp().defaultNow().notNull(),
-    updatedAt: timestamp()
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp({ withTimezone: true })
       .notNull()
       .$onUpdate(() => new Date()),
 
-    deletedAt: timestamp(),
+    deletedAt: timestamp({ withTimezone: true }),
   },
   (table) => [
     index("address_subscriptions_deleted_at_not_null_idx")
@@ -265,11 +263,11 @@ export const keypairs = pgTable("keypairs", {
   publicKey: text().notNull(),
   algorithm: text().$type<"RS256" | "ES256" | "PS256">().notNull(),
   label: text(),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp()
+  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp({ withTimezone: true })
     .notNull()
     .$onUpdate(() => new Date()),
-  deletedAt: timestamp(),
+  deletedAt: timestamp({ withTimezone: true }),
 });
 
 export const eoasRelations = relations(eoas, ({ one, many }) => ({

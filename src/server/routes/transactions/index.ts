@@ -29,7 +29,7 @@ const searchTransactionsSchema = requestPaginationSchema.extend({
 });
 
 transactionsRoutes.get(
-  "/search",
+  "/",
   zValidator("query", searchTransactionsSchema),
   describeRoute({
     summary: "Get Transactions",
