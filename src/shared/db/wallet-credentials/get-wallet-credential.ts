@@ -29,7 +29,7 @@ export type ParsedWalletCredential = z.infer<typeof walletCredentialsSchema>;
 export const walletCredentialsCache = new LRUMap<
   string,
   ParsedWalletCredential
->(2048);
+>(env.ACCOUNT_CAHCE_SIZE);
 
 interface GetWalletCredentialParams {
   id: string;

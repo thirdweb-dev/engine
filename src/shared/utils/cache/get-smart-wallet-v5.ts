@@ -3,8 +3,9 @@ import { getContract, readContract, type Address, type Chain } from "thirdweb";
 import { smartWallet, type Account } from "thirdweb/wallets";
 import { getAccount } from "../account";
 import { thirdwebClient } from "../sdk";
+import { env } from "../env";
 
-export const smartWalletsCache = new LRUMap<string, Account>(2048);
+export const smartWalletsCache = new LRUMap<string, Account>(env.ACCOUNT_CAHCE_SIZE);
 
 interface SmartWalletParams {
   chain: Chain;
