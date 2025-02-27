@@ -45,3 +45,5 @@ export async function applyMigrations() {
     );
   }
 }
+
+await applyMigrations();

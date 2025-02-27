@@ -1,12 +1,10 @@
 import "./lib/datadog.js";
 import "zod-openapi/extend";
 
-// import { defaultLogger } from "./lib/logger.js";
-import { applyMigrations } from "./db/apply-migrations.js";
+import "./db/apply-migrations.js";
 import { initiateCacheClearTask } from "./lib/cache.js";
 import { initiateEngineServer } from "./server/engine.js";
 
-await applyMigrations();
 initiateCacheClearTask();
 
 // start the engine server
