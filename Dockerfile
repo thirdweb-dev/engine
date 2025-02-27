@@ -27,5 +27,5 @@ COPY --from=certs /usr/src/app/src/https ./src/https
 COPY . .
 
 USER bun
-EXPOSE 3005/tcp
+EXPOSE 3005
 ENTRYPOINT [ "bun", "run", "src/index.ts" ]
