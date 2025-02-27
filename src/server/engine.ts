@@ -28,6 +28,8 @@ import { accountRouter } from "./account";
 import { setupQueuesUiRoutes } from "./routes/queues";
 import { transactionsRoutes } from "./routes/transactions";
 import { correlationId } from "./middleware/correlation-id";
+import contractRoutes from "./routes/contract";
+import authRoutes from "./routes/auth";
 
 const engineServer = new Hono();
 const publicRoutes = new Hono();
@@ -125,10 +127,14 @@ engineServer.use(
 engineServer.route("/accounts", accountsRoutes);
 engineServer.route("/transactions", transactionsRoutes);
 engineServer.route("/account", accountRouter);
+engineServer.route("/contract", contractRoutes);
+engineServer.route("/auth", authRoutes);
 
 engineServer.onError((err, c) => {
   if (err instanceof HTTPException) {
     if (err instanceof EngineHttpException) {
+      defaultLogger.error("[Debug] EngineHttpException", err);
+
       const engineErr = err.engineErr;
       return c.json(
         {

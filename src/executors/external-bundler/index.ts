@@ -137,6 +137,7 @@ export function execute(request: ExecutionRequest) {
     createAndSignUserOp({
       adminAccount: executionOptions.signer,
       client,
+      waitForDeployment: false,
       smartWalletOptions: {
         // if we don't provide a factory address, SDK uses thirdweb's default account factory
         // user might be using a custom factory, and they might not provide one, so executor entrypoint should try to infer it

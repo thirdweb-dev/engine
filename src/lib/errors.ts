@@ -212,7 +212,11 @@ export type EngineErr =
   | AccountErr;
 
 export function isEngineErr(err: unknown): err is EngineErr {
-  return "kind" in (err as EngineErr) && "code" in (err as EngineErr);
+  return (
+    typeof err === "object" &&
+    "kind" in (err as EngineErr) &&
+    "code" in (err as EngineErr)
+  );
 }
 
 export class EngineHttpException extends HTTPException {

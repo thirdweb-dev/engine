@@ -1,4 +1,5 @@
 import { createSelectSchema } from "drizzle-zod";
-import { transactions } from "./schema";
+import { tokens, transactions } from "./schema";
 
 export const transactionDbEntrySchema = createSelectSchema(transactions);
+export const accessTokenDbEntrySchema = createSelectSchema(tokens);

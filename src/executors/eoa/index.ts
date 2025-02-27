@@ -37,12 +37,7 @@ import {
 } from "../../lib/errors";
 import { keccak256 } from "ox/Hash";
 import type { TransactionReceipt } from "thirdweb/transaction";
-import {
-  checkEoaIssues,
-  type EoaIssues,
-  type EoaIssueCode,
-  setOutOfGasIssue,
-} from "./issues";
+import { checkEoaIssues, type EoaIssues, setOutOfGasIssue } from "./issues";
 import { recordTransactionAttempt } from "./attempts";
 
 const sendLogger = initializeLogger("executor:eoa:send");

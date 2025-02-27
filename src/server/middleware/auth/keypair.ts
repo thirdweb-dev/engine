@@ -11,7 +11,7 @@ import { env } from "../../../lib/env";
 import { HTTPException } from "hono/http-exception";
 import { extractJwt } from "./shared";
 import type { KeypairDbEntry } from "../../../db/types";
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 
 function checkKeypairAuth({
   jwt,
@@ -23,7 +23,6 @@ function checkKeypairAuth({
   // First decode without verification to get the keypair info
   const decoded = decode(jwt);
 
-  
   // Get keypair from our DB
   return getKeypair({
     publicKey: decoded.payload.iss as string,
@@ -34,7 +33,7 @@ function checkKeypairAuth({
         const actualBodyHashBytes = Buffer.from(actualBodyHash, "hex");
         const expectedBodyHashBytes = Buffer.from(
           decoded.payload.bodyHash as string,
-          "hex",
+          "hex"
         );
 
         if (!actualBodyHashBytes.equals(expectedBodyHashBytes)) {
@@ -59,8 +58,8 @@ function checkKeypairAuth({
             kind: "auth",
             code: "invalid_signature",
             status: 401,
-          } as const),
-      ),
+          } as const)
+      )
     )
     .mapErr((err) => {
       if (err.kind === "keypair") {
@@ -84,11 +83,11 @@ export const keypairAuth = createMiddleware(async (c, next) => {
   const actualBodyHash = await c.req
     .arrayBuffer()
     .then((buffer) =>
-      createHash("sha256").update(new Uint8Array(buffer)).digest("hex"),
+      createHash("sha256").update(new Uint8Array(buffer)).digest("hex")
     );
 
   const result = await extractJwt(c.req.header("authorization")).asyncAndThen(
-    (jwt) => checkKeypairAuth({ jwt, actualBodyHash }),
+    (jwt) => checkKeypairAuth({ jwt, actualBodyHash })
   );
 
   if (result.isErr()) {
