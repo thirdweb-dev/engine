@@ -6,6 +6,9 @@ import * as schema from "./schema.js";
 const primaryDb = drizzle(
   new pg.Pool({
     connectionString: env.POSTGRES_CONNECTION_URL,
+    ssl: {
+      rejectUnauthorized: false,
+    },
   }),
   { schema }
 );

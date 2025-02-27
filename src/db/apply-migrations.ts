@@ -25,6 +25,9 @@ export async function applyMigrations() {
 
     const client = new pg.Client({
       connectionString: env.POSTGRES_CONNECTION_URL,
+      ssl: {
+        rejectUnauthorized: false,
+      },
     });
 
     await client.connect();
