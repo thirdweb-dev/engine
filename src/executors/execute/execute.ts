@@ -8,6 +8,7 @@ import {
   type EngineErr,
 } from "../../lib/errors";
 import { execute as executeExternalBundler } from "../external-bundler";
+import { execute as executeExternalBundlerAsync } from "../external-bundler-async";
 import { getChain } from "../../lib/chain";
 import {
   getContract,
@@ -32,11 +33,13 @@ import SuperJSON from "superjson";
 import type {
   ExecutionParamsSerialized,
   TransactionParamsSerialized,
+  ExecutionResult4337Serialized,
 } from "../../db/types";
 import "./external-bundler-confirm-handler";
+import "./external-bundler-send-handler";
 
 function getExecutionAccountFromRequest(
-  request: EncodedExecutionRequest,
+  request: EncodedExecutionRequest
 ): ResultAsync<
   | {
       signerAccount: Account;
@@ -57,7 +60,7 @@ function getExecutionAccountFromRequest(
         yield* getEngineAccount({
           address: request.from,
           encryptionPassword: request.encryptionPassword,
-        }),
+        })
       );
     }
 
@@ -241,7 +244,7 @@ export function execute({
     const chain = await getChain(Number.parseInt(request.chainId));
 
     const engineAccountResponse = yield* getExecutionAccountFromRequest(
-      request,
+      request
     );
 
     if ("account" in engineAccountResponse) {
@@ -278,26 +281,74 @@ export function execute({
 
     const idempotencyKey = request.idempotencyKey ?? randomUUID().toString();
 
-    const executionResult = await executeExternalBundler({
-      id: idempotencyKey,
-      chain,
-      client,
-      executionOptions,
-      transactionParams: resolvedTransactionParams,
-    });
+    // Determine which executor to use based on request parameters
+    // Currently, we use the async executor when no encryption password is provided
+    // In the future, this can be expanded to support more executor types
+    const executorType = !request.encryptionPassword ? "async" : "sync";
+    
+    // Variables to track execution state
+    let executionResult: ExecutionResult4337Serialized;
+    let userOpHash: string | undefined;
 
-    let userOpHash: Hex;
-    let didConfirmationQueueJobError = false;
+    // Execute using the appropriate executor
+    if (executorType === "async") {
+      // For async executor, we need to convert the execution options to the format it expects
+      const asyncExecutionOptions = {
+        signerAddress: executionOptions.signer.address as Address,
+        entrypointAddress: executionOptions.entrypointAddress,
+        accountFactoryAddress: executionOptions.accountFactoryAddress,
+        sponsorGas: executionOptions.sponsorGas,
+        smartAccountAddress: executionOptions.smartAccountAddress,
+        accountSalt: executionOptions.accountSalt,
+      };
 
-    if (executionResult.isErr()) {
-      if (executionResult.error.kind === "queue") {
-        didConfirmationQueueJobError = true;
-        userOpHash = executionResult.error.userOpHash;
-      } else {
-        return errAsync(executionResult.error);
+      // Execute using the async executor
+      const asyncResult = await executeExternalBundlerAsync({
+        id: idempotencyKey,
+        executionOptions: asyncExecutionOptions,
+        chainId: request.chainId,
+        transactionParams: resolvedTransactionParams,
+      });
+
+      // Handle errors from the async executor
+      if (asyncResult.isErr()) {
+        return errAsync(asyncResult.error);
       }
+
+      // Async executor doesn't return userOpHash immediately, it's queued
+      executionResult = {
+        status: "QUEUED",
+      };
     } else {
-      userOpHash = executionResult.value.data.userOpHash;
+      // Execute using the sync executor
+      const syncResult = await executeExternalBundler({
+        id: idempotencyKey,
+        chain,
+        client,
+        executionOptions,
+        transactionParams: resolvedTransactionParams,
+      });
+
+      // Handle errors from the sync executor
+      if (syncResult.isErr()) {
+        if (syncResult.error.kind === "queue") {
+          userOpHash = syncResult.error.userOpHash;
+          executionResult = {
+            status: "SUBMITTED",
+            monitoringStatus: "CANNOT_MONITOR",
+            userOpHash,
+          };
+        } else {
+          return errAsync(syncResult.error);
+        }
+      } else {
+        userOpHash = syncResult.value.data.userOpHash;
+        executionResult = {
+          status: "SUBMITTED",
+          monitoringStatus: "WILL_MONITOR",
+          userOpHash,
+        };
+      }
     }
 
     const executionParams: ExecutionParamsSerialized = {
@@ -307,13 +358,9 @@ export function execute({
       signerAddress: executionOptions.signer.address,
     };
 
-    const executionResultSerialized = {
-      status: "SUBMITTED" as const,
-      monitoringStatus: didConfirmationQueueJobError
-        ? "CANNOT_MONITOR"
-        : "WILL_MONITOR",
-      userOpHash,
-    } as const;
+    // For database insertion, we need to ensure userOpHash is a string if status is SUBMITTED
+    // If it's undefined, we'll use an empty string
+    const dbExecutionResult = executionResult;
 
     const dbTransactionEntry = yield* ResultAsync.fromPromise(
       db
@@ -325,21 +372,21 @@ export function execute({
           transactionParams: SuperJSON.serialize(resolvedTransactionParams)
             .json as TransactionParamsSerialized[],
           executionParams,
-          executionResult: executionResultSerialized,
+          executionResult: dbExecutionResult,
           from: executionParams.smartAccountAddress as Address,
         })
         .returning(),
-      mapDbError,
+      mapDbError
     ).mapErr((e) =>
       buildTransactionDbEntryErr({
         error: e,
         executionParams,
-        executionResult: executionResultSerialized,
-      }),
+        executionResult: dbExecutionResult,
+      })
     );
 
     return okAsync({
-      executionResult: executionResultSerialized,
+      executionResult,
       transactions: dbTransactionEntry,
       executionOptions,
     });

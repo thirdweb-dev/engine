@@ -3,6 +3,10 @@ import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
 import { externalBundlerConfirmQueue } from "../../executors/external-bundler";
+import {
+  externalBundlerConfirmQueue as externalBundlerConfirmQueueAsync,
+  externalBundlerSendQueue,
+} from "../../executors/external-bundler-async";
 import { Hono } from "hono";
 import { basicAuth } from "hono/basic-auth";
 import { env } from "../../lib/env";
@@ -12,7 +16,12 @@ import "../../executors/test/worker";
 
 const serverAdapter = new HonoAdapter(serveStatic);
 
-const queues = [externalBundlerConfirmQueue, testQueue];
+const queues = [
+  externalBundlerConfirmQueue,
+  testQueue,
+  externalBundlerConfirmQueueAsync,
+  externalBundlerSendQueue,
+];
 const bullBoardQueues = queues.map((queue) => new BullMQAdapter(queue));
 
 export function setupQueuesUiRoutes(app: Hono, basePath: string) {

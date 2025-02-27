@@ -41,6 +41,9 @@ export type RevertDataSerialized = {
 
 export type ExecutionResult4337Serialized =
   | {
+      status: "QUEUED";
+    }
+  | {
       status: "SUBMITTED";
       monitoringStatus: "WILL_MONITOR" | "CANNOT_MONITOR";
       userOpHash: string;

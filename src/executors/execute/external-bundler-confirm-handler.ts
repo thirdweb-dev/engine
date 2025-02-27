@@ -2,6 +2,7 @@ import SuperJSON from "superjson";
 import { db } from "../../db/connection";
 import { transactions } from "../../db/schema";
 import { registerCallback, type ConfirmationResult } from "../external-bundler";
+import { registerCallback as registerExternalBundlerAsyncConfirmCallback } from "../external-bundler-async";
 import type {
   ExecutionResult4337Serialized,
   RevertDataSerialized,
@@ -10,12 +11,12 @@ import { and, eq } from "drizzle-orm";
 import { initializeLogger } from "../../lib/logger";
 
 const confirmLogger = initializeLogger(
-  "executor:external-bundler:confirm-handler",
+  "executor:external-bundler:confirm-handler"
 );
 
 // not using neverthrow here, this handler response doesn't go to the user
 export async function externalBundlerConfirmHandler(
-  result: ConfirmationResult,
+  result: ConfirmationResult
 ) {
   const executionResult: ExecutionResult4337Serialized =
     result.onchainStatus === "REVERTED"
@@ -57,7 +58,7 @@ export async function externalBundlerConfirmHandler(
       })
       // 4337 transactions always create a single transaction in the db, with batchIndex 0
       .where(
-        and(eq(transactions.id, result.id), eq(transactions.batchIndex, 0)),
+        and(eq(transactions.id, result.id), eq(transactions.batchIndex, 0))
       );
   } catch (err) {
     confirmLogger.error("Failed to write confirmed transaction to DB", err);
@@ -65,3 +66,4 @@ export async function externalBundlerConfirmHandler(
 }
 
 registerCallback(externalBundlerConfirmHandler);
+registerExternalBundlerAsyncConfirmCallback(externalBundlerConfirmHandler);

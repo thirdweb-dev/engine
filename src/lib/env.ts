@@ -21,18 +21,9 @@ const envSchema = z.object({
   LOG_LEVEL: z
     .enum(["error", "warn", "info", "http", "debug", "silly"])
     .default("http"),
-  LOG_SERVICES: z
-    .string()
-    .default("server,worker,cache,websocket")
-    .transform((s) =>
-      z
-        .array(z.enum(["server", "worker", "cache", "websocket"]))
-        .parse(s.split(","))
-    ),
   ENGINE_VERSION: z.string().optional(),
   ENGINE_TIER: z.string().optional(),
   THIRDWEB_API_SECRET_KEY: z.string().min(1),
-  ADMIN_WALLET_ADDRESS: z.string().min(1),
   ENCRYPTION_PASSWORD: z.string().min(1),
   POSTGRES_CONNECTION_URL: z
     .string()
@@ -57,7 +48,7 @@ const envSchema = z.object({
     .default("default"),
   GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
   DD_TRACER_ACTIVATED: boolEnvSchema(false),
-
+  FORCE_DB_MIGRATION: boolEnvSchema(false),
   // Prometheus
   METRICS_PORT: z.coerce.number().default(4001),
   METRICS_ENABLED: boolEnvSchema(true),
@@ -83,14 +74,6 @@ const envSchema = z.object({
   ENABLE_CUSTOM_HMAC_AUTH: boolEnvSchema(false),
   CUSTOM_HMAC_AUTH_CLIENT_ID: z.string().optional(),
   CUSTOM_HMAC_AUTH_CLIENT_SECRET: z.string().optional(),
-
-  /**
-   * Experimental env vars. These may be renamed or removed in future non-major releases.
-   */
-  // Sets how long the mine worker waits for a transaction receipt before considering the transaction dropped. Default: 30 minutes
-  EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS: z.coerce.number().default(30 * 60),
-  // Sets the max gas price for a transaction attempt. Most RPCs reject transactions above a certain gas price. Default: 10^18 wei.
-  EXPERIMENTAL__MAX_GAS_PRICE_WEI: z.coerce.number().default(10 ** 18),
 });
 
 const { data: parsedEnv, error } = envSchema.safeParse(process.env);
