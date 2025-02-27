@@ -18,7 +18,7 @@ const requestQuerySchema = Type.Object({
   ...PaginationSchema.properties,
   status: Type.Union(
     [
-      // Note: 'queued' returns all transcations, not just transactions currently queued.
+      // Note: 'queued' returns all transactions, not just transactions currently queued.
       Type.Literal("queued"),
       Type.Literal("mined"),
       Type.Literal("cancelled"),
