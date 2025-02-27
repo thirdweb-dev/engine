@@ -14,12 +14,13 @@ const migrationLogger = initializeLogger("migrations");
 export async function applyMigrations() {
   const canRunMigration =
     (ZEET_ENVIRONMENT && ZEET_ENVS.includes(ZEET_ENVIRONMENT)) ||
-    process.env.NODE_ENV === "test";
+    process.env.NODE_ENV === "test" ||
+    env.FORCE_DB_MIGRATION;
   // only run migrations on zeet environments that aren't feature branches
   if (canRunMigration) {
     migrationLogger.info(
       "Running migrations on zeet environment:",
-      ZEET_ENVIRONMENT,
+      ZEET_ENVIRONMENT
     );
 
     const client = new pg.Client({
@@ -37,7 +38,7 @@ export async function applyMigrations() {
     migrationLogger.info("Migrations complete");
   } else {
     migrationLogger.info(
-      "Not on zeet, or on feature branch, skipping migrations",
+      "Not on zeet, or on feature branch, skipping migrations"
     );
   }
 }
