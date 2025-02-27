@@ -30,6 +30,7 @@ import {
   isAccountDeploying,
   setAccountDeploying,
 } from "./state";
+import { env } from "../../lib/env";
 
 // todo: export these from SDK
 export type PostOpRevertReasonEventFilters = Partial<{
@@ -352,7 +353,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
   },
   {
     connection: redis,
-    concurrency: 100,
+    concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
     settings: {
       backoffStrategy: (attemptsMade: number) => {
         if (attemptsMade === 1) return 2000; // First check after 2s
@@ -545,7 +546,7 @@ export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
   },
   {
     connection: redis,
-    concurrency: 500,
+    concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
     settings: {
       backoffStrategy: (attemptsMade: number) => {
         if (attemptsMade === 1) return 2000; // First check after 2s
