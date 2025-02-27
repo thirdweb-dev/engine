@@ -71,6 +71,10 @@ publicRoutes.get(
           url: "http://localhost:3005",
           description: "Local server",
         },
+        {
+          url: "https://engine-v3-test-instance-yl1c.engine-aws-usw2.zeet.app",
+          description: "Zeet Test Instance",
+        },
       ],
     },
   })
