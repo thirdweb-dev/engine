@@ -1,7 +1,13 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import {
+  type Hex,
+  prepareTransaction,
+  toSerializableTransaction,
+} from "thirdweb";
 import { getAccount } from "../../../shared/utils/account";
+import { getChain } from "../../../shared/utils/chain";
 import {
   getChecksumAddress,
   maybeBigInt,
@@ -11,12 +17,6 @@ import { thirdwebClient } from "../../../shared/utils/sdk";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import { walletHeaderSchema } from "../../schemas/wallet";
-import {
-  prepareTransaction,
-  toSerializableTransaction,
-  type Hex,
-} from "thirdweb";
-import { getChain } from "../../../shared/utils/chain";
 
 const requestBodySchema = Type.Object({
   transaction: Type.Object({
@@ -90,6 +90,11 @@ export async function signTransaction(fastify: FastifyInstance) {
         gasPrice: maybeBigInt(transaction.gasPrice),
         maxFeePerGas: maybeBigInt(transaction.maxFeePerGas),
         maxPriorityFeePerGas: maybeBigInt(transaction.maxPriorityFeePerGas),
+        type: transaction.type
+          ? transaction.type === 2
+            ? ("eip1559" as const)
+            : ("legacy" as const)
+          : undefined,
       };
 
       const preparedTransaction = prepareTransaction(prepareTransactionOptions);
