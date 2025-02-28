@@ -137,8 +137,6 @@ engineServer.route("/auth", authRoutes);
 engineServer.onError((err, c) => {
   if (err instanceof HTTPException) {
     if (err instanceof EngineHttpException) {
-      defaultLogger.error("[Debug] EngineHttpException", err);
-
       const engineErr = err.engineErr;
       return c.json(
         {

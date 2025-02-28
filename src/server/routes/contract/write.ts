@@ -3,7 +3,11 @@ import { resolver, validator } from "hono-openapi/zod";
 import * as z from "zod";
 import { Abi } from "abitype/zod";
 import { execute } from "../../../executors/execute/execute";
-import { engineErrToHttpException, zErrorMapper } from "../../../lib/errors";
+import {
+  accountActionErrorMapper,
+  engineErrToHttpException,
+  zErrorMapper,
+} from "../../../lib/errors";
 import { thirdwebClient } from "../../../lib/thirdweb-client";
 import { wrapResponseSchema } from "../../schemas/shared-api-schemas";
 import { contractRoutesFactory } from "./factory";
@@ -24,6 +28,7 @@ import { getChain } from "../../../lib/chain";
 import { parseAbiParams } from "thirdweb/utils";
 import { transactionDbEntrySchema } from "../../../db/derived-schemas";
 import { AbiFunction } from "ox";
+import { ResultAsync } from "neverthrow";
 
 // Schema for contract parameters in the URL
 const transactionParamsSchema = z.object({
@@ -93,30 +98,55 @@ export const writeToContractRoute = contractRoutesFactory.createHandlers(
         abi: data,
       });
 
-      const method = await resolveMethod(transactionParam.method)(contract);
-      const params = parseAbiParams(
-        method.inputs.map((i) => i.type),
-        transactionParam.params
-      );
+      const encodeResult = await ResultAsync.fromPromise(
+        resolveMethod(transactionParam.method)(contract),
+        accountActionErrorMapper({
+          code: "resolve_method_failed",
+          defaultMessage: `Failed to resolve method ${transactionParam.method}`,
+          status: 500,
+          address: transactionParam.contractAddress,
+          chainId: chainId,
+        })
+      )
+        .map((method) => {
+          const params = parseAbiParams(
+            method.inputs.map((i) => i.type),
+            transactionParam.params
+          );
+          const methodSignature = AbiFunction.format(method);
 
-      const methodSignature = AbiFunction.format(method);
+          return prepareContractCall({
+            contract,
+            method: methodSignature,
+            params,
+          });
+        })
+        .andThen((preparedTransaction) =>
+          ResultAsync.fromPromise(
+            toSerializableTransaction({
+              transaction: preparedTransaction,
+              from: transactionParam.contractAddress,
+            }),
+            accountActionErrorMapper({
+              code: "serialize_transaction_failed",
+              defaultMessage: "Failed to serialize transaction",
+              status: 500,
+              chainId: chainId,
+              address: transactionParam.contractAddress,
+            })
+          )
+        )
+        .map((serializeableTransaction) => {
+          transactions.push({
+            to: transactionParam.contractAddress,
+            data: serializeableTransaction.data,
+            value: transactionParam.value ?? 0n,
+          });
+        });
 
-      const preparedTrasaction = prepareContractCall({
-        contract,
-        method: methodSignature,
-        params,
-      });
-
-      const serializeableTransaction = await toSerializableTransaction({
-        transaction: preparedTrasaction,
-        from: transactionParam.contractAddress,
-      });
-
-      transactions.push({
-        to: transactionParam.contractAddress,
-        data: serializeableTransaction.data,
-        value: transactionParam.value ?? 0n,
-      });
+      if (encodeResult.isErr()) {
+        throw engineErrToHttpException(encodeResult.error);
+      }
     }
 
     // Execute the transaction

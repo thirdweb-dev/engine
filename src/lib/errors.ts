@@ -6,6 +6,9 @@ import type {
   ExecutionParamsSerialized,
   ExecutionResultSerialized,
 } from "../db/types";
+
+import type { QueueingErr as BundlerExecutorAsyncQueueingErr } from "../executors/external-bundler-async";
+
 export type HttpErrStatusCode = 400 | 401 | 403 | 404 | 500 | 501;
 
 type BaseErr = {
@@ -123,7 +126,8 @@ export type RpcErr = {
     | "get_userop_receipt_failed"
     | "serialize_transaction_failed"
     | "get_transaction_receipt_failed"
-    | "get_balance_failed";
+    | "get_balance_failed"
+    | "resolve_method_failed";
 } & BaseErr;
 
 export type SmartAccountErr = {
@@ -209,7 +213,8 @@ export type EngineErr =
   | GcpKmsErr
   | WalletProviderConfigErr
   | EoaCredentialErr
-  | AccountErr;
+  | AccountErr
+  | BundlerExecutorAsyncQueueingErr;
 
 export function isEngineErr(err: unknown): err is EngineErr {
   return (
@@ -326,6 +331,8 @@ export function getDefaultErrorMessage(error: EngineErr): string {
           "Failed to serialize transaction. This usually means we were unable to simulate the transaction, because simulation failed.",
         get_transaction_receipt_failed: "Failed to get transaction receipt",
         get_balance_failed: "Failed to get balance",
+        resolve_method_failed:
+          "Failed to resolve method, this usually means we were unable to get your contract ABI",
       };
       return messages[error.code];
     }
@@ -394,6 +401,16 @@ export function getDefaultErrorMessage(error: EngineErr): string {
         invalid_platform_identifiers:
           "Invalid platform identifiers. Platform identifiers for this EOA do not match the type of the account",
       };
+      return messages[error.code];
+    }
+    case "queue": {
+      const messages: Record<BundlerExecutorAsyncQueueingErr["code"], string> =
+        {
+          "external_bundler:queuing_confirm_job_failed":
+            "Failed to queue confirm job",
+          "external_bundler:queuing_send_job_failed":
+            "Failed to queue send job",
+        };
       return messages[error.code];
     }
   }

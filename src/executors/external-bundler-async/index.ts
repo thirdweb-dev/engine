@@ -124,6 +124,8 @@ export type QueueingErr = {
   executionOptions: ExecutionRequest["executionOptions"];
   userOpHash: Hex;
   source: Error;
+  status: 500;
+  message?: string;
 };
 
 export const EXTERNAL_BUNDLER_SEND_QUEUE_NAME =
@@ -144,6 +146,10 @@ export const externalBundlerSendQueue = new Queue<ExecutionRequest>(
   }
 );
 
+await externalBundlerSendQueue.setGlobalConcurrency(
+  env.SEND_TRANSACTION_QUEUE_CONCURRENCY
+);
+
 export const externalBundlerConfirmQueue = new Queue<SendResult>(
   EXTERNAL_BUNDLER_CONFIRM_QUEUE_NAME,
   {
@@ -155,6 +161,10 @@ export const externalBundlerConfirmQueue = new Queue<SendResult>(
     },
     connection: redis,
   }
+);
+
+await externalBundlerConfirmQueue.setGlobalConcurrency(
+  env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY
 );
 
 export function execute(request: ExecutionRequest) {
@@ -209,7 +219,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       client,
     });
 
-    sendLogger.info(`Account is deployed: ${isDeployed}`);
+    sendLogger.info(`Account ${executionOptions.smartAccountAddress} is deployed: ${isDeployed}`);
 
     if (!isDeployed) {
       // check if account is deploying
@@ -353,7 +363,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
   },
   {
     connection: redis,
-    concurrency: env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
+    concurrency: env.SEND_TRANSACTION_WORKER_CONCURRENCY,
     settings: {
       backoffStrategy: (attemptsMade: number) => {
         if (attemptsMade === 1) return 2000; // First check after 2s
@@ -546,7 +556,7 @@ export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
   },
   {
     connection: redis,
-    concurrency: env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
+    concurrency: env.CONFIRM_TRANSACTION_WORKER_CONCURRENCY,
     settings: {
       backoffStrategy: (attemptsMade: number) => {
         if (attemptsMade === 1) return 2000; // First check after 2s

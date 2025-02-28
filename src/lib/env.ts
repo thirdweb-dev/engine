@@ -41,8 +41,10 @@ const envSchema = z.object({
   SDK_BATCH_TIME_LIMIT: z.coerce.number().default(0),
   SDK_BATCH_SIZE_LIMIT: z.coerce.number().default(100),
   REDIS_URL: z.string(),
-  SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
-  CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(200),
+  SEND_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1000),
+  CONFIRM_TRANSACTION_QUEUE_CONCURRENCY: z.coerce.number().default(1000),
+  SEND_TRANSACTION_WORKER_CONCURRENCY: z.coerce.number().default(200),
+  CONFIRM_TRANSACTION_WORKER_CONCURRENCY: z.coerce.number().default(200),
   ENGINE_MODE: z
     .enum(["default", "sandbox", "server_only", "worker_only"])
     .default("default"),
