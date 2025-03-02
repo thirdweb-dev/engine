@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import type { Address, Hex } from "thirdweb";
+import { getAddress, type Address, type Hex } from "thirdweb";
 import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
 import {
   requestQuerystringSchema,
@@ -29,7 +29,9 @@ const requestBodySchema = Type.Object({
   }),
 });
 
-export async function sendTransactionBatchAtomicRoute(fastify: FastifyInstance) {
+export async function sendTransactionBatchAtomicRoute(
+  fastify: FastifyInstance,
+) {
   fastify.route<{
     Params: Static<typeof walletChainParamSchema>;
     Body: Static<typeof requestBodySchema>;
@@ -113,8 +115,10 @@ export async function sendTransactionBatchAtomicRoute(fastify: FastifyInstance) 
 
       const queueId = await insertTransaction({
         insertedTransaction: {
+          ...(hasSmartHeaders
+            ? { isUserOp: true, signerAddress: getAddress(fromAddress) }
+            : { isUserOp: false }),
           transactionMode: undefined,
-          isUserOp: false,
           chainId,
           from: fromAddress as Address,
           accountAddress: maybeAddress(accountAddress, "x-account-address"),

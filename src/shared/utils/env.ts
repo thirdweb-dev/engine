@@ -63,6 +63,7 @@ export const env = createEnv({
       .enum(["default", "sandbox", "server_only", "worker_only"])
       .default("default"),
     GLOBAL_RATE_LIMIT_PER_MIN: z.coerce.number().default(400 * 60),
+    ACCOUNT_CACHE_SIZE: z.coerce.number().default(2048),
     DD_TRACER_ACTIVATED: boolEnvSchema(false),
 
     // Prometheus
@@ -145,6 +146,7 @@ export const env = createEnv({
     ENABLE_CUSTOM_HMAC_AUTH: process.env.ENABLE_CUSTOM_HMAC_AUTH,
     CUSTOM_HMAC_AUTH_CLIENT_ID: process.env.CUSTOM_HMAC_AUTH_CLIENT_ID,
     CUSTOM_HMAC_AUTH_CLIENT_SECRET: process.env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
+    ACCOUNT_CACHE_SIZE: process.env.ACCOUNT_CAHCE_SIZE,
   },
   onValidationError: (error: ZodError) => {
     console.error(

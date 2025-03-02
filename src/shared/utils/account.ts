@@ -21,8 +21,9 @@ import { thirdwebClient } from "./sdk";
 import { getWalletCredential } from "../db/wallet-credentials/get-wallet-credential";
 import { getCircleAccount } from "../../server/utils/wallets/circle";
 import { getConfig } from "./cache/get-config";
+import { env } from "./env";
 
-export const _accountsCache = new LRUMap<string, Account>(2048);
+export const _accountsCache = new LRUMap<string, Account>(env.ACCOUNT_CACHE_SIZE);
 
 export const getAccount = async (args: {
   chainId: number;
@@ -212,7 +213,7 @@ export const walletDetailsToAccount = async ({
   }
 };
 
-export const _adminAccountsCache = new LRUMap<string, Account>(2048);
+export const _adminAccountsCache = new LRUMap<string, Account>(env.ACCOUNT_CACHE_SIZE);
 
 /**
  * Get the admin account for a smart backend wallet (cached)

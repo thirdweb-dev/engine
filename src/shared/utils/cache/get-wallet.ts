@@ -14,8 +14,9 @@ import { splitAwsKmsArn } from "../../../server/utils/wallets/aws-kms-arn";
 import { splitGcpKmsResourcePath } from "../../../server/utils/wallets/gcp-kms-resource-path";
 import { getLocalWallet } from "../../../server/utils/wallets/get-local-wallet";
 import { getSmartWallet } from "../../../server/utils/wallets/get-smart-wallet";
+import { env } from "../env";
 
-export const walletsCache = new LRUMap<string, EVMWallet>(2048);
+export const walletsCache = new LRUMap<string, EVMWallet>(env.ACCOUNT_CACHE_SIZE);
 
 interface GetWalletParams {
   pgtx?: PrismaTransaction;
