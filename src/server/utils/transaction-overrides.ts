@@ -1,6 +1,5 @@
 import type { Static } from "@sinclair/typebox";
 import { maybeBigInt } from "../../shared/utils/primitive-types";
-import type { InsertedTransaction } from "../../shared/utils/transaction/types";
 import type {
   txOverridesSchema,
   txOverridesWithValueSchema,
@@ -10,7 +9,7 @@ export const parseTransactionOverrides = (
   overrides:
     | Static<typeof txOverridesSchema>["txOverrides"]
     | Static<typeof txOverridesWithValueSchema>["txOverrides"],
-): Partial<InsertedTransaction> => {
+) => {
   if (!overrides) {
     return {};
   }
