@@ -1,5 +1,5 @@
 import { sha256HexSync } from "@thirdweb-dev/crypto";
-import { createThirdwebClient } from "thirdweb";
+import { createThirdwebClient, hexToNumber, isHex } from "thirdweb";
 import type { TransactionReceipt } from "thirdweb/transaction";
 import { env } from "./env";
 
@@ -27,14 +27,6 @@ export const fromTransactionType = (type: TransactionReceipt["type"]) => {
   if (type === "eip2930") return 2;
   if (type === "eip4844") return 3;
   if (type === "eip7702") return 4;
+  if (isHex(type)) return hexToNumber(type);
   throw new Error(`Unexpected transaction type ${type}`);
-};
-
-export const toTransactionType = (value: number) => {
-  if (value === 0) return "legacy";
-  if (value === 1) return "eip1559";
-  if (value === 2) return "eip2930";
-  if (value === 3) return "eip4844";
-  if (value === 4) return "eip7702";
-  throw new Error(`Unexpected transaction type number ${value}`);
 };
