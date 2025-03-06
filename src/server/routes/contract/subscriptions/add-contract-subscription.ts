@@ -22,7 +22,7 @@ import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { isValidWebhookUrl } from "../../../utils/validator";
 import { getWebhook } from "../../../../shared/db/webhooks/get-webhook";
-import { Webhooks } from "@prisma/client";
+import type { Webhooks } from "@prisma/client";
 
 const bodySchema = Type.Object({
   chain: chainIdOrSlugSchema,
