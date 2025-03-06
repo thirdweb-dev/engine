@@ -2,7 +2,7 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { getContract } from "thirdweb";
-import { isContractDeployed } from "thirdweb/utils";
+import { isContractDeployed, shortenAddress } from "thirdweb/utils";
 import { upsertChainIndexer } from "../../../../shared/db/chain-indexers/upsert-chain-indexer";
 import { createContractSubscription } from "../../../../shared/db/contract-subscriptions/create-contract-subscription";
 import { getContractSubscriptionsUniqueChainIds } from "../../../../shared/db/contract-subscriptions/get-contract-subscriptions";
@@ -21,6 +21,8 @@ import {
 import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { isValidWebhookUrl } from "../../../utils/validator";
+import { getWebhook } from "../../../../shared/db/webhooks/get-webhook";
+import type { Webhooks } from "@prisma/client";
 
 const bodySchema = Type.Object({
   chain: chainIdOrSlugSchema,
@@ -28,9 +30,17 @@ const bodySchema = Type.Object({
     ...AddressSchema,
     description: "The address for the contract.",
   },
+  webhookId: Type.Optional(
+    Type.Number({
+      description:
+        "The ID of an existing webhook to use for this contract subscription. Either `webhookId` or `webhookUrl` must be provided.",
+      examples: [1],
+    }),
+  ),
   webhookUrl: Type.Optional(
     Type.String({
-      description: "Webhook URL",
+      description:
+        "Creates a new webhook to call when new onchain data is detected. Either `webhookId` or `webhookUrl` must be provided.",
       examples: ["https://example.com/webhook"],
     }),
   ),
@@ -91,6 +101,7 @@ export async function addContractSubscription(fastify: FastifyInstance) {
       const {
         chain,
         contractAddress,
+        webhookId,
         webhookUrl,
         processEventLogs,
         filterEvents = [],
@@ -124,6 +135,25 @@ export async function addContractSubscription(fastify: FastifyInstance) {
         );
       }
 
+      // Get an existing webhook or create a new one.
+      let webhook: Webhooks | null = null;
+      if (webhookId) {
+        webhook = await getWebhook(webhookId);
+      } else if (webhookUrl && isValidWebhookUrl(webhookUrl)) {
+        webhook = await insertWebhook({
+          eventType: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
+          name: `(Generated) Subscription for ${shortenAddress(contractAddress)}`,
+          url: webhookUrl,
+        });
+      }
+      if (!webhook) {
+        throw createCustomError(
+          'Failed to get or create webhook for contract subscription. Make sure you provide an valid "webhookId" or "webhookUrl".',
+          StatusCodes.BAD_REQUEST,
+          "INVALID_WEBHOOK",
+        );
+      }
+
       // If not currently indexed, upsert the latest block number.
       const subscribedChainIds = await getContractSubscriptionsUniqueChainIds();
       if (!subscribedChainIds.includes(chainId)) {
@@ -137,30 +167,11 @@ export async function addContractSubscription(fastify: FastifyInstance) {
         }
       }
 
-      // Create the webhook (if provided).
-      let webhookId: number | undefined;
-      if (webhookUrl) {
-        if (!isValidWebhookUrl(webhookUrl)) {
-          throw createCustomError(
-            "Invalid webhook URL. Make sure it starts with 'https://'.",
-            StatusCodes.BAD_REQUEST,
-            "BAD_REQUEST",
-          );
-        }
-
-        const webhook = await insertWebhook({
-          eventType: WebhooksEventTypes.CONTRACT_SUBSCRIPTION,
-          name: "(Auto-generated)",
-          url: webhookUrl,
-        });
-        webhookId = webhook.id;
-      }
-
       // Create the contract subscription.
       const contractSubscription = await createContractSubscription({
         chainId,
         contractAddress: contractAddress.toLowerCase(),
-        webhookId,
+        webhookId: webhook.id,
         processEventLogs,
         filterEvents,
         processTransactionReceipts,
