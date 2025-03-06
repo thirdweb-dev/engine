@@ -149,8 +149,8 @@ export async function addContractSubscription(fastify: FastifyInstance) {
       if (!webhook) {
         throw createCustomError(
           'Failed to get or create webhook for contract subscription. Make sure you provide an valid "webhookId" or "webhookUrl".',
-          StatusCodes.INTERNAL_SERVER_ERROR,
-          "INTERNAL_SERVER_ERROR",
+          StatusCodes.BAD_REQUEST,
+          "INVALID_WEBHOOK",
         );
       }
 
