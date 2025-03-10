@@ -278,14 +278,8 @@ model ContractEventLogs {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  @@id([transactionHash, logIndex])
-  @@index([timestamp])
-  @@index([blockNumber])
-  @@index([contractAddress])
-  @@index([topic0])
-  @@index([topic1])
-  @@index([topic2])
-  @@index([topic3])
+  @@id([chainId, blockNumber, transactionHash, logIndex])
+  @@index([timestamp, chainId, contractAddress])
   @@map("contract_event_logs")
 }
 
@@ -331,9 +325,8 @@ model ContractTransactionReceipts {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([chainId, transactionHash])
-  @@index([contractId, timestamp])
-  @@index([contractId, blockNumber])
+  @@id([chainId, blockNumber, transactionHash])
+  @@index([timestamp, chainId, contractAddress])
   @@map("contract_transaction_receipts")
 }
 
