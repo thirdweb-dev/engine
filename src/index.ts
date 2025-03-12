@@ -7,12 +7,12 @@ import { initiateEngineServer } from "./server/engine.js";
 
 initiateCacheClearTask();
 
-// start the engine server
-
 // start the metrics server
 import "./server/metrics.js";
 import { defaultLogger } from "./lib/logger.js";
+import { closeAllWorkers } from "./executors/workers.js";
 
+// start the engine server
 initiateEngineServer();
 
 const gracefulShutdown = async (signal: NodeJS.Signals) => {
@@ -20,6 +20,7 @@ const gracefulShutdown = async (signal: NodeJS.Signals) => {
 
   // Gracefully close workers to minimize stalled jobs.
   // Source: https://docs.bullmq.io/guide/going-to-production#gracefully-shut-down-workers
+  await closeAllWorkers();
 
   process.exit(0);
 };

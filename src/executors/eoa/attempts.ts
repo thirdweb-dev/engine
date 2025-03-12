@@ -39,6 +39,7 @@ const transactionErrorSchema = z.object({
     "replacement_underpriced",
     "already_known",
     "unknown_rpc_error",
+    "other_engine_error"
   ]),
   message: z.string(),
 });
@@ -63,7 +64,7 @@ const legacyFeeSchema = z.object({
 const eip1559FeeSchema = z.object({
   feeType: z.literal("eip1559"),
   maxFeePerGas: z.coerce.bigint(), // Will be parsed as bigint
-  priorityFeePerGas: z.coerce.bigint(), // Will be parsed as bigint
+  maxPriorityFeePerGas: z.coerce.bigint(), // Will be parsed as bigint
 });
 
 const txAttemptSchema = z.union([

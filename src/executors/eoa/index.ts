@@ -795,7 +795,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
     if (sendResult.isErr()) {
       const error = sendResult.error;
       if (error.kind === "transaction_send") {
-        const cleanupResult = await safeTry(async function* () {
+        await safeTry(async function* () {
           if (error.code === "nonce_too_low") {
             let receivedReceipt: TransactionReceipt | undefined = undefined;
             try {
@@ -880,6 +880,19 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
         ? "eip1559"
         : "legacy";
 
+    const feeData =
+      feeType === "eip1559"
+        ? {
+            feeType: "eip1559" as const,
+            maxFeePerGas: serialisableTransaction.maxFeePerGas as bigint,
+            maxPriorityFeePerGas:
+              serialisableTransaction.maxPriorityFeePerGas as bigint,
+          }
+        : {
+            feeType: "legacy" as const,
+            gasPrice: serialisableTransaction.gasPrice as bigint,
+          };
+
     await recordTransactionAttempt(id, {
       chainId,
       data: serialisableTransaction.data,
@@ -887,28 +900,41 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
       hash: computedTransactionHash,
       to: serialisableTransaction.to as Address | undefined,
       gas: serialisableTransaction.gas,
-      gasPrice: serialisableTransaction.gasPrice,
-      maxFeePerGas: serialisableTransaction.maxFeePerGas,
       nonce: nonceToUse,
-      feeType: feeType,
-      maxPriorityFeePerGas: serialisableTransaction.maxPriorityFeePerGas,
       value: serialisableTransaction.value,
+      error: sendResult.isErr()
+        ? sendResult.error.kind === "transaction_send"
+          ? sendResult.error
+          : { code: "other_engine_error", message: sendResult.error.code }
+        : undefined,
+      ...feeData,
     });
 
-    const transactionHash = txResponse.transactionHash;
+    if (sendResult.isOk()) {
+      const transactionResponse = sendResult.value;
+      const transactionHash = transactionResponse.transactionHash;
 
-    job.log(
-      `[${new Date().toISOString()}] Transaction sent successfully with hash ${transactionHash} and nonce ${nonceToUse}`
-    );
+      job.log(
+        `[${new Date().toISOString()}] Transaction sent successfully with hash ${transactionHash} and nonce ${nonceToUse}`
+      );
 
-    sendLogger.info("Transaction sent successfully", {
-      id,
-      chainId,
-      transactionHash,
-      nonce: nonceToUse,
-    });
+      sendLogger.info("Transaction sent successfully", {
+        id,
+        chainId,
+        transactionHash,
+        nonce: nonceToUse,
+      });
 
-    return ok(true);
+      await queueConfirmationJob({
+        id,
+        transactionHash,
+        chainId,
+      });
+
+      return true;
+    }
+
+    throw new Error("Failed to send transaction");
   },
   {
     connection: redis,

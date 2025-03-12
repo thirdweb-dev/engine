@@ -1,5 +1,5 @@
 // notes
-import { Queue, UnrecoverableError, Worker } from "bullmq";
+import { DelayedError, Queue, UnrecoverableError, Worker } from "bullmq";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 import {
   parseEventLogs,
@@ -154,7 +154,7 @@ export const externalBundlerConfirmQueue = new Queue<SendResult>(
   EXTERNAL_BUNDLER_CONFIRM_QUEUE_NAME,
   {
     defaultJobOptions: {
-      attempts: 60,
+      attempts: 100,
       backoff: {
         type: "custom",
       },
@@ -219,7 +219,9 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       client,
     });
 
-    sendLogger.info(`Account ${executionOptions.smartAccountAddress} is deployed: ${isDeployed}`);
+    sendLogger.info(
+      `Account ${executionOptions.smartAccountAddress} is deployed: ${isDeployed}`
+    );
 
     if (!isDeployed) {
       // check if account is deploying
@@ -239,7 +241,8 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
         sendLogger.info(
           `Account is deploying at ${isDeployingResult.value}, will retry`
         );
-        throw new Error(
+        await job.moveToDelayed(Date.now() + 5000, job.token);
+        throw new DelayedError(
           `Account is deploying at ${isDeployingResult.value}, will retry`
         );
       }
@@ -557,6 +560,7 @@ export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
   {
     connection: redis,
     concurrency: env.CONFIRM_TRANSACTION_WORKER_CONCURRENCY,
+    maxStalledCount: 10, // some tolerance for stalling, there's no penalty on the confirmation worker
     settings: {
       backoffStrategy: (attemptsMade: number) => {
         if (attemptsMade === 1) return 2000; // First check after 2s
@@ -572,6 +576,16 @@ confirmWorker.on("ready", () => {
   confirmLogger.info("worker ready");
 });
 
-confirmWorker.on("error", (err) => {
+confirmWorker.on("failed", async (job, err) => {
   confirmLogger.error("worker error", err);
+
+  if (!job) {
+    return;
+  }
+
+  const wasFinalAttempt = job.opts.attempts === job.attemptsMade;
+
+  if (wasFinalAttempt) {
+    await clearAccountDeploying(job.data.accountAddress, job.data.chainId);
+  }
 });
