@@ -1,5 +1,5 @@
 import type { Prisma, Webhooks } from "@prisma/client";
-import type { AbiEvent } from "abitype";
+import type { AbiEvent } from "ox";
 import { Worker, type Job, type Processor } from "bullmq";
 import superjson from "superjson";
 import {
@@ -144,9 +144,9 @@ const getLogs = async ({
 
     // Get events to filter by, if any.
     // Resolve the event name, "Transfer", to event signature, "Transfer(address to, uint256 quantity)".
-    const events: PreparedEvent<AbiEvent>[] = [];
+    const events: PreparedEvent<AbiEvent.AbiEvent>[] = [];
     if (f.events.length > 0) {
-      const abi = await resolveContractAbi<AbiEvent[]>(contract);
+      const abi = await resolveContractAbi<AbiEvent.AbiEvent[]>(contract);
       for (const signature of abi) {
         if (f.events.includes(signature.name)) {
           events.push(prepareEvent({ signature }));
@@ -224,7 +224,7 @@ const formatDecodedLog = async (args: {
 }): Promise<Record<string, Prisma.InputJsonObject> | undefined> => {
   const { contract, eventName, logArgs } = args;
 
-  const abi = await resolveContractAbi<AbiEvent[]>(contract);
+  const abi = await resolveContractAbi<AbiEvent.AbiEvent[]>(contract);
   const eventSignature = abi.find((a) => a.name === eventName);
   if (!eventSignature) {
     return;

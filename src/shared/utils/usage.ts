@@ -40,9 +40,10 @@ export interface ReportUsageParams {
 
 const ANALYTICS_DEFAULT_HEADERS = {
   "Content-Type": "application/json",
-  "x-sdk-version": process.env.ENGINE_VERSION,
+  "x-sdk-version": env.ENGINE_VERSION,
   "x-product-name": "engine",
   "x-client-id": thirdwebClientId,
+  "x-secret-key": env.THIRDWEB_API_SECRET_KEY,
 } as HeadersInit;
 
 const SKIP_USAGE_PATHS = new Set([

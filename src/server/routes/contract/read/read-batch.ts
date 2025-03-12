@@ -1,4 +1,4 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import SuperJSON from "superjson";
@@ -10,14 +10,14 @@ import {
   resolveMethod,
 } from "thirdweb";
 import { prepareMethod } from "thirdweb/contract";
-import { decodeAbiParameters } from "viem/utils";
 import type { AbiFunction } from "viem";
-import { createCustomError } from "../../../middleware/error";
-import { getChainIdFromChain } from "../../../utils/chain";
-import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { decodeAbiParameters } from "viem/utils";
 import { getChain } from "../../../../shared/utils/chain";
-import { thirdwebClient } from "../../../../shared/utils/sdk";
 import { prettifyError } from "../../../../shared/utils/error";
+import { thirdwebClient } from "../../../../shared/utils/sdk";
+import { createCustomError } from "../../../middleware/error";
+import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
+import { getChainIdFromChain } from "../../../utils/chain";
 
 const MULTICALL3_ADDRESS = "0xcA11bde05977b3631167028862bE2a173976CA11";
 
@@ -118,7 +118,7 @@ export async function readBatchRoute(fastify: FastifyInstance) {
         );
 
         // Get Multicall3 contract
-        const multicall = await getContract({
+        const multicall = getContract({
           chain,
           address: multicallAddress,
           client: thirdwebClient,
@@ -132,7 +132,7 @@ export async function readBatchRoute(fastify: FastifyInstance) {
         });
 
         // Process results
-        const processedResults = results.map((result: unknown, i) => {
+        const processedResults = results.map((result: unknown, i: number) => {
           const { success, returnData } = result as {
             success: boolean;
             returnData: unknown;

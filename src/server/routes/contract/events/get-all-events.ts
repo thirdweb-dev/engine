@@ -2,23 +2,25 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import {
+  type GetContractEventsResult,
+  type PreparedEvent,
+  getContract,
+  getContractEvents,
+} from "thirdweb";
+import { getChain } from "../../../../shared/utils/chain";
+import { prettifyError } from "../../../../shared/utils/error";
+import { thirdwebClient } from "../../../../shared/utils/sdk";
+import { createCustomError } from "../../../middleware/error";
+import {
   contractEventSchema,
   eventsQuerystringSchema,
 } from "../../../schemas/contract";
+import { toContractEventV4Schema } from "../../../schemas/event";
 import {
   contractParamSchema,
   standardResponseSchema,
 } from "../../../schemas/shared-api-schemas";
-import { thirdwebClient } from "../../../../shared/utils/sdk";
-import { getChain } from "../../../../shared/utils/chain";
 import { getChainIdFromChain } from "../../../utils/chain";
-import { getContract, getContractEvents } from "thirdweb";
-import {
-  type ContractEventV5,
-  toContractEventV4Schema,
-} from "../../../schemas/event";
-import { createCustomError } from "../../../middleware/error";
-import { prettifyError } from "../../../../shared/utils/error";
 
 const requestSchema = contractParamSchema;
 
@@ -97,7 +99,7 @@ export async function getAllEvents(fastify: FastifyInstance) {
         chain: await getChain(chainId),
       });
 
-      let eventsV5: ContractEventV5[];
+      let eventsV5: GetContractEventsResult<PreparedEvent<never>[], true>;
       try {
         eventsV5 = await getContractEvents({
           contract: contract,

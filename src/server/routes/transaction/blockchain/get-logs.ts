@@ -1,15 +1,15 @@
-import { Type, type Static } from "@sinclair/typebox";
-import type { AbiEvent } from "abitype";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
+import type { AbiEvent } from "ox";
 import superjson from "superjson";
 import {
+  type Hex,
   eth_getTransactionReceipt,
   getContract,
   getRpcClient,
   parseEventLogs,
   prepareEvent,
-  type Hex,
 } from "thirdweb";
 import { resolveContractAbi } from "thirdweb/contract";
 import type { TransactionReceipt } from "thirdweb/transaction";
@@ -204,7 +204,7 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
         client: thirdwebClient,
       });
 
-      const abi: AbiEvent[] = await resolveContractAbi(contract);
+      const abi: AbiEvent.AbiEvent[] = await resolveContractAbi(contract);
       const eventSignatures = abi.filter((item) => item.type === "event");
       if (eventSignatures.length === 0) {
         throw createCustomError(
