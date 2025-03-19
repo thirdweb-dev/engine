@@ -110,11 +110,13 @@ export async function writeToContract(fastify: FastifyInstance) {
         );
       }
 
+      const { value, overrides } = parseTransactionOverrides(txOverrides);
       const transaction = prepareContractCall({
         contract,
         method,
         params,
-        ...parseTransactionOverrides(txOverrides),
+        value,
+        ...overrides,
       });
 
       const queueId = await queueTransaction({
