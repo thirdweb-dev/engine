@@ -1,9 +1,8 @@
-import {
-  signAuthorization,
+import type {
+  Address,
+  Hex,
   SignedAuthorization,
-  type Address,
-  type Hex,
-  type toSerializableTransaction,
+  toSerializableTransaction,
 } from "thirdweb";
 import type { TransactionType } from "viem";
 

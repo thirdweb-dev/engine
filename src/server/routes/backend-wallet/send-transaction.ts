@@ -1,26 +1,29 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import type { Address, Hex } from "thirdweb";
-import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
+import { type Hex, prepareTransaction } from "thirdweb";
+import { getChain } from "../../../shared/utils/chain";
+import { thirdwebClient } from "../../../shared/utils/sdk";
+import { queueTransaction } from "../../../shared/utils/transaction/queue-transation";
 import { AddressSchema } from "../../schemas/address";
 import {
   requestQuerystringSchema,
   standardResponseSchema,
   transactionWritesResponseSchema,
 } from "../../schemas/shared-api-schemas";
+import {
+  authorizationListSchema,
+  toParsedAuthorization,
+} from "../../schemas/transaction/authorization";
 import { txOverridesSchema } from "../../schemas/tx-overrides";
 import {
   maybeAddress,
+  requiredAddress,
   walletChainParamSchema,
   walletWithAAHeaderSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
 import { parseTransactionOverrides } from "../../utils/transaction-overrides";
-import {
-  authorizationListSchema,
-  toParsedAuthorization,
-} from "../../schemas/transaction/authorization";
 
 const requestBodySchema = Type.Object({
   toAddress: Type.Optional(AddressSchema),
@@ -78,51 +81,39 @@ export async function sendTransaction(fastify: FastifyInstance) {
         "x-idempotency-key": idempotencyKey,
         "x-account-address": accountAddress,
         "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
         "x-transaction-mode": transactionMode,
       } = request.headers as Static<typeof walletWithAAHeaderSchema>;
 
       const chainId = await getChainIdFromChain(chain);
+      const chainObject = await getChain(chainId);
+      const { value: valueOverride, overrides } =
+        parseTransactionOverrides(txOverrides);
+      const transaction = prepareTransaction({
+        client: thirdwebClient,
+        chain: chainObject,
+        to: toAddress,
+        data: data as Hex,
+        value: BigInt(value) || valueOverride,
+        authorizationList: authorizationList?.map(toParsedAuthorization),
+        ...overrides,
+      });
 
-      let queueId: string;
-      if (accountAddress) {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            isUserOp: true,
-            chainId,
-            from: fromAddress as Address,
-            to: toAddress as Address | undefined,
-            data: data as Hex,
-            value: BigInt(value),
-            accountAddress: accountAddress as Address,
-            signerAddress: fromAddress as Address,
-            target: toAddress as Address | undefined,
-            transactionMode: undefined,
-            accountFactoryAddress: maybeAddress(
-              accountFactoryAddress,
-              "x-account-factory-address",
-            ),
-            ...parseTransactionOverrides(txOverrides),
-          },
-          shouldSimulate: simulateTx,
-          idempotencyKey,
-        });
-      } else {
-        queueId = await insertTransaction({
-          insertedTransaction: {
-            isUserOp: false,
-            chainId,
-            from: fromAddress as Address,
-            to: toAddress as Address | undefined,
-            data: data as Hex,
-            transactionMode: transactionMode,
-            value: BigInt(value),
-            authorizationList: authorizationList?.map(toParsedAuthorization),
-            ...parseTransactionOverrides(txOverrides),
-          },
-          shouldSimulate: simulateTx,
-          idempotencyKey,
-        });
-      }
+      const queueId = await queueTransaction({
+        transaction,
+        fromAddress: requiredAddress(fromAddress, "x-backend-wallet-address"),
+        toAddress: maybeAddress(toAddress, "to"),
+        accountAddress: maybeAddress(accountAddress, "x-account-address"),
+        accountFactoryAddress: maybeAddress(
+          accountFactoryAddress,
+          "x-account-factory-address",
+        ),
+        accountSalt,
+        txOverrides,
+        idempotencyKey,
+        transactionMode,
+        shouldSimulate: simulateTx,
+      });
 
       reply.status(StatusCodes.OK).send({
         result: {
