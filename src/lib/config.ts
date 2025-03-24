@@ -1,22 +1,22 @@
-import { ResultAsync, err, ok, safeTry } from "neverthrow";
 import { eq } from "drizzle-orm";
+import { ResultAsync, err, ok, safeTry } from "neverthrow";
 import * as z from "zod";
 import { db } from "../db/connection";
 import { configuration } from "../db/schema";
-import { provisionLocalAccount } from "./accounts/local";
 import type { ConfigInDb } from "../db/types";
-import { redis } from "./redis";
+import { provisionLocalAccount } from "./accounts/local";
 import { decrypt } from "./crypto";
 import {
-  type DbErr,
   type ConfigErr,
+  type CryptoErr,
+  type DbErr,
+  type LocalAccountErr,
   type ValidationErr,
   mapDbError,
   mapZodError,
-  type CryptoErr,
-  type LocalAccountErr,
 } from "./errors";
 import { initializeLogger } from "./logger";
+import { redis } from "./redis";
 
 const configLogger = initializeLogger("config");
 
@@ -47,7 +47,7 @@ export function getConfigInRedis(): ResultAsync<
         kind: "config",
         code: "redis_error",
         status: 500,
-      } as const),
+      }) as const,
   ).andThen((configStr) => {
     const configParsed =
       typeof configStr === "string" ? JSON.parse(configStr) : {};

@@ -7,21 +7,15 @@
   "type": "module",
   "engines": {
     "node": ">=22.1.0",
-    "pnpm": ">=10.2.1"
+    "pnpm": ">=9"
   },
   "scripts": {
-    "dev": "pnpm dev:infra && pnpm dev:db && pnpm dev:run",
+    "dev": "pnpm dev:infra && pnpm dev:run",
     "dev:infra": "docker compose -f ./docker-compose.yml up -d",
-    "dev:db": "pnpm prisma:setup:dev",
     "dev:run": "bun --watch src/index.ts",
     "build": "rm -rf dist && tsc -p ./tsconfig.json",
     "build:docker": "docker build . -f Dockerfile -t prod",
     "generate:sdk": "tsx ./src/scripts/generate-sdk && cd ./sdk && pnpm build",
-    "prisma:setup:dev": "tsx ./src/scripts/setup-db.ts",
-    "prisma:setup:prod": "tsx ./dist/scripts/setup-db.js",
-    "start": "pnpm prisma:setup:prod && pnpm start:migrations && pnpm start:run",
-    "start:migrations": "tsx ./dist/scripts/apply-migrations.js",
-    "start:run": "node ./dist/index.js",
     "start:docker": "docker compose --profile engine --env-file ./.env up --remove-orphans",
     "start:docker-force-build": "docker compose --profile engine --env-file ./.env up --remove-orphans --build",
     "test:unit": "vitest",
@@ -112,15 +106,7 @@
       "ws": ">=8.17.1",
       "cross-spawn": ">=7.0.6"
     },
-    "ignoredBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "prisma"
-    ],
-    "onlyBuiltDependencies": [
-      "@prisma/client",
-      "@prisma/engines",
-      "prisma"
-    ]
+    "ignoredBuiltDependencies": ["@prisma/client", "@prisma/engines", "prisma"],
+    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "prisma"]
   }
 }

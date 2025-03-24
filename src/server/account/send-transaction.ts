@@ -23,7 +23,7 @@ export const sendTransactionRoute = accountRoutesFactory.createHandlers(
         content: {
           "application/json": {
             schema: resolver(
-              wrapResponseSchema(z.array(transactionDbEntrySchema))
+              wrapResponseSchema(z.array(transactionDbEntrySchema)),
             ),
           },
         },
@@ -63,5 +63,5 @@ export const sendTransactionRoute = accountRoutesFactory.createHandlers(
         transactions: executionResult.value.transactions,
       },
     });
-  }
+  },
 );

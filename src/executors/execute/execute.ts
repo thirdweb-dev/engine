@@ -39,7 +39,7 @@ import "./external-bundler-confirm-handler";
 import "./external-bundler-send-handler";
 
 function getExecutionAccountFromRequest(
-  request: EncodedExecutionRequest
+  request: EncodedExecutionRequest,
 ): ResultAsync<
   | {
       signerAccount: Account;
@@ -60,7 +60,7 @@ function getExecutionAccountFromRequest(
         yield* getEngineAccount({
           address: request.from,
           encryptionPassword: request.encryptionPassword,
-        })
+        }),
       );
     }
 
@@ -243,9 +243,8 @@ export function execute({
   return safeTry(async function* () {
     const chain = await getChain(Number.parseInt(request.chainId));
 
-    const engineAccountResponse = yield* getExecutionAccountFromRequest(
-      request
-    );
+    const engineAccountResponse =
+      yield* getExecutionAccountFromRequest(request);
 
     if ("account" in engineAccountResponse) {
       return errAsync({
@@ -260,7 +259,7 @@ export function execute({
       signer: engineAccountResponse.signerAccount,
       accountSalt:
         "accountSalt" in engineAccountResponse.smartAccountDetails
-          ? engineAccountResponse.smartAccountDetails.accountSalt ?? undefined
+          ? (engineAccountResponse.smartAccountDetails.accountSalt ?? undefined)
           : undefined,
       accountFactoryAddress:
         engineAccountResponse.smartAccountDetails.factoryAddress,
@@ -285,7 +284,7 @@ export function execute({
     // Currently, we use the async executor when no encryption password is provided
     // In the future, this can be expanded to support more executor types
     const executorType = !request.encryptionPassword ? "async" : "sync";
-    
+
     // Variables to track execution state
     let executionResult: ExecutionResult4337Serialized;
     let userOpHash: string | undefined;
@@ -376,13 +375,13 @@ export function execute({
           from: executionParams.smartAccountAddress as Address,
         })
         .returning(),
-      mapDbError
+      mapDbError,
     ).mapErr((e) =>
       buildTransactionDbEntryErr({
         error: e,
         executionParams,
         executionResult: dbExecutionResult,
-      })
+      }),
     );
 
     return okAsync({

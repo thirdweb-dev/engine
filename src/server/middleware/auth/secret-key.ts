@@ -1,7 +1,7 @@
 import { createMiddleware } from "hono/factory";
-import { extractJwt } from "./shared";
-import { engineErrToHttpException } from "../../../lib/errors";
 import { env } from "../../../lib/env";
+import { engineErrToHttpException } from "../../../lib/errors";
+import { extractJwt } from "./shared";
 
 export const secretKeyAuth = createMiddleware(async (c, next) => {
   const secretKey = extractJwt(c.req.header("authorization"));
