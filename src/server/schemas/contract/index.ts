@@ -1,26 +1,6 @@
-import { Type, type Static } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 import { AddressSchema } from "../address";
 import type { contractSchemaTypes } from "../shared-api-schemas";
-
-/**
- * Basic schema for all Request Query String
- */
-export const readRequestQuerySchema = Type.Object({
-  functionName: Type.String({
-    description: "Name of the function to call on Contract",
-    examples: ["balanceOf"],
-  }),
-  args: Type.Optional(
-    Type.String({
-      description: "Arguments for the function. Comma Separated",
-      examples: [""],
-    }),
-  ),
-});
-
-export interface readSchema extends contractSchemaTypes {
-  Querystring: Static<typeof readRequestQuerySchema>;
-}
 
 const abiTypeSchema = Type.Object({
   type: Type.Optional(Type.String()),
@@ -64,6 +44,31 @@ export const abiSchema = Type.Object({
 
 export const abiArraySchema = Type.Array(abiSchema);
 export type AbiSchemaType = Static<typeof abiArraySchema>;
+
+/**
+ * Basic schema for all Request Query String
+ */
+export const readRequestQuerySchema = Type.Object({
+  functionName: Type.String({
+    description:
+      "The function to call on the contract. It is highly recommended to provide a full function signature, such as 'function balanceOf(address owner) view returns (uint256)', to avoid ambiguity and to skip ABI resolution",
+    examples: [
+      "function balanceOf(address owner) view returns (uint256)",
+      "balanceOf",
+    ],
+  }),
+  args: Type.Optional(
+    Type.String({
+      description: "Arguments for the function. Comma Separated",
+      examples: [""],
+    }),
+  ),
+  abi: Type.Optional(abiArraySchema),
+});
+
+export interface readSchema extends contractSchemaTypes {
+  Querystring: Static<typeof readRequestQuerySchema>;
+}
 
 export const contractEventSchema = Type.Record(Type.String(), Type.Any());
 

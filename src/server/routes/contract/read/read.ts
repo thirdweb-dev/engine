@@ -1,7 +1,11 @@
 import { Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { getContract } from "../../../../shared/utils/cache/get-contract";
+import type { AbiParameters } from "ox";
+import { readContract as readContractV5, resolveMethod } from "thirdweb";
+import { parseAbiParams } from "thirdweb/utils";
+import type { AbiFunction } from "thirdweb/utils";
+import { getContractV5 } from "../../../../shared/utils/cache/get-contractv5";
 import { prettifyError } from "../../../../shared/utils/error";
 import { createCustomError } from "../../../middleware/error";
 import {
@@ -12,6 +16,8 @@ import {
   partialRouteSchema,
   standardResponseSchema,
 } from "../../../schemas/shared-api-schemas";
+import { sanitizeFunctionName } from "../../../utils/abi";
+import { sanitizeAbi } from "../../../utils/abi";
 import { getChainIdFromChain } from "../../../utils/chain";
 import { bigNumberReplacer } from "../../../utils/convertor";
 
@@ -37,12 +43,13 @@ export async function readContract(fastify: FastifyInstance) {
     },
     handler: async (request, reply) => {
       const { chain, contractAddress } = request.params;
-      const { functionName, args } = request.query;
+      const { functionName, args, abi } = request.query;
 
       const chainId = await getChainIdFromChain(chain);
-      const contract = await getContract({
+      const contract = await getContractV5({
         chainId,
         contractAddress,
+        abi: sanitizeAbi(abi),
       });
 
       let parsedArgs: unknown[] | undefined;
@@ -54,19 +61,33 @@ export async function readContract(fastify: FastifyInstance) {
         // fallback to string split
       }
 
-      parsedArgs ??= args?.split(",").map((arg) => {
-        if (arg === "true") {
-          return true;
-        }
-        if (arg === "false") {
-          return false;
-        }
-        return arg;
-      });
+      parsedArgs ??= args?.split(",");
+
+      // 3 possible ways to get function from abi:
+      // 1. functionName passed as solidity signature
+      // 2. functionName passed as function name + passed in ABI
+      // 3. functionName passed as function name + inferred ABI (fetched at encode time)
+      // this is all handled inside the `resolveMethod` function
+      let method: AbiFunction;
+      let params: Array<string | bigint | boolean | object>;
+      try {
+        const functionNameOrSignature = sanitizeFunctionName(functionName);
+        method = await resolveMethod(functionNameOrSignature)(contract);
+        params = parseAbiParams(
+          method.inputs.map((i: AbiParameters.Parameter) => i.type),
+          parsedArgs ?? [],
+        );
+      } catch (e) {
+        throw createCustomError(
+          prettifyError(e),
+          StatusCodes.BAD_REQUEST,
+          "BAD_REQUEST",
+        );
+      }
 
       let returnData: unknown;
       try {
-        returnData = await contract.call(functionName, parsedArgs ?? []);
+        returnData = await readContractV5({ contract, method, params });
       } catch (e) {
         throw createCustomError(
           prettifyError(e),

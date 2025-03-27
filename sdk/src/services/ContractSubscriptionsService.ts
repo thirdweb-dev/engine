@@ -68,7 +68,11 @@ export class ContractSubscriptionsService {
              */
             contractAddress: string;
             /**
-             * Webhook URL
+             * The ID of an existing webhook to use for this contract subscription. Either `webhookId` or `webhookUrl` must be provided.
+             */
+            webhookId?: number;
+            /**
+             * Creates a new webhook to call when new onchain data is detected. Either `webhookId` or `webhookUrl` must be provided.
              */
             webhookUrl?: string;
             /**
