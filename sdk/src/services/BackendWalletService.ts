@@ -495,6 +495,17 @@ export class BackendWalletService {
             toAddress?: string;
             data: string;
             value: string;
+            authorizationList?: Array<{
+                /**
+                 * A contract or wallet address
+                 */
+                address: string;
+                chainId: number;
+                nonce: string;
+                'r': string;
+                's': string;
+                yParity: number;
+            }>;
             txOverrides?: {
                 /**
                  * Gas limit for the transaction
@@ -814,6 +825,8 @@ export class BackendWalletService {
             domain: Record<string, any>;
             types: Record<string, any>;
             value: Record<string, any>;
+            primaryType?: string;
+            chainId?: number;
         },
         xIdempotencyKey?: string,
         xTransactionMode?: 'sponsored',
