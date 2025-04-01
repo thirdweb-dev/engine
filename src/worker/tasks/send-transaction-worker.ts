@@ -216,8 +216,9 @@ const _sendUserOp = async (
           {
             client: thirdwebClient,
             chain,
-            ...queuedTransaction,
-            ...overrides,
+            data: queuedTransaction.data,
+            value: queuedTransaction.value,
+            ...overrides, // gas-overrides
             to: getChecksumAddress(toAddress),
           },
         ];
@@ -384,7 +385,9 @@ const _sendTransaction = async (
   });
   populatedTransaction.nonce = nonce;
   job.log(
-    `Populated transaction (isRecycledNonce=${isRecycledNonce}): ${stringify(populatedTransaction)}`,
+    `Populated transaction (isRecycledNonce=${isRecycledNonce}): ${stringify(
+      populatedTransaction,
+    )}`,
   );
 
   // Send transaction to RPC.
