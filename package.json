@@ -70,7 +70,7 @@
     "prom-client": "^15.1.3",
     "superjson": "^2.2.1",
     "thirdweb": "5.93.12",
-    "undici": "^6.20.1",
+    "undici": "^6.21.1",
     "uuid": "^9.0.1",
     "viem": "2.22.17",
     "winston": "^3.14.1",
@@ -90,7 +90,7 @@
     "openapi-typescript-codegen": "^0.25.0",
     "prool": "^0.0.16",
     "typescript": "^5.1.3",
-    "vitest": "^2.0.3"
+    "vitest": "^2.1.9"
   },
   "prisma": {
     "schema": "./src/prisma/schema.prisma"
