@@ -576,9 +576,7 @@ confirmWorker.on("ready", () => {
   confirmLogger.info("worker ready");
 });
 
-confirmWorker.on("failed", async (job, err) => {
-  confirmLogger.error("worker error", err);
-
+confirmWorker.on("failed", async (job) => {
   if (!job) {
     return;
   }
