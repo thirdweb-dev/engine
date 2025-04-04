@@ -8,20 +8,21 @@ import {
   type ThirdwebClient,
 } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
-import type { GcpKmsErr, RpcErr } from "../../errors";
+import type { GcpKmsErr, RpcErr } from "../../errors.js";
 import { ok, ResultAsync, safeTry } from "neverthrow";
 import { CloudKmsSigner } from "@cloud-cryptographic-wallet/cloud-kms-signer";
-import { mapGcpError } from "./gcp";
+import { mapGcpError } from "./gcp.js";
 import type {
   SendTransactionOptions,
   SendTransactionResult,
   SignTransactionOptions,
-} from "../transaction-types";
+} from "../transaction-types.js";
 import { Bytes } from "@cloud-cryptographic-wallet/signer";
-import { getChain } from "../../chain";
-import { hashTypedData, type SignableMessage } from "viem";
+import { getChain } from "../../chain.js";
+import type { SignableMessage } from "viem";
 import { hashMessage } from "thirdweb/utils";
 import type { TypedData } from "ox";
+import { getSignPayload } from "ox/TypedData";
 
 export function getGcpKmsAccount({
   respourcePath: unprocessedName,
@@ -138,8 +139,7 @@ export function getGcpKmsAccount({
       primaryType extends keyof typedData | "EIP712Domain" = keyof typedData,
     >(_typedData: TypedData.Definition<typedData, primaryType>): Promise<Hex> {
       try {
-        // @ts-expect-error - mapping to generic hashTypedData
-        const typedDataHash = hashTypedData(_typedData);
+        const typedDataHash = getSignPayload(_typedData);
         const signature = await signer.sign(Bytes.fromString(typedDataHash));
         return signature.bytes.toString() as Hex;
       } catch (error) {
@@ -155,7 +155,7 @@ export function getGcpKmsAccount({
       address,
       sendTransaction,
       signMessage,
-      signTypedData,
+      signTypedData: signTypedData as Account["signTypedData"],
       signTransaction,
     } satisfies Account);
   });

@@ -5,7 +5,7 @@ import {
   format,
   transports,
 } from "winston";
-import { env } from "./env";
+import { env } from "./env.js";
 
 const metadataFormatter = format((meta) => {
   if (!meta[Symbol.for("splat")]) {

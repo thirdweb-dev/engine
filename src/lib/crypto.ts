@@ -1,8 +1,8 @@
 import { createPublicKey, pbkdf2Sync, randomBytes } from "node:crypto";
 import { CompactEncrypt, compactDecrypt } from "jose";
 import { type Result, ResultAsync, err, errAsync, ok } from "neverthrow";
-import { env } from "./env";
-import type { CryptoErr } from "./errors";
+import { env } from "./env.js";
+import type { CryptoErr } from "./errors.js";
 
 const ITERATIONS = 100000;
 const KEY_LENGTH = 32;

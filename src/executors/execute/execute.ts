@@ -1,15 +1,15 @@
 import { errAsync, okAsync, ResultAsync, safeTry } from "neverthrow";
-import { getEngineAccount } from "../../lib/accounts/accounts";
-import type { EncodedExecutionRequest } from "../types";
+import { getEngineAccount } from "../../lib/accounts/accounts.js";
+import type { EncodedExecutionRequest } from "../types.js";
 import {
   buildTransactionDbEntryErr,
   mapDbError,
   type AccountErr,
   type EngineErr,
-} from "../../lib/errors";
-import { execute as executeExternalBundler } from "../external-bundler";
-import { execute as executeExternalBundlerAsync } from "../external-bundler-async";
-import { getChain } from "../../lib/chain";
+} from "../../lib/errors.js";
+import { execute as executeExternalBundler } from "../external-bundler/index.js";
+import { execute as executeExternalBundlerAsync } from "../external-bundler-async/index.js";
+import { getChain } from "../../lib/chain.js";
 import {
   getContract,
   isHex,
@@ -21,22 +21,26 @@ import {
 } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
 import {
+  DEFAULT_ACCOUNT_FACTORY_V0_6,
   DEFAULT_ACCOUNT_FACTORY_V0_7,
+  ENTRYPOINT_ADDRESS_v0_6,
   ENTRYPOINT_ADDRESS_v0_7,
 } from "thirdweb/wallets/smart";
 import { predictAccountAddress } from "thirdweb/extensions/erc4337";
-import { thirdwebClient } from "../../lib/thirdweb-client";
-import { db } from "../../db/connection";
-import { transactions } from "../../db/schema";
+import { thirdwebClient } from "../../lib/thirdweb-client.js";
+import { db } from "../../db/connection.js";
+import { transactions } from "../../db/schema.js";
 import { randomUUID } from "node:crypto";
 import SuperJSON from "superjson";
 import type {
   ExecutionParamsSerialized,
   TransactionParamsSerialized,
   ExecutionResult4337Serialized,
-} from "../../db/types";
-import "./external-bundler-confirm-handler";
-import "./external-bundler-send-handler";
+} from "../../db/types.js";
+import "./external-bundler-confirm-handler.js";
+import "./external-bundler-send-handler.js";
+import { getVaultAccount } from "../../lib/accounts/vault/get-vault-account.js";
+import { vaultClient } from "../../lib/vault-client.js";
 
 function getExecutionAccountFromRequest(
   request: EncodedExecutionRequest,
@@ -53,13 +57,81 @@ function getExecutionAccountFromRequest(
   EngineErr
 > {
   return safeTry(async function* () {
+    if (request.vaultAccessToken) {
+      if ("from" in request) {
+        // this will break because we don't have EOA execution right now
+        return okAsync({
+          account: getVaultAccount({
+            address: request.from,
+            auth: {
+              accessToken: request.vaultAccessToken,
+            },
+            thirdwebClient,
+            vaultClient,
+          }),
+        });
+      }
+
+      const smartAccountAddress =
+        "smartAccountAddress" in request.executionOptions
+          ? request.executionOptions.smartAccountAddress
+          : undefined;
+
+      const factoryAddress =
+        request.executionOptions.factoryAddress ?? DEFAULT_ACCOUNT_FACTORY_V0_7;
+
+      const entrypointAddress =
+        (request.executionOptions.entrypointAddress ??
+        factoryAddress === DEFAULT_ACCOUNT_FACTORY_V0_6)
+          ? (ENTRYPOINT_ADDRESS_v0_6 as Address)
+          : (ENTRYPOINT_ADDRESS_v0_7 as Address);
+
+      const salt =
+        "accountSalt" in request.executionOptions
+          ? request.executionOptions.accountSalt
+          : undefined;
+
+      const chain = await getChain(Number.parseInt(request.chainId));
+
+      const factoryContract = getContract({
+        address: factoryAddress,
+        chain,
+        client: thirdwebClient,
+      });
+
+      const saltHex = salt && isHex(salt) ? salt : stringToHex(salt ?? "");
+
+      return okAsync({
+        signerAccount: getVaultAccount({
+          address: request.executionOptions.signerAddress,
+          auth: {
+            accessToken: request.vaultAccessToken,
+          },
+          thirdwebClient,
+          vaultClient,
+        }),
+        smartAccountDetails: {
+          address:
+            smartAccountAddress ??
+            ((await predictAccountAddress({
+              adminSigner: request.executionOptions.signerAddress,
+              contract: factoryContract,
+              data: saltHex,
+            })) as Address),
+          factoryAddress,
+          entrypointAddress,
+          accountSalt: salt,
+        },
+      });
+    }
+
     // if only from is provided, we use it to fetch an account
     // we either get only account, or a signer + smartAccount
     if ("from" in request) {
       return okAsync(
         yield* getEngineAccount({
           address: request.from,
-          encryptionPassword: request.encryptionPassword,
+          vaultAccessToken: request.vaultAccessToken,
         }),
       );
     }
@@ -84,7 +156,6 @@ function getExecutionAccountFromRequest(
         // good to go! let's just fetch the EOA and send provided execution options
         const engineSignerAccountResponse = yield* getEngineAccount({
           address: request.executionOptions.signerAddress,
-          encryptionPassword: request.encryptionPassword,
         });
 
         // we expected to receive an eoa account but got a signer, which is invalid
@@ -112,7 +183,6 @@ function getExecutionAccountFromRequest(
       const smartAccountResult = await getEngineAccount({
         address: request.executionOptions.smartAccountAddress,
         signerAddress: request.executionOptions.signerAddress,
-        encryptionPassword: request.encryptionPassword,
       });
 
       if (smartAccountResult.isErr()) {
@@ -124,7 +194,6 @@ function getExecutionAccountFromRequest(
         // we tried to look in db but did not find a smart account registered to this EOA, let's use default values
         const engineSignerAccountResponse = yield* getEngineAccount({
           address: request.executionOptions.signerAddress,
-          encryptionPassword: request.encryptionPassword,
         });
 
         // we expected to receive an eoa account but got a signer, which is invalid
@@ -181,7 +250,6 @@ function getExecutionAccountFromRequest(
 
     const signerAccountResponse = yield* getEngineAccount({
       address: request.executionOptions.signerAddress,
-      encryptionPassword: request.encryptionPassword,
     });
 
     // make sure we got an EOA
@@ -283,7 +351,7 @@ export function execute({
     // Determine which executor to use based on request parameters
     // Currently, we use the async executor when no encryption password is provided
     // In the future, this can be expanded to support more executor types
-    const executorType = !request.encryptionPassword ? "async" : "sync";
+    const executorType = !request.vaultAccessToken ? "async" : "sync";
 
     // Variables to track execution state
     let executionResult: ExecutionResult4337Serialized;

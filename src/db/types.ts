@@ -5,7 +5,7 @@ import type {
   permissions,
   tokens,
   webhooks,
-} from "./schema";
+} from "./schema.js";
 
 export type ConfigInDb = typeof configuration.$inferSelect;
 

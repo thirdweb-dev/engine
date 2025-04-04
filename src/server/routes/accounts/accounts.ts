@@ -9,28 +9,28 @@ import {
   ENTRYPOINT_ADDRESS_v0_7,
 } from "thirdweb/wallets/smart";
 import * as z from "zod";
-import { db } from "../../../db/connection";
-import { eoas, smartAccounts } from "../../../db/schema";
+import { db } from "../../../db/connection.js";
+import { eoas, smartAccounts } from "../../../db/schema.js";
 import {
   accountCreateSchema,
   accountResponseSchema,
   provisionAccount,
-} from "../../../lib/accounts/accounts";
-import { getSmartAccount } from "../../../lib/accounts/smart";
+} from "../../../lib/accounts/accounts.js";
+import { getSmartAccount } from "../../../lib/accounts/smart.js";
 import {
   engineErrToHttpException,
   mapDbError,
   zErrorMapper,
   type AccountErr,
   type DbErr,
-} from "../../../lib/errors";
-import { evmAddressSchema } from "../../../lib/zod";
+} from "../../../lib/errors.js";
+import { evmAddressSchema } from "../../../lib/zod.js";
 import {
   requestPaginationSchema,
   wrapPaginatedResponseSchema,
   wrapResponseSchema,
-} from "../../schemas/shared-api-schemas";
-import { getDisplayAddress } from "../../../lib/evm";
+} from "../../schemas/shared-api-schemas.js";
+import { getDisplayAddress } from "../../../lib/evm.js";
 
 export const accountsRoutes = new Hono();
 

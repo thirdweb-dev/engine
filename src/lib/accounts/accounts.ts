@@ -5,29 +5,29 @@ import {
   gcpAccountCredentialSchema,
   gcpPlatformIdentifiersSchema,
   provisionGcpKmsAccount,
-} from "./gcp/gcp";
+} from "./gcp/gcp.js";
 import {
   encryptedJsonToAccount,
   localAccountCreateParamsSchema,
   localPlatformIdentifiersSchema,
   provisionLocalAccount,
-} from "./local";
+} from "./local.js";
 import {
   circleAccountConfigSchema,
   circleAccountCreateParamsSchema,
   circleAccountCredentialSchema,
   circlePlatformIdentifiersSchema,
   provisionCircleAccount,
-} from "./circle/circle";
+} from "./circle/circle.js";
 import {
   awsAccountConfigSchema,
   awsAccountCreateParamsSchema,
   awsAccountCredentialSchema,
   awsPlatformIdentifiersSchema,
   provisionAwsKmsAccount,
-} from "./aws/aws";
+} from "./aws/aws.js";
 
-import { config } from "../config";
+import { config } from "../config.js";
 import { err, errAsync, ok, okAsync, ResultAsync, safeTry } from "neverthrow";
 import {
   mapDbError,
@@ -35,17 +35,17 @@ import {
   type EoaCredentialErr,
   type LocalAccountErr,
   type WalletProviderConfigErr,
-} from "../errors";
-import { db } from "../../db/connection";
-import { thirdwebClient } from "../thirdweb-client";
-import { baseAccountResponseSchema } from "./base-schemas";
+} from "../errors.js";
+import { db } from "../../db/connection.js";
+import { thirdwebClient } from "../thirdweb-client.js";
+import { baseAccountResponseSchema } from "./base-schemas.js";
 import type { Address } from "thirdweb";
 import type { InferSelectModel } from "drizzle-orm";
-import type { eoas } from "../../db/schema";
-import { getAwsKmsAccount } from "./aws/get-aws-account";
-import { getGcpKmsAccount } from "./gcp/get-gcp-account";
-import { getCircleAccount } from "./circle/get-circle-account";
-import type { ENGINE_EOA_TYPES } from "../../db/types";
+import type { eoas } from "../../db/schema.js";
+import { getAwsKmsAccount } from "./aws/get-aws-account.js";
+import { getGcpKmsAccount } from "./gcp/get-gcp-account.js";
+import { getCircleAccount } from "./circle/get-circle-account.js";
+import type { ENGINE_EOA_TYPES } from "../../db/types.js";
 
 export type EngineEoaType = (typeof ENGINE_EOA_TYPES)[number];
 
@@ -271,10 +271,10 @@ type EoaDbEntryWithCredential = InferSelectModel<typeof eoas> & {
 
 export function eoaDbEntryToAccount({
   eoa,
-  encryptionPassword,
+  // encryptionPassword,
 }: {
   eoa: EoaDbEntryWithCredential;
-  encryptionPassword?: string;
+  // encryptionPassword?: string;
 }) {
   return safeTry(async function* () {
     switch (eoa.type) {
@@ -292,7 +292,7 @@ export function eoaDbEntryToAccount({
         return okAsync(
           yield* encryptedJsonToAccount({
             json: encryptedJson,
-            encryptionPassword,
+            // encryptionPassword,
           }),
         );
       }
@@ -403,7 +403,8 @@ export function eoaDbEntryToAccount({
 export function getEngineAccount(params: {
   address: Address;
   signerAddress?: Address;
-  encryptionPassword?: string;
+  vaultAccessToken?: string;
+  // encryptionPassword?: string;
 }) {
   return safeTry(async function* () {
     const [smartAccountDetails, eoaDetails] = yield* ResultAsync.combine([
@@ -414,10 +415,11 @@ export function getEngineAccount(params: {
       getEoaDbEntry({ address: params.address }),
     ]);
 
+    // In case vaultAccessToken is specified, and we
     if (eoaDetails) {
       const account = yield* eoaDbEntryToAccount({
         eoa: eoaDetails,
-        encryptionPassword: params.encryptionPassword,
+        // encryptionPassword: params.encryptionPassword,
       });
 
       return okAsync({
@@ -427,7 +429,7 @@ export function getEngineAccount(params: {
     if (smartAccountDetails) {
       const signerAccount = yield* eoaDbEntryToAccount({
         eoa: smartAccountDetails.signer,
-        encryptionPassword: params.encryptionPassword,
+        // encryptionPassword: params.encryptionPassword,
       });
 
       return okAsync({

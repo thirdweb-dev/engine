@@ -1,5 +1,5 @@
 import { err, ok, type Result } from "neverthrow";
-import type { AuthErr, HttpErrStatusCode } from "../../../lib/errors";
+import type { AuthErr, HttpErrStatusCode } from "../../../lib/errors.js";
 
 export function extractJwt(
   authHeader: string | undefined,

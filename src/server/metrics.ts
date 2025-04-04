@@ -1,7 +1,7 @@
 import { Hono } from "hono";
-import { enginePromRegister } from "../lib/prometheus";
-import { env } from "../lib/env";
-import { initializeLogger } from "../lib/logger";
+import { enginePromRegister } from "../lib/prometheus.js";
+import { env } from "../lib/env.js";
+import { initializeLogger } from "../lib/logger.js";
 
 const metricsLogger = initializeLogger("metrics");
 const metricsServer = new Hono();

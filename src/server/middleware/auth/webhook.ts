@@ -7,9 +7,9 @@ import {
   type AuthErr,
   type DbErr,
   type WebhookErr,
-} from "../../../lib/errors";
-import { db } from "../../../db/connection";
-import { sendWebhookRequest } from "../../../lib/webhooks/send-webhook";
+} from "../../../lib/errors.js";
+import { db } from "../../../db/connection.js";
+import { sendWebhookRequest } from "../../../lib/webhooks/send-webhook.js";
 import { getCookie } from "hono/cookie";
 
 function checkWebhookAuth(

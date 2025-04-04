@@ -1,4 +1,4 @@
-import type { Permission } from "../../../db/types";
+import type { Permission } from "../../../db/types.js";
 
 export type AuthContext = {
   Variables: {

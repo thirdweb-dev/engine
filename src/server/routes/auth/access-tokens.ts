@@ -1,20 +1,20 @@
 import { describeRoute } from "hono-openapi";
-import { authRoutesFactory } from "./factory";
+import { authRoutesFactory } from "./factory.js";
 import { resolver, validator } from "hono-openapi/zod";
 import {
   engineErrToHttpException,
   mapDbError,
   zErrorMapper,
-} from "../../../lib/errors";
+} from "../../../lib/errors.js";
 import * as z from "zod";
-import { adminAccount } from "../../../lib/admin-account";
-import { config } from "../../../lib/config";
+import { adminAccount } from "../../../lib/admin-account.js";
+import { config } from "../../../lib/config.js";
 import { encodeJWT } from "thirdweb/utils";
-import { db } from "../../../db/connection";
-import { tokens } from "../../../db/schema";
+import { db } from "../../../db/connection.js";
+import { tokens } from "../../../db/schema.js";
 import { ResultAsync } from "neverthrow";
-import { accessTokenDbEntrySchema } from "../../../db/derived-schemas";
-import { wrapResponseSchema } from "../../schemas/shared-api-schemas";
+import { accessTokenDbEntrySchema } from "../../../db/derived-schemas.js";
+import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js";
 
 export const createAccessTokenRoute = authRoutesFactory.createHandlers(
   describeRoute({

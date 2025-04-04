@@ -1,14 +1,14 @@
 import * as z from "zod";
-import type { GcpKmsErr } from "../../errors";
+import type { GcpKmsErr } from "../../errors.js";
 import type { ThirdwebClient } from "thirdweb";
 import { err, ok, ResultAsync, safeTry } from "neverthrow";
 import type { Account } from "thirdweb/wallets";
 import { KeyManagementServiceClient } from "@google-cloud/kms";
-import { getGcpKmsAccount } from "./get-gcp-account";
+import { getGcpKmsAccount } from "./get-gcp-account.js";
 import {
   baseAccountCreateSchema,
   baseCredentialIdSchema,
-} from "../base-schemas";
+} from "../base-schemas.js";
 
 const type = z.literal("gcp-kms");
 

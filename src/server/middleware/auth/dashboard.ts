@@ -1,15 +1,15 @@
 import { createAuth } from "thirdweb/auth";
-import type { Permission } from "../../../db/types";
+import type { Permission } from "../../../db/types.js";
 import {
   engineErrToHttpException,
   type AuthErr,
   type DbErr,
-} from "../../../lib/errors";
+} from "../../../lib/errors.js";
 import { err, ok, type Result, ResultAsync } from "neverthrow";
 import { getAddress, type JWTPayload } from "thirdweb/utils";
 import { createMiddleware } from "hono/factory";
-import { extractJwt, mapJwtError } from "./shared";
-import { checkPermissions } from "../../../lib/permissions";
+import { extractJwt, mapJwtError } from "./shared.js";
+import { checkPermissions } from "../../../lib/permissions.js";
 
 const THIRDWEB_DASHBOARD_ISSUER = "0x016757dDf2Ab6a998a4729A80a091308d9059E17";
 

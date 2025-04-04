@@ -1,6 +1,6 @@
 import { type Job, Worker } from "bullmq";
-import { TEST_QUEUE_NAME, type TestJobData, type TestJobResult } from ".";
-import { redis } from "../../lib/redis";
+import { TEST_QUEUE_NAME, type TestJobData, type TestJobResult } from "./index.js";
+import { redis } from "../../lib/redis.js";
 import { sleep } from "bun";
 
 // Helper function to format time

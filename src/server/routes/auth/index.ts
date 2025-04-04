@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { createAccessTokenRoute } from "./access-tokens";
+import { createAccessTokenRoute } from "./access-tokens.js";
 
 const authRoutes = new Hono();
 

@@ -1,8 +1,8 @@
 import { Hono } from "hono";
-import { isRedisReachable } from "../../lib/redis";
-import { env } from "../../lib/env";
-import { thirdwebClientId } from "../../lib/thirdweb-client";
-import { getConfigInDb } from "../../lib/config";
+import { isRedisReachable } from "../../lib/redis.js";
+import { env } from "../../lib/env.js";
+import { thirdwebClientId } from "../../lib/thirdweb-client.js";
+import { getConfigInDb } from "../../lib/config.js";
 
 export const healthCheckRoute = new Hono();
 

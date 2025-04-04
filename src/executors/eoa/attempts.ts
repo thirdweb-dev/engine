@@ -1,9 +1,9 @@
 import { ResultAsync, errAsync, okAsync } from "neverthrow";
-import { redis } from "../../lib/redis";
-import { type NonceDbErr, mapRedisError } from "./nonce";
+import { redis } from "../../lib/redis.js";
+import { type NonceDbErr, mapRedisError } from "./nonce.js";
 import SuperJSON from "superjson";
 import { z } from "zod";
-import { evmAddressSchema, hexSchema } from "../../lib/zod";
+import { evmAddressSchema, hexSchema } from "../../lib/zod.js";
 
 // Redis key definitions
 const txAttemptKey = ({

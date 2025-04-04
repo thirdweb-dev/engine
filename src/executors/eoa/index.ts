@@ -9,12 +9,12 @@ import {
   type Chain,
   type Hex,
 } from "thirdweb";
-import { initializeLogger } from "../../lib/logger";
+import { initializeLogger } from "../../lib/logger.js";
 import { Queue, UnrecoverableError, Worker, type Job } from "bullmq";
-import { redis } from "../../lib/redis";
-import { getEngineAccount } from "../../lib/accounts/accounts";
-import { getChain } from "../../lib/chain";
-import { thirdwebClient } from "../../lib/thirdweb-client";
+import { redis } from "../../lib/redis.js";
+import { getEngineAccount } from "../../lib/accounts/accounts.js";
+import { getChain } from "../../lib/chain.js";
+import { thirdwebClient } from "../../lib/thirdweb-client.js";
 import {
   getNonceState,
   incrementEngineNonce,
@@ -24,7 +24,7 @@ import {
   type NonceDbErr,
   popRecycledNonce,
   checkMissingNonces,
-} from "./nonce";
+} from "./nonce.js";
 import { ResultAsync, safeTry, ok, err, okAsync, errAsync } from "neverthrow";
 import SuperJSON from "superjson";
 import {
@@ -34,11 +34,11 @@ import {
   type AccountErr,
   type EngineErr,
   type RpcErr,
-} from "../../lib/errors";
+} from "../../lib/errors.js";
 import { keccak256 } from "ox/Hash";
 import type { TransactionReceipt } from "thirdweb/transaction";
-import { checkEoaIssues, type EoaIssues, setOutOfGasIssue } from "./issues";
-import { recordTransactionAttempt } from "./attempts";
+import { checkEoaIssues, type EoaIssues, setOutOfGasIssue } from "./issues.js";
+import { recordTransactionAttempt } from "./attempts.js";
 
 const sendLogger = initializeLogger("executor:eoa:send");
 const confirmLogger = initializeLogger("executor:eoa:confirm");

@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { timestampsSchema, evmAddressSchema } from "../zod";
+import { timestampsSchema, evmAddressSchema } from "../zod.js";
 
 export const baseAccountCreateSchema = z.object({
   label: z.string().openapi({

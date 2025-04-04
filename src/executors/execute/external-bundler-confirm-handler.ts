@@ -1,14 +1,14 @@
 import SuperJSON from "superjson";
-import { db } from "../../db/connection";
-import { transactions } from "../../db/schema";
+import { db } from "../../db/connection.js";
+import { transactions } from "../../db/schema.js";
 import { registerCallback, type ConfirmationResult } from "../external-bundler";
 import { registerCallback as registerExternalBundlerAsyncConfirmCallback } from "../external-bundler-async";
 import type {
   ExecutionResult4337Serialized,
   RevertDataSerialized,
-} from "../../db/types";
+} from "../../db/types.js";
 import { and, eq } from "drizzle-orm";
-import { initializeLogger } from "../../lib/logger";
+import { initializeLogger } from "../../lib/logger.js";
 
 const confirmLogger = initializeLogger(
   "executor:external-bundler:confirm-handler"

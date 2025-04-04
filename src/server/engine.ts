@@ -1,35 +1,35 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { requestLogger } from "./middleware/request-logger";
-import { createApiCorsMiddleware } from "./middleware/cors";
-import { prometheusMiddleware } from "./middleware/prometheus";
-import { env } from "../lib/env";
-import { defaultLogger } from "../lib/logger";
+import { requestLogger } from "./middleware/request-logger.js";
+import { createApiCorsMiddleware } from "./middleware/cors.js";
+import { prometheusMiddleware } from "./middleware/prometheus.js";
+import { env } from "../lib/env.js";
+import { defaultLogger } from "../lib/logger.js";
 import { some } from "hono/combine";
-import { dashboardAuth } from "./middleware/auth/dashboard";
-import { accessTokenAuth } from "./middleware/auth/access-token";
-import { webhookAuth } from "./middleware/auth/webhook";
-import { config } from "../lib/config";
+import { dashboardAuth } from "./middleware/auth/dashboard.js";
+import { accessTokenAuth } from "./middleware/auth/access-token.js";
+import { webhookAuth } from "./middleware/auth/webhook.js";
+import { config } from "../lib/config.js";
 import { HTTPException } from "hono/http-exception";
 import {
   EngineHttpException,
   getDefaultErrorMessage,
   unwrapError,
-} from "../lib/errors";
-import { rateLimitMiddleware } from "./middleware/rate-limit";
-import { secretKeyAuth } from "./middleware/auth/secret-key";
-import { healthCheckRoute } from "./routes/health";
+} from "../lib/errors.js";
+import { rateLimitMiddleware } from "./middleware/rate-limit.js";
+import { secretKeyAuth } from "./middleware/auth/secret-key.js";
+import { healthCheckRoute } from "./routes/health.js";
 import { apiReference } from "@scalar/hono-api-reference";
 
-import { accountsRoutes } from "./routes/accounts/accounts";
+import { accountsRoutes } from "./routes/accounts/accounts.js";
 import { openAPISpecs } from "hono-openapi";
-import { accountRouter } from "./account";
-import { setupQueuesUiRoutes } from "./routes/queues";
-import { transactionsRoutes } from "./routes/transactions";
-import { correlationId } from "./middleware/correlation-id";
-import contractRoutes from "./routes/contract";
-import authRoutes from "./routes/auth";
+import { accountRouter } from "./account/index.js";
+import { setupQueuesUiRoutes } from "./routes/queues.js";
+import { transactionsRoutes } from "./routes/transactions/index.js";
+import { correlationId } from "./middleware/correlation-id.js";
+import contractRoutes from "./routes/contract/index.js";
+import authRoutes from "./routes/auth/index.js";
 
 const engineServer = new Hono();
 const publicRoutes = new Hono();

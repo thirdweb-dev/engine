@@ -1,5 +1,5 @@
 import { err, ok, okAsync, ResultAsync } from "neverthrow";
-import type { Permission, PermissionDbEntry } from "../db/types";
+import type { Permission, PermissionDbEntry } from "../db/types.js";
 import type { Address } from "thirdweb";
 import {
   mapDbError,
@@ -7,11 +7,11 @@ import {
   type DbErr,
   type PermissionsErr,
   type ValidationErr,
-} from "./errors";
-import { getAddressResult } from "./validation/address";
-import { db } from "../db/connection";
+} from "./errors.js";
+import { getAddressResult } from "./validation/address.js";
+import { db } from "../db/connection.js";
 import { LRUCache } from "lru-cache";
-import { adminAccount } from "./admin-account";
+import { adminAccount } from "./admin-account.js";
 
 const permissionCache = new LRUCache<string, PermissionDbEntry>({
   max: 1024,

@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { redis } from "../../lib/redis";
+import { redis } from "../../lib/redis.js";
 
 // Define job data type
 export type TestJobData = {

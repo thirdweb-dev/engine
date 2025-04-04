@@ -1,7 +1,7 @@
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
-import { redis } from "../../lib/redis";
-import { env } from "../../lib/env";
+import { redis } from "../../lib/redis.js";
+import { env } from "../../lib/env.js";
 
 export const rateLimitMiddleware = createMiddleware(async (_c, next) => {
   const epochTimeInMinutes = Math.floor(Date.now() / (1000 * 60));

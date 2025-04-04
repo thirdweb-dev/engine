@@ -3,14 +3,14 @@ import {
   engineErrToHttpException,
   type AuthErr,
   type DbErr,
-} from "../../../lib/errors";
+} from "../../../lib/errors.js";
 import { decode, verify } from "hono/jwt";
-import { getKeypair } from "../../../lib/keypairs";
+import { getKeypair } from "../../../lib/keypairs.js";
 import { createMiddleware } from "hono/factory";
-import { env } from "../../../lib/env";
+import { env } from "../../../lib/env.js";
 import { HTTPException } from "hono/http-exception";
-import { extractJwt } from "./shared";
-import type { KeypairDbEntry } from "../../../db/types";
+import { extractJwt } from "./shared.js";
+import type { KeypairDbEntry } from "../../../db/types.js";
 import { createHash } from "node:crypto";
 
 function checkKeypairAuth({

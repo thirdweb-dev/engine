@@ -1,8 +1,8 @@
 import { LRUCache } from "lru-cache";
 import { ResultAsync, err, errAsync, ok, okAsync } from "neverthrow";
-import { db } from "../db/connection";
-import type { KeypairDbEntry } from "../db/types";
-import { type KeypairErr, type DbErr, mapDbError } from "./errors";
+import { db } from "../db/connection.js";
+import type { KeypairDbEntry } from "../db/types.js";
+import { type KeypairErr, type DbErr, mapDbError } from "./errors.js";
 
 const keypairCache = new LRUCache<string, KeypairDbEntry>({
   max: 1024,

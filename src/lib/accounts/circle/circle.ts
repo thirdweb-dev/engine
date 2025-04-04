@@ -3,12 +3,12 @@ import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-
 import { err, ok, ResultAsync, safeTry } from "neverthrow";
 import type { Account } from "thirdweb/wallets";
 import type { ThirdwebClient } from "thirdweb";
-import type { CircleErr } from "../../errors";
-import { getCircleAccount } from "./get-circle-account";
+import type { CircleErr } from "../../errors.js";
+import { getCircleAccount } from "./get-circle-account.js";
 import {
   baseAccountCreateSchema,
   baseCredentialIdSchema,
-} from "../base-schemas";
+} from "../base-schemas.js";
 
 const type = z.literal("circle");
 

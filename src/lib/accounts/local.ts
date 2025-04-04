@@ -1,11 +1,11 @@
 import { privateKeyToAccount, randomPrivateKey } from "thirdweb/wallets";
-import { thirdwebClient } from "../thirdweb-client";
-import { env } from "../env";
-import { decryptKeystore, generateKeystore } from "../keystore";
+import { thirdwebClient } from "../thirdweb-client.js";
+import { env } from "../env.js";
+import { decryptKeystore, generateKeystore } from "../keystore.js";
 import { Result } from "neverthrow";
-import type { LocalAccountErr } from "../errors";
+import type { LocalAccountErr } from "../errors.js";
 import * as z from "zod";
-import { baseAccountCreateSchema } from "./base-schemas";
+import { baseAccountCreateSchema } from "./base-schemas.js";
 
 const type = z.literal("local");
 
@@ -17,10 +17,10 @@ export const localPlatformIdentifiersSchema = z.object({
 export const localAccountCreateParamsSchema = z
   .object({
     type,
-    encryptionPassword: z.string().optional().openapi({
-      description:
-        "The encryption password used to encrypt the account. This is unrecoverable, and should be kept secret. IF YOU LOSE THIS PASSWORD, YOU WILL LOSE ACCESS TO YOUR ACCOUNT. If omitted, your account will be encrypted with the default encryption password. This is only valid for local accounts.",
-    }),
+    // encryptionPassword: z.string().optional().openapi({
+    //   description:
+    //     "The encryption password used to encrypt the account. This is unrecoverable, and should be kept secret. IF YOU LOSE THIS PASSWORD, YOU WILL LOSE ACCESS TO YOUR ACCOUNT. If omitted, your account will be encrypted with the default encryption password. This is only valid for local accounts.",
+    // }),
   })
   .merge(baseAccountCreateSchema);
 
@@ -29,7 +29,7 @@ export const localAccountCreateParamsSchema = z
  * Does not store the wallet in the database
  */
 export function provisionLocalAccount(
-  params: Omit<z.infer<typeof localAccountCreateParamsSchema>, "label">,
+  _params: Omit<z.infer<typeof localAccountCreateParamsSchema>, "label">,
 ) {
   const pk = randomPrivateKey();
 
@@ -42,7 +42,8 @@ export function provisionLocalAccount(
     () =>
       generateKeystore(
         pk,
-        params.encryptionPassword ?? env.ENCRYPTION_PASSWORD,
+        // params.encryptionPassword ??
+        env.ENCRYPTION_PASSWORD,
       ),
     (error): LocalAccountErr => ({
       kind: "local_account",

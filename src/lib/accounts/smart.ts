@@ -1,8 +1,8 @@
 import { defineChain, type Address, type Chain } from "thirdweb";
 import { smartWallet, type Account } from "thirdweb/wallets";
-import { thirdwebClient } from "../thirdweb-client";
+import { thirdwebClient } from "../thirdweb-client.js";
 import { Result, ResultAsync } from "neverthrow";
-import type { RpcErr, SmartAccountErr } from "../errors";
+import type { RpcErr, SmartAccountErr } from "../errors.js";
 
 /**
  * Get a smart account for a given admin account

@@ -1,7 +1,7 @@
-import { db } from "../../db/connection";
-import { transactions } from "../../db/schema";
+import { db } from "../../db/connection.js";
+import { transactions } from "../../db/schema.js";
 import { and, eq } from "drizzle-orm";
-import { initializeLogger } from "../../lib/logger";
+import { initializeLogger } from "../../lib/logger.js";
 import { sendWorker, type SendResult } from "../external-bundler-async";
 import type { Job } from "bullmq";
 

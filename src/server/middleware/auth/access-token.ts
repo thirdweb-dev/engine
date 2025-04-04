@@ -1,13 +1,13 @@
 import { createAuth } from "thirdweb/auth";
 import type { JWTPayload } from "thirdweb/utils";
-import { engineErrToHttpException, type AuthErr } from "../../../lib/errors";
+import { engineErrToHttpException, type AuthErr } from "../../../lib/errors.js";
 import { err, ok, ResultAsync } from "neverthrow";
-import { extractJwt, mapJwtError } from "./shared";
+import { extractJwt, mapJwtError } from "./shared.js";
 import { createMiddleware } from "hono/factory";
-import { getAccessToken } from "../../../lib/access-tokens";
-import { checkPermissions } from "../../../lib/permissions";
-import { config } from "../../../lib/config";
-import { adminAccount } from "../../../lib/admin-account";
+import { getAccessToken } from "../../../lib/access-tokens.js";
+import { checkPermissions } from "../../../lib/permissions.js";
+import { config } from "../../../lib/config.js";
+import { adminAccount } from "../../../lib/admin-account.js";
 
 function verifyJwt(jwt: string): ResultAsync<JWTPayload, AuthErr> {
   const auth = createAuth({

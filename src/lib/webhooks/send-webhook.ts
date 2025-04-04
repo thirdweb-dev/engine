@@ -1,11 +1,11 @@
 import assert from "node:assert";
 import crypto, { randomUUID, createHmac } from "node:crypto";
 import { Agent, fetch, type HeadersInit } from "undici";
-import type { WebhookDbEntry } from "../../db/types";
-import { env } from "../env";
+import type { WebhookDbEntry } from "../../db/types.js";
+import { env } from "../env.js";
 import { ResultAsync } from "neverthrow";
-import type { WebhookErr } from "../errors";
-import { config } from "../config";
+import type { WebhookErr } from "../errors.js";
+import { config } from "../config.js";
 
 function generateSignature(
   body: Record<string, unknown>,

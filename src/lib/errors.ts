@@ -5,13 +5,14 @@ import { ZodError } from "zod";
 import type {
   ExecutionParamsSerialized,
   ExecutionResultSerialized,
-} from "../db/types";
+} from "../db/types.js";
 
-import type { QueueingErr as BundlerExecutorAsyncQueueingErr } from "../executors/external-bundler-async";
+import type { QueueingErr as BundlerExecutorAsyncQueueingErr } from "../executors/external-bundler-async/index.js";
+import type { VaultKmsErr } from "./accounts/vault/get-vault-account.js";
 
 export type HttpErrStatusCode = 400 | 401 | 403 | 404 | 500 | 501;
 
-type BaseErr = {
+export type BaseErr = {
   message?: string;
   status: HttpErrStatusCode;
   source?: Error;
@@ -211,6 +212,7 @@ export type EngineErr =
   | CircleErr
   | AwsKmsErr
   | GcpKmsErr
+  | VaultKmsErr
   | WalletProviderConfigErr
   | EoaCredentialErr
   | AccountErr
@@ -375,6 +377,20 @@ export function getDefaultErrorMessage(error: EngineErr): string {
         invalid_key_state: "Invalid key state",
         unauthorized: "Unauthorized",
         rate_limit_exceeded: "Rate limit exceeded",
+      };
+      return messages[error.code];
+    }
+    case "vault_kms": {
+      const messages: Record<VaultKmsErr["code"], string> = {
+        auth_unsupported_operation: "Auth unsupported operation",
+        auth_insufficient_scope: "Auth insufficient scope",
+        auth_invalid_admin_key: "Auth invalid admin key",
+        internal_server_error: "Internal server error",
+        serialization_error: "Serialization error",
+        invalid_input: "Invalid input",
+        protocol_error: "Protocol error",
+        unreachable: "Unreachable",
+        transaction_parse_failed: "Transaction parse failed",
       };
       return messages[error.code];
     }

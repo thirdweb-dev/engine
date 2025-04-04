@@ -1,6 +1,6 @@
 import type { Address } from "thirdweb";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
-import { redis } from "../../lib/redis";
+import { redis } from "../../lib/redis.js";
 import { randomUUID } from "node:crypto";
 
 const engineNonceKey = ({

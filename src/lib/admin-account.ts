@@ -1,5 +1,5 @@
-import { encryptedJsonToAccount } from "./accounts/local";
-import { config } from "./config";
+import { encryptedJsonToAccount } from "./accounts/local.js";
+import { config } from "./config.js";
 
 export const adminAccount = encryptedJsonToAccount({
   json: config.authEoaEncryptedJson,

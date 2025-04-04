@@ -2,6 +2,7 @@ import "./lib/datadog.js";
 import "zod-openapi/extend";
 
 import "./db/apply-migrations.js";
+import "./lib/vault-client.js";
 import { initiateCacheClearTask } from "./lib/cache.js";
 import { initiateEngineServer } from "./server/engine.js";
 

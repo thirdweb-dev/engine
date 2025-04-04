@@ -1,16 +1,16 @@
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
 import * as z from "zod";
-import { execute } from "../../executors/execute/execute";
+import { execute } from "../../executors/execute/execute.js";
 import {
   encodedExecutionRequestSchema,
   transactionResponseSchema,
-} from "../../executors/types";
-import { engineErrToHttpException, zErrorMapper } from "../../lib/errors";
-import { thirdwebClient } from "../../lib/thirdweb-client";
-import { wrapResponseSchema } from "../schemas/shared-api-schemas";
-import { accountRoutesFactory } from "./factory";
-import { transactionDbEntrySchema } from "../../db/derived-schemas";
+} from "../../executors/types.js";
+import { engineErrToHttpException, zErrorMapper } from "../../lib/errors.js";
+import { thirdwebClient } from "../../lib/thirdweb-client.js";
+import { wrapResponseSchema } from "../schemas/shared-api-schemas.js";
+import { accountRoutesFactory } from "./factory.js";
+import { transactionDbEntrySchema } from "../../db/derived-schemas.js";
 
 export const sendTransactionRoute = accountRoutesFactory.createHandlers(
   describeRoute({

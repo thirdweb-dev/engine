@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { config, refreshConfig } from "./config";
+import { config, refreshConfig } from "./config.js";
 
 function secondsToCron(seconds: number) {
   return `*/${Math.floor(seconds / 60)} * * * *`;

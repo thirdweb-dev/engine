@@ -13,24 +13,24 @@ import {
   createAndSignUserOp,
   getUserOpReceiptRaw,
 } from "thirdweb/wallets/smart";
-import { accountActionErrorMapper, type RpcErr } from "../../lib/errors";
-import { getChain } from "../../lib/chain";
-import { thirdwebClient } from "../../lib/thirdweb-client";
-import { redis } from "../../lib/redis";
-import { initializeLogger } from "../../lib/logger";
+import { accountActionErrorMapper, type RpcErr } from "../../lib/errors.js";
+import { getChain } from "../../lib/chain.js";
+import { thirdwebClient } from "../../lib/thirdweb-client.js";
+import { redis } from "../../lib/redis.js";
+import { initializeLogger } from "../../lib/logger.js";
 
 import { userOperationRevertReasonEvent } from "thirdweb/extensions/erc4337";
 
 import { decodeErrorResult } from "viem";
 import SuperJSON, { type SuperJSONResult } from "superjson";
-import { getEngineAccount } from "../../lib/accounts/accounts";
+import { getEngineAccount } from "../../lib/accounts/accounts.js";
 import { isContractDeployed } from "thirdweb/utils";
 import {
   clearAccountDeploying,
   isAccountDeploying,
   setAccountDeploying,
-} from "./state";
-import { env } from "../../lib/env";
+} from "./state.js";
+import { env } from "../../lib/env.js";
 
 // todo: export these from SDK
 export type PostOpRevertReasonEventFilters = Partial<{

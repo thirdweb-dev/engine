@@ -1,7 +1,7 @@
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
 import type { Account } from "thirdweb/wallets";
 import { initiateDeveloperControlledWalletsClient } from "@circle-fin/developer-controlled-wallets";
-import { mapCircleError } from "./circle";
+import { mapCircleError } from "./circle.js";
 import {
   eth_sendRawTransaction,
   getRpcClient,
@@ -14,14 +14,14 @@ import {
 import { parseSignature, type SignableMessage } from "viem";
 import { stringify, toHex } from "thirdweb/utils";
 
-import type { CircleErr, RpcErr } from "../../errors";
+import type { CircleErr, RpcErr } from "../../errors.js";
 import type {
   SendTransactionOptions,
   SendTransactionResult,
   SignTransactionOptions,
-} from "../transaction-types";
+} from "../transaction-types.js";
 import type { TypedData } from "ox";
-import { getChain } from "../../chain";
+import { getChain } from "../../chain.js";
 
 export function getCircleAccount({
   walletId,

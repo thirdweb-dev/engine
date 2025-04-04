@@ -1,6 +1,6 @@
 import { createMiddleware } from "hono/factory";
-import { env } from "../../lib/env";
-import { recordMetrics } from "../../lib/prometheus";
+import { env } from "../../lib/env.js";
+import { recordMetrics } from "../../lib/prometheus.js";
 
 export const prometheusMiddleware = createMiddleware(async (c, next) => {
   if (!env.METRICS_ENABLED) {

@@ -9,17 +9,18 @@ import {
 } from "thirdweb";
 
 import type { Account } from "thirdweb/wallets";
-import { hashTypedData, type SignableMessage } from "viem";
-import { getChain } from "../../chain";
-import type { AwsKmsErr, RpcErr } from "../../errors";
+import type { SignableMessage } from "viem";
+import { getChain } from "../../chain.js";
+import type { AwsKmsErr, RpcErr } from "../../errors.js";
 import type {
   SendTransactionOptions,
   SendTransactionResult,
   SignTransactionOptions,
-} from "../transaction-types";
-import { mapAwsError } from "./aws";
+} from "../transaction-types.js";
+import { mapAwsError } from "./aws.js";
 import { KmsSigner } from "aws-kms-signer";
 import { hashMessage } from "thirdweb/utils";
+import { getSignPayload } from "ox/TypedData";
 
 export function getAwsKmsAccount({
   keyId,
@@ -133,8 +134,7 @@ export function getAwsKmsAccount({
       primaryType extends keyof typedData | "EIP712Domain" = keyof typedData,
     >(_typedData: TypedData.Definition<typedData, primaryType>): Promise<Hex> {
       try {
-        // @ts-expect-error - this is a generic hash function
-        const typedDataHash = hashTypedData(_typedData);
+        const typedDataHash = getSignPayload(_typedData);
         const signature = await signer.sign(
           Buffer.from(typedDataHash.slice(2), "hex"),
         );
@@ -152,7 +152,7 @@ export function getAwsKmsAccount({
       address,
       sendTransaction,
       signMessage,
-      signTypedData,
+      signTypedData: signTypedData as Account["signTypedData"],
       signTransaction,
     } satisfies Account);
   });

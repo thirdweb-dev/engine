@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { generateKeystore, decryptKeystore } from "./keystore";
+import { generateKeystore, decryptKeystore } from "./keystore.js";
 import { privateKeyToAccount } from "thirdweb/wallets";
 
 describe("keystore", () => {

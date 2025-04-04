@@ -1,8 +1,8 @@
 import { LRUCache } from "lru-cache";
 import { ResultAsync, err, ok, okAsync } from "neverthrow";
-import { db } from "../db/connection";
-import type { TokenDbEntry } from "../db/types";
-import { type AccessTokenErr, type DbErr, mapDbError } from "./errors";
+import { db } from "../db/connection.js";
+import type { TokenDbEntry } from "../db/types.js";
+import { type AccessTokenErr, type DbErr, mapDbError } from "./errors.js";
 
 const accessTokenCache = new LRUCache<string, TokenDbEntry>({
   max: 1024,

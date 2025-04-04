@@ -3,12 +3,12 @@ import { err, ok, ResultAsync, safeTry } from "neverthrow";
 import { CreateKeyCommand, KMSClient } from "@aws-sdk/client-kms";
 import type { Account } from "thirdweb/wallets";
 import type { ThirdwebClient } from "thirdweb";
-import type { AwsKmsErr } from "../../errors";
-import { getAwsKmsAccount } from "./get-aws-account";
+import type { AwsKmsErr } from "../../errors.js";
+import { getAwsKmsAccount } from "./get-aws-account.js";
 import {
   baseAccountCreateSchema,
   baseCredentialIdSchema,
-} from "../base-schemas";
+} from "../base-schemas.js";
 
 const type = z.literal("aws-kms");
 

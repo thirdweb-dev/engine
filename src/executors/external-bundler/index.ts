@@ -16,11 +16,11 @@ import {
   createAndSignUserOp,
   getUserOpReceiptRaw,
 } from "thirdweb/wallets/smart";
-import { accountActionErrorMapper, type RpcErr } from "../../lib/errors";
-import { getChain } from "../../lib/chain";
-import { thirdwebClient } from "../../lib/thirdweb-client";
-import { redis } from "../../lib/redis";
-import { initializeLogger } from "../../lib/logger";
+import { accountActionErrorMapper, type RpcErr } from "../../lib/errors.js";
+import { getChain } from "../../lib/chain.js";
+import { thirdwebClient } from "../../lib/thirdweb-client.js";
+import { redis } from "../../lib/redis.js";
+import { initializeLogger } from "../../lib/logger.js";
 
 import { userOperationRevertReasonEvent } from "thirdweb/extensions/erc4337";
 import { decodeErrorResult } from "viem";

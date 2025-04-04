@@ -3,16 +3,16 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator as zValidator } from "hono-openapi/zod";
 import { ResultAsync } from "neverthrow";
 import { z } from "zod";
-import { db } from "../../../db/connection";
-import { mapDbError } from "../../../lib/errors";
+import { db } from "../../../db/connection.js";
+import { mapDbError } from "../../../lib/errors.js";
 import {
   wrapResponseSchema,
   requestPaginationSchema,
-} from "../../schemas/shared-api-schemas";
-import { transactionDbEntrySchema } from "../../../db/derived-schemas";
+} from "../../schemas/shared-api-schemas.js";
+import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
-import { transactions as transactionsTable } from "../../../db/schema";
-import { evmAddressSchema } from "../../../lib/zod";
+import { transactions as transactionsTable } from "../../../db/schema.js";
+import { evmAddressSchema } from "../../../lib/zod.js";
 
 export const transactionsRoutes = new Hono();
 

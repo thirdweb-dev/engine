@@ -9,10 +9,10 @@ import {
 } from "../../executors/external-bundler-async";
 import { Hono } from "hono";
 import { basicAuth } from "hono/basic-auth";
-import { env } from "../../lib/env";
-import { testQueue } from "../../executors/test";
+import { env } from "../../lib/env.js";
+import { testQueue } from "../../executors/test/index.js";
 
-import "../../executors/test/worker";
+import "../../executors/test/worker.js";
 
 const serverAdapter = new HonoAdapter(serveStatic);
 

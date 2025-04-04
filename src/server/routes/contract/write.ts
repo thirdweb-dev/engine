@@ -2,16 +2,16 @@ import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
 import * as z from "zod";
 import { Abi } from "abitype/zod";
-import { execute } from "../../../executors/execute/execute";
+import { execute } from "../../../executors/execute/execute.js";
 import {
   accountActionErrorMapper,
   engineErrToHttpException,
   zErrorMapper,
-} from "../../../lib/errors";
-import { thirdwebClient } from "../../../lib/thirdweb-client";
-import { wrapResponseSchema } from "../../schemas/shared-api-schemas";
-import { contractRoutesFactory } from "./factory";
-import { evmAddressSchema } from "../../../lib/zod";
+} from "../../../lib/errors.js";
+import { thirdwebClient } from "../../../lib/thirdweb-client.js";
+import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { contractRoutesFactory } from "./factory.js";
+import { evmAddressSchema } from "../../../lib/zod.js";
 import {
   getContract,
   prepareContractCall,
@@ -23,10 +23,10 @@ import {
 import {
   buildExecutionRequestSchema,
   transactionResponseSchema,
-} from "../../../executors/types";
-import { getChain } from "../../../lib/chain";
+} from "../../../executors/types.js";
+import { getChain } from "../../../lib/chain.js";
 import { parseAbiParams } from "thirdweb/utils";
-import { transactionDbEntrySchema } from "../../../db/derived-schemas";
+import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 import { AbiFunction } from "ox";
 import { ResultAsync } from "neverthrow";
 

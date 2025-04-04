@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
 import { ResultAsync, err, ok, safeTry } from "neverthrow";
 import * as z from "zod";
-import { db } from "../db/connection";
-import { configuration } from "../db/schema";
-import type { ConfigInDb } from "../db/types";
-import { provisionLocalAccount } from "./accounts/local";
-import { decrypt } from "./crypto";
+import { db } from "../db/connection.js";
+import { configuration } from "../db/schema.js";
+import type { ConfigInDb } from "../db/types.js";
+import { provisionLocalAccount } from "./accounts/local.js";
+import { decrypt } from "./crypto.js";
 import {
   type ConfigErr,
   type CryptoErr,
@@ -14,9 +14,9 @@ import {
   type ValidationErr,
   mapDbError,
   mapZodError,
-} from "./errors";
-import { initializeLogger } from "./logger";
-import { redis } from "./redis";
+} from "./errors.js";
+import { initializeLogger } from "./logger.js";
+import { redis } from "./redis.js";
 
 const configLogger = initializeLogger("config");
 

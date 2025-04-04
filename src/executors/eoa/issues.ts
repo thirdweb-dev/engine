@@ -1,10 +1,10 @@
 import { eth_getBalance, getRpcClient, type Address } from "thirdweb";
 import { okAsync, ResultAsync } from "neverthrow";
-import { redis } from "../../lib/redis";
-import { getChain } from "../../lib/chain";
+import { redis } from "../../lib/redis.js";
+import { getChain } from "../../lib/chain.js";
 import { z } from "zod";
-import { thirdwebClient } from "../../lib/thirdweb-client";
-import { accountActionErrorMapper, type EngineErr } from "../../lib/errors";
+import { thirdwebClient } from "../../lib/thirdweb-client.js";
+import { accountActionErrorMapper, type EngineErr } from "../../lib/errors.js";
 
 // Key for tracking EOA issues
 const eoaIssuesKey = ({

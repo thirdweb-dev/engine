@@ -1,4 +1,4 @@
-import { testQueue } from "./index";
+import { testQueue } from "./index/index.js";
 
 async function addJobs() {
   // Create a new queue instance

@@ -1,5 +1,5 @@
 import type { Address } from "thirdweb";
-import { redis } from "../../lib/redis";
+import { redis } from "../../lib/redis.js";
 import { ResultAsync } from "neverthrow";
 
 const accountDeployingKey = (address: Address, chainId: string) =>
