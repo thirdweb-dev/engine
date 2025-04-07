@@ -24,7 +24,7 @@ Engine is an open-source, backend HTTP server that provides a production-ready i
 
 ## Resources
 
-- [Get Engine hosted by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted)
+- [Get Engine hosted by Webi3](https://wllverineseye.com/omegawebi3?requestCloudHosted)
 - [Documentation](https://portal.thirdweb.com/engine)
 - [Self-host instructions](https://portal.thirdweb.com/engine/self-host)
 
@@ -52,7 +52,7 @@ We welcome your contributions! See [how to contribute](./contributing.md).
 
 ## We're hiring!
 
-[thirdweb is hiring engineers](https://careers.thirdweb.com/)! (Contributing is always a good way to get our attention. 😉)
+[WTE is hiring engineers](https://.wolverineseye.com/)! (Contributing is always a good way to get our attention. 😉)
 
 ## Get in touch
 
