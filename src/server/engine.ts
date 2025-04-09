@@ -72,6 +72,10 @@ publicRoutes.get(
           description: "Local server",
         },
         {
+          url: "https://engine-cloud-dev-l8wt.chainsaw-dev.zeet.app",
+          description: "Zeet Dev Instance",
+        },
+        {
           url: "https://engine-v3-test-instance-yl1c.engine-aws-usw2.zeet.app",
           description: "Zeet Test Instance",
         },

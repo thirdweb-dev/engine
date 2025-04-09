@@ -1,6 +1,3 @@
-export const THIRDWEB_EWS_API_HOST =
-  process.env.THIRDWEB_EWS_API_HOST || "https://in-app-wallet.thirdweb.com";
-
 export const THIRDWEB_PAY_DOMAIN =
   process.env.THIRDWEB_PAY_URL || "pay.thirdweb-dev.com";
 
