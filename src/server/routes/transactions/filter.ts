@@ -105,66 +105,65 @@ function buildAdvancedFilters(
   maxDepth = 5,
   currentDepth = 0,
 ): SQL | undefined {
-  // Check nesting depth
   if (currentDepth > maxDepth) {
     throw new Error(`Maximum filter nesting depth of ${maxDepth} exceeded`);
   }
 
   if (!filters || filters.length === 0) return undefined;
 
-  // Process flat filters (FilterValue) and nested filters
   const filterConditions: SQL[] = [];
 
-  // Group value filters by field for field-level processing
+  // Process value filters
   const valueFilters = filters.filter(
     (filter): filter is FilterValue => !isNestedFilter(filter),
   );
 
   if (valueFilters.length > 0) {
-    // Group filters by field (similar to original implementation)
-    const filtersByField: Record<FilterField, FilterValue[]> = {
-      id: [],
-      batchIndex: [],
-      from: [],
-      chainId: [],
-      signerAddress: [],
-      smartAccountAddress: [],
-    };
+    if (currentDepth === 0) {
+      // Group by field at top level (existing behavior)
+      const filtersByField: Record<FilterField, FilterValue[]> = {
+        id: [],
+        batchIndex: [],
+        from: [],
+        chainId: [],
+        signerAddress: [],
+        smartAccountAddress: [],
+      };
 
-    for (const filter of valueFilters) {
-      filtersByField[filter.field].push(filter);
-    }
-
-    // Process each field's filters (similar to original implementation)
-    for (const [_field, fieldFilters] of Object.entries(filtersByField) as [
-      FilterField,
-      FilterValue[],
-    ][]) {
-      if (fieldFilters.length === 0) continue;
-
-      const fieldConditionGroups: SQL[] = [];
-
-      // Process each filter within the field group
-      for (const filter of fieldFilters) {
-        const condition = buildValueFilter(filter);
-        if (condition) {
-          fieldConditionGroups.push(condition);
-        }
+      for (const filter of valueFilters) {
+        filtersByField[filter.field].push(filter);
       }
 
-      // Combine all filters for this field with AND (all filter groups for a field must match)
-      if (fieldConditionGroups.length > 0) {
-        const conditions = and(...fieldConditionGroups);
-        if (conditions) {
-          filterConditions.push(conditions);
+      for (const [_field, fieldFilters] of Object.entries(filtersByField) as [
+        FilterField,
+        FilterValue[],
+      ][]) {
+        if (fieldFilters.length === 0) continue;
+
+        const fieldConditionGroups: SQL[] = [];
+        for (const filter of fieldFilters) {
+          const condition = buildValueFilter(filter);
+          if (condition) {
+            fieldConditionGroups.push(condition);
+          }
         }
+        // Use AND for top-level grouping (or outerOperation if desired)
+        if (fieldConditionGroups.length > 0) {
+          const condition = and(...fieldConditionGroups);
+          if (condition) filterConditions.push(condition);
+        }
+      }
+    } else {
+      // Within a nested group, preserve order and use the nested outerOperation
+      for (const filter of valueFilters) {
+        const condition = buildValueFilter(filter);
+        if (condition) filterConditions.push(condition);
       }
     }
   }
 
   // Process nested filters recursively
   const nestedFilters = filters.filter(isNestedFilter);
-
   for (const nestedFilter of nestedFilters) {
     const nestedCondition = buildAdvancedFilters(
       nestedFilter.filters,
@@ -172,13 +171,11 @@ function buildAdvancedFilters(
       maxDepth,
       currentDepth + 1,
     );
-
     if (nestedCondition) {
       filterConditions.push(nestedCondition);
     }
   }
 
-  // Combine all conditions with the outer operation
   if (filterConditions.length > 0) {
     return outerOperation === "OR"
       ? or(...filterConditions)
