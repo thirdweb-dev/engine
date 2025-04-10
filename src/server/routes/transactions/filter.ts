@@ -19,130 +19,217 @@ type FilterField =
 type FilterValue = {
   field: FilterField;
   values: string[];
-  operation?: FilterOperation;
+  operation: FilterOperation;
 };
 
+// Nested filter structure for combining multiple filters
+type FilterNested = {
+  operation: FilterOperation;
+  filters: (FilterNested | FilterValue)[];
+};
+
+// Type to represent a filter item which can be either a value filter or a nested filter
+type FilterItem = FilterValue | FilterNested;
+
 /**
- * Builds advanced SQL filters from filter objects
- *
- * @param filters - Array of filter objects
- * @param outerOperation - Operation to use when combining field conditions (AND/OR)
- * @returns SQL condition or undefined if no valid filters
+ * Helper function to check if a filter item is a nested filter
  */
-function buildAdvancedFilters(
-  filters: FilterValue[],
-  outerOperation: FilterOperation = "AND",
-): SQL | undefined {
-  if (!filters || filters.length === 0) return undefined;
+function isNestedFilter(filter: FilterItem): filter is FilterNested {
+  return "operation" in filter && "filters" in filter;
+}
 
-  // Group filters by field
-  const filtersByField: Record<FilterField, FilterValue[]> = {
-    id: [],
-    batchIndex: [],
-    from: [],
-    chainId: [],
-    signerAddress: [],
-    smartAccountAddress: [],
-  };
+/**
+ * Builds SQL filter conditions from a filter value
+ *
+ * @param filter - The filter value to process
+ * @returns SQL condition or undefined if invalid
+ */
+function buildValueFilter(filter: FilterValue): SQL | undefined {
+  if (!filter.values || filter.values.length === 0) return undefined;
 
-  for (const filter of filters) {
-    filtersByField[filter.field].push(filter);
+  const operation = filter.operation || "OR"; // Default to OR for values within a filter
+  const conditions: SQL[] = [];
+
+  for (const value of filter.values) {
+    switch (filter.field) {
+      case "id":
+        conditions.push(eq(transactions.id, value));
+        break;
+      case "batchIndex": {
+        const batchIndex = Number.parseInt(value, 10);
+        if (!Number.isNaN(batchIndex)) {
+          conditions.push(eq(transactions.batchIndex, batchIndex));
+        }
+        break;
+      }
+      case "from":
+        // TODO: use getAddressResult, and neverthrow-ify this function
+        conditions.push(eq(transactions.from, getAddress(value)));
+        break;
+      case "chainId":
+        conditions.push(eq(transactions.chainId, value));
+        break;
+      case "signerAddress":
+        conditions.push(
+          sql`${transactions.executionParams}->>'signerAddress' = ${getAddress(value)}`,
+        );
+        break;
+      case "smartAccountAddress":
+        conditions.push(
+          sql`${transactions.executionParams}->>'smartAccountAddress' = ${getAddress(value)}`,
+        );
+        break;
+    }
   }
 
-  // Process each field's filters
-  const fieldConditions: SQL[] = [];
+  if (conditions.length > 0) {
+    return operation === "OR" ? or(...conditions) : and(...conditions);
+  }
 
-  // Process each field group
-  for (const [field, fieldFilters] of Object.entries(filtersByField) as [
-    FilterField,
-    FilterValue[],
-  ][]) {
-    if (fieldFilters.length === 0) continue;
+  return undefined;
+}
 
-    const fieldConditionGroups: SQL[] = [];
+/**
+ * Builds advanced SQL filters from filter objects, supporting nested filter structures
+ *
+ * @param filters - Array of filter items (value or nested)
+ * @param outerOperation - Operation to use when combining conditions (AND/OR)
+ * @param maxDepth - Maximum allowed nesting depth
+ * @param currentDepth - Current nesting depth (for internal use)
+ * @returns SQL condition or undefined if no valid filters
+ * @throws Error if nesting depth exceeds maxDepth
+ */
+function buildAdvancedFilters(
+  filters: FilterItem[],
+  outerOperation: FilterOperation = "AND",
+  maxDepth = 5,
+  currentDepth = 0,
+): SQL | undefined {
+  // Check nesting depth
+  if (currentDepth > maxDepth) {
+    throw new Error(`Maximum filter nesting depth of ${maxDepth} exceeded`);
+  }
 
-    // Process each filter within the field group
-    for (const filter of fieldFilters) {
-      if (!filter.values || filter.values.length === 0) continue;
+  if (!filters || filters.length === 0) return undefined;
 
-      const operation = filter.operation || "OR"; // Default to OR for values within a filter
-      const conditions: SQL[] = [];
+  // Process flat filters (FilterValue) and nested filters
+  const filterConditions: SQL[] = [];
 
-      for (const value of filter.values) {
-        switch (field) {
-          case "id":
-            conditions.push(eq(transactions.id, value));
-            break;
-          case "batchIndex": {
-            const batchIndex = Number.parseInt(value, 10);
-            if (!Number.isNaN(batchIndex)) {
-              conditions.push(eq(transactions.batchIndex, batchIndex));
-            }
-            break;
-          }
-          case "from":
-            // TODO: use getAddressResult, and neverthrow-ify this function
-            conditions.push(eq(transactions.from, getAddress(value)));
-            break;
-          case "chainId":
-            conditions.push(eq(transactions.chainId, value));
-            break;
-          case "signerAddress":
-            conditions.push(
-              sql`${transactions.executionParams}->>'signerAddress' = ${getAddress(value)}`,
-            );
-            break;
-          case "smartAccountAddress":
-            conditions.push(
-              sql`${transactions.executionParams}->>'smartAccountAddress' = ${getAddress(value)}`,
-            );
-            break;
+  // Group value filters by field for field-level processing
+  const valueFilters = filters.filter(
+    (filter): filter is FilterValue => !isNestedFilter(filter),
+  );
+
+  if (valueFilters.length > 0) {
+    // Group filters by field (similar to original implementation)
+    const filtersByField: Record<FilterField, FilterValue[]> = {
+      id: [],
+      batchIndex: [],
+      from: [],
+      chainId: [],
+      signerAddress: [],
+      smartAccountAddress: [],
+    };
+
+    for (const filter of valueFilters) {
+      filtersByField[filter.field].push(filter);
+    }
+
+    // Process each field's filters (similar to original implementation)
+    for (const [_field, fieldFilters] of Object.entries(filtersByField) as [
+      FilterField,
+      FilterValue[],
+    ][]) {
+      if (fieldFilters.length === 0) continue;
+
+      const fieldConditionGroups: SQL[] = [];
+
+      // Process each filter within the field group
+      for (const filter of fieldFilters) {
+        const condition = buildValueFilter(filter);
+        if (condition) {
+          fieldConditionGroups.push(condition);
         }
       }
 
-      if (conditions.length > 0) {
-        const conditionGroup =
-          operation === "OR" ? or(...conditions) : and(...conditions);
-        conditionGroup && fieldConditionGroups.push(conditionGroup);
+      // Combine all filters for this field with AND (all filter groups for a field must match)
+      if (fieldConditionGroups.length > 0) {
+        const conditions = and(...fieldConditionGroups);
+        if (conditions) {
+          filterConditions.push(conditions);
+        }
       }
-    }
-
-    // Combine all filters for this field with AND (all filter groups for a field must match)
-    if (fieldConditionGroups.length > 0) {
-      const conditions = and(...fieldConditionGroups);
-      conditions && fieldConditions.push(conditions);
     }
   }
 
-  // Combine all field conditions with the outer operation
-  if (fieldConditions.length > 0) {
+  // Process nested filters recursively
+  const nestedFilters = filters.filter(isNestedFilter);
+
+  for (const nestedFilter of nestedFilters) {
+    const nestedCondition = buildAdvancedFilters(
+      nestedFilter.filters,
+      nestedFilter.operation,
+      maxDepth,
+      currentDepth + 1,
+    );
+
+    if (nestedCondition) {
+      filterConditions.push(nestedCondition);
+    }
+  }
+
+  // Combine all conditions with the outer operation
+  if (filterConditions.length > 0) {
     return outerOperation === "OR"
-      ? or(...fieldConditions)
-      : and(...fieldConditions);
+      ? or(...filterConditions)
+      : and(...filterConditions);
   }
 
   return undefined;
 }
 
 // Export Zod schemas for validation
-export const filterOperationSchema = z.enum(["AND", "OR"]).default("AND");
+export const filterOperationSchema = z.enum(["AND", "OR"]);
 
-export const filterValueSchema = z.object({
-  field: z.enum([
-    "id",
-    "batchIndex",
-    "from",
-    "signerAddress",
-    "smartAccountAddress",
-    "chainId",
-  ]),
-  values: z.array(z.string()),
-  operation: filterOperationSchema.optional().default("OR"),
-});
+export const filterValueSchema = z
+  .object({
+    field: z.enum([
+      "id",
+      "batchIndex",
+      "from",
+      "signerAddress",
+      "smartAccountAddress",
+      "chainId",
+    ]),
+    values: z.array(z.string()),
+    operation: filterOperationSchema,
+  })
+  .openapi({
+    ref: "TransactionsFilterValue",
+  });
+
+// Define schema for nested filters with recursive type
+export const filterNestedSchema: z.ZodType<FilterNested> = z
+  .lazy(() =>
+    z.object({
+      operation: filterOperationSchema,
+      filters: z.array(z.union([filterValueSchema, filterNestedSchema])),
+    }),
+  )
+  .openapi({
+    ref: "TransactionsFilterNested",
+  });
+
+// Combined schema for filter items
+export const filterItemSchema: z.ZodType<FilterItem> = z.union([
+  filterValueSchema,
+  filterNestedSchema,
+]);
 
 export const searchFiltersSchema = z.object({
-  filters: z.array(filterValueSchema).optional(),
+  filters: z.array(filterItemSchema).optional(),
   filtersOperation: filterOperationSchema.optional().default("AND"),
+  maxDepth: z.number().int().positive().default(5),
 });
 
 export { buildAdvancedFilters };

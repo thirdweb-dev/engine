@@ -12,7 +12,11 @@ import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 import { and, asc, desc, eq, type SQL, sql } from "drizzle-orm";
 import { transactions as transactionsTable } from "../../../db/schema.js";
 import { evmAddressSchema } from "../../../lib/zod.js";
-import { buildAdvancedFilters } from "./filter.js";
+import {
+  buildAdvancedFilters,
+  filterItemSchema,
+  filterOperationSchema,
+} from "./filter.js";
 import { transactionsRoutesFactory } from "./factory.js";
 
 const getTransactionsSchema = requestPaginationSchema.extend({
@@ -136,28 +140,15 @@ export const getTransactionsHandler = transactionsRoutesFactory.createHandlers(
 );
 
 // Advanced search:
-const filterOperationSchema = z.enum(["AND", "OR"]).default("AND");
 
-const filterValueSchema = z.object({
-  field: z.enum([
-    "id",
-    "batchIndex",
-    "from",
-    "signerAddress",
-    "smartAccountAddress",
-    "chainId",
-  ]),
-  values: z.array(z.string()),
-  operation: filterOperationSchema.optional().default("OR"),
-});
-
+// Advanced search schema accepts nested filters using filterItemSchema
 const searchTransactionsBodySchema = z.object({
   // Pagination
   page: z.number().int().positive().default(1),
   limit: z.number().int().positive().max(100).default(20),
 
-  // Filters
-  filters: z.array(filterValueSchema).optional(),
+  // Filters: simple and nested filters are allowed.
+  filters: z.array(filterItemSchema).optional(),
   filtersOperation: filterOperationSchema.optional().default("AND"),
 
   // Sorting
@@ -165,15 +156,14 @@ const searchTransactionsBodySchema = z.object({
   sortDirection: z.enum(["asc", "desc"]).default("desc"),
 });
 
-// Add the search endpoint
-// transactionsRoutes.post(
-//   "/search",
+// Add the search endpoint that supports nested filters.
 export const searchTransactionsHandler =
   transactionsRoutesFactory.createHandlers(
     zValidator("json", searchTransactionsBodySchema),
     describeRoute({
       summary: "Search Transactions",
-      description: "Advanced search for transactions with complex filters",
+      description:
+        "Advanced search for transactions with complex nested filters",
       tags: ["Transactions"],
       operationId: "searchTransactions",
       responses: {
@@ -202,10 +192,9 @@ export const searchTransactionsHandler =
       const params = c.req.valid("json");
       const skip = (params.page - 1) * params.limit;
 
-      // Build where conditions
+      // Process the advanced filters if provided.
+      // buildAdvancedFilters will handle nested filters recursively, using an internal default maxDepth.
       let whereClause: SQL | undefined;
-
-      // Process advanced filters if present
       if (params.filters && params.filters.length > 0) {
         whereClause = buildAdvancedFilters(
           params.filters,

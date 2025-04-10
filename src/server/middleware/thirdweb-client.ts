@@ -1,5 +1,4 @@
 import { createMiddleware } from "hono/factory";
-import { createThirdwebClient } from "thirdweb";
 import { getThirdwebClient } from "../../lib/thirdweb-client.js";
 
 export const thirdwebClientMiddleware = createMiddleware(async (c, next) => {

@@ -1,6 +1,6 @@
 import { Hono } from "hono";
-import { analyticsHandler } from "./analytics";
-import { getTransactionsHandler, searchTransactionsHandler } from "./search";
+import { analyticsHandler } from "./analytics.js";
+import { getTransactionsHandler, searchTransactionsHandler } from "./search.js";
 
 export const transactionsRoutes = new Hono();
 
