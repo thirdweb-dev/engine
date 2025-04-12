@@ -32,6 +32,14 @@ export const bigIntSchema = z
     format: "bigint", // Custom format to indicate it's a BigInt
   });
 
+export const serialisedBigIntSchema = z.string().openapi({
+  description:
+    "A string representing an bigint response, safe to parse with BigInt",
+  example: exampleBigInt,
+  type: "string", // OpenAPI type (input is still a string)
+  format: "bigint", // Custom format to indicate it's a BigInt
+});
+
 export const transactionBodySchema = z.object({
   to: evmAddressSchema.optional().openapi({
     description: "The address of the contract to send the transaction to",
@@ -118,51 +126,73 @@ const vagueExecutionRequestSchema = z.object({
 /**
  * Builds a schema for an execution request.
  * Takes a schema for the shape of your transaction parameters, and returns a schema for an execution request.
+ * Optionally allows extending the final schema with additional fields.
  *
  * @param transactionParamsSchema - The schema of the transaction parameters.
- * @returns A schema for an execution request.
+ * @param extensionSchema - An optional ZodObject schema to merge into both branches of the final union schema.
+ * @returns A schema for an execution request, potentially extended.
  */
-export function buildExecutionRequestSchema<T extends z.ZodSchema>(
+export function buildExecutionRequestSchema<
+  T extends z.ZodSchema,
+  // biome-ignore lint/complexity/noBannedTypes: sorry, we must
+  E extends z.ZodRawShape = {}, // Default to empty shape if no extension
+>(
   transactionParamsSchema: T,
-): // sorry for this nasty generic, but it's a necessary evil to get the type inference to work
+  extensionSchema: z.ZodObject<E> = z.object({}) as z.ZodObject<E>,
+): // // Return type reflects the union of two objects, each extended with Base, TxParams, and Extension
 z.ZodUnion<
   [
     z.ZodObject<
       z.objectUtil.extendShape<
+        // 3. Extend with Extension shape E
         z.objectUtil.extendShape<
-          (typeof specificExecutionRequestSchema)["shape"],
-          { transactionParams: T }
+          // 2. Extend with Base shape
+          z.objectUtil.extendShape<
+            // 1. Start with Specific shape
+            (typeof specificExecutionRequestSchema)["shape"],
+            { transactionParams: T } // Add transactionParams schema T
+          >,
+          (typeof baseExecutionRequestSchema)["shape"]
         >,
-        (typeof baseExecutionRequestSchema)["shape"]
+        E // Shape from extensionSchema
       >
     >,
     z.ZodObject<
       z.objectUtil.extendShape<
+        // 3. Extend with Extension shape E
         z.objectUtil.extendShape<
-          (typeof vagueExecutionRequestSchema)["shape"],
-          { transactionParams: T }
+          // 2. Extend with Base shape
+          z.objectUtil.extendShape<
+            // 1. Start with Vague shape
+            (typeof vagueExecutionRequestSchema)["shape"],
+            { transactionParams: T } // Add transactionParams schema T
+          >,
+          (typeof baseExecutionRequestSchema)["shape"]
         >,
-        (typeof baseExecutionRequestSchema)["shape"]
+        E // Shape from extensionSchema
       >
     >,
   ]
 > {
-  return z.union([
-    specificExecutionRequestSchema
-      .merge(
-        z.object({
-          transactionParams: transactionParamsSchema,
-        }),
-      )
-      .merge(baseExecutionRequestSchema),
-    vagueExecutionRequestSchema
-      .merge(
-        z.object({
-          transactionParams: transactionParamsSchema,
-        }),
-      )
-      .merge(baseExecutionRequestSchema),
-  ]);
+  // 1. Merge transactionParams and base schema into the specific branch
+  const specificExtended = specificExecutionRequestSchema
+    .merge(z.object({ transactionParams: transactionParamsSchema }))
+    .merge(baseExecutionRequestSchema);
+
+  // 2. Merge transactionParams and base schema into the vague branch
+  const vagueExtended = vagueExecutionRequestSchema
+    .merge(z.object({ transactionParams: transactionParamsSchema }))
+    .merge(baseExecutionRequestSchema);
+
+  // 3. Apply the optional extension schema to *both* branches
+  const specificFinal = specificExtended.merge(extensionSchema);
+  const vagueFinal = vagueExtended.merge(extensionSchema);
+
+  // 4. Create the union of the two fully formed and potentially extended branches
+  // We cast the result to the explicitly defined complex return type for external type safety.
+  return z.union([specificFinal, vagueFinal]) as z.ZodUnion<
+    [typeof specificFinal, typeof vagueFinal]
+  >;
 }
 
 export const encodedExecutionRequestSchema = buildExecutionRequestSchema(

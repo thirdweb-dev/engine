@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "pnpm dev:infra && pnpm dev:run",
+    "check": "tsc --noEmit",
     "dev:infra": "docker compose -f ./docker-compose.yml up -d",
     "dev:run": "bun --watch src/index.ts",
     "build": "rm -rf dist && tsc -p ./tsconfig.json",

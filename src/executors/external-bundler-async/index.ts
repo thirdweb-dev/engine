@@ -57,7 +57,7 @@ function postOpRevertReasonEvent(filters: PostOpRevertReasonEventFilters = {}) {
 const sendLogger = initializeLogger("executor:external-bundler-async:send");
 
 const confirmLogger = initializeLogger(
-  "executor:external-bundler-async:confirm"
+  "executor:external-bundler-async:confirm",
 );
 
 type ExecutionRequest = {
@@ -85,32 +85,31 @@ export type SendResult = {
   accountAddress: Address;
 };
 
-export type ConfirmationResult =
+export type ConfirmationResult = {
+  id: string;
+  userOpHash: Hex;
+  transactionHash: Hex;
+  actualGasCost: bigint;
+  actualGasUsed: bigint;
+  nonce: bigint;
+  blockNumber: bigint;
+} & (
   | {
-      id: string;
-      userOpHash: Hex;
-      transactionHash: Hex;
-      actualGasCost: bigint;
-      actualGasUsed: bigint;
-      nonce: bigint;
-      blockNumber: bigint;
-    } & (
-      | {
-          onchainStatus: "SUCCESS";
-        }
-      | {
-          onchainStatus: "REVERTED";
-          revertData?: {
-            errorName: string;
-            errorArgs: Record<string, unknown>;
-          };
-        }
-    );
+      onchainStatus: "SUCCESS";
+    }
+  | {
+      onchainStatus: "REVERTED";
+      revertData?: {
+        errorName: string;
+        errorArgs: Record<string, unknown>;
+      };
+    }
+);
 
 const callbacks: ((result: ConfirmationResult) => void)[] = [];
 
 export function registerCallback(
-  callback: (result: ConfirmationResult) => void
+  callback: (result: ConfirmationResult) => void,
 ) {
   confirmLogger.info(`Registered callback ${callback.name}`);
   callbacks.push(callback);
@@ -143,11 +142,11 @@ export const externalBundlerSendQueue = new Queue<ExecutionRequest>(
       },
     },
     connection: redis,
-  }
+  },
 );
 
 await externalBundlerSendQueue.setGlobalConcurrency(
-  env.SEND_TRANSACTION_QUEUE_CONCURRENCY
+  env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
 );
 
 export const externalBundlerConfirmQueue = new Queue<SendResult>(
@@ -160,11 +159,11 @@ export const externalBundlerConfirmQueue = new Queue<SendResult>(
       },
     },
     connection: redis,
-  }
+  },
 );
 
 await externalBundlerConfirmQueue.setGlobalConcurrency(
-  env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY
+  env.CONFIRM_TRANSACTION_QUEUE_CONCURRENCY,
 );
 
 export function execute(request: ExecutionRequest) {
@@ -173,7 +172,7 @@ export function execute(request: ExecutionRequest) {
   return ResultAsync.fromPromise(
     externalBundlerSendQueue.add(
       id,
-      SuperJSON.serialize(request) as unknown as ExecutionRequest
+      SuperJSON.serialize(request) as unknown as ExecutionRequest,
     ),
     (err) =>
       ({
@@ -181,7 +180,7 @@ export function execute(request: ExecutionRequest) {
         code: "external_bundler:queuing_send_job_failed",
         source: err,
         executionOptions,
-      } as QueueingErr)
+      }) as QueueingErr,
   );
 }
 
@@ -189,12 +188,12 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
   EXTERNAL_BUNDLER_SEND_QUEUE_NAME,
   async (job): Promise<SendResult> => {
     const parsedData = SuperJSON.deserialize(
-      job.data as unknown as SuperJSONResult
+      job.data as unknown as SuperJSONResult,
     ) as ExecutionRequest;
     const { executionOptions, id, chainId, transactionParams } = parsedData;
 
     const client = thirdwebClient;
-    const chain = await getChain(Number(chainId));
+    const chain = getChain(Number(chainId));
 
     const account = await getEngineAccount({
       address: executionOptions.signerAddress,
@@ -206,7 +205,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
 
     if ("signerAccount" in account.value) {
       throw new UnrecoverableError(
-        "Failed to get admin EOA account, received smart account"
+        "Failed to get admin EOA account, received smart account",
       );
     }
 
@@ -220,30 +219,30 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
     });
 
     sendLogger.info(
-      `Account ${executionOptions.smartAccountAddress} is deployed: ${isDeployed}`
+      `Account ${executionOptions.smartAccountAddress} is deployed: ${isDeployed}`,
     );
 
     if (!isDeployed) {
       // check if account is deploying
       const isDeployingResult = await isAccountDeploying(
         executionOptions.smartAccountAddress,
-        chainId
+        chainId,
       );
 
       if (isDeployingResult.isErr()) {
         throw new Error(
-          "Unable to check if account is deploying redis error, will retry"
+          "Unable to check if account is deploying redis error, will retry",
         );
       }
 
       if (isDeployingResult.value) {
         // delay so it retries
         sendLogger.info(
-          `Account is deploying at ${isDeployingResult.value}, will retry`
+          `Account is deploying at ${isDeployingResult.value}, will retry`,
         );
         await job.moveToDelayed(Date.now() + 5000, job.token);
         throw new DelayedError(
-          `Account is deploying at ${isDeployingResult.value}, will retry`
+          `Account is deploying at ${isDeployingResult.value}, will retry`,
         );
       }
     }
@@ -276,7 +275,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       }),
       accountActionErrorMapper({
         code: "sign_userop_failed",
-      })
+      }),
     );
 
     if (signedUserOp.isErr()) {
@@ -286,7 +285,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
         {
           chainId,
           id,
-        }
+        },
       );
       throw new Error("Failed to sign user operation, will retry");
     }
@@ -302,14 +301,14 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       }),
       accountActionErrorMapper({
         code: "bundle_userop_failed",
-      })
+      }),
     );
 
     if (userOpHash.isErr()) {
       job.log(
         `[${new Date().toISOString()}] Failed to bundle user operation, will retry, error: ${SuperJSON.stringify(
-          userOpHash.error
-        )}`
+          userOpHash.error,
+        )}`,
       );
       sendLogger.error(
         "Failed to bundle user operation, will retry",
@@ -317,7 +316,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
         {
           chainId,
           id,
-        }
+        },
       );
       throw new Error("Failed to bundle user operation, will retry");
     }
@@ -333,7 +332,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
         },
         {
           jobId: id,
-        }
+        },
       ),
       (err) =>
         ({
@@ -342,7 +341,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
           executionOptions,
           source: err,
           userOpHash: userOpHash.value,
-        } as QueueingErr)
+        }) as QueueingErr,
     );
 
     if (confirmJobResult.isErr()) {
@@ -353,7 +352,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       await setAccountDeploying(
         executionOptions.smartAccountAddress,
         chainId,
-        id
+        id,
       );
     }
 
@@ -375,7 +374,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
         return 60000; // Every 1min thereafter
       },
     },
-  }
+  },
 );
 
 type ConfirmationError = {
@@ -395,89 +394,87 @@ function isConfirmationError(err: unknown): err is ConfirmationError {
 }
 
 export function confirm(options: SendResult) {
-  return ResultAsync.fromSafePromise(getChain(Number(options.chainId)))
-    .andThen((chain) =>
-      ResultAsync.fromPromise(
-        getUserOpReceiptRaw({
-          userOpHash: options.userOpHash,
-          chain,
-          client: thirdwebClient,
-        }),
-        (e) =>
-          ({
-            kind: "rpc",
-            code: "get_userop_receipt_failed",
-            status: 500,
-            message:
-              e instanceof Error
-                ? e.message
-                : "Failed to get user operation receipt in EXTERNAL_BUNDLER:CONFIRM",
-            source: e,
-          } as RpcErr)
-      )
-    )
-    .andThen((res) => {
-      if (!res) {
-        return okAsync(undefined);
-      }
-      const extractedReceipt = {
-        transactionHash: res.receipt.transactionHash,
-        actualGasCost: res.actualGasCost,
-        actualGasUsed: res.actualGasUsed,
-        nonce: res.nonce,
-        blockNumber: res.receipt.blockNumber,
-      };
+  const chain = getChain(Number(options.chainId));
 
-      if (res.success === false) {
-        // this was a revert, let's parse the events
-        const logs = parseEventLogs({
-          events: [userOperationRevertReasonEvent(), postOpRevertReasonEvent()],
-          logs: res.logs,
+  return ResultAsync.fromPromise(
+    getUserOpReceiptRaw({
+      userOpHash: options.userOpHash,
+      chain,
+      client: thirdwebClient,
+    }),
+    (e) =>
+      ({
+        kind: "rpc",
+        code: "get_userop_receipt_failed",
+        status: 500,
+        message:
+          e instanceof Error
+            ? e.message
+            : "Failed to get user operation receipt in EXTERNAL_BUNDLER:CONFIRM",
+        source: e,
+      }) as RpcErr,
+  ).andThen((res) => {
+    if (!res) {
+      return okAsync(undefined);
+    }
+    const extractedReceipt = {
+      transactionHash: res.receipt.transactionHash,
+      actualGasCost: res.actualGasCost,
+      actualGasUsed: res.actualGasUsed,
+      nonce: res.nonce,
+      blockNumber: res.receipt.blockNumber,
+    };
+
+    if (res.success === false) {
+      // this was a revert, let's parse the events
+      const logs = parseEventLogs({
+        events: [userOperationRevertReasonEvent(), postOpRevertReasonEvent()],
+        logs: res.logs,
+      });
+
+      const revertReason = logs[0]?.args.revertReason;
+
+      const fallbackError = errAsync({
+        ...extractedReceipt,
+      } as ConfirmationError);
+
+      if (!revertReason) {
+        return fallbackError;
+      }
+
+      // let's try to decode the revert reason
+      try {
+        const { abiItem, args, errorName } = decodeErrorResult({
+          data: revertReason,
         });
 
-        const revertReason = logs[0]?.args.revertReason;
-
-        const fallbackError = errAsync({
-          ...extractedReceipt,
-        } as ConfirmationError);
-
-        if (!revertReason) {
+        if (!args || args.length === 0) {
           return fallbackError;
         }
 
-        // let's try to decode the revert reason
-        try {
-          const { abiItem, args, errorName } = decodeErrorResult({
-            data: revertReason,
-          });
+        const namedArgs: Record<string, unknown> =
+          "inputs" in abiItem && abiItem.inputs.length === args.length
+            ? Object.fromEntries(
+                abiItem.inputs.map((input, i) => [input.name, args[i]]),
+              )
+            : Object.fromEntries(args.map((arg, i) => [`arg${i}`, arg]));
 
-          if (!args || args.length === 0) {
-            return fallbackError;
-          }
+        return errAsync({
+          ...extractedReceipt,
+          revertData: {
+            errorName: errorName,
+            errorArgs: namedArgs,
+          },
+        } as ConfirmationError);
+      } catch {}
 
-          const namedArgs: Record<string, unknown> =
-            "inputs" in abiItem && abiItem.inputs.length === args.length
-              ? Object.fromEntries(
-                  abiItem.inputs.map((input, i) => [input.name, args[i]])
-                )
-              : Object.fromEntries(args.map((arg, i) => [`arg${i}`, arg]));
-
-          return errAsync({
-            ...extractedReceipt,
-            revertData: {
-              errorName: errorName,
-              errorArgs: namedArgs,
-            },
-          } as ConfirmationError);
-        } catch {}
-
-        return fallbackError;
-      }
-      return okAsync({
-        onchainStatus: "success",
-        ...extractedReceipt,
-      });
+      return fallbackError;
+    }
+    return okAsync({
+      onchainStatus: "success",
+      ...extractedReceipt,
     });
+  });
 }
 
 export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
@@ -510,19 +507,19 @@ export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
       });
 
       job.log(
-        `[${new Date().toISOString()}] Unexpected RPC error confirming user operation`
+        `[${new Date().toISOString()}] Unexpected RPC error confirming user operation`,
       );
 
       throw new Error("Failed to confirm user operation");
     }
     if (!result.value) {
       job.log(
-        `[${new Date().toISOString()}] Did not get receipt yet. Will retry`
+        `[${new Date().toISOString()}] Did not get receipt yet. Will retry`,
       );
 
       if (job.attemptsMade === 60) {
         job.log(
-          `[${new Date().toISOString()}] Unable to confirm user operation after 60 attempts. Will not retry.`
+          `[${new Date().toISOString()}] Unable to confirm user operation after 60 attempts. Will not retry.`,
         );
 
         confirmLogger.error(
@@ -530,7 +527,7 @@ export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
           {
             chainId,
             userOpHash,
-          }
+          },
         );
       }
       throw new Error("Failed to confirm user operation");
@@ -539,7 +536,7 @@ export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
     job.log(
       `[${new Date().toISOString()}] Confirmed user operation with transaction hash ${
         result.value.transactionHash
-      }`
+      }`,
     );
 
     const res = {
@@ -569,7 +566,7 @@ export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
         return 60000; // Every 1min thereafter
       },
     },
-  }
+  },
 );
 
 confirmWorker.on("ready", () => {

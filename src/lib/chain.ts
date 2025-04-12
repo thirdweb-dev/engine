@@ -6,7 +6,7 @@ import { config } from "./config.js";
  * @param chainId
  * @returns Chain
  */
-export const getChain = async (chainId: number): Promise<Chain> => {
+export const getChain = (chainId: number): Chain => {
   for (const override of config.chainOverrides) {
     if (chainId === override.id) {
       // we need to call defineChain to ensure that the chain is registered in CUSTOM_CHAIN_MAP

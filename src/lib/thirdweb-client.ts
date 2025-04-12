@@ -10,14 +10,16 @@ import {
   THIRDWEB_STORAGE_DOMAIN,
 } from "../constants/urls.js";
 
-setThirdwebDomains({
-  rpc: THIRDWEB_RPC_DOMAIN,
-  inAppWallet: THIRDWEB_INAPP_WALLET_DOMAIN,
-  pay: THIRDWEB_PAY_DOMAIN,
-  storage: THIRDWEB_STORAGE_DOMAIN,
-  social: THIRDWEB_SOCIAL_API_DOMAIN,
-  bundler: THIRDWEB_BUNDLER_DOMAIN,
-});
+if (env.NODE_ENV !== "production") {
+  setThirdwebDomains({
+    rpc: THIRDWEB_RPC_DOMAIN,
+    inAppWallet: THIRDWEB_INAPP_WALLET_DOMAIN,
+    pay: THIRDWEB_PAY_DOMAIN,
+    storage: THIRDWEB_STORAGE_DOMAIN,
+    social: THIRDWEB_SOCIAL_API_DOMAIN,
+    bundler: THIRDWEB_BUNDLER_DOMAIN,
+  });
+}
 
 export function getThirdwebClient(secretKey: string) {
   return createThirdwebClient({

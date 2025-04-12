@@ -1,9 +1,5 @@
 import { initializeLogger } from "../logger.js";
-import {
-  acquireLock,
-  releaseLock,
-  waitForLock,
-} from "../../shared/utils/redis/lock.js";
+import { acquireLock, releaseLock, waitForLock } from "../redis.js";
 
 const logger = initializeLogger("runtime-migrations");
 

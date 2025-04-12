@@ -1,20 +1,20 @@
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
 import * as z from "zod";
-import { execute } from "../../executors/execute/execute.js";
+import { execute } from "../../../executors/execute/execute.js";
 import {
   encodedExecutionRequestSchema,
   transactionResponseSchema,
-} from "../../executors/types.js";
-import { engineErrToHttpException, zErrorMapper } from "../../lib/errors.js";
-import { thirdwebClient } from "../../lib/thirdweb-client.js";
-import { wrapResponseSchema } from "../schemas/shared-api-schemas.js";
-import { accountRoutesFactory } from "./factory.js";
-import { transactionDbEntrySchema } from "../../db/derived-schemas.js";
+} from "../../../executors/types.js";
+import { engineErrToHttpException, zErrorMapper } from "../../../lib/errors.js";
+import { thirdwebClient } from "../../../lib/thirdweb-client.js";
+import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { onchainRoutesFactory } from "./factory.js";
+import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 
-export const sendTransactionRoute = accountRoutesFactory.createHandlers(
+export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
-    tags: ["Account"],
+    tags: ["Write"],
     summary: "Send Transaction",
     description: "Send a transaction or a batch of transactions",
     responses: {

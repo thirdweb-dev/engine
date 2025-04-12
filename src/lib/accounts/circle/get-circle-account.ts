@@ -102,7 +102,7 @@ export function getCircleAccount({
 
       const rpcRequest = getRpcClient({
         client: client,
-        chain: await getChain(tx.chainId),
+        chain: getChain(tx.chainId),
       });
 
       const splittedSignature = parseSignature(signature);
@@ -203,7 +203,7 @@ export function getCircleAccount({
       address,
       sendTransaction,
       signMessage,
-      signTypedData,
+      signTypedData: signTypedData as Account["signTypedData"],
       signTransaction,
     } satisfies Account);
   });

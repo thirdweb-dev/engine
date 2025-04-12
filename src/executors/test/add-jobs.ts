@@ -1,4 +1,4 @@
-import { testQueue } from "./index/index.js";
+import { testQueue } from "./index.js";
 
 async function addJobs() {
   // Create a new queue instance
@@ -7,10 +7,10 @@ async function addJobs() {
     for (let i = 1; i <= 10; i++) {
       await testQueue.add(`pass-${i}`, { action: "pass", value: i });
     }
-    
+
     // Add 1 failure job
     await testQueue.add("fail-1", { action: "fail", value: 100 });
-    
+
     // Add 5 more success jobs
     for (let i = 11; i <= 20; i++) {
       await testQueue.add(`pass-${i}`, { action: "pass", value: i });
@@ -26,4 +26,4 @@ addJobs()
   .catch((err) => {
     console.error("Error adding jobs:", err);
     process.exit(1);
-  }); 
+  });

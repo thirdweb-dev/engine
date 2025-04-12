@@ -24,12 +24,11 @@ import { apiReference } from "@scalar/hono-api-reference";
 
 import { accountsRoutes } from "./routes/accounts/accounts.js";
 import { openAPISpecs } from "hono-openapi";
-import { accountRouter } from "./account/index.js";
 import { setupQueuesUiRoutes } from "./routes/queues.js";
 import { transactionsRoutes } from "./routes/transactions/index.js";
 import { correlationId } from "./middleware/correlation-id.js";
-import contractRoutes from "./routes/contract/index.js";
 import authRoutes from "./routes/auth/index.js";
+import { chainActionsRouter } from "./routes/chain/index.js";
 
 const engineServer = new Hono();
 const publicRoutes = new Hono();
@@ -81,7 +80,7 @@ publicRoutes.get(
         },
       ],
     },
-  })
+  }),
 );
 
 publicRoutes.get(
@@ -91,7 +90,7 @@ publicRoutes.get(
     spec: {
       url: "/openapi",
     },
-  })
+  }),
 );
 
 setupQueuesUiRoutes(publicRoutes, "/admin/queues");
@@ -120,7 +119,7 @@ engineServer.use(
       camera: [],
       microphone: [],
     },
-  })
+  }),
 );
 
 engineServer.use(prometheusMiddleware);
@@ -129,14 +128,13 @@ engineServer.use(apiCorsMiddleware);
 engineServer.use(rateLimitMiddleware);
 
 engineServer.use(
-  some(secretKeyAuth, webhookAuth, dashboardAuth, accessTokenAuth)
+  some(secretKeyAuth, webhookAuth, dashboardAuth, accessTokenAuth),
 );
 
 engineServer.route("/accounts", accountsRoutes);
 engineServer.route("/transactions", transactionsRoutes);
-engineServer.route("/account", accountRouter);
-engineServer.route("/contract", contractRoutes);
 engineServer.route("/auth", authRoutes);
+engineServer.route("/", chainActionsRouter);
 
 engineServer.onError((err, c) => {
   if (err instanceof HTTPException) {
@@ -150,7 +148,7 @@ engineServer.onError((err, c) => {
             source: unwrapError(engineErr.source),
           },
         },
-        engineErr.status
+        engineErr.status,
       );
     }
     const response = err.getResponse();
@@ -166,7 +164,7 @@ engineServer.onError((err, c) => {
         source: err,
       },
     },
-    500
+    500,
   );
 });
 

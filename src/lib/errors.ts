@@ -9,6 +9,7 @@ import type {
 
 import type { QueueingErr as BundlerExecutorAsyncQueueingErr } from "../executors/external-bundler-async/index.js";
 import type { VaultKmsErr } from "./accounts/vault/get-vault-account.js";
+import type { Address, Hex } from "thirdweb";
 
 export type HttpErrStatusCode = 400 | 401 | 403 | 404 | 500 | 501;
 
@@ -116,7 +117,8 @@ export type CryptoErr = {
 export type RpcErr = {
   kind: "rpc";
   chainId?: string;
-  address?: string;
+  address?: Address;
+  transactionHash?: Hex;
   code:
     | "smart_account_determination_failed"
     | "send_transaction_failed"
@@ -128,7 +130,9 @@ export type RpcErr = {
     | "serialize_transaction_failed"
     | "get_transaction_receipt_failed"
     | "get_balance_failed"
-    | "resolve_method_failed";
+    | "resolve_method_failed"
+    | "encode_transaction_failed"
+    | "read_contract_failed";
 } & BaseErr;
 
 export type SmartAccountErr = {
@@ -138,7 +142,7 @@ export type SmartAccountErr = {
 
 export type AccountErr = {
   kind: "account";
-  address?: string;
+  address?: Address;
   code:
     | "account_not_found"
     | "account_deletion_failed"
@@ -335,6 +339,9 @@ export function getDefaultErrorMessage(error: EngineErr): string {
         get_balance_failed: "Failed to get balance",
         resolve_method_failed:
           "Failed to resolve method, this usually means we were unable to get your contract ABI",
+        encode_transaction_failed:
+          "Failed to encode transaction, this usually happens when the transaction is malformed",
+        read_contract_failed: "Failed to read contract",
       };
       return messages[error.code];
     }
@@ -505,7 +512,7 @@ type RpcErrorOptions = {
   status?: number;
   defaultMessage?: string;
   chainId?: string;
-  address?: string;
+  address?: Address;
 };
 
 const DEFAULT_RPC_OPTIONS: RpcErrorOptions = {

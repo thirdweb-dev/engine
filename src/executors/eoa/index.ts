@@ -107,7 +107,7 @@ export type QueueingErr = {
 const callbacks: ((result: ConfirmationResult) => void)[] = [];
 
 export function registerCallback(
-  callback: (result: ConfirmationResult) => void
+  callback: (result: ConfirmationResult) => void,
 ) {
   confirmLogger.info(`Registered callback ${callback.name}`);
   callbacks.push(callback);
@@ -141,7 +141,7 @@ export const eoaConfirmQueue = new Queue<ExecutionResult>(
       },
     },
     connection: redis,
-  }
+  },
 );
 
 export const eoaNonceResetQueue = new Queue<NonceResetRequest>(
@@ -155,21 +155,21 @@ export const eoaNonceResetQueue = new Queue<NonceResetRequest>(
       },
     },
     connection: redis,
-  }
+  },
 );
 
 export const eoaSendJobClearQueue = new Queue<SendJobClearRequest>(
   EOA_SEND_JOB_CLEAR_QUEUE_NAME,
   {
     connection: redis,
-  }
+  },
 );
 
 export const eoaNonceHoleHealingQueue = new Queue<NonceHoleHealingRequest>(
   EOA_NONCE_HOLE_HEALING_QUEUE_NAME,
   {
     connection: redis,
-  }
+  },
 );
 
 export function execute(request: ExecutionRequest) {
@@ -183,7 +183,7 @@ export function execute(request: ExecutionRequest) {
         kind: "queue",
         executionOptions: request.executionOptions,
         source: err,
-      } as QueueingErr)
+      }) as QueueingErr,
   );
 }
 
@@ -194,25 +194,25 @@ function queueNonceReset(address: Address, chainId: string, job: Job) {
     eoaNonceResetQueue.add(
       resetJobId,
       { address, chainId },
-      { jobId: resetJobId }
+      { jobId: resetJobId },
     ),
     (err) =>
       ({
         kind: "queue",
         code: "eoa:queuing_nonce_reset_job_failed",
         source: err,
-      } as QueueingErr)
+      }) as QueueingErr,
   )
     .mapErr((err) => {
       job.log(
-        `[${new Date().toISOString()}] Failed to queue nonce reset: ${err}`
+        `[${new Date().toISOString()}] Failed to queue nonce reset: ${err}`,
       );
       sendLogger.error("Failed to queue nonce reset", err);
       return err;
     })
     .andTee(() => {
       job.log(
-        `[${new Date().toISOString()}] Queued nonce reset job ${resetJobId}`
+        `[${new Date().toISOString()}] Queued nonce reset job ${resetJobId}`,
       );
       sendLogger.info("Queued nonce reset job", { address, chainId });
     });
@@ -243,7 +243,7 @@ export const nonceResetWorker = new Worker<NonceResetRequest, boolean>(
             address,
             chainId,
             source: err as Error,
-          } as RpcErr)
+          }) as RpcErr,
       );
 
       job.log(`[${new Date().toISOString()}] Fetched new nonce: ${newNonce}`);
@@ -256,7 +256,7 @@ export const nonceResetWorker = new Worker<NonceResetRequest, boolean>(
       const resetResult = yield* resetNonceState(address, chainId, newNonce);
 
       job.log(
-        `[${new Date().toISOString()}] Successfully reset nonce state with nonce: ${newNonce}`
+        `[${new Date().toISOString()}] Successfully reset nonce state with nonce: ${newNonce}`,
       );
       resetLogger.info("Successfully reset nonce state", {
         address,
@@ -271,7 +271,7 @@ export const nonceResetWorker = new Worker<NonceResetRequest, boolean>(
       job.log(
         `[${new Date().toISOString()}] Failed to reset nonce state: ${
           result.error
-        }`
+        }`,
       );
       resetLogger.error("Failed to reset nonce state", result.error);
       throw result.error.source ?? new Error(result.error.code);
@@ -281,7 +281,7 @@ export const nonceResetWorker = new Worker<NonceResetRequest, boolean>(
   },
   {
     connection: redis,
-  }
+  },
 );
 
 // Worker dedicated to clearing send jobs in a deduplicated way
@@ -305,12 +305,12 @@ export const sendJobClearWorker = new Worker<SendJobClearRequest, boolean>(
     }
 
     throw new Error(
-      `Not clearing job ${oldJobId} because new job ${newJobId} does not exist. Will retry`
+      `Not clearing job ${oldJobId} because new job ${newJobId} does not exist. Will retry`,
     );
   },
   {
     connection: redis,
-  }
+  },
 );
 
 // Custom error types for better error handling
@@ -350,7 +350,7 @@ function mapTransactionSendError(
     address: Address;
     chainId: string;
     nonce?: number;
-  }
+  },
 ): TransactionSendError | EngineErr {
   if (isEngineErr(error)) {
     return error;
@@ -474,9 +474,9 @@ function syncConfirmedNonce(address: Address, chain: Chain) {
       address,
       chainId: chain.id.toString(),
       source: error instanceof Error ? error : undefined,
-    })
+    }),
   ).andThen((fetchedConfirmedNonce) =>
-    setConfirmedNonceMax(address, chain.id.toString(), fetchedConfirmedNonce)
+    setConfirmedNonceMax(address, chain.id.toString(), fetchedConfirmedNonce),
   );
 }
 
@@ -488,7 +488,7 @@ export const nonceHoleHealingWorker = new Worker<
   async (job) => {
     const { address, chainId } = job.data;
 
-    const chain = await getChain(Number(chainId));
+    const chain = getChain(Number(chainId));
 
     healLogger.info("Processing nonce hole healing", {
       address,
@@ -499,7 +499,7 @@ export const nonceHoleHealingWorker = new Worker<
       // Verify confirmed nonce from chain
       const { confirmedNonce, engineNonce } = yield* syncConfirmedNonce(
         address,
-        chain
+        chain,
       );
 
       if (engineNonce - confirmedNonce < MAX_IN_FLIGHT) {
@@ -541,7 +541,7 @@ export const nonceHoleHealingWorker = new Worker<
 
     return result.value;
   },
-  { connection: redis }
+  { connection: redis },
 );
 
 function queueNonceHoleHealing(address: Address, chainId: string, job: Job) {
@@ -556,14 +556,14 @@ function queueNonceHoleHealing(address: Address, chainId: string, job: Job) {
           id: `heal_${address}_${chainId}`,
           ttl: 1000 * 60 * 2, // 2 minutes
         },
-      }
+      },
     ),
     (error) =>
       ({
         kind: "queue",
         code: "eoa:queuing_nonce_hole_healing_job_failed",
         source: error,
-      } as QueueingErr)
+      }) as QueueingErr,
   ).mapErr((error) => {
     job.log(`[${new Date().toISOString()}] Failed to queue nonce hole healing`);
     healLogger.error("Failed to queue nonce hole healing", error);
@@ -611,7 +611,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
         message: `Specified account ${executionOptions.accountAddress} is a smart account, invalid for EOA execution`,
       };
 
-      // call error handler with this error
+      // todo: call error handler with this error
       throw new UnrecoverableError("Invalid account type");
     }
 
@@ -645,7 +645,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
           error instanceof Error ? error.message : String(error)
         }`,
         source: error instanceof Error ? error : undefined,
-      })
+      }),
     );
 
     if (serialiseableTransactionResult.isErr()) {
@@ -653,14 +653,14 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
       job.log(
         `[${new Date().toISOString()}] Error: ${
           serialiseableTransactionResult.error
-        }`
+        }`,
       );
       // let's retry this job
       throw serialiseableTransactionResult.error.source instanceof Error
         ? serialiseableTransactionResult.error.source
         : new Error(
             serialiseableTransactionResult.error.message ??
-              "Failed to serialize transaction"
+              "Failed to serialize transaction",
           );
     }
 
@@ -668,8 +668,8 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
 
     job.log(
       `[${new Date().toISOString()}] Serialised transaction: ${SuperJSON.stringify(
-        serialisableTransaction
-      )}`
+        serialisableTransaction,
+      )}`,
     );
 
     const precheckResult = await safeTry(async function* () {
@@ -714,7 +714,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
         const recycledNonceReusult = yield* popRecycledNonce(
           accountAddress,
           chainId,
-          MAX_RECYCLED_COUNT
+          MAX_RECYCLED_COUNT,
         );
 
         if (recycledNonceReusult.status === "success") {
@@ -738,7 +738,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
 
       const incrementedNonce = yield* incrementEngineNonce(
         accountAddress,
-        chainId
+        chainId,
       );
 
       return okAsync({
@@ -759,7 +759,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
         precheckResult.error.source instanceof Error
           ? precheckResult.error.source
           : new Error(
-              precheckResult.error.code ?? "Failed to precheck transaction"
+              precheckResult.error.code ?? "Failed to precheck transaction",
             );
       sendLogger.error("Failed to precheck transaction", precheckResult.error);
       throw error;
@@ -771,7 +771,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
     job.log(
       `[${new Date().toISOString()}] Sending transaction with ${
         precheckResult.value.type
-      } nonce ${nonceToUse}`
+      } nonce ${nonceToUse}`,
     );
 
     const sendResult = await ResultAsync.fromPromise(
@@ -784,7 +784,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
           address: accountAddress,
           chainId,
           nonce: nonceToUse,
-        })
+        }),
     );
 
     const serialisedTransaction = serializeTransaction({
@@ -809,7 +809,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
                 return errAsync(
                   accountActionErrorMapper({
                     code: "get_transaction_receipt_failed",
-                  })
+                  }),
                 );
               }
             }
@@ -860,7 +860,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
               serialisableTransaction.gas *
                 (serialisableTransaction.gasPrice ??
                   serialisableTransaction.maxFeePerGas ??
-                  0n)
+                  0n),
             );
           }
 
@@ -868,7 +868,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
             accountAddress,
             chainId,
             nonceToUse,
-            nonceValues.epoch
+            nonceValues.epoch,
           );
           return okAsync(null);
         });
@@ -915,7 +915,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
       const transactionHash = transactionResponse.transactionHash;
 
       job.log(
-        `[${new Date().toISOString()}] Transaction sent successfully with hash ${transactionHash} and nonce ${nonceToUse}`
+        `[${new Date().toISOString()}] Transaction sent successfully with hash ${transactionHash} and nonce ${nonceToUse}`,
       );
 
       sendLogger.info("Transaction sent successfully", {
@@ -946,7 +946,7 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
         return 60000; // Every 1min thereafter
       },
     },
-  }
+  },
 );
 
 function queueConfirmationJob({
@@ -968,7 +968,7 @@ function queueConfirmationJob({
       kind: "queue",
       code: "eoa:queuing_confirm_job_failed",
       source: error as Error,
-    })
+    }),
   );
 }
 
@@ -983,11 +983,11 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
       chainId,
     });
     job.log(
-      `[${new Date().toISOString()}] Confirming transaction ${transactionHash}`
+      `[${new Date().toISOString()}] Confirming transaction ${transactionHash}`,
     );
 
     // Get chain outside of ResultAsync chains
-    const chain = await getChain(Number(chainId));
+    const chain = getChain(Number(chainId));
     const rpcClient = getRpcClient({
       chain,
       client: thirdwebClient,
@@ -996,7 +996,7 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
     // Get transaction receipt
     const result = await ResultAsync.fromPromise(
       eth_getTransactionReceipt(rpcClient, { hash: transactionHash }),
-      (error): TransactionReceiptError => {
+      (error): RpcErr => {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
 
@@ -1009,30 +1009,30 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
         });
 
         return {
-          kind: "transaction_receipt",
-          code: "receipt_not_found",
+          kind: "rpc",
+          code: "get_transaction_receipt_failed",
           status: 404,
           transactionHash,
           message: `Transaction receipt not found: ${errorMessage}`,
           source: error instanceof Error ? error : undefined,
         };
-      }
+      },
     ).andThen((receipt) => {
       // If receipt is null, the transaction hasn't been mined yet
       if (!receipt) {
         job.log(
           `[${new Date().toISOString()}] Transaction not confirmed yet, attempt ${
             job.attemptsMade + 1
-          }/60`
+          }/60`,
         );
 
         return err({
-          kind: "transaction_receipt",
-          code: "receipt_not_found",
+          kind: "rpc",
+          code: "get_transaction_receipt_failed",
           status: 404,
           transactionHash,
           message: "Transaction not mined yet",
-        } as TransactionReceiptError);
+        } as RpcErr);
       }
 
       // Check if the transaction was successful or reverted
@@ -1050,7 +1050,7 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
       job.log(
         `[${new Date().toISOString()}] Transaction confirmed with status ${status} at block ${
           receipt.blockNumber
-        }`
+        }`,
       );
 
       confirmLogger.info("Transaction confirmed", {
@@ -1074,7 +1074,7 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
 
       return ok(
         SuperJSON.serialize(confirmationResult)
-          .json as unknown as ConfirmationResult
+          .json as unknown as ConfirmationResult,
       );
     });
 
@@ -1092,11 +1092,11 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
               transactionHash,
               chainId,
               error,
-            }
+            },
           );
 
           job.log(
-            `[${new Date().toISOString()}] Failed to confirm transaction after maximum attempts`
+            `[${new Date().toISOString()}] Failed to confirm transaction after maximum attempts`,
           );
 
           // Return a placeholder result with reverted status after max attempts
@@ -1112,7 +1112,7 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
 
         // For all other attempts, throw the error to trigger a retry
         throw new Error(error.message || "Failed to confirm transaction");
-      }
+      },
     );
   },
   {
@@ -1125,7 +1125,7 @@ export const confirmWorker = new Worker<ExecutionResult, ConfirmationResult>(
         return 60000; // Every 1min thereafter
       },
     },
-  }
+  },
 );
 
 confirmWorker.on("ready", () => {

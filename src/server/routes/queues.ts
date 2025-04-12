@@ -2,11 +2,11 @@ import { serveStatic } from "hono/bun";
 import { createBullBoard } from "@bull-board/api";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { HonoAdapter } from "@bull-board/hono";
-import { externalBundlerConfirmQueue } from "../../executors/external-bundler";
+import { externalBundlerConfirmQueue } from "../../executors/external-bundler/index.js";
 import {
   externalBundlerConfirmQueue as externalBundlerConfirmQueueAsync,
   externalBundlerSendQueue,
-} from "../../executors/external-bundler-async";
+} from "../../executors/external-bundler-async/index.js";
 import { Hono } from "hono";
 import { basicAuth } from "hono/basic-auth";
 import { env } from "../../lib/env.js";
@@ -42,7 +42,7 @@ export function setupQueuesUiRoutes(app: Hono, basePath: string) {
       password: env.THIRDWEB_API_SECRET_KEY,
       invalidUserMessage: "Invalid username or password",
       realm,
-    })
+    }),
   );
 
   bullmqRoutes.route("", serverAdapter.registerPlugin());
