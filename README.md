@@ -11,6 +11,9 @@
     <a href="https://hub.docker.com/r/thirdweb/engine">
         <img alt="Latest Docker version" src="https://img.shields.io/docker/v/thirdweb/engine?sort=semver&label=docker&logo=docker"/>
     </a>
+    <a href="https://github.com/thirdweb-dev/engine/actions">
+        <img alt="Build" src="https://github.com/thirdweb-dev/engine/actions/workflows/build.yml/badge.svg"/>
+    </a>
     <a href="https://discord.gg/thirdweb">
         <img alt="Join the thirdweb Discord" src="https://img.shields.io/discord/834227967404146718.svg?color=7289da&label=discord&logo=discord&style=flat"/>
     </a>
