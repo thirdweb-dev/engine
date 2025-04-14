@@ -15,7 +15,7 @@ import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Write"],
-    summary: "Send Transaction",
+    summary: "Encoded Transaction",
     description: "Send a transaction or a batch of transactions",
     responses: {
       200: {

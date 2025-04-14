@@ -6,6 +6,7 @@ import {
   readFromContractRoute,
   writeToContractRoute,
 } from "./contract.js";
+import { getNativeBalanceRoute } from "./balance.js";
 
 export const chainActionsRouter = new Hono();
 
@@ -17,6 +18,7 @@ chainActionsRouter.post("/write/contract", ...writeToContractRoute);
 
 // read routes
 chainActionsRouter.post("/read/contract", ...readFromContractRoute);
+chainActionsRouter.post("/read/balance", ...getNativeBalanceRoute);
 
 // encode routes
 chainActionsRouter.post("/encode/contract", ...encodeFunctionDataRoute);

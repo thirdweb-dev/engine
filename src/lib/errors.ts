@@ -86,7 +86,7 @@ export function buildTransactionDbEntryErr({
 
 export type ValidationErr = BaseErr & {
   kind: "validation";
-  code: "invalid_address" | "parse_error";
+  code: "invalid_address" | "parse_error" | "filter_error";
 };
 
 export type WebhookErr = BaseErr & {
@@ -283,6 +283,7 @@ export function getDefaultErrorMessage(error: EngineErr): string {
       const messages: Record<ValidationErr["code"], string> = {
         invalid_address: "Invalid address",
         parse_error: "Invalid input",
+        filter_error: "Invalid filters specified",
       };
       return messages[error.code];
     }

@@ -3,8 +3,8 @@ import { type SQL, and, count, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   buildAdvancedFilters,
+  filterItemSchema,
   filterOperationSchema,
-  filterValueSchema,
 } from "./filter.js";
 
 import {
@@ -61,7 +61,7 @@ const transactionsAnalyticsSchema = z.object({
   resolution: timeResolutionSchema,
 
   // Filters (using the same pattern as search)
-  filters: z.array(filterValueSchema).optional(),
+  filters: z.array(filterItemSchema).optional(),
   filtersOperation: filterOperationSchema.optional().default("AND"),
 });
 
@@ -207,3 +207,176 @@ POST /transactions/analytics
   "filtersOperation": "AND"
 }
 */
+
+// Schema for the request body - Allows nested filters
+const analyticsSummaryRequestSchema = z.object({
+  startDate: z
+    .string()
+    .datetime("Start date must be a valid ISO 8601 string")
+    .optional(),
+  endDate: z
+    .string()
+    .datetime("End date must be a valid ISO 8601 string")
+    .optional(),
+  filters: z.array(filterItemSchema).optional(), // Use filterItemSchema for nesting
+  filtersOperation: filterOperationSchema.optional().default("AND"),
+});
+
+// Schema for the successful response data
+const analyticsSummarySuccessSchema = z.object({
+  summary: z.object({
+    totalCount: z
+      .number()
+      .int()
+      .min(0)
+      .describe("Total number of transactions matching the criteria."),
+    // Use string for potentially very large numbers from gas calculation sum
+    totalGasCostWei: z
+      .string()
+      .describe(
+        "Sum of actualGasCost (in wei) for all matching transactions, as a string.",
+      ),
+    // ADDED: Total gas units used
+    totalGasUnitsUsed: z
+      .string()
+      .describe(
+        "Sum of actualGasUsed (gas units) for all matching transactions, as a string.",
+      ),
+  }),
+  metadata: z.object({
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional(),
+  }),
+});
+
+// Schema for the final wrapped API response
+const analyticsSummaryResponseSchema = wrapResponseSchema(
+  analyticsSummarySuccessSchema,
+);
+
+// --- Route Handler ---
+
+export const analyticsSummaryHandler = transactionsRoutesFactory.createHandlers(
+  zValidator("json", analyticsSummaryRequestSchema),
+  describeRoute({
+    summary: "Transaction Analytics Summary",
+    description:
+      "Get a summary (total count and total gas calculation) for transactions within a time range, supporting complex nested filters.",
+    tags: ["Transactions"],
+    operationId: "getTransactionAnalyticsSummary",
+    responses: {
+      200: {
+        description: "Transaction Analytics Summary",
+        content: {
+          "application/json": {
+            schema: resolver(analyticsSummaryResponseSchema),
+          },
+        },
+      },
+      400: {
+        description:
+          "Bad Request (e.g., invalid date format, filter depth exceeded)",
+      },
+      500: {
+        description: "Internal Server Error (e.g., database error)",
+      },
+    },
+  }),
+  async (c) => {
+    const params = c.req.valid("json");
+
+    // Parse dates
+    const startDate = params.startDate ? new Date(params.startDate) : undefined;
+    const endDate = params.endDate ? new Date(params.endDate) : undefined;
+
+    // --- Build Filters ---
+    let filtersClause: SQL | undefined;
+    try {
+      if (params.filters && params.filters.length > 0) {
+        // Use buildAdvancedFilters which handles nesting
+        filtersClause = buildAdvancedFilters(
+          params.filters,
+          params.filtersOperation,
+          // You can optionally pass maxDepth here if needed, otherwise it uses default
+        );
+      }
+    } catch (error: any) {
+      // Handle potential maxDepth error from buildAdvancedFilters
+      // Assuming buildAdvancedFilters throws a standard Error
+      throw engineErrToHttpException({
+        kind: "validation",
+        code: "filter_error",
+        status: 400,
+        message: error.message || "Failed to build filters.",
+      });
+    }
+
+    // Combine time range and advanced filters
+    const whereConditions = [
+      startDate ? gte(transactions.createdAt, startDate) : undefined,
+      endDate ? lte(transactions.createdAt, endDate) : undefined,
+      filtersClause, // Add the potentially complex filter clause
+    ].filter((condition): condition is SQL => condition !== undefined); // Type guard and filter out undefined
+
+    const finalWhereClause =
+      whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+    // --- Database Query ---
+    // Sum of actualGasCost (wei)
+    const totalGasCostWeiSql = sql<string>`SUM(
+          COALESCE(CAST(${transactions.executionResult}->>'actualGasCost' AS numeric), 0)
+        )`;
+
+    // ADDED: Sum of actualGasUsed (units)
+    const totalGasUnitsUsedSql = sql<string>`SUM(
+          COALESCE(CAST(${transactions.executionResult}->>'actualGasUsed' AS numeric), 0)
+        )`;
+
+    const summaryResult = await ResultAsync.fromPromise(
+      db
+        .select({
+          totalCount: count(),
+          totalGasCostWei: totalGasCostWeiSql,
+          // ADDED: Select the total gas units
+          totalGasUnitsUsed: totalGasUnitsUsedSql,
+        })
+        .from(transactions)
+        .where(finalWhereClause)
+        .then((rows) => rows[0]),
+      mapDbError,
+    );
+
+    if (summaryResult.isErr()) {
+      throw engineErrToHttpException(summaryResult.error);
+    }
+
+    const summaryData = summaryResult.value;
+
+    // Handle nulls/undefined from SUM if no rows match
+    const totalGasCostWeiString = summaryData?.totalGasCostWei ?? "0";
+    // ADDED: Handle null/undefined for gas units
+    const totalGasUnitsUsedString = summaryData?.totalGasUnitsUsed ?? "0";
+    const totalCount = summaryData?.totalCount ?? 0;
+
+    // --- Format Response ---
+    const responseMetadata: { startDate?: string; endDate?: string } = {};
+    if (startDate) {
+      responseMetadata.startDate = startDate.toISOString();
+    }
+    if (endDate) {
+      responseMetadata.endDate = endDate.toISOString();
+    }
+
+    return c.json({
+      result: {
+        summary: {
+          totalCount: totalCount,
+          totalGasCostWei: totalGasCostWeiString,
+          // ADDED: Include total gas units in the response
+          totalGasUnitsUsed: totalGasUnitsUsedString,
+        },
+        metadata: responseMetadata,
+      },
+    });
+  },
+);
