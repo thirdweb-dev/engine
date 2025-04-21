@@ -60,7 +60,7 @@ const confirmLogger = initializeLogger(
   "executor:external-bundler-async:confirm",
 );
 
-type ExecutionRequest = {
+export type ExecutionRequest = {
   id: string;
   executionOptions: {
     signerAddress: Address;
@@ -69,6 +69,11 @@ type ExecutionRequest = {
     sponsorGas: boolean;
     smartAccountAddress: Address;
     accountSalt: string | undefined;
+
+    // vault-specific fields
+    vaultAccessToken?: string;
+    preallocatedNonce?: bigint;
+    nonceSeed?: bigint;
   };
   chainId: string;
   transactionParams: {
@@ -197,6 +202,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
 
     const account = await getEngineAccount({
       address: executionOptions.signerAddress,
+      vaultAccessToken: executionOptions.vaultAccessToken,
     });
 
     if (account.isErr()) {
@@ -247,6 +253,9 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       }
     }
 
+    // redclaring a top level variable, because typescript does not automatically narrow in on preallocatedNonce being non-undefined if it's an object field
+    const preallocatedNonce = executionOptions.preallocatedNonce;
+
     const signedUserOp = await ResultAsync.fromPromise(
       createAndSignUserOp({
         adminAccount: signerAccount,
@@ -263,6 +272,9 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
             accountSalt: executionOptions.accountSalt,
             accountAddress: executionOptions.smartAccountAddress,
             entrypointAddress: executionOptions.entrypointAddress,
+            getAccountNonce: preallocatedNonce
+              ? async () => preallocatedNonce
+              : undefined,
           },
         },
         transactions: transactionParams.map((tx) => ({

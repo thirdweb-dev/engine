@@ -20,7 +20,7 @@ import {
 import { rateLimitMiddleware } from "./middleware/rate-limit.js";
 import { secretKeyAuth } from "./middleware/auth/secret-key.js";
 import { healthCheckRoute } from "./routes/health.js";
-import { apiReference } from "@scalar/hono-api-reference";
+import { Scalar } from "@scalar/hono-api-reference";
 
 import { accountsRoutes } from "./routes/accounts/accounts.js";
 import { openAPISpecs } from "hono-openapi";
@@ -65,31 +65,19 @@ publicRoutes.get(
           bearerAuth: [],
         },
       ],
-      servers: [
-        {
-          url: "http://localhost:3005",
-          description: "Local server",
-        },
-        {
-          url: "https://engine-cloud-dev-l8wt.chainsaw-dev.zeet.app",
-          description: "Zeet Dev Instance",
-        },
-        {
-          url: "https://engine-v3-test-instance-yl1c.engine-aws-usw2.zeet.app",
-          description: "Zeet Test Instance",
-        },
-      ],
     },
   }),
 );
 
 publicRoutes.get(
   "/docs",
-  apiReference({
+  Scalar({
     theme: "kepler",
-    spec: {
-      url: "/openapi",
-    },
+    url: "/openapi",
+    favicon:
+      "https://framerusercontent.com/images/6UCnwoW4U3z16zLNLf31n4ZkyY.png",
+    title: "Engine Core v3 API",
+    pageTitle: "Engine Core v3 API Reference",
   }),
 );
 

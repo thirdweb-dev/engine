@@ -9,9 +9,16 @@ import {
   signTypedData as vault_signTypedData,
   signMessage as vault_signMessage,
   signTransaction as vault_signTransaction,
+  signStructuredMessage as vault_signStructuredMessage,
   type VaultClient,
 } from "../../vault-sdk/sdk.js";
-import type { Auth as VaultAuth, VaultError } from "../../vault-sdk/types.js";
+import type {
+  StructuredMessageInput,
+  UserOperationV06Input,
+  UserOperationV07Input,
+  Auth as VaultAuth,
+  VaultError,
+} from "../../vault-sdk/types.js";
 import type { Account } from "thirdweb/wallets";
 import type { BaseErr, RpcErr } from "../../errors.js";
 import type {
@@ -133,7 +140,7 @@ export function getVaultAccount(options: VaultAccountOptions): Account {
 
     const rpcRequest = getRpcClient({
       client: thirdwebClient,
-      chain: await getChain(tx.chainId),
+      chain: getChain(tx.chainId),
     });
 
     try {
@@ -156,6 +163,7 @@ export function getVaultAccount(options: VaultAccountOptions): Account {
   async function signMessage({
     message,
     chainId,
+    originalMessage,
   }: {
     message: SignableMessage;
     originalMessage?: string;
@@ -163,7 +171,6 @@ export function getVaultAccount(options: VaultAccountOptions): Account {
   }) {
     let finalMessage: string;
     let messageFormat: "text" | "hex" = "text";
-    console.log(message, chainId);
 
     if (typeof message === "string") {
       finalMessage = message;
@@ -175,6 +182,111 @@ export function getVaultAccount(options: VaultAccountOptions): Account {
       messageFormat = "hex";
     }
 
+    // Handle structured message if originalMessage is provided
+    if (originalMessage) {
+      // Use Result.fromThrowable to safely parse JSON
+      const parseResult = Result.fromThrowable(
+        () => JSON.parse(originalMessage),
+        (e) =>
+          createVaultError(
+            e,
+            address,
+            "signMessage",
+            "serialization_error",
+            400,
+          ),
+      )();
+
+      // Only proceed with UserOp detection if parsing succeeded
+      if (parseResult.isOk()) {
+        const parsedMessage = parseResult.value;
+
+        // Basic check that this might be a UserOp (minimal required fields)
+        const looksLikeUserOp =
+          parsedMessage?.sender &&
+          parsedMessage?.nonce &&
+          parsedMessage?.callData &&
+          parsedMessage?.callGasLimit &&
+          parsedMessage?.verificationGasLimit &&
+          parsedMessage?.maxFeePerGas;
+
+        if (looksLikeUserOp) {
+          // Check for version-specific fields
+          const hasV06OnlyFields = "paymasterAndData" in parsedMessage;
+          const hasV07OnlyFields =
+            "paymasterData" in parsedMessage || "paymaster" in parsedMessage;
+
+          let structuredMessage: StructuredMessageInput;
+
+          // Prioritize explicit v0.7 indicators, fall back to v0.6 only if clear
+          if (hasV07OnlyFields || !hasV06OnlyFields) {
+            structuredMessage = {
+              useropV07: parsedMessage as UserOperationV07Input,
+            };
+          } else {
+            structuredMessage = {
+              useropV06: parsedMessage as UserOperationV06Input,
+            };
+          }
+
+          // Use ResultAsync for the async operation
+          const signResult = await ResultAsync.fromPromise(
+            vault_signStructuredMessage({
+              client: vaultClient,
+              request: {
+                auth,
+                options: {
+                  from: address,
+                  structuredMessage,
+                  chainId,
+                },
+              },
+            }),
+            (e) =>
+              createVaultError(
+                e,
+                address,
+                "signMessage",
+                "protocol_error",
+                500,
+              ),
+          );
+
+          if (signResult.isErr()) {
+            throw signResult.error;
+          }
+
+          const result = signResult.value;
+
+          if (result.error) {
+            throw handleVaultResponseError(
+              result.error,
+              address,
+              "signMessage",
+            );
+          }
+
+          // Check if message matches
+          if (result.data.message !== `0x${finalMessage}`) {
+            throw createVaultError(
+              new Error(
+                "[VAULT ERROR] Received message does not match original message",
+              ),
+              address,
+              "signMessage",
+              "invalid_input",
+              400,
+            );
+          }
+
+          return result.data.signature as Hex;
+        }
+      }
+      // If parsing failed or it's not a UserOp, continue with normal signing
+      // No need to log anything here, the error is already captured in parseResult if needed
+    }
+
+    // Original signMessage code for regular signing
     const signResult = await ResultAsync.fromPromise(
       vault_signMessage({
         client: vaultClient,
@@ -188,7 +300,7 @@ export function getVaultAccount(options: VaultAccountOptions): Account {
           },
         },
       }),
-      (e) => createVaultError(e, address, "signMessage"),
+      (e) => createVaultError(e, address, "signMessage", "protocol_error", 500),
     );
 
     if (signResult.isErr()) {

@@ -123,6 +123,8 @@ export type RpcErr = {
     | "smart_account_determination_failed"
     | "send_transaction_failed"
     | "sign_transaction_failed"
+    | "sign_message_failed"
+    | "sign_typed_data_failed"
     | "sign_userop_failed"
     | "bundle_userop_failed"
     | "get_transaction_count_failed"
@@ -330,6 +332,8 @@ export function getDefaultErrorMessage(error: EngineErr): string {
           "Unable to auto create smart account for newly created account",
         send_transaction_failed: "Failed to send transaction to RPC",
         sign_transaction_failed: "Failed to sign transaction",
+        sign_message_failed: "Failed to sign message",
+        sign_typed_data_failed: "Failed to sign typed data",
         sign_userop_failed: "Failed to sign user operation",
         bundle_userop_failed: "Failed to bundle user operation",
         get_userop_receipt_failed: "Failed to get user operation receipt",
@@ -573,7 +577,11 @@ export const accountActionErrorMapper = (options: RpcErrorOptions = {}) => {
       status,
       chainId,
       address,
-      message: error instanceof Error ? error.message : defaultMessage,
+      message: defaultMessage
+        ? defaultMessage
+        : error instanceof Error
+          ? error.message
+          : defaultMessage,
       source: error instanceof Error ? error : undefined,
     } as RpcErr;
   };

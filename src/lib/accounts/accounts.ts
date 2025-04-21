@@ -46,6 +46,8 @@ import { getAwsKmsAccount } from "./aws/get-aws-account.js";
 import { getGcpKmsAccount } from "./gcp/get-gcp-account.js";
 import { getCircleAccount } from "./circle/get-circle-account.js";
 import type { ENGINE_EOA_TYPES } from "../../db/types.js";
+import { getVaultAccount } from "./vault/get-vault-account.js";
+import { vaultClient } from "../vault-client.js";
 
 export type EngineEoaType = (typeof ENGINE_EOA_TYPES)[number];
 
@@ -407,6 +409,19 @@ export function getEngineAccount(params: {
   // encryptionPassword?: string;
 }) {
   return safeTry(async function* () {
+    if (params.vaultAccessToken) {
+      return okAsync({
+        account: getVaultAccount({
+          address: params.signerAddress ?? params.address,
+          auth: {
+            accessToken: params.vaultAccessToken,
+          },
+          thirdwebClient: thirdwebClient,
+          vaultClient: vaultClient,
+        }),
+      });
+    }
+
     const [smartAccountDetails, eoaDetails] = yield* ResultAsync.combine([
       getSmartAccountDbEntry({
         address: params.address,
@@ -415,7 +430,6 @@ export function getEngineAccount(params: {
       getEoaDbEntry({ address: params.address }),
     ]);
 
-    // In case vaultAccessToken is specified, and we
     if (eoaDetails) {
       const account = yield* eoaDbEntryToAccount({
         eoa: eoaDetails,

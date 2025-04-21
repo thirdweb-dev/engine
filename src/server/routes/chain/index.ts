@@ -7,6 +7,11 @@ import {
   writeToContractRoute,
 } from "./contract.js";
 import { getNativeBalanceRoute } from "./balance.js";
+import {
+  signMessageRoute,
+  signTransactionRoute,
+  signTypedDataRoute,
+} from "./sign.js";
 
 export const chainActionsRouter = new Hono();
 
@@ -22,3 +27,8 @@ chainActionsRouter.post("/read/balance", ...getNativeBalanceRoute);
 
 // encode routes
 chainActionsRouter.post("/encode/contract", ...encodeFunctionDataRoute);
+
+// sign routes
+chainActionsRouter.post("/sign/transaction", ...signTransactionRoute);
+chainActionsRouter.post("/sign/message", ...signMessageRoute);
+chainActionsRouter.post("/sign/typed-data", ...signTypedDataRoute);
