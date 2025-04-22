@@ -198,15 +198,33 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
         );
       }
 
-      const contract = getContract({
-        address: transactionReceipt.to,
-        chain,
-        client: thirdwebClient,
-      });
+      const contracts = new Set<string>();
+      contracts.add(transactionReceipt.to);
+      for (const log of transactionReceipt.logs) {
+        if (log.address) {
+          contracts.add(log.address);
+        }
+      }
 
-      const abi: AbiEvent.AbiEvent[] = await resolveContractAbi(contract);
-      const eventSignatures = abi.filter((item) => item.type === "event");
-      if (eventSignatures.length === 0) {
+      const eventSignaturePromises = Array.from(contracts).map(
+        async (address) => {
+          const contract = getContract({
+            address,
+            chain,
+            client: thirdwebClient,
+          });
+
+          const abi: AbiEvent.AbiEvent[] = await resolveContractAbi(contract);
+          const eventSignatures = abi.filter((item) => item.type === "event");
+          return eventSignatures;
+        },
+      );
+
+      const combinedEventSignatures: AbiEvent.AbiEvent[] = (
+        await Promise.all(eventSignaturePromises)
+      ).flat();
+
+      if (combinedEventSignatures.length === 0) {
         throw createCustomError(
           "No events found in contract or could not resolve contract ABI",
           StatusCodes.BAD_REQUEST,
@@ -214,12 +232,14 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
         );
       }
 
-      const preparedEvents = eventSignatures.map((signature) =>
+      const preparedEvents = combinedEventSignatures.map((signature) =>
         prepareEvent({ signature }),
       );
+
       const parsedLogs = parseEventLogs({
         events: preparedEvents,
         logs: transactionReceipt.logs,
+        strict: false,
       });
 
       reply.status(StatusCodes.OK).send({
