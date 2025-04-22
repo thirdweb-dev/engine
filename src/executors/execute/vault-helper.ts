@@ -8,7 +8,6 @@ import {
 import { vaultClient } from "../../lib/vault-client.js";
 import {
   getContract,
-  readContract,
   encode,
   prepareContractCall,
   type Address,
@@ -79,12 +78,12 @@ export function isSignedToken(token?: string): boolean {
 }
 
 // Function selectors for entrypoint contracts
-const FN_SELECTOR = "0x35567e1a" as const; // getNonce function selector
-const FN_INPUTS = [
-  { type: "address", name: "sender" },
-  { type: "uint192", name: "key" },
-] as const;
-const FN_OUTPUTS = [{ type: "uint256", name: "nonce" }] as const;
+// const FN_SELECTOR = "0x35567e1a" as const; // getNonce function selector
+// const FN_INPUTS = [
+//   { type: "address", name: "sender" },
+//   { type: "uint192", name: "key" },
+// ] as const;
+// const FN_OUTPUTS = [{ type: "uint256", name: "nonce" }] as const;
 
 // Helper function similar to prepareBatchExecute but adapted for our use case
 function prepareBatchExecute(args: {
@@ -190,10 +189,10 @@ function encodeTransactionsAsync(
  */
 export function createRestrictedSignedToken({
   storedToken,
-  chainId,
+  // chainId,
   chain,
   thirdwebClient,
-  entrypointAddress,
+  // entrypointAddress,
   smartAccountAddress,
   transactionParams,
 }: CreateRestrictedSignedTokenParams): ResultAsync<
@@ -204,38 +203,41 @@ export function createRestrictedSignedToken({
     // console.time("createRestrictedSignedToken");
 
     // 1. Create contract instance (using the passed chain object)
-    const entrypointContract = getContract({
-      address: entrypointAddress,
-      chain,
-      client: thirdwebClient,
-    });
+    // const entrypointContract = getContract({
+    //   address: entrypointAddress,
+    //   chain,
+    //   client: thirdwebClient,
+    // });
 
     // 2. Generate random nonce key
+    // const nonceSeed = generateRandomUint192();
+
+    // // console.timeLog("createRestrictedSignedToken", "before allocating nonce");
+
+    // // 3. Get pre-allocated nonce
+    // const preallocatedNonce = yield* ResultAsync.fromPromise(
+    //   readContract({
+    //     contract: entrypointContract,
+    //     method: [FN_SELECTOR, FN_INPUTS, FN_OUTPUTS] as const,
+    //     params: [smartAccountAddress, nonceSeed],
+    //   }),
+    //   (e) =>
+    //     ({
+    //       kind: "rpc",
+    //       code: "read_contract_failed",
+    //       status: 500,
+    //       message:
+    //         e instanceof Error
+    //           ? e.message
+    //           : "Failed to get pre-allocated nonce",
+    //       source: e instanceof Error ? e : undefined,
+    //       chainId,
+    //       address: smartAccountAddress,
+    //     }) as RpcErr,
+    // );
+
     const nonceSeed = generateRandomUint192();
-
-    // console.timeLog("createRestrictedSignedToken", "before allocating nonce");
-
-    // 3. Get pre-allocated nonce
-    const preallocatedNonce = yield* ResultAsync.fromPromise(
-      readContract({
-        contract: entrypointContract,
-        method: [FN_SELECTOR, FN_INPUTS, FN_OUTPUTS] as const,
-        params: [smartAccountAddress, nonceSeed],
-      }),
-      (e) =>
-        ({
-          kind: "rpc",
-          code: "read_contract_failed",
-          status: 500,
-          message:
-            e instanceof Error
-              ? e.message
-              : "Failed to get pre-allocated nonce",
-          source: e instanceof Error ? e : undefined,
-          chainId,
-          address: smartAccountAddress,
-        }) as RpcErr,
-    );
+    const preallocatedNonce = nonceSeed << 64n;
 
     // console.timeLog(
     //   "createRestrictedSignedToken",
