@@ -11,7 +11,11 @@ import {
   type RpcErr,
 } from "../../../lib/errors.js";
 import { thirdwebClient } from "../../../lib/thirdweb-client.js";
-import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js";
+import {
+  credentialsFromHeaders,
+  executionCredentialsHeadersSchema,
+  wrapResponseSchema,
+} from "../../schemas/shared-api-schemas.js";
 import { evmAddressSchema, hexSchema } from "../../../lib/zod.js";
 import {
   type Hex,
@@ -27,10 +31,13 @@ import {
   buildExecutionRequestSchema,
   type EncodedExecutionRequest,
 } from "../../../executors/types.js";
-import { getChain } from "../../../lib/chain.js";
+import { getChainResult } from "../../../lib/chain.js";
 import { onchainRoutesFactory } from "./factory.js";
 import { TypedDataDomain, TypedDataParameter } from "abitype/zod";
-import { getExecutionAccountFromRequest } from "../../../executors/execute/execute.js";
+import {
+  getExecutionAccountFromRequest,
+  type ExecutionCredentials,
+} from "../../../executors/execute/execute.js";
 import type { Account } from "thirdweb/wallets";
 
 // --- Schema Definitions ---
@@ -152,16 +159,14 @@ const signMessageRequestSchema = buildExecutionRequestSchema(
 );
 
 // 3. Sign Typed Data Schemas
-const typedDataSignatureParamsSchema = z.object({
-  typedData: z
-    .object({
-      domain: TypedDataDomain,
-      types: z.record(z.string(), z.array(TypedDataParameter)),
-      primaryType: z.string(),
-      message: z.record(z.string(), z.any()),
-    })
-    .describe("The EIP-712 typed data structure"),
-});
+const typedDataSignatureParamsSchema = z
+  .object({
+    domain: TypedDataDomain,
+    types: z.record(z.string(), z.array(TypedDataParameter)),
+    primaryType: z.string(),
+    message: z.record(z.string(), z.any()),
+  })
+  .describe("The EIP-712 typed data structure");
 
 const signTypedDataRequestSchema = buildExecutionRequestSchema(
   z.array(typedDataSignatureParamsSchema),
@@ -191,51 +196,66 @@ async function processBatch<TInput, TSuccess, TError>(
 }
 
 // Helper to get the correct signing account based on the request
-function getSigningAccount(
-  request: EncodedExecutionRequest,
-  client: ThirdwebClient,
-  chain: Chain,
-): ResultAsync<Account, EngineErr> {
+function getSigningAccount({
+  request,
+  credentials,
+  client,
+  chain,
+}: {
+  request: EncodedExecutionRequest;
+  credentials: ExecutionCredentials;
+  client: ThirdwebClient;
+  chain: Chain;
+}): ResultAsync<Account, EngineErr> {
   return safeTry(async function* () {
-    const accountResult = yield* getExecutionAccountFromRequest(request);
-    if ("signerAccount" in accountResult) {
-      const { signerAccount, smartAccountDetails } = accountResult;
+    const accountResult = yield* getExecutionAccountFromRequest({
+      request,
+      credentials,
+      client,
+    });
 
-      // Handle the async import and connection with ResultAsync.fromPromise
-      // Configure the smart wallet with the details from the request
-      const wallet = smartWallet({
-        chain,
-        factoryAddress: smartAccountDetails.factoryAddress,
-        overrides: {
-          entrypointAddress: smartAccountDetails.entrypointAddress,
-          accountAddress: smartAccountDetails.address,
-          accountSalt: smartAccountDetails.accountSalt ?? undefined,
-        },
-        sponsorGas:
-          "executionOptions" in request
-            ? request.executionOptions.sponsorGas
-            : true,
-      });
+    switch (accountResult.type) {
+      case "EOA": {
+        return ok(accountResult.account);
+      }
+      case "AA:zksync": {
+        return ok(accountResult.zkEoaAccount);
+      }
+      case "AA": {
+        const { signerAccount, smartAccountDetails } = accountResult;
 
-      // Connect the smart wallet using the signer account
-      const smartAccountResult = ResultAsync.fromPromise(
-        wallet.connect({
-          client,
-          personalAccount: signerAccount,
-        }),
-        accountActionErrorMapper({
-          code: "smart_account_determination_failed",
-          defaultMessage: `Failed to connect smart account`,
-          status: 500,
-          address: smartAccountDetails.address,
-          chainId: request.chainId,
-        }),
-      );
+        // Handle the async import and connection with ResultAsync.fromPromise
+        // Configure the smart wallet with the details from the request
+        const wallet = smartWallet({
+          chain,
+          factoryAddress: smartAccountDetails.factoryAddress,
+          overrides: {
+            entrypointAddress: smartAccountDetails.entrypointAddress,
+            accountAddress: smartAccountDetails.address,
+            accountSalt: smartAccountDetails.accountSalt ?? undefined,
+          },
+          sponsorGas:
+            "sponsorGas" in request.executionOptions
+              ? request.executionOptions.sponsorGas
+              : true,
+        });
 
-      return ok(yield* smartAccountResult);
-    } else {
-      // For EOA, just return the direct account
-      return ok(accountResult.account);
+        // Connect the smart wallet using the signer account
+        const smartAccountResult = ResultAsync.fromPromise(
+          wallet.connect({
+            client,
+            personalAccount: signerAccount,
+          }),
+          accountActionErrorMapper({
+            code: "smart_account_determination_failed",
+            defaultMessage: `Failed to connect smart account`,
+            status: 500,
+            address: smartAccountDetails.address,
+            chainId: request.executionOptions.chainId,
+          }),
+        );
+        return ok(yield* smartAccountResult);
+      }
     }
   });
 }
@@ -258,20 +278,29 @@ export const signTransactionRoute = onchainRoutesFactory.createHandlers(
     },
   }),
   validator("json", signTransactionRequestSchema, zErrorMapper),
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
-    const { chainId, transactionParams } = body;
+    const credentials = c.req.valid("header");
+    const { params: transactionParams, executionOptions } = body;
+    const { chainId } = executionOptions;
 
-    const chain = getChain(Number.parseInt(chainId));
     const overrideThirdwebClient = c.get("thirdwebClient");
+    const chainResult = getChainResult(chainId);
+    if (chainResult.isErr()) {
+      throw engineErrToHttpException(chainResult.error);
+    }
+    const chain = chainResult.value;
     const effectiveThirdwebClient = overrideThirdwebClient ?? thirdwebClient;
 
     // Get the account for signing
-    const accountResult = await getSigningAccount(
-      body as EncodedExecutionRequest,
-      effectiveThirdwebClient,
+    const accountResult = await getSigningAccount({
+      request: body as EncodedExecutionRequest,
+      client: effectiveThirdwebClient,
       chain,
-    );
+      credentials: credentialsFromHeaders(credentials),
+    });
+
     if (accountResult.isErr()) {
       throw engineErrToHttpException(accountResult.error);
     }
@@ -364,20 +393,30 @@ export const signMessageRoute = onchainRoutesFactory.createHandlers(
     },
   }),
   validator("json", signMessageRequestSchema, zErrorMapper),
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
-    const { chainId, transactionParams } = body;
+    const credentials = c.req.valid("header");
 
-    const chain = getChain(Number.parseInt(chainId));
+    const { params: transactionParams, executionOptions } = body;
+    const { chainId } = executionOptions;
+
+    const chainResult = getChainResult(chainId);
+    if (chainResult.isErr()) {
+      throw engineErrToHttpException(chainResult.error);
+    }
+    const chain = chainResult.value;
+
     const overrideThirdwebClient = c.get("thirdwebClient");
     const effectiveThirdwebClient = overrideThirdwebClient ?? thirdwebClient;
 
     // Get the account for signing
-    const accountResult = await getSigningAccount(
-      body as EncodedExecutionRequest,
-      effectiveThirdwebClient,
+    const accountResult = await getSigningAccount({
+      request: body as EncodedExecutionRequest,
+      client: effectiveThirdwebClient,
+      credentials: credentialsFromHeaders(credentials),
       chain,
-    );
+    });
     if (accountResult.isErr()) {
       throw engineErrToHttpException(accountResult.error);
     }
@@ -455,20 +494,30 @@ export const signTypedDataRoute = onchainRoutesFactory.createHandlers(
     },
   }),
   validator("json", signTypedDataRequestSchema, zErrorMapper),
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
-    const { chainId, transactionParams } = body;
+    const credentials = c.req.valid("header");
 
-    const chain = getChain(Number.parseInt(chainId));
+    const { params: transactionParams, executionOptions } = body;
+    const { chainId } = executionOptions;
+
+    const chainResult = getChainResult(chainId);
+    if (chainResult.isErr()) {
+      throw engineErrToHttpException(chainResult.error);
+    }
+    const chain = chainResult.value;
+
     const overrideThirdwebClient = c.get("thirdwebClient");
     const effectiveThirdwebClient = overrideThirdwebClient ?? thirdwebClient;
 
     // Get the account for signing
-    const accountResult = await getSigningAccount(
-      body as EncodedExecutionRequest,
-      effectiveThirdwebClient,
+    const accountResult = await getSigningAccount({
+      request: body as EncodedExecutionRequest,
+      client: effectiveThirdwebClient,
+      credentials: credentialsFromHeaders(credentials),
       chain,
-    );
+    });
     if (accountResult.isErr()) {
       throw engineErrToHttpException(accountResult.error);
     }
@@ -488,10 +537,9 @@ export const signTypedDataRoute = onchainRoutesFactory.createHandlers(
       signingAccount.signTypedData.bind(signingAccount);
 
     const signTypedDataProcessor = (
-      typedDataParam: z.infer<typeof typedDataSignatureParamsSchema>,
+      typedData: z.infer<typeof typedDataSignatureParamsSchema>,
     ): ResultAsync<SignSuccessItem, SignErrorItem> => {
       return safeTry(async function* () {
-        const { typedData } = typedDataParam;
         const { domain, types, primaryType, message } = typedData;
 
         const signature = yield* ResultAsync.fromPromise(

@@ -86,7 +86,12 @@ export function buildTransactionDbEntryErr({
 
 export type ValidationErr = BaseErr & {
   kind: "validation";
-  code: "invalid_address" | "parse_error" | "filter_error";
+  code:
+    | "invalid_address"
+    | "parse_error"
+    | "filter_error"
+    | "invalid_contract_details"
+    | "invalid_chain";
 };
 
 export type WebhookErr = BaseErr & {
@@ -134,7 +139,8 @@ export type RpcErr = {
     | "get_balance_failed"
     | "resolve_method_failed"
     | "encode_transaction_failed"
-    | "read_contract_failed";
+    | "read_contract_failed"
+    | "chain_determination_failed";
 } & BaseErr;
 
 export type SmartAccountErr = {
@@ -286,6 +292,9 @@ export function getDefaultErrorMessage(error: EngineErr): string {
         invalid_address: "Invalid address",
         parse_error: "Invalid input",
         filter_error: "Invalid filters specified",
+        invalid_contract_details: "Invalid contract details",
+        invalid_chain:
+          "Invalid chain. This could mean parsing the chain ID failed, or the requested action is not supported on this chain.",
       };
       return messages[error.code];
     }
@@ -347,6 +356,8 @@ export function getDefaultErrorMessage(error: EngineErr): string {
         encode_transaction_failed:
           "Failed to encode transaction, this usually happens when the transaction is malformed",
         read_contract_failed: "Failed to read contract",
+        chain_determination_failed:
+          "Failed to determine chain (eg: checking if chain is zkSync)",
       };
       return messages[error.code];
     }

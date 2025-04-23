@@ -8,32 +8,23 @@ import {
   mapDbError,
   type AccountErr,
   type EngineErr,
+  type ValidationErr,
 } from "../../lib/errors.js";
-import { execute as executeExternalBundler } from "../external-bundler/index.js";
 import {
   execute as executeExternalBundlerAsync,
   type ExecutionRequest as AsyncBundlerExecutionRequest,
 } from "../external-bundler-async/index.js";
 
-import { getChain } from "../../lib/chain.js";
+import { getChainResult } from "../../lib/chain.js";
 import {
-  getContract,
-  isHex,
-  stringToHex,
   ZERO_ADDRESS,
   type Address,
+  type Chain,
   type Hex,
   type ThirdwebClient,
 } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
-import {
-  DEFAULT_ACCOUNT_FACTORY_V0_6,
-  DEFAULT_ACCOUNT_FACTORY_V0_7,
-  ENTRYPOINT_ADDRESS_v0_6,
-  ENTRYPOINT_ADDRESS_v0_7,
-} from "thirdweb/wallets/smart";
-import { predictAccountAddress } from "thirdweb/extensions/erc4337";
-import { thirdwebClient } from "../../lib/thirdweb-client.js";
+
 import { db } from "../../db/connection.js";
 import { transactions } from "../../db/schema.js";
 import { randomUUID } from "node:crypto";
@@ -41,18 +32,17 @@ import SuperJSON from "superjson";
 import type {
   ExecutionParamsSerialized,
   TransactionParamsSerialized,
-  ExecutionResult4337Serialized,
 } from "../../db/types.js";
 import "./external-bundler-confirm-handler.js";
 import "./external-bundler-send-handler.js";
-import { getVaultAccount } from "../../lib/accounts/vault/get-vault-account.js";
-import { vaultClient } from "../../lib/vault-client.js";
 import {
   createRestrictedSignedToken,
-  isSignedToken,
   isStoredToken,
   type CreateRestrictedSignedTokenResult,
 } from "./vault-helper.js";
+
+import { isZkSyncChainResult } from "../../lib/result-wrapped/thirdweb-sdk.js";
+import { resolve as resolve_aa } from "../../executors/execute/resolution/aa.js";
 
 type AsyncBundlerExecutionRequestOptions =
   AsyncBundlerExecutionRequest["executionOptions"];
@@ -60,16 +50,20 @@ type AsyncBundlerExecutionRequestOptions =
 // Define what we cache - the address info needed to create accounts
 type CachedExecutionAccountInfo =
   | {
-      type: "eoa";
+      type: "EOA";
       address: Address;
     }
   | {
-      type: "aa";
+      type: "AA";
       signerAddress: Address;
       smartAccountAddress: Address;
       factoryAddress: Address;
       entrypointAddress: Address;
       accountSalt: string | null;
+    }
+  | {
+      type: "AA:zksync";
+      accountAddress: Address;
     };
 
 // Create an LRU cache for the account resolution info
@@ -77,7 +71,7 @@ export const executionAccountCache = new LRUCache<
   string,
   CachedExecutionAccountInfo
 >({
-  max: 2048, // Store up to 2048 resolution results
+  max: 10_000, // Store up to 10_000 resolution results
   ttl: 1000 * 60 * 60 * 24 * 7, // 7 day cache expiration
 });
 
@@ -85,24 +79,55 @@ export const executionAccountCache = new LRUCache<
 function generateExecutionAccountCacheKey(
   request: EncodedExecutionRequest,
 ): string {
-  // For direct EOA requests
-  if ("from" in request) {
-    return `vague_${request.from}:${request.chainId}`;
+  switch (request.executionOptions.type) {
+    case "auto":
+      return `auto_${request.executionOptions.from}:${request.executionOptions.chainId}`;
+    case "AA": {
+      const options = request.executionOptions;
+      return [
+        `type:${options.type}`,
+        `signer:${options.signerAddress}`,
+        `smartAddr:${"smartAccountAddress" in options ? options.smartAccountAddress : "unspecified"}`,
+        `entrypoint:${options.entrypointAddress ?? "unspecified"}`,
+        `factory:${options.factoryAddress ?? "unspecified"}`,
+        `salt:${"accountSalt" in options ? options.accountSalt : "unspecified"}`,
+        `chain:${options.chainId}`,
+      ].join("_");
+    }
+    case "AA:zksync": {
+      return `AA:zksync_${request.executionOptions.accountAddress}:${request.executionOptions.chainId}`;
+    }
   }
-
-  // For smart account requests - include all possible parameters
-  const options = request.executionOptions;
-  return [
-    `specific`,
-    `type:${options.type}`,
-    `signer:${options.signerAddress}`,
-    `smartAddr:${"smartAccountAddress" in options ? options.smartAccountAddress : "unspecified"}`,
-    `entrypoint:${options.entrypointAddress ?? "unspecified"}`,
-    `factory:${options.factoryAddress ?? "unspecified"}`,
-    `salt:${"accountSalt" in options ? options.accountSalt : "unspecified"}`,
-    `chain:${request.chainId}`,
-  ].join("_");
 }
+
+export type ExecutionCredentials = {
+  vaultAccessToken?: string;
+};
+
+type ResolvedExecutionAccount_AA = {
+  type: "AA";
+  signerAccount: Account;
+  smartAccountDetails: {
+    factoryAddress: Address;
+    entrypointAddress: Address;
+    address: Address;
+  } & { accountSalt: string | null | undefined };
+};
+
+type ResolvedExecutionAccount_AA_zksync = {
+  type: "AA:zksync";
+  zkEoaAccount: Account;
+};
+
+type ResolvedExecutionAccount_EOA = {
+  type: "EOA";
+  account: Account;
+};
+
+type ResolvedExecutionAccount =
+  | ResolvedExecutionAccount_AA
+  | ResolvedExecutionAccount_AA_zksync
+  | ResolvedExecutionAccount_EOA;
 
 /**
  * Resolves the appropriate accounts needed for transaction execution from the provided request.
@@ -110,39 +135,29 @@ function generateExecutionAccountCacheKey(
  * and account prediction with various degrees of provided information.
  *
  * @param request - The encoded execution request containing authentication and account details
+ * @param credentials - Credentials for authentication, including optional vault access token
  *
  * @returns A ResultAsync that resolves to either:
  *   - `{ signerAccount, smartAccountDetails }` for smart account transactions
  *     - `signerAccount`: The EOA account that will sign transactions
  *     - `smartAccountDetails`: Contains address, factory, entrypoint and optional salt
  *   - `{ account }` for direct EOA transactions
+ *   - `{ zkEoaAccount }` for zkSync account transactions
  *
  * The function returns errors (not throws) in these cases:
  * - AccountErr: When provided signerAddress is a smart account (not allowed as signer)
  * - AccountErr: When a smart account address is an EOA (not allowed as smart account)
- *
- * The function handles different scenarios:
- * - Vault authentication (using vault access tokens)
- * - User-provided smart account details (complete or partial)
- * - Smart account lookup from database
- * - Smart account address prediction when not explicitly provided
- * - Default factory/entrypoint resolution when not specified
+ * - ValidationErr: When using zkSync execution on a non-zkSync chain
  */
-export function getExecutionAccountFromRequest(
-  request: EncodedExecutionRequest,
-): ResultAsync<
-  | {
-      signerAccount: Account;
-      smartAccountDetails: {
-        factoryAddress: Address;
-        entrypointAddress: Address;
-        address: Address;
-        accountSalt: string | null | undefined;
-      };
-    }
-  | { account: Account },
-  EngineErr
-> {
+export function getExecutionAccountFromRequest({
+  client,
+  credentials,
+  request,
+}: {
+  request: EncodedExecutionRequest;
+  credentials: ExecutionCredentials;
+  client: ThirdwebClient;
+}): ResultAsync<ResolvedExecutionAccount, EngineErr> {
   return safeTry(async function* () {
     const cacheKey = generateExecutionAccountCacheKey(request);
     const cachedInfo = executionAccountCache.get(cacheKey);
@@ -154,417 +169,325 @@ export function getExecutionAccountFromRequest(
       // console.timeLog("execute", "cache hit");
 
       // Reconstruct the account objects from cached info
-      if (cachedInfo.type === "eoa") {
-        // Get the EOA account (light operation since we know it exists)
-        const engineAccountResult = yield* getEngineAccount({
-          address: cachedInfo.address,
-          vaultAccessToken: request.vaultAccessToken,
-        });
+      switch (cachedInfo.type) {
+        case "EOA": {
+          // Get the EOA account (light operation since we know it exists)
+          const engineAccountResult = yield* getEngineAccount({
+            address: cachedInfo.address,
+            vaultAccessToken: credentials.vaultAccessToken,
+          });
 
-        if ("signerAccount" in engineAccountResult) {
-          return errAsync({
-            kind: "account",
-            code: "account_not_found",
-            message: `Account not found: ${cachedInfo.address}. Provided signer address is a smart account. Smart account must not be used as a signer.`,
-            status: 400,
-          } as AccountErr);
+          if ("signerAccount" in engineAccountResult) {
+            return errAsync({
+              kind: "account",
+              code: "account_not_found",
+              message: `Account not found: ${cachedInfo.address}. Provided signer address is a smart account. Smart account must not be used as a signer.`,
+              status: 400,
+            } as AccountErr);
+          }
+
+          return okAsync({
+            type: "EOA",
+            account: engineAccountResult.account,
+          } as ResolvedExecutionAccount);
         }
 
-        return okAsync({ account: engineAccountResult.account });
-      } else {
-        // For smart account, get the signer EOA
-        const signerAccount = yield* getEngineAccount({
-          address: cachedInfo.signerAddress,
-          vaultAccessToken: request.vaultAccessToken,
-        });
+        case "AA:zksync": {
+          const engineAccountResult = yield* getEngineAccount({
+            address: cachedInfo.accountAddress,
+            vaultAccessToken: credentials.vaultAccessToken,
+          });
 
-        if ("signerAccount" in signerAccount) {
-          // This should never happen with cached valid data
-          return errAsync({
-            kind: "account",
-            code: "account_not_found",
-            message: `Invalid cached data: ${cachedInfo.signerAddress}. Signer address is a smart account.`,
-            status: 400,
-          } as AccountErr);
+          if ("signerAccount" in engineAccountResult) {
+            // This should never happen with cached valid data
+            return errAsync({
+              kind: "account",
+              code: "account_not_found",
+              message: `Account not found: ${cachedInfo.accountAddress}. Provided account address is an ERC4337 smart account. ERC4337 Smart Account cannot be used for zksync AA`,
+              status: 400,
+            } as AccountErr);
+          }
+
+          return okAsync({
+            type: "AA:zksync",
+            zkEoaAccount: engineAccountResult.account,
+          } as ResolvedExecutionAccount);
         }
 
-        // Return the reconstructed result
-        return okAsync({
-          signerAccount: signerAccount.account,
-          smartAccountDetails: {
-            address: cachedInfo.smartAccountAddress,
-            factoryAddress: cachedInfo.factoryAddress,
-            entrypointAddress: cachedInfo.entrypointAddress,
-            accountSalt: cachedInfo.accountSalt,
-          },
-        });
+        case "AA": {
+          // For smart account, get the signer EOA
+          const signerAccount = yield* getEngineAccount({
+            address: cachedInfo.signerAddress,
+            vaultAccessToken: credentials.vaultAccessToken,
+          });
+
+          if ("signerAccount" in signerAccount) {
+            // This should never happen with cached valid data
+            return errAsync({
+              kind: "account",
+              code: "account_not_found",
+              message: `Invalid cached data: ${cachedInfo.signerAddress}. Signer address is a smart account.`,
+              status: 400,
+            } as AccountErr);
+          }
+
+          // Return the reconstructed result
+          return okAsync({
+            type: "AA",
+            signerAccount: signerAccount.account,
+            smartAccountDetails: {
+              address: cachedInfo.smartAccountAddress,
+              factoryAddress: cachedInfo.factoryAddress,
+              entrypointAddress: cachedInfo.entrypointAddress,
+              accountSalt: cachedInfo.accountSalt,
+            },
+          } as ResolvedExecutionAccount);
+        }
       }
     }
 
     // console.timeLog("execute", "cache miss, before full resolution");
 
     // Not in cache, run the full resolution logic
-    const result = yield* getExecutionAccountFromRequestImpl(request);
+    const result = yield* getExecutionAccountFromRequest_uncached({
+      request,
+      credentials,
+      client,
+    });
 
     // console.timeLog("execute", "cache miss, after full resolution");
 
     // console.log("DEBUG CACHE MISS", result);
 
     // Cache the resolution info for future use
-    if ("account" in result) {
-      executionAccountCache.set(cacheKey, {
-        type: "eoa",
-        address: result.account.address as Address,
-      });
-    } else {
-      executionAccountCache.set(cacheKey, {
-        type: "aa",
-        signerAddress: result.signerAccount.address as Address,
-        smartAccountAddress: result.smartAccountDetails.address,
-        factoryAddress: result.smartAccountDetails.factoryAddress,
-        entrypointAddress: result.smartAccountDetails.entrypointAddress,
-        accountSalt: result.smartAccountDetails.accountSalt ?? null,
-      });
+    switch (result.type) {
+      case "EOA": {
+        executionAccountCache.set(cacheKey, {
+          type: "EOA",
+          address: result.account.address as Address,
+        });
+        break;
+      }
+      case "AA:zksync": {
+        executionAccountCache.set(cacheKey, {
+          type: "AA:zksync",
+          accountAddress: result.zkEoaAccount.address as Address,
+        });
+        break;
+      }
+      case "AA": {
+        executionAccountCache.set(cacheKey, {
+          type: "AA",
+          signerAddress: result.signerAccount.address as Address,
+          smartAccountAddress: result.smartAccountDetails.address,
+          factoryAddress: result.smartAccountDetails.factoryAddress,
+          entrypointAddress: result.smartAccountDetails.entrypointAddress,
+          accountSalt: result.smartAccountDetails.accountSalt ?? null,
+        });
+        break;
+      }
     }
 
     return okAsync(result);
   });
 }
 
-function getExecutionAccountFromRequestImpl(
-  request: EncodedExecutionRequest,
-): ResultAsync<
-  | {
-      signerAccount: Account;
-      smartAccountDetails: {
-        factoryAddress: Address;
-        entrypointAddress: Address;
-        address: Address;
-      } & { accountSalt: string | null | undefined };
-    }
-  | { account: Account },
-  EngineErr
-> {
+function getExecutionAccountFromRequest_uncached({
+  request,
+  credentials,
+  client,
+}: {
+  request: EncodedExecutionRequest;
+  credentials: ExecutionCredentials;
+  client: ThirdwebClient;
+}): ResultAsync<ResolvedExecutionAccount, EngineErr> {
   return safeTry(async function* () {
-    if (request.vaultAccessToken) {
-      if ("from" in request) {
-        // this will break because we don't have EOA execution right now
-        return okAsync({
-          account: getVaultAccount({
-            address: request.from,
-            auth: {
-              accessToken: request.vaultAccessToken,
-            },
-            thirdwebClient,
-            vaultClient,
-          }),
-        });
+    const chain = yield* getChainResult(request.executionOptions.chainId);
+    // in case of a vault access token credential, skip storage lookup because these accounts are never stored in the DB
+    const shouldSkipStorageLookup = !!credentials.vaultAccessToken;
+
+    switch (request.executionOptions.type) {
+      case "auto": {
+        {
+          const engineAccountResponse = yield* getEngineAccount({
+            address: request.executionOptions.from,
+            vaultAccessToken: credentials.vaultAccessToken,
+          });
+
+          if ("signerAccount" in engineAccountResponse) {
+            return okAsync({
+              type: "AA" as const,
+              signerAccount: engineAccountResponse.signerAccount,
+              smartAccountDetails: engineAccountResponse.smartAccountDetails,
+            });
+          }
+
+          const isZkChain = yield* isZkSyncChainResult(chain);
+
+          if (isZkChain) {
+            return okAsync({
+              type: "AA:zksync" as const,
+              zkEoaAccount: engineAccountResponse.account,
+            });
+          }
+
+          return okAsync({
+            type: "EOA" as const,
+            account: engineAccountResponse.account,
+          });
+        }
       }
+      case "AA": {
+        {
+          const resolved = yield* resolve_aa({
+            options: request.executionOptions,
+            chain,
+            credentials,
+            client,
+            skipStorageLookup: shouldSkipStorageLookup,
+          });
 
-      const smartAccountAddress =
-        "smartAccountAddress" in request.executionOptions
-          ? request.executionOptions.smartAccountAddress
-          : undefined;
-
-      const factoryAddress =
-        request.executionOptions.factoryAddress ?? DEFAULT_ACCOUNT_FACTORY_V0_7;
-
-      const entrypointAddress =
-        (request.executionOptions.entrypointAddress ??
-        factoryAddress === DEFAULT_ACCOUNT_FACTORY_V0_6)
-          ? (ENTRYPOINT_ADDRESS_v0_6 as Address)
-          : (ENTRYPOINT_ADDRESS_v0_7 as Address);
-
-      const salt =
-        "accountSalt" in request.executionOptions
-          ? request.executionOptions.accountSalt
-          : undefined;
-
-      const chain = getChain(Number.parseInt(request.chainId));
-
-      const factoryContract = getContract({
-        address: factoryAddress,
-        chain,
-        client: thirdwebClient,
-      });
-
-      const saltHex = salt && isHex(salt) ? salt : stringToHex(salt ?? "");
-
-      // console.time("predict smart account address");
-      const finalSmartAccountAddress =
-        smartAccountAddress ??
-        ((await predictAccountAddress({
-          adminSigner: request.executionOptions.signerAddress,
-          contract: factoryContract,
-          data: saltHex,
-        })) as Address);
-
-      // console.timeEnd("predict smart account address");
-
-      return okAsync({
-        signerAccount: getVaultAccount({
-          address: request.executionOptions.signerAddress,
-          auth: {
-            accessToken: request.vaultAccessToken,
-          },
-          thirdwebClient,
-          vaultClient,
-        }),
-        smartAccountDetails: {
-          address: finalSmartAccountAddress,
-          factoryAddress,
-          entrypointAddress,
-          accountSalt: salt,
-        },
-      });
-    }
-
-    // if only from is provided, we use it to fetch an account
-    // we either get only account, or a signer + smartAccount
-    if ("from" in request) {
-      return okAsync(
-        yield* getEngineAccount({
-          address: request.from,
-          vaultAccessToken: request.vaultAccessToken,
-        }),
-      );
-    }
-
-    // if from was not provided, then we know signerAddress was provided
-    // but a smartAccountAddress may or may not be provided
-    // if smart account address was provided, there are two cases:
-    //
-    // 1. Smart Account is registered to this EOA in the DB.
-    //    In which case we can fetch all data about the smart account
-    //
-    // 2. Smart Account is not registered to this EOA in the DB.
-    //    In which case we need to rely on executionOptions to contain all data,
-    //    and if not we defer to default values
-
-    if ("smartAccountAddress" in request.executionOptions) {
-      // the simplest case is if the request contains all the data we need: entrypointAddress, factoryAddress
-      if (
-        request.executionOptions.entrypointAddress &&
-        request.executionOptions.factoryAddress
-      ) {
-        // good to go! let's just fetch the EOA and send provided execution options
-        const engineSignerAccountResponse = yield* getEngineAccount({
-          address: request.executionOptions.signerAddress,
+          return okAsync({
+            type: "AA" as const,
+            ...resolved,
+          });
+        }
+      }
+      case "AA:zksync": {
+        const isThisZkSyncChain = yield* isZkSyncChainResult(chain);
+        if (!isThisZkSyncChain) {
+          return errAsync({
+            kind: "validation",
+            code: "invalid_chain",
+            message: `Invalid chain ID: ${request.executionOptions.chainId}. AA:zksync execution is only supported on zkSync chains.`,
+            status: 400,
+          } satisfies ValidationErr as ValidationErr);
+        }
+        const engineAccountResponse = yield* getEngineAccount({
+          address: request.executionOptions.accountAddress,
+          vaultAccessToken: credentials.vaultAccessToken,
         });
 
         // we expected to receive an eoa account but got a signer, which is invalid
-        if ("signerAccount" in engineSignerAccountResponse) {
+        if ("signerAccount" in engineAccountResponse) {
           return errAsync({
             kind: "account",
             code: "account_not_found",
-            message: `Account not found: ${request.executionOptions.signerAddress}. Provided signer address is a smart account. Smart account must not be used as a signer.`,
+            message: `Provided account address is an ERC4337 smart account. ERC4337 Smart Account cannot be used for zksync AA`,
             status: 400,
           } as AccountErr);
         }
 
         return okAsync({
-          signerAccount: engineSignerAccountResponse.account,
-          smartAccountDetails: {
-            address: request.executionOptions.smartAccountAddress,
-            factoryAddress: request.executionOptions.factoryAddress,
-            entrypointAddress: request.executionOptions.entrypointAddress,
-            accountSalt: undefined,
-          },
+          type: "AA:zksync" as const,
+          zkEoaAccount: engineAccountResponse.account,
         });
       }
-
-      // if request doesn't contain everything, let's look at DB to find a smart account registered to this EOA
-      const smartAccountResult = await getEngineAccount({
-        address: request.executionOptions.smartAccountAddress,
-        signerAddress: request.executionOptions.signerAddress,
-      });
-
-      if (smartAccountResult.isErr()) {
-        // it's okay if the account was not found, but return any other received errors
-        if (smartAccountResult.error.code !== "account_not_found") {
-          return errAsync(smartAccountResult.error);
-        }
-
-        // we tried to look in db but did not find a smart account registered to this EOA, let's use default values
-        const engineSignerAccountResponse = yield* getEngineAccount({
-          address: request.executionOptions.signerAddress,
-        });
-
-        // we expected to receive an eoa account but got a signer, which is invalid
-        if ("signerAccount" in engineSignerAccountResponse) {
-          return errAsync({
-            kind: "account",
-            code: "account_not_found",
-            message: `Account not found: ${request.executionOptions.signerAddress}. Provided signer address is a smart account. Smart account must not be used as a signer.`,
-            status: 400,
-          } as AccountErr);
-        }
-
-        // we found the signer eoa, let's use default values for the smart account
-        return okAsync({
-          signerAccount: engineSignerAccountResponse.account,
-          smartAccountDetails: {
-            address: request.executionOptions.smartAccountAddress,
-            factoryAddress: DEFAULT_ACCOUNT_FACTORY_V0_7 as Address,
-            entrypointAddress: ENTRYPOINT_ADDRESS_v0_7 as Address,
-            accountSalt: undefined,
-          },
-        });
-      }
-
-      // let's make sure that we received a smart account and not and EOA
-      if ("account" in smartAccountResult.value) {
-        return errAsync({
-          kind: "account",
-          code: "account_not_found",
-          message: `Account not found: ${request.executionOptions.smartAccountAddress}. Provided smart account address is an EOA. EOA must not be used as a smart account.`,
-          status: 400,
-        } as AccountErr);
-      }
-      // we found the smart account, let's use it
-      return okAsync({
-        signerAccount: smartAccountResult.value.signerAccount,
-        smartAccountDetails: {
-          address: smartAccountResult.value.smartAccountDetails.address,
-          factoryAddress:
-            smartAccountResult.value.smartAccountDetails.factoryAddress,
-          entrypointAddress:
-            smartAccountResult.value.smartAccountDetails.entrypointAddress,
-          accountSalt:
-            smartAccountResult.value.smartAccountDetails.accountSalt ??
-            undefined,
-        },
-      });
     }
-
-    // smart account address was not provided, but we have the signer eoa
-    // user has selected AA execution, so we use the provided factory and salt values, or assume defaults to get the execution options
-
-    // fetch the EOA
-
-    const signerAccountResponse = yield* getEngineAccount({
-      address: request.executionOptions.signerAddress,
-    });
-
-    // make sure we got an EOA
-    if ("signerAccount" in signerAccountResponse) {
-      return errAsync({
-        kind: "account",
-        code: "account_not_found",
-        message: `Account not found: ${request.executionOptions.signerAddress}. Provided signer address is a smart account. Smart account must not be used as a signer.`,
-        status: 400,
-      } as AccountErr);
-    }
-
-    const factoryAddress =
-      request.executionOptions.factoryAddress ??
-      (DEFAULT_ACCOUNT_FACTORY_V0_7 as Address);
-
-    const accountSalt = request.executionOptions.accountSalt;
-
-    const chain = getChain(Number.parseInt(request.chainId));
-
-    const factoryContract = getContract({
-      address: factoryAddress,
-      chain,
-      client: thirdwebClient,
-    });
-
-    const saltHex =
-      accountSalt && isHex(accountSalt)
-        ? accountSalt
-        : stringToHex(accountSalt ?? "");
-
-    const predictedSmartAccountAddress = await predictAccountAddress({
-      adminSigner: signerAccountResponse.account.address,
-      contract: factoryContract,
-      data: saltHex,
-    });
-
-    return okAsync({
-      signerAccount: signerAccountResponse.account,
-      smartAccountDetails: {
-        address: predictedSmartAccountAddress as Address,
-        factoryAddress,
-        entrypointAddress:
-          request.executionOptions.entrypointAddress ??
-          (ENTRYPOINT_ADDRESS_v0_7 as Address),
-        accountSalt: request.executionOptions.accountSalt,
-      },
-    });
   });
 }
 
 export function execute({
   request,
+  credentials,
   client,
 }: {
   request: EncodedExecutionRequest;
+  credentials: ExecutionCredentials;
   client: ThirdwebClient;
 }) {
-  const chain = getChain(Number.parseInt(request.chainId));
-
   return safeTry(async function* () {
     // console.time("execute");
-    const engineAccountResponse =
-      yield* getExecutionAccountFromRequest(request);
+    const resolutionResponse = yield* getExecutionAccountFromRequest({
+      client,
+      credentials,
+      request,
+    });
+
+    const chain = yield* getChainResult(request.executionOptions.chainId);
 
     // console.timeLog("execute", "getExecutionAccountFromRequest");
 
-    if ("account" in engineAccountResponse) {
-      return errAsync({
-        kind: "account",
-        code: "account_not_found",
-        message: "EOA execution is not supported yet",
-        status: 500,
-      } as EngineErr);
+    switch (resolutionResponse.type) {
+      case "EOA": {
+        return errAsync({
+          kind: "account",
+          code: "account_not_found",
+          message: "EOA execution is not supported yet",
+          status: 500,
+        } as EngineErr);
+      }
+      case "AA": {
+        return okAsync(
+          yield* executeAA({
+            chain,
+            client,
+            credentials,
+            options: resolutionResponse,
+            request,
+          }),
+        );
+      }
+      case "AA:zksync": {
+        return errAsync({
+          kind: "account",
+          code: "account_not_found",
+          message: "zksync AA execution is not supported yet",
+          status: 500,
+        } as EngineErr);
+      }
     }
+  });
+}
 
+function executeAA({
+  chain,
+  client,
+  credentials,
+  options,
+  request,
+}: {
+  options: ResolvedExecutionAccount_AA;
+  request: EncodedExecutionRequest;
+  credentials: ExecutionCredentials;
+  chain: Chain;
+  client: ThirdwebClient;
+}) {
+  return safeTry(async function* () {
     const executionOptions = {
-      signer: engineAccountResponse.signerAccount,
+      signer: options.signerAccount,
       accountSalt:
-        "accountSalt" in engineAccountResponse.smartAccountDetails
-          ? (engineAccountResponse.smartAccountDetails.accountSalt ?? undefined)
+        "accountSalt" in options.smartAccountDetails
+          ? (options.smartAccountDetails.accountSalt ?? undefined)
           : undefined,
-      accountFactoryAddress:
-        engineAccountResponse.smartAccountDetails.factoryAddress,
-      entrypointAddress:
-        engineAccountResponse.smartAccountDetails.entrypointAddress,
-      smartAccountAddress: engineAccountResponse.smartAccountDetails.address,
+      accountFactoryAddress: options.smartAccountDetails.factoryAddress,
+      entrypointAddress: options.smartAccountDetails.entrypointAddress,
+      smartAccountAddress: options.smartAccountDetails.address,
       sponsorGas:
-        "executionOptions" in request
+        "sponsorGas" in request.executionOptions
           ? request.executionOptions.sponsorGas
           : true,
     };
 
-    const resolvedTransactionParams = request.transactionParams.map((tx) => ({
+    const resolvedTransactionParams = request.params.map((tx) => ({
       value: tx.value ?? 0n,
       data: tx.data ?? ("0x" as Hex),
       to: tx.to ?? (ZERO_ADDRESS as Address),
     }));
 
-    const idempotencyKey = request.idempotencyKey ?? randomUUID().toString();
+    const idempotencyKey =
+      request.executionOptions.idempotencyKey ?? randomUUID().toString();
 
-    // Determine which executor to use based on request parameters
-    // Determine which executor to use based on token type
-    let executorType: "async" | "sync";
     let restrictedTokenInfo: CreateRestrictedSignedTokenResult | null = null;
 
-    if (!request.vaultAccessToken) {
-      executorType = "async";
-    } else if (isSignedToken(request.vaultAccessToken)) {
-      // Already restricted tokens can use sync
-      executorType = "sync";
-    } else if (isStoredToken(request.vaultAccessToken)) {
-      // Stored tokens need conversion to secure signed tokens
-      executorType = "async";
-
-      // console.timeLog("execute", "before signed token");
-
+    if (
+      credentials.vaultAccessToken &&
+      isStoredToken(credentials.vaultAccessToken)
+    ) {
       // Convert stored token to restricted signed token with specific permissions
       const restrictedTokenResult = yield* createRestrictedSignedToken({
-        storedToken: request.vaultAccessToken,
-        chainId: request.chainId,
+        storedToken: credentials.vaultAccessToken,
+        chainId: request.executionOptions.chainId,
         chain, // Pass the chain object directly
         thirdwebClient: client,
         entrypointAddress: executionOptions.entrypointAddress,
@@ -575,112 +498,64 @@ export function execute({
       // console.timeLog("execute", "after signed token");
 
       restrictedTokenInfo = restrictedTokenResult;
-    } else {
-      // Unknown token type - default to sync for safety
-      executorType = "sync";
     }
 
-    // Variables to track execution state
-    let executionResult: ExecutionResult4337Serialized;
-    let userOpHash: string | undefined;
-
     // Execute using the appropriate executor
-    if (executorType === "async") {
-      // For async executor, we need to convert the execution options to the format it expects
-      const asyncExecutionOptions: AsyncBundlerExecutionRequestOptions = {
-        signerAddress: executionOptions.signer.address as Address,
-        entrypointAddress: executionOptions.entrypointAddress,
-        accountFactoryAddress: executionOptions.accountFactoryAddress,
-        sponsorGas: executionOptions.sponsorGas,
-        smartAccountAddress: executionOptions.smartAccountAddress,
-        accountSalt: executionOptions.accountSalt,
-      };
+    // For async executor, we need to convert the execution options to the format it expects
+    const asyncExecutionOptions: AsyncBundlerExecutionRequestOptions = {
+      signerAddress: executionOptions.signer.address as Address,
+      entrypointAddress: executionOptions.entrypointAddress,
+      accountFactoryAddress: executionOptions.accountFactoryAddress,
+      sponsorGas: executionOptions.sponsorGas,
+      smartAccountAddress: executionOptions.smartAccountAddress,
+      accountSalt: executionOptions.accountSalt,
+    };
 
-      // Add vault token and nonce data if available (from restricted token)
-      if (restrictedTokenInfo) {
-        asyncExecutionOptions.vaultAccessToken =
-          restrictedTokenInfo.signedToken;
-        asyncExecutionOptions.preallocatedNonce =
-          restrictedTokenInfo.preallocatedNonce;
-        asyncExecutionOptions.nonceSeed = restrictedTokenInfo.nonceSeed;
-      }
+    // Add vault token and nonce data if available (from restricted token)
+    if (restrictedTokenInfo) {
+      asyncExecutionOptions.vaultAccessToken = restrictedTokenInfo.signedToken;
+      asyncExecutionOptions.preallocatedNonce =
+        restrictedTokenInfo.preallocatedNonce;
+      asyncExecutionOptions.nonceSeed = restrictedTokenInfo.nonceSeed;
+    }
 
-      // console.timeLog("execute", "before calling async executor");
+    // console.timeLog("execute", "before calling async executor");
 
-      // Execute using the async executor
-      const asyncResult = await executeExternalBundlerAsync({
-        id: idempotencyKey,
-        executionOptions: asyncExecutionOptions,
-        chainId: request.chainId,
-        transactionParams: resolvedTransactionParams,
-      });
+    // Execute using the async executor
+    const asyncResult = await executeExternalBundlerAsync({
+      id: idempotencyKey,
+      executionOptions: asyncExecutionOptions,
+      chainId: request.executionOptions.chainId,
+      transactionParams: resolvedTransactionParams,
+    });
 
-      // console.timeLog("execute", "after calling async executor");
+    // console.timeLog("execute", "after calling async executor");
 
-      // Handle errors from the async executor
-      if (asyncResult.isErr()) {
-        return errAsync(asyncResult.error);
-      }
-
-      // Async executor doesn't return userOpHash immediately, it's queued
-      executionResult = {
-        status: "QUEUED",
-      };
-    } else {
-      // Execute using the sync executor
-      const syncResult = await executeExternalBundler({
-        id: idempotencyKey,
-        chain,
-        client,
-        executionOptions,
-        transactionParams: resolvedTransactionParams,
-      });
-
-      // Handle errors from the sync executor
-      if (syncResult.isErr()) {
-        if (syncResult.error.kind === "queue") {
-          userOpHash = syncResult.error.userOpHash;
-          executionResult = {
-            status: "SUBMITTED",
-            monitoringStatus: "CANNOT_MONITOR",
-            userOpHash,
-          };
-        } else {
-          return errAsync(syncResult.error);
-        }
-      } else {
-        userOpHash = syncResult.value.data.userOpHash;
-        executionResult = {
-          status: "SUBMITTED",
-          monitoringStatus: "WILL_MONITOR",
-          userOpHash,
-        };
-      }
+    // Handle errors from the async executor
+    if (asyncResult.isErr()) {
+      return errAsync(asyncResult.error);
     }
 
     const executionParams: ExecutionParamsSerialized = {
       type: "AA" as const,
-      entrypointAddress: executionOptions.entrypointAddress,
-      smartAccountAddress: executionOptions.smartAccountAddress,
-      signerAddress: executionOptions.signer.address,
+      entrypointAddress: options.smartAccountDetails.entrypointAddress,
+      smartAccountAddress: options.smartAccountDetails.address,
+      signerAddress: options.signerAccount.address,
     };
 
-    // For database insertion, we need to ensure userOpHash is a string if status is SUBMITTED
-    // If it's undefined, we'll use an empty string
-    const dbExecutionResult = executionResult;
-
-    // console.timeLog("execute", "before db insert");
     const dbTransactionEntry = yield* ResultAsync.fromPromise(
       db
         .insert(transactions)
         .values({
           id: idempotencyKey,
           batchIndex: 0,
-          chainId: request.chainId,
+          chainId: request.executionOptions.chainId,
           transactionParams: SuperJSON.serialize(resolvedTransactionParams)
             .json as TransactionParamsSerialized[],
           executionParams,
-          executionResult: dbExecutionResult,
+          executionResult: {
+            status: "QUEUED",
+          },
           from: executionParams.smartAccountAddress as Address,
         })
         .returning(),
@@ -689,15 +564,19 @@ export function execute({
       buildTransactionDbEntryErr({
         error: e,
         executionParams,
-        executionResult: dbExecutionResult,
+        executionResult: {
+          status: "QUEUED",
+        },
       }),
     );
     // console.timeEnd("execute");
 
     return okAsync({
-      executionResult,
+      executionResult: {
+        status: "QUEUED",
+      },
       transactions: dbTransactionEntry,
-      executionOptions,
+      executionOptions: options,
     });
   });
 }

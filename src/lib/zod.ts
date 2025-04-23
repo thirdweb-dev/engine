@@ -8,6 +8,9 @@ import * as z from "zod";
 export const exampleEvmAddress =
   "0xeb0effdfb4dc5b3d5d3ac6ce29f3ed213e95d675" as const;
 
+export const exampleBaseSepoliaUsdcAddress =
+  "0x036CbD53842c5426634e7929541eC2318f3dCF7e" as const;
+
 export const evmAddressSchema = z
   .string()
   .superRefine((address, ctx): address is Address => {

@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { hexSchema, evmAddressSchema } from "../lib/zod.js";
+import { hexSchema, evmAddressSchema, exampleEvmAddress } from "../lib/zod.js";
 import { wrapResponseSchema } from "../server/schemas/shared-api-schemas.js";
 import { transactionDbEntrySchema } from "../db/derived-schemas.js";
 
@@ -54,9 +54,25 @@ export const transactionBodySchema = z.object({
   }),
 });
 
+const baseExecutionOptionsSchema = {
+  idempotencyKey: z
+    .string()
+    .openapi({
+      description:
+        "The idempotency key of the transaction. Transaction requests sent with the same idempotency key will be de-duplicated. If not provided, a randomUUID will be generated. This is also used as the ID of a queued/stored transaction.",
+      example: "40aebdb3-f4f6-477e-a870-cb2cb90c96a3",
+    })
+    .optional(),
+  chainId: z.string().openapi({
+    description: "The chain id of the transaction",
+  }),
+};
+
 // AA Execution Options
 const baseAAExecutionOptionsSchema = z.object({
-  type: z.literal("AA"),
+  type: z.literal("AA").openapi({
+    example: "AA",
+  }),
   signerAddress: evmAddressSchema.openapi({
     description:
       "The address of the engine managed account which can send transactions from your smart account",
@@ -73,54 +89,87 @@ const baseAAExecutionOptionsSchema = z.object({
 });
 
 // to know the smart account address, we can be directly told the address,
-const executionOptionsWithSaltSchema = baseAAExecutionOptionsSchema.extend({
-  smartAccountAddress: evmAddressSchema.openapi({
-    description:
-      "The address of the smart account to send the transaction from",
-  }),
-});
+const executionOptionsWithoutSaltSchema = baseAAExecutionOptionsSchema
+  .extend({
+    smartAccountAddress: evmAddressSchema.openapi({
+      description:
+        "The address of the smart account to send the transaction from",
+    }),
+  })
+  .extend(baseExecutionOptionsSchema);
 
 // or we can be told the salt + factory
-const executionOptionsWithoutSaltSchema = baseAAExecutionOptionsSchema.extend({
-  accountSalt: z.string().optional().openapi({
-    description:
-      "The salt of the smart account to send the transaction from. Only specify this if you want to specify a custom salt. If omitted, and smart account address is not provided, the inferred smart account will be with null salt. If a smart account address is provided, the salt will be ignored.",
-  }),
-});
-
-const baseExecutionRequestSchema = z.object({
-  idempotencyKey: z
-    .string()
-    .openapi({
+const executionOptionsWithSaltSchema = baseAAExecutionOptionsSchema
+  .extend({
+    accountSalt: z.string().optional().openapi({
       description:
-        "The idempotency key of the transaction. Transaction requests sent with the same idempotency key will be deduplicated.",
-    })
-    .optional(),
-  vaultAccessToken: z.string().optional().openapi({
-    description:
-      "Access token to your EOA secured by Vault. Engine will not store this token, and will only use it to send transactions. Only provide this if your EOA is secured by Vault.",
-  }),
-  chainId: z.string().openapi({
-    description: "The chain id of the transaction",
-  }),
-});
+        "The salt of the smart account to send the transaction from. Only specify this if you want to specify a custom salt. If omitted, and smart account address is not provided, the inferred smart account will be with null salt. If a smart account address is provided, the salt will be ignored.",
+    }),
+  })
+  .extend(baseExecutionOptionsSchema);
 
-const aaExecutionRequestSchema = z.union([
-  executionOptionsWithSaltSchema,
-  executionOptionsWithoutSaltSchema,
+export const aaExecutionOptionsSchema = z.union([
+  executionOptionsWithSaltSchema.openapi({
+    ref: "aaExecutionOptionsWithSalt",
+    title: "AA Execution (Smart Account Address Optional)",
+  }),
+  executionOptionsWithoutSaltSchema.openapi({
+    ref: "aaExecutionOptionsWithSmartAccountAddress",
+    title: "AA Execution (Smart Account Address Required)",
+  }),
 ]);
 
-const specificExecutionRequestSchema = z.object({
-  executionOptions: aaExecutionRequestSchema.openapi({
-    description: `Instead of providing a "from" address, you can provide specific overrides for your execution. Use this if your smart account is not engine managed, but your engine managed EOA has the permission to send transactions from it.`,
-  }),
-});
-
-const vagueExecutionRequestSchema = z.object({
-  from: evmAddressSchema.openapi({
+export const aaZksyncExecutionOptionsSchema = z
+  .object({
+    type: z.literal("AA:zksync"),
+    accountAddress: evmAddressSchema.openapi({
+      description:
+        "The EOA address of the account to send the zksync native AA transaction from.",
+    }),
+    sponsorGas: z.boolean().default(true),
+  })
+  .extend(baseExecutionOptionsSchema)
+  .openapi({
     description:
-      "The address of the account to send the transaction from. Can be the address of a smart account or an EOA.",
-  }),
+      "Uses zkSync native AA for execution. This type of execution is only available on zkSync chains.",
+    ref: "aaZksyncExecutionOptions",
+    title: "AA:zksync Execution Options",
+  });
+
+export const autoExecutionOptionsSchema = z
+  .object({
+    type: z.literal("auto").default("auto" as const),
+    from: evmAddressSchema.openapi({
+      description:
+        "The address of the account to send the transaction from. Can be the address of a smart account or an EOA.",
+    }),
+  })
+  .extend(baseExecutionOptionsSchema)
+  .openapi({
+    ref: "autoExecutionOptions",
+    title: "Auto-determine Best Execution Options",
+    description:
+      'This is the default execution option. If you do not specify an execution type, and only specify a "from" string, engine will automatically determine the most optimal options for you. If you would like to specify granular options about execution strategy choose one of the other `executionOptions` type and provide them.',
+  });
+
+export const EXECUTION_OPTIONS_EXAMPLE = {
+  type: "AA",
+  chainId: "84532",
+  signerAddress: exampleEvmAddress,
+} as const;
+
+const executionRequestSchema = z.object({
+  executionOptions: z
+    .union([
+      aaExecutionOptionsSchema,
+      aaZksyncExecutionOptionsSchema,
+      autoExecutionOptionsSchema,
+    ])
+    .openapi({
+      description:
+        "Use a specific execution type and provide options to configure engine's execution strategy. The default execution option is `auto`, (doesn't need to be specified) which will automatically determine the most optimal options for you. If you would like to specify granular options about execution strategy choose one of the other `executionOptions` type and provide them.",
+      example: EXECUTION_OPTIONS_EXAMPLE,
+    }),
 });
 
 /**
@@ -128,7 +177,7 @@ const vagueExecutionRequestSchema = z.object({
  * Takes a schema for the shape of your transaction parameters, and returns a schema for an execution request.
  * Optionally allows extending the final schema with additional fields.
  *
- * @param transactionParamsSchema - The schema of the transaction parameters.
+ * @param paramsSchema - The schema of the transaction parameters.
  * @param extensionSchema - An optional ZodObject schema to merge into both branches of the final union schema.
  * @returns A schema for an execution request, potentially extended.
  */
@@ -137,62 +186,23 @@ export function buildExecutionRequestSchema<
   // biome-ignore lint/complexity/noBannedTypes: sorry, we must
   E extends z.ZodRawShape = {}, // Default to empty shape if no extension
 >(
-  transactionParamsSchema: T,
+  paramsSchema: T,
   extensionSchema: z.ZodObject<E> = z.object({}) as z.ZodObject<E>,
 ): // // Return type reflects the union of two objects, each extended with Base, TxParams, and Extension
-z.ZodUnion<
-  [
-    z.ZodObject<
-      z.objectUtil.extendShape<
-        // 3. Extend with Extension shape E
-        z.objectUtil.extendShape<
-          // 2. Extend with Base shape
-          z.objectUtil.extendShape<
-            // 1. Start with Specific shape
-            (typeof specificExecutionRequestSchema)["shape"],
-            { transactionParams: T } // Add transactionParams schema T
-          >,
-          (typeof baseExecutionRequestSchema)["shape"]
-        >,
-        E // Shape from extensionSchema
-      >
+z.ZodObject<
+  z.objectUtil.extendShape<
+    // 3. Extend with Extension shape E
+    z.objectUtil.extendShape<
+      // 2. Extend with Base shape
+      (typeof executionRequestSchema)["shape"],
+      { params: T } // Add transactionParams schema T
     >,
-    z.ZodObject<
-      z.objectUtil.extendShape<
-        // 3. Extend with Extension shape E
-        z.objectUtil.extendShape<
-          // 2. Extend with Base shape
-          z.objectUtil.extendShape<
-            // 1. Start with Vague shape
-            (typeof vagueExecutionRequestSchema)["shape"],
-            { transactionParams: T } // Add transactionParams schema T
-          >,
-          (typeof baseExecutionRequestSchema)["shape"]
-        >,
-        E // Shape from extensionSchema
-      >
-    >,
-  ]
+    E // Shape from extensionSchema
+  >
 > {
-  // 1. Merge transactionParams and base schema into the specific branch
-  const specificExtended = specificExecutionRequestSchema
-    .merge(z.object({ transactionParams: transactionParamsSchema }))
-    .merge(baseExecutionRequestSchema);
-
-  // 2. Merge transactionParams and base schema into the vague branch
-  const vagueExtended = vagueExecutionRequestSchema
-    .merge(z.object({ transactionParams: transactionParamsSchema }))
-    .merge(baseExecutionRequestSchema);
-
-  // 3. Apply the optional extension schema to *both* branches
-  const specificFinal = specificExtended.merge(extensionSchema);
-  const vagueFinal = vagueExtended.merge(extensionSchema);
-
-  // 4. Create the union of the two fully formed and potentially extended branches
-  // We cast the result to the explicitly defined complex return type for external type safety.
-  return z.union([specificFinal, vagueFinal]) as z.ZodUnion<
-    [typeof specificFinal, typeof vagueFinal]
-  >;
+  return executionRequestSchema
+    .merge(z.object({ params: paramsSchema }))
+    .merge(extensionSchema);
 }
 
 export const encodedExecutionRequestSchema = buildExecutionRequestSchema(

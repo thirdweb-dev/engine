@@ -8,7 +8,11 @@ import {
 } from "../../../executors/types.js";
 import { engineErrToHttpException, zErrorMapper } from "../../../lib/errors.js";
 import { thirdwebClient } from "../../../lib/thirdweb-client.js";
-import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js";
+import {
+  credentialsFromHeaders,
+  executionCredentialsHeadersSchema,
+  wrapResponseSchema,
+} from "../../schemas/shared-api-schemas.js";
 import { onchainRoutesFactory } from "./factory.js";
 import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 
@@ -39,8 +43,11 @@ export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
     },
   }),
   validator("json", encodedExecutionRequestSchema, zErrorMapper),
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
+
   async (c) => {
     const executionRequest = c.req.valid("json");
+    const credentials = c.req.valid("header");
 
     const overrideThirdwebClient = c.get("thirdwebClient");
 
@@ -52,6 +59,7 @@ export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
     const executionResult = await execute({
       client: overrideThirdwebClient ?? thirdwebClient,
       request: executionRequest,
+      credentials: credentialsFromHeaders(credentials),
     });
 
     if (executionResult.isErr()) {

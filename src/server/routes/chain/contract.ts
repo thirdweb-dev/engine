@@ -12,8 +12,17 @@ import {
   type EngineErr,
 } from "../../../lib/errors.js";
 import { thirdwebClient } from "../../../lib/thirdweb-client.js";
-import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js";
-import { evmAddressSchema, hexSchema } from "../../../lib/zod.js";
+import {
+  credentialsFromHeaders,
+  executionCredentialsHeadersSchema,
+  wrapResponseSchema,
+} from "../../schemas/shared-api-schemas.js";
+import {
+  evmAddressSchema,
+  exampleBaseSepoliaUsdcAddress,
+  exampleEvmAddress,
+  hexSchema,
+} from "../../../lib/zod.js";
 import {
   encode,
   getContract,
@@ -27,10 +36,11 @@ import {
 import {
   bigIntSchema,
   buildExecutionRequestSchema,
+  EXECUTION_OPTIONS_EXAMPLE,
   serialisedBigIntSchema,
   transactionResponseSchema,
 } from "../../../executors/types.js";
-import { getChain } from "../../../lib/chain.js";
+import { getChainResult } from "../../../lib/chain.js";
 import { decodeAbiParameters, parseAbiParams } from "thirdweb/utils";
 import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 import { AbiFunction } from "ox";
@@ -39,31 +49,107 @@ import { onchainRoutesFactory } from "./factory.js";
 import type { AbiParameter } from "abitype";
 
 // Schema for contract parameters in the URL
-const transactionParamsSchema = z.object({
-  value: bigIntSchema
-    .describe("The value to send with the transaction")
-    .optional()
-    .default("0"),
+const transactionParamsWithoutValueSchema = z.object({
   method: z.string().describe("The function to call on the contract"),
-  params: z.array(z.any()).describe("The parameters to pass to the function"),
+  params: z
+    .array(z.any())
+    .describe("The parameters to pass to the function")
+    .openapi({
+      example: [exampleEvmAddress, "0"],
+    }),
   contractAddress: evmAddressSchema.describe("The contract address to call"),
   abi: z.array(z.any()).optional().describe("The ABI of the contract"),
 });
 
-const baseRequestSchema = buildExecutionRequestSchema(
-  z.array(transactionParamsSchema),
-);
+const transactionParamsSchema = transactionParamsWithoutValueSchema.extend({
+  value: bigIntSchema
+    .describe("The value to send with the transaction")
+    .optional()
+    .default("0"),
+});
 
-const readRequestSchema = buildExecutionRequestSchema(
+const writeRequestSchema = buildExecutionRequestSchema(
   z.array(transactionParamsSchema),
-  z.object({
-    multicallAddress: evmAddressSchema
-      .optional()
-      .describe("Optional multicall address"),
-  }),
-);
+).openapi({
+  example: {
+    params: [
+      {
+        contractAddress: exampleBaseSepoliaUsdcAddress,
+        method:
+          "function approve(address spender, uint256 value) returns (bool)",
+        params: ["0x1234567890123456789012345678901234567890", "100"],
+      },
+    ],
+    executionOptions: EXECUTION_OPTIONS_EXAMPLE,
+  },
+});
 
-const encodeRequestSchema = baseRequestSchema;
+const encodeRequestSchema = z
+  .object({
+    encodeOptions: z.object({
+      chainId: z.string().openapi({
+        description: "The chain id of the transaction",
+      }),
+    }),
+    params: z.array(transactionParamsSchema),
+  })
+  .openapi({
+    example: {
+      params: [
+        {
+          contractAddress: exampleBaseSepoliaUsdcAddress,
+          method:
+            "function approve(address spender, uint256 value) returns (bool)",
+          params: ["0x1234567890123456789012345678901234567890", "100"],
+        },
+      ],
+      encodeOptions: {
+        chainId: "84532",
+      },
+    },
+  });
+
+// const readRequestSchema = buildExecutionRequestSchema(
+//   z.array(transactionParamsSchema),
+//   z.object({
+//     multicallAddress: evmAddressSchema
+//       .optional()
+//       .describe("Optional multicall address"),
+//   }),
+// );
+
+const MULTICALL3_DEFAULT_ADDRESS =
+  "0xcA11bde05977b3631167028862bE2a173976CA11" as const;
+
+const readRequestSchema = z
+  .object({
+    readOptions: z.object({
+      multicallAddress: evmAddressSchema
+        .default(MULTICALL3_DEFAULT_ADDRESS)
+        .describe(
+          "Optional multicall address, defaults to the default multicall3 address for the chain",
+        ),
+      chainId: z.string().openapi({
+        description: "The chain id of the transaction",
+      }),
+      from: evmAddressSchema.optional(),
+    }),
+    params: z.array(transactionParamsWithoutValueSchema),
+  })
+  .openapi({
+    example: {
+      params: [
+        {
+          contractAddress: exampleBaseSepoliaUsdcAddress,
+          method: "function balanceOf(address account) view returns (uint256)",
+          params: [exampleEvmAddress],
+        },
+      ],
+      readOptions: {
+        chainId: "84532",
+      },
+    },
+  });
 
 const encodeDataSchema = z.object({
   to: evmAddressSchema,
@@ -121,9 +207,6 @@ type PreparedMulticallItem = {
 };
 
 // --- Constants ---
-const MULTICALL3_DEFAULT_ADDRESS =
-  "0xcA11bde05977b3631167028862bE2a173976CA11" as const;
-
 const MULTICALL3_AGGREGATE3_ABI = {
   /* ... ABI ... */ inputs: [
     {
@@ -203,9 +286,15 @@ export const encodeFunctionDataRoute = onchainRoutesFactory.createHandlers(
   validator("json", encodeRequestSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
-    const { chainId, transactionParams } = body;
+    const { params: transactionParams, encodeOptions } = body;
+    const { chainId } = encodeOptions;
 
-    const chain = getChain(Number.parseInt(chainId));
+    const chainResult = getChainResult(chainId);
+    if (chainResult.isErr()) {
+      throw engineErrToHttpException(chainResult.error);
+    }
+    const chain = chainResult.value;
+
     const overrideThirdwebClient = c.get("thirdwebClient");
     const client = overrideThirdwebClient ?? thirdwebClient;
 
@@ -305,13 +394,15 @@ export const readFromContractRoute = onchainRoutesFactory.createHandlers(
   validator("json", readRequestSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
-    const {
-      chainId,
-      transactionParams,
-      multicallAddress: customMulticallAddress,
-    } = body;
+    const { params: transactionParams } = body;
+    const { chainId, multicallAddress: customMulticallAddress } =
+      body.readOptions;
 
-    const chain = getChain(Number.parseInt(chainId));
+    const chainResult = getChainResult(chainId);
+    if (chainResult.isErr()) {
+      throw engineErrToHttpException(chainResult.error);
+    }
+    const chain = chainResult.value;
 
     const overrideThirdwebClient = c.get("thirdwebClient");
     const client = overrideThirdwebClient ?? thirdwebClient;
@@ -320,7 +411,7 @@ export const readFromContractRoute = onchainRoutesFactory.createHandlers(
 
     // Read route needs its own preparation logic for multicall structure
     const readPrepareProcessor = (
-      callParams: z.infer<typeof transactionParamsSchema>,
+      callParams: z.infer<typeof transactionParamsWithoutValueSchema>,
     ): ResultAsync<PreparedMulticallItem, EngineErr> => {
       const {
         contractAddress,
@@ -456,13 +547,20 @@ export const writeToContractRoute = onchainRoutesFactory.createHandlers(
       },
     },
   }),
-  validator("json", baseRequestSchema, zErrorMapper),
+  validator("json", writeRequestSchema, zErrorMapper),
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
+    const credentials = c.req.valid("header");
 
-    const { chainId, transactionParams } = body;
+    const { executionOptions, params: transactionParams } = body;
+    const { chainId } = executionOptions;
 
-    const chain = getChain(Number.parseInt(chainId));
+    const chainResult = getChainResult(chainId);
+    if (chainResult.isErr()) {
+      throw engineErrToHttpException(chainResult.error);
+    }
+    const chain = chainResult.value;
     const overrideThirdwebClient = c.get("thirdwebClient");
     const client = overrideThirdwebClient ?? thirdwebClient;
 
@@ -534,9 +632,10 @@ export const writeToContractRoute = onchainRoutesFactory.createHandlers(
     const executionResult = await execute({
       client,
       request: {
-        ...body,
-        transactionParams: transactions,
+        executionOptions,
+        params: transactions,
       },
+      credentials: credentialsFromHeaders(credentials),
     });
 
     if (executionResult.isErr()) {
