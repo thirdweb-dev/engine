@@ -1,34 +1,34 @@
-import cron from "node-cron";
 import { getBlockTimeSeconds } from "../../shared/utils/indexer/get-block-time";
 import { logger } from "../../shared/utils/logger";
 import { handleContractSubscriptions } from "../tasks/chain-indexer";
 import { env } from "../../shared/utils/env";
+import { CronJob } from "cron";
 
 // @TODO: Move all worker logic to Bullmq to better handle multiple hosts.
-export const INDEXER_REGISTRY = {} as Record<number, cron.ScheduledTask>;
+export const INDEXER_REGISTRY: Record<number, CronJob> = {};
 
 export const addChainIndexer = async (chainId: number) => {
   if (INDEXER_REGISTRY[chainId]) {
     return;
   }
 
-  // Estimate the block time in the last 100 blocks. Default to 2 second block times.
-  let blockTimeSeconds: number;
-  try {
-    blockTimeSeconds = await getBlockTimeSeconds(chainId, 100);
-  } catch (error) {
-    logger({
-      service: "worker",
-      level: "error",
-      message: `Could not estimate block time for chain ${chainId}`,
-      error,
-    });
-    blockTimeSeconds = 2;
+  let cronSchedule = env.CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE;
+  if (!cronSchedule) {
+    // Estimate the block time in the last 100 blocks. Default to 2 second block times.
+    let blockTimeSeconds: number;
+    try {
+      blockTimeSeconds = await getBlockTimeSeconds(chainId, 100);
+    } catch (error) {
+      logger({
+        service: "worker",
+        level: "error",
+        message: `Could not estimate block time for chain ${chainId}`,
+        error,
+      });
+      blockTimeSeconds = 2;
+    }
+    cronSchedule = createScheduleSeconds(blockTimeSeconds);
   }
-  const cronSchedule = createScheduleSeconds({
-    blockTimeSeconds,
-    numBlocks: env.CONTRACT_SUBSCRIPTION_BLOCK_RANGE,
-  });
   logger({
     service: "worker",
     level: "info",
@@ -37,7 +37,7 @@ export const addChainIndexer = async (chainId: number) => {
 
   let inProgress = false;
 
-  const task = cron.schedule(cronSchedule, async () => {
+  const task = new CronJob(cronSchedule, async () => {
     if (inProgress) {
       return;
     }
@@ -58,6 +58,7 @@ export const addChainIndexer = async (chainId: number) => {
   });
 
   INDEXER_REGISTRY[chainId] = task;
+  task.start();
 };
 
 export const removeChainIndexer = async (chainId: number) => {
@@ -76,17 +77,7 @@ export const removeChainIndexer = async (chainId: number) => {
   delete INDEXER_REGISTRY[chainId];
 };
 
-/**
- * Returns the cron schedule given the chain's block time and the number of blocks to batch per job.
- * Minimum is every 2 seconds.
- */
-function createScheduleSeconds({
-  blockTimeSeconds,
-  numBlocks,
-}: { blockTimeSeconds: number; numBlocks: number }) {
-  const pollFrequencySeconds = Math.max(
-    Math.round(blockTimeSeconds * numBlocks),
-    2,
-  );
-  return `*/${pollFrequencySeconds} * * * * *`;
+function createScheduleSeconds(blockTimeSeconds: number) {
+  const pollIntervalSeconds = Math.max(Math.round(blockTimeSeconds), 2);
+  return `*/${pollIntervalSeconds} * * * * *`;
 }

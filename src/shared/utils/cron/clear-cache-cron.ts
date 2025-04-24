@@ -1,9 +1,10 @@
-import cron from "node-cron";
+import { CronJob } from "cron";
 import { clearCache } from "../cache/clear-cache";
 import { getConfig } from "../cache/get-config";
 import type { env } from "../env";
 
-let task: cron.ScheduledTask;
+let task: CronJob;
+
 export const clearCacheCron = async (
   service: (typeof env)["LOG_SERVICES"][0],
 ) => {
@@ -13,11 +14,13 @@ export const clearCacheCron = async (
     return;
   }
 
+  // Stop the existing task if it exists.
   if (task) {
     task.stop();
   }
 
-  task = cron.schedule(config.clearCacheCronSchedule, async () => {
+  task = new CronJob(config.clearCacheCronSchedule, async () => {
     await clearCache(service);
   });
+  task.start();
 };
