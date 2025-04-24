@@ -43,9 +43,7 @@ export async function removeContractSubscription(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { contractSubscriptionId } = request.body;
 
-      const contractSubscription = await deleteContractSubscription(
-        contractSubscriptionId,
-      );
+      await deleteContractSubscription(contractSubscriptionId);
 
       reply.status(StatusCodes.OK).send({
         result: {
