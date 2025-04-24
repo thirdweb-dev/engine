@@ -3,10 +3,6 @@ import {
   newConfigurationListener,
   updatedConfigurationListener,
 } from "./listeners/config-listener";
-import {
-  newWebhooksListener,
-  updatedWebhooksListener,
-} from "./listeners/webhook-listener";
 import { initCancelRecycledNoncesWorker } from "./tasks/cancel-recycled-nonces-worker";
 import { initMineTransactionWorker } from "./tasks/mine-transaction-worker";
 import { initNonceHealthCheckWorker } from "./tasks/nonce-health-check-worker";
@@ -30,14 +26,6 @@ export const initWorker = async () => {
 
   await initNonceResyncWorker();
   await initWalletSubscriptionWorker();
-
-  // Listen for new & updated configuration data.
-  await newConfigurationListener();
-  await updatedConfigurationListener();
-
-  // Listen for new & updated webhooks data.
-  await newWebhooksListener();
-  await updatedWebhooksListener();
 
   // Contract subscriptions.
   await chainIndexerListener();

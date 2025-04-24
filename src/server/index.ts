@@ -133,5 +133,5 @@ export const initServer = async () => {
 
   writeOpenApiToFile(server);
   await updateTxListener();
-  await clearCacheCron("server");
+  await clearCacheCron();
 };
