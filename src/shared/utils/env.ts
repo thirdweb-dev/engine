@@ -86,8 +86,8 @@ export const env = createEnv({
     QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(10_000),
     // Sets the number of recent nonces to map to queue IDs.
     NONCE_MAP_COUNT: z.coerce.number().default(10_000),
-    // Sets the estimated number of blocks to query per contract subscription job. Defaults to 1 block (real-time).
-    CONTRACT_SUBSCRIPTION_BLOCK_RANGE: z.coerce.number().default(1),
+    // Overrides the cron schedule for contract subscription jobs.
+    CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE: z.string().optional(),
 
     ENABLE_KEYPAIR_AUTH: boolEnvSchema(false),
     ENABLE_CUSTOM_HMAC_AUTH: boolEnvSchema(false),
@@ -138,8 +138,8 @@ export const env = createEnv({
     QUEUE_COMPLETE_HISTORY_COUNT: process.env.QUEUE_COMPLETE_HISTORY_COUNT,
     QUEUE_FAIL_HISTORY_COUNT: process.env.QUEUE_FAIL_HISTORY_COUNT,
     NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
-    CONTRACT_SUBSCRIPTION_BLOCK_RANGE:
-      process.env.CONTRACT_SUBSCRIPTION_BLOCK_RANGE,
+    CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE:
+      process.env.CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE,
     EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS:
       process.env.EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS,
     EXPERIMENTAL__MAX_GAS_PRICE_WEI:
