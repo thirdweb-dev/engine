@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { getBlockTimeSeconds } from "../../shared/utils/indexer/get-block-time";
 import { logger } from "../../shared/utils/logger";
 import { handleContractSubscriptions } from "../tasks/chain-indexer";
+import { env } from "../../shared/utils/env";
 
 // @TODO: Move all worker logic to Bullmq to better handle multiple hosts.
 export const INDEXER_REGISTRY = {} as Record<number, cron.ScheduledTask>;
@@ -24,9 +25,10 @@ export const addChainIndexer = async (chainId: number) => {
     });
     blockTimeSeconds = 2;
   }
-  const cronSchedule = createScheduleSeconds(
-    Math.max(Math.round(blockTimeSeconds), 1),
-  );
+  const cronSchedule = createScheduleSeconds({
+    blockTimeSeconds,
+    numBlocks: env.CONTRACT_SUBSCRIPTION_BLOCK_RANGE,
+  });
   logger({
     service: "worker",
     level: "info",
@@ -74,5 +76,17 @@ export const removeChainIndexer = async (chainId: number) => {
   delete INDEXER_REGISTRY[chainId];
 };
 
-export const createScheduleSeconds = (seconds: number) =>
-  `*/${seconds} * * * * *`;
+/**
+ * Returns the cron schedule given the chain's block time and the number of blocks to batch per job.
+ * Minimum is every 2 seconds.
+ */
+function createScheduleSeconds({
+  blockTimeSeconds,
+  numBlocks,
+}: { blockTimeSeconds: number; numBlocks: number }) {
+  const pollFrequencySeconds = Math.max(
+    Math.round(blockTimeSeconds * numBlocks),
+    2,
+  );
+  return `*/${pollFrequencySeconds} * * * * *`;
+}
