@@ -1,8 +1,4 @@
 import { chainIndexerListener } from "./listeners/chain-indexer-listener";
-import {
-  newConfigurationListener,
-  updatedConfigurationListener,
-} from "./listeners/config-listener";
 import { initCancelRecycledNoncesWorker } from "./tasks/cancel-recycled-nonces-worker";
 import { initMineTransactionWorker } from "./tasks/mine-transaction-worker";
 import { initNonceHealthCheckWorker } from "./tasks/nonce-health-check-worker";
