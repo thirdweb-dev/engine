@@ -64,8 +64,8 @@ export async function signTypedData(fastify: FastifyInstance) {
       let parsedPrimaryType = primaryType;
       if (!parsedPrimaryType) {
         // try to detect the primary type, which requires removing the EIP712Domain type
-        // @ts-expect-error - types is a record
-        delete types.EIP712Domain;
+        // biome-ignore lint/performance/noDelete: need to delete explicitely
+        delete (types as unknown as Record<string, unknown>).EIP712Domain;
         parsedPrimaryType =
           ethers.utils._TypedDataEncoder.getPrimaryType(types);
       }
