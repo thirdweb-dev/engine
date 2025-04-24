@@ -1,4 +1,5 @@
 import { type Static, Type } from "@sinclair/typebox";
+import { ethers } from "ethers";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { arbitrumSepolia } from "thirdweb/chains";
@@ -60,6 +61,15 @@ export async function signTypedData(fastify: FastifyInstance) {
 
       const chain = chainId ? await getChain(chainId) : arbitrumSepolia;
 
+      let parsedPrimaryType = primaryType;
+      if (!parsedPrimaryType) {
+        // try to detect the primary type, which requires removing the EIP712Domain type
+        // biome-ignore lint/performance/noDelete: need to delete explicitely
+        delete (types as unknown as Record<string, unknown>).EIP712Domain;
+        parsedPrimaryType =
+          ethers.utils._TypedDataEncoder.getPrimaryType(types);
+      }
+
       const { account } = await walletDetailsToAccount({
         walletDetails,
         chain,
@@ -68,7 +78,7 @@ export async function signTypedData(fastify: FastifyInstance) {
       const result = await account.signTypedData({
         domain,
         types,
-        primaryType,
+        primaryType: parsedPrimaryType,
         message: value,
       } as never);
 
