@@ -1,13 +1,10 @@
 import { CronJob } from "cron";
 import { clearCache } from "../cache/clear-cache";
 import { getConfig } from "../cache/get-config";
-import type { env } from "../env";
 
 let task: CronJob;
 
-export const clearCacheCron = async (
-  service: (typeof env)["LOG_SERVICES"][0],
-) => {
+export const clearCacheCron = async () => {
   const config = await getConfig();
 
   if (!config.clearCacheCronSchedule) {
@@ -20,7 +17,7 @@ export const clearCacheCron = async (
   }
 
   task = new CronJob(config.clearCacheCronSchedule, async () => {
-    await clearCache(service);
+    await clearCache();
   });
   task.start();
 };

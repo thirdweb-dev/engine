@@ -8,7 +8,6 @@ import { env } from "../shared/utils/env";
 import { logger } from "../shared/utils/logger";
 import { metricsServer } from "../shared/utils/prometheus";
 import { withServerUsageReporting } from "../shared/utils/usage";
-import { updateTxListener } from "./listeners/update-tx-listener";
 import { withAdminRoutes } from "./middleware/admin-routes";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
@@ -132,6 +131,5 @@ export const initServer = async () => {
   });
 
   writeOpenApiToFile(server);
-  await updateTxListener();
-  await clearCacheCron("server");
+  await clearCacheCron();
 };
