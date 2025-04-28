@@ -39,6 +39,7 @@ import {
   type ExecutionCredentials,
 } from "../../../executors/execute/execute.js";
 import type { Account } from "thirdweb/wallets";
+import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-client.js";
 
 // --- Schema Definitions ---
 
@@ -298,7 +299,10 @@ export const signTransactionRoute = onchainRoutesFactory.createHandlers(
       request: body as EncodedExecutionRequest,
       client: effectiveThirdwebClient,
       chain,
-      credentials: credentialsFromHeaders(credentials),
+      credentials: {
+        ...credentialsFromHeaders(credentials),
+        ...getThirdwebCredentialsFromContext(c),
+      },
     });
 
     if (accountResult.isErr()) {
@@ -414,7 +418,10 @@ export const signMessageRoute = onchainRoutesFactory.createHandlers(
     const accountResult = await getSigningAccount({
       request: body as EncodedExecutionRequest,
       client: effectiveThirdwebClient,
-      credentials: credentialsFromHeaders(credentials),
+      credentials: {
+        ...credentialsFromHeaders(credentials),
+        ...getThirdwebCredentialsFromContext(c),
+      },
       chain,
     });
     if (accountResult.isErr()) {
@@ -515,7 +522,10 @@ export const signTypedDataRoute = onchainRoutesFactory.createHandlers(
     const accountResult = await getSigningAccount({
       request: body as EncodedExecutionRequest,
       client: effectiveThirdwebClient,
-      credentials: credentialsFromHeaders(credentials),
+      credentials: {
+        ...credentialsFromHeaders(credentials),
+        ...getThirdwebCredentialsFromContext(c),
+      },
       chain,
     });
     if (accountResult.isErr()) {

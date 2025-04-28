@@ -47,6 +47,7 @@ import { AbiFunction } from "ox";
 import { ResultAsync } from "neverthrow";
 import { onchainRoutesFactory } from "./factory.js";
 import type { AbiParameter } from "abitype";
+import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-client.js";
 
 // Schema for contract parameters in the URL
 const transactionParamsWithoutValueSchema = z.object({
@@ -635,7 +636,10 @@ export const writeToContractRoute = onchainRoutesFactory.createHandlers(
         executionOptions,
         params: transactions,
       },
-      credentials: credentialsFromHeaders(credentials),
+      credentials: {
+        ...credentialsFromHeaders(credentials),
+        ...getThirdwebCredentialsFromContext(c),
+      },
     });
 
     if (executionResult.isErr()) {

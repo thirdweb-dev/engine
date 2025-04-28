@@ -102,6 +102,11 @@ function generateExecutionAccountCacheKey(
 
 export type ExecutionCredentials = {
   vaultAccessToken?: string;
+
+  // thirdweb credentials
+  thirdwebSecretKey?: string;
+  thirdwebClientId?: string;
+  thirdwebServiceKey?: string;
 };
 
 type ResolvedExecutionAccount_AA = {
@@ -509,6 +514,10 @@ function executeAA({
       sponsorGas: executionOptions.sponsorGas,
       smartAccountAddress: executionOptions.smartAccountAddress,
       accountSalt: executionOptions.accountSalt,
+
+      thirdwebClientId: credentials.thirdwebClientId,
+      thirdwebSecretKey: credentials.thirdwebSecretKey,
+      thirdwebServiceKey: credentials.thirdwebServiceKey,
     };
 
     // Add vault token and nonce data if available (from restricted token)

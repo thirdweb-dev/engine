@@ -15,6 +15,7 @@ import {
 } from "../../schemas/shared-api-schemas.js";
 import { onchainRoutesFactory } from "./factory.js";
 import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
+import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-client.js";
 
 export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
@@ -59,7 +60,10 @@ export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
     const executionResult = await execute({
       client: overrideThirdwebClient ?? thirdwebClient,
       request: executionRequest,
-      credentials: credentialsFromHeaders(credentials),
+      credentials: {
+        ...credentialsFromHeaders(credentials),
+        ...getThirdwebCredentialsFromContext(c),
+      },
     });
 
     if (executionResult.isErr()) {

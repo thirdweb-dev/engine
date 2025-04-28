@@ -7,6 +7,7 @@ import {
   type AbiParameterToPrimitiveType,
   type Address,
   type Hex,
+  type ThirdwebClient,
 } from "thirdweb";
 import {
   bundleUserOp,
@@ -15,7 +16,7 @@ import {
 } from "thirdweb/wallets/smart";
 import { accountActionErrorMapper, type RpcErr } from "../../lib/errors.js";
 import { getChain } from "../../lib/chain.js";
-import { thirdwebClient } from "../../lib/thirdweb-client.js";
+import { getThirdwebClient } from "../../lib/thirdweb-client.js";
 import { redis } from "../../lib/redis.js";
 import { initializeLogger } from "../../lib/logger.js";
 
@@ -74,6 +75,11 @@ export type ExecutionRequest = {
     vaultAccessToken?: string;
     preallocatedNonce?: bigint;
     nonceSeed?: bigint;
+
+    //thirdweb credentials
+    thirdwebSecretKey: string | undefined;
+    thirdwebClientId: string | undefined;
+    thirdwebServiceKey: string | undefined;
   };
   chainId: string;
   transactionParams: {
@@ -154,7 +160,12 @@ await externalBundlerSendQueue.setGlobalConcurrency(
   env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
 );
 
-export const externalBundlerConfirmQueue = new Queue<SendResult>(
+type ConfirmJobData = SendResult & {
+  thirdwebClientId: string;
+  thirdwebServiceKey: string;
+};
+
+export const externalBundlerConfirmQueue = new Queue<ConfirmJobData>(
   EXTERNAL_BUNDLER_CONFIRM_QUEUE_NAME,
   {
     defaultJobOptions: {
@@ -197,7 +208,22 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
     ) as ExecutionRequest;
     const { executionOptions, id, chainId, transactionParams } = parsedData;
 
-    const client = thirdwebClient;
+    let thirdwebClient: ThirdwebClient;
+
+    if (
+      executionOptions.thirdwebClientId &&
+      executionOptions.thirdwebServiceKey
+    ) {
+      thirdwebClient = getThirdwebClient({
+        clientId: executionOptions.thirdwebClientId,
+        serviceKey: executionOptions.thirdwebServiceKey,
+      });
+    } else {
+      throw new UnrecoverableError(
+        "No thirdweb credentials provided, unable to send transaction",
+      );
+    }
+
     const chain = getChain(Number(chainId));
 
     const account = await getEngineAccount({
@@ -221,7 +247,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
     const isDeployed = await isContractDeployed({
       address: executionOptions.smartAccountAddress,
       chain,
-      client,
+      client: thirdwebClient,
     });
 
     sendLogger.info(
@@ -259,7 +285,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
     const signedUserOp = await ResultAsync.fromPromise(
       createAndSignUserOp({
         adminAccount: signerAccount,
-        client,
+        client: thirdwebClient,
         waitForDeployment: false,
         isDeployedOverride: isDeployed,
         smartWalletOptions: {
@@ -282,7 +308,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
           data: tx.data,
           value: tx.value,
           chain: chain,
-          client: client,
+          client: thirdwebClient,
         })),
       }),
       accountActionErrorMapper({
@@ -307,7 +333,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
         userOp: signedUserOp.value,
         options: {
           chain: chain,
-          client: client,
+          client: thirdwebClient,
           entrypointAddress: executionOptions.entrypointAddress,
         },
       }),
@@ -341,6 +367,10 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
           chainId: chain.id.toString(),
           accountAddress: executionOptions.smartAccountAddress,
           id: id,
+
+          // thirdweb credentials
+          thirdwebClientId: executionOptions.thirdwebClientId,
+          thirdwebServiceKey: executionOptions.thirdwebServiceKey,
         },
         {
           jobId: id,
@@ -405,8 +435,21 @@ function isConfirmationError(err: unknown): err is ConfirmationError {
   return typeof err === "object" && err !== null && "transactionHash" in err;
 }
 
-export function confirm(options: SendResult) {
+export function confirm(options: ConfirmJobData) {
   const chain = getChain(Number(options.chainId));
+
+  let thirdwebClient: ThirdwebClient;
+
+  if (options.thirdwebClientId && options.thirdwebServiceKey) {
+    thirdwebClient = getThirdwebClient({
+      clientId: options.thirdwebClientId,
+      serviceKey: options.thirdwebServiceKey,
+    });
+  } else {
+    throw new UnrecoverableError(
+      "No thirdweb credentials provided, unable to send transaction",
+    );
+  }
 
   return ResultAsync.fromPromise(
     getUserOpReceiptRaw({
@@ -489,11 +532,26 @@ export function confirm(options: SendResult) {
   });
 }
 
-export const confirmWorker = new Worker<SendResult, ConfirmationResult>(
+export const confirmWorker = new Worker<ConfirmJobData, ConfirmationResult>(
   EXTERNAL_BUNDLER_CONFIRM_QUEUE_NAME,
   async (job): Promise<ConfirmationResult> => {
-    const { userOpHash, chainId, id, accountAddress } = job.data;
-    const result = await confirm({ userOpHash, chainId, id, accountAddress });
+    const {
+      userOpHash,
+      chainId,
+      id,
+      accountAddress,
+      thirdwebClientId,
+      thirdwebServiceKey,
+    } = job.data;
+
+    const result = await confirm({
+      userOpHash,
+      chainId,
+      id,
+      accountAddress,
+      thirdwebClientId,
+      thirdwebServiceKey,
+    });
 
     if (result.isErr()) {
       if (isConfirmationError(result.error)) {

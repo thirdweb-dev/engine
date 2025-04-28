@@ -1,6 +1,6 @@
 import { createThirdwebClient } from "thirdweb";
 import { env } from "./env.js";
-import { setThirdwebDomains } from "thirdweb/utils";
+import { setServiceKey, setThirdwebDomains } from "thirdweb/utils";
 import {
   THIRDWEB_BUNDLER_DOMAIN,
   THIRDWEB_INAPP_WALLET_DOMAIN,
@@ -21,14 +21,26 @@ if (env.NODE_ENV !== "production") {
   });
 }
 
-export function getThirdwebClient(secretKey: string) {
-  return createThirdwebClient({
-    secretKey,
+export function getThirdwebClient(
+  params:
+    | { secretKey: string; clientId?: string }
+    | { clientId: string; serviceKey: string },
+) {
+  if ("serviceKey" in params) {
+    setServiceKey(params.serviceKey);
+  }
+
+  const client = createThirdwebClient({
+    ...params,
     config: {
       rpc: { maxBatchSize: 50 },
     },
   });
+
+  return client;
 }
 
-export const thirdwebClient = getThirdwebClient(env.THIRDWEB_API_SECRET_KEY);
+export const thirdwebClient = getThirdwebClient({
+  secretKey: env.THIRDWEB_API_SECRET_KEY,
+});
 export const thirdwebClientId = thirdwebClient.clientId;
