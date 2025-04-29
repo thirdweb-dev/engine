@@ -98,7 +98,9 @@ export const isValidWebhookUrl = (input: string): boolean => {
       url.protocol === "https:" ||
       // Allow http for localhost only.
       (url.protocol === "http:" &&
-        ["localhost", "0.0.0.0", "127.0.0.1"].includes(url.hostname))
+        ["localhost", "0.0.0.0", "127.0.0.1", "host.docker.internal"].includes(
+          url.hostname,
+        ))
     );
   } catch {
     return false;

@@ -30,5 +30,6 @@ describe("isValidWebhookUrl", () => {
     expect(isValidWebhookUrl("http://localhost:3000")).toBe(true);
     expect(isValidWebhookUrl("http://0.0.0.0:3000")).toBe(true);
     expect(isValidWebhookUrl("http://user:pass@127.0.0.1:3000")).toBe(true);
+    expect(isValidWebhookUrl("http://host.docker.internal:3000")).toBe(true);
   });
 });
