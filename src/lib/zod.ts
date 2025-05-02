@@ -29,7 +29,9 @@ export const evmAddressSchema = z
     example: exampleEvmAddress,
   });
 
-export const hexSchema = z.string().regex(/^0x[0-9a-fA-F]+$/) as z.ZodType<Hex>;
+export const hexSchema = z
+  .string()
+  .regex(/^0x([0-9a-fA-F]*)$/) as z.ZodType<Hex>;
 
 export const timestampsSchema = z.object({
   createdAt: z.string().openapi({
