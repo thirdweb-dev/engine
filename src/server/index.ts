@@ -18,7 +18,6 @@ import { withOpenApi } from "./middleware/open-api";
 import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rate-limit";
 import { withSecurityHeaders } from "./middleware/security-headers";
-import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
 
@@ -81,7 +80,6 @@ export const initServer = async () => {
   withPrometheus(server);
 
   // Register routes
-  await withWebSocket(server);
   await withAuth(server);
   await withOpenApi(server);
   await withRoutes(server);

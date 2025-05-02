@@ -1,23 +1,13 @@
-import type { SocketStream } from "@fastify/websocket";
 import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../shared/db/transactions/db";
-import { logger } from "../../../shared/utils/logger";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import {
   TransactionSchema,
   toTransactionSchema,
 } from "../../schemas/transaction";
-import {
-  findOrAddWSConnectionInSharedState,
-  formatSocketMessage,
-  getStatusMessageAndConnectionStatus,
-  onClose,
-  onError,
-  onMessage,
-} from "../../utils/websocket";
 
 // INPUT
 const requestSchema = Type.Object({
@@ -94,43 +84,6 @@ export async function getTransactionStatusRoute(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: toTransactionSchema(transaction),
-      });
-    },
-    wsHandler: async (connection: SocketStream, request) => {
-      const { queueId } = request.params;
-
-      findOrAddWSConnectionInSharedState(connection, queueId, request);
-
-      const transaction = await TransactionDB.get(queueId);
-      const returnData = transaction ? toTransactionSchema(transaction) : null;
-
-      const { message, closeConnection } =
-        await getStatusMessageAndConnectionStatus(returnData);
-
-      connection.socket.send(await formatSocketMessage(returnData, message));
-
-      if (closeConnection) {
-        connection.socket.close();
-        return;
-      }
-
-      connection.socket.on("error", (error) => {
-        logger({
-          service: "websocket",
-          level: "error",
-          message: "Websocket error",
-          error,
-        });
-
-        onError(error, connection, request);
-      });
-
-      connection.socket.on("message", async (_message, _isBinary) => {
-        onMessage(connection, request);
-      });
-
-      connection.socket.on("close", () => {
-        onClose(connection, request);
       });
     },
   });
