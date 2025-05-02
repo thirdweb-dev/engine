@@ -219,10 +219,10 @@ function getSigningAccount({
       case "EOA": {
         return ok(accountResult.account);
       }
-      case "AA:zksync": {
+      case "zksync": {
         return ok(accountResult.zkEoaAccount);
       }
-      case "AA": {
+      case "ERC4337": {
         const { signerAccount, smartAccountDetails } = accountResult;
 
         // Handle the async import and connection with ResultAsync.fromPromise

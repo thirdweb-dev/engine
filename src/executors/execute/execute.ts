@@ -54,7 +54,7 @@ type CachedExecutionAccountInfo =
       address: Address;
     }
   | {
-      type: "AA";
+      type: "ERC4337";
       signerAddress: Address;
       smartAccountAddress: Address;
       factoryAddress: Address;
@@ -62,7 +62,7 @@ type CachedExecutionAccountInfo =
       accountSalt: string | null;
     }
   | {
-      type: "AA:zksync";
+      type: "zksync";
       accountAddress: Address;
     };
 
@@ -82,7 +82,7 @@ function generateExecutionAccountCacheKey(
   switch (request.executionOptions.type) {
     case "auto":
       return `auto_${request.executionOptions.from}:${request.executionOptions.chainId}`;
-    case "AA": {
+    case "ERC4337": {
       const options = request.executionOptions;
       return [
         `type:${options.type}`,
@@ -94,7 +94,7 @@ function generateExecutionAccountCacheKey(
         `chain:${options.chainId}`,
       ].join("_");
     }
-    case "AA:zksync": {
+    case "zksync": {
       return `AA:zksync_${request.executionOptions.accountAddress}:${request.executionOptions.chainId}`;
     }
   }
@@ -110,7 +110,7 @@ export type ExecutionCredentials = {
 };
 
 type ResolvedExecutionAccount_AA = {
-  type: "AA";
+  type: "ERC4337";
   signerAccount: Account;
   smartAccountDetails: {
     factoryAddress: Address;
@@ -119,8 +119,8 @@ type ResolvedExecutionAccount_AA = {
   } & { accountSalt: string | null | undefined };
 };
 
-type ResolvedExecutionAccount_AA_zksync = {
-  type: "AA:zksync";
+type ResolvedExecutionAccount_zksync = {
+  type: "zksync";
   zkEoaAccount: Account;
 };
 
@@ -131,7 +131,7 @@ type ResolvedExecutionAccount_EOA = {
 
 type ResolvedExecutionAccount =
   | ResolvedExecutionAccount_AA
-  | ResolvedExecutionAccount_AA_zksync
+  | ResolvedExecutionAccount_zksync
   | ResolvedExecutionAccount_EOA;
 
 /**
@@ -197,7 +197,7 @@ export function getExecutionAccountFromRequest({
           } as ResolvedExecutionAccount);
         }
 
-        case "AA:zksync": {
+        case "zksync": {
           const engineAccountResult = yield* getEngineAccount({
             address: cachedInfo.accountAddress,
             vaultAccessToken: credentials.vaultAccessToken,
@@ -214,12 +214,12 @@ export function getExecutionAccountFromRequest({
           }
 
           return okAsync({
-            type: "AA:zksync",
+            type: "zksync",
             zkEoaAccount: engineAccountResult.account,
           } as ResolvedExecutionAccount);
         }
 
-        case "AA": {
+        case "ERC4337": {
           // For smart account, get the signer EOA
           const signerAccount = yield* getEngineAccount({
             address: cachedInfo.signerAddress,
@@ -238,7 +238,7 @@ export function getExecutionAccountFromRequest({
 
           // Return the reconstructed result
           return okAsync({
-            type: "AA",
+            type: "ERC4337",
             signerAccount: signerAccount.account,
             smartAccountDetails: {
               address: cachedInfo.smartAccountAddress,
@@ -273,16 +273,16 @@ export function getExecutionAccountFromRequest({
         });
         break;
       }
-      case "AA:zksync": {
+      case "zksync": {
         executionAccountCache.set(cacheKey, {
-          type: "AA:zksync",
+          type: "zksync",
           accountAddress: result.zkEoaAccount.address as Address,
         });
         break;
       }
-      case "AA": {
+      case "ERC4337": {
         executionAccountCache.set(cacheKey, {
-          type: "AA",
+          type: "ERC4337",
           signerAddress: result.signerAccount.address as Address,
           smartAccountAddress: result.smartAccountDetails.address,
           factoryAddress: result.smartAccountDetails.factoryAddress,
@@ -321,7 +321,7 @@ function getExecutionAccountFromRequest_uncached({
 
           if ("signerAccount" in engineAccountResponse) {
             return okAsync({
-              type: "AA" as const,
+              type: "ERC4337" as const,
               signerAccount: engineAccountResponse.signerAccount,
               smartAccountDetails: engineAccountResponse.smartAccountDetails,
             });
@@ -331,7 +331,7 @@ function getExecutionAccountFromRequest_uncached({
 
           if (isZkChain) {
             return okAsync({
-              type: "AA:zksync" as const,
+              type: "zksync" as const,
               zkEoaAccount: engineAccountResponse.account,
             });
           }
@@ -342,7 +342,7 @@ function getExecutionAccountFromRequest_uncached({
           });
         }
       }
-      case "AA": {
+      case "ERC4337": {
         {
           const resolved = yield* resolve_aa({
             options: request.executionOptions,
@@ -353,12 +353,12 @@ function getExecutionAccountFromRequest_uncached({
           });
 
           return okAsync({
-            type: "AA" as const,
+            type: "ERC4337" as const,
             ...resolved,
           });
         }
       }
-      case "AA:zksync": {
+      case "zksync": {
         const isThisZkSyncChain = yield* isZkSyncChainResult(chain);
         if (!isThisZkSyncChain) {
           return errAsync({
@@ -384,7 +384,7 @@ function getExecutionAccountFromRequest_uncached({
         }
 
         return okAsync({
-          type: "AA:zksync" as const,
+          type: "zksync" as const,
           zkEoaAccount: engineAccountResponse.account,
         });
       }
@@ -422,7 +422,7 @@ export function execute({
           status: 500,
         } as EngineErr);
       }
-      case "AA": {
+      case "ERC4337": {
         return okAsync(
           yield* executeAA({
             chain,
@@ -433,7 +433,7 @@ export function execute({
           }),
         );
       }
-      case "AA:zksync": {
+      case "zksync": {
         return errAsync({
           kind: "account",
           code: "account_not_found",
@@ -516,7 +516,6 @@ function executeAA({
       accountSalt: executionOptions.accountSalt,
 
       thirdwebClientId: credentials.thirdwebClientId,
-      thirdwebSecretKey: credentials.thirdwebSecretKey,
       thirdwebServiceKey: credentials.thirdwebServiceKey,
     };
 

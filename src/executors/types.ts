@@ -69,59 +69,44 @@ const baseExecutionOptionsSchema = {
 };
 
 // AA Execution Options
-const baseAAExecutionOptionsSchema = z.object({
-  type: z.literal("AA").openapi({
-    example: "AA",
-  }),
-  signerAddress: evmAddressSchema.openapi({
-    description:
-      "The address of the engine managed account which can send transactions from your smart account",
-  }),
-  sponsorGas: z.boolean().default(true),
-  factoryAddress: evmAddressSchema.optional().openapi({
-    description:
-      "The address of the smart account factory. Defaults to thirdweb default v0.7 Account Factory. Only specify this if you are using a custom account factory.",
-  }),
-  entrypointAddress: evmAddressSchema.optional().openapi({
-    description:
-      "The address of the entrypoint contract. Defaults to the v0.7 entrypoint for the chain. Only specify this if you want to specify a different version.",
-  }),
-});
-
-// to know the smart account address, we can be directly told the address,
-const executionOptionsWithoutSaltSchema = baseAAExecutionOptionsSchema
-  .extend({
-    smartAccountAddress: evmAddressSchema.openapi({
-      description:
-        "The address of the smart account to send the transaction from",
+export const aaExecutionOptionsSchema = z
+  .object({
+    type: z.literal("ERC4337").openapi({
+      example: "ERC4337",
     }),
-  })
-  .extend(baseExecutionOptionsSchema);
+    signerAddress: evmAddressSchema.openapi({
+      description:
+        "The address of the engine managed account which can send transactions from your smart account",
+    }),
+    sponsorGas: z.boolean().default(true),
+    factoryAddress: evmAddressSchema.optional().openapi({
+      description:
+        "The address of the smart account factory. Defaults to thirdweb default v0.7 Account Factory. Only specify this if you are using a custom account factory.",
+    }),
+    entrypointAddress: evmAddressSchema.optional().openapi({
+      description:
+        "The address of the entrypoint contract. Defaults to the v0.7 entrypoint for the chain. Only specify this if you want to specify a different version.",
+    }),
 
-// or we can be told the salt + factory
-const executionOptionsWithSaltSchema = baseAAExecutionOptionsSchema
-  .extend({
+    smartAccountAddress: evmAddressSchema.optional().openapi({
+      description:
+        "The address of the smart account to send the transaction from. Either specify this, or the salt. If not specified, the inferred smart account will be with null salt. If both are specified, the salt will be ignored.",
+    }),
+
     accountSalt: z.string().optional().openapi({
       description:
         "The salt of the smart account to send the transaction from. Only specify this if you want to specify a custom salt. If omitted, and smart account address is not provided, the inferred smart account will be with null salt. If a smart account address is provided, the salt will be ignored.",
     }),
   })
-  .extend(baseExecutionOptionsSchema);
-
-export const aaExecutionOptionsSchema = z.union([
-  executionOptionsWithSaltSchema.openapi({
-    ref: "aaExecutionOptionsWithSalt",
-    title: "AA Execution (Smart Account Address Optional)",
-  }),
-  executionOptionsWithoutSaltSchema.openapi({
-    ref: "aaExecutionOptionsWithSmartAccountAddress",
-    title: "AA Execution (Smart Account Address Required)",
-  }),
-]);
+  .extend(baseExecutionOptionsSchema)
+  .openapi({
+    ref: "aaExecutionOptions",
+    title: "ERC4337 Execution (Smart Account)",
+  });
 
 export const aaZksyncExecutionOptionsSchema = z
   .object({
-    type: z.literal("AA:zksync"),
+    type: z.literal("zksync"),
     accountAddress: evmAddressSchema.openapi({
       description:
         "The EOA address of the account to send the zksync native AA transaction from.",
@@ -138,7 +123,13 @@ export const aaZksyncExecutionOptionsSchema = z
 
 export const autoExecutionOptionsSchema = z
   .object({
-    type: z.literal("auto").default("auto" as const),
+    type: z
+      .literal("auto")
+      .default("auto" as const)
+      .openapi({
+        description:
+          "This is the default, a `type` does not need to be specified",
+      }),
     from: evmAddressSchema.openapi({
       description:
         "The address of the account to send the transaction from. Can be the address of a smart account or an EOA.",
@@ -153,17 +144,16 @@ export const autoExecutionOptionsSchema = z
   });
 
 export const EXECUTION_OPTIONS_EXAMPLE = {
-  type: "AA",
   chainId: "84532",
-  signerAddress: exampleEvmAddress,
+  from: exampleEvmAddress,
 } as const;
 
 const executionRequestSchema = z.object({
   executionOptions: z
     .union([
+      autoExecutionOptionsSchema,
       aaExecutionOptionsSchema,
       aaZksyncExecutionOptionsSchema,
-      autoExecutionOptionsSchema,
     ])
     .openapi({
       description:

@@ -113,7 +113,7 @@ export function resolve({
     //    In which case we need to rely on executionOptions to contain all data,
     //    and if not we defer to default values
 
-    if ("smartAccountAddress" in options) {
+    if ("smartAccountAddress" in options && options.smartAccountAddress) {
       // the simplest case is if the request contains all the data we need: entrypointAddress, factoryAddress
       if (options.entrypointAddress && options.factoryAddress) {
         // good to go! let's just send provided execution options

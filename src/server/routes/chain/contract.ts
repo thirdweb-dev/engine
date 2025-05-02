@@ -272,7 +272,7 @@ async function processBatch<
 export const encodeFunctionDataRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Encode"],
-    summary: "Contract Function",
+    summary: "Encode A Contract Function Call",
     description:
       "Get transaction parameters (to, data, value) for contract calls.",
     responses: {
@@ -381,7 +381,7 @@ export const encodeFunctionDataRoute = onchainRoutesFactory.createHandlers(
 export const readFromContractRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Read"],
-    summary: "Contract Function",
+    summary: "Read from a Contract",
     description: "Call read-only functions using multicall.",
     responses: {
       200: {
@@ -525,7 +525,7 @@ export const readFromContractRoute = onchainRoutesFactory.createHandlers(
 export const writeToContractRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Write"],
-    summary: "Contract Function",
+    summary: "Write to a Contract with a Function Call",
     description: "Call a write function on a contract.",
     responses: {
       200: {

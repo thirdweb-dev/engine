@@ -77,7 +77,6 @@ export type ExecutionRequest = {
     nonceSeed?: bigint;
 
     //thirdweb credentials
-    thirdwebSecretKey: string | undefined;
     thirdwebClientId: string | undefined;
     thirdwebServiceKey: string | undefined;
   };

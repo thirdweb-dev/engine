@@ -20,7 +20,7 @@ import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-cli
 export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Write"],
-    summary: "Encoded Transaction",
+    summary: "Send an Encoded Transaction",
     description: "Send a transaction or a batch of transactions",
     responses: {
       200: {

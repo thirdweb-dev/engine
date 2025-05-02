@@ -42,7 +42,7 @@ const balanceResponseSchema = wrapResponseSchema(balanceSuccessSchema);
 export const getNativeBalanceRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Read"],
-    summary: "Native Balance",
+    summary: "Read the Native Balance for an Address",
     description:
       "Fetches the native cryptocurrency balance (e.g., ETH, MATIC) for a given address on a specific chain.",
     responses: {
