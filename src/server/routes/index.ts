@@ -104,7 +104,10 @@ import { getAllTransactions } from "./transaction/get-all";
 import { getAllDeployedContracts } from "./transaction/get-all-deployed-contracts";
 import { retryTransaction } from "./transaction/retry";
 import { retryFailedTransactionRoute } from "./transaction/retry-failed";
-import { checkTxStatus } from "./transaction/status";
+import {
+  getTransactionStatusQueryParamRoute,
+  getTransactionStatusRoute,
+} from "./transaction/status";
 import { syncRetryTransactionRoute } from "./transaction/sync-retry";
 import { createWebhookRoute } from "./webhooks/create";
 import { getWebhooksEventTypes } from "./webhooks/events";
@@ -239,7 +242,8 @@ export async function withRoutes(fastify: FastifyInstance) {
 
   // Transactions
   await fastify.register(getAllTransactions);
-  await fastify.register(checkTxStatus);
+  await fastify.register(getTransactionStatusRoute);
+  await fastify.register(getTransactionStatusQueryParamRoute);
   await fastify.register(getAllDeployedContracts);
   await fastify.register(retryTransaction);
   await fastify.register(syncRetryTransactionRoute);

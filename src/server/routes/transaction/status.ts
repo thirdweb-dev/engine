@@ -62,7 +62,7 @@ responseBodySchema.example = {
   },
 };
 
-export async function checkTxStatus(fastify: FastifyInstance) {
+export async function getTransactionStatusRoute(fastify: FastifyInstance) {
   fastify.route<{
     Params: Static<typeof requestSchema>;
     Reply: Static<typeof responseBodySchema>;
@@ -131,6 +131,53 @@ export async function checkTxStatus(fastify: FastifyInstance) {
 
       connection.socket.on("close", () => {
         onClose(connection, request);
+      });
+    },
+  });
+}
+
+// An alterate route that accepts the queueId as a query param.
+export async function getTransactionStatusQueryParamRoute(
+  fastify: FastifyInstance,
+) {
+  fastify.route<{
+    Querystring: Static<typeof requestSchema>;
+    Reply: Static<typeof responseBodySchema>;
+  }>({
+    method: "GET",
+    url: "/transaction/status",
+    schema: {
+      summary: "Get transaction status",
+      description: "Get the status for a transaction request.",
+      tags: ["Transaction"],
+      operationId: "status",
+      querystring: requestSchema,
+      response: {
+        ...standardResponseSchema,
+        [StatusCodes.OK]: responseBodySchema,
+      },
+    },
+    handler: async (request, reply) => {
+      const { queueId } = request.query;
+      if (!queueId) {
+        throw createCustomError(
+          "Queue ID is required.",
+          StatusCodes.BAD_REQUEST,
+          "QUEUE_ID_REQUIRED",
+        );
+      }
+
+      const transaction = await TransactionDB.get(queueId);
+      if (!transaction) {
+        throw createCustomError(
+          "Transaction not found.",
+          StatusCodes.BAD_REQUEST,
+          "TRANSACTION_NOT_FOUND",
+        );
+      }
+
+      reply.status(StatusCodes.OK).send({
+        result: toTransactionSchema(transaction),
       });
     },
   });
