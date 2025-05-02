@@ -336,10 +336,29 @@ function getExecutionAccountFromRequest_uncached({
             });
           }
 
-          return okAsync({
-            type: "EOA" as const,
-            account: engineAccountResponse.account,
+          const aaResolution = yield* resolve_aa({
+            options: {
+              chainId: request.executionOptions.chainId,
+              signerAddress: engineAccountResponse.account.address as Address,
+              type: "ERC4337",
+              sponsorGas: true,
+            },
+            chain,
+            credentials,
+            client,
+            skipStorageLookup: shouldSkipStorageLookup,
           });
+
+          return okAsync({
+            type: "ERC4337" as const,
+            signerAccount: engineAccountResponse.account,
+            smartAccountDetails: aaResolution.smartAccountDetails,
+          } as ResolvedExecutionAccount);
+
+          // return okAsync({
+          //   type: "EOA" as const,
+          //   account: engineAccountResponse.account,
+          // });
         }
       }
       case "ERC4337": {
