@@ -1,38 +1,22 @@
+import type { AbiParameter } from "abitype";
+import { Abi } from "abitype/zod";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
-import * as z from "zod";
-import { Abi } from "abitype/zod";
-import { execute } from "../../../executors/execute/execute.js";
+import { ResultAsync } from "neverthrow";
+import { AbiFunction } from "ox";
 import {
-  accountActionErrorMapper,
-  engineErrToHttpException,
-  getDefaultErrorMessage,
-  isEngineErr,
-  zErrorMapper,
-  type EngineErr,
-} from "../../../lib/errors.js";
-import { thirdwebClient } from "../../../lib/thirdweb-client.js";
-import {
-  credentialsFromHeaders,
-  executionCredentialsHeadersSchema,
-  wrapResponseSchema,
-} from "../../schemas/shared-api-schemas.js";
-import {
-  evmAddressSchema,
-  exampleBaseSepoliaUsdcAddress,
-  exampleEvmAddress,
-  hexSchema,
-} from "../../../lib/zod.js";
-import {
+  type Address,
   encode,
   getContract,
+  type Hex,
   prepareContractCall,
   readContract,
   resolveMethod,
-  type Address,
-  type Hex,
 } from "thirdweb";
-
+import { decodeAbiParameters, parseAbiParams } from "thirdweb/utils";
+import * as z from "zod";
+import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
+import { execute } from "../../../executors/execute/execute.js";
 import {
   bigIntSchema,
   buildExecutionRequestSchema,
@@ -41,13 +25,28 @@ import {
   transactionResponseSchema,
 } from "../../../executors/types.js";
 import { getChainResult } from "../../../lib/chain.js";
-import { decodeAbiParameters, parseAbiParams } from "thirdweb/utils";
-import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
-import { AbiFunction } from "ox";
-import { ResultAsync } from "neverthrow";
-import { onchainRoutesFactory } from "./factory.js";
-import type { AbiParameter } from "abitype";
+import {
+  accountActionErrorMapper,
+  type EngineErr,
+  engineErrToHttpException,
+  getDefaultErrorMessage,
+  isEngineErr,
+  zErrorMapper,
+} from "../../../lib/errors.js";
+import { thirdwebClient } from "../../../lib/thirdweb-client.js";
+import {
+  evmAddressSchema,
+  exampleBaseSepoliaUsdcAddress,
+  exampleEvmAddress,
+  hexSchema,
+} from "../../../lib/zod.js";
 import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-client.js";
+import {
+  credentialsFromHeaders,
+  executionCredentialsHeadersSchema,
+  wrapResponseSchema,
+} from "../../schemas/shared-api-schemas.js";
+import { onchainRoutesFactory } from "./factory.js";
 
 // Schema for contract parameters in the URL
 const transactionParamsWithoutValueSchema = z.object({
@@ -272,9 +271,10 @@ async function processBatch<
 export const encodeFunctionDataRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Encode"],
-    summary: "Encode A Contract Function Call",
+    operationId: "encodeFunctionData",
+    summary: "Encode Function Data",
     description:
-      "Get transaction parameters (to, data, value) for contract calls.",
+      "Encode a contract call into transaction parameters (to, data, value).",
     responses: {
       200: {
         description: "OK",
@@ -381,8 +381,10 @@ export const encodeFunctionDataRoute = onchainRoutesFactory.createHandlers(
 export const readFromContractRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Read"],
-    summary: "Read from a Contract",
-    description: "Call read-only functions using multicall.",
+    operationId: "readContract",
+    summary: "Read Contract",
+    description:
+      "Call read-only contract functions or batch read using multicall.",
     responses: {
       200: {
         description: "OK",
@@ -525,7 +527,8 @@ export const readFromContractRoute = onchainRoutesFactory.createHandlers(
 export const writeToContractRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Write"],
-    summary: "Write to a Contract with a Function Call",
+    operationId: "writeContract",
+    summary: "Write Contract",
     description: "Call a write function on a contract.",
     responses: {
       200: {

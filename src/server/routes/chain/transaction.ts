@@ -1,6 +1,7 @@
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
 import * as z from "zod";
+import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 import { execute } from "../../../executors/execute/execute.js";
 import {
   encodedExecutionRequestSchema,
@@ -8,20 +9,20 @@ import {
 } from "../../../executors/types.js";
 import { engineErrToHttpException, zErrorMapper } from "../../../lib/errors.js";
 import { thirdwebClient } from "../../../lib/thirdweb-client.js";
+import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-client.js";
 import {
   credentialsFromHeaders,
   executionCredentialsHeadersSchema,
   wrapResponseSchema,
 } from "../../schemas/shared-api-schemas.js";
 import { onchainRoutesFactory } from "./factory.js";
-import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
-import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-client.js";
 
 export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Write"],
-    summary: "Send an Encoded Transaction",
-    description: "Send a transaction or a batch of transactions",
+    operationId: "sendTransaction",
+    summary: "Send Transaction",
+    description: "Send an encoded transaction or a batch of transactions",
     responses: {
       200: {
         description: "Transaction sent successfully",

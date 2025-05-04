@@ -1,7 +1,7 @@
 import * as z from "zod";
-import { hexSchema, evmAddressSchema, exampleEvmAddress } from "../lib/zod.js";
-import { wrapResponseSchema } from "../server/schemas/shared-api-schemas.js";
 import { transactionDbEntrySchema } from "../db/derived-schemas.js";
+import { evmAddressSchema, exampleEvmAddress, hexSchema } from "../lib/zod.js";
+import { wrapResponseSchema } from "../server/schemas/shared-api-schemas.js";
 
 // Example BigInt value for OpenAPI documentation
 const exampleBigInt = "123456789012345678901234567890";
@@ -197,7 +197,18 @@ z.ZodObject<
 
 export const encodedExecutionRequestSchema = buildExecutionRequestSchema(
   z.array(transactionBodySchema),
-);
+).openapi({
+  example: {
+    params: [
+      {
+        to: exampleEvmAddress,
+        data: "0x",
+        value: "0",
+      },
+    ],
+    executionOptions: EXECUTION_OPTIONS_EXAMPLE,
+  },
+});
 
 export type EncodedExecutionRequest = z.infer<
   typeof encodedExecutionRequestSchema
