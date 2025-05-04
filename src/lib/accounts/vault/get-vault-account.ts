@@ -91,7 +91,7 @@ export function getVaultAccount(options: VaultAccountOptions): Account {
       throw handleVaultResponseError(result.error, address, "signTransaction");
     }
 
-    return `0x${result.data.signature}` as Hex;
+    return result.data.signature as Hex;
   }
 
   async function signTypedData<
@@ -132,7 +132,7 @@ export function getVaultAccount(options: VaultAccountOptions): Account {
       throw handleVaultResponseError(result.error, address, "signTypedData");
     }
 
-    return `0x${result.data.signature}` as Hex;
+    return result.data.signature as Hex;
   }
 
   async function sendTransaction(tx: SendTransactionOptions) {
@@ -313,7 +313,7 @@ export function getVaultAccount(options: VaultAccountOptions): Account {
       throw handleVaultResponseError(result.error, address, "signMessage");
     }
 
-    return `0x${result.data.signature}` as Hex;
+    return result.data.signature as Hex;
   }
 
   // signAuthorization: async (authorization: AuthorizationRequest) => {

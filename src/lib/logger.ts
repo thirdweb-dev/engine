@@ -19,7 +19,6 @@ const metadataFormatter = format((meta) => {
     }
     if (el instanceof Error && !error) {
       error = el;
-      console.error(el);
     } else {
       for (const [key, val] of Object.entries(el)) {
         customMetadata[key] = val;
