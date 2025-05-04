@@ -1,48 +1,45 @@
-import { errAsync, okAsync, ResultAsync, safeTry } from "neverthrow";
-import { getEngineAccount } from "../../lib/accounts/accounts.js";
-import type { EncodedExecutionRequest } from "../types.js";
+import { randomUUID } from "node:crypto";
 import { LRUCache } from "lru-cache";
-
+import { errAsync, okAsync, ResultAsync, safeTry } from "neverthrow";
+import SuperJSON from "superjson";
 import {
-  buildTransactionDbEntryErr,
-  mapDbError,
-  type AccountErr,
-  type EngineErr,
-  type ValidationErr,
-} from "../../lib/errors.js";
-import {
-  execute as executeExternalBundlerAsync,
-  type ExecutionRequest as AsyncBundlerExecutionRequest,
-} from "../external-bundler-async/index.js";
-
-import { getChainResult } from "../../lib/chain.js";
-import {
-  ZERO_ADDRESS,
   type Address,
   type Chain,
   type Hex,
   type ThirdwebClient,
+  ZERO_ADDRESS,
 } from "thirdweb";
 import type { Account } from "thirdweb/wallets";
-
 import { db } from "../../db/connection.js";
 import { transactions } from "../../db/schema.js";
-import { randomUUID } from "node:crypto";
-import SuperJSON from "superjson";
 import type {
   ExecutionParamsSerialized,
   TransactionParamsSerialized,
 } from "../../db/types.js";
+import { getEngineAccount } from "../../lib/accounts/accounts.js";
+import { getChainResult } from "../../lib/chain.js";
+import {
+  type AccountErr,
+  buildTransactionDbEntryErr,
+  type EngineErr,
+  mapDbError,
+  type ValidationErr,
+} from "../../lib/errors.js";
+import {
+  type ExecutionRequest as AsyncBundlerExecutionRequest,
+  execute as executeExternalBundlerAsync,
+} from "../external-bundler-async/index.js";
+import type { EncodedExecutionRequest } from "../types.js";
 import "./external-bundler-confirm-handler.js";
 import "./external-bundler-send-handler.js";
-import {
-  createRestrictedSignedToken,
-  isStoredToken,
-  type CreateRestrictedSignedTokenResult,
-} from "./vault-helper.js";
+import { resolve as resolve_aa } from "../../executors/execute/resolution/aa.js";
 
 import { isZkSyncChainResult } from "../../lib/result-wrapped/thirdweb-sdk.js";
-import { resolve as resolve_aa } from "../../executors/execute/resolution/aa.js";
+import {
+  type CreateRestrictedSignedTokenResult,
+  createRestrictedSignedToken,
+  isStoredToken,
+} from "./vault-helper.js";
 
 type AsyncBundlerExecutionRequestOptions =
   AsyncBundlerExecutionRequest["executionOptions"];
@@ -397,7 +394,8 @@ function getExecutionAccountFromRequest_uncached({
           return errAsync({
             kind: "account",
             code: "account_not_found",
-            message: `Provided account address is an ERC4337 smart account. ERC4337 Smart Account cannot be used for zksync AA`,
+            message:
+              "Provided account address is an ERC4337 smart account. ERC4337 Smart Account cannot be used for zksync AA",
             status: 400,
           } as AccountErr);
         }

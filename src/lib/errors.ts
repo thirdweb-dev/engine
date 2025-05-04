@@ -1,15 +1,14 @@
 import type { Hook } from "@hono/zod-validator";
 import type { Env } from "hono";
 import { HTTPException } from "hono/http-exception";
+import type { Address, Hex } from "thirdweb";
 import { ZodError } from "zod";
 import type {
   ExecutionParamsSerialized,
   ExecutionResultSerialized,
 } from "../db/types.js";
-
 import type { QueueingErr as BundlerExecutorAsyncQueueingErr } from "../executors/external-bundler-async/index.js";
 import type { VaultKmsErr } from "./accounts/vault/get-vault-account.js";
-import type { Address, Hex } from "thirdweb";
 
 export type HttpErrStatusCode = 400 | 401 | 403 | 404 | 500 | 501;
 
@@ -91,7 +90,10 @@ export type ValidationErr = BaseErr & {
     | "parse_error"
     | "filter_error"
     | "invalid_contract_details"
-    | "invalid_chain";
+    | "invalid_chain"
+    | "transaction_simulation_failed";
+  chainId?: string;
+  contractAddress?: Address;
 };
 
 export type WebhookErr = BaseErr & {
@@ -295,6 +297,8 @@ export function getDefaultErrorMessage(error: EngineErr): string {
         invalid_contract_details: "Invalid contract details",
         invalid_chain:
           "Invalid chain. This could mean parsing the chain ID failed, or the requested action is not supported on this chain.",
+        transaction_simulation_failed:
+          "Transaction simulation failed. This usually means the contract reverted.",
       };
       return messages[error.code];
     }
@@ -580,6 +584,21 @@ export const accountActionErrorMapper = (options: RpcErrorOptions = {}) => {
   return (error: unknown): EngineErr => {
     if (isEngineErr(error)) {
       return error;
+    }
+
+    if (error instanceof Error && error.name === "TransactionError") {
+      const chainId = "chainId" in error ? error.chainId : undefined;
+      const contractAddress =
+        "contractAddress" in error ? error.contractAddress : undefined;
+      return {
+        kind: "validation",
+        code: "transaction_simulation_failed",
+        status: 400,
+        message: `Transaction simulation failed: ${error.message}`,
+        source: error,
+        chainId,
+        contractAddress,
+      } as ValidationErr;
     }
 
     return {

@@ -1,37 +1,35 @@
 // notes
 import { DelayedError, Queue, UnrecoverableError, Worker } from "bullmq";
 import { errAsync, okAsync, ResultAsync } from "neverthrow";
+import SuperJSON, { type SuperJSONResult } from "superjson";
 import {
-  parseEventLogs,
-  prepareEvent,
   type AbiParameterToPrimitiveType,
   type Address,
   type Hex,
+  parseEventLogs,
+  prepareEvent,
   type ThirdwebClient,
 } from "thirdweb";
+import { userOperationRevertReasonEvent } from "thirdweb/extensions/erc4337";
+import { isContractDeployed } from "thirdweb/utils";
 import {
   bundleUserOp,
   createAndSignUserOp,
   getUserOpReceiptRaw,
 } from "thirdweb/wallets/smart";
-import { accountActionErrorMapper, type RpcErr } from "../../lib/errors.js";
-import { getChain } from "../../lib/chain.js";
-import { getThirdwebClient } from "../../lib/thirdweb-client.js";
-import { redis } from "../../lib/redis.js";
-import { initializeLogger } from "../../lib/logger.js";
-
-import { userOperationRevertReasonEvent } from "thirdweb/extensions/erc4337";
-
 import { decodeErrorResult } from "viem";
-import SuperJSON, { type SuperJSONResult } from "superjson";
 import { getEngineAccount } from "../../lib/accounts/accounts.js";
-import { isContractDeployed } from "thirdweb/utils";
+import { getChain } from "../../lib/chain.js";
+import { env } from "../../lib/env.js";
+import { accountActionErrorMapper, type RpcErr } from "../../lib/errors.js";
+import { initializeLogger } from "../../lib/logger.js";
+import { redis } from "../../lib/redis.js";
+import { getThirdwebClient } from "../../lib/thirdweb-client.js";
 import {
   clearAccountDeploying,
   isAccountDeploying,
   setAccountDeploying,
 } from "./state.js";
-import { env } from "../../lib/env.js";
 
 // todo: export these from SDK
 export type PostOpRevertReasonEventFilters = Partial<{
@@ -88,12 +86,23 @@ export type ExecutionRequest = {
   }[];
 };
 
-export type SendResult = {
+type SendResultBase = {
   id: string;
   chainId: string;
-  userOpHash: Hex;
   accountAddress: Address;
 };
+
+type SendResultQueued = SendResultBase & {
+  status: "QUEUED";
+  userOpHash: Hex;
+};
+
+type SendResultFailed = SendResultBase & {
+  status: "FAILED";
+  error: string;
+};
+
+export type SendResult = SendResultQueued | SendResultFailed;
 
 export type ConfirmationResult = {
   id: string;
@@ -159,7 +168,7 @@ await externalBundlerSendQueue.setGlobalConcurrency(
   env.SEND_TRANSACTION_QUEUE_CONCURRENCY,
 );
 
-type ConfirmJobData = SendResult & {
+type ConfirmJobData = SendResultQueued & {
   thirdwebClientId: string;
   thirdwebServiceKey: string;
 };
@@ -325,6 +334,15 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
           id,
         },
       );
+      if (signedUserOp.error.kind === "validation") {
+        return {
+          id,
+          chainId,
+          accountAddress: executionOptions.smartAccountAddress,
+          status: "FAILED",
+          error: signedUserOp.error.message ?? "Unknown error",
+        };
+      }
       throw new Error("Failed to sign user operation, will retry");
     }
 
@@ -363,6 +381,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       externalBundlerConfirmQueue.add(
         userOpHash.value,
         {
+          status: "QUEUED",
           userOpHash: userOpHash.value,
           chainId: chain.id.toString(),
           accountAddress: executionOptions.smartAccountAddress,
@@ -403,6 +422,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       accountAddress: executionOptions.smartAccountAddress,
       chainId: chain.id.toString(),
       userOpHash: userOpHash.value,
+      status: "QUEUED",
     };
   },
   {
@@ -536,6 +556,7 @@ export const confirmWorker = new Worker<ConfirmJobData, ConfirmationResult>(
   EXTERNAL_BUNDLER_CONFIRM_QUEUE_NAME,
   async (job): Promise<ConfirmationResult> => {
     const {
+      status,
       userOpHash,
       chainId,
       id,
@@ -545,6 +566,7 @@ export const confirmWorker = new Worker<ConfirmJobData, ConfirmationResult>(
     } = job.data;
 
     const result = await confirm({
+      status,
       userOpHash,
       chainId,
       id,
