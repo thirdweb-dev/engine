@@ -319,6 +319,7 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
       sendLogger.error(
         "Failed to sign user operation, will retry",
         signedUserOp.error,
+        signedUserOp.error.source,
         {
           chainId,
           id,

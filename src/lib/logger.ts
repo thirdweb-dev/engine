@@ -19,6 +19,7 @@ const metadataFormatter = format((meta) => {
     }
     if (el instanceof Error && !error) {
       error = el;
+      console.error(el);
     } else {
       for (const [key, val] of Object.entries(el)) {
         customMetadata[key] = val;
@@ -35,12 +36,57 @@ const metadataFormatter = format((meta) => {
 
 const getLocalhostOptions = (loggerName: string): LoggerOptions => {
   const prettyfiedLog = format.printf((info) => {
+    // Extract correlation ID if present
     const correlationId = info?.correlationId
       ? `{correlation-id: ${info.correlationId}}`
       : "";
+
+    // Standard fields that we'll exclude from metadata display
+    const standardFields = [
+      "message",
+      "level",
+      "context",
+      "correlationId",
+      "stack",
+      "level",
+      "ms",
+      "service",
+      "timestamp",
+      "component",
+    ];
+
+    // Build metadata object with non-standard fields only
+    const metadata: Record<string, unknown> = {};
+    Object.keys(info).forEach((key) => {
+      if (!standardFields.includes(key)) {
+        metadata[key] = info[key];
+      }
+    });
+
+    // Convert remaining metadata to JSON string if there's anything left
+    const metadataStr =
+      Object.keys(metadata).length > 0
+        ? `\n${JSON.stringify(
+            metadata,
+            (_, value) => {
+              // Handle circular references or complex objects
+              if (value instanceof Error) {
+                return {
+                  message: value.message,
+                  name: value.name,
+                  stack: value.stack,
+                };
+              }
+              return value;
+            },
+            2,
+          )}`
+        : "";
+
+    // Return formatted log with metadata appended
     return `[${info.context ?? loggerName}] ${correlationId} ${info.level}: ${
       info.message || ""
-    } ${info.stack || ""}`;
+    } ${info.stack || ""}${metadataStr}`;
   });
 
   return {
