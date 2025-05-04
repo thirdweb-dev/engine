@@ -1,45 +1,44 @@
+import { TypedDataDomain, TypedDataParameter } from "abitype/zod";
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
-import * as z from "zod";
 import { ok, ResultAsync, safeTry } from "neverthrow";
 import {
-  accountActionErrorMapper,
-  engineErrToHttpException,
-  getDefaultErrorMessage,
-  zErrorMapper,
-  type EngineErr,
-  type RpcErr,
-} from "../../../lib/errors.js";
-import { thirdwebClient } from "../../../lib/thirdweb-client.js";
-import {
-  credentialsFromHeaders,
-  executionCredentialsHeadersSchema,
-  wrapResponseSchema,
-} from "../../schemas/shared-api-schemas.js";
-import { evmAddressSchema, hexSchema } from "../../../lib/zod.js";
-import {
-  type Hex,
-  type ThirdwebClient,
   type Chain,
+  type Hex,
   prepareTransaction,
+  type ThirdwebClient,
   toSerializableTransaction,
 } from "thirdweb";
+import type { Account } from "thirdweb/wallets";
 import { smartWallet } from "thirdweb/wallets";
-
+import * as z from "zod";
+import {
+  type ExecutionCredentials,
+  getExecutionAccountFromRequest,
+} from "../../../executors/execute/execute.js";
 import {
   bigIntSchema,
   buildExecutionRequestSchema,
   type EncodedExecutionRequest,
 } from "../../../executors/types.js";
 import { getChainResult } from "../../../lib/chain.js";
-import { onchainRoutesFactory } from "./factory.js";
-import { TypedDataDomain, TypedDataParameter } from "abitype/zod";
 import {
-  getExecutionAccountFromRequest,
-  type ExecutionCredentials,
-} from "../../../executors/execute/execute.js";
-import type { Account } from "thirdweb/wallets";
+  accountActionErrorMapper,
+  type EngineErr,
+  engineErrToHttpException,
+  getDefaultErrorMessage,
+  type RpcErr,
+  zErrorMapper,
+} from "../../../lib/errors.js";
+import { thirdwebClient } from "../../../lib/thirdweb-client.js";
+import { evmAddressSchema, hexSchema } from "../../../lib/zod.js";
 import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-client.js";
+import {
+  credentialsFromHeaders,
+  executionCredentialsHeadersSchema,
+  wrapResponseSchema,
+} from "../../schemas/shared-api-schemas.js";
+import { onchainRoutesFactory } from "./factory.js";
 
 // --- Schema Definitions ---
 
@@ -249,7 +248,7 @@ function getSigningAccount({
           }),
           accountActionErrorMapper({
             code: "smart_account_determination_failed",
-            defaultMessage: `Failed to connect smart account`,
+            defaultMessage: "Failed to connect smart account",
             status: 500,
             address: smartAccountDetails.address,
             chainId: request.executionOptions.chainId,
@@ -267,6 +266,7 @@ function getSigningAccount({
 export const signTransactionRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Sign"],
+    operationId: "signTransaction",
     summary: "Sign Transaction",
     description: "Sign transactions without sending them.",
     responses: {
@@ -385,6 +385,7 @@ export const signTransactionRoute = onchainRoutesFactory.createHandlers(
 export const signMessageRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Sign"],
+    operationId: "signMessage",
     summary: "Sign Message",
     description: "Sign arbitrary messages.",
     responses: {
@@ -489,6 +490,7 @@ export const signMessageRoute = onchainRoutesFactory.createHandlers(
 export const signTypedDataRoute = onchainRoutesFactory.createHandlers(
   describeRoute({
     tags: ["Sign"],
+    operationId: "signTypedData",
     summary: "Sign Typed Data",
     description: "Sign EIP-712 typed data.",
     responses: {
