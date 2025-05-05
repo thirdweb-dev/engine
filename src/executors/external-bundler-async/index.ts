@@ -227,9 +227,17 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
         serviceKey: executionOptions.thirdwebServiceKey,
       });
     } else {
-      throw new UnrecoverableError(
-        "No thirdweb credentials provided, unable to send transaction",
-      );
+      // throw new UnrecoverableError(
+      //   "No thirdweb credentials provided, unable to send transaction",
+      // );
+      return {
+        id,
+        chainId,
+        accountAddress: executionOptions.smartAccountAddress,
+        status: "FAILED",
+        error:
+          "Did not receive thirdweb credentials, unable to send transaction",
+      };
     }
 
     const chain = getChain(Number(chainId));
@@ -240,13 +248,28 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
     });
 
     if (account.isErr()) {
-      throw new UnrecoverableError("Failed to get engine account");
+      // throw new UnrecoverableError("Failed to get engine account");
+      return {
+        id,
+        chainId,
+        accountAddress: executionOptions.smartAccountAddress,
+        status: "FAILED",
+        error: "Failed to get engine account",
+      };
     }
 
     if ("signerAccount" in account.value) {
-      throw new UnrecoverableError(
-        "Failed to get admin EOA account, received smart account",
-      );
+      return {
+        id,
+        chainId,
+        accountAddress: executionOptions.smartAccountAddress,
+        status: "FAILED",
+        error:
+          "Failed to get admin EOA account to smart account, received smart account",
+      };
+      // throw new UnrecoverableError(
+      //   "Failed to get admin EOA account, received smart account",
+      // );
     }
 
     const signerAccount = account.value.account;

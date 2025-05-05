@@ -578,6 +578,7 @@ function executeAA({
           transactionParams: SuperJSON.serialize(resolvedTransactionParams)
             .json as TransactionParamsSerialized[],
           executionParams,
+          clientId: credentials.thirdwebClientId,
           executionResult: {
             status: "QUEUED",
           },

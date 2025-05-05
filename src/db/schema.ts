@@ -60,6 +60,8 @@ export const transactions = pgTable(
     // batch index is to identify and deduplicate transactions in the same batch
     batchIndex: integer().notNull(),
 
+    clientId: text().notNull().default("PRE_MIGRATION"),
+
     chainId: text().notNull(),
 
     from: text().$type<Address>(), /// this is high-level, not the from address of the EOA transaction. for AA, this will be the Smart Account
@@ -101,6 +103,7 @@ export const transactions = pgTable(
   (table) => [
     primaryKey({ columns: [table.id, table.batchIndex] }),
     index("transaction_hash_idx").on(table.transactionHash),
+    index("client_id_idx").on(table.clientId),
     index("from_idx").on(table.from),
     index("execution_params_idx").using("gin", table.executionParams),
     index("execution_result_idx").using("gin", table.executionResult),
