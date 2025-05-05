@@ -1,7 +1,5 @@
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
-import * as z from "zod";
-import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 import { execute } from "../../../executors/execute/execute.js";
 import {
   encodedExecutionRequestSchema,
@@ -13,7 +11,6 @@ import { getThirdwebCredentialsFromContext } from "../../middleware/thirdweb-cli
 import {
   credentialsFromHeaders,
   executionCredentialsHeadersSchema,
-  wrapResponseSchema,
 } from "../../schemas/shared-api-schemas.js";
 import { onchainRoutesFactory } from "./factory.js";
 
@@ -28,9 +25,7 @@ export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
         description: "Transaction sent successfully",
         content: {
           "application/json": {
-            schema: resolver(
-              wrapResponseSchema(z.array(transactionDbEntrySchema)),
-            ),
+            schema: resolver(transactionResponseSchema),
           },
         },
       },

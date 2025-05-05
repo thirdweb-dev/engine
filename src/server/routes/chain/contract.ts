@@ -15,7 +15,6 @@ import {
 } from "thirdweb";
 import { decodeAbiParameters, parseAbiParams } from "thirdweb/utils";
 import * as z from "zod";
-import { transactionDbEntrySchema } from "../../../db/derived-schemas.js";
 import { execute } from "../../../executors/execute/execute.js";
 import {
   bigIntSchema,
@@ -535,9 +534,7 @@ export const writeToContractRoute = onchainRoutesFactory.createHandlers(
         description: "Transaction sent successfully",
         content: {
           "application/json": {
-            schema: resolver(
-              wrapResponseSchema(z.array(transactionDbEntrySchema)),
-            ),
+            schema: resolver(transactionResponseSchema),
           },
         },
       },
