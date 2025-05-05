@@ -1,36 +1,36 @@
+import { Scalar } from "@scalar/hono-api-reference";
 import { Hono } from "hono";
+import { some } from "hono/combine";
+import { HTTPException } from "hono/http-exception";
 import { logger } from "hono/logger";
 import { secureHeaders } from "hono/secure-headers";
-import { requestLogger } from "./middleware/request-logger.js";
-import { createApiCorsMiddleware } from "./middleware/cors.js";
-import { prometheusMiddleware } from "./middleware/prometheus.js";
-import { env } from "../lib/env.js";
-import { defaultLogger } from "../lib/logger.js";
-import { some } from "hono/combine";
-import { dashboardAuth } from "./middleware/auth/dashboard.js";
-import { accessTokenAuth } from "./middleware/auth/access-token.js";
-import { webhookAuth } from "./middleware/auth/webhook.js";
+import { openAPISpecs } from "hono-openapi";
 import { config } from "../lib/config.js";
-import { HTTPException } from "hono/http-exception";
+import { env } from "../lib/env.js";
 import {
   EngineHttpException,
   getDefaultErrorMessage,
   unwrapError,
 } from "../lib/errors.js";
-import { rateLimitMiddleware } from "./middleware/rate-limit.js";
+import { defaultLogger } from "../lib/logger.js";
+import { accessTokenAuth } from "./middleware/auth/access-token.js";
+import { dashboardAuth } from "./middleware/auth/dashboard.js";
 import { secretKeyAuth } from "./middleware/auth/secret-key.js";
-import { healthCheckRoute } from "./routes/health.js";
-import { Scalar } from "@scalar/hono-api-reference";
-
-import { accountsRoutes } from "./routes/accounts/accounts.js";
-import { openAPISpecs } from "hono-openapi";
-import { setupQueuesUiRoutes } from "./routes/queues.js";
-import { transactionsRoutes } from "./routes/transactions/index.js";
+import { webhookAuth } from "./middleware/auth/webhook.js";
 import { correlationId } from "./middleware/correlation-id.js";
+import { createApiCorsMiddleware } from "./middleware/cors.js";
+import { prometheusMiddleware } from "./middleware/prometheus.js";
+import { rateLimitMiddleware } from "./middleware/rate-limit.js";
+import { requestLogger } from "./middleware/request-logger.js";
+import { accountsRoutes } from "./routes/accounts/accounts.js";
 import authRoutes from "./routes/auth/index.js";
 import { chainActionsRouter } from "./routes/chain/index.js";
+import { healthCheckRoute } from "./routes/health.js";
+import { setupQueuesUiRoutes } from "./routes/queues.js";
+import { transactionsRoutes } from "./routes/transactions/index.js";
 
 const engineServer = new Hono();
+const engineServerV1 = new Hono();
 const publicRoutes = new Hono();
 
 publicRoutes.route("/health", healthCheckRoute);
@@ -119,10 +119,12 @@ engineServer.use(
   some(secretKeyAuth, webhookAuth, dashboardAuth, accessTokenAuth),
 );
 
-engineServer.route("/accounts", accountsRoutes);
-engineServer.route("/transactions", transactionsRoutes);
-engineServer.route("/auth", authRoutes);
-engineServer.route("/", chainActionsRouter);
+engineServerV1.route("/accounts", accountsRoutes);
+engineServerV1.route("/transactions", transactionsRoutes);
+engineServerV1.route("/auth", authRoutes);
+engineServerV1.route("/", chainActionsRouter);
+
+engineServer.route("/v1", engineServerV1);
 
 engineServer.onError((err, c) => {
   if (err instanceof HTTPException) {
