@@ -264,6 +264,8 @@ function getSigningAccount({
 
 // 1. Sign Transaction (Batch) Handler
 export const signTransactionRoute = onchainRoutesFactory.createHandlers(
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
+  validator("json", signTransactionRequestSchema, zErrorMapper),
   describeRoute({
     tags: ["Sign"],
     operationId: "signTransaction",
@@ -278,8 +280,6 @@ export const signTransactionRoute = onchainRoutesFactory.createHandlers(
       },
     },
   }),
-  validator("json", signTransactionRequestSchema, zErrorMapper),
-  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
     const credentials = c.req.valid("header");
@@ -383,6 +383,8 @@ export const signTransactionRoute = onchainRoutesFactory.createHandlers(
 
 // 2. Sign Message (Batch) Handler
 export const signMessageRoute = onchainRoutesFactory.createHandlers(
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
+  validator("json", signMessageRequestSchema, zErrorMapper),
   describeRoute({
     tags: ["Sign"],
     operationId: "signMessage",
@@ -397,8 +399,6 @@ export const signMessageRoute = onchainRoutesFactory.createHandlers(
       },
     },
   }),
-  validator("json", signMessageRequestSchema, zErrorMapper),
-  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
     const credentials = c.req.valid("header");
@@ -488,6 +488,8 @@ export const signMessageRoute = onchainRoutesFactory.createHandlers(
 
 // 3. Sign Typed Data (Batch) Handler
 export const signTypedDataRoute = onchainRoutesFactory.createHandlers(
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
+  validator("json", signTypedDataRequestSchema, zErrorMapper),
   describeRoute({
     tags: ["Sign"],
     operationId: "signTypedData",
@@ -502,8 +504,6 @@ export const signTypedDataRoute = onchainRoutesFactory.createHandlers(
       },
     },
   }),
-  validator("json", signTypedDataRequestSchema, zErrorMapper),
-  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
     const credentials = c.req.valid("header");

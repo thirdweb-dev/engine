@@ -1,24 +1,32 @@
 import { describeRoute } from "hono-openapi";
-import { authRoutesFactory } from "./factory.js";
 import { resolver, validator } from "hono-openapi/zod";
+import { ResultAsync } from "neverthrow";
+import { encodeJWT } from "thirdweb/utils";
+import * as z from "zod";
+import { db } from "../../../db/connection.js";
+import { accessTokenDbEntrySchema } from "../../../db/derived-schemas.js";
+import { tokens } from "../../../db/schema.js";
+import { adminAccount } from "../../../lib/admin-account.js";
+import { config } from "../../../lib/config.js";
 import {
   engineErrToHttpException,
   mapDbError,
   zErrorMapper,
 } from "../../../lib/errors.js";
-import * as z from "zod";
-import { adminAccount } from "../../../lib/admin-account.js";
-import { config } from "../../../lib/config.js";
-import { encodeJWT } from "thirdweb/utils";
-import { db } from "../../../db/connection.js";
-import { tokens } from "../../../db/schema.js";
-import { ResultAsync } from "neverthrow";
-import { accessTokenDbEntrySchema } from "../../../db/derived-schemas.js";
 import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js";
+import { authRoutesFactory } from "./factory.js";
 
 export const createAccessTokenRoute = authRoutesFactory.createHandlers(
+  validator(
+    "json",
+    z.object({
+      label: z.string(),
+    }),
+    zErrorMapper,
+  ),
   describeRoute({
     tags: ["Auth"],
+    operationId: "createAccessToken",
     summary: "Create Access Token",
     description: "Create an access token for a client",
     responses: {
@@ -32,21 +40,14 @@ export const createAccessTokenRoute = authRoutesFactory.createHandlers(
                   accessToken: z.string().openapi({
                     description: "The access token created",
                   }),
-                })
-              )
+                }),
+              ),
             ),
           },
         },
       },
     },
   }),
-  validator(
-    "json",
-    z.object({
-      label: z.string(),
-    }),
-    zErrorMapper
-  ),
   async (c) => {
     const { label } = c.req.valid("json");
 
@@ -84,7 +85,7 @@ export const createAccessTokenRoute = authRoutesFactory.createHandlers(
           tokenMask: `${jwt.slice(0, 10)}...${jwt.slice(-10)}`,
         })
         .returning(),
-      mapDbError
+      mapDbError,
     );
 
     if (dbResult.isErr()) {
@@ -103,5 +104,5 @@ export const createAccessTokenRoute = authRoutesFactory.createHandlers(
     }
 
     return c.json({ result: { accessToken: jwt, ...createdToken } });
-  }
+  },
 );

@@ -15,6 +15,8 @@ import {
 import { onchainRoutesFactory } from "./factory.js";
 
 export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
+  validator("json", encodedExecutionRequestSchema, zErrorMapper),
   describeRoute({
     tags: ["Write"],
     operationId: "sendTransaction",
@@ -39,9 +41,6 @@ export const sendTransactionRoute = onchainRoutesFactory.createHandlers(
       },
     },
   }),
-  validator("json", encodedExecutionRequestSchema, zErrorMapper),
-  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
-
   async (c) => {
     const executionRequest = c.req.valid("json");
     const credentials = c.req.valid("header");

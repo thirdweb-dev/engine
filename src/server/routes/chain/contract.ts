@@ -268,6 +268,7 @@ async function processBatch<
 
 // 1. Encode Function Data (Batch) Handler
 export const encodeFunctionDataRoute = onchainRoutesFactory.createHandlers(
+  validator("json", encodeRequestSchema, zErrorMapper),
   describeRoute({
     tags: ["Encode"],
     operationId: "encodeFunctionData",
@@ -283,7 +284,6 @@ export const encodeFunctionDataRoute = onchainRoutesFactory.createHandlers(
       },
     },
   }),
-  validator("json", encodeRequestSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
     const { params: transactionParams, encodeOptions } = body;
@@ -378,6 +378,7 @@ export const encodeFunctionDataRoute = onchainRoutesFactory.createHandlers(
 
 // 2. Read From Contract (Batch) Handler (Remains the same, uses its own preparation logic for multicall)
 export const readFromContractRoute = onchainRoutesFactory.createHandlers(
+  validator("json", readRequestSchema, zErrorMapper),
   describeRoute({
     tags: ["Read"],
     operationId: "readContract",
@@ -393,7 +394,6 @@ export const readFromContractRoute = onchainRoutesFactory.createHandlers(
       },
     },
   }),
-  validator("json", readRequestSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
     const { params: transactionParams } = body;
@@ -524,6 +524,8 @@ export const readFromContractRoute = onchainRoutesFactory.createHandlers(
 );
 
 export const writeToContractRoute = onchainRoutesFactory.createHandlers(
+  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
+  validator("json", writeRequestSchema, zErrorMapper),
   describeRoute({
     tags: ["Write"],
     operationId: "writeContract",
@@ -548,8 +550,6 @@ export const writeToContractRoute = onchainRoutesFactory.createHandlers(
       },
     },
   }),
-  validator("json", writeRequestSchema, zErrorMapper),
-  validator("header", executionCredentialsHeadersSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
     const credentials = c.req.valid("header");
