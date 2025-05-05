@@ -1,17 +1,30 @@
+import { bytesToHex } from "@noble/hashes/utils";
+import type {
+  TypedData,
+  TypedDataDomain,
+  TypedDataToPrimitiveTypes,
+} from "abitype";
+import { HTTPError } from "ky";
+import { Result, ResultAsync } from "neverthrow";
 import {
+  type Address,
   eth_sendRawTransaction,
   getRpcClient,
-  type Address,
   type Hex,
   type ThirdwebClient,
 } from "thirdweb";
+import type { Account } from "thirdweb/wallets";
+import type { SignableMessage } from "viem";
+import { getChain } from "../../chain.js";
+import type { BaseErr, RpcErr } from "../../errors.js";
 import {
-  signTypedData as vault_signTypedData,
-  signMessage as vault_signMessage,
-  signTransaction as vault_signTransaction,
-  signStructuredMessage as vault_signStructuredMessage,
   type VaultClient,
+  signMessage as vault_signMessage,
+  signStructuredMessage as vault_signStructuredMessage,
+  signTransaction as vault_signTransaction,
+  signTypedData as vault_signTypedData,
 } from "../../vault-sdk/sdk.js";
+import { parseTransaction as vault_parseTransaction } from "../../vault-sdk/transaction-parser.js";
 import type {
   StructuredMessageInput,
   UserOperationV06Input,
@@ -19,24 +32,10 @@ import type {
   Auth as VaultAuth,
   VaultError,
 } from "../../vault-sdk/types.js";
-import type { Account } from "thirdweb/wallets";
-import type { BaseErr, RpcErr } from "../../errors.js";
-import type {
-  TypedData,
-  TypedDataDomain,
-  TypedDataToPrimitiveTypes,
-} from "abitype";
-
 import type {
   SendTransactionOptions,
   SignTransactionOptions,
 } from "../transaction-types.js";
-import type { SignableMessage } from "viem";
-import { bytesToHex } from "@noble/hashes/utils";
-import { Result, ResultAsync } from "neverthrow";
-import { HTTPError } from "ky";
-import { parseTransaction as vault_parseTransaction } from "../../vault-sdk/transaction-parser.js";
-import { getChain } from "../../chain.js";
 
 export type VaultAccountOptions = {
   thirdwebClient: ThirdwebClient;

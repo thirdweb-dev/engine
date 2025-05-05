@@ -2,20 +2,20 @@
 
 import { describeRoute } from "hono-openapi";
 import { resolver, validator } from "hono-openapi/zod";
-import * as z from "zod";
 import { ResultAsync } from "neverthrow";
+import { eth_getBalance, getRpcClient } from "thirdweb";
+import * as z from "zod";
+import { serialisedBigIntSchema } from "../../../executors/types.js"; // Adjust path as needed
+import { getChain } from "../../../lib/chain.js"; // Adjust path as needed
 import {
   accountActionErrorMapper,
   engineErrToHttpException,
   zErrorMapper,
 } from "../../../lib/errors.js"; // Adjust path as needed
 import { thirdwebClient } from "../../../lib/thirdweb-client.js"; // Adjust path as needed
-import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js"; // Adjust path as needed
 import { evmAddressSchema } from "../../../lib/zod.js"; // Adjust path as needed
-import { getChain } from "../../../lib/chain.js"; // Adjust path as needed
-import { serialisedBigIntSchema } from "../../../executors/types.js"; // Adjust path as needed
+import { wrapResponseSchema } from "../../schemas/shared-api-schemas.js"; // Adjust path as needed
 import { onchainRoutesFactory } from "./factory.js"; // Adjust path as needed
-import { eth_getBalance, getRpcClient } from "thirdweb";
 
 // --- Schemas ---
 
@@ -40,9 +40,11 @@ const balanceResponseSchema = wrapResponseSchema(balanceSuccessSchema);
 // --- Route Handler ---
 
 export const getNativeBalanceRoute = onchainRoutesFactory.createHandlers(
+  validator("json", balanceRequestSchema, zErrorMapper),
   describeRoute({
     tags: ["Read"],
-    summary: "Read the Native Balance for an Address",
+    operationId: "getNativeBalance",
+    summary: "Read Native Balance",
     description:
       "Fetches the native cryptocurrency balance (e.g., ETH, MATIC) for a given address on a specific chain.",
     responses: {
@@ -57,7 +59,6 @@ export const getNativeBalanceRoute = onchainRoutesFactory.createHandlers(
       500: { description: "Internal Server Error" },
     },
   }),
-  validator("json", balanceRequestSchema, zErrorMapper),
   async (c) => {
     const body = c.req.valid("json");
     const { chainId, address } = body;
