@@ -70,6 +70,9 @@ export async function queueTransaction(args: QueuedTransactionParams) {
   const insertedTransaction: InsertedTransaction = {
     chainId: transaction.chain.id,
     from: fromAddress,
+    authorizationList: await resolvePromisedValue(
+      transaction.authorizationList,
+    ),
     to: toAddress,
     data,
     value: await resolvePromisedValue(transaction.value),
