@@ -1,7 +1,7 @@
 import { Type, type Static } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
-import { eth_sendRawTransaction, getRpcClient, isHex } from "thirdweb";
+import { eth_sendRawTransaction, getRpcClient, type Hex, isHex } from "thirdweb";
 import { getChain } from "../../../../shared/utils/chain";
 import { thirdwebClient } from "../../../../shared/utils/sdk";
 import { createCustomError } from "../../../middleware/error";
@@ -9,6 +9,7 @@ import { TransactionHashSchema } from "../../../schemas/address";
 import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 import { walletChainParamSchema } from "../../../schemas/wallet";
 import { getChainIdFromChain } from "../../../utils/chain";
+import { isInsufficientFundsError, prettifyError } from "../../../../shared/utils/error";
 
 const requestBodySchema = Type.Object({
   signedTransaction: Type.String(),
@@ -57,10 +58,25 @@ export async function sendSignedTransaction(fastify: FastifyInstance) {
         client: thirdwebClient,
         chain: await getChain(chainId),
       });
-      const transactionHash = await eth_sendRawTransaction(
-        rpcRequest,
-        signedTransaction,
-      );
+
+      let transactionHash: Hex;
+      try {
+        transactionHash = await eth_sendRawTransaction(
+          rpcRequest,
+          signedTransaction,
+        );
+      } catch (error) {
+        // Return 400 for client errors.
+        const isClientError = isInsufficientFundsError(error);
+        if (isClientError) {
+          throw createCustomError(
+            prettifyError(error),
+            StatusCodes.BAD_REQUEST,
+            "CLIENT_RPC_ERROR",
+          );
+        }
+        throw error;
+      }
 
       res.status(StatusCodes.OK).send({
         result: {
