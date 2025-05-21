@@ -616,3 +616,101 @@ export const accountActionErrorMapper = (options: RpcErrorOptions = {}) => {
     } as RpcErr;
   };
 };
+
+/**
+ * Enhanced pretty printer for error objects
+ * Handles custom error objects that may contain nested Error instances
+ * Formats all fields as key-value pairs with special handling for Error objects
+ */
+export function prettyPrintError(error: unknown, indent: string = ""): string {
+  // Base case: null or undefined
+  if (error === null) {
+    return `${indent}null`;
+  } else if (error === undefined) {
+    return `${indent}undefined`;
+  }
+
+  // Handle standard Error objects
+  if (error instanceof Error) {
+    let result = `${indent}${error.name}: ${error.message}\n`;
+    if (error.stack) {
+      result += `${indent}${error.stack.split("\n").join(`\n${indent}`)}\n`;
+    }
+
+    // Print any additional properties on the Error object
+    const errorObj = error as any;
+    const knownProps = ["name", "message", "stack"];
+    const additionalProps = Object.keys(errorObj).filter(
+      (key) => !knownProps.includes(key),
+    );
+
+    if (additionalProps.length > 0) {
+      result += `${indent}Additional properties:\n`;
+      for (const prop of additionalProps) {
+        result += `${indent}  ${prop}: ${formatValue(errorObj[prop], `${indent}  `)}\n`;
+      }
+    }
+
+    return result;
+  }
+
+  // Handle string errors
+  if (typeof error === "string") {
+    return `${indent}${error}`;
+  }
+
+  // Handle custom error objects
+  if (typeof error === "object") {
+    let result = "";
+
+    // Handle arrays
+    if (Array.isArray(error)) {
+      result = `${indent}[\n`;
+      for (let i = 0; i < error.length; i++) {
+        result += `${indent}  [${i}]: ${formatValue(error[i], `${indent}  `)}\n`;
+      }
+      result += `${indent}]`;
+      return result;
+    }
+
+    // Handle plain objects
+    result = `${indent}{\n`;
+    for (const [key, value] of Object.entries(error)) {
+      result += `${indent}  ${key}: ${formatValue(value, `${indent}  `)}\n`;
+    }
+    result += `${indent}}`;
+    return result;
+  }
+
+  // Handle primitive values
+  return `${indent}${String(error)}`;
+}
+
+/**
+ * Helper function to format different types of values, with special handling for Error objects
+ */
+function formatValue(value: unknown, indent: string): string {
+  // Handle null and undefined
+  if (value === null) {
+    return "null";
+  } else if (value === undefined) {
+    return "undefined";
+  }
+
+  // Handle Error objects
+  if (value instanceof Error) {
+    return `\n${prettyPrintError(value, `${indent}  `)}`;
+  }
+
+  // Handle nested objects recursively
+  if (typeof value === "object" && value !== null) {
+    return `\n${prettyPrintError(value, `${indent}  `)}`;
+  }
+
+  // Handle primitive values
+  if (typeof value === "string") {
+    return `"${value}"`;
+  }
+
+  return String(value);
+}

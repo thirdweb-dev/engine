@@ -21,7 +21,11 @@ import { decodeErrorResult } from "viem";
 import { getEngineAccount } from "../../lib/accounts/accounts.js";
 import { getChain } from "../../lib/chain.js";
 import { env } from "../../lib/env.js";
-import { accountActionErrorMapper, type RpcErr } from "../../lib/errors.js";
+import {
+  accountActionErrorMapper,
+  prettyPrintError,
+  type RpcErr,
+} from "../../lib/errors.js";
 import { initializeLogger } from "../../lib/logger.js";
 import { redis } from "../../lib/redis.js";
 import { getThirdwebClient } from "../../lib/thirdweb-client.js";
@@ -366,6 +370,9 @@ export const sendWorker = new Worker<ExecutionRequest, SendResult>(
           error: signedUserOp.error.message ?? "Unknown error",
         };
       }
+      job.log(
+        `Error while signing user operation. ${prettyPrintError(signedUserOp.error.source)}`,
+      );
       throw new Error("Failed to sign user operation, will retry");
     }
 
