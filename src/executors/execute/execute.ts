@@ -5,6 +5,7 @@ import SuperJSON from "superjson";
 import {
   type Address,
   type Chain,
+  getAddress,
   type Hex,
   type ThirdwebClient,
   ZERO_ADDRESS,
@@ -565,7 +566,7 @@ function executeAA({
       type: "AA" as const,
       entrypointAddress: options.smartAccountDetails.entrypointAddress,
       smartAccountAddress: options.smartAccountDetails.address,
-      signerAddress: options.signerAccount.address,
+      signerAddress: getAddress(options.signerAccount.address),
     };
 
     const dbTransactionEntry = yield* ResultAsync.fromPromise(
