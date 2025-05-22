@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { type Job, type Processor, Worker } from "bullmq";
+import { DelayedError, type Job, type Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
   type Address,
@@ -70,7 +70,10 @@ type VersionedUserOp = Awaited<ReturnType<typeof prepareUserOp>>;
  *
  * This worker also handles retried EOA transactions.
  */
-const handler: Processor<string, void, string> = async (job: Job<string>) => {
+const handler: Processor<string, void, string> = async (
+  job: Job<string>,
+  token?: string,
+) => {
   const { queueId, resendCount } = superjson.parse<SendTransactionData>(
     job.data,
   );
@@ -89,9 +92,9 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
 
   if (transaction.status === "queued") {
     if (transaction.isUserOp) {
-      resultTransaction = await _sendUserOp(job, transaction);
+      resultTransaction = await _sendUserOp(job, transaction, token);
     } else {
-      resultTransaction = await _sendTransaction(job, transaction);
+      resultTransaction = await _sendTransaction(job, transaction, token);
     }
   } else if (transaction.status === "sent") {
     resultTransaction = await _resendTransaction(job, transaction, resendCount);
@@ -121,6 +124,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
 const _sendUserOp = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
+  token?: string,
 ): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(queuedTransaction.isUserOp);
 
@@ -218,7 +222,7 @@ const _sendUserOp = async (
   }
 
   // Step 2: Get entrypoint address
-  let entrypointAddress: string | undefined;
+  let entrypointAddress: Address | undefined;
   if (userProvidedEntrypointAddress) {
     entrypointAddress = queuedTransaction.entrypointAddress;
   } else {
@@ -298,7 +302,10 @@ const _sendUserOp = async (
 
   // Handle if `maxFeePerGas` is overridden.
   // Set it if the transaction will be sent, otherwise delay the job.
-  if (overrides?.maxFeePerGas && unsignedUserOp.maxFeePerGas) {
+  if (
+    typeof overrides?.maxFeePerGas !== "undefined" &&
+    unsignedUserOp.maxFeePerGas
+  ) {
     if (overrides.maxFeePerGas > unsignedUserOp.maxFeePerGas) {
       unsignedUserOp.maxFeePerGas = overrides.maxFeePerGas;
     } else {
@@ -306,8 +313,10 @@ const _sendUserOp = async (
       job.log(
         `Override gas fee (${overrides.maxFeePerGas}) is lower than onchain fee (${unsignedUserOp.maxFeePerGas}). Delaying job until ${retryAt}.`,
       );
-      await job.moveToDelayed(retryAt.getTime());
-      return null;
+      // token is required to acquire lock for delaying currently processing job: https://docs.bullmq.io/patterns/process-step-jobs#delaying
+      await job.moveToDelayed(retryAt.getTime(), token);
+      // throwing delayed error is required to notify bullmq worker not to complete or fail the job
+      throw new DelayedError("Delaying job due to gas fee override");
     }
   }
 
@@ -374,6 +383,7 @@ const _sendUserOp = async (
 const _sendTransaction = async (
   job: Job,
   queuedTransaction: QueuedTransaction,
+  token?: string,
 ): Promise<SentTransaction | ErroredTransaction | null> => {
   assert(!queuedTransaction.isUserOp);
 
@@ -463,8 +473,8 @@ const _sendTransaction = async (
       job.log(
         `Override gas fee (${overrides.maxFeePerGas}) is lower than onchain fee (${populatedTransaction.maxFeePerGas}). Delaying job until ${retryAt}.`,
       );
-      await job.moveToDelayed(retryAt.getTime());
-      return null;
+      await job.moveToDelayed(retryAt.getTime(), token);
+      throw new DelayedError("Delaying job due to gas fee override");
     }
   }
 
