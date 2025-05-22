@@ -2,7 +2,10 @@ import assert from "node:assert";
 import { type Job, type Processor, Worker } from "bullmq";
 import superjson from "superjson";
 import {
+  type Address,
+  type Chain,
   type Hex,
+  type ThirdwebClient,
   getAddress,
   getContract,
   readContract,
@@ -13,9 +16,9 @@ import { getChainMetadata } from "thirdweb/chains";
 import { isZkSyncChain, stringify } from "thirdweb/utils";
 import type { Account } from "thirdweb/wallets";
 import {
-  type UserOperation,
   bundleUserOp,
-  createAndSignUserOp,
+  prepareUserOp,
+  signUserOp,
   smartWallet,
 } from "thirdweb/wallets/smart";
 import { getContractAddress } from "viem";
@@ -59,6 +62,8 @@ import {
   type SendTransactionData,
   SendTransactionQueue,
 } from "../queues/send-transaction-queue";
+
+type VersionedUserOp = Awaited<ReturnType<typeof prepareUserOp>>;
 
 /**
  * Submit a transaction to RPC (EOA transactions) or bundler (userOps).
@@ -180,61 +185,97 @@ const _sendUserOp = async (
     };
   }
 
-  let signedUserOp: UserOperation;
-  try {
-    // Resolve the user factory from the provided address, or from the `factory()` method if found.
-    let accountFactoryAddress = userProvidedAccountFactoryAddress;
-    if (!accountFactoryAddress) {
-      // TODO: this is not a good solution since the assumption that the account has a factory function is not guaranteed
-      // instead, we should use default account factory address or throw here.
-      try {
-        const smartAccountContract = getContract({
-          client: thirdwebClient,
-          chain,
-          address: accountAddress,
-        });
-        const onchainAccountFactoryAddress = await readContract({
-          contract: smartAccountContract,
-          method: "function factory() view returns (address)",
-          params: [],
-        });
-        accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
-      } catch {
-        throw new Error(
-          `Failed to find factory address for account '${accountAddress}' on chain '${chainId}'`,
-        );
-      }
-    }
+  // Part 1: Prepare the userop
+  // Step 1: Get factory address
+  let accountFactoryAddress: Address | undefined;
 
-    const transactions = queuedTransaction.batchOperations
-      ? queuedTransaction.batchOperations.map((op) => ({
-          ...op,
-          chain,
-          client: thirdwebClient,
-        }))
-      : [
-          {
-            client: thirdwebClient,
-            chain,
-            data: queuedTransaction.data,
-            value: queuedTransaction.value,
-            ...overrides, // gas-overrides
-            to: getChecksumAddress(toAddress),
-          },
-        ];
-
-    signedUserOp = (await createAndSignUserOp({
+  if (userProvidedAccountFactoryAddress) {
+    accountFactoryAddress = userProvidedAccountFactoryAddress;
+  } else {
+    const smartAccountContract = getContract({
       client: thirdwebClient,
+      chain,
+      address: accountAddress,
+    });
+
+    try {
+      const onchainAccountFactoryAddress = await readContract({
+        contract: smartAccountContract,
+        method: "function factory() view returns (address)",
+        params: [],
+      });
+      accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
+    } catch (error) {
+      const errorMessage = `${wrapError(error, "RPC").message} Failed to find factory address for account`;
+      const erroredTransaction: ErroredTransaction = {
+        ...queuedTransaction,
+        status: "errored",
+        errorMessage,
+      };
+      job.log(`Failed to get account factory address: ${errorMessage}`);
+      return erroredTransaction;
+    }
+  }
+
+  // Step 2: Get entrypoint address
+  let entrypointAddress: string | undefined;
+  if (userProvidedEntrypointAddress) {
+    entrypointAddress = queuedTransaction.entrypointAddress;
+  } else {
+    try {
+      entrypointAddress = await getEntrypointFromFactory(
+        adminAccount.address,
+        thirdwebClient,
+        chain,
+      );
+    } catch (error) {
+      const errorMessage = `${wrapError(error, "RPC").message} Failed to find entrypoint address for account factory`;
+      const erroredTransaction: ErroredTransaction = {
+        ...queuedTransaction,
+        status: "errored",
+        errorMessage,
+      };
+      job.log(
+        `Failed to find entrypoint address for account factory: ${errorMessage}`,
+      );
+      return erroredTransaction;
+    }
+  }
+
+  // Step 3: Transform transactions for userop
+  const transactions = queuedTransaction.batchOperations
+    ? queuedTransaction.batchOperations.map((op) => ({
+        ...op,
+        chain,
+        client: thirdwebClient,
+      }))
+    : [
+        {
+          client: thirdwebClient,
+          chain,
+          data: queuedTransaction.data,
+          value: queuedTransaction.value,
+          ...overrides, // gas-overrides
+          to: getChecksumAddress(toAddress),
+        },
+      ];
+
+  // Step 4: Prepare userop
+  let unsignedUserOp: VersionedUserOp | undefined;
+
+  try {
+    unsignedUserOp = await prepareUserOp({
       transactions,
       adminAccount,
+      client: thirdwebClient,
       smartWalletOptions: {
         chain,
         sponsorGas: true,
-        factoryAddress: accountFactoryAddress,
+        factoryAddress: accountFactoryAddress, // from step 1
         overrides: {
           accountAddress,
           accountSalt,
-          entrypointAddress: userProvidedEntrypointAddress,
+          entrypointAddress, // from step 2
           // TODO: let user pass entrypoint address for 0.7 support
         },
       },
@@ -243,7 +284,7 @@ const _sendUserOp = async (
       // until the previous userop for the same account is mined
       // we don't want this behavior in the engine context
       waitForDeployment: false,
-    })) as UserOperation; // TODO support entrypoint v0.7 accounts
+    });
   } catch (error) {
     const errorMessage = wrapError(error, "Bundler").message;
     const erroredTransaction: ErroredTransaction = {
@@ -255,16 +296,66 @@ const _sendUserOp = async (
     return erroredTransaction;
   }
 
-  job.log(`Populated userOp: ${stringify(signedUserOp)}`);
+  // Handle if `maxFeePerGas` is overridden.
+  // Set it if the transaction will be sent, otherwise delay the job.
+  if (overrides?.maxFeePerGas && unsignedUserOp.maxFeePerGas) {
+    if (overrides.maxFeePerGas > unsignedUserOp.maxFeePerGas) {
+      unsignedUserOp.maxFeePerGas = overrides.maxFeePerGas;
+    } else {
+      const retryAt = _minutesFromNow(5);
+      job.log(
+        `Override gas fee (${overrides.maxFeePerGas}) is lower than onchain fee (${unsignedUserOp.maxFeePerGas}). Delaying job until ${retryAt}.`,
+      );
+      await job.moveToDelayed(retryAt.getTime());
+      return null;
+    }
+  }
 
-  const userOpHash = await bundleUserOp({
-    userOp: signedUserOp,
-    options: {
+  // Part 2: Sign the userop
+  let signedUserOp: VersionedUserOp | undefined;
+  try {
+    signedUserOp = await signUserOp({
       client: thirdwebClient,
       chain,
-      entrypointAddress: userProvidedEntrypointAddress,
-    },
-  });
+      adminAccount,
+      entrypointAddress,
+      userOp: unsignedUserOp,
+    });
+  } catch (error) {
+    const errorMessage = `${wrapError(error, "Bundler").message} Failed to sign prepared userop`;
+    const erroredTransaction: ErroredTransaction = {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage,
+    };
+    job.log(`Failed to sign userop: ${errorMessage}`);
+    return erroredTransaction;
+  }
+
+  job.log(`Populated and signed userOp: ${stringify(signedUserOp)}`);
+
+  // Finally: bundle the userop
+  let userOpHash: Hex;
+
+  try {
+    userOpHash = await bundleUserOp({
+      userOp: signedUserOp,
+      options: {
+        client: thirdwebClient,
+        chain,
+        entrypointAddress: userProvidedEntrypointAddress,
+      },
+    });
+  } catch (error) {
+    const errorMessage = `${wrapError(error, "Bundler").message} Failed to bundle userop`;
+    const erroredTransaction: ErroredTransaction = {
+      ...queuedTransaction,
+      status: "errored",
+      errorMessage,
+    };
+    job.log(`Failed to bundle userop: ${errorMessage}`);
+    return erroredTransaction;
+  }
 
   return {
     ...queuedTransaction,
@@ -644,6 +735,28 @@ export function _updateGasFees(
   }
 
   return updated;
+}
+
+async function getEntrypointFromFactory(
+  factoryAddress: string,
+  client: ThirdwebClient,
+  chain: Chain,
+) {
+  const factoryContract = getContract({
+    address: factoryAddress,
+    client,
+    chain,
+  });
+  try {
+    const entrypointAddress = await readContract({
+      contract: factoryContract,
+      method: "function entrypoint() public view returns (address)",
+      params: [],
+    });
+    return entrypointAddress;
+  } catch {
+    return undefined;
+  }
 }
 
 // Must be explicitly called for the worker to run on this host.
