@@ -1,44 +1,43 @@
+import { type Job, Queue, UnrecoverableError, Worker } from "bullmq";
+import { err, errAsync, ok, okAsync, ResultAsync, safeTry } from "neverthrow";
+import { keccak256 } from "ox/Hash";
+import SuperJSON from "superjson";
 import {
+  type Address,
+  type Chain,
   eth_getTransactionCount,
   eth_getTransactionReceipt,
   getRpcClient,
+  type Hex,
   prepareTransaction,
   serializeTransaction,
   toSerializableTransaction,
-  type Address,
-  type Chain,
-  type Hex,
 } from "thirdweb";
-import { initializeLogger } from "../../lib/logger.js";
-import { Queue, UnrecoverableError, Worker, type Job } from "bullmq";
-import { redis } from "../../lib/redis.js";
+import type { TransactionReceipt } from "thirdweb/transaction";
 import { getEngineAccount } from "../../lib/accounts/accounts.js";
 import { getChain } from "../../lib/chain.js";
-import { thirdwebClient } from "../../lib/thirdweb-client.js";
 import {
-  getNonceState,
-  incrementEngineNonce,
-  resetNonceState,
-  setConfirmedNonceMax,
-  recycleNonce,
-  type NonceDbErr,
-  popRecycledNonce,
-  checkMissingNonces,
-} from "./nonce.js";
-import { ResultAsync, safeTry, ok, err, okAsync, errAsync } from "neverthrow";
-import SuperJSON from "superjson";
-import {
-  accountActionErrorMapper,
-  isEngineErr,
   type AccountActionErr,
-  type AccountErr,
+  accountActionErrorMapper,
   type EngineErr,
+  isEngineErr,
   type RpcErr,
 } from "../../lib/errors.js";
-import { keccak256 } from "ox/Hash";
-import type { TransactionReceipt } from "thirdweb/transaction";
-import { checkEoaIssues, type EoaIssues, setOutOfGasIssue } from "./issues.js";
+import { initializeLogger } from "../../lib/logger.js";
+import { redis } from "../../lib/redis.js";
+import { thirdwebClient } from "../../lib/thirdweb-client.js";
 import { recordTransactionAttempt } from "./attempts.js";
+import { checkEoaIssues, type EoaIssues, setOutOfGasIssue } from "./issues.js";
+import {
+  checkMissingNonces,
+  getNonceState,
+  incrementEngineNonce,
+  type NonceDbErr,
+  popRecycledNonce,
+  recycleNonce,
+  resetNonceState,
+  setConfirmedNonceMax,
+} from "./nonce.js";
 
 const sendLogger = initializeLogger("executor:eoa:send");
 const confirmLogger = initializeLogger("executor:eoa:confirm");
@@ -603,13 +602,13 @@ export const sendWorker = new Worker<ExecutionRequest, boolean>(
 
     // Check if it's a valid EOA account
     if ("signerAccount" in accountResult.value) {
-      const _error: AccountErr = {
-        kind: "account",
-        code: "account_not_found",
-        status: 400,
-        address: executionOptions.accountAddress,
-        message: `Specified account ${executionOptions.accountAddress} is a smart account, invalid for EOA execution`,
-      };
+      // const _error: AccountErr = {
+      //   kind: "account",
+      //   code: "account_not_found",
+      //   status: 400,
+      //   address: executionOptions.accountAddress,
+      //   message: `Specified account ${executionOptions.accountAddress} is a smart account, invalid for EOA execution`,
+      // };
 
       // todo: call error handler with this error
       throw new UnrecoverableError("Invalid account type");

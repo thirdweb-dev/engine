@@ -1,7 +1,7 @@
-import { type SQL, and, eq, or, sql } from "drizzle-orm";
+import { and, eq, or, type SQL, sql } from "drizzle-orm";
+import { getAddress } from "thirdweb";
 import { z } from "zod";
 import { transactions } from "../../../db/schema.js";
-import { getAddress } from "thirdweb";
 
 // Define filter operation type
 type FilterOperation = "AND" | "OR";
@@ -19,7 +19,7 @@ type FilterField =
 type FilterValue = {
   field: FilterField;
   values: string[];
-  operation: FilterOperation;
+  operation?: FilterOperation;
 };
 
 // Nested filter structure for combining multiple filters
@@ -199,7 +199,7 @@ export const filterValueSchema = z
       "chainId",
     ]),
     values: z.array(z.string()),
-    operation: filterOperationSchema,
+    operation: filterOperationSchema.optional().default("OR"),
   })
   .openapi({
     ref: "TransactionsFilterValue",
