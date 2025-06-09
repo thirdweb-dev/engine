@@ -309,6 +309,13 @@ const _notifyIfLowBalance = async (transaction: MinedTransaction) => {
   }
 };
 
+const SCALING_FACTOR =
+  env.EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR;
+const MAX_POLL_INTERVAL_MS =
+  env.EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS * 1000;
+const BASE_POLL_INTERVAL_MS =
+  env.EXPERIMENTAL__MINE_WORKER_BASE_POLL_INTERVAL_SECONDS * 1000;
+
 // Must be explicitly called for the worker to run on this host.
 export const initMineTransactionWorker = () => {
   const _worker = new Worker(MineTransactionQueue.q.name, handler, {
@@ -317,7 +324,10 @@ export const initMineTransactionWorker = () => {
     settings: {
       backoffStrategy: (attemptsMade: number) => {
         // Retries at 2s, 4s, 6s, ..., 18s, 20s, 20s, 20s, ...
-        return Math.min(attemptsMade * 2_000, 20_000);
+        return Math.min(
+          attemptsMade * BASE_POLL_INTERVAL_MS * SCALING_FACTOR, // 2_000 default * 1.0 = 2_000
+          MAX_POLL_INTERVAL_MS, // 20_000 default
+        );
       },
     },
   });
