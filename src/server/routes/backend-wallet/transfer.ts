@@ -9,7 +9,7 @@ import {
   type Address,
 } from "thirdweb";
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
-import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
+import { isContractDeployed } from "thirdweb/utils";
 import { getChain } from "../../../shared/utils/chain";
 import {
   getChecksumAddress,
