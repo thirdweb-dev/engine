@@ -11,9 +11,13 @@ import {
 import { transfer as transferERC20 } from "thirdweb/extensions/erc20";
 import { isContractDeployed, resolvePromisedValue } from "thirdweb/utils";
 import { getChain } from "../../../shared/utils/chain";
-import { normalizeAddress } from "../../../shared/utils/primitive-types";
+import {
+  getChecksumAddress,
+  normalizeAddress,
+} from "../../../shared/utils/primitive-types";
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import { insertTransaction } from "../../../shared/utils/transaction/insert-transaction";
+import { queueTransaction } from "../../../shared/utils/transaction/queue-transation";
 import type { InsertedTransaction } from "../../../shared/utils/transaction/types";
 import { createCustomError } from "../../middleware/error";
 import { AddressSchema } from "../../schemas/address";
@@ -25,7 +29,7 @@ import {
 } from "../../schemas/shared-api-schemas";
 import { txOverridesWithValueSchema } from "../../schemas/tx-overrides";
 import {
-  walletHeaderSchema,
+  walletWithAAHeaderSchema,
   walletWithAddressParamSchema,
 } from "../../schemas/wallet";
 import { getChainIdFromChain } from "../../utils/chain";
@@ -70,7 +74,7 @@ export async function transfer(fastify: FastifyInstance) {
       operationId: "transfer",
       params: requestSchema,
       body: requestBodySchema,
-      headers: walletHeaderSchema,
+      headers: walletWithAAHeaderSchema,
       querystring: requestQuerystringSchema,
       response: {
         ...standardResponseSchema,
@@ -88,31 +92,50 @@ export async function transfer(fastify: FastifyInstance) {
       const {
         "x-backend-wallet-address": walletAddress,
         "x-idempotency-key": idempotencyKey,
+        "x-account-address": accountAddress,
+        "x-account-factory-address": accountFactoryAddress,
+        "x-account-salt": accountSalt,
         "x-transaction-mode": transactionMode,
-      } = request.headers as Static<typeof walletHeaderSchema>;
+      } = request.headers as Static<typeof walletWithAAHeaderSchema>;
       const { simulateTx: shouldSimulate } = request.query;
 
       // Resolve inputs.
       const currencyAddress = normalizeAddress(_currencyAddress);
       const chainId = await getChainIdFromChain(chain);
 
-      let insertedTransaction: InsertedTransaction;
+      let queueId: string;
       if (
         currencyAddress === ZERO_ADDRESS ||
         currencyAddress === NATIVE_TOKEN_ADDRESS
       ) {
-        insertedTransaction = {
-          isUserOp: false,
+        // Native token transfer - use insertTransaction directly
+        const insertedTransaction: InsertedTransaction = {
           chainId,
           from: walletAddress as Address,
           to: to as Address,
           data: "0x",
           value: toWei(amount),
-          extension: "none",
-          functionName: "transfer",
           transactionMode,
           ...parseTransactionOverrides(txOverrides),
+          ...(accountAddress
+            ? {
+                isUserOp: true,
+                accountAddress: getChecksumAddress(accountAddress),
+                signerAddress: getChecksumAddress(walletAddress),
+                target: getChecksumAddress(to),
+                accountFactoryAddress: getChecksumAddress(
+                  accountFactoryAddress,
+                ),
+                accountSalt,
+              }
+            : { isUserOp: false }),
         };
+
+        queueId = await insertTransaction({
+          insertedTransaction,
+          idempotencyKey,
+          shouldSimulate,
+        });
       } else {
         const contract = getContract({
           client: thirdwebClient,
@@ -131,30 +154,24 @@ export async function transfer(fastify: FastifyInstance) {
           );
         }
 
+        // ERC20 token transfer - use queueTransaction with PreparedTransaction
         const transaction = transferERC20({ contract, to, amount });
 
-        insertedTransaction = {
-          isUserOp: false,
-          chainId,
-          from: walletAddress as Address,
-          to: (await resolvePromisedValue(transaction.to)) as
-            | Address
-            | undefined,
-          data: await resolvePromisedValue(transaction.data),
-          value: 0n,
-          extension: "erc20",
+        queueId = await queueTransaction({
+          transaction,
+          fromAddress: getChecksumAddress(walletAddress),
+          toAddress: getChecksumAddress(to),
+          accountAddress: getChecksumAddress(accountAddress),
+          accountFactoryAddress: getChecksumAddress(accountFactoryAddress),
+          accountSalt,
+          txOverrides,
+          idempotencyKey,
+          shouldSimulate,
           functionName: "transfer",
-          functionArgs: [to, amount, currencyAddress],
+          extension: "erc20",
           transactionMode,
-          ...parseTransactionOverrides(txOverrides),
-        };
+        });
       }
-
-      const queueId = await insertTransaction({
-        insertedTransaction,
-        idempotencyKey,
-        shouldSimulate,
-      });
 
       reply.status(StatusCodes.OK).send({
         result: {

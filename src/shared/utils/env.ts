@@ -103,6 +103,16 @@ export const env = createEnv({
       .default(30 * 60),
     // Sets the max gas price for a transaction attempt. Most RPCs reject transactions above a certain gas price. Default: 10^18 wei.
     EXPERIMENTAL__MAX_GAS_PRICE_WEI: z.coerce.number().default(10 ** 18),
+    EXPERIMENTAL__MINE_WORKER_BASE_POLL_INTERVAL_SECONDS: z.coerce
+      .number()
+      .default(2),
+    EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS: z.coerce
+      .number()
+      .default(20),
+    EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR: z.coerce
+      .number()
+      .gt(0.0, "scaling factor must be greater than 0")
+      .default(1.0),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -151,6 +161,12 @@ export const env = createEnv({
     CUSTOM_HMAC_AUTH_CLIENT_ID: process.env.CUSTOM_HMAC_AUTH_CLIENT_ID,
     CUSTOM_HMAC_AUTH_CLIENT_SECRET: process.env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
     ACCOUNT_CACHE_SIZE: process.env.ACCOUNT_CAHCE_SIZE,
+    EXPERIMENTAL__MINE_WORKER_BASE_POLL_INTERVAL_SECONDS:
+      process.env.EXPERIMENTAL__MINE_WORKER_BASE_POLL_INTERVAL_SECONDS,
+    EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS:
+      process.env.EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS,
+    EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR:
+      process.env.EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR,
   },
   onValidationError: (error: ZodError) => {
     console.error(
