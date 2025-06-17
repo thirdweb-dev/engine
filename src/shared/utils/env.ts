@@ -86,6 +86,8 @@ export const env = createEnv({
     QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(10_000),
     // Sets the number of recent nonces to map to queue IDs.
     NONCE_MAP_COUNT: z.coerce.number().default(10_000),
+    // Overrides the cron schedule for contract subscription jobs.
+    CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE: z.string().optional(),
 
     ENABLE_KEYPAIR_AUTH: boolEnvSchema(false),
     ENABLE_CUSTOM_HMAC_AUTH: boolEnvSchema(false),
@@ -101,6 +103,16 @@ export const env = createEnv({
       .default(30 * 60),
     // Sets the max gas price for a transaction attempt. Most RPCs reject transactions above a certain gas price. Default: 10^18 wei.
     EXPERIMENTAL__MAX_GAS_PRICE_WEI: z.coerce.number().default(10 ** 18),
+    EXPERIMENTAL__MINE_WORKER_BASE_POLL_INTERVAL_SECONDS: z.coerce
+      .number()
+      .default(2),
+    EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS: z.coerce
+      .number()
+      .default(20),
+    EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR: z.coerce
+      .number()
+      .gt(0.0, "scaling factor must be greater than 0")
+      .default(1.0),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -136,6 +148,8 @@ export const env = createEnv({
     QUEUE_COMPLETE_HISTORY_COUNT: process.env.QUEUE_COMPLETE_HISTORY_COUNT,
     QUEUE_FAIL_HISTORY_COUNT: process.env.QUEUE_FAIL_HISTORY_COUNT,
     NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
+    CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE:
+      process.env.CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE,
     EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS:
       process.env.EXPERIMENTAL__MINE_WORKER_TIMEOUT_SECONDS,
     EXPERIMENTAL__MAX_GAS_PRICE_WEI:
@@ -147,6 +161,12 @@ export const env = createEnv({
     CUSTOM_HMAC_AUTH_CLIENT_ID: process.env.CUSTOM_HMAC_AUTH_CLIENT_ID,
     CUSTOM_HMAC_AUTH_CLIENT_SECRET: process.env.CUSTOM_HMAC_AUTH_CLIENT_SECRET,
     ACCOUNT_CACHE_SIZE: process.env.ACCOUNT_CAHCE_SIZE,
+    EXPERIMENTAL__MINE_WORKER_BASE_POLL_INTERVAL_SECONDS:
+      process.env.EXPERIMENTAL__MINE_WORKER_BASE_POLL_INTERVAL_SECONDS,
+    EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS:
+      process.env.EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS,
+    EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR:
+      process.env.EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR,
   },
   onValidationError: (error: ZodError) => {
     console.error(

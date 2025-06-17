@@ -8,7 +8,6 @@ import { env } from "../shared/utils/env";
 import { logger } from "../shared/utils/logger";
 import { metricsServer } from "../shared/utils/prometheus";
 import { withServerUsageReporting } from "../shared/utils/usage";
-import { updateTxListener } from "./listeners/update-tx-listener";
 import { withAdminRoutes } from "./middleware/admin-routes";
 import { withAuth } from "./middleware/auth";
 import { withCors } from "./middleware/cors";
@@ -19,7 +18,6 @@ import { withOpenApi } from "./middleware/open-api";
 import { withPrometheus } from "./middleware/prometheus";
 import { withRateLimit } from "./middleware/rate-limit";
 import { withSecurityHeaders } from "./middleware/security-headers";
-import { withWebSocket } from "./middleware/websocket";
 import { withRoutes } from "./routes";
 import { writeOpenApiToFile } from "./utils/openapi";
 
@@ -82,7 +80,6 @@ export const initServer = async () => {
   withPrometheus(server);
 
   // Register routes
-  await withWebSocket(server);
   await withAuth(server);
   await withOpenApi(server);
   await withRoutes(server);
@@ -132,6 +129,5 @@ export const initServer = async () => {
   });
 
   writeOpenApiToFile(server);
-  await updateTxListener();
-  await clearCacheCron("server");
+  await clearCacheCron();
 };

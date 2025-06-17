@@ -2,7 +2,6 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { deleteContractSubscription } from "../../../../shared/db/contract-subscriptions/delete-contract-subscription";
-import { deleteWebhook } from "../../../../shared/db/webhooks/revoke-webhook";
 import { standardResponseSchema } from "../../../schemas/shared-api-schemas";
 
 const bodySchema = Type.Object({
@@ -44,12 +43,7 @@ export async function removeContractSubscription(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { contractSubscriptionId } = request.body;
 
-      const contractSubscription = await deleteContractSubscription(
-        contractSubscriptionId,
-      );
-      if (contractSubscription.webhookId) {
-        await deleteWebhook(contractSubscription.webhookId);
-      }
+      await deleteContractSubscription(contractSubscriptionId);
 
       reply.status(StatusCodes.OK).send({
         result: {

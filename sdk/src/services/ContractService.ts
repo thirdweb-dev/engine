@@ -12,10 +12,11 @@ export class ContractService {
     /**
      * Read from contract
      * Call a read function on a contract.
-     * @param functionName Name of the function to call on Contract
+     * @param functionName The function to call on the contract. It is highly recommended to provide a full function signature, such as 'function balanceOf(address owner) view returns (uint256)', to avoid ambiguity and to skip ABI resolution
      * @param chain A chain ID ("137") or slug ("polygon-amoy-testnet"). Chain ID is preferred.
      * @param contractAddress Contract address
      * @param args Arguments for the function. Comma Separated
+     * @param abi
      * @returns any Default Response
      * @throws ApiError
      */
@@ -24,6 +25,33 @@ export class ContractService {
         chain: string,
         contractAddress: string,
         args?: string,
+        abi?: Array<{
+            type: string;
+            name?: string;
+            inputs?: Array<{
+                type?: string;
+                name?: string;
+                internalType?: string;
+                stateMutability?: string;
+                components?: Array<{
+                    type?: string;
+                    name?: string;
+                    internalType?: string;
+                }>;
+            }>;
+            outputs?: Array<{
+                type?: string;
+                name?: string;
+                internalType?: string;
+                stateMutability?: string;
+                components?: Array<{
+                    type?: string;
+                    name?: string;
+                    internalType?: string;
+                }>;
+            }>;
+            stateMutability?: string;
+        }>,
     ): CancelablePromise<{
         result: any;
     }> {
@@ -37,6 +65,7 @@ export class ContractService {
             query: {
                 'functionName': functionName,
                 'args': args,
+                'abi': abi,
             },
             errors: {
                 400: `Bad Request`,
