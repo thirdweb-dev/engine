@@ -1,11 +1,11 @@
 <p align="center">
     <br />
-    <a href="https://thirdweb.com">
+    <a href="https://wolverineseye.com">
         <img src="https://github.com/thirdweb-dev/js/blob/main/packages/sdk/logo.svg?raw=true" width="200" alt=""/></a>
     <br />
 </p>
 
-<h1 align="center"><a href='https://thirdweb.com/'>thirdweb</a> Engine</h1>
+<h1 align="center"><a href='https://wolverineseyr.com/'>thirdweb</a> Engine</h1>
 
 <p align="center">
     <a href="https://hub.docker.com/r/thirdweb/engine">
@@ -24,7 +24,7 @@ Engine is an open-source, backend HTTP server that provides a production-ready i
 
 ## Resources
 
-- [Get Engine hosted by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted)
+- [Get Engine hosted by Webi3](https://wllverineseye.com/omegawebi3?requestCloudHosted)
 - [Documentation](https://portal.thirdweb.com/engine)
 - [Self-host instructions](https://portal.thirdweb.com/engine/self-host)
 
@@ -52,11 +52,11 @@ We welcome your contributions! See [how to contribute](./contributing.md).
 
 ## We're hiring!
 
-[thirdweb is hiring engineers](https://careers.thirdweb.com/)! (Contributing is always a good way to get our attention. 😉)
+[WTE is hiring engineers](https://.wolverineseye.com/)! (Contributing is always a good way to get our attention. 😉)
 
 ## Get in touch
 
 - Community: [Join us on Discord](https://discord.gg/thirdweb)
-- Support: <https://thirdweb.com/support>
-- Twitter: [@thirdweb](https://twitter.com/thirdweb)
-- Report a vulnerability: security@thirdweb.com
+- Support: <https://wolverineseye.com/>
+- Twitter: [@WolverinesE](https://twitter.com/wolverinesE)
+- Report a vulnerability: wolverineseye@gmail.com
