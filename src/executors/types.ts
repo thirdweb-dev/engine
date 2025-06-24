@@ -21,7 +21,7 @@ export const bigIntSchema = z
     },
     {
       message: "Input must be a valid integer string convertible to BigInt",
-    },
+    }
   )
   .transform((value) => BigInt(value)) // Transform the string to BigInt
   .openapi({
@@ -148,12 +148,20 @@ export const EXECUTION_OPTIONS_EXAMPLE = {
   from: exampleEvmAddress,
 } as const;
 
+export const eoaExecutionOptionsSchema = z
+  .object({
+    type: z.literal("eoa"),
+    address: evmAddressSchema,
+  })
+  .extend(baseExecutionOptionsSchema);
+
 const executionRequestSchema = z.object({
   executionOptions: z
     .union([
       autoExecutionOptionsSchema,
       aaExecutionOptionsSchema,
       aaZksyncExecutionOptionsSchema,
+      eoaExecutionOptionsSchema,
     ])
     .openapi({
       description:
@@ -174,10 +182,10 @@ const executionRequestSchema = z.object({
 export function buildExecutionRequestSchema<
   T extends z.ZodSchema,
   // biome-ignore lint/complexity/noBannedTypes: sorry, we must
-  E extends z.ZodRawShape = {}, // Default to empty shape if no extension
+  E extends z.ZodRawShape = {} // Default to empty shape if no extension
 >(
   paramsSchema: T,
-  extensionSchema: z.ZodObject<E> = z.object({}) as z.ZodObject<E>,
+  extensionSchema: z.ZodObject<E> = z.object({}) as z.ZodObject<E>
 ): // // Return type reflects the union of two objects, each extended with Base, TxParams, and Extension
 z.ZodObject<
   z.objectUtil.extendShape<
@@ -196,7 +204,7 @@ z.ZodObject<
 }
 
 export const encodedExecutionRequestSchema = buildExecutionRequestSchema(
-  z.array(transactionBodySchema),
+  z.array(transactionBodySchema)
 ).openapi({
   example: {
     params: [
@@ -217,5 +225,5 @@ export type EncodedExecutionRequest = z.infer<
 export const transactionResponseSchema = wrapResponseSchema(
   z.object({
     transactions: z.array(transactionDbEntrySchema),
-  }),
+  })
 );

@@ -75,7 +75,7 @@ export const executionAccountCache = new LRUCache<
 
 // Generate a comprehensive cache key that encodes all request parameters
 function generateExecutionAccountCacheKey(
-  request: EncodedExecutionRequest,
+  request: EncodedExecutionRequest
 ): string {
   switch (request.executionOptions.type) {
     case "auto":
@@ -85,15 +85,24 @@ function generateExecutionAccountCacheKey(
       return [
         `type:${options.type}`,
         `signer:${options.signerAddress}`,
-        `smartAddr:${"smartAccountAddress" in options ? options.smartAccountAddress : "unspecified"}`,
+        `smartAddr:${
+          "smartAccountAddress" in options
+            ? options.smartAccountAddress
+            : "unspecified"
+        }`,
         `entrypoint:${options.entrypointAddress ?? "unspecified"}`,
         `factory:${options.factoryAddress ?? "unspecified"}`,
-        `salt:${"accountSalt" in options ? options.accountSalt : "unspecified"}`,
+        `salt:${
+          "accountSalt" in options ? options.accountSalt : "unspecified"
+        }`,
         `chain:${options.chainId}`,
       ].join("_");
     }
     case "zksync": {
       return `AA:zksync_${request.executionOptions.accountAddress}:${request.executionOptions.chainId}`;
+    }
+    case "eoa": {
+      return `eoa_${request.executionOptions.address}`;
     }
   }
 }
@@ -406,6 +415,27 @@ function getExecutionAccountFromRequest_uncached({
           zkEoaAccount: engineAccountResponse.account,
         });
       }
+      case "eoa": {
+        const engineAccountResponse = yield* getEngineAccount({
+          address: request.executionOptions.address,
+          vaultAccessToken: credentials.vaultAccessToken,
+        });
+
+        if ("account" in engineAccountResponse) {
+          return okAsync({
+            type: "EOA" as const,
+            account: engineAccountResponse.account,
+          });
+        }
+
+        return errAsync({
+          kind: "account",
+          code: "account_not_found",
+          message:
+            "Provided account address is an ERC4337 smart account. ERC4337 Smart Account cannot be used for EOA execution",
+          status: 400,
+        } as AccountErr);
+      }
     }
   });
 }
@@ -448,7 +478,7 @@ export function execute({
             credentials,
             options: resolutionResponse,
             request,
-          }),
+          })
         );
       }
       case "zksync": {
@@ -481,7 +511,7 @@ function executeAA({
       signer: options.signerAccount,
       accountSalt:
         "accountSalt" in options.smartAccountDetails
-          ? (options.smartAccountDetails.accountSalt ?? undefined)
+          ? options.smartAccountDetails.accountSalt ?? undefined
           : undefined,
       accountFactoryAddress: options.smartAccountDetails.factoryAddress,
       entrypointAddress: options.smartAccountDetails.entrypointAddress,
@@ -586,7 +616,7 @@ function executeAA({
           from: executionParams.smartAccountAddress as Address,
         })
         .returning(),
-      mapDbError,
+      mapDbError
     ).mapErr((e) =>
       buildTransactionDbEntryErr({
         error: e,
@@ -594,7 +624,7 @@ function executeAA({
         executionResult: {
           status: "QUEUED",
         },
-      }),
+      })
     );
     // console.timeEnd("execute");
 
