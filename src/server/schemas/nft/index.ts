@@ -302,6 +302,12 @@ export const signature1155InputSchema = Type.Object({
       Type.Integer({ minimum: 0 }),
     ]),
   ),
+  tokenId: Type.Optional(
+    Type.String({
+      description:
+        "The token id to mint. If not provided, a new token id will be generated.",
+    }),
+  ),
 });
 
 export const signature1155OutputSchema = Type.Object({
