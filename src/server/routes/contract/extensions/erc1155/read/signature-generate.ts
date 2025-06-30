@@ -55,6 +55,7 @@ const requestBodySchemaV5 = Type.Intersect([
     currency: Type.Optional(Type.String()),
     validityStartTimestamp: Type.Integer({ minimum: 0 }),
     validityEndTimestamp: Type.Optional(Type.Integer({ minimum: 0 })),
+    tokenId: Type.Optional(Type.String()),
     uid: Type.Optional(Type.String()),
   }),
   Type.Union([
@@ -145,6 +146,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
           currency,
           validityStartTimestamp,
           validityEndTimestamp,
+          tokenId,
           uid,
         } = args;
 
@@ -183,6 +185,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
             royaltyBps,
             primarySaleRecipient,
             pricePerToken,
+            tokenId: maybeBigInt(tokenId),
             pricePerTokenWei: maybeBigInt(pricePerTokenWei),
             currency,
             validityStartTimestamp: new Date(validityStartTimestamp * 1000),
@@ -223,6 +226,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
         royaltyBps,
         royaltyRecipient,
         uid,
+        tokenId,
       } = request.body as Static<typeof requestBodySchemaV4>;
 
       const contract = await getContractV4({
@@ -247,6 +251,7 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
         royaltyBps,
         royaltyRecipient,
         uid,
+        tokenId,
       });
 
       const signedPayload = await contract.erc1155.signature.generate(payload);
