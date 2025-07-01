@@ -144,7 +144,6 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
           pricePerToken,
           pricePerTokenWei,
           currency,
-          validityStartTimestamp,
           validityEndTimestamp,
           tokenId,
           uid,
@@ -188,7 +187,6 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
             tokenId: maybeBigInt(tokenId),
             pricePerTokenWei: maybeBigInt(pricePerTokenWei),
             currency,
-            validityStartTimestamp: new Date(validityStartTimestamp * 1000),
             validityEndTimestamp: validityEndTimestamp
               ? new Date(validityEndTimestamp * 1000)
               : undefined,
@@ -254,7 +252,14 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
         tokenId,
       });
 
-      const signedPayload = await contract.erc1155.signature.generate(payload);
+      const signedPayload = tokenId
+        ? await contract.erc1155.signature.generateFromTokenId(
+            { ...payload, tokenId: BigInt(tokenId) },
+          )
+        : await contract.erc1155.signature.generate(payload);
+
+      console.log("signedPayload", signedPayload);
+
       reply.status(StatusCodes.OK).send({
         result: {
           ...signedPayload,
