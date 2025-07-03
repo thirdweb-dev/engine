@@ -23,6 +23,7 @@ import {
   SendWebhookQueue,
   type WebhookJob,
 } from "../queues/send-webhook-queue";
+import { env } from "../../shared/utils/env";
 
 const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);
@@ -102,7 +103,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
 // Must be explicitly called for the worker to run on this host.
 export const initSendWebhookWorker = () => {
   new Worker(SendWebhookQueue.q.name, handler, {
-    concurrency: 10,
+    concurrency: env.SEND_WEBHOOK_QUEUE_CONCURRENCY,
     connection: redis,
   });
 };
