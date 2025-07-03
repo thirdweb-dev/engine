@@ -94,6 +94,8 @@ export const env = createEnv({
     CUSTOM_HMAC_AUTH_CLIENT_ID: z.string().optional(),
     CUSTOM_HMAC_AUTH_CLIENT_SECRET: z.string().optional(),
 
+    SEND_WEBHOOK_QUEUE_CONCURRENCY: z.coerce.number().default(10),
+
     /**
      * Experimental env vars. These may be renamed or removed in future non-major releases.
      */
@@ -167,6 +169,7 @@ export const env = createEnv({
       process.env.EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS,
     EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR:
       process.env.EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR,
+    SEND_WEBHOOK_QUEUE_CONCURRENCY: process.env.SEND_WEBHOOK_QUEUE_CONCURRENCY,
   },
   onValidationError: (error: ZodError) => {
     console.error(
