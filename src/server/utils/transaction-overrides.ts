@@ -20,6 +20,7 @@ export const parseTransactionOverrides = (
       gasPrice: maybeBigInt(overrides.gasPrice),
       maxFeePerGas: maybeBigInt(overrides.maxFeePerGas),
       maxPriorityFeePerGas: maybeBigInt(overrides.maxPriorityFeePerGas),
+      gasFeeCeiling: maybeBigInt(overrides.gasFeeCeiling),
     },
     timeoutSeconds: overrides.timeoutSeconds,
     // `value` may not be in the overrides object.

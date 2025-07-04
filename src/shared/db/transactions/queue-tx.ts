@@ -23,6 +23,7 @@ interface QueueTxParams {
     gas?: string;
     maxFeePerGas?: string;
     maxPriorityFeePerGas?: string;
+    gasFeeCeiling?: string;
     value?: string;
   };
 }

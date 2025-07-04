@@ -45,6 +45,7 @@ export type InsertedTransaction = {
     gasPrice?: bigint;
     maxFeePerGas?: bigint;
     maxPriorityFeePerGas?: bigint;
+    gasFeeCeiling?: bigint;
   };
   timeoutSeconds?: number;
 

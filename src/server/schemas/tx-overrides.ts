@@ -23,6 +23,13 @@ export const txOverridesSchema = Type.Object({
         ...WeiAmountStringSchema,
         description: "Maximum priority fee per gas",
       }),
+
+      gasFeeCeiling: Type.Optional({
+        ...WeiAmountStringSchema,
+        description:
+          "Maximum gas fee for the transaction. This is the total maximum gas fee you are willing to pay for the transaction. If the chain gas conditions are worse than this, the transaction will be delayed until the gas conditions are better. If chain gas conditions are better than this, the transaction will be sent immediately. This value is only used to determine if the transaction should be delayed or sent immediately, and is not used to calculate the actual gas fee for the transaction.",
+      }),
+
       timeoutSeconds: Type.Optional(
         Type.Integer({
           examples: ["7200"],
