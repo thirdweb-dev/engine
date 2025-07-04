@@ -210,7 +210,9 @@ const _sendUserOp = async (
       });
       accountFactoryAddress = getAddress(onchainAccountFactoryAddress);
     } catch (error) {
-      const errorMessage = `${wrapError(error, "RPC").message} Failed to find factory address for account`;
+      const errorMessage = `${
+        wrapError(error, "RPC").message
+      } Failed to find factory address for account`;
       const erroredTransaction: ErroredTransaction = {
         ...queuedTransaction,
         status: "errored",
@@ -233,7 +235,9 @@ const _sendUserOp = async (
         chain,
       );
     } catch (error) {
-      const errorMessage = `${wrapError(error, "RPC").message} Failed to find entrypoint address for account factory`;
+      const errorMessage = `${
+        wrapError(error, "RPC").message
+      } Failed to find entrypoint address for account factory`;
       const erroredTransaction: ErroredTransaction = {
         ...queuedTransaction,
         status: "errored",
@@ -300,18 +304,36 @@ const _sendUserOp = async (
     return erroredTransaction;
   }
 
-  // Handle if `maxFeePerGas` is overridden.
-  // Set it if the transaction will be sent, otherwise delay the job.
-  if (
-    typeof overrides?.maxFeePerGas !== "undefined" &&
-    unsignedUserOp.maxFeePerGas
-  ) {
-    if (overrides.maxFeePerGas > unsignedUserOp.maxFeePerGas) {
-      unsignedUserOp.maxFeePerGas = overrides.maxFeePerGas;
-    } else {
+  // Handle if `gasFeeCeiling` is overridden.
+  // Delay the job if the estimated cost is higher than the gas fee ceiling.
+  const gasFeeCeiling = overrides?.gasFeeCeiling;
+  if (typeof gasFeeCeiling !== "undefined") {
+    const estimatedCost =
+      unsignedUserOp.maxFeePerGas *
+      (unsignedUserOp.callGasLimit +
+        unsignedUserOp.preVerificationGas +
+        unsignedUserOp.verificationGasLimit);
+
+    if (estimatedCost > gasFeeCeiling) {
       const retryAt = _minutesFromNow(5);
       job.log(
-        `Override gas fee (${overrides.maxFeePerGas}) is lower than onchain fee (${unsignedUserOp.maxFeePerGas}). Delaying job until ${retryAt}.`,
+        `Override gas fee ceiling (${gasFeeCeiling}) is lower than onchain estimated cost (${estimatedCost}). Delaying job until ${retryAt}. [callGasLimit: ${unsignedUserOp.callGasLimit}, preVerificationGas: ${unsignedUserOp.preVerificationGas}, verificationGasLimit: ${unsignedUserOp.verificationGasLimit}, maxFeePerGas: ${unsignedUserOp.maxFeePerGas}]`,
+      );
+      // token is required to acquire lock for delaying currently processing job: https://docs.bullmq.io/patterns/process-step-jobs#delaying
+      await job.moveToDelayed(retryAt.getTime(), token);
+      // throwing delayed error is required to notify bullmq worker not to complete or fail the job
+      throw new DelayedError("Delaying job due to gas fee override");
+    }
+  }
+
+  // Handle if `maxFeePerGas` is overridden.
+  // Set it if the transaction will be sent, otherwise delay the job.
+  const overrideMaxFeePerGas = overrides?.maxFeePerGas;
+  if (typeof overrideMaxFeePerGas !== "undefined") {
+    if (unsignedUserOp.maxFeePerGas > overrideMaxFeePerGas) {
+      const retryAt = _minutesFromNow(5);
+      job.log(
+        `Override gas fee (${overrideMaxFeePerGas}) is lower than onchain fee (${unsignedUserOp.maxFeePerGas}). Delaying job until ${retryAt}.`,
       );
       // token is required to acquire lock for delaying currently processing job: https://docs.bullmq.io/patterns/process-step-jobs#delaying
       await job.moveToDelayed(retryAt.getTime(), token);
@@ -331,7 +353,9 @@ const _sendUserOp = async (
       userOp: unsignedUserOp,
     });
   } catch (error) {
-    const errorMessage = `${wrapError(error, "Bundler").message} Failed to sign prepared userop`;
+    const errorMessage = `${
+      wrapError(error, "Bundler").message
+    } Failed to sign prepared userop`;
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
@@ -356,7 +380,9 @@ const _sendUserOp = async (
       },
     });
   } catch (error) {
-    const errorMessage = `${wrapError(error, "Bundler").message} Failed to bundle userop`;
+    const errorMessage = `${
+      wrapError(error, "Bundler").message
+    } Failed to bundle userop`;
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
@@ -478,6 +504,32 @@ const _sendTransaction = async (
     }
   }
 
+  // Handle if `gasFeeCeiling` is overridden.
+  // Delay the job if the estimated cost is higher than the gas fee ceiling.
+  const gasFeeCeiling = overrides?.gasFeeCeiling;
+  if (typeof gasFeeCeiling !== "undefined") {
+    let estimatedCost = 0n;
+
+    if (populatedTransaction.maxFeePerGas) {
+      estimatedCost =
+        populatedTransaction.maxFeePerGas * populatedTransaction.gas;
+    } else if (populatedTransaction.gasPrice) {
+      estimatedCost = populatedTransaction.gas * populatedTransaction.gasPrice;
+    }
+
+    // in case neither of the estimations work, the estimatedCost will be 0n, so this check should not pass, and transaction remains unaffected
+    if (estimatedCost > gasFeeCeiling) {
+      const retryAt = _minutesFromNow(5);
+      job.log(
+        `Override gas fee ceiling (${gasFeeCeiling}) is lower than onchain estimated cost (${estimatedCost}). Delaying job until ${retryAt}. [gas: ${populatedTransaction.gas}, gasPrice: ${populatedTransaction.gasPrice}, maxFeePerGas: ${populatedTransaction.maxFeePerGas}]`,
+      );
+      // token is required to acquire lock for delaying currently processing job: https://docs.bullmq.io/patterns/process-step-jobs#delaying
+      await job.moveToDelayed(retryAt.getTime(), token);
+      // throwing delayed error is required to notify bullmq worker not to complete or fail the job
+      throw new DelayedError("Delaying job due to gas fee override");
+    }
+  }
+
   // Acquire an unused nonce for this transaction.
   const { nonce, isRecycledNonce } = await acquireNonce({
     queueId,
@@ -495,8 +547,9 @@ const _sendTransaction = async (
   // This call throws if the RPC rejects the transaction.
   let transactionHash: Hex;
   try {
-    const sendTransactionResult =
-      await account.sendTransaction(populatedTransaction);
+    const sendTransactionResult = await account.sendTransaction(
+      populatedTransaction,
+    );
     transactionHash = sendTransactionResult.transactionHash;
   } catch (error: unknown) {
     // If the nonce is already seen onchain (nonce too low) or in mempool (replacement underpriced),
