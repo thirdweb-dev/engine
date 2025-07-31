@@ -277,28 +277,28 @@ export const toTransactionSchema = (
   };
 
   const resolveGas = (): string | null => {
-    if (transaction.status === "sent") {
+    if (transaction.status === "sent" || transaction.status === "mined") {
       return transaction.gas.toString();
     }
     return transaction.overrides?.gas?.toString() ?? null;
   };
 
   const resolveGasPrice = (): string | null => {
-    if (transaction.status === "sent") {
+    if (transaction.status === "sent" || transaction.status === "mined") {
       return transaction.gasPrice?.toString() ?? null;
     }
     return transaction.overrides?.gasPrice?.toString() ?? null;
   };
 
   const resolveMaxFeePerGas = (): string | null => {
-    if (transaction.status === "sent") {
+    if (transaction.status === "sent" || transaction.status === "mined") {
       return transaction.maxFeePerGas?.toString() ?? null;
     }
     return transaction.overrides?.maxFeePerGas?.toString() ?? null;
   };
 
   const resolveMaxPriorityFeePerGas = (): string | null => {
-    if (transaction.status === "sent") {
+    if (transaction.status === "sent" || transaction.status === "mined") {
       return transaction.maxPriorityFeePerGas?.toString() ?? null;
     }
     return transaction.overrides?.maxPriorityFeePerGas?.toString() ?? null;
