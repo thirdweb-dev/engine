@@ -6,6 +6,7 @@ import { arbitrumSepolia } from "thirdweb/chains";
 import { isSmartBackendWallet } from "../../../shared/db/wallets/get-wallet-details";
 import { getWalletDetails } from "../../../shared/db/wallets/get-wallet-details";
 import { walletDetailsToAccount } from "../../../shared/utils/account";
+import { transformBigNumbers } from "../../../shared/utils/bignumber";
 import { getChain } from "../../../shared/utils/chain";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
@@ -47,6 +48,9 @@ export async function signTypedData(fastify: FastifyInstance) {
       const { "x-backend-wallet-address": walletAddress } =
         request.headers as Static<typeof walletHeaderSchema>;
 
+      // Transform any BigNumber objects in the value to stringified bigints
+      const transformedValue = transformBigNumbers(value);
+
       const walletDetails = await getWalletDetails({
         address: walletAddress,
       });
@@ -79,7 +83,7 @@ export async function signTypedData(fastify: FastifyInstance) {
         domain,
         types,
         primaryType: parsedPrimaryType,
-        message: value,
+        message: transformedValue,
       } as never);
 
       reply.status(StatusCodes.OK).send({
