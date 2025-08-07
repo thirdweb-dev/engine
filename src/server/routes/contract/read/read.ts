@@ -3,7 +3,7 @@ import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import type { AbiParameters } from "ox";
 import { readContract as readContractV5, resolveMethod } from "thirdweb";
-import { parseAbiParams } from "thirdweb/utils";
+import { parseAbiParams, stringify } from "thirdweb/utils";
 import type { AbiFunction } from "thirdweb/utils";
 import { getContractV5 } from "../../../../shared/utils/cache/get-contractv5";
 import { prettifyError } from "../../../../shared/utils/error";
@@ -100,7 +100,7 @@ export async function readContract(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         // biome-ignore lint/suspicious/noExplicitAny: data from chain
-        result: returnData as any,
+        result: JSON.parse(stringify(returnData)) as any,
       });
     },
   });
