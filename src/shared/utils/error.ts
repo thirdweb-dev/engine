@@ -19,7 +19,7 @@ export const isNonceAlreadyUsedError = (error: unknown) => {
 
   if (message) {
     return (
-      message.includes("nonce too low") || message.includes("already known")
+      message.includes("nonce too low") || message.includes("already known") || message.includes("incorrect account sequence")
     );
   }
 
