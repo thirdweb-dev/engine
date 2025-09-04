@@ -331,14 +331,12 @@ const handleKeypairAuth = async (args: {
     }) as jsonwebtoken.JwtPayload;
 
     // If `bodyHash` is provided, it must match a hash of the POST request body.
-    if (
-      req.method === "POST" &&
-      payload?.bodyHash &&
-      payload.bodyHash !== hashRequestBody(req)
-    ) {
-      error =
-        "The request body does not match the hash in the access token. See: https://portal.thirdweb.com/engine/features/keypair-authentication";
-      throw error;
+    if (req.method === "POST" && payload?.bodyHash) {
+      const computedBodyHash = hashRequestBody(req);
+      if (computedBodyHash !== payload.bodyHash) {
+        error = `The request body does not match the hash in the access token. See: https://portal.thirdweb.com/engine/v2/features/keypair-authentication. [hash in access token: ${payload.bodyHash}, hash computed from request: ${computedBodyHash}]`;
+        throw error;
+      }
     }
 
     const { isAllowed, ip } = await checkIpInAllowlist(req);
