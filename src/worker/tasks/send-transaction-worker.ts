@@ -295,12 +295,19 @@ const _sendUserOp = async (
     });
   } catch (error) {
     const errorMessage = wrapError(error, "Bundler").message;
+    job.log(`Failed to populate transaction: ${errorMessage}`);
+    
+    // If retry is enabled for prepareUserOp errors, throw to trigger job retry
+    if (env.EXPERIMENTAL__RETRY_PREPARE_USEROP_ERRORS) {
+      throw error;
+    }
+    
+    // Otherwise, return errored transaction as before
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
       errorMessage,
     };
-    job.log(`Failed to populate transaction: ${errorMessage}`);
     return erroredTransaction;
   }
 
@@ -356,12 +363,19 @@ const _sendUserOp = async (
     const errorMessage = `${
       wrapError(error, "Bundler").message
     } Failed to sign prepared userop`;
+    job.log(`Failed to sign userop: ${errorMessage}`);
+    
+    // If retry is enabled for prepareUserOp errors, throw to trigger job retry
+    if (env.EXPERIMENTAL__RETRY_PREPARE_USEROP_ERRORS) {
+      throw error;
+    }
+    
+    // Otherwise, return errored transaction as before
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
       errorMessage,
     };
-    job.log(`Failed to sign userop: ${errorMessage}`);
     return erroredTransaction;
   }
 
@@ -383,12 +397,19 @@ const _sendUserOp = async (
     const errorMessage = `${
       wrapError(error, "Bundler").message
     } Failed to bundle userop`;
+    job.log(`Failed to bundle userop: ${errorMessage}`);
+    
+    // If retry is enabled for prepareUserOp errors, throw to trigger job retry
+    if (env.EXPERIMENTAL__RETRY_PREPARE_USEROP_ERRORS) {
+      throw error;
+    }
+    
+    // Otherwise, return errored transaction as before
     const erroredTransaction: ErroredTransaction = {
       ...queuedTransaction,
       status: "errored",
       errorMessage,
     };
-    job.log(`Failed to bundle userop: ${errorMessage}`);
     return erroredTransaction;
   }
 

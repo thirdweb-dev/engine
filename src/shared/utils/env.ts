@@ -115,6 +115,8 @@ export const env = createEnv({
       .number()
       .gt(0.0, "scaling factor must be greater than 0")
       .default(1.0),
+    // Retry prepareUserOp errors instead of immediately failing the transaction
+    EXPERIMENTAL__RETRY_PREPARE_USEROP_ERRORS: boolEnvSchema(false),
   },
   clientPrefix: "NEVER_USED",
   client: {},
@@ -169,6 +171,8 @@ export const env = createEnv({
       process.env.EXPERIMENTAL__MINE_WORKER_MAX_POLL_INTERVAL_SECONDS,
     EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR:
       process.env.EXPERIMENTAL__MINE_WORKER_POLL_INTERVAL_SCALING_FACTOR,
+    EXPERIMENTAL__RETRY_PREPARE_USEROP_ERRORS:
+      process.env.EXPERIMENTAL__RETRY_PREPARE_USEROP_ERRORS,
     SEND_WEBHOOK_QUEUE_CONCURRENCY: process.env.SEND_WEBHOOK_QUEUE_CONCURRENCY,
   },
   onValidationError: (error: ZodError) => {
