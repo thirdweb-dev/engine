@@ -160,7 +160,7 @@ export async function transfer(fastify: FastifyInstance) {
         queueId = await queueTransaction({
           transaction,
           fromAddress: getChecksumAddress(walletAddress),
-          toAddress: getChecksumAddress(to),
+          toAddress: getChecksumAddress(transaction.to),
           accountAddress: getChecksumAddress(accountAddress),
           accountFactoryAddress: getChecksumAddress(accountFactoryAddress),
           accountSalt,
