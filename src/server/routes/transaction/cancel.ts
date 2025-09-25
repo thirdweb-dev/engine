@@ -82,33 +82,39 @@ export async function cancelTransaction(fastify: FastifyInstance) {
 
       const message = "Transaction successfully cancelled.";
       let cancelledTransaction: CancelledTransaction | null = null;
-      if (!transaction.isUserOp) {
-        if (transaction.status === "queued") {
-          // Remove all retries from the SEND_TRANSACTION queue.
-          const config = await getConfig();
-          for (
-            let resendCount = 0;
-            resendCount < config.maxRetriesPerTx;
-            resendCount++
-          ) {
-            await SendTransactionQueue.remove({ queueId, resendCount });
-          }
+      if (transaction.status === "queued") {
+        // Remove all retries from the SEND_TRANSACTION queue.
+        const config = await getConfig();
+        for (
+          let resendCount = 0;
+          resendCount < config.maxRetriesPerTx;
+          resendCount++
+        ) {
+          await SendTransactionQueue.remove({ queueId, resendCount });
+        }
 
-          cancelledTransaction = {
-            ...transaction,
-            status: "cancelled",
-            cancelledAt: new Date(),
+        cancelledTransaction = {
+          ...transaction,
+          status: "cancelled",
+          cancelledAt: new Date(),
 
-            // Dummy data since the transaction was never sent.
-            sentAt: new Date(),
-            sentAtBlock: await getBlockNumberish(transaction.chainId),
+          // Dummy data since the transaction was never sent.
+          sentAt: new Date(),
+          sentAtBlock: await getBlockNumberish(transaction.chainId),
 
-            isUserOp: false,
-            gas: 0n,
-            nonce: -1,
-            sentTransactionHashes: [],
-          };
-        } else if (transaction.status === "sent") {
+          // isUserOp: false,
+          gas: 0n,
+          ...(transaction.isUserOp
+            ? {
+                userOpHash:
+                  "0x0000000000000000000000000000000000000000000000000000000000000000",
+                nonce: "cancelled",
+                isUserOp: true,
+              }
+            : { nonce: -1, sentTransactionHashes: [], isUserOp: false }),
+        };
+      } else if (transaction.status === "sent") {
+        if (!transaction.isUserOp) {
           // Cancel a sent transaction with the same nonce.
           const { chainId, from, nonce } = transaction;
           const transactionHash = await sendCancellationTransaction({
@@ -143,7 +149,10 @@ export async function cancelTransaction(fastify: FastifyInstance) {
           queueId,
           status: "success",
           message,
-          transactionHash: cancelledTransaction.sentTransactionHashes.at(-1),
+          transactionHash:
+            "sentTransactionHashes" in cancelledTransaction
+              ? cancelledTransaction.sentTransactionHashes.at(-1)
+              : cancelledTransaction.userOpHash,
         },
       });
     },
