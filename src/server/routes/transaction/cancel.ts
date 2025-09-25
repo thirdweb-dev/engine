@@ -105,7 +105,12 @@ export async function cancelTransaction(fastify: FastifyInstance) {
           // isUserOp: false,
           gas: 0n,
           ...(transaction.isUserOp
-            ? { userOpHash: "0x", nonce: "cancelled", isUserOp: true }
+            ? {
+                userOpHash:
+                  "0x0000000000000000000000000000000000000000000000000000000000000000",
+                nonce: "cancelled",
+                isUserOp: true,
+              }
             : { nonce: -1, sentTransactionHashes: [], isUserOp: false }),
         };
       } else if (transaction.status === "sent") {
