@@ -18,8 +18,8 @@ type CreateWalletDetailsParams = {
       awsKmsKeyId?: string; // deprecated and unused, todo: remove with next breaking change
       awsKmsArn: string;
 
-      awsKmsSecretAccessKey: string; // will be encrypted and stored, pass plaintext to this function
-      awsKmsAccessKeyId: string;
+      awsKmsSecretAccessKey?: string; // will be encrypted and stored, pass plaintext to this function
+      awsKmsAccessKeyId?: string;
     }
   | {
       type: "gcp-kms";
@@ -35,8 +35,8 @@ type CreateWalletDetailsParams = {
   | {
       type: "smart:aws-kms";
       awsKmsArn: string;
-      awsKmsSecretAccessKey: string; // will be encrypted and stored, pass plaintext to this function
-      awsKmsAccessKeyId: string;
+      awsKmsSecretAccessKey?: string; // will be encrypted and stored, pass plaintext to this function
+      awsKmsAccessKeyId?: string;
       accountSignerAddress: Address;
 
       accountFactoryAddress: Address | undefined;
@@ -99,7 +99,9 @@ export const createWalletDetails = async ({
         ...walletDetails,
         address: walletDetails.address.toLowerCase(),
 
-        awsKmsSecretAccessKey: encrypt(walletDetails.awsKmsSecretAccessKey),
+        awsKmsSecretAccessKey: walletDetails.awsKmsSecretAccessKey 
+          ? encrypt(walletDetails.awsKmsSecretAccessKey)
+          : null,
       },
     });
   }
@@ -123,7 +125,9 @@ export const createWalletDetails = async ({
         ...walletDetails,
 
         address: walletDetails.address.toLowerCase(),
-        awsKmsSecretAccessKey: encrypt(walletDetails.awsKmsSecretAccessKey),
+        awsKmsSecretAccessKey: walletDetails.awsKmsSecretAccessKey 
+          ? encrypt(walletDetails.awsKmsSecretAccessKey)
+          : null,
         accountSignerAddress: walletDetails.accountSignerAddress.toLowerCase(),
 
         accountFactoryAddress:

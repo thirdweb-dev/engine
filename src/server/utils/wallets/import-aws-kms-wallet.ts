@@ -6,7 +6,7 @@ import { getAwsKmsAccount } from "./get-aws-kms-account";
 
 interface ImportAwsKmsWalletParams {
   awsKmsArn: string;
-  crendentials: {
+  crendentials?: {
     accessKeyId: string;
     secretAccessKey: string;
   };
@@ -27,10 +27,10 @@ export const importAwsKmsWallet = async ({
     keyId,
     config: {
       region,
-      credentials: {
+      credentials: crendentials ? {
         accessKeyId: crendentials.accessKeyId,
         secretAccessKey: crendentials.secretAccessKey,
-      },
+      } : undefined,
     },
   });
 
@@ -42,8 +42,8 @@ export const importAwsKmsWallet = async ({
     awsKmsArn,
     label,
 
-    awsKmsAccessKeyId: crendentials.accessKeyId,
-    awsKmsSecretAccessKey: crendentials.secretAccessKey,
+    awsKmsAccessKeyId: crendentials?.accessKeyId,
+    awsKmsSecretAccessKey: crendentials?.secretAccessKey,
   });
 
   return walletAddress;

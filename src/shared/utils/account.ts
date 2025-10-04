@@ -67,10 +67,10 @@ export const walletDetailsToAccount = async ({
         keyId,
         config: {
           region,
-          credentials: {
+          credentials: walletDetails.awsKmsAccessKeyId && walletDetails.awsKmsSecretAccessKey ? {
             accessKeyId: walletDetails.awsKmsAccessKeyId,
             secretAccessKey: walletDetails.awsKmsSecretAccessKey,
-          },
+          } : undefined,
         },
       });
 
@@ -103,10 +103,10 @@ export const walletDetailsToAccount = async ({
         keyId,
         config: {
           region,
-          credentials: {
+          credentials: walletDetails.awsKmsAccessKeyId && walletDetails.awsKmsSecretAccessKey ? {
             accessKeyId: walletDetails.awsKmsAccessKeyId,
             secretAccessKey: walletDetails.awsKmsSecretAccessKey,
-          },
+          } : undefined,
         },
       });
 

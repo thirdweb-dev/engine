@@ -158,20 +158,17 @@ export const importBackendWallet = async (fastify: FastifyInstance) => {
           credentials?.awsAccessKeyId ??
           config.walletConfiguration.aws?.awsAccessKeyId;
 
-        if (!(accessKeyId && secretAccessKey)) {
-          throw createCustomError(
-            `Please provide 'awsAccessKeyId' and 'awsSecretAccessKey' to import a wallet. Can be provided as configuration or as credential with the request.`,
-            StatusCodes.BAD_REQUEST,
-            "MISSING_PARAMETERS",
-          );
-        }
-
+        // Credentials are optional - if not provided, AWS SDK will use IAM roles or other credential providers
+        const walletCredentials = 
+          accessKeyId && secretAccessKey
+            ? {
+                accessKeyId,
+                secretAccessKey,
+              }
+            : undefined;
         walletAddress = await importAwsKmsWallet({
           awsKmsArn,
-          crendentials: {
-            accessKeyId,
-            secretAccessKey,
-          },
+          crendentials: walletCredentials,
           label,
         });
       }

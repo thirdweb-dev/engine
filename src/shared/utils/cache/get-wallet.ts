@@ -62,8 +62,8 @@ export const getWallet = async <TWallet extends EVMWallet>({
       wallet = new AwsKmsWallet({
         keyId: splitArn.keyId,
         region: splitArn.region,
-        accessKeyId: walletDetails.awsKmsAccessKeyId,
-        secretAccessKey: walletDetails.awsKmsSecretAccessKey,
+        accessKeyId: walletDetails.awsKmsAccessKeyId ?? undefined,
+        secretAccessKey: walletDetails.awsKmsSecretAccessKey ?? undefined,
       });
 
       break;
@@ -103,8 +103,8 @@ export const getWallet = async <TWallet extends EVMWallet>({
       const adminWallet = new AwsKmsWallet({
         keyId: splitArn.keyId,
         region: splitArn.region,
-        accessKeyId: walletDetails.awsKmsAccessKeyId,
-        secretAccessKey: walletDetails.awsKmsSecretAccessKey,
+        accessKeyId: walletDetails.awsKmsAccessKeyId ?? undefined,
+        secretAccessKey: walletDetails.awsKmsSecretAccessKey ?? undefined,
       });
 
       const smartWallet: EVMWallet = await getSmartWallet({

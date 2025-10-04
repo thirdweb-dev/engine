@@ -67,10 +67,10 @@ export const createSmartAwsWalletDetails = async ({
     keyId,
     config: {
       region: awsKmsWallet.params.awsRegion,
-      credentials: {
+      credentials: awsKmsWallet.params.awsAccessKeyId && awsKmsWallet.params.awsSecretAccessKey ? {
         accessKeyId: awsKmsWallet.params.awsAccessKeyId,
         secretAccessKey: awsKmsWallet.params.awsSecretAccessKey,
-      },
+      } : undefined,
     },
   });
 

@@ -63,8 +63,8 @@ const awsKmsWalletSchema = z
   .object({
     type: z.literal("aws-kms"),
     awsKmsArn: z.string(),
-    awsKmsSecretAccessKey: z.string(),
-    awsKmsAccessKeyId: z.string(),
+    awsKmsSecretAccessKey: z.string().nullable(),
+    awsKmsAccessKeyId: z.string().nullable(),
   })
   .merge(baseWalletPartialSchema);
 

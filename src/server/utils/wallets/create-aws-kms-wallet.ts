@@ -27,10 +27,10 @@ export const createAwsKmsWalletDetails = async ({
   return importAwsKmsWallet({
     awsKmsArn,
     label,
-    crendentials: {
+    crendentials: params.awsAccessKeyId && params.awsSecretAccessKey ? {
       accessKeyId: params.awsAccessKeyId,
       secretAccessKey: params.awsSecretAccessKey,
-    },
+    } : undefined,
   });
 };
 
@@ -54,10 +54,10 @@ export const createAwsKmsKey = async (
 
   const client = new KMSClient({
     region: params.awsRegion,
-    credentials: {
+    credentials: params.awsAccessKeyId && params.awsSecretAccessKey ? {
       accessKeyId: params.awsAccessKeyId,
       secretAccessKey: params.awsSecretAccessKey,
-    },
+    } : undefined,
   });
 
   const res = await client.send(
