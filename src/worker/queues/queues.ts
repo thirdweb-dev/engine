@@ -6,11 +6,11 @@ export const defaultJobOptions: JobsOptions = {
   // Does not retry by default. Queues must explicitly define their own retry count and backoff behavior.
   attempts: 0,
   removeOnComplete: {
-    age: 7 * 24 * 60 * 60,
+    age: env.QUEUE_JOB_RETENTION_AGE_SECONDS,
     count: env.QUEUE_COMPLETE_HISTORY_COUNT,
   },
   removeOnFail: {
-    age: 7 * 24 * 60 * 60,
+    age: env.QUEUE_JOB_RETENTION_AGE_SECONDS,
     count: env.QUEUE_FAIL_HISTORY_COUNT,
   },
 };

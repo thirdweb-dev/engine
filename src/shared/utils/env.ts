@@ -86,6 +86,8 @@ export const env = createEnv({
     QUEUE_FAIL_HISTORY_COUNT: z.coerce.number().default(10_000),
     // Sets the number of recent nonces to map to queue IDs.
     NONCE_MAP_COUNT: z.coerce.number().default(10_000),
+    // Sets the age (in seconds) after which completed or failed jobs are eligible for removal. Default: 7 days.
+    QUEUE_JOB_RETENTION_AGE_SECONDS: z.coerce.number().default(7 * 24 * 60 * 60),
     // Overrides the cron schedule for contract subscription jobs.
     CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE: z.string().optional(),
 
@@ -151,6 +153,7 @@ export const env = createEnv({
     DD_TRACER_ACTIVATED: process.env.DD_TRACER_ACTIVATED,
     QUEUE_COMPLETE_HISTORY_COUNT: process.env.QUEUE_COMPLETE_HISTORY_COUNT,
     QUEUE_FAIL_HISTORY_COUNT: process.env.QUEUE_FAIL_HISTORY_COUNT,
+    QUEUE_JOB_RETENTION_AGE_SECONDS: process.env.QUEUE_JOB_RETENTION_AGE_SECONDS,
     NONCE_MAP_COUNT: process.env.NONCE_MAP_COUNT,
     CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE:
       process.env.CONTRACT_SUBSCRIPTION_CRON_SCHEDULE_OVERRIDE,
