@@ -26,7 +26,7 @@ Engine is an open-source, backend HTTP server that provides a production-ready i
 
 - [Get Engine hosted by thirdweb](https://thirdweb.com/dashboard/engine?requestCloudHosted)
 - [Documentation](https://portal.thirdweb.com/engine)
-- [Self-host instructions](https://portal.thirdweb.com/engine/self-host)
+- [Self-host instructions](https://portal.thirdweb.com/engine/v2/self-host)
 
 ## Features
 
