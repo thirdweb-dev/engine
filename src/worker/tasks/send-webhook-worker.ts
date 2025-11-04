@@ -28,6 +28,27 @@ import { env } from "../../shared/utils/env";
 const handler: Processor<string, void, string> = async (job: Job<string>) => {
   const { data, webhook } = superjson.parse<WebhookJob>(job.data);
 
+  // Extract transaction ID if available
+  let transactionId: string | undefined;
+  if ("queueId" in data) {
+    transactionId = data.queueId;
+  }
+
+  // Log webhook attempt with HMAC info
+  const hmacMode = env.ENABLE_CUSTOM_HMAC_AUTH ? "custom" : "standard";
+  logger({
+    service: "worker",
+    level: "info",
+    message: `[Webhook] Attempting to send webhook for transaction ${transactionId} at destination ${webhook.url}`,
+    queueId: transactionId,
+    data: {
+      eventType: data.type,
+      destination: webhook.url,
+      webhookId: webhook.id,
+      hmacMode,
+    },
+  });
+
   let resp: WebhookResponse | undefined;
   switch (data.type) {
     case WebhooksEventTypes.CONTRACT_SUBSCRIPTION: {
@@ -61,6 +82,17 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
       const transaction = await TransactionDB.get(data.queueId);
       if (!transaction) {
         job.log("Transaction not found.");
+        logger({
+          service: "worker",
+          level: "warn",
+          message: `[Webhook] Transaction not found for webhook`,
+          queueId: data.queueId,
+          data: {
+            eventType: data.type,
+            destination: webhook.url,
+            webhookId: webhook.id,
+          },
+        });
         return;
       }
       const webhookBody: Static<typeof TransactionSchema> =
@@ -85,6 +117,26 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     }
   }
 
+  // Log the response
+  if (resp) {
+    const logLevel = resp.ok ? "info" : resp.status >= 500 ? "error" : "warn";
+    logger({
+      service: "worker",
+      level: logLevel,
+      message: `[Webhook] Webhook response received: ${resp.status} for transaction ${transactionId} at destination ${webhook.url}`,
+      queueId: transactionId,
+      data: {
+        eventType: data.type,
+        destination: webhook.url,
+        webhookId: webhook.id,
+        responseCode: resp.status,
+        responseOk: resp.ok,
+        hmacMode,
+        responseBody: resp.body.substring(0, 200), // Truncate response body to first 200 chars
+      },
+    });
+  }
+
   // Throw on 5xx so it remains in the queue to retry later.
   if (resp && resp.status >= 500) {
     const error = new Error(
@@ -92,9 +144,17 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     );
     job.log(error.message);
     logger({
-      level: "debug",
-      message: error.message,
+      level: "error",
+      message: `[Webhook] 5xx error, will retry`,
       service: "worker",
+      queueId: transactionId,
+      data: {
+        eventType: data.type,
+        destination: webhook.url,
+        webhookId: webhook.id,
+        responseCode: resp.status,
+        hmacMode,
+      },
     });
     throw error;
   }

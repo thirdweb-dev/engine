@@ -13,6 +13,7 @@ import {
 import { getWebhooksByEventType } from "../../shared/utils/cache/get-webhook";
 import { redis } from "../../shared/utils/redis/redis";
 import { defaultJobOptions } from "./queues";
+import { logger } from "../../shared/utils/logger";
 
 export type EnqueueContractSubscriptionWebhookData = {
   type: WebhooksEventTypes.CONTRACT_SUBSCRIPTION;
@@ -137,15 +138,41 @@ export class SendWebhookQueue {
       ...(await getWebhooksByEventType(data.type)),
     ];
 
+    logger({
+      service: "worker",
+      level: "info",
+      message: `[Webhook] Enqueuing transaction webhooks to queue for transaction ${data.queueId}`,
+      queueId: data.queueId,
+      data: {
+        eventType: data.type,
+        webhookCount: webhooks.length,
+      },
+    });
+
     for (const webhook of webhooks) {
       const job: WebhookJob = { data, webhook };
       const serialized = SuperJSON.stringify(job);
+      const idempotencyKey = this._getTransactionWebhookIdempotencyKey({
+        webhook,
+        eventType: data.type,
+        queueId: data.queueId,
+      });
+      
       await this.q.add(`${data.type}:${webhook.id}`, serialized, {
-        jobId: this._getTransactionWebhookIdempotencyKey({
-          webhook,
+        jobId: idempotencyKey,
+      });
+
+      logger({
+        service: "worker",
+        level: "info",
+        message: `[Webhook] Transaction webhook added to queue for transaction ${data.queueId} at destination ${webhook.url}`,
+        queueId: data.queueId,
+        data: {
           eventType: data.type,
-          queueId: data.queueId,
-        }),
+          destination: webhook.url,
+          webhookId: webhook.id,
+          idempotencyKey,
+        },
       });
     }
   };
