@@ -19,7 +19,7 @@ try {
   });
 }
 
-redis.on("error", (error) => () => {
+redis.on("error", (error) => {
   logger({
     level: "error",
     message: `Redis error: ${error}`,
