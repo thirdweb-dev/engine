@@ -258,8 +258,6 @@ export async function erc1155SignatureGenerate(fastify: FastifyInstance) {
           )
         : await contract.erc1155.signature.generate(payload);
 
-      console.log("signedPayload", signedPayload);
-
       reply.status(StatusCodes.OK).send({
         result: {
           ...signedPayload,

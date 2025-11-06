@@ -215,7 +215,7 @@ const _acquireRecycledNonce = async (
 
 /**
  * Resync the nonce to the onchain nonce.
- * @TODO: Redis lock this to make this method safe to call concurrently.
+ * Uses a Lua script for atomic operations to prevent race conditions.
  */
 export const syncLatestNonceFromOnchain = async (
   chainId: number,
@@ -232,8 +232,18 @@ export const syncLatestNonceFromOnchain = async (
     blockTag: "latest",
   });
 
-  const key = lastUsedNonceKey(chainId, walletAddress);
-  await redis.set(key, transactionCount - 1);
+  // Use Lua script for atomic SET operation to prevent race conditions
+  const script = `
+    local transactionCount = tonumber(ARGV[1])
+    redis.call('set', KEYS[1], transactionCount - 1)
+    return transactionCount - 1
+  `;
+  await redis.eval(
+    script,
+    1,
+    lastUsedNonceKey(chainId, normalizeAddress(walletAddress)),
+    transactionCount.toString(),
+  );
 };
 
 /**

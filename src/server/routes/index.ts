@@ -124,6 +124,8 @@ import { getAllWalletSubscriptionsRoute } from "./wallet-subscriptions/get-all";
 import { addWalletSubscriptionRoute } from "./wallet-subscriptions/add";
 import { updateWalletSubscriptionRoute } from "./wallet-subscriptions/update";
 import { deleteWalletSubscriptionRoute } from "./wallet-subscriptions/delete";
+import { healthDetailed } from "./system/health-detailed";
+import { estimateBatchTransactions, executeBatchTransactions, getBatchStatus } from "./transaction/batch-optimizer";
 
 export async function withRoutes(fastify: FastifyInstance) {
   // Backend Wallets
@@ -254,6 +256,11 @@ export async function withRoutes(fastify: FastifyInstance) {
   await fastify.register(getTransactionReceipt);
   await fastify.register(getUserOpReceipt);
   await fastify.register(getTransactionLogs);
+  
+  // Transaction Batch Optimizer - Smart batching with cost optimization
+  await fastify.register(estimateBatchTransactions);
+  await fastify.register(executeBatchTransactions);
+  await fastify.register(getBatchStatus);
 
   // Extensions
   await fastify.register(accountFactoryRoutes);
@@ -267,6 +274,7 @@ export async function withRoutes(fastify: FastifyInstance) {
   // These should be hidden by default
   await fastify.register(home);
   await fastify.register(healthCheck);
+  await fastify.register(healthDetailed);
   await fastify.register(queueStatus);
 
   // Contract Subscriptions
