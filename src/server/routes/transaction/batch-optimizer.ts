@@ -9,6 +9,41 @@ import { eth_gasPrice, getRpcClient, type Address } from "thirdweb";
 import { thirdwebClient } from "../../../shared/utils/sdk";
 import { getAddress } from "thirdweb";
 
+// Helper constants and functions for bigint formatting
+const WEI_PER_ETH = 10n ** 18n;
+
+const formatWei = (value: bigint, fractionDigits = 6): string => {
+  const sign = value < 0n ? "-" : "";
+  const abs = value < 0n ? -value : value;
+  const integer = abs / WEI_PER_ETH;
+  const remainder = abs % WEI_PER_ETH;
+  if (fractionDigits === 0) {
+    return `${sign}${integer.toString()}`;
+  }
+  const scale = 10n ** BigInt(fractionDigits);
+  const fractional = (remainder * scale) / WEI_PER_ETH;
+  return `${sign}${integer.toString()}.${fractional
+    .toString()
+    .padStart(fractionDigits, "0")}`;
+};
+
+const formatPercent = (
+  numerator: bigint,
+  denominator: bigint,
+  fractionDigits = 1,
+): string => {
+  if (denominator === 0n || numerator === 0n) {
+    return `0.${"0".repeat(fractionDigits)}`;
+  }
+  const scale = 10n ** BigInt(fractionDigits);
+  const scaled = (numerator * 100n * scale) / denominator;
+  const integer = scaled / scale;
+  const remainder = scaled % scale;
+  return `${integer.toString()}.${remainder
+    .toString()
+    .padStart(fractionDigits, "0")}`;
+};
+
 const batchRequestSchema = Type.Object({
   fromAddress: Type.String({
     description: "The wallet address to send transactions from",
@@ -204,12 +239,20 @@ export async function estimateBatchTransactions(fastify: FastifyInstance) {
       );
       const totalCostWei = totalGasEstimate * gasPrice;
 
-      // Calculate savings vs individual transactions
-      // Batching saves on base gas and reduces total gas by ~15%
-      const individualCostWei =
-        BigInt(transactions.length) * (21000n * gasPrice);
+      // Calculate savings vs individual transactions with proper gas estimation
+      // Apply expected savings percentages based on optimization strategy
+      const savingsBpsByStrategy: Record<"speed" | "balanced" | "cost", bigint> = {
+        speed: 0n,      // No savings for speed mode
+        balanced: 15n,  // 15% savings for balanced
+        cost: 25n,      // 25% savings for cost mode
+      };
+      const savingsBps = savingsBpsByStrategy[optimization] ?? 15n;
+      
+      // Individual gas estimate = batch gas * (100 + savings%) / 100
+      const individualGasEstimate = (totalGasEstimate * (100n + savingsBps)) / 100n;
+      const individualCostWei = individualGasEstimate * gasPrice;
+      const savingsGas = individualGasEstimate - totalGasEstimate;
       const savingsWei = individualCostWei - totalCostWei;
-      const savingsPercent = Number((savingsWei * 100n) / individualCostWei);
 
       // Optimization strategy recommendations
       let estimatedTimeSeconds = 30;
@@ -266,12 +309,12 @@ export async function estimateBatchTransactions(fastify: FastifyInstance) {
           totalGasEstimate: totalGasEstimate.toString(),
           gasPrice: gasPrice.toString(),
           totalCostWei: totalCostWei.toString(),
-          totalCostEth: (Number(totalCostWei) / 1e18).toFixed(6),
+          totalCostEth: formatWei(totalCostWei, 6),
           perTransactionCostWei: (totalCostWei / BigInt(transactions.length)).toString(),
         },
         optimization: {
           strategy: optimization,
-          savingsVsIndividual: `${savingsPercent.toFixed(1)}% (${(Number(savingsWei) / 1e18).toFixed(6)} ETH)`,
+          savingsVsIndividual: `${formatPercent(savingsGas, individualGasEstimate, 1)}% (${formatWei(savingsWei, 6)} ETH)`,
           estimatedTimeSeconds,
           recommendation,
         },

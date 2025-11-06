@@ -34,7 +34,8 @@ export function withRateLimit(server: FastifyInstance) {
     const ipCount = await redis.incr(ipKey);
     redis.expire(ipKey, 2 * 60);
     
-    const perIpLimit = Math.floor(env.GLOBAL_RATE_LIMIT_PER_MIN / 10);
+    // Ensure minimum of 1 request per IP even for low global limits
+    const perIpLimit = Math.max(1, Math.floor(env.GLOBAL_RATE_LIMIT_PER_MIN / 10));
     if (ipCount > perIpLimit) {
       throw createCustomError(
         `Too many requests from your IP. Please reduce your calls to ${perIpLimit} requests/minute.`,
