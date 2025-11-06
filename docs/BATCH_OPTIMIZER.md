@@ -1,8 +1,33 @@
 # Smart Transaction Batch Optimizer 🚀
 
+## ⚠️ Preview Status
+
+**This feature is currently in PREVIEW mode for demonstration and testing purposes.**
+
+**Current Limitations:**
+- ✅ Gas price analysis and cost estimation - **WORKING**
+- ✅ Batch metadata caching and tracking - **WORKING**  
+- ⚠️ **Gas estimation uses average values (71k gas/tx) instead of actual estimateGas calls**
+- ⚠️ **Execute endpoint does NOT actually queue transactions to blockchain**
+- ⚠️ **Status endpoint returns placeholder data only**
+
+**Use this feature to:**
+- Explore the batch optimizer API design
+- Test cost estimation and gas price analysis
+- Evaluate potential gas savings for your use case
+
+**Production Integration Required:**
+- Integration with `SendTransactionQueue` for actual execution
+- Real `eth_estimateGas` calls for accurate gas estimates
+- Database/queue polling for transaction status tracking
+
+See "Future Enhancements" section for full production roadmap.
+
+---
+
 ## Overview
 
-A game-changing feature that helps users **save 15-30% on gas costs** while giving thirdweb Engine unprecedented scalability through intelligent transaction batching and cost optimization.
+A feature designed to help users **save 15-30% on gas costs** while giving thirdweb Engine unprecedented scalability through intelligent transaction batching and cost optimization.
 
 ## Why This Matters
 

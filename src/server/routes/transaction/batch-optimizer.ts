@@ -119,6 +119,7 @@ const executeBatchRequestSchema = Type.Object({
 const batchStatusSchema = Type.Object({
   batchId: Type.String(),
   status: Type.Literal("pending")
+    .Or(Type.Literal("estimated"))
     .Or(Type.Literal("queued"))
     .Or(Type.Literal("processing"))
     .Or(Type.Literal("completed"))
@@ -133,6 +134,7 @@ const batchStatusSchema = Type.Object({
       transactionHash: Type.Optional(Type.String()),
     }),
   ),
+  warning: Type.Optional(Type.String()),
 });
 
 // Helper to generate batch ID
@@ -151,12 +153,17 @@ const getBatchData = async (batchId: string) => {
 };
 
 // Estimate gas for transactions
+// NOTE: This is a simplified estimation using average gas values.
+// TODO: Replace with actual estimateGas calls for production accuracy.
+// Current implementation provides conservative estimates but may not reflect
+// actual gas costs for complex contract interactions.
 const estimateGasForBatch = async (
   chainId: number,
   transactions: any[],
 ): Promise<bigint> => {
-  // Simplified estimation - in production, would call estimateGas for each
-  const avgGasPerTx = 21000n + 50000n; // Base + avg contract interaction
+  // Using average gas: 21k (base transfer) + 50k (avg contract call)
+  // Real implementation should call eth_estimateGas for each transaction
+  const avgGasPerTx = 21000n + 50000n;
   return BigInt(transactions.length) * avgGasPerTx;
 };
 
@@ -374,8 +381,9 @@ export async function executeBatchTransactions(fastify: FastifyInstance) {
 
       const { fromAddress, chainId, transactions, optimization } = batchData;
 
-      // TODO: Integrate with actual transaction queue
-      // For now, return success with placeholder queue IDs
+      // IMPORTANT: This is a placeholder implementation
+      // TODO: Integrate with SendTransactionQueue to actually queue transactions
+      // Current implementation only estimates and caches batch data for demonstration
       const queueIds = transactions.map(
         (_: any, i: number) => `${batchId}_tx_${i}`,
       );
@@ -383,16 +391,17 @@ export async function executeBatchTransactions(fastify: FastifyInstance) {
       // Update batch status in Redis
       await cacheBatchData(batchId, {
         ...batchData,
-        status: "queued",
+        status: "estimated", // Changed from "queued" to reflect actual state
         queueIds,
-        executedAt: Date.now(),
+        estimatedAt: Date.now(),
       });
 
       reply.status(StatusCodes.OK).send({
         batchId,
-        status: "queued",
-        message: `Batch of ${transactions.length} transactions queued for execution with ${optimization} optimization`,
+        status: "estimated",
+        message: `Batch of ${transactions.length} transactions estimated. Note: Actual execution integration pending - this endpoint currently provides cost estimates only.`,
         queueIds,
+        warning: "Batch optimizer is in preview mode. Transactions are not actually queued for execution yet.",
       });
     },
   );
@@ -430,20 +439,23 @@ export async function getBatchStatus(fastify: FastifyInstance) {
 
       const { transactions, queueIds = [] } = batchData;
 
-      // TODO: Get actual transaction statuses from queue
+      // IMPORTANT: Placeholder status implementation
+      // TODO: Query actual transaction statuses from SendTransactionQueue/database
+      // Current implementation only returns cached estimation data
       const txStatuses = queueIds.map((queueId: string, i: number) => ({
         queueId,
-        status: "pending",
+        status: "estimated", // Reflects that transactions are not actually queued
         transactionHash: undefined,
       }));
 
       const response = {
         batchId,
-        status: batchData.status || "pending",
+        status: batchData.status || "estimated",
         transactionCount: transactions.length,
         completedCount: 0,
         failedCount: 0,
         transactions: txStatuses,
+        warning: "Batch optimizer is in preview mode. Status tracking not yet implemented.",
       } satisfies Static<typeof batchStatusSchema>;
 
       reply.status(StatusCodes.OK).send(response);
