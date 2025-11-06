@@ -93,7 +93,6 @@ import { getAllRelayers } from "./relayer/get-all";
 import { revokeRelayer } from "./relayer/revoke";
 import { updateRelayer } from "./relayer/update";
 import { healthCheck } from "./system/health";
-import { healthDetailed } from "./system/health-detailed";
 import { queueStatus } from "./system/queue";
 import { getTransactionLogs } from "./transaction/blockchain/get-logs";
 import { getTransactionReceipt } from "./transaction/blockchain/get-receipt";
