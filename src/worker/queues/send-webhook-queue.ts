@@ -59,7 +59,7 @@ export class SendWebhookQueue {
     connection: redis,
     defaultJobOptions: {
       ...defaultJobOptions,
-      attempts: 8,
+      attempts: 5,
       backoff: { type: "exponential", delay: 5_000 },
     },
   });
