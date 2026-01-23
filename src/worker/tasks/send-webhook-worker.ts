@@ -85,7 +85,7 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
         logger({
           service: "worker",
           level: "warn",
-          message: `[Webhook] Transaction not found for webhook`,
+          message: "[Webhook] Transaction not found for webhook",
           queueId: data.queueId,
           data: {
             eventType: data.type,
@@ -137,15 +137,21 @@ const handler: Processor<string, void, string> = async (job: Job<string>) => {
     });
   }
 
-  // Throw on 5xx so it remains in the queue to retry later.
-  if (resp && resp.status >= 500) {
+  // Throw on 5xx, 429 (rate limit), or 403 (forbidden) so it remains in the queue to retry later.
+  if (resp && (resp.status >= 500 || resp.status === 429 || resp.status === 403)) {
+    const errorType =
+      resp.status === 429
+        ? "rate limited"
+        : resp.status === 403
+          ? "forbidden"
+          : "server error";
     const error = new Error(
       `Received status ${resp.status} from webhook ${webhook.url}.`,
     );
     job.log(error.message);
     logger({
       level: "error",
-      message: `[Webhook] 5xx error, will retry`,
+      message: `[Webhook] ${resp.status} ${errorType}, will retry`,
       service: "worker",
       queueId: transactionId,
       data: {
