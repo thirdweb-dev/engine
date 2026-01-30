@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { loadBackfillRoute } from "./admin/backfill";
 import { getNonceDetailsRoute } from "./admin/nonces";
 import { getTransactionDetails } from "./admin/transaction";
 import { createAccessToken } from "./auth/access-tokens/create";
@@ -297,4 +298,5 @@ export async function withRoutes(fastify: FastifyInstance) {
   // Admin
   await fastify.register(getTransactionDetails);
   await fastify.register(getNonceDetailsRoute);
+  await fastify.register(loadBackfillRoute);
 }

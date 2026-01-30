@@ -15,6 +15,7 @@ import { resolveContractAbi } from "thirdweb/contract";
 import type { TransactionReceipt } from "thirdweb/transaction";
 import { TransactionDB } from "../../../../shared/db/transactions/db";
 import { getChain } from "../../../../shared/utils/chain";
+import { env } from "../../../../shared/utils/env";
 import { thirdwebClient } from "../../../../shared/utils/sdk";
 import { createCustomError } from "../../../middleware/error";
 import { AddressSchema, TransactionHashSchema } from "../../../schemas/address";
@@ -153,9 +154,18 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
       // Get the transaction hash from the provided input.
       let hash: Hex | undefined;
       if (queueId) {
+        // Primary lookup
         const transaction = await TransactionDB.get(queueId);
         if (transaction?.status === "mined") {
           hash = transaction.transactionHash;
+        }
+
+        // Fallback to backfill table if enabled and not found
+        if (!hash && env.ENABLE_TX_BACKFILL_FALLBACK) {
+          const backfillHash = await TransactionDB.getBackfillHash(queueId);
+          if (backfillHash) {
+            hash = backfillHash as Hex;
+          }
         }
       } else if (transactionHash) {
         hash = transactionHash as Hex;

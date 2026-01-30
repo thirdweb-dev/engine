@@ -98,6 +98,8 @@ export const env = createEnv({
 
     SEND_WEBHOOK_QUEUE_CONCURRENCY: z.coerce.number().default(10),
 
+    ENABLE_TX_BACKFILL_FALLBACK: boolEnvSchema(false),
+
     /**
      * Experimental env vars. These may be renamed or removed in future non-major releases.
      */
@@ -177,6 +179,7 @@ export const env = createEnv({
     EXPERIMENTAL__RETRY_PREPARE_USEROP_ERRORS:
       process.env.EXPERIMENTAL__RETRY_PREPARE_USEROP_ERRORS,
     SEND_WEBHOOK_QUEUE_CONCURRENCY: process.env.SEND_WEBHOOK_QUEUE_CONCURRENCY,
+    ENABLE_TX_BACKFILL_FALLBACK: process.env.ENABLE_TX_BACKFILL_FALLBACK,
   },
   onValidationError: (error: ZodError) => {
     console.error(

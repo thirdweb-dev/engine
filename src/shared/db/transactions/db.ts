@@ -37,6 +37,7 @@ export class TransactionDB {
   private static minedTransactionsKey = "transaction:mined";
   private static cancelledTransactionsKey = "transaction:cancelled";
   private static erroredTransactionsKey = "transaction:errored";
+  private static backfillKey = (queueId: string) => `backfill:${queueId}`;
 
   /**
    * Inserts or replaces a transaction details.
@@ -207,6 +208,55 @@ export class TransactionDB {
       .exec();
 
     return numPruned;
+  };
+
+  /**
+   * Gets transaction hash from backfill table.
+   */
+  static getBackfillHash = async (queueId: string): Promise<string | null> => {
+    return redis.get(this.backfillKey(queueId));
+  };
+
+  /**
+   * Sets a backfill entry. Uses SETNX to never overwrite.
+   * @returns true if set, false if already exists
+   */
+  static setBackfill = async (
+    queueId: string,
+    transactionHash: string,
+  ): Promise<boolean> => {
+    const result = await redis.setnx(
+      this.backfillKey(queueId),
+      transactionHash,
+    );
+    return result === 1;
+  };
+
+  /**
+   * Bulk set backfill entries.
+   * @returns { inserted: number, skipped: number }
+   */
+  static bulkSetBackfill = async (
+    entries: Array<{ queueId: string; transactionHash: string }>,
+  ): Promise<{ inserted: number; skipped: number }> => {
+    let inserted = 0;
+    let skipped = 0;
+
+    const pipeline = redis.pipeline();
+    for (const { queueId, transactionHash } of entries) {
+      pipeline.setnx(this.backfillKey(queueId), transactionHash);
+    }
+
+    const results = await pipeline.exec();
+    for (const [err, result] of results ?? []) {
+      if (!err && result === 1) {
+        inserted++;
+      } else {
+        skipped++;
+      }
+    }
+
+    return { inserted, skipped };
   };
 }
 
