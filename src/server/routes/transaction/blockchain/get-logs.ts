@@ -8,6 +8,7 @@ import {
   eth_getTransactionReceipt,
   getContract,
   getRpcClient,
+  isHex,
   parseEventLogs,
   prepareEvent,
 } from "thirdweb";
@@ -167,7 +168,7 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
         // Fallback to backfill table if enabled and not found
         if (!hash && env.ENABLE_TX_BACKFILL_FALLBACK) {
           const backfillHash = await TransactionDB.getBackfillHash(queueId);
-          if (backfillHash) {
+          if (backfillHash && isHex(backfillHash)) {
             hash = backfillHash as Hex;
           }
         }
