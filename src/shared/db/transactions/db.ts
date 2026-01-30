@@ -258,6 +258,33 @@ export class TransactionDB {
 
     return { inserted, skipped };
   };
+
+  /**
+   * Clears all backfill entries.
+   * @returns number - The number of entries deleted.
+   */
+  static clearBackfill = async (): Promise<number> => {
+    let totalDeleted = 0;
+    let cursor = "0";
+
+    do {
+      const [nextCursor, keys] = await redis.scan(
+        cursor,
+        "MATCH",
+        "backfill:*",
+        "COUNT",
+        1000,
+      );
+      cursor = nextCursor;
+
+      if (keys.length > 0) {
+        const deleted = await redis.unlink(...keys);
+        totalDeleted += deleted;
+      }
+    } while (cursor !== "0");
+
+    return totalDeleted;
+  };
 }
 
 const toSeconds = (timestamp: Date) => timestamp.getTime() / 1000;

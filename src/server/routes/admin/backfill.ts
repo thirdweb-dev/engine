@@ -4,17 +4,20 @@ import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../shared/db/transactions/db";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
-const requestBodySchema = Type.Object({
+const loadRequestBodySchema = Type.Object({
   entries: Type.Array(
     Type.Object({
       queueId: Type.String({ description: "Queue ID (UUID)" }),
       transactionHash: Type.String({ description: "Transaction hash (0x...)" }),
     }),
-    { description: "Array of queueId to transactionHash mappings", maxItems: 10000 },
+    {
+      description: "Array of queueId to transactionHash mappings",
+      maxItems: 10000,
+    },
   ),
 });
 
-const responseBodySchema = Type.Object({
+const loadResponseBodySchema = Type.Object({
   result: Type.Object({
     inserted: Type.Integer({ description: "Number of entries inserted" }),
     skipped: Type.Integer({
@@ -23,10 +26,16 @@ const responseBodySchema = Type.Object({
   }),
 });
 
+const clearResponseBodySchema = Type.Object({
+  result: Type.Object({
+    deleted: Type.Integer({ description: "Number of entries deleted" }),
+  }),
+});
+
 export async function loadBackfillRoute(fastify: FastifyInstance) {
   fastify.route<{
-    Body: Static<typeof requestBodySchema>;
-    Reply: Static<typeof responseBodySchema>;
+    Body: Static<typeof loadRequestBodySchema>;
+    Reply: Static<typeof loadResponseBodySchema>;
   }>({
     method: "POST",
     url: "/admin/backfill",
@@ -36,10 +45,10 @@ export async function loadBackfillRoute(fastify: FastifyInstance) {
         "Load queueId to transactionHash mappings into the backfill table. Uses SETNX to never overwrite existing entries.",
       tags: ["Admin"],
       operationId: "loadBackfill",
-      body: requestBodySchema,
+      body: loadRequestBodySchema,
       response: {
         ...standardResponseSchema,
-        [StatusCodes.OK]: responseBodySchema,
+        [StatusCodes.OK]: loadResponseBodySchema,
       },
       hide: true,
     },
@@ -51,6 +60,34 @@ export async function loadBackfillRoute(fastify: FastifyInstance) {
 
       reply.status(StatusCodes.OK).send({
         result: { inserted, skipped },
+      });
+    },
+  });
+}
+
+export async function clearBackfillRoute(fastify: FastifyInstance) {
+  fastify.route<{
+    Reply: Static<typeof clearResponseBodySchema>;
+  }>({
+    method: "DELETE",
+    url: "/admin/backfill",
+    schema: {
+      summary: "Clear backfill table",
+      description:
+        "Delete all entries from the backfill table. This action cannot be undone.",
+      tags: ["Admin"],
+      operationId: "clearBackfill",
+      response: {
+        ...standardResponseSchema,
+        [StatusCodes.OK]: clearResponseBodySchema,
+      },
+      hide: true,
+    },
+    handler: async (_request, reply) => {
+      const deleted = await TransactionDB.clearBackfill();
+
+      reply.status(StatusCodes.OK).send({
+        result: { deleted },
       });
     },
   });
