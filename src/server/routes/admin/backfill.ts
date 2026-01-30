@@ -4,6 +4,18 @@ import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../shared/db/transactions/db";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 
+// SPECIAL LOGIC FOR AMEX
+// added two admin routes to backfill tx hashes to the backfill table
+// loadBackfillRoute and clearBackfillRoute
+// loadBackfillRoute is used to load tx hashes to the backfill table
+// clearBackfillRoute is used to clear the backfill table
+// these routes are used by the AMEX script to backfill tx hashes to the backfill table
+// see https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
+// loadBackfillRoute is used to load tx hashes to the backfill table
+// clearBackfillRoute is used to clear the backfill table
+// these routes are used by the AMEX script to backfill tx hashes to the backfill table
+// see https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
+
 const loadRequestBodySchema = Type.Object({
   entries: Type.Array(
     Type.Object({
