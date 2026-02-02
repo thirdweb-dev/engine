@@ -3,6 +3,15 @@ import { MAX_REDIS_BATCH_SIZE, redis } from "../../utils/redis/redis";
 import type { AnyTransaction } from "../../utils/transaction/types";
 
 /**
+ * Backfill entry stored as JSON in Redis.
+ * Used for transaction status and logs fallback lookup.
+ */
+export interface BackfillEntry {
+  status: "mined" | "errored";
+  transactionHash?: string; // Only present for mined transactions
+}
+
+/**
  * Schemas
  *
  * Transaction details
@@ -211,10 +220,30 @@ export class TransactionDB {
   };
 
   /**
+   * Gets backfill entry from backfill table.
+   * Returns parsed JSON or handles backwards compatibility for plain string tx hashes.
+   */
+  static getBackfill = async (queueId: string): Promise<BackfillEntry | null> => {
+    const val = await redis.get(this.backfillKey(queueId));
+    if (!val) return null;
+    try {
+      return JSON.parse(val) as BackfillEntry;
+    } catch {
+      // Backwards compatibility: treat plain string as mined tx hash
+      return { status: "mined", transactionHash: val };
+    }
+  };
+
+  /**
+   * @deprecated Use getBackfill instead
    * Gets transaction hash from backfill table.
    */
   static getBackfillHash = async (queueId: string): Promise<string | null> => {
-    return redis.get(this.backfillKey(queueId));
+    const backfill = await this.getBackfill(queueId);
+    if (backfill?.status === "mined" && backfill.transactionHash) {
+      return backfill.transactionHash;
+    }
+    return null;
   };
 
   /**
@@ -225,9 +254,10 @@ export class TransactionDB {
     queueId: string,
     transactionHash: string,
   ): Promise<boolean> => {
+    const entry: BackfillEntry = { status: "mined", transactionHash };
     const result = await redis.setnx(
       this.backfillKey(queueId),
-      transactionHash,
+      JSON.stringify(entry),
     );
     return result === 1;
   };
@@ -237,14 +267,15 @@ export class TransactionDB {
    * @returns { inserted: number, skipped: number }
    */
   static bulkSetBackfill = async (
-    entries: Array<{ queueId: string; transactionHash: string }>,
+    entries: Array<{ queueId: string; status: "mined" | "errored"; transactionHash?: string }>,
   ): Promise<{ inserted: number; skipped: number }> => {
     let inserted = 0;
     let skipped = 0;
 
     const pipeline = redis.pipeline();
-    for (const { queueId, transactionHash } of entries) {
-      pipeline.setnx(this.backfillKey(queueId), transactionHash);
+    for (const { queueId, status, transactionHash } of entries) {
+      const entry: BackfillEntry = { status, transactionHash };
+      pipeline.setnx(this.backfillKey(queueId), JSON.stringify(entry));
     }
 
     const results = await pipeline.exec();

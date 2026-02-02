@@ -2,12 +2,84 @@ import { type Static, Type } from "@sinclair/typebox";
 import type { FastifyInstance } from "fastify";
 import { StatusCodes } from "http-status-codes";
 import { TransactionDB } from "../../../shared/db/transactions/db";
+import { env } from "../../../shared/utils/env";
 import { createCustomError } from "../../middleware/error";
 import { standardResponseSchema } from "../../schemas/shared-api-schemas";
 import {
   TransactionSchema,
   toTransactionSchema,
 } from "../../schemas/transaction";
+
+/**
+ * Creates a minimal transaction response from backfill data.
+ * Used when the transaction is not found in Redis but exists in the backfill table.
+ */
+const createBackfillResponse = (
+  queueId: string,
+  backfill: { status: "mined" | "errored"; transactionHash?: string },
+): Static<typeof TransactionSchema> => {
+  const baseResponse: Static<typeof TransactionSchema> = {
+    queueId,
+    status: backfill.status,
+    chainId: null,
+    fromAddress: null,
+    toAddress: null,
+    data: null,
+    extension: null,
+    value: null,
+    nonce: null,
+    gasLimit: null,
+    gasPrice: null,
+    maxFeePerGas: null,
+    maxPriorityFeePerGas: null,
+    transactionType: null,
+    transactionHash: null,
+    queuedAt: null,
+    sentAt: null,
+    minedAt: null,
+    cancelledAt: null,
+    deployedContractAddress: null,
+    deployedContractType: null,
+    errorMessage: null,
+    sentAtBlockNumber: null,
+    blockNumber: null,
+    retryCount: 0,
+    retryGasValues: null,
+    retryMaxFeePerGas: null,
+    retryMaxPriorityFeePerGas: null,
+    signerAddress: null,
+    accountAddress: null,
+    accountSalt: null,
+    accountFactoryAddress: null,
+    target: null,
+    sender: null,
+    initCode: null,
+    callData: null,
+    callGasLimit: null,
+    verificationGasLimit: null,
+    preVerificationGas: null,
+    paymasterAndData: null,
+    userOpHash: null,
+    functionName: null,
+    functionArgs: null,
+    onChainTxStatus: null,
+    onchainStatus: null,
+    effectiveGasPrice: null,
+    cumulativeGasUsed: null,
+    batchOperations: null,
+  };
+
+  if (backfill.status === "mined" && backfill.transactionHash) {
+    return {
+      ...baseResponse,
+      transactionHash: backfill.transactionHash,
+      onchainStatus: "success",
+      onChainTxStatus: 1,
+    };
+  }
+
+  return baseResponse;
+};
 
 // INPUT
 const requestSchema = Type.Object({
@@ -75,6 +147,16 @@ export async function getTransactionStatusRoute(fastify: FastifyInstance) {
 
       const transaction = await TransactionDB.get(queueId);
       if (!transaction) {
+        // Fallback to backfill table if enabled
+        if (env.ENABLE_TX_BACKFILL_FALLBACK) {
+          const backfill = await TransactionDB.getBackfill(queueId);
+          if (backfill) {
+            return reply.status(StatusCodes.OK).send({
+              result: createBackfillResponse(queueId, backfill),
+            });
+          }
+        }
+
         throw createCustomError(
           "Transaction not found.",
           StatusCodes.BAD_REQUEST,
@@ -122,6 +204,16 @@ export async function getTransactionStatusQueryParamRoute(
 
       const transaction = await TransactionDB.get(queueId);
       if (!transaction) {
+        // Fallback to backfill table if enabled
+        if (env.ENABLE_TX_BACKFILL_FALLBACK) {
+          const backfill = await TransactionDB.getBackfill(queueId);
+          if (backfill) {
+            return reply.status(StatusCodes.OK).send({
+              result: createBackfillResponse(queueId, backfill),
+            });
+          }
+        }
+
         throw createCustomError(
           "Transaction not found.",
           StatusCodes.BAD_REQUEST,

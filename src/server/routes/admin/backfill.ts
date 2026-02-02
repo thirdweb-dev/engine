@@ -20,10 +20,15 @@ const loadRequestBodySchema = Type.Object({
   entries: Type.Array(
     Type.Object({
       queueId: Type.String({ description: "Queue ID (UUID)" }),
-      transactionHash: Type.String({ description: "Transaction hash (0x...)" }),
+      status: Type.Union([Type.Literal("mined"), Type.Literal("errored")], {
+        description: "Transaction status: 'mined' for successful transactions, 'errored' for failed ones",
+      }),
+      transactionHash: Type.Optional(
+        Type.String({ description: "Transaction hash (0x...). Required for mined transactions." }),
+      ),
     }),
     {
-      description: "Array of queueId to transactionHash mappings",
+      description: "Array of queueId to status/transactionHash mappings",
       maxItems: 10000,
     },
   ),

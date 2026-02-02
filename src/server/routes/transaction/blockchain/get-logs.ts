@@ -167,9 +167,9 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
         // see https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
         // Fallback to backfill table if enabled and not found
         if (!hash && env.ENABLE_TX_BACKFILL_FALLBACK) {
-          const backfillHash = await TransactionDB.getBackfillHash(queueId);
-          if (backfillHash && isHex(backfillHash)) {
-            hash = backfillHash as Hex;
+          const backfill = await TransactionDB.getBackfill(queueId);
+          if (backfill?.status === "mined" && backfill.transactionHash && isHex(backfill.transactionHash)) {
+            hash = backfill.transactionHash as Hex;
           }
         }
       } else if (transactionHash) {
