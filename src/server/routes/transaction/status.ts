@@ -147,7 +147,11 @@ export async function getTransactionStatusRoute(fastify: FastifyInstance) {
 
       const transaction = await TransactionDB.get(queueId);
       if (!transaction) {
-        // Fallback to backfill table if enabled
+        // SPECIAL LOGIC FOR AMEX
+        // AMEX uses this endpoint to check transaction status for queue IDs they didn't receive webhooks for.
+        // The queue ID's were cleaned out of Redis so we backfilled tx data to this backfill table.
+        // See https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
+        // Fallback to backfill table if enabled and not found
         if (env.ENABLE_TX_BACKFILL_FALLBACK) {
           const backfill = await TransactionDB.getBackfill(queueId);
           if (backfill) {
@@ -204,7 +208,11 @@ export async function getTransactionStatusQueryParamRoute(
 
       const transaction = await TransactionDB.get(queueId);
       if (!transaction) {
-        // Fallback to backfill table if enabled
+        // SPECIAL LOGIC FOR AMEX
+        // AMEX uses this endpoint to check transaction status for queue IDs they didn't receive webhooks for.
+        // The queue ID's were cleaned out of Redis so we backfilled tx data to this backfill table.
+        // See https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
+        // Fallback to backfill table if enabled and not found
         if (env.ENABLE_TX_BACKFILL_FALLBACK) {
           const backfill = await TransactionDB.getBackfill(queueId);
           if (backfill) {
