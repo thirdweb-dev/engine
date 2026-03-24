@@ -145,22 +145,21 @@ export async function getTransactionStatusRoute(fastify: FastifyInstance) {
     handler: async (request, reply) => {
       const { queueId } = request.params;
 
+      // SPECIAL LOGIC FOR AMEX
+      // Backfill table takes priority — entries are intentional overrides for
+      // queue IDs that are stuck in Redis (e.g. orphaned "queued" transactions).
+      // See https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
+      if (env.ENABLE_TX_BACKFILL_FALLBACK) {
+        const backfill = await TransactionDB.getBackfill(queueId);
+        if (backfill) {
+          return reply.status(StatusCodes.OK).send({
+            result: createBackfillResponse(queueId, backfill),
+          });
+        }
+      }
+
       const transaction = await TransactionDB.get(queueId);
       if (!transaction) {
-        // SPECIAL LOGIC FOR AMEX
-        // AMEX uses this endpoint to check transaction status for queue IDs they didn't receive webhooks for.
-        // The queue ID's were cleaned out of Redis so we backfilled tx data to this backfill table.
-        // See https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
-        // Fallback to backfill table if enabled and not found
-        if (env.ENABLE_TX_BACKFILL_FALLBACK) {
-          const backfill = await TransactionDB.getBackfill(queueId);
-          if (backfill) {
-            return reply.status(StatusCodes.OK).send({
-              result: createBackfillResponse(queueId, backfill),
-            });
-          }
-        }
-
         throw createCustomError(
           "Transaction not found.",
           StatusCodes.BAD_REQUEST,
@@ -206,22 +205,20 @@ export async function getTransactionStatusQueryParamRoute(
         );
       }
 
+      // SPECIAL LOGIC FOR AMEX
+      // Backfill table takes priority — entries are intentional overrides for
+      // queue IDs that are stuck in Redis (e.g. orphaned "queued" transactions).
+      if (env.ENABLE_TX_BACKFILL_FALLBACK) {
+        const backfill = await TransactionDB.getBackfill(queueId);
+        if (backfill) {
+          return reply.status(StatusCodes.OK).send({
+            result: createBackfillResponse(queueId, backfill),
+          });
+        }
+      }
+
       const transaction = await TransactionDB.get(queueId);
       if (!transaction) {
-        // SPECIAL LOGIC FOR AMEX
-        // AMEX uses this endpoint to check transaction status for queue IDs they didn't receive webhooks for.
-        // The queue ID's were cleaned out of Redis so we backfilled tx data to this backfill table.
-        // See https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
-        // Fallback to backfill table if enabled and not found
-        if (env.ENABLE_TX_BACKFILL_FALLBACK) {
-          const backfill = await TransactionDB.getBackfill(queueId);
-          if (backfill) {
-            return reply.status(StatusCodes.OK).send({
-              result: createBackfillResponse(queueId, backfill),
-            });
-          }
-        }
-
         throw createCustomError(
           "Transaction not found.",
           StatusCodes.BAD_REQUEST,
