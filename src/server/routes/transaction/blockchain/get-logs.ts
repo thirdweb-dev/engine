@@ -155,21 +155,20 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
       // Get the transaction hash from the provided input.
       let hash: Hex | undefined;
       if (queueId) {
-        // Primary lookup
-        const transaction = await TransactionDB.get(queueId);
-        if (transaction?.status === "mined") {
-          hash = transaction.transactionHash;
-        }
-
         // SPECIAL LOGIC FOR AMEX
-        // AMEX uses this endpoint to get logs for transactions they didn't receive webhooks for
-        // the queue ID's were cleaned out of REDIS so we backfilled tx hashes to this backfill table
-        // see https://github.com/thirdweb-dev/solutions-customer-scripts/blob/main/amex/scripts/load-backfill-via-api.ts
-        // Fallback to backfill table if enabled and not found
-        if (!hash && env.ENABLE_TX_BACKFILL_FALLBACK) {
+        // Backfill table takes priority — entries are intentional overrides for
+        // queue IDs that are stuck in Redis (e.g. orphaned "queued" transactions).
+        if (env.ENABLE_TX_BACKFILL_FALLBACK) {
           const backfill = await TransactionDB.getBackfill(queueId);
           if (backfill?.status === "mined" && backfill.transactionHash && isHex(backfill.transactionHash)) {
             hash = backfill.transactionHash as Hex;
+          }
+        }
+
+        if (!hash) {
+          const transaction = await TransactionDB.get(queueId);
+          if (transaction?.status === "mined") {
+            hash = transaction.transactionHash;
           }
         }
       } else if (transactionHash) {
