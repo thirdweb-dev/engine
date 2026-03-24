@@ -160,12 +160,20 @@ export async function getTransactionLogs(fastify: FastifyInstance) {
         // queue IDs that are stuck in Redis (e.g. orphaned "queued" transactions).
         if (env.ENABLE_TX_BACKFILL_FALLBACK) {
           const backfill = await TransactionDB.getBackfill(queueId);
-          if (backfill?.status === "mined" && backfill.transactionHash && isHex(backfill.transactionHash)) {
-            hash = backfill.transactionHash as Hex;
+          if (backfill) {
+            // Backfill entry exists and is authoritative — only set hash if mined.
+            // If backfill is errored, hash stays undefined and we skip Redis lookup.
+            if (backfill.status === "mined" && backfill.transactionHash && isHex(backfill.transactionHash)) {
+              hash = backfill.transactionHash as Hex;
+            }
+          } else {
+            // No backfill entry — fall back to Redis.
+            const transaction = await TransactionDB.get(queueId);
+            if (transaction?.status === "mined") {
+              hash = transaction.transactionHash;
+            }
           }
-        }
-
-        if (!hash) {
+        } else {
           const transaction = await TransactionDB.get(queueId);
           if (transaction?.status === "mined") {
             hash = transaction.transactionHash;
