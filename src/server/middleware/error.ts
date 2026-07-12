@@ -37,7 +37,7 @@ export const badAddressError = (address: string): CustomError =>
 
 export const badChainError = (chain: string | number): CustomError =>
   createCustomError(
-    `Invalid chain: ${chain}. If this is a custom chain, add it to chain overrides.`,
+    `Invalid chain: ${chain}. If this is a custom chain, add it to chain overrides. Smart wallet and UserOp routes also require bundler support for that chain.`,
     StatusCodes.BAD_REQUEST,
     "INVALID_CHAIN",
   );

@@ -46,6 +46,11 @@ Engine is an open-source, backend HTTP server that provides a production-ready i
 - Other deployment options
   - [Deploy on Railway](https://railway.app/template/fcEVay)
 
+## Notes on custom chains
+
+- Chain overrides let Engine resolve custom EVM chains for standard reads, writes, and deployments.
+- Smart wallet / UserOp routes still depend on thirdweb bundler support for the target chain. A chain override alone does not enable hosted bundler or paymaster infrastructure for that chain.
+
 ## Contributing
 
 We welcome your contributions! See [how to contribute](./contributing.md).
